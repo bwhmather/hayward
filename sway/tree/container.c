@@ -30,7 +30,30 @@
 #include "log.h"
 #include "stringop.h"
 
-struct sway_container *container_create(struct sway_view *view) {
+struct sway_container *column_create(void) {
+	struct sway_container *c = calloc(1, sizeof(struct sway_container));
+	if (!c) {
+		sway_log(SWAY_ERROR, "Unable to allocate sway_container");
+		return NULL;
+	}
+	node_init(&c->node, N_CONTAINER, c);
+	c->pending.layout = L_NONE;
+	c->view = NULL;
+	c->alpha = 1.0f;
+
+	c->pending.children = create_list();
+	c->current.children = create_list();
+
+	c->marks = create_list();
+	c->outputs = create_list();
+
+	wl_signal_init(&c->events.destroy);
+	wl_signal_emit(&root->events.new_node, &c->node);
+
+	return c;
+}
+
+struct sway_container *window_create(struct sway_view *view) {
 	struct sway_container *c = calloc(1, sizeof(struct sway_container));
 	if (!c) {
 		sway_log(SWAY_ERROR, "Unable to allocate sway_container");
@@ -41,10 +64,6 @@ struct sway_container *container_create(struct sway_view *view) {
 	c->view = view;
 	c->alpha = 1.0f;
 
-	if (!view) {
-		c->pending.children = create_list();
-		c->current.children = create_list();
-	}
 	c->marks = create_list();
 	c->outputs = create_list();
 
@@ -1591,7 +1610,7 @@ struct sway_container *container_split(struct sway_container *child,
 		}
 	}
 
-	struct sway_container *cont = container_create(NULL);
+	struct sway_container *cont = column_create();
 	cont->pending.width = child->pending.width;
 	cont->pending.height = child->pending.height;
 	cont->width_fraction = child->width_fraction;

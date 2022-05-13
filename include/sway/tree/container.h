@@ -133,7 +133,8 @@ struct sway_container {
 	} events;
 };
 
-struct sway_container *container_create(struct sway_view *view);
+struct sway_container *column_create(void);
+struct sway_container *window_create(struct sway_view *view);
 
 void container_destroy(struct sway_container *con);
 

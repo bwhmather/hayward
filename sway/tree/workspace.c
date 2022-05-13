@@ -747,7 +747,7 @@ static void workspace_attach_tiling(struct sway_workspace *ws,
 
 struct sway_container *workspace_wrap_children(struct sway_workspace *ws) {
 	struct sway_container *fs = ws->fullscreen;
-	struct sway_container *middle = container_create(NULL);
+	struct sway_container *middle = column_create();
 	middle->pending.layout = ws->layout;
 	while (ws->tiling->length) {
 		struct sway_container *child = ws->tiling->items[0];

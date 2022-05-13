@@ -715,7 +715,7 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 	}
 	view->surface = wlr_surface;
 	view_populate_pid(view);
-	view->container = container_create(view);
+	view->container = window_create(view);
 
 	// If there is a request to be opened fullscreen on a specific output, try
 	// to honor that request. Otherwise, fallback to assigns, pid mappings,
