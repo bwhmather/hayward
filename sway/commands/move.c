@@ -134,7 +134,6 @@ static void container_move_to_container_from_direction(
 			}
 			container->pending.width = container->pending.height = 0;
 			container->width_fraction = container->height_fraction = 0;
-			workspace_squash(destination->pending.workspace);
 		}
 		return;
 	}
@@ -147,7 +146,6 @@ static void container_move_to_container_from_direction(
 		container_insert_child(destination, container, index);
 		container->pending.width = container->pending.height = 0;
 		container->width_fraction = container->height_fraction = 0;
-		workspace_squash(destination->pending.workspace);
 		return;
 	}
 
@@ -401,7 +399,6 @@ static bool container_move_in_direction(struct sway_container *container,
 		if (old_parent) {
 			container_reap_empty(old_parent);
 		}
-		workspace_squash(container->pending.workspace);
 		return true;
 	}
 }
