@@ -136,6 +136,9 @@ struct sway_container {
 struct sway_container *column_create(void);
 struct sway_container *window_create(struct sway_view *view);
 
+bool container_is_window(struct sway_container *con);
+bool container_is_column(struct sway_container *con);
+
 void container_destroy(struct sway_container *con);
 
 void container_begin_destroy(struct sway_container *con);

@@ -73,6 +73,14 @@ struct sway_container *window_create(struct sway_view *view) {
 	return c;
 }
 
+bool container_is_column(struct sway_container* con) {
+	return con->view == NULL;
+}
+
+bool container_is_window(struct sway_container* con) {
+	return con->view != NULL;
+}
+
 void container_destroy(struct sway_container *con) {
 	if (!sway_assert(con->node.destroying,
 				"Tried to free container which wasn't marked as destroying")) {
