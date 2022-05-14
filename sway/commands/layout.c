@@ -123,58 +123,46 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct sway_container *container = config->handler_context.container;
+	struct sway_container *window = config->handler_context.container;
 	struct sway_workspace *workspace = config->handler_context.workspace;
 
-	if (container && container_is_floating(container)) {
-		return cmd_results_new(CMD_FAILURE,
-				"Unable to change layout of floating windows");
+	if (!window) {
+		// TODO (wmiiv) assertion failure.
+		return cmd_results_new(CMD_FAILURE, "No window selected");
 	}
 
-	// Operate on parent container, like i3.
-	if (container) {
-		container = container->pending.parent;
+	if (!container_is_window(window)) {
+		// TODO (wmiiv) assertion failure.
+		return cmd_results_new(CMD_FAILURE, "Can only run this command on a window");
 	}
 
-	// We could be working with a container OR a workspace. These are different
-	// structures, so we set up pointers to they layouts so we can refer them in
-	// an abstract way.
+	struct sway_container *column = window->pending.parent;
+	if (!column) {
+		return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
+	}
+
+	if (container_is_floating(column)) {
+		// TODO (wmiiv) assertion failure.
+		return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating containers");
+	}
+
 	enum sway_container_layout new_layout = L_NONE;
 	enum sway_container_layout old_layout = L_NONE;
-	if (container) {
-		old_layout = container->pending.layout;
-		new_layout = get_layout(argc, argv,
-				container->pending.layout, container->prev_split_layout,
-				container->pending.workspace->output);
-	} else {
-		old_layout = workspace->layout;
-		new_layout = get_layout(argc, argv,
-				workspace->layout, workspace->prev_split_layout,
-				workspace->output);
-	}
+
+	old_layout = column->pending.layout;
+	new_layout = get_layout(argc, argv,
+			column->pending.layout, column->prev_split_layout,
+			column->pending.workspace->output);
+
 	if (new_layout == L_NONE) {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 	if (new_layout != old_layout) {
-		if (container) {
-			if (old_layout != L_TABBED && old_layout != L_STACKED) {
-				container->prev_split_layout = old_layout;
-			}
-			container->pending.layout = new_layout;
-			container_update_representation(container);
-		} else if (config->handler_context.container) {
-			// i3 avoids changing workspace layouts with a new container
-			// https://github.com/i3/i3/blob/3cd1c45eba6de073bc4300eebb4e1cc1a0c4479a/src/con.c#L1817
-			container = workspace_wrap_children(workspace);
-			container->pending.layout = new_layout;
-			container_update_representation(container);
-		} else {
-			if (old_layout != L_TABBED && old_layout != L_STACKED) {
-				workspace->prev_split_layout = old_layout;
-			}
-			workspace->layout = new_layout;
-			workspace_update_representation(workspace);
+		if (old_layout != L_TABBED && old_layout != L_STACKED) {
+			column->prev_split_layout = old_layout;
 		}
+		column->pending.layout = new_layout;
+		container_update_representation(column);
 		if (root->fullscreen_global) {
 			arrange_root();
 		} else {

@@ -28,7 +28,6 @@ struct cmd_results *cmd_floating(int argc, char **argv) {
 	if (!container) {
 		// Wrap the workspace's children in a container so we can float it
 		container = workspace_wrap_children(workspace);
-		workspace->layout = L_HORIZ;
 		seat_set_focus_container(config->handler_context.seat, container);
 	}
 

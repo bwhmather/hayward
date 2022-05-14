@@ -434,12 +434,13 @@ static void ipc_json_describe_workspace(struct sway_workspace *workspace,
 	json_object_object_add(object, "representation", workspace->representation ?
 			json_object_new_string(workspace->representation) : NULL);
 
+	// TODO (wmiiv) workspaces are always split horizontally.
 	json_object_object_add(object, "layout",
 			json_object_new_string(
-				ipc_json_layout_description(workspace->layout)));
+				ipc_json_layout_description(L_HORIZ)));
 	json_object_object_add(object, "orientation",
 			json_object_new_string(
-				ipc_json_orientation_description(workspace->layout)));
+				ipc_json_orientation_description(L_HORIZ)));
 
 	// Floating
 	json_object *floating_array = json_object_new_array();

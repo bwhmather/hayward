@@ -947,7 +947,7 @@ static void render_container(struct sway_output *output,
 static void render_workspace(struct sway_output *output,
 		pixman_region32_t *damage, struct sway_workspace *ws, bool focused) {
 	struct parent_data data = {
-		.layout = ws->current.layout,
+		.layout = L_HORIZ,
 		.box = {
 			.x = floor(ws->current.x),
 			.y = floor(ws->current.y),

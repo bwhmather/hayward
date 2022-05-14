@@ -93,36 +93,18 @@ static struct sway_node *get_node_in_output_direction(
 	if (ws->tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
-			if (ws->layout == L_HORIZ || ws->layout == L_TABBED) {
-				// get most right child of new output
-				container = ws->tiling->items[ws->tiling->length-1];
-			} else {
-				container = seat_get_focus_inactive_tiling(seat, ws);
-			}
+			// get most right child of new output
+			container = ws->tiling->items[ws->tiling->length-1];
 			break;
 		case WLR_DIRECTION_RIGHT:
-			if (ws->layout == L_HORIZ || ws->layout == L_TABBED) {
-				// get most left child of new output
-				container = ws->tiling->items[0];
-			} else {
-				container = seat_get_focus_inactive_tiling(seat, ws);
-			}
+			// get most left child of new output
+			container = ws->tiling->items[0];
 			break;
 		case WLR_DIRECTION_UP:
-			if (ws->layout == L_VERT || ws->layout == L_STACKED) {
-				// get most bottom child of new output
-				container = ws->tiling->items[ws->tiling->length-1];
-			} else {
-				container = seat_get_focus_inactive_tiling(seat, ws);
-			}
+			container = seat_get_focus_inactive_tiling(seat, ws);
 			break;
 		case WLR_DIRECTION_DOWN:
-			if (ws->layout == L_VERT || ws->layout == L_STACKED) {
-				// get most top child of new output
-				container = ws->tiling->items[0];
-			} else {
-				container = seat_get_focus_inactive_tiling(seat, ws);
-			}
+			container = seat_get_focus_inactive_tiling(seat, ws);
 			break;
 		}
 	}

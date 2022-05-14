@@ -11,7 +11,6 @@ struct sway_workspace_state {
 	struct sway_container *fullscreen;
 	double x, y;
 	int width, height;
-	enum sway_container_layout layout;
 	struct sway_output *output;
 	list_t *floating;
 	list_t *tiling;
@@ -29,8 +28,6 @@ struct sway_workspace {
 
 	double x, y;
 	int width, height;
-	enum sway_container_layout layout;
-	enum sway_container_layout prev_split_layout;
 
 	struct side_gaps current_gaps;
 	int gaps_inner;

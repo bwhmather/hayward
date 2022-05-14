@@ -169,7 +169,8 @@ static void container_move_to_workspace_from_direction(
 	container->pending.width = container->pending.height = 0;
 	container->width_fraction = container->height_fraction = 0;
 
-	if (is_parallel(workspace->layout, move_dir)) {
+	// TODO (wmii) check should probably be inlined.
+	if (is_parallel(L_HORIZ, move_dir)) {
 		sway_log(SWAY_DEBUG, "Reparenting container (parallel)");
 		int index =
 			move_dir == WLR_DIRECTION_RIGHT || move_dir == WLR_DIRECTION_DOWN ?
@@ -322,12 +323,15 @@ static bool container_move_in_direction(struct sway_container *container,
 		enum sway_container_layout parent_layout = container_parent_layout(current);
 		if (!is_parallel(parent_layout, move_dir)) {
 			if (!current->pending.parent) {
+				// TODO (wmiiv) this bit makes absolutely no sense after the switch to
+				// column based layout.
 				// No parallel parent, so we reorient the workspace
 				current = workspace_wrap_children(current->pending.workspace);
-				current->pending.workspace->layout =
-					move_dir == WLR_DIRECTION_LEFT ||
-					move_dir == WLR_DIRECTION_RIGHT ?
-					L_HORIZ : L_VERT;
+				// TODO (wmiiv) delete me.
+				// current->pending.workspace->layout =
+				// 	move_dir == WLR_DIRECTION_LEFT ||
+				// 	move_dir == WLR_DIRECTION_RIGHT ?
+				// 	L_HORIZ : L_VERT;
 				container->pending.height = container->pending.width = 0;
 				container->height_fraction = container->width_fraction = 0;
 				workspace_update_representation(current->pending.workspace);
@@ -955,7 +959,6 @@ static struct cmd_results *cmd_move_to_scratchpad(void) {
 	if (node->type == N_WORKSPACE) {
 		// Wrap the workspace's children in a container
 		con = workspace_wrap_children(ws);
-		ws->layout = L_HORIZ;
 	}
 
 	// If the container is in a floating split container,

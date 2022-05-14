@@ -93,7 +93,7 @@ enum sway_container_layout node_get_layout(struct sway_node *node) {
 	case N_CONTAINER:
 		return node->sway_container->pending.layout;
 	case N_WORKSPACE:
-		return node->sway_workspace->layout;
+		return L_HORIZ;
 	case N_OUTPUT:
 	case N_ROOT:
 		return L_NONE;

@@ -1419,7 +1419,8 @@ enum sway_container_layout container_parent_layout(struct sway_container *con) {
 		return con->pending.parent->pending.layout;
 	}
 	if (con->pending.workspace) {
-		return con->pending.workspace->layout;
+		// TODO (wmiiv) workspace default layout.
+		return L_HORIZ;
 	}
 	return L_NONE;
 }
@@ -1429,7 +1430,8 @@ enum sway_container_layout container_current_parent_layout(
 	if (con->current.parent) {
 		return con->current.parent->current.layout;
 	}
-	return con->current.workspace->current.layout;
+	// TODO (wmiiv) workspace default layout.
+	return L_HORIZ;
 }
 
 list_t *container_get_siblings(struct sway_container *container) {
@@ -1586,28 +1588,6 @@ void container_replace(struct sway_container *container,
 
 struct sway_container *container_split(struct sway_container *child,
 		enum sway_container_layout layout) {
-	// i3 doesn't split singleton H/V containers
-	// https://github.com/i3/i3/blob/3cd1c45eba6de073bc4300eebb4e1cc1a0c4479a/src/tree.c#L354
-	if (child->pending.parent || child->pending.workspace) {
-		list_t *siblings = container_get_siblings(child);
-		if (siblings->length == 1) {
-			enum sway_container_layout current = container_parent_layout(child);
-			if (container_is_floating(child)) {
-				current = L_NONE;
-			}
-			if (current == L_HORIZ || current == L_VERT) {
-				if (child->pending.parent) {
-					child->pending.parent->pending.layout = layout;
-					container_update_representation(child->pending.parent);
-				} else {
-					child->pending.workspace->layout = layout;
-					workspace_update_representation(child->pending.workspace);
-				}
-				return child;
-			}
-		}
-	}
-
 	struct sway_seat *seat = input_manager_get_default_seat();
 	bool set_focus = (seat_get_focus(seat) == &child->node);
 
@@ -1785,18 +1765,4 @@ bool container_is_sticky(struct sway_container *con) {
 
 bool container_is_sticky_or_child(struct sway_container *con) {
 	return container_is_sticky(container_toplevel_ancestor(con));
-}
-
-static bool is_parallel(enum sway_container_layout first,
-		enum sway_container_layout second) {
-	switch (first) {
-	case L_TABBED:
-	case L_HORIZ:
-		return second == L_TABBED || second == L_HORIZ;
-	case L_STACKED:
-	case L_VERT:
-		return second == L_STACKED || second == L_VERT;
-	default:
-		return false;
-	}
 }

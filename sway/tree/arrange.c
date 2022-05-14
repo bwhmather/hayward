@@ -302,7 +302,7 @@ void arrange_workspace(struct sway_workspace *workspace) {
 	} else {
 		struct wlr_box box;
 		workspace_get_box(workspace, &box);
-		arrange_children(workspace->tiling, workspace->layout, &box);
+		arrange_children(workspace->tiling, L_HORIZ, &box);
 		arrange_floating(workspace->floating);
 	}
 }

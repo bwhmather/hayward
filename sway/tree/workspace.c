@@ -70,8 +70,6 @@ struct sway_workspace *workspace_create(struct sway_output *output,
 	}
 	node_init(&ws->node, N_WORKSPACE, ws);
 	ws->name = name ? strdup(name) : NULL;
-	ws->prev_split_layout = L_NONE;
-	ws->layout = output_get_default_layout(output);
 	ws->floating = create_list();
 	ws->tiling = create_list();
 	ws->output_priority = create_list();
@@ -746,9 +744,11 @@ static void workspace_attach_tiling(struct sway_workspace *ws,
 }
 
 struct sway_container *workspace_wrap_children(struct sway_workspace *ws) {
+	// TODO (wmiiv) remove.
+	sway_assert(false, "workspace_wrap_children is deprecated");
 	struct sway_container *fs = ws->fullscreen;
 	struct sway_container *middle = column_create();
-	middle->pending.layout = ws->layout;
+	middle->pending.layout = L_HORIZ;
 	while (ws->tiling->length) {
 		struct sway_container *child = ws->tiling->items[0];
 		container_detach(child);
@@ -761,12 +761,13 @@ struct sway_container *workspace_wrap_children(struct sway_workspace *ws) {
 
 void workspace_unwrap_children(struct sway_workspace *ws,
 		struct sway_container *wrap) {
+	// TODO (wmiiv) remove.
+	sway_assert(false, "workspace_unwrap_children is deprecated");
 	if (!sway_assert(workspace_is_empty(ws),
 			"target workspace must be empty")) {
 		return;
 	}
 
-	ws->layout = wrap->pending.layout;
 	while (wrap->pending.children->length) {
 		struct sway_container *child = wrap->pending.children->items[0];
 		container_detach(child);
@@ -907,35 +908,20 @@ void workspace_add_gaps(struct sway_workspace *ws) {
 
 struct sway_container *workspace_split(struct sway_workspace *workspace,
 		enum sway_container_layout layout) {
-	if (workspace->tiling->length == 0) {
-		workspace->prev_split_layout = workspace->layout;
-		workspace->layout = layout;
-		return NULL;
-	}
+	sway_assert(false, "workspace_split is deprecated");
 
-	enum sway_container_layout old_layout = workspace->layout;
-	struct sway_container *middle = workspace_wrap_children(workspace);
-	workspace->layout = layout;
-	middle->pending.layout = old_layout;
-
-	struct sway_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		if (seat_get_focus(seat) == &workspace->node) {
-			seat_set_focus(seat, &middle->node);
-		}
-	}
-
-	return middle;
+	return NULL;
 }
 
 void workspace_update_representation(struct sway_workspace *ws) {
-	size_t len = container_build_representation(ws->layout, ws->tiling, NULL);
+	// TODO (wmiiv) we can probably inline the L_HORIZ part of this function.
+	size_t len = container_build_representation(L_HORIZ, ws->tiling, NULL);
 	free(ws->representation);
 	ws->representation = calloc(len + 1, sizeof(char));
 	if (!sway_assert(ws->representation, "Unable to allocate title string")) {
 		return;
 	}
-	container_build_representation(ws->layout, ws->tiling, ws->representation);
+	container_build_representation(L_HORIZ, ws->tiling, ws->representation);
 }
 
 void workspace_get_box(struct sway_workspace *workspace, struct wlr_box *box) {
