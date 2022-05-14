@@ -197,10 +197,12 @@ sway_sources = files(
 	'commands/output/transform.c',
 
 	'tree/arrange.c',
+        'tree/column.c',
 	'tree/container.c',
 	'tree/node.c',
 	'tree/root.c',
 	'tree/view.c',
+        'tree/window.c',
 	'tree/workspace.c',
 	'tree/output.c',
 )

@@ -133,11 +133,13 @@ struct sway_container {
 	} events;
 };
 
-struct sway_container *column_create(void);
-struct sway_container *window_create(struct sway_view *view);
+// TODO (wmiiv) Delete whole module
+#include "sway/tree/column.h"
+#include "sway/tree/window.h"
 
-bool container_is_window(struct sway_container *con);
+
 bool container_is_column(struct sway_container *con);
+bool container_is_window(struct sway_container *con);
 
 void container_destroy(struct sway_container *con);
 
@@ -180,8 +182,6 @@ bool container_has_ancestor(struct sway_container *container,
 void container_update_textures_recursive(struct sway_container *con);
 
 void container_damage_whole(struct sway_container *container);
-
-void column_consider_destroy(struct sway_container *con);
 
 struct sway_container *container_flatten(struct sway_container *container);
 

@@ -30,49 +30,6 @@
 #include "log.h"
 #include "stringop.h"
 
-struct sway_container *column_create(void) {
-	struct sway_container *c = calloc(1, sizeof(struct sway_container));
-	if (!c) {
-		sway_log(SWAY_ERROR, "Unable to allocate sway_container");
-		return NULL;
-	}
-	node_init(&c->node, N_CONTAINER, c);
-	c->pending.layout = L_NONE;
-	c->view = NULL;
-	c->alpha = 1.0f;
-
-	c->pending.children = create_list();
-	c->current.children = create_list();
-
-	c->marks = create_list();
-	c->outputs = create_list();
-
-	wl_signal_init(&c->events.destroy);
-	wl_signal_emit(&root->events.new_node, &c->node);
-
-	return c;
-}
-
-struct sway_container *window_create(struct sway_view *view) {
-	struct sway_container *c = calloc(1, sizeof(struct sway_container));
-	if (!c) {
-		sway_log(SWAY_ERROR, "Unable to allocate sway_container");
-		return NULL;
-	}
-	node_init(&c->node, N_CONTAINER, c);
-	c->pending.layout = L_NONE;
-	c->view = view;
-	c->alpha = 1.0f;
-
-	c->marks = create_list();
-	c->outputs = create_list();
-
-	wl_signal_init(&c->events.destroy);
-	wl_signal_emit(&root->events.new_node, &c->node);
-
-	return c;
-}
-
 bool container_is_column(struct sway_container* con) {
 	return con->view == NULL;
 }
@@ -148,22 +105,6 @@ void container_begin_destroy(struct sway_container *con) {
 
 	if (con->pending.parent || con->pending.workspace) {
 		container_detach(con);
-	}
-}
-
-void column_consider_destroy(struct sway_container *col) {
-	if (!sway_assert(container_is_column(col), "Cannot reap a non-column container")) {
-		return;
-	}
-	struct sway_workspace *ws = col->pending.workspace;
-
-	if (col->pending.children->length) {
-		return;
-	}
-	container_begin_destroy(col);
-
-	if (ws) {
-		workspace_consider_destroy(ws);
 	}
 }
 
