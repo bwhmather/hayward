@@ -183,8 +183,6 @@ void container_update_textures_recursive(struct sway_container *con);
 
 void container_damage_whole(struct sway_container *container);
 
-struct sway_container *container_flatten(struct sway_container *container);
-
 void container_update_title_textures(struct sway_container *container);
 
 size_t container_build_representation(enum sway_container_layout layout,

@@ -108,20 +108,6 @@ void container_begin_destroy(struct sway_container *con) {
 	}
 }
 
-struct sway_container *container_flatten(struct sway_container *container) {
-	if (container->view) {
-		return NULL;
-	}
-	while (container && container->pending.children->length == 1) {
-		struct sway_container *child = container->pending.children->items[0];
-		struct sway_container *parent = container->pending.parent;
-		container_replace(container, child);
-		container_begin_destroy(container);
-		container = parent;
-	}
-	return container;
-}
-
 struct sway_container *container_find_child(struct sway_container *container,
 		bool (*test)(struct sway_container *con, void *data), void *data) {
 	if (!container->pending.children) {
