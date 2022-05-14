@@ -181,7 +181,7 @@ void container_update_textures_recursive(struct sway_container *con);
 
 void container_damage_whole(struct sway_container *container);
 
-void container_reap_empty(struct sway_container *con);
+void column_consider_destroy(struct sway_container *con);
 
 struct sway_container *container_flatten(struct sway_container *container);
 

@@ -151,19 +151,17 @@ void container_begin_destroy(struct sway_container *con) {
 	}
 }
 
-void container_reap_empty(struct sway_container *con) {
-	if (con->view) {
+void column_consider_destroy(struct sway_container *col) {
+	if (!sway_assert(container_is_column(col), "Cannot reap a non-column container")) {
 		return;
 	}
-	struct sway_workspace *ws = con->pending.workspace;
-	while (con) {
-		if (con->pending.children->length) {
-			return;
-		}
-		struct sway_container *parent = con->pending.parent;
-		container_begin_destroy(con);
-		con = parent;
+	struct sway_workspace *ws = col->pending.workspace;
+
+	if (col->pending.children->length) {
+		return;
 	}
+	container_begin_destroy(col);
+
 	if (ws) {
 		workspace_consider_destroy(ws);
 	}
@@ -886,7 +884,7 @@ void container_set_floating(struct sway_container *container, bool enable) {
 				seat_set_raw_focus(seat, &old_parent->node);
 				seat_set_raw_focus(seat, &container->node);
 			}
-			container_reap_empty(old_parent);
+			column_consider_destroy(old_parent);
 		}
 	} else {
 		// Returning to tiled

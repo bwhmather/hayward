@@ -382,7 +382,7 @@ static void finalize_move(struct sway_seat *seat) {
 	}
 
 	if (old_parent) {
-		container_reap_empty(old_parent);
+		column_consider_destroy(old_parent);
 	}
 
 	// This is a bit dirty, but we'll set the dimensions to that of a sibling.

@@ -865,8 +865,9 @@ void view_unmap(struct sway_view *view) {
 	struct sway_workspace *ws = view->container->pending.workspace;
 	container_begin_destroy(view->container);
 	if (parent) {
-		container_reap_empty(parent);
+		column_consider_destroy(parent);
 	} else if (ws) {
+		// TODO (wmiiv) shouldn't be possible.
 		workspace_consider_destroy(ws);
 	}
 

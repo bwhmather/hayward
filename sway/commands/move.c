@@ -401,7 +401,7 @@ static bool container_move_in_direction(struct sway_container *container,
 		ancestor->pending.height = ancestor->pending.width = 0;
 		ancestor->height_fraction = ancestor->width_fraction = 0;
 		if (old_parent) {
-			container_reap_empty(old_parent);
+			column_consider_destroy(old_parent);
 		}
 		return true;
 	}
@@ -601,8 +601,9 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 
 	// clean-up, destroying parents if the container was the last child
 	if (old_parent) {
-		container_reap_empty(old_parent);
+		column_consider_destroy(old_parent);
 	} else if (old_ws) {
+		// TODO (wmiiv) shouldn't be possible to hit this.
 		workspace_consider_destroy(old_ws);
 	}
 
@@ -740,8 +741,9 @@ static struct cmd_results *cmd_move_in_direction(
 
 	// clean-up, destroying parents if the container was the last child
 	if (old_parent) {
-		container_reap_empty(old_parent);
+		column_consider_destroy(old_parent);
 	} else if (old_ws) {
+		// TODO (wmiiv) shouldn't be possible to hit this.
 		workspace_consider_destroy(old_ws);
 	}
 

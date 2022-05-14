@@ -793,7 +793,7 @@ struct sway_container *workspace_add_tiling(struct sway_workspace *workspace,
 		struct sway_container *old_parent = con->pending.parent;
 		container_detach(con);
 		if (old_parent) {
-			container_reap_empty(old_parent);
+			column_consider_destroy(old_parent);
 		}
 	}
 	if (config->default_layout != L_NONE) {
