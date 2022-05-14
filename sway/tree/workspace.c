@@ -711,8 +711,10 @@ struct sway_container *workspace_find_container(struct sway_workspace *ws,
 		if (test(child, data)) {
 			return child;
 		}
-		if ((result = container_find_child(child, test, data))) {
-			return result;
+		if (container_is_column(child))  {
+			if ((result = column_find_child(child, test, data))) {
+				return result;
+			}
 		}
 	}
 	// Floating
@@ -720,9 +722,6 @@ struct sway_container *workspace_find_container(struct sway_workspace *ws,
 		struct sway_container *child = ws->floating->items[i];
 		if (test(child, data)) {
 			return child;
-		}
-		if ((result = container_find_child(child, test, data))) {
-			return result;
 		}
 	}
 	return NULL;

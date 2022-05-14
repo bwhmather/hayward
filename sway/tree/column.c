@@ -69,4 +69,19 @@ void column_consider_destroy(struct sway_container *col) {
 	}
 }
 
-
+struct sway_container *column_find_child(struct sway_container *col,
+		bool (*test)(struct sway_container *con, void *data), void *data) {
+	if (!sway_assert(container_is_column(col), "Cannot find children in non-column containers")) {
+		return NULL;
+	}
+	if (!col->pending.children) {
+		return NULL;
+	}
+	for (int i = 0; i < col->pending.children->length; ++i) {
+		struct sway_container *child = col->pending.children->items[i];
+		if (test(child, data)) {
+			return child;
+		}
+	}
+	return NULL;
+}

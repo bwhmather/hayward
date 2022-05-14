@@ -10,4 +10,11 @@ struct sway_container *column_create(void);
 
 void column_consider_destroy(struct sway_container *con);
 
+/**
+ * Search a container's descendants a container based on test criteria. Returns
+ * the first container that passes the test.
+ */
+struct sway_container *column_find_child(struct sway_container *container,
+		bool (*test)(struct sway_container *view, void *data), void *data);
+
 #endif

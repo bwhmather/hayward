@@ -767,7 +767,7 @@ static bool container_is_focused(struct sway_container *con, void *data) {
 }
 
 static bool container_has_focused_child(struct sway_container *con) {
-	return container_find_child(con, container_is_focused, NULL);
+	return column_find_child(con, container_is_focused, NULL);
 }
 
 /**

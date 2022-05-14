@@ -146,13 +146,6 @@ void container_destroy(struct sway_container *con);
 void container_begin_destroy(struct sway_container *con);
 
 /**
- * Search a container's descendants a container based on test criteria. Returns
- * the first container that passes the test.
- */
-struct sway_container *container_find_child(struct sway_container *container,
-		bool (*test)(struct sway_container *view, void *data), void *data);
-
-/**
  * Find a container at the given coordinates. Returns the surface and
  * surface-local coordinates of the given layout coordinates if the container
  * is a view and the view contains a surface at those coordinates.

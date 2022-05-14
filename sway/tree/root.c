@@ -420,9 +420,6 @@ struct sway_container *root_find_container(
 			if (test(container, data)) {
 				return container;
 			}
-			if ((result = container_find_child(container, test, data))) {
-				return result;
-			}
 		}
 	}
 
