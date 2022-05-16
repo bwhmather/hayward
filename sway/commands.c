@@ -100,7 +100,6 @@ static const struct cmd_handler handlers[] = {
 
 /* Config-time only commands. Keep alphabetized */
 static const struct cmd_handler config_handlers[] = {
-	{ "default_orientation", cmd_default_orientation },
 	{ "include", cmd_include },
 	{ "swaybg_command", cmd_swaybg_command },
 	{ "swaynag_command", cmd_swaynag_command },

@@ -62,9 +62,6 @@ The following commands may only be used in the configuration file.
 *bar* [<bar-id>] <bar-subcommands...>
 	For details on bar subcommands, see *sway-bar*(5).
 
-*default_orientation* horizontal|vertical|auto
-	Sets the default container layout for tiled containers.
-
 *include* <path>
 	Includes another file from _path_. _path_ can be either a full path or a
 	path relative to the parent config, and expands shell syntax (see

@@ -234,7 +234,6 @@ static void config_defaults(struct sway_config *config) {
 	if (!(config->floating_scroll_left_cmd = strdup(""))) goto cleanup;
 	if (!(config->floating_scroll_right_cmd = strdup(""))) goto cleanup;
 	config->default_layout = L_NONE;
-	config->default_orientation = L_NONE;
 	if (!(config->font = strdup("monospace 10"))) goto cleanup;
 	config->urgent_timeout = 500;
 	config->focus_on_window_activation = FOWA_URGENT;

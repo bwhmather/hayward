@@ -36,8 +36,6 @@ static enum sway_container_layout toggle_split_layout(
 		return L_HORIZ;
 	} else if (prev_split_layout != L_NONE) {
 		return prev_split_layout;
-	} else if (config->default_orientation != L_NONE) {
-		return config->default_orientation;
 	} else if (output->height > output->width) {
 		return L_VERT;
 	}
