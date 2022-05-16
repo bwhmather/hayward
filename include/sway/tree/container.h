@@ -323,28 +323,6 @@ struct sway_container *container_split(struct sway_container *child,
 bool container_is_transient_for(struct sway_container *child,
 		struct sway_container *ancestor);
 
-/**
- * Find any container that has the given mark and return it.
- */
-struct sway_container *container_find_mark(char *mark);
-
-/**
- * Find any container that has the given mark and remove the mark from the
- * container. Returns true if it matched a container.
- */
-bool container_find_and_unmark(char *mark);
-
-/**
- * Remove all marks from the container.
- */
-void container_clear_marks(struct sway_container *container);
-
-bool container_has_mark(struct sway_container *container, char *mark);
-
-void container_add_mark(struct sway_container *container, char *mark);
-
-void container_update_marks_textures(struct sway_container *container);
-
 void container_raise_floating(struct sway_container *con);
 
 bool container_is_scratchpad_hidden(struct sway_container *con);

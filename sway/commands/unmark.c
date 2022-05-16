@@ -9,8 +9,10 @@
 #include "stringop.h"
 
 static void remove_all_marks_iterator(struct sway_container *con, void *data) {
-	container_clear_marks(con);
-	container_update_marks_textures(con);
+	if (container_is_window(con)) {
+		window_clear_marks(con);
+		window_update_marks_textures(con);
+	}
 }
 
 // unmark                  Remove all marks from all views
@@ -25,6 +27,10 @@ struct cmd_results *cmd_unmark(int argc, char **argv) {
 		con = config->handler_context.container;
 	}
 
+	if (con && !container_is_window(con)) {
+		return cmd_results_new(CMD_INVALID, "Only windows can have marks");
+	}
+
 	// Determine the mark
 	char *mark = NULL;
 	if (argc > 0) {
@@ -33,16 +39,16 @@ struct cmd_results *cmd_unmark(int argc, char **argv) {
 
 	if (con && mark) {
 		// Remove the mark from the given container
-		if (container_has_mark(con, mark)) {
-			container_find_and_unmark(mark);
+		if (window_has_mark(con, mark)) {
+			window_find_and_unmark(mark);
 		}
 	} else if (con && !mark) {
 		// Clear all marks from the given container
-		container_clear_marks(con);
-		container_update_marks_textures(con);
+		window_clear_marks(con);
+		window_update_marks_textures(con);
 	} else if (!con && mark) {
 		// Remove mark from whichever container has it
-		container_find_and_unmark(mark);
+		window_find_and_unmark(mark);
 	} else {
 		// Remove all marks from all containers
 		root_for_each_container(remove_all_marks_iterator, NULL);
