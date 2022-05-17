@@ -257,9 +257,6 @@ set|plus|minus|toggle <amount>
 	Moves the focused container to next output in the specified
 	direction.
 
-*move* [container|window] [to] scratchpad
-	Moves the focused container to the scratchpad.
-
 *move* workspace [to] output <name-or-id>|current
 	Moves the focused workspace to the specified output.
 
@@ -306,10 +303,6 @@ set|plus|minus|toggle <amount>
 	specified in pixels or percentage points. If the units are omitted,
 	floating containers are resized in px and tiled containers by ppt. If
 	_width_ or _height_ is 0, the container will not be resized on that axis.
-
-*scratchpad* show
-	Shows a window from the scratchpad. Repeatedly using this command will
-	cycle through the windows in the scratchpad.
 
 *shortcuts_inhibitor* enable|disable
 	Enables or disables the ability of clients to inhibit keyboard

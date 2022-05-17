@@ -365,9 +365,6 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 			return cmd_results_new(CMD_FAILURE, "No container to focus was specified.");
 		}
 
-		if (container_is_scratchpad_hidden_or_child(container)) {
-			root_scratchpad_show(container);
-		}
 		// if we are switching to a container under a fullscreen window, we first
 		// need to exit fullscreen so that the newly focused container becomes visible
 		struct sway_container *obstructing = container_obstructing_fullscreen_container(container);

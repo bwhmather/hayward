@@ -313,10 +313,6 @@ static void handle_seat_node_destroy(struct wl_listener *listener, void *data) {
 	}
 
 	if (needs_new_focus) {
-		// Make sure the workspace IPC event gets sent
-		if (node->type == N_WINDOW && node->sway_container->scratchpad) {
-			seat_set_focus(seat, NULL);
-		}
 		// The structure change might have caused it to move up to the top of
 		// the focus stack without sending focus notifications to the view
 		if (seat_get_focus(seat) == next_focus) {
@@ -1131,8 +1127,6 @@ void seat_set_raw_focus(struct sway_seat *seat, struct sway_node *node) {
 	wl_list_insert(&seat->focus_stack, &seat_node->link);
 	node_set_dirty(node);
 
-	// If focusing a scratchpad container that is fullscreen global, parent
-	// will be NULL
 	struct sway_node *parent = node_get_parent(node);
 	if (parent) {
 		node_set_dirty(parent);

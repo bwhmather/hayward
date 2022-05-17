@@ -334,10 +334,6 @@ static struct cmd_results *resize_set_floating(struct sway_container *con,
 	if (width->amount) {
 		switch (width->unit) {
 		case MOVEMENT_UNIT_PPT:
-			if (container_is_scratchpad_hidden(con)) {
-				return cmd_results_new(CMD_FAILURE,
-						"Cannot resize a hidden scratchpad container by ppt");
-			}
 			// Convert to px
 			width->amount = con->pending.workspace->width * width->amount / 100;
 			width->unit = MOVEMENT_UNIT_PX;
@@ -358,10 +354,6 @@ static struct cmd_results *resize_set_floating(struct sway_container *con,
 	if (height->amount) {
 		switch (height->unit) {
 		case MOVEMENT_UNIT_PPT:
-			if (container_is_scratchpad_hidden(con)) {
-				return cmd_results_new(CMD_FAILURE,
-						"Cannot resize a hidden scratchpad container by ppt");
-			}
 			// Convert to px
 			height->amount = con->pending.workspace->height * height->amount / 100;
 			height->unit = MOVEMENT_UNIT_PX;

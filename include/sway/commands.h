@@ -167,7 +167,6 @@ sway_cmd cmd_reject;
 sway_cmd cmd_reload;
 sway_cmd cmd_rename;
 sway_cmd cmd_resize;
-sway_cmd cmd_scratchpad;
 sway_cmd cmd_seamless_mouse;
 sway_cmd cmd_set;
 sway_cmd cmd_shortcuts_inhibitor;

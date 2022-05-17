@@ -45,7 +45,7 @@ struct sway_container_state {
 
 	enum sway_fullscreen_mode fullscreen_mode;
 
-	struct sway_workspace *workspace; // NULL when hidden in the scratchpad
+	struct sway_workspace *workspace;
 	struct sway_container *parent;    // NULL if container in root of workspace
 	list_t *children;                 // struct sway_container
 
@@ -107,11 +107,6 @@ struct sway_container {
 
 	// Outputs currently being intersected
 	list_t *outputs; // struct sway_output
-
-	// Indicates that the container is a scratchpad container.
-	// Both hidden and visible scratchpad containers have scratchpad=true.
-	// Hidden scratchpad containers have a NULL parent.
-	bool scratchpad;
 
 	float alpha;
 
@@ -324,10 +319,6 @@ bool container_is_transient_for(struct sway_container *child,
 		struct sway_container *ancestor);
 
 void container_raise_floating(struct sway_container *con);
-
-bool container_is_scratchpad_hidden(struct sway_container *con);
-
-bool container_is_scratchpad_hidden_or_child(struct sway_container *con);
 
 bool container_is_sticky(struct sway_container *con);
 

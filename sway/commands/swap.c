@@ -108,23 +108,6 @@ void container_swap(struct sway_container *con1, struct sway_container *con2) {
 	sway_log(SWAY_DEBUG, "Swapping containers %zu and %zu",
 			con1->node.id, con2->node.id);
 
-	bool scratch1 = con1->scratchpad;
-	bool hidden1 = container_is_scratchpad_hidden(con1);
-	bool scratch2 = con2->scratchpad;
-	bool hidden2 = container_is_scratchpad_hidden(con2);
-	if (scratch1) {
-		if (hidden1) {
-			root_scratchpad_show(con1);
-		}
-		root_scratchpad_remove_container(con1);
-	}
-	if (scratch2) {
-		if (hidden2) {
-			root_scratchpad_show(con2);
-		}
-		root_scratchpad_remove_container(con2);
-	}
-
 	enum sway_fullscreen_mode fs1 = con1->pending.fullscreen_mode;
 	if (fs1) {
 		container_fullscreen_disable(con1);
@@ -164,19 +147,6 @@ void container_swap(struct sway_container *con1, struct sway_container *con2) {
 	if (stored_prev_name) {
 		free(seat->prev_workspace_name);
 		seat->prev_workspace_name = stored_prev_name;
-	}
-
-	if (scratch1) {
-		root_scratchpad_add_container(con2, NULL);
-		if (!hidden1) {
-			root_scratchpad_show(con2);
-		}
-	}
-	if (scratch2) {
-		root_scratchpad_add_container(con1, NULL);
-		if (!hidden2) {
-			root_scratchpad_show(con1);
-		}
 	}
 
 	if (fs1) {

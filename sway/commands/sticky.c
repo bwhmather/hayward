@@ -25,8 +25,7 @@ struct cmd_results *cmd_sticky(int argc, char **argv) {
 
 	container->is_sticky = parse_boolean(argv[0], container->is_sticky);
 
-	if (container_is_sticky_or_child(container) &&
-			!container_is_scratchpad_hidden(container)) {
+	if (container_is_sticky_or_child(container)) {
 		// move container to active workspace
 		struct sway_workspace *active_workspace =
 			output_get_active_workspace(container->pending.workspace->output);

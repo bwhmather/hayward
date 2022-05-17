@@ -84,9 +84,6 @@ void container_begin_destroy(struct sway_container *con) {
 	if (con->pending.fullscreen_mode == FULLSCREEN_WORKSPACE && con->pending.workspace) {
 		con->pending.workspace->fullscreen = NULL;
 	}
-	if (con->scratchpad && con->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		container_fullscreen_disable(con);
-	}
 
 	wl_signal_emit(&con->node.events.destroy, &con->node);
 
@@ -94,10 +91,6 @@ void container_begin_destroy(struct sway_container *con) {
 
 	con->node.destroying = true;
 	node_set_dirty(&con->node);
-
-	if (con->scratchpad) {
-		root_scratchpad_remove_container(con);
-	}
 
 	if (con->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 		container_fullscreen_disable(con);
@@ -670,11 +663,6 @@ static void floating_natural_resize(struct sway_container *con) {
 
 void container_floating_resize_and_center(struct sway_container *con) {
 	struct sway_workspace *ws = con->pending.workspace;
-	if (!ws) {
-		// On scratchpad, just resize
-		floating_natural_resize(con);
-		return;
-	}
 
 	struct wlr_box ob;
 	wlr_output_layout_get_box(root->output_layout, ws->output->wlr_output, &ob);
@@ -798,9 +786,6 @@ void container_set_floating(struct sway_container *container, bool enable) {
 		}
 	} else {
 		// Returning to tiled
-		if (container->scratchpad) {
-			root_scratchpad_remove_container(container);
-		}
 		container_detach(container);
 		struct sway_container *reference =
 			seat_get_focus_inactive_tiling(seat, workspace);
@@ -866,18 +851,12 @@ bool container_is_floating(struct sway_container *container) {
 			list_find(container->pending.workspace->floating, container) != -1) {
 		return true;
 	}
-	if (container->scratchpad) {
-		return true;
-	}
 	return false;
 }
 
 bool container_is_current_floating(struct sway_container *container) {
 	if (!container->current.parent && container->current.workspace &&
 			list_find(container->current.workspace->floating, container) != -1) {
-		return true;
-	}
-	if (container->scratchpad) {
 		return true;
 	}
 	return false;
@@ -951,9 +930,6 @@ void container_floating_move_to(struct sway_container *con,
 		return;
 	}
 	container_floating_translate(con, lx - con->pending.x, ly - con->pending.y);
-	if (container_is_scratchpad_hidden(con)) {
-		return;
-	}
 	struct sway_workspace *old_workspace = con->pending.workspace;
 	struct sway_output *new_output = container_floating_find_output(con);
 	if (!sway_assert(new_output, "Unable to find any output")) {
@@ -1188,17 +1164,6 @@ void container_fullscreen_disable(struct sway_container *con) {
 	con->pending.fullscreen_mode = FULLSCREEN_NONE;
 	container_end_mouse_operation(con);
 	ipc_event_window(con, "fullscreen_mode");
-
-	if (con->scratchpad) {
-		struct sway_seat *seat;
-		wl_list_for_each(seat, &server.input->seats, link) {
-			struct sway_container *focus = seat_get_focused_container(seat);
-			if (focus == con || container_has_ancestor(focus, con)) {
-				seat_set_focus(seat,
-						seat_get_focus_inactive(seat, &root->node));
-			}
-		}
-	}
 }
 
 void container_set_fullscreen(struct sway_container *con,
@@ -1348,9 +1313,6 @@ list_t *container_get_siblings(struct sway_container *container) {
 	if (container->pending.parent) {
 		return container->pending.parent->pending.children;
 	}
-	if (container_is_scratchpad_hidden(container)) {
-		return NULL;
-	}
 	if (list_find(container->pending.workspace->tiling, container) != -1) {
 		return container->pending.workspace->tiling;
 	}
@@ -1462,15 +1424,9 @@ void container_detach(struct sway_container *child) {
 void container_replace(struct sway_container *container,
 		struct sway_container *replacement) {
 	enum sway_fullscreen_mode fullscreen = container->pending.fullscreen_mode;
-	bool scratchpad = container->scratchpad;
 	struct sway_workspace *ws = NULL;
 	if (fullscreen != FULLSCREEN_NONE) {
 		container_fullscreen_disable(container);
-	}
-	if (scratchpad) {
-		ws = container->pending.workspace;
-		root_scratchpad_show(container);
-		root_scratchpad_remove_container(container);
 	}
 	if (container->pending.parent || container->pending.workspace) {
 		float width_fraction = container->width_fraction;
@@ -1479,9 +1435,6 @@ void container_replace(struct sway_container *container,
 		container_detach(container);
 		replacement->width_fraction = width_fraction;
 		replacement->height_fraction = height_fraction;
-	}
-	if (scratchpad) {
-		root_scratchpad_add_container(replacement, ws);
 	}
 	switch (fullscreen) {
 	case FULLSCREEN_WORKSPACE:
@@ -1546,15 +1499,6 @@ void container_raise_floating(struct sway_container *con) {
 		list_move_to_end(floater->pending.workspace->floating, floater);
 		node_set_dirty(&floater->pending.workspace->node);
 	}
-}
-
-bool container_is_scratchpad_hidden(struct sway_container *con) {
-	return con->scratchpad && !con->pending.workspace;
-}
-
-bool container_is_scratchpad_hidden_or_child(struct sway_container *con) {
-	con = container_toplevel_ancestor(con);
-	return con->scratchpad && !con->pending.workspace;
 }
 
 bool container_is_sticky(struct sway_container *con) {

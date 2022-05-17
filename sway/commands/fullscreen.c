@@ -23,11 +23,6 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 	if (!container) {
 		// If the focus is not a container, do nothing successfully
 		return cmd_results_new(CMD_SUCCESS, NULL);
-	} else if (!container->pending.workspace) {
-		// If in the scratchpad, operate on the highest container
-		while (container->pending.parent) {
-			container = container->pending.parent;
-		}
 	}
 
 	bool is_fullscreen = container->pending.fullscreen_mode != FULLSCREEN_NONE;

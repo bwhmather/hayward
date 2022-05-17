@@ -21,7 +21,6 @@
 #include "sway/desktop/idle_inhibit_v1.h"
 
 static const int i3_output_id = INT32_MAX;
-static const int i3_scratch_id = INT32_MAX - 1;
 
 static const char *ipc_json_node_type_description(enum sway_node_type node_type) {
 	switch (node_type) {
@@ -369,49 +368,6 @@ json_object *ipc_json_describe_disabled_output(struct sway_output *output) {
 	json_object_object_add(object, "percent", NULL);
 
 	return object;
-}
-
-static json_object *ipc_json_describe_scratchpad_output(void) {
-	struct wlr_box box;
-	root_get_box(root, &box);
-
-	// Create focus stack for __i3_scratch workspace
-	json_object *workspace_focus = json_object_new_array();
-	for (int i = root->scratchpad->length - 1; i >= 0; --i) {
-		struct sway_container *container = root->scratchpad->items[i];
-		json_object_array_add(workspace_focus,
-				json_object_new_int(container->node.id));
-	}
-
-	json_object *workspace = ipc_json_create_node(i3_scratch_id, "workspace",
-				"__i3_scratch", false, workspace_focus, &box);
-	json_object_object_add(workspace, "fullscreen_mode", json_object_new_int(1));
-
-	// List all hidden scratchpad containers as floating nodes
-	json_object *floating_array = json_object_new_array();
-	for (int i = 0; i < root->scratchpad->length; ++i) {
-		struct sway_container *container = root->scratchpad->items[i];
-		if (container_is_scratchpad_hidden(container)) {
-			json_object_array_add(floating_array,
-				ipc_json_describe_node_recursive(&container->node));
-		}
-	}
-	json_object_object_add(workspace, "floating_nodes", floating_array);
-
-	// Create focus stack for __i3 output
-	json_object *output_focus = json_object_new_array();
-	json_object_array_add(output_focus, json_object_new_int(i3_scratch_id));
-
-	json_object *output = ipc_json_create_node(i3_output_id, "output",
-					"__i3", false, output_focus, &box);
-	json_object_object_add(output, "layout",
-			json_object_new_string("output"));
-
-	json_object *nodes = json_object_new_array();
-	json_object_array_add(nodes, workspace);
-	json_object_object_add(output, "nodes", nodes);
-
-	return output;
 }
 
 static void ipc_json_describe_workspace(struct sway_workspace *workspace,
@@ -780,8 +736,6 @@ json_object *ipc_json_describe_node_recursive(struct sway_node *node) {
 	json_object *children = json_object_new_array();
 	switch (node->type) {
 	case N_ROOT:
-		json_object_array_add(children,
-				ipc_json_describe_scratchpad_output());
 		for (i = 0; i < root->outputs->length; ++i) {
 			struct sway_output *output = root->outputs->items[i];
 			json_object_array_add(children,

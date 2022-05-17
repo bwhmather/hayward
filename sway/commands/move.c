@@ -343,6 +343,7 @@ static bool container_move_in_direction(struct sway_container *container,
 			continue;
 		}
 
+		// TODO (wmiiv) is this still true?
 		// Only scratchpad hidden containers don't have siblings
 		// so siblings != NULL here
 		siblings = container_get_siblings(current);
@@ -406,8 +407,6 @@ static bool container_move_in_direction(struct sway_container *container,
 		return true;
 	}
 }
-
-static struct cmd_results *cmd_move_to_scratchpad(void);
 
 static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		int argc, char **argv) {
@@ -526,11 +525,6 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	if (destination->type == N_WINDOW &&
-			container_is_scratchpad_hidden(destination->sway_container)) {
-		return cmd_move_to_scratchpad();
-	}
-
 	if (container_is_sticky_or_child(container) && old_output &&
 			node_has_ancestor(destination, &old_output->node)) {
 		return cmd_results_new(CMD_FAILURE, "Can't move sticky "
@@ -546,11 +540,6 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 	// save focus, in case it needs to be restored
 	struct sway_node *focus = seat_get_focus(seat);
 
-	// move container
-	if (container_is_scratchpad_hidden_or_child(container)) {
-		container_detach(container);
-		root_scratchpad_show(container);
-	}
 	switch (destination->type) {
 	case N_WORKSPACE:
 		container_move_to_workspace(container, destination->sway_workspace);
@@ -903,10 +892,6 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 
 	switch (lx.unit) {
 	case MOVEMENT_UNIT_PPT:
-		if (container_is_scratchpad_hidden(container)) {
-			return cmd_results_new(CMD_FAILURE,
-					"Cannot move a hidden scratchpad container by ppt");
-		}
 		if (absolute) {
 			return cmd_results_new(CMD_FAILURE,
 					"Cannot move to absolute positions by ppt");
@@ -925,10 +910,6 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 
 	switch (ly.unit) {
 	case MOVEMENT_UNIT_PPT:
-		if (container_is_scratchpad_hidden(container)) {
-			return cmd_results_new(CMD_FAILURE,
-					"Cannot move a hidden scratchpad container by ppt");
-		}
 		if (absolute) {
 			return cmd_results_new(CMD_FAILURE,
 					"Cannot move to absolute positions by ppt");
@@ -952,42 +933,12 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *cmd_move_to_scratchpad(void) {
-	struct sway_node *node = config->handler_context.node;
-	struct sway_container *con = config->handler_context.container;
-	struct sway_workspace *ws = config->handler_context.workspace;
-	if (node->type == N_WORKSPACE && ws->tiling->length == 0) {
-		return cmd_results_new(CMD_INVALID,
-				"Can't move an empty workspace to the scratchpad");
-	}
-	if (node->type == N_WORKSPACE) {
-		// Wrap the workspace's children in a container
-		con = workspace_wrap_children(ws);
-	}
-
-	// If the container is in a floating split container,
-	// operate on the split container instead of the child.
-	if (container_is_floating_or_child(con)) {
-		while (con->pending.parent) {
-			con = con->pending.parent;
-		}
-	}
-
-	if (!con->scratchpad) {
-		root_scratchpad_add_container(con, NULL);
-	} else if (con->pending.workspace) {
-		root_scratchpad_hide(con);
-	}
-	return cmd_results_new(CMD_SUCCESS, NULL);
-}
-
 static const char expected_full_syntax[] = "Expected "
 	"'move left|right|up|down [<amount> [px]]'"
 	" or 'move [--no-auto-back-and-forth] [window|container] [to] workspace"
 	"  <name>|next|prev|next_on_output|prev_on_output|current|(number <num>)'"
 	" or 'move [window|container] [to] output <name/id>|left|right|up|down'"
 	" or 'move [window|container] [to] mark <mark>'"
-	" or 'move [window|container] [to] scratchpad'"
 	" or 'move workspace to [output] <name/id>|left|right|up|down'"
 	" or 'move [window|container] [to] [absolute] position <x> [px] <y> [px]'"
 	" or 'move [window|container] [to] [absolute] position center'"
@@ -1047,8 +998,6 @@ struct cmd_results *cmd_move(int argc, char **argv) {
 			strcasecmp(argv[0], "output") == 0 ||
 			strcasecmp(argv[0], "mark") == 0) {
 		return cmd_move_container(no_auto_back_and_forth, argc, argv);
-	} else if (strcasecmp(argv[0], "scratchpad") == 0) {
-		return cmd_move_to_scratchpad();
 	} else if (strcasecmp(argv[0], "position") == 0 ||
 			(argc > 1 && strcasecmp(argv[0], "absolute") == 0 &&
 			strcasecmp(argv[1], "position") == 0)) {

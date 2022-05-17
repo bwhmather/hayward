@@ -305,8 +305,7 @@ node and will have the following properties:
 :[ The internal unique ID for this node
 |- name
 :  string
-:  The name of the node such as the output name or window title. For the
-   scratchpad, this will be _\_\_i3\_scratch_ for compatibility with i3.
+:  The name of the node such as the output name or window title.
 |- type
 :  string
 :  The node type. It can be _root_, _output_, _workspace_, _con_, or
@@ -327,7 +326,7 @@ node and will have the following properties:
 |- percent
 :  float
 :  The percentage of the node's parent that it takes up or _null_ for the root
-   and other special nodes such as the scratchpad
+   and other special nodes.
 |- rect
 :  object
 :  The absolute geometry of the node. The window decorations are excluded from
