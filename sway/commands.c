@@ -185,15 +185,20 @@ static void set_config_node(struct sway_node *node, bool node_overridden) {
 	}
 
 	switch (node->type) {
-	case N_CONTAINER:
-		config->handler_context.container = node->sway_container;
-		config->handler_context.workspace = node->sway_container->pending.workspace;
+	case N_ROOT:
+		break;
+	case N_OUTPUT:
 		break;
 	case N_WORKSPACE:
 		config->handler_context.workspace = node->sway_workspace;
 		break;
-	case N_ROOT:
-	case N_OUTPUT:
+	case N_COLUMN:
+		config->handler_context.container = node->sway_container;
+		config->handler_context.workspace = node->sway_container->pending.workspace;
+		break;
+	case N_WINDOW:
+		config->handler_context.container = node->sway_container;
+		config->handler_context.workspace = node->sway_container->pending.workspace;
 		break;
 	}
 }

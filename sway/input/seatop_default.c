@@ -223,7 +223,7 @@ static void handle_tablet_tool_tip(struct sway_seat *seat,
 		return;
 	}
 
-	struct sway_container *cont = node && node->type == N_CONTAINER ?
+	struct sway_container *cont = node && (node->type == N_COLUMN || node->type == N_WINDOW) ?
 		node->sway_container : NULL;
 
 	if (wlr_surface_is_layer_surface(surface)) {
@@ -333,7 +333,7 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	struct sway_node *node = node_at_coords(seat,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
 
-	struct sway_container *cont = node && node->type == N_CONTAINER ?
+	struct sway_container *cont = node && (node->type == N_COLUMN || node->type == N_WINDOW) ?
 		node->sway_container : NULL;
 	bool is_floating = cont && container_is_floating(cont);
 	bool is_floating_or_child = cont && container_is_floating_or_child(cont);
@@ -671,7 +671,7 @@ static void handle_pointer_axis(struct sway_seat *seat,
 	double sx, sy;
 	struct sway_node *node = node_at_coords(seat,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
-	struct sway_container *cont = node && node->type == N_CONTAINER ?
+	struct sway_container *cont = node && (node->type == N_COLUMN || node->type == N_WINDOW) ?
 		node->sway_container : NULL;
 	enum wlr_edges edge = cont ? find_edge(cont, surface, cursor) : WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;

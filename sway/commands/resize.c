@@ -179,7 +179,7 @@ void container_resize_tiled(struct sway_container *con,
 	}
 
 	if (con->pending.parent) {
-		arrange_container(con->pending.parent);
+		arrange_column(con->pending.parent);
 	} else {
 		arrange_workspace(con->pending.workspace);
 	}
@@ -237,7 +237,7 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
 	con->pending.content_width += grow_width;
 	con->pending.content_height += grow_height;
 
-	arrange_container(con);
+	arrange_window(con);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -384,7 +384,7 @@ static struct cmd_results *resize_set_floating(struct sway_container *con,
 	con->pending.content_width += grow_width;
 	con->pending.content_height += grow_height;
 
-	arrange_container(con);
+	arrange_window(con);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

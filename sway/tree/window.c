@@ -36,7 +36,7 @@ struct sway_container *window_create(struct sway_view *view) {
 		sway_log(SWAY_ERROR, "Unable to allocate sway_container");
 		return NULL;
 	}
-	node_init(&c->node, N_CONTAINER, c);
+	node_init(&c->node, N_WINDOW, c);
 	c->pending.layout = L_NONE;
 	c->view = view;
 	c->alpha = 1.0f;

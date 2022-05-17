@@ -54,7 +54,7 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 			container_set_resizing(e->h_con, false);
 			container_set_resizing(e->h_sib, false);
 			if (e->h_con->pending.parent) {
-				arrange_container(e->h_con->pending.parent);
+				arrange_column(e->h_con->pending.parent);
 			} else {
 				arrange_workspace(e->h_con->pending.workspace);
 			}
@@ -63,7 +63,7 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 			container_set_resizing(e->v_con, false);
 			container_set_resizing(e->v_sib, false);
 			if (e->v_con->pending.parent) {
-				arrange_container(e->v_con->pending.parent);
+				arrange_column(e->v_con->pending.parent);
 			} else {
 				arrange_workspace(e->v_con->pending.workspace);
 			}

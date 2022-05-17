@@ -95,7 +95,7 @@ struct cmd_results *cmd_border(int argc, char **argv) {
 		container_set_geometry_from_content(container);
 	}
 
-	arrange_container(container);
+	arrange_window(container);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

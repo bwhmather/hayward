@@ -85,7 +85,7 @@ void root_scratchpad_add_container(struct sway_container *con, struct sway_works
 		struct sway_seat *seat = input_manager_current_seat();
 		struct sway_node *new_focus = NULL;
 		if (parent) {
-			arrange_container(parent);
+			arrange_column(parent);
 			new_focus = seat_get_focus_inactive(seat, &parent->node);
 		}
 		if (!new_focus) {

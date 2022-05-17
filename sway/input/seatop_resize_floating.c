@@ -27,7 +27,11 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 
 	if (seat->cursor->pressed_button_count == 0) {
 		container_set_resizing(con, false);
-		arrange_container(con); // Send configure w/o resizing hint
+		if (container_is_window(con)) {
+			arrange_window(con); // Send configure w/o resizing hint
+		} else {
+			arrange_column(con);
+		}
 		transaction_commit_dirty();
 		seatop_begin_default(seat);
 	}
@@ -142,7 +146,11 @@ static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
 	con->pending.content_width += relative_grow_width;
 	con->pending.content_height += relative_grow_height;
 
-	arrange_container(con);
+	if (container_is_window(con)) {
+		arrange_window(con);
+	} else {
+		arrange_column(con);
+	}
 	transaction_commit_dirty();
 }
 

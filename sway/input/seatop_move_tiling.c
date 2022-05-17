@@ -340,7 +340,7 @@ static void finalize_move(struct sway_seat *seat) {
 		target_node->sway_workspace : target_node->sway_container->pending.workspace;
 	enum wlr_edges edge = e->target_edge;
 	int after = edge != WLR_EDGE_TOP && edge != WLR_EDGE_LEFT;
-	bool swap = edge == WLR_EDGE_NONE && target_node->type == N_CONTAINER &&
+	bool swap = edge == WLR_EDGE_NONE && (target_node->type == N_COLUMN || target_node->type == N_WINDOW) &&
 		!e->split_target;
 
 	if (!swap) {
@@ -358,7 +358,7 @@ static void finalize_move(struct sway_seat *seat) {
 		}
 		container_add_sibling(target, con, e->insert_after_target);
 		ipc_event_window(con, "move");
-	} else if (target_node->type == N_CONTAINER) {
+	} else if (target_node->type == N_COLUMN || target_node->type == N_WINDOW) {
 		// Moving container before/after another
 		struct sway_container *target = target_node->sway_container;
 		if (swap) {

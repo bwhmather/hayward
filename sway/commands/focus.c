@@ -447,7 +447,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		seat_set_focus(seat, next_focus);
 		seat_consider_warp_to_focus(seat);
 
-		if (next_focus->type == N_CONTAINER) {
+		if (next_focus->type == N_COLUMN || next_focus->type == N_WINDOW) {
 			container_raise_floating(next_focus->sway_container);
 		}
 	}

@@ -47,7 +47,7 @@ struct sway_output *workspace_get_initial_output(const char *name) {
 	struct sway_node *focus = seat_get_focus_inactive(seat, &root->node);
 	if (focus && focus->type == N_WORKSPACE) {
 		return focus->sway_workspace->output;
-	} else if (focus && focus->type == N_CONTAINER) {
+	} else if (focus && (focus->type == N_COLUMN || focus->type == N_WINDOW)) {
 		return focus->sway_container->pending.workspace->output;
 	}
 	// Fallback to the first output or the headless output
@@ -556,7 +556,7 @@ struct sway_workspace *workspace_auto_back_and_forth(
 	struct sway_node *focus = seat_get_focus_inactive(seat, &root->node);
 	if (focus && focus->type == N_WORKSPACE) {
 		active_ws = focus->sway_workspace;
-	} else if (focus && focus->type == N_CONTAINER) {
+	} else if (focus && (focus->type == N_COLUMN || focus->type == N_WINDOW)) {
 		active_ws = focus->sway_container->pending.workspace;
 	}
 

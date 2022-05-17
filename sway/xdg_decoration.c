@@ -36,7 +36,7 @@ static void xdg_decoration_handle_request_mode(struct wl_listener *listener,
 		csd = client_mode ==
 			WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
 		view_update_csd_from_client(view, csd);
-		arrange_container(view->container);
+		arrange_window(view->container);
 		transaction_commit_dirty();
 	} else {
 		floating = view->impl->wants_floating &&

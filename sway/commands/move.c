@@ -526,7 +526,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	if (destination->type == N_CONTAINER &&
+	if (destination->type == N_WINDOW &&
 			container_is_scratchpad_hidden(destination->sway_container)) {
 		return cmd_move_to_scratchpad();
 	}
@@ -565,7 +565,9 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 			container_move_to_workspace(container, ws);
 		}
 		break;
-	case N_CONTAINER:
+	case N_WINDOW:
+		// TODO (wmiiv)
+	case N_COLUMN:
 		container_move_to_container(container, destination->sway_container);
 		break;
 	case N_ROOT:

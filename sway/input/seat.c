@@ -190,10 +190,8 @@ static void seat_tablet_pads_notify_enter(struct sway_seat *seat,
 static void seat_send_focus(struct sway_node *node, struct sway_seat *seat) {
 	seat_send_activate(node, seat);
 
-	struct sway_view *view = node->type == N_CONTAINER ?
-		node->sway_container->view : NULL;
-
-	if (view && seat_is_input_allowed(seat, view->surface)) {
+	if (node_is_view(node) && seat_is_input_allowed(seat, node->sway_container->view->surface)) {
+		struct sway_view *view = node->sway_container->view;
 #if HAVE_XWAYLAND
 		if (view->type == SWAY_VIEW_XWAYLAND) {
 			struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
@@ -316,7 +314,7 @@ static void handle_seat_node_destroy(struct wl_listener *listener, void *data) {
 
 	if (needs_new_focus) {
 		// Make sure the workspace IPC event gets sent
-		if (node->type == N_CONTAINER && node->sway_container->scratchpad) {
+		if (node->type == N_WINDOW && node->sway_container->scratchpad) {
 			seat_set_focus(seat, NULL);
 		}
 		// The structure change might have caused it to move up to the top of
@@ -330,7 +328,7 @@ static void handle_seat_node_destroy(struct wl_listener *listener, void *data) {
 		// Setting focus_inactive
 		focus = seat_get_focus_inactive(seat, &root->node);
 		seat_set_raw_focus(seat, next_focus);
-		if (focus->type == N_CONTAINER && focus->sway_container->pending.workspace) {
+		if ((focus->type == N_COLUMN || focus->type == N_WINDOW) && focus->sway_container->pending.workspace) {
 			seat_set_raw_focus(seat, &focus->sway_container->pending.workspace->node);
 		}
 		seat_set_raw_focus(seat, focus);
@@ -1170,7 +1168,7 @@ void seat_set_focus(struct sway_seat *seat, struct sway_node *node) {
 
 	struct sway_workspace *new_workspace = node->type == N_WORKSPACE ?
 		node->sway_workspace : node->sway_container->pending.workspace;
-	struct sway_container *container = node->type == N_CONTAINER ?
+	struct sway_container *container = (node->type == N_COLUMN || node->type == N_WINDOW) ?
 		node->sway_container : NULL;
 
 	// Deny setting focus to a view which is hidden by a fullscreen container or global
@@ -1402,7 +1400,7 @@ struct sway_container *seat_get_focus_inactive_tiling(struct sway_seat *seat,
 	struct sway_seat_node *current;
 	wl_list_for_each(current, &seat->focus_stack, link) {
 		struct sway_node *node = current->node;
-		if (node->type == N_CONTAINER &&
+		if ((node->type == N_COLUMN || node->type == N_WINDOW) &&
 				!container_is_floating_or_child(node->sway_container) &&
 				node->sway_container->pending.workspace == workspace) {
 			return node->sway_container;
@@ -1419,7 +1417,7 @@ struct sway_container *seat_get_focus_inactive_floating(struct sway_seat *seat,
 	struct sway_seat_node *current;
 	wl_list_for_each(current, &seat->focus_stack, link) {
 		struct sway_node *node = current->node;
-		if (node->type == N_CONTAINER &&
+		if ((node->type == N_COLUMN || node->type == N_WINDOW) &&
 				container_is_floating_or_child(node->sway_container) &&
 				node->sway_container->pending.workspace == workspace) {
 			return node->sway_container;
@@ -1467,11 +1465,15 @@ struct sway_workspace *seat_get_focused_workspace(struct sway_seat *seat) {
 	if (!focus) {
 		return NULL;
 	}
-	if (focus->type == N_CONTAINER) {
-		return focus->sway_container->pending.workspace;
-	}
 	if (focus->type == N_WORKSPACE) {
 		return focus->sway_workspace;
+	}
+	if (focus->type == N_COLUMN) {
+		return focus->sway_container->pending.workspace;
+	}
+
+	if (focus->type == N_WINDOW) {
+		return focus->sway_container->pending.workspace;
 	}
 	return NULL; // output doesn't have a workspace yet
 }
@@ -1480,7 +1482,7 @@ struct sway_workspace *seat_get_last_known_workspace(struct sway_seat *seat) {
 	struct sway_seat_node *current;
 	wl_list_for_each(current, &seat->focus_stack, link) {
 		struct sway_node *node = current->node;
-		if (node->type == N_CONTAINER &&
+		if ((node->type == N_COLUMN || node->type == N_WINDOW) &&
 				node->sway_container->pending.workspace) {
 			return node->sway_container->pending.workspace;
 		} else if (node->type == N_WORKSPACE) {
@@ -1492,7 +1494,7 @@ struct sway_workspace *seat_get_last_known_workspace(struct sway_seat *seat) {
 
 struct sway_container *seat_get_focused_container(struct sway_seat *seat) {
 	struct sway_node *focus = seat_get_focus(seat);
-	if (focus && focus->type == N_CONTAINER) {
+	if (focus && (focus->type == N_COLUMN || focus->type == N_WINDOW)) {
 		return focus->sway_container;
 	}
 	return NULL;
@@ -1563,7 +1565,7 @@ void seat_consider_warp_to_focus(struct sway_seat *seat) {
 		}
 	}
 
-	if (focus->type == N_CONTAINER) {
+	if (focus->type == N_COLUMN || focus->type == N_WINDOW) {
 		cursor_warp_to_container(seat->cursor, focus->sway_container, false);
 	} else {
 		cursor_warp_to_workspace(seat->cursor, focus->sway_workspace);

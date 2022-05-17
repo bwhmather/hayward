@@ -70,7 +70,10 @@ static void transaction_destroy(struct sway_transaction *transaction) {
 			case N_WORKSPACE:
 				workspace_destroy(node->sway_workspace);
 				break;
-			case N_CONTAINER:
+			case N_COLUMN:
+				container_destroy(node->sway_container);
+				break;
+			case N_WINDOW:
 				container_destroy(node->sway_container);
 				break;
 			}
@@ -135,8 +138,12 @@ static void copy_workspace_state(struct sway_workspace *ws,
 	state->focused_inactive_child = focus;
 }
 
-static void copy_container_state(struct sway_container *container,
+static void copy_column_state(struct sway_container *container,
 		struct sway_transaction_instruction *instruction) {
+	if (!sway_assert(container_is_column(container), "Expected column")) {
+		return;
+	}
+
 	struct sway_container_state *state = &instruction->container_state;
 
 	if (state->children) {
@@ -145,23 +152,28 @@ static void copy_container_state(struct sway_container *container,
 
 	memcpy(state, &container->pending, sizeof(struct sway_container_state));
 
-	if (!container->view) {
-		// We store a copy of the child list to avoid having it mutated after
-		// we copy the state.
-		state->children = create_list();
-		list_cat(state->children, container->pending.children);
-	} else {
-		state->children = NULL;
-	}
+	// We store a copy of the child list to avoid having it mutated after
+	// we copy the state.
+	state->children = create_list();
+	list_cat(state->children, container->pending.children);
 
 	struct sway_seat *seat = input_manager_current_seat();
 	state->focused = seat_get_focus(seat) == &container->node;
 
-	if (!container->view) {
-		struct sway_node *focus =
-			seat_get_active_tiling_child(seat, &container->node);
-		state->focused_inactive_child = focus ? focus->sway_container : NULL;
-	}
+	struct sway_node *focus =
+		seat_get_active_tiling_child(seat, &container->node);
+	state->focused_inactive_child = focus ? focus->sway_container : NULL;
+}
+
+static void copy_window_state(struct sway_container *container,
+		struct sway_transaction_instruction *instruction) {
+	struct sway_container_state *state = &instruction->container_state;
+
+	memcpy(state, &container->pending, sizeof(struct sway_container_state));
+	state->children = NULL;
+
+	struct sway_seat *seat = input_manager_current_seat();
+	state->focused = seat_get_focus(seat) == &container->node;
 }
 
 static void transaction_add_node(struct sway_transaction *transaction,
@@ -205,8 +217,11 @@ static void transaction_add_node(struct sway_transaction *transaction,
 	case N_WORKSPACE:
 		copy_workspace_state(node->sway_workspace, instruction);
 		break;
-	case N_CONTAINER:
-		copy_container_state(node->sway_container, instruction);
+	case N_COLUMN:
+		copy_column_state(node->sway_container, instruction);
+		break;
+	case N_WINDOW:
+		copy_window_state(node->sway_container, instruction);
 		break;
 	}
 }
@@ -228,12 +243,35 @@ static void apply_workspace_state(struct sway_workspace *ws,
 	output_damage_whole(ws->current.output);
 }
 
-static void apply_container_state(struct sway_container *container,
+static void apply_column_state(struct sway_container *container,
+		struct sway_container_state *state) {
+	// Damage the old location
+	desktop_damage_whole_container(container);
+
+	// There are separate children lists for each instruction state, the
+	// container's current state and the container's pending state
+	// (ie. con->children). The list itself needs to be freed here.
+	// Any child containers which are being deleted will be cleaned up in
+	// transaction_destroy().
+	list_free(container->current.children);
+
+	memcpy(&container->current, state, sizeof(struct sway_container_state));
+
+	// Damage the new location
+	desktop_damage_whole_container(container);
+
+	if (!container->node.destroying) {
+		container_discover_outputs(container);
+	}
+}
+
+
+static void apply_window_state(struct sway_container *container,
 		struct sway_container_state *state) {
 	struct sway_view *view = container->view;
 	// Damage the old location
 	desktop_damage_whole_container(container);
-	if (view && !wl_list_empty(&view->saved_buffers)) {
+	if (!wl_list_empty(&view->saved_buffers)) {
 		struct sway_saved_buffer *saved_buf;
 		wl_list_for_each(saved_buf, &view->saved_buffers, link) {
 			struct wlr_box box = {
@@ -255,7 +293,7 @@ static void apply_container_state(struct sway_container *container,
 
 	memcpy(&container->current, state, sizeof(struct sway_container_state));
 
-	if (view && !wl_list_empty(&view->saved_buffers)) {
+	if (!wl_list_empty(&view->saved_buffers)) {
 		if (!container->node.destroying || container->node.ntxnrefs == 1) {
 			view_remove_saved_buffer(view);
 		}
@@ -264,13 +302,13 @@ static void apply_container_state(struct sway_container *container,
 	// If the view hasn't responded to the configure, center it within
 	// the container. This is important for fullscreen views which
 	// refuse to resize to the size of the output.
-	if (view && view->surface) {
+	if (view->surface) {
 		view_center_surface(view);
 	}
 
 	// Damage the new location
 	desktop_damage_whole_container(container);
-	if (view && view->surface) {
+	if (view->surface) {
 		struct wlr_surface *surface = view->surface;
 		struct wlr_box box = {
 			.x = container->current.content_x - view->geometry.x,
@@ -317,10 +355,13 @@ static void transaction_apply(struct sway_transaction *transaction) {
 			apply_workspace_state(node->sway_workspace,
 					&instruction->workspace_state);
 			break;
-		case N_CONTAINER:
-			apply_container_state(node->sway_container,
+		case N_COLUMN:
+			apply_column_state(node->sway_container,
 					&instruction->container_state);
 			break;
+		case N_WINDOW:
+			apply_window_state(node->sway_container,
+					&instruction->container_state);
 		}
 
 		node->instruction = NULL;

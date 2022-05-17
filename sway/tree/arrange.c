@@ -203,7 +203,12 @@ static void apply_stacked_layout(list_t *children, struct wlr_box *parent) {
 static void arrange_floating(list_t *floating) {
 	for (int i = 0; i < floating->length; ++i) {
 		struct sway_container *floater = floating->items[i];
-		arrange_container(floater);
+		if (container_is_column(floater)) {
+			// TODO (wmiiv) only windows should float.
+			arrange_column(floater);
+		} else {
+			arrange_window(floater);
+		}
 	}
 }
 
@@ -231,23 +236,31 @@ static void arrange_children(list_t *children,
 	// Recurse into child containers
 	for (int i = 0; i < children->length; ++i) {
 		struct sway_container *child = children->items[i];
-		arrange_container(child);
+		if (container_is_window(child)) {
+			arrange_window(child);
+		} else {
+			// TODO (wmiiv) nested columns will eventually be disallowed.
+			arrange_column(child);
+		}
 	}
 }
 
-void arrange_container(struct sway_container *container) {
+void arrange_column(struct sway_container *col) {
 	if (config->reloading) {
 		return;
 	}
-	if (container->view) {
-		view_autoconfigure(container->view);
-		node_set_dirty(&container->node);
+	struct wlr_box box;
+	container_get_box(col, &box);
+	arrange_children(col->pending.children, col->pending.layout, &box);
+	node_set_dirty(&col->node);
+}
+
+void arrange_window(struct sway_container *win) {
+	if (config->reloading) {
 		return;
 	}
-	struct wlr_box box;
-	container_get_box(container, &box);
-	arrange_children(container->pending.children, container->pending.layout, &box);
-	node_set_dirty(&container->node);
+	view_autoconfigure(win->view);
+	node_set_dirty(&win->node);
 }
 
 void arrange_workspace(struct sway_workspace *workspace) {
@@ -298,7 +311,7 @@ void arrange_workspace(struct sway_workspace *workspace) {
 		fs->pending.y = output->ly;
 		fs->pending.width = output->width;
 		fs->pending.height = output->height;
-		arrange_container(fs);
+		arrange_window(fs);
 	} else {
 		struct wlr_box box;
 		workspace_get_box(workspace, &box);
@@ -342,7 +355,7 @@ void arrange_root(void) {
 		fs->pending.y = root->y;
 		fs->pending.width = root->width;
 		fs->pending.height = root->height;
-		arrange_container(fs);
+		arrange_window(fs);
 	} else {
 		for (int i = 0; i < root->outputs->length; ++i) {
 			struct sway_output *output = root->outputs->items[i];
@@ -362,8 +375,11 @@ void arrange_node(struct sway_node *node) {
 	case N_WORKSPACE:
 		arrange_workspace(node->sway_workspace);
 		break;
-	case N_CONTAINER:
-		arrange_container(node->sway_container);
+	case N_COLUMN:
+		arrange_column(node->sway_container);
+		break;
+	case N_WINDOW:
+		arrange_window(node->sway_container);
 		break;
 	}
 }

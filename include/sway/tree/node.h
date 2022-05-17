@@ -17,7 +17,8 @@ enum sway_node_type {
 	N_ROOT,
 	N_OUTPUT,
 	N_WORKSPACE,
-	N_CONTAINER,
+	N_COLUMN,
+	N_WINDOW,
 };
 
 struct sway_node {

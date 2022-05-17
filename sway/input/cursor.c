@@ -217,7 +217,7 @@ void cursor_rebase_all(void) {
 
 void cursor_update_image(struct sway_cursor *cursor,
 		struct sway_node *node) {
-	if (node && node->type == N_CONTAINER) {
+	if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
 		// Try a node's resize edge
 		enum wlr_edges edge = find_resize_edge(node->sway_container, NULL, cursor);
 		if (edge == WLR_EDGE_NONE) {

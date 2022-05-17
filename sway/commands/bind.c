@@ -623,7 +623,7 @@ void seat_execute_command(struct sway_seat *seat, struct sway_binding *binding) 
 		struct sway_node *node = node_at_coords(seat,
 				seat->cursor->cursor->x, seat->cursor->cursor->y,
 				&surface, &sx, &sy);
-		if (node && node->type == N_CONTAINER) {
+		if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
 			con = node->sway_container;
 		}
 	}

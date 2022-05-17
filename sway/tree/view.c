@@ -582,7 +582,8 @@ static struct sway_workspace *select_workspace(struct sway_view *view) {
 	struct sway_node *node = seat_get_focus_inactive(seat, &root->node);
 	if (node && node->type == N_WORKSPACE) {
 		return node->sway_workspace;
-	} else if (node && node->type == N_CONTAINER) {
+	// TODO (wmiiv) only windows can be focused.
+	} else if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
 		return node->sway_container->pending.workspace;
 	}
 
@@ -681,7 +682,7 @@ static void handle_foreign_fullscreen_request(
 		arrange_root();
 	} else {
 		if (container->pending.parent) {
-			arrange_container(container->pending.parent);
+			arrange_column(container->pending.parent);
 		} else if (container->pending.workspace) {
 			arrange_workspace(container->pending.workspace);
 		}
@@ -733,7 +734,7 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 	struct sway_node *node =
 		seat_get_focus_inactive(seat, ws ? &ws->node : &root->node);
 	struct sway_container *target_sibling = NULL;
-	if (node && node->type == N_CONTAINER) {
+	if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
 		if (container_is_floating(node->sway_container)) {
 			// If we're about to launch the view into the floating container, then
 			// launch it as a tiled view instead.
@@ -814,7 +815,7 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 		arrange_workspace(view->container->pending.workspace);
 	} else {
 		if (container->pending.parent) {
-			arrange_container(container->pending.parent);
+			arrange_column(container->pending.parent);
 		} else if (container->pending.workspace) {
 			arrange_workspace(container->pending.workspace);
 		}

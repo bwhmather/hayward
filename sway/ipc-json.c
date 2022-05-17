@@ -31,7 +31,11 @@ static const char *ipc_json_node_type_description(enum sway_node_type node_type)
 		return "output";
 	case N_WORKSPACE:
 		return "workspace";
-	case N_CONTAINER:
+	case N_COLUMN:
+		// TODO (wmiiv) Should be "column".
+		return "con";
+	case N_WINDOW:
+		// TODO (wmiiv) Should be "window",
 		return "con";
 	}
 	return "none";
@@ -586,31 +590,30 @@ static void ipc_json_describe_view(struct sway_container *c, json_object *object
 #endif
 }
 
-static void ipc_json_describe_container(struct sway_container *c, json_object *object) {
+static void ipc_json_describe_column(struct sway_container *col, json_object *object) {
 	json_object_object_add(object, "name",
-			c->title ? json_object_new_string(c->title) : NULL);
-	if (container_is_floating(c)) {
+			col->title ? json_object_new_string(col->title) : NULL);
+	if (container_is_floating(col)) {
 		json_object_object_add(object, "type",
 				json_object_new_string("floating_con"));
 	}
 
 	json_object_object_add(object, "layout",
 			json_object_new_string(
-				ipc_json_layout_description(c->pending.layout)));
+				ipc_json_layout_description(col->pending.layout)));
 
 	json_object_object_add(object, "orientation",
 			json_object_new_string(
-				ipc_json_orientation_description(c->pending.layout)));
+				ipc_json_orientation_description(col->pending.layout)));
 
-	bool urgent = c->view ?
-		view_is_urgent(c->view) : container_has_urgent_child(c);
+	bool urgent = container_has_urgent_child(col);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
-	json_object_object_add(object, "sticky", json_object_new_boolean(c->is_sticky));
+	json_object_object_add(object, "sticky", json_object_new_boolean(col->is_sticky));
 
 	json_object_object_add(object, "fullscreen_mode",
-			json_object_new_int(c->pending.fullscreen_mode));
+			json_object_new_int(col->pending.fullscreen_mode));
 
-	struct sway_node *parent = node_get_parent(&c->node);
+	struct sway_node *parent = node_get_parent(&col->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};
 
 	if (parent != NULL) {
@@ -618,33 +621,79 @@ static void ipc_json_describe_container(struct sway_container *c, json_object *o
 	}
 
 	if (parent_box.width != 0 && parent_box.height != 0) {
-		double percent = ((double)c->pending.width / parent_box.width)
-				* ((double)c->pending.height / parent_box.height);
+		double percent = ((double)col->pending.width / parent_box.width)
+				* ((double)col->pending.height / parent_box.height);
 		json_object_object_add(object, "percent", json_object_new_double(percent));
 	}
 
 	json_object_object_add(object, "border",
 			json_object_new_string(
-				ipc_json_border_description(c->current.border)));
+				ipc_json_border_description(col->current.border)));
 	json_object_object_add(object, "current_border_width",
-			json_object_new_int(c->current.border_thickness));
+			json_object_new_int(col->current.border_thickness));
 	json_object_object_add(object, "floating_nodes", json_object_new_array());
 
 	struct wlr_box deco_box = {0, 0, 0, 0};
-	get_deco_rect(c, &deco_box);
+	get_deco_rect(col, &deco_box);
+	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
+}
+
+static void ipc_json_describe_window(struct sway_container *win, json_object *object) {
+	json_object_object_add(object, "name",
+			win->title ? json_object_new_string(win->title) : NULL);
+	if (container_is_floating(win)) {
+		json_object_object_add(object, "type",
+				json_object_new_string("floating_con"));
+	}
+
+	json_object_object_add(object, "layout",
+			json_object_new_string(
+				ipc_json_layout_description(win->pending.layout)));
+
+	json_object_object_add(object, "orientation",
+			json_object_new_string(
+				ipc_json_orientation_description(win->pending.layout)));
+
+	bool urgent = view_is_urgent(win->view);
+	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
+	json_object_object_add(object, "sticky", json_object_new_boolean(win->is_sticky));
+
+	json_object_object_add(object, "fullscreen_mode",
+			json_object_new_int(win->pending.fullscreen_mode));
+
+	struct sway_node *parent = node_get_parent(&win->node);
+	struct wlr_box parent_box = {0, 0, 0, 0};
+
+	if (parent != NULL) {
+		node_get_box(parent, &parent_box);
+	}
+
+	if (parent_box.width != 0 && parent_box.height != 0) {
+		double percent = ((double)win->pending.width / parent_box.width)
+				* ((double)win->pending.height / parent_box.height);
+		json_object_object_add(object, "percent", json_object_new_double(percent));
+	}
+
+	json_object_object_add(object, "border",
+			json_object_new_string(
+				ipc_json_border_description(win->current.border)));
+	json_object_object_add(object, "current_border_width",
+			json_object_new_int(win->current.border_thickness));
+	json_object_object_add(object, "floating_nodes", json_object_new_array());
+
+	struct wlr_box deco_box = {0, 0, 0, 0};
+	get_deco_rect(win, &deco_box);
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 
 	json_object *marks = json_object_new_array();
-	list_t *con_marks = c->marks;
+	list_t *con_marks = win->marks;
 	for (int i = 0; i < con_marks->length; ++i) {
 		json_object_array_add(marks, json_object_new_string(con_marks->items[i]));
 	}
 
 	json_object_object_add(object, "marks", marks);
 
-	if (c->view) {
-		ipc_json_describe_view(c, object);
-	}
+	ipc_json_describe_view(win, object);
 }
 
 struct focus_inactive_data {
@@ -682,7 +731,8 @@ json_object *ipc_json_describe_node(struct sway_node *node) {
 
 	struct wlr_box box;
 	node_get_box(node, &box);
-	if (node->type == N_CONTAINER) {
+
+	if (node->type == N_COLUMN || node->type == N_WINDOW) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
 		get_deco_rect(node->sway_container, &deco_rect);
 		size_t count = 1;
@@ -709,11 +759,14 @@ json_object *ipc_json_describe_node(struct sway_node *node) {
 	case N_OUTPUT:
 		ipc_json_describe_output(node->sway_output, object);
 		break;
-	case N_CONTAINER:
-		ipc_json_describe_container(node->sway_container, object);
-		break;
 	case N_WORKSPACE:
 		ipc_json_describe_workspace(node->sway_workspace, object);
+		break;
+	case N_COLUMN:
+		ipc_json_describe_column(node->sway_container, object);
+		break;
+	case N_WINDOW:
+		ipc_json_describe_window(node->sway_container, object);
 		break;
 	}
 
@@ -749,7 +802,7 @@ json_object *ipc_json_describe_node_recursive(struct sway_node *node) {
 					ipc_json_describe_node_recursive(&con->node));
 		}
 		break;
-	case N_CONTAINER:
+	case N_COLUMN:
 		if (node->sway_container->pending.children) {
 			for (i = 0; i < node->sway_container->pending.children->length; ++i) {
 				struct sway_container *child =
@@ -759,7 +812,10 @@ json_object *ipc_json_describe_node_recursive(struct sway_node *node) {
 			}
 		}
 		break;
+	case N_WINDOW:
+		break;
 	}
+
 	json_object_object_add(object, "nodes", children);
 
 	return object;
