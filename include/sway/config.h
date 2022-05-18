@@ -570,8 +570,10 @@ struct sway_config {
 		struct seat_config *seat_config;
 		struct sway_seat *seat;
 		struct sway_node *node;
-		struct sway_container *container;
 		struct sway_workspace *workspace;
+		struct sway_container *container;  // TODO (wmiiv) deprecated.
+		struct sway_container *column;
+		struct sway_container *window;
 		bool node_overridden; // True if the node is selected by means other than focus
 		struct {
 			int argc;
