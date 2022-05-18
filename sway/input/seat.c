@@ -115,25 +115,6 @@ void seat_idle_notify_activity(struct sway_seat *seat,
 	}
 }
 
-/**
- * Activate all views within this container recursively.
- */
-static void seat_send_activate(struct sway_node *node, struct sway_seat *seat) {
-	if (node_is_view(node)) {
-		if (!seat_is_input_allowed(seat, node->sway_container->view->surface)) {
-			sway_log(SWAY_DEBUG, "Refusing to set focus, input is inhibited");
-			return;
-		}
-		view_set_activated(node->sway_container->view, true);
-	} else {
-		list_t *children = node_get_children(node);
-		for (int i = 0; i < children->length; ++i) {
-			struct sway_container *child = children->items[i];
-			seat_send_activate(&child->node, seat);
-		}
-	}
-}
-
 static struct sway_keyboard *sway_keyboard_for_wlr_keyboard(
 		struct sway_seat *seat, struct wlr_keyboard *wlr_keyboard) {
 	struct sway_seat_device *seat_device;
@@ -188,26 +169,32 @@ static void seat_tablet_pads_notify_enter(struct sway_seat *seat,
  * keyboard input on any.
  */
 static void seat_send_focus(struct sway_node *node, struct sway_seat *seat) {
-	seat_send_activate(node, seat);
+	if (!sway_assert(node_is_view(node), "Can only focus windows")) {
+		return;
+	}
 
-	if (node_is_view(node) && seat_is_input_allowed(seat, node->sway_container->view->surface)) {
-		struct sway_view *view = node->sway_container->view;
+	if (!seat_is_input_allowed(seat, node->sway_container->view->surface)) {
+		sway_log(SWAY_DEBUG, "Refusing to set focus, input is inhibited");
+		return;
+	}
+
+	view_set_activated(node->sway_container->view, true);
+	struct sway_view *view = node->sway_container->view;
 #if HAVE_XWAYLAND
-		if (view->type == SWAY_VIEW_XWAYLAND) {
-			struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
-			wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
-		}
+	if (view->type == SWAY_VIEW_XWAYLAND) {
+		struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
+		wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
+	}
 #endif
 
-		seat_keyboard_notify_enter(seat, view->surface);
-		seat_tablet_pads_notify_enter(seat, view->surface);
-		sway_input_method_relay_set_focus(&seat->im_relay, view->surface);
+	seat_keyboard_notify_enter(seat, view->surface);
+	seat_tablet_pads_notify_enter(seat, view->surface);
+	sway_input_method_relay_set_focus(&seat->im_relay, view->surface);
 
-		struct wlr_pointer_constraint_v1 *constraint =
-			wlr_pointer_constraints_v1_constraint_for_surface(
-				server.pointer_constraints, view->surface, seat->wlr_seat);
-		sway_cursor_constrain(seat->cursor, constraint);
-	}
+	struct wlr_pointer_constraint_v1 *constraint =
+		wlr_pointer_constraints_v1_constraint_for_surface(
+			server.pointer_constraints, view->surface, seat->wlr_seat);
+	sway_cursor_constrain(seat->cursor, constraint);
 }
 
 void sway_force_focus(struct wlr_surface *surface) {
