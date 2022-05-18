@@ -1266,6 +1266,18 @@ void seat_set_focus(struct sway_seat *seat, struct sway_node *node) {
 	}
 }
 
+void seat_clear_focus(struct sway_seat *seat) {
+	seat_set_focus(seat, NULL);
+}
+
+void seat_set_focus_window(struct sway_seat *seat, struct sway_container *win) {
+	if (!sway_assert(win && container_is_window(win), "Cannot focus non-window")) {
+		return;
+	}
+
+	seat_set_focus(seat, &win->node);
+}
+
 void seat_set_focus_container(struct sway_seat *seat,
 		struct sway_container *con) {
 	seat_set_focus(seat, con ? &con->node : NULL);

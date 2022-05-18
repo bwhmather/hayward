@@ -149,11 +149,18 @@ void seat_remove_device(struct sway_seat *seat,
 
 void seat_configure_xcursor(struct sway_seat *seat);
 
+// TODO (wmiiv) deprecated.
 void seat_set_focus(struct sway_seat *seat, struct sway_node *node);
 
+void seat_clear_focus(struct sway_seat *seat);
+
+void seat_set_focus_window(struct sway_seat *seat, struct sway_container *win);
+
+// TODO (wmiiv) deprecated.
 void seat_set_focus_container(struct sway_seat *seat,
 		struct sway_container *con);
 
+// TODO (wmiiv) deprecated.
 void seat_set_focus_workspace(struct sway_seat *seat,
 		struct sway_workspace *ws);
 
@@ -163,6 +170,7 @@ void seat_set_focus_workspace(struct sway_seat *seat,
  * This can be used to set focus_inactive by calling the function a second time
  * with the real focus.
  */
+// TODO (wmiiv) deprecated.  Should be replaced with window-only equivalent.
 void seat_set_raw_focus(struct sway_seat *seat, struct sway_node *node);
 
 void seat_set_focus_surface(struct sway_seat *seat,
