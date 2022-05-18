@@ -20,8 +20,6 @@
 #include "wlr-layer-shell-unstable-v1-protocol.h"
 #include "sway/desktop/idle_inhibit_v1.h"
 
-static const int i3_output_id = INT32_MAX;
-
 static const char *ipc_json_node_type_description(enum sway_node_type node_type) {
 	switch (node_type) {
 	case N_ROOT:
