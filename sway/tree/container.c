@@ -1424,7 +1424,6 @@ void container_detach(struct sway_container *child) {
 void container_replace(struct sway_container *container,
 		struct sway_container *replacement) {
 	enum sway_fullscreen_mode fullscreen = container->pending.fullscreen_mode;
-	struct sway_workspace *ws = NULL;
 	if (fullscreen != FULLSCREEN_NONE) {
 		container_fullscreen_disable(container);
 	}
