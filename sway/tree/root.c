@@ -52,12 +52,6 @@ void root_destroy(struct sway_root *root) {
 	free(root);
 }
 
-static void disable_fullscreen(struct sway_container *con, void *data) {
-	if (con->pending.fullscreen_mode != FULLSCREEN_NONE) {
-		container_fullscreen_disable(con);
-	}
-}
-
 struct pid_workspace {
 	pid_t pid;
 	char *workspace;
