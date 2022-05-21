@@ -20,31 +20,17 @@ struct cmd_results *cmd_floating(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct sway_container *container = config->handler_context.container;
-	struct sway_workspace *workspace = config->handler_context.workspace;
-	if (!container && workspace->tiling->length == 0) {
-		return cmd_results_new(CMD_INVALID, "Can't float an empty workspace");
-	}
-	if (!container) {
-		// Wrap the workspace's children in a container so we can float it
-		container = workspace_wrap_children(workspace);
-		seat_set_focus_container(config->handler_context.seat, container);
-	}
-
-	// If the container is in a floating split container,
-	// operate on the split container instead of the child.
-	if (container_is_floating_or_child(container)) {
-		while (container->pending.parent) {
-			container = container->pending.parent;
-		}
+	struct sway_container *win = config->handler_context.window;
+	if (!win) {
+		return cmd_results_new(CMD_INVALID, "Can only float windows");
 	}
 
 	bool wants_floating =
-		parse_boolean(argv[0], container_is_floating(container));
+		parse_boolean(argv[0], container_is_floating(win));
 
-	container_set_floating(container, wants_floating);
+	container_set_floating(win, wants_floating);
 
-	arrange_workspace(container->pending.workspace);
+	arrange_workspace(win->pending.workspace);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

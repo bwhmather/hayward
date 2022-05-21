@@ -366,7 +366,7 @@ void view_request_activate(struct sway_view *view) {
 	switch (config->focus_on_window_activation) {
 	case FOWA_SMART:
 		if (workspace_is_visible(ws)) {
-			seat_set_focus_container(seat, view->container);
+			seat_set_focus_window(seat, view->container);
 		} else {
 			view_set_urgent(view, true);
 		}
@@ -375,7 +375,7 @@ void view_request_activate(struct sway_view *view) {
 		view_set_urgent(view, true);
 		break;
 	case FOWA_FOCUS:
-		seat_set_focus_container(seat, view->container);
+		seat_set_focus_window(seat, view->container);
 		break;
 	case FOWA_NONE:
 		break;
@@ -631,7 +631,7 @@ static void handle_foreign_activate_request(
 	struct sway_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		if (seat->wlr_seat == event->seat) {
-			seat_set_focus_container(seat, view->container);
+			seat_set_focus_window(seat, view->container);
 			seat_consider_warp_to_focus(seat);
 			container_raise_floating(view->container);
 			break;

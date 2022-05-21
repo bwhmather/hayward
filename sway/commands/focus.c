@@ -76,7 +76,10 @@ static bool parse_direction(const char *name,
 }
 
 /**
- * Get node in the direction of newly entered output.
+ * Returns the node that should be focused if entering an output by moving
+ * in the given direction.
+ *
+ *  Node should always be either a workspace or a window.
  */
 static struct sway_node *get_node_in_output_direction(
 		struct sway_output *output, enum wlr_direction dir) {
@@ -86,32 +89,38 @@ static struct sway_node *get_node_in_output_direction(
 		return NULL;
 	}
 	if (ws->fullscreen) {
-		return seat_get_focus_inactive(seat, &ws->fullscreen->node);
+		return &ws->fullscreen->node;
 	}
-	struct sway_container *container = NULL;
+	struct sway_container *col = NULL;
+	struct sway_container *win = NULL;
 
 	if (ws->tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
 			// get most right child of new output
-			container = ws->tiling->items[ws->tiling->length-1];
+			col = ws->tiling->items[ws->tiling->length-1];
+			win = seat_get_focus_inactive_view(seat, &col->node);
 			break;
 		case WLR_DIRECTION_RIGHT:
 			// get most left child of new output
-			container = ws->tiling->items[0];
+			col = ws->tiling->items[0];
+			win = seat_get_focus_inactive_view(seat, &col->node);
 			break;
 		case WLR_DIRECTION_UP:
-			container = seat_get_focus_inactive_tiling(seat, ws);
+			win = seat_get_focus_inactive_tiling(seat, ws);
 			break;
 		case WLR_DIRECTION_DOWN:
-			container = seat_get_focus_inactive_tiling(seat, ws);
+			win = seat_get_focus_inactive_tiling(seat, ws);
 			break;
 		}
 	}
 
-	if (container) {
-		container = seat_get_focus_inactive_view(seat, &container->node);
-		return &container->node;
+	if (win) {
+		// TODO (wmiir) remove this check once hierarchy is fixed.
+		if (container_is_column(win)) {
+			win = seat_get_focus_inactive_view(seat, &win->node);
+		}
+		return &win->node;
 	}
 
 	return &ws->node;
@@ -119,7 +128,7 @@ static struct sway_node *get_node_in_output_direction(
 
 static struct sway_node *node_get_in_direction_tiling(
 		struct sway_container *container, struct sway_seat *seat,
-		enum wlr_direction dir, bool descend) {
+		enum wlr_direction dir) {
 	struct sway_container *wrap_candidate = NULL;
 	struct sway_container *current = container;
 	while (current) {
@@ -174,13 +183,9 @@ static struct sway_node *node_get_in_direction_tiling(
 				}
 			} else {
 				struct sway_container *desired_con = siblings->items[desired];
-				if (!descend) {
-					return &desired_con->node;
-				} else {
-					struct sway_container *c = seat_get_focus_inactive_view(
-							seat, &desired_con->node);
-					return &c->node;
-				}
+				struct sway_container *c = seat_get_focus_inactive_view(
+						seat, &desired_con->node);
+				return &c->node;
 			}
 		}
 
@@ -249,12 +254,7 @@ static struct cmd_results *focus_mode(struct sway_workspace *ws,
 		new_focus = seat_get_focus_inactive_tiling(seat, ws);
 	}
 	if (new_focus) {
-		struct sway_container *new_focus_view =
-			seat_get_focus_inactive_view(seat, &new_focus->node);
-		if (new_focus_view) {
-			new_focus = new_focus_view;
-		}
-		seat_set_focus_container(seat, new_focus);
+		seat_set_focus_window(seat, new_focus);
 
 		// If we're on the floating layer and the floating container area
 		// overlaps the position on the tiling layer that would be warped to,
@@ -318,31 +318,6 @@ static struct cmd_results *focus_output(struct sway_seat *seat,
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *focus_parent(void) {
-	struct sway_seat *seat = config->handler_context.seat;
-	struct sway_container *con = config->handler_context.container;
-	if (!con || con->pending.fullscreen_mode) {
-		return cmd_results_new(CMD_SUCCESS, NULL);
-	}
-	struct sway_node *parent = node_get_parent(&con->node);
-	if (parent) {
-		seat_set_focus(seat, parent);
-		seat_consider_warp_to_focus(seat);
-	}
-	return cmd_results_new(CMD_SUCCESS, NULL);
-}
-
-static struct cmd_results *focus_child(void) {
-	struct sway_seat *seat = config->handler_context.seat;
-	struct sway_node *node = config->handler_context.node;
-	struct sway_node *focus = seat_get_active_tiling_child(seat, node);
-	if (focus) {
-		seat_set_focus(seat, focus);
-		seat_consider_warp_to_focus(seat);
-	}
-	return cmd_results_new(CMD_SUCCESS, NULL);
-}
-
 struct cmd_results *cmd_focus(int argc, char **argv) {
 	if (config->reading || !config->active) {
 		return cmd_results_new(CMD_DEFER, NULL);
@@ -352,8 +327,8 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 				"Can't run this command while there's no outputs connected.");
 	}
 	struct sway_node *node = config->handler_context.node;
-	struct sway_container *container = config->handler_context.container;
 	struct sway_workspace *workspace = config->handler_context.workspace;
+	struct sway_container *win = config->handler_context.window;
 	struct sway_seat *seat = config->handler_context.seat;
 	if (node->type < N_WORKSPACE) {
 		return cmd_results_new(CMD_FAILURE,
@@ -361,20 +336,20 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	}
 
 	if (argc == 0) {
-		if (!container) {
-			return cmd_results_new(CMD_FAILURE, "No container to focus was specified.");
+		if (!win) {
+			return cmd_results_new(CMD_INVALID, "No window to focus was specified.");
 		}
 
 		// if we are switching to a container under a fullscreen window, we first
 		// need to exit fullscreen so that the newly focused container becomes visible
-		struct sway_container *obstructing = container_obstructing_fullscreen_container(container);
+		struct sway_container *obstructing = container_obstructing_fullscreen_container(win);
 		if (obstructing) {
 			container_fullscreen_disable(obstructing);
 			arrange_root();
 		}
-		seat_set_focus_container(seat, container);
+		seat_set_focus_window(seat, win);
 		seat_consider_warp_to_focus(seat);
-		container_raise_floating(container);
+		container_raise_floating(win);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
@@ -383,7 +358,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	} else if (strcmp(argv[0], "tiling") == 0) {
 		return focus_mode(workspace, seat, false);
 	} else if (strcmp(argv[0], "mode_toggle") == 0) {
-		bool floating = container && container_is_floating_or_child(container);
+		bool floating = win && container_is_floating_or_child(win);
 		return focus_mode(workspace, seat, !floating);
 	}
 
@@ -392,22 +367,12 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return focus_output(seat, argc, argv);
 	}
 
-	if (strcasecmp(argv[0], "parent") == 0) {
-		return focus_parent();
-	}
-	if (strcasecmp(argv[0], "child") == 0) {
-		return focus_child();
-	}
-
 	enum wlr_direction direction = 0;
-	bool descend = true;
 	if (!parse_direction(argv[0], &direction)) {
-		if (!get_direction_from_next_prev(container, seat, argv[0], &direction)) {
+		if (!get_direction_from_next_prev(win, seat, argv[0], &direction)) {
 			return cmd_results_new(CMD_INVALID,
-				"Expected 'focus <direction|next|prev|parent|child|mode_toggle|floating|tiling>' "
+				"Expected 'focus <direction|next|prev|mode_toggle|floating|tiling>' "
 				"or 'focus output <direction|name>'");
-		} else if (argc == 2 && strcasecmp(argv[1], "sibling") == 0) {
-			descend = false;
 		}
 	}
 
@@ -430,15 +395,15 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	if (!sway_assert(container, "Expected container to be non null")) {
+	if (!sway_assert(win, "Expected container to be non null")) {
 		return cmd_results_new(CMD_FAILURE, "");
 	}
 	struct sway_node *next_focus = NULL;
-	if (container_is_floating(container) &&
-			container->pending.fullscreen_mode == FULLSCREEN_NONE) {
-		next_focus = node_get_in_direction_floating(container, seat, direction);
+	if (container_is_floating(win) &&
+			win->pending.fullscreen_mode == FULLSCREEN_NONE) {
+		next_focus = node_get_in_direction_floating(win, seat, direction);
 	} else {
-		next_focus = node_get_in_direction_tiling(container, seat, direction, descend);
+		next_focus = node_get_in_direction_tiling(win, seat, direction);
 	}
 	if (next_focus) {
 		seat_set_focus(seat, next_focus);

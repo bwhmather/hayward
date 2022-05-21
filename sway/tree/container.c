@@ -1065,88 +1065,97 @@ static void set_fullscreen(struct sway_container *con, bool enable) {
 	wlr_drm_format_set_finish(&scanout_formats);
 }
 
-static void container_fullscreen_workspace(struct sway_container *con) {
-	if (!sway_assert(con->pending.fullscreen_mode == FULLSCREEN_NONE,
+static void container_fullscreen_workspace(struct sway_container *win) {
+	if (!sway_assert(container_is_window(win), "Expected window")) {
+		return;
+	}
+	if (!sway_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
 	}
-	set_fullscreen(con, true);
-	con->pending.fullscreen_mode = FULLSCREEN_WORKSPACE;
+	set_fullscreen(win, true);
+	win->pending.fullscreen_mode = FULLSCREEN_WORKSPACE;
 
-	con->saved_x = con->pending.x;
-	con->saved_y = con->pending.y;
-	con->saved_width = con->pending.width;
-	con->saved_height = con->pending.height;
+	win->saved_x = win->pending.x;
+	win->saved_y = win->pending.y;
+	win->saved_width = win->pending.width;
+	win->saved_height = win->pending.height;
 
-	if (con->pending.workspace) {
-		con->pending.workspace->fullscreen = con;
+	if (win->pending.workspace) {
+		win->pending.workspace->fullscreen = win;
 		struct sway_seat *seat;
 		struct sway_workspace *focus_ws;
 		wl_list_for_each(seat, &server.input->seats, link) {
 			focus_ws = seat_get_focused_workspace(seat);
-			if (focus_ws == con->pending.workspace) {
-				seat_set_focus_container(seat, con);
+			if (focus_ws == win->pending.workspace) {
+				seat_set_focus_window(seat, win);
 			} else {
 				struct sway_node *focus =
 					seat_get_focus_inactive(seat, &root->node);
-				seat_set_raw_focus(seat, &con->node);
+				seat_set_raw_focus(seat, &win->node);
 				seat_set_raw_focus(seat, focus);
 			}
 		}
 	}
 
-	container_end_mouse_operation(con);
-	ipc_event_window(con, "fullscreen_mode");
+	container_end_mouse_operation(win);
+	ipc_event_window(win, "fullscreen_mode");
 }
 
-static void container_fullscreen_global(struct sway_container *con) {
-	if (!sway_assert(con->pending.fullscreen_mode == FULLSCREEN_NONE,
+static void container_fullscreen_global(struct sway_container *win) {
+	if (!sway_assert(container_is_window(win), "Expected window")) {
+		return;
+	}
+	if (!sway_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
 	}
-	set_fullscreen(con, true);
+	set_fullscreen(win, true);
 
-	root->fullscreen_global = con;
-	con->saved_x = con->pending.x;
-	con->saved_y = con->pending.y;
-	con->saved_width = con->pending.width;
-	con->saved_height = con->pending.height;
+	root->fullscreen_global = win;
+	win->saved_x = win->pending.x;
+	win->saved_y = win->pending.y;
+	win->saved_width = win->pending.width;
+	win->saved_height = win->pending.height;
 
 	struct sway_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		struct sway_container *focus = seat_get_focused_container(seat);
-		if (focus && focus != con) {
-			seat_set_focus_container(seat, con);
+		if (focus && focus != win) {
+			seat_set_focus_window(seat, win);
 		}
 	}
 
-	con->pending.fullscreen_mode = FULLSCREEN_GLOBAL;
-	container_end_mouse_operation(con);
-	ipc_event_window(con, "fullscreen_mode");
+	win->pending.fullscreen_mode = FULLSCREEN_GLOBAL;
+	container_end_mouse_operation(win);
+	ipc_event_window(win, "fullscreen_mode");
 }
 
-void container_fullscreen_disable(struct sway_container *con) {
-	if (!sway_assert(con->pending.fullscreen_mode != FULLSCREEN_NONE,
+void container_fullscreen_disable(struct sway_container *win) {
+	if (!sway_assert(container_is_window(win), "Expected window")) {
+		return;
+	}
+	if (!sway_assert(win->pending.fullscreen_mode != FULLSCREEN_NONE,
 				"Expected a fullscreen container")) {
 		return;
 	}
-	set_fullscreen(con, false);
+	set_fullscreen(win, false);
 
-	if (container_is_floating(con)) {
-		con->pending.x = con->saved_x;
-		con->pending.y = con->saved_y;
-		con->pending.width = con->saved_width;
-		con->pending.height = con->saved_height;
+	if (container_is_floating(win)) {
+		win->pending.x = win->saved_x;
+		win->pending.y = win->saved_y;
+		win->pending.width = win->saved_width;
+		win->pending.height = win->saved_height;
 	}
 
-	if (con->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-		if (con->pending.workspace) {
-			con->pending.workspace->fullscreen = NULL;
-			if (container_is_floating(con)) {
+	if (win->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+		if (win->pending.workspace) {
+			win->pending.workspace->fullscreen = NULL;
+			if (container_is_floating(win)) {
 				struct sway_output *output =
-					container_floating_find_output(con);
-				if (con->pending.workspace->output != output) {
-					container_floating_move_to_center(con);
+					container_floating_find_output(win);
+				if (win->pending.workspace->output != output) {
+					container_floating_move_to_center(win);
 				}
 			}
 		}
@@ -1157,13 +1166,13 @@ void container_fullscreen_disable(struct sway_container *con) {
 	// If the container was mapped as fullscreen and set as floating by
 	// criteria, it needs to be reinitialized as floating to get the proper
 	// size and location
-	if (container_is_floating(con) && (con->pending.width == 0 || con->pending.height == 0)) {
-		container_floating_resize_and_center(con);
+	if (container_is_floating(win) && (win->pending.width == 0 || win->pending.height == 0)) {
+		container_floating_resize_and_center(win);
 	}
 
-	con->pending.fullscreen_mode = FULLSCREEN_NONE;
-	container_end_mouse_operation(con);
-	ipc_event_window(con, "fullscreen_mode");
+	win->pending.fullscreen_mode = FULLSCREEN_NONE;
+	container_end_mouse_operation(win);
+	ipc_event_window(win, "fullscreen_mode");
 }
 
 void container_set_fullscreen(struct sway_container *con,
@@ -1177,6 +1186,9 @@ void container_set_fullscreen(struct sway_container *con,
 		container_fullscreen_disable(con);
 		break;
 	case FULLSCREEN_WORKSPACE:
+		// TODO (wmiiv) if disabling previous fullscreen window is
+		// neccessary, why are these disable/enable functions public
+		// and non-static.
 		if (root->fullscreen_global) {
 			container_fullscreen_disable(root->fullscreen_global);
 		}

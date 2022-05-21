@@ -157,10 +157,6 @@ void seat_clear_focus(struct sway_seat *seat);
 void seat_set_focus_window(struct sway_seat *seat, struct sway_container *win);
 
 // TODO (wmiiv) deprecated.
-void seat_set_focus_container(struct sway_seat *seat,
-		struct sway_container *con);
-
-// TODO (wmiiv) deprecated.
 void seat_set_focus_workspace(struct sway_seat *seat,
 		struct sway_workspace *ws);
 

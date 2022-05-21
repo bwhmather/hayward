@@ -693,18 +693,18 @@ static struct cmd_results *cmd_move_in_direction(
 		}
 	}
 
-	struct sway_container *container = config->handler_context.container;
-	if (!container) {
+	struct sway_container *win = config->handler_context.window;
+	if (!win) {
 		return cmd_results_new(CMD_FAILURE,
 				"Cannot move workspaces in a direction");
 	}
-	if (container_is_floating(container)) {
-		if (container->pending.fullscreen_mode) {
+	if (container_is_floating(win)) {
+		if (win->pending.fullscreen_mode) {
 			return cmd_results_new(CMD_FAILURE,
-					"Cannot move fullscreen floating container");
+					"Cannot move fullscreen floating win");
 		}
-		double lx = container->pending.x;
-		double ly = container->pending.y;
+		double lx = win->pending.x;
+		double ly = win->pending.y;
 		switch (direction) {
 		case WLR_DIRECTION_LEFT:
 			lx -= move_amt;
@@ -719,13 +719,13 @@ static struct cmd_results *cmd_move_in_direction(
 			ly += move_amt;
 			break;
 		}
-		container_floating_move_to(container, lx, ly);
+		container_floating_move_to(win, lx, ly);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
-	struct sway_workspace *old_ws = container->pending.workspace;
-	struct sway_container *old_parent = container->pending.parent;
+	struct sway_workspace *old_ws = win->pending.workspace;
+	struct sway_container *old_parent = win->pending.parent;
 
-	if (!container_move_in_direction(container, direction)) {
+	if (!container_move_in_direction(win, direction)) {
 		// Container didn't move
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
@@ -738,7 +738,7 @@ static struct cmd_results *cmd_move_in_direction(
 		workspace_consider_destroy(old_ws);
 	}
 
-	struct sway_workspace *new_ws = container->pending.workspace;
+	struct sway_workspace *new_ws = win->pending.workspace;
 
 	if (root->fullscreen_global) {
 		arrange_root();
@@ -749,20 +749,18 @@ static struct cmd_results *cmd_move_in_direction(
 		}
 	}
 
-	if (container->view) {
-		ipc_event_window(container, "move");
-	}
+	ipc_event_window(win, "move");
 
 	// Hack to re-focus container
 	seat_set_raw_focus(config->handler_context.seat, &new_ws->node);
-	seat_set_focus_container(config->handler_context.seat, container);
+	seat_set_focus_window(config->handler_context.seat, win);
 
 	if (old_ws != new_ws) {
 		ipc_event_workspace(old_ws, new_ws, "focus");
 		workspace_detect_urgent(old_ws);
 		workspace_detect_urgent(new_ws);
 	}
-	container_end_mouse_operation(container);
+	container_end_mouse_operation(win);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

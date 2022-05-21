@@ -223,41 +223,39 @@ static void handle_tablet_tool_tip(struct sway_seat *seat,
 		return;
 	}
 
-	struct sway_container *cont = node && (node->type == N_COLUMN || node->type == N_WINDOW) ?
-		node->sway_container : NULL;
+	struct sway_container *win = node && node->type == N_WINDOW ? node->sway_container : NULL;
 
 	if (wlr_surface_is_layer_surface(surface)) {
-		// Handle tapping a layer surface
+		// Handle tapping a layer surface.
 		struct wlr_layer_surface_v1 *layer =
 				wlr_layer_surface_v1_from_wlr_surface(surface);
 		if (layer->current.keyboard_interactive) {
 			seat_set_focus_layer(seat, layer);
 			transaction_commit_dirty();
 		}
-	} else if (cont) {
-		bool is_floating_or_child = container_is_floating_or_child(cont);
-		bool is_fullscreen_or_child = container_is_fullscreen_or_child(cont);
+	} else if (win) {
+		bool is_floating_or_child = container_is_floating_or_child(win);
+		bool is_fullscreen_or_child = container_is_fullscreen_or_child(win);
 		struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
 		bool mod_pressed = keyboard &&
 			(wlr_keyboard_get_modifiers(keyboard) & config->floating_mod);
 
-		// Handle beginning floating move
+		// Handle beginning floating move.
 		if (is_floating_or_child && !is_fullscreen_or_child && mod_pressed) {
-			seat_set_focus_container(seat,
-				seat_get_focus_inactive_view(seat, &cont->node));
-			seatop_begin_move_floating(seat, container_toplevel_ancestor(cont));
+			seat_set_focus_window(seat, win);
+			seatop_begin_move_floating(seat, container_toplevel_ancestor(win));
 			return;
 		}
 
-		// Handle moving a tiling container
+		// Handle moving a tiled window.
 		if (config->tiling_drag && mod_pressed && !is_floating_or_child &&
-				cont->pending.fullscreen_mode == FULLSCREEN_NONE) {
-			seatop_begin_move_tiling(seat, cont);
+				win->pending.fullscreen_mode == FULLSCREEN_NONE) {
+			seatop_begin_move_tiling(seat, win);
 			return;
 		}
 
 		// Handle tapping on a container surface
-		seat_set_focus_container(seat, cont);
+		seat_set_focus_window(seat, win);
 		seatop_begin_down(seat, node->sway_container, time_msec, sx, sy);
 	}
 #if HAVE_XWAYLAND
@@ -333,18 +331,16 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	struct sway_node *node = node_at_coords(seat,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
 
-	struct sway_container *cont = node && (node->type == N_COLUMN || node->type == N_WINDOW) ?
-		node->sway_container : NULL;
-	bool is_floating = cont && container_is_floating(cont);
-	bool is_floating_or_child = cont && container_is_floating_or_child(cont);
-	bool is_fullscreen_or_child = cont && container_is_fullscreen_or_child(cont);
-	enum wlr_edges edge = cont ? find_edge(cont, surface, cursor) : WLR_EDGE_NONE;
-	enum wlr_edges resize_edge = cont && edge ?
-		find_resize_edge(cont, surface, cursor) : WLR_EDGE_NONE;
+	struct sway_container *win = node && node->type == N_WINDOW ? node->sway_container : NULL;
+	bool is_floating = win && container_is_floating(win);
+	bool is_fullscreen = win && container_is_fullscreen_or_child(win);
+	enum wlr_edges edge = win ? find_edge(win, surface, cursor) : WLR_EDGE_NONE;
+	enum wlr_edges resize_edge = win && edge ?
+		find_resize_edge(win, surface, cursor) : WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;
-	bool on_contents = cont && !on_border && surface;
+	bool on_contents = win && !on_border && surface;
 	bool on_workspace = node && node->type == N_WORKSPACE;
-	bool on_titlebar = cont && !on_border && !surface;
+	bool on_titlebar = win && !on_border && !surface;
 
 	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
 	uint32_t modifiers = keyboard ? wlr_keyboard_get_modifiers(keyboard) : 0;
@@ -358,7 +354,7 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	// Handle clicking an empty workspace
 	if (node && node->type == N_WORKSPACE) {
 		if (state == WLR_BUTTON_PRESSED) {
-			seat_set_focus(seat, node);
+			seat_clear_focus(seat);
 			transaction_commit_dirty();
 		}
 		seat_pointer_notify_button(seat, time_msec, button, state);
@@ -381,33 +377,33 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	}
 
 	// Handle tiling resize via border
-	if (cont && resize_edge && button == BTN_LEFT &&
+	if (win && resize_edge && button == BTN_LEFT &&
 			state == WLR_BUTTON_PRESSED && !is_floating) {
-		// If a resize is triggered on a tabbed or stacked container, change
-		// focus to the tab which already had inactive focus -- otherwise, we'd
-		// change the active tab when the user probably just wanted to resize.
-		struct sway_container *cont_to_focus = cont;
-		enum sway_container_layout layout = container_parent_layout(cont);
+		// If a resize is triggered on a window within a tabbed or stacked column,
+		// change focus to the tab which already had inactive focus -- otherwise, if
+		// the user clicked on the title of a hidden tab, we'd change the active tab
+		// when the user probably just wanted to resize.
+		struct sway_container *win_to_focus = win;
+		enum sway_container_layout layout = container_parent_layout(win);
 		if (layout == L_TABBED || layout == L_STACKED) {
-			cont_to_focus = seat_get_focus_inactive_view(seat, &cont->pending.parent->node);
+			win_to_focus = seat_get_focus_inactive_view(seat, &win->pending.parent->node);
 		}
-
-		seat_set_focus_container(seat, cont_to_focus);
-		seatop_begin_resize_tiling(seat, cont, edge);
+		seat_set_focus_window(seat, win_to_focus);
+		seatop_begin_resize_tiling(seat, win, edge);   // TODO (wmiiv) will only ever take a window.
 		return;
 	}
 
 	// Handle tiling resize via mod
 	bool mod_pressed = modifiers & config->floating_mod;
-	if (cont && !is_floating_or_child && mod_pressed &&
+	if (win && !is_floating && mod_pressed &&
 			state == WLR_BUTTON_PRESSED) {
 		uint32_t btn_resize = config->floating_mod_inverse ?
 			BTN_LEFT : BTN_RIGHT;
 		if (button == btn_resize) {
 			edge = 0;
-			edge |= cursor->cursor->x > cont->pending.x + cont->pending.width / 2 ?
+			edge |= cursor->cursor->x > win->pending.x + win->pending.width / 2 ?
 				WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-			edge |= cursor->cursor->y > cont->pending.y + cont->pending.height / 2 ?
+			edge |= cursor->cursor->y > win->pending.y + win->pending.height / 2 ?
 				WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
 
 			const char *image = NULL;
@@ -421,30 +417,29 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 				image = "sw-resize";
 			}
 			cursor_set_image(seat->cursor, image, NULL);
-			seat_set_focus_container(seat, cont);
-			seatop_begin_resize_tiling(seat, cont, edge);
+			seat_set_focus_window(seat, win);
+			seatop_begin_resize_tiling(seat, win, edge);  // TODO (wmiiv) should only accept windows.
 			return;
 		}
 	}
 
 	// Handle beginning floating move
-	if (cont && is_floating_or_child && !is_fullscreen_or_child &&
+	if (win && is_floating && !is_fullscreen &&
 			state == WLR_BUTTON_PRESSED) {
 		uint32_t btn_move = config->floating_mod_inverse ? BTN_RIGHT : BTN_LEFT;
 		if (button == btn_move && (mod_pressed || on_titlebar)) {
-			seat_set_focus_container(seat,
-					seat_get_focus_inactive_view(seat, &cont->node));
-			seatop_begin_move_floating(seat, container_toplevel_ancestor(cont));
+			seat_set_focus_window(seat, win);
+			seatop_begin_move_floating(seat, win);  // TODO (wmiiv) should only accept windows.
 			return;
 		}
 	}
 
 	// Handle beginning floating resize
-	if (cont && is_floating_or_child && !is_fullscreen_or_child &&
+	if (win && is_floating && !is_fullscreen &&
 			state == WLR_BUTTON_PRESSED) {
 		// Via border
 		if (button == BTN_LEFT && resize_edge != WLR_EDGE_NONE) {
-			seatop_begin_resize_floating(seat, cont, resize_edge);
+			seatop_begin_resize_floating(seat, win, resize_edge);
 			return;
 		}
 
@@ -452,49 +447,47 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 		uint32_t btn_resize = config->floating_mod_inverse ?
 			BTN_LEFT : BTN_RIGHT;
 		if (mod_pressed && button == btn_resize) {
-			struct sway_container *floater = container_toplevel_ancestor(cont);
 			edge = 0;
-			edge |= cursor->cursor->x > floater->pending.x + floater->pending.width / 2 ?
+			edge |= cursor->cursor->x > win->pending.x + win->pending.width / 2 ?
 				WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-			edge |= cursor->cursor->y > floater->pending.y + floater->pending.height / 2 ?
+			edge |= cursor->cursor->y > win->pending.y + win->pending.height / 2 ?
 				WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
-			seatop_begin_resize_floating(seat, floater, edge);
+			seatop_begin_resize_floating(seat, win, edge);
 			return;
 		}
 	}
 
 	// Handle moving a tiling container
 	if (config->tiling_drag && (mod_pressed || on_titlebar) &&
-			state == WLR_BUTTON_PRESSED && !is_floating_or_child &&
-			cont && cont->pending.fullscreen_mode == FULLSCREEN_NONE) {
+			state == WLR_BUTTON_PRESSED && !is_floating &&
+			win && win->pending.fullscreen_mode == FULLSCREEN_NONE) {
+		// TODO with focus follows mouse, is there ever a situation where this will
+		// actually be triggered.
 		struct sway_container *focus = seat_get_focused_container(seat);
-		bool focused = focus == cont || container_has_ancestor(focus, cont);
-		if (on_titlebar && !focused) {
-			node = seat_get_focus_inactive(seat, &cont->node);
-			seat_set_focus(seat, node);
+		if (on_titlebar && focus != win) {
+			seat_set_focus_window(seat, win);
 		}
 
 		// If moving a container by its title bar, use a threshold for the drag
 		if (!mod_pressed && config->tiling_drag_threshold > 0) {
-			seatop_begin_move_tiling_threshold(seat, cont);
+			seatop_begin_move_tiling_threshold(seat, win);
 		} else {
-			seatop_begin_move_tiling(seat, cont);
+			seatop_begin_move_tiling(seat, win);
 		}
 		return;
 	}
 
 	// Handle mousedown on a container surface
-	if (surface && cont && state == WLR_BUTTON_PRESSED) {
-		seat_set_focus_container(seat, cont);
-		seatop_begin_down(seat, cont, time_msec, sx, sy);
+	if (surface && win && state == WLR_BUTTON_PRESSED) {
+		seat_set_focus_window(seat, win);
+		seatop_begin_down(seat, win, time_msec, sx, sy);
 		seat_pointer_notify_button(seat, time_msec, button, WLR_BUTTON_PRESSED);
 		return;
 	}
 
 	// Handle clicking a container surface or decorations
-	if (cont && state == WLR_BUTTON_PRESSED) {
-		node = seat_get_focus_inactive(seat, &cont->node);
-		seat_set_focus(seat, node);
+	if (win && state == WLR_BUTTON_PRESSED) {
+		seat_set_focus_window(seat, win);
 		transaction_commit_dirty();
 		seat_pointer_notify_button(seat, time_msec, button, state);
 		return;
@@ -722,11 +715,11 @@ static void handle_pointer_axis(struct sway_seat *seat,
 
 			struct sway_container *new_sibling_con = siblings->items[desired];
 			struct sway_node *new_sibling = &new_sibling_con->node;
-			struct sway_node *new_focus =
-				seat_get_focus_inactive(seat, new_sibling);
+			struct sway_container *new_focus =
+				seat_get_focus_inactive_view(seat, new_sibling);
 			// Use the focused child of the tabbed/stacked container, not the
 			// container the user scrolled on.
-			seat_set_focus(seat, new_focus);
+			seat_set_focus_window(seat, new_focus);
 			transaction_commit_dirty();
 			handled = true;
 		}
