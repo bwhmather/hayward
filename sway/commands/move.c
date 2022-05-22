@@ -194,38 +194,50 @@ static void container_move_to_workspace_from_direction(
 			move_dir);
 }
 
-static void container_move_to_workspace(struct sway_container *container,
-		struct sway_workspace *workspace) {
-	if (container->pending.workspace == workspace) {
+static void container_move_to_workspace(struct sway_container *win,
+		struct sway_workspace *ws) {
+	if (!sway_assert(container_is_window(win), "can't move columns between workspaces")) {
 		return;
 	}
-	struct sway_workspace *old_workspace = container->pending.workspace;
-	if (container_is_floating(container)) {
-		struct sway_output *old_output = container->pending.workspace->output;
-		container_detach(container);
-		workspace_add_floating(workspace, container);
-		container_handle_fullscreen_reparent(container);
+	if (win->pending.workspace == ws) {
+		return;
+	}
+
+	struct sway_seat *seat = config->handler_context.seat;
+	struct sway_workspace *old_ws = win->pending.workspace;
+
+	if (container_is_floating(win)) {
+		struct sway_output *old_output = win->pending.workspace->output;
+		container_detach(win);
+		workspace_add_floating(ws, win);
+		container_handle_fullscreen_reparent(win);
 		// If changing output, center it within the workspace
-		if (old_output != workspace->output && !container->pending.fullscreen_mode) {
-			container_floating_move_to_center(container);
+		if (old_output != ws->output && !win->pending.fullscreen_mode) {
+			container_floating_move_to_center(win);
 		}
 	} else {
-		container_detach(container);
-		if (workspace_is_empty(workspace) && container->pending.children) {
-			workspace_unwrap_children(workspace, container);
-		} else {
-			container->pending.width = container->pending.height = 0;
-			container->width_fraction = container->height_fraction = 0;
-			workspace_add_tiling(workspace, container);
+		struct sway_container *target_sibling = seat_get_focus_inactive_tiling(seat, ws);
+		if (target_sibling && container_is_column(target_sibling)) {
+			// TODO (wmiiv) Shouldn't be possible once columns are no longer focusable.
+			target_sibling = seat_get_focus_inactive_view(seat, &target_sibling->node);
 		}
-		container_update_representation(container);
+
+		container_detach(win);
+		if (target_sibling) {
+			container_add_sibling(target_sibling, win, 1);
+			container_update_representation(win->pending.parent);
+		} else if (ws) {
+			struct sway_container *col = column_create();
+			container_add_child(col, win);
+			workspace_insert_tiling_direct(ws, col, 0);
+		}
 	}
-	if (container->view) {
-		ipc_event_window(container, "move");
-	}
-	workspace_detect_urgent(old_workspace);
-	workspace_detect_urgent(workspace);
-	workspace_focus_fullscreen(workspace);
+
+	ipc_event_window(win, "move");
+
+	workspace_detect_urgent(old_ws);
+	workspace_detect_urgent(ws);
+	workspace_focus_fullscreen(ws);
 }
 
 static void container_move_to_container(struct sway_container *container,
@@ -397,15 +409,10 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		return error;
 	}
 
-	struct sway_node *node = config->handler_context.node;
-	struct sway_workspace *workspace = config->handler_context.workspace;
-	struct sway_container *container = config->handler_context.container;
-	if (node->type == N_WORKSPACE) {
-		if (workspace->tiling->length == 0) {
-			return cmd_results_new(CMD_FAILURE,
-					"Can't move an empty workspace");
-		}
-		container = workspace_wrap_children(workspace);
+	struct sway_container *container = config->handler_context.window;
+
+	if (!container) {
+		return cmd_results_new(CMD_FAILURE, "Can only move windows");
 	}
 
 	if (container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {

@@ -731,49 +731,6 @@ static void set_workspace(struct sway_container *container, void *data) {
 	container->pending.workspace = container->pending.parent->pending.workspace;
 }
 
-static void workspace_attach_tiling(struct sway_workspace *ws,
-		struct sway_container *con) {
-	list_add(ws->tiling, con);
-	con->pending.workspace = ws;
-	container_for_each_child(con, set_workspace, NULL);
-	container_handle_fullscreen_reparent(con);
-	workspace_update_representation(ws);
-	node_set_dirty(&ws->node);
-	node_set_dirty(&con->node);
-}
-
-struct sway_container *workspace_wrap_children(struct sway_workspace *ws) {
-	// TODO (wmiiv) remove.
-	sway_assert(false, "workspace_wrap_children is deprecated");
-	struct sway_container *fs = ws->fullscreen;
-	struct sway_container *middle = column_create();
-	middle->pending.layout = L_HORIZ;
-	while (ws->tiling->length) {
-		struct sway_container *child = ws->tiling->items[0];
-		container_detach(child);
-		container_add_child(middle, child);
-	}
-	workspace_attach_tiling(ws, middle);
-	ws->fullscreen = fs;
-	return middle;
-}
-
-void workspace_unwrap_children(struct sway_workspace *ws,
-		struct sway_container *wrap) {
-	// TODO (wmiiv) remove.
-	sway_assert(false, "workspace_unwrap_children is deprecated");
-	if (!sway_assert(workspace_is_empty(ws),
-			"target workspace must be empty")) {
-		return;
-	}
-
-	while (wrap->pending.children->length) {
-		struct sway_container *child = wrap->pending.children->items[0];
-		container_detach(child);
-		workspace_add_tiling(ws, child);
-	}
-}
-
 void workspace_detach(struct sway_workspace *workspace) {
 	struct sway_output *output = workspace->output;
 	int index = list_find(output->workspaces, workspace);
