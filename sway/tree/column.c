@@ -37,7 +37,7 @@ struct sway_container *column_create(void) {
 		return NULL;
 	}
 	node_init(&c->node, N_COLUMN, c);
-	c->pending.layout = L_NONE;
+	c->pending.layout = L_STACKED;
 	c->view = NULL;
 	c->alpha = 1.0f;
 
