@@ -1287,7 +1287,11 @@ static void set_workspace(struct sway_container *container, void *data) {
 
 void container_insert_child(struct sway_container *parent,
 		struct sway_container *child, int i) {
-	if (child->pending.workspace) {
+	sway_assert(container_is_column(parent), "Target is not a column");
+	sway_assert(container_is_window(active), "Not a window");
+
+	if (!sway_assert(!child->pending.workspace && !child->pending.parent,
+			"Windows must be detatched before they can be added to a column")) {
 		container_detach(child);
 	}
 	list_insert(parent->pending.children, i, child);
@@ -1300,9 +1304,14 @@ void container_insert_child(struct sway_container *parent,
 
 void container_add_sibling(struct sway_container *fixed,
 		struct sway_container *active, bool after) {
-	if (active->pending.workspace) {
+	sway_assert(container_is_window(fixed), "Target sibling is not a window");
+	sway_assert(container_is_window(active), "Not a window");
+
+	if (!sway_assert(!active->pending.workspace && !active->pending.parent,
+			"Windows must be detatched before they can be added to a column")) {
 		container_detach(active);
 	}
+
 	list_t *siblings = container_get_siblings(fixed);
 	int index = list_find(siblings, fixed);
 	list_insert(siblings, index + after, active);
@@ -1315,7 +1324,11 @@ void container_add_sibling(struct sway_container *fixed,
 
 void container_add_child(struct sway_container *parent,
 		struct sway_container *child) {
-	if (child->pending.workspace) {
+	sway_assert(container_is_column(parent), "Target is not a column");
+	sway_assert(container_is_window(active), "Not a window");
+
+	if (!sway_assert(!child->pending.workspace && !child->pending.workspace,
+			"Windows must be detatched before they can be added to a column")) {
 		container_detach(child);
 	}
 	list_add(parent->pending.children, child);
