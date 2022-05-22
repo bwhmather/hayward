@@ -289,123 +289,104 @@ static bool container_move_to_next_output(struct sway_container *container,
 }
 
 // Returns true if moved
-static bool container_move_in_direction(struct sway_container *container,
+static bool window_move_in_direction(struct sway_container *win,
 		enum wlr_direction move_dir) {
+	if (!sway_assert(container_is_window(win), "Expected window")) {
+		return false;
+	}
+
 	// If moving a fullscreen view, only consider outputs
-	switch (container->pending.fullscreen_mode) {
+	switch (win->pending.fullscreen_mode) {
 	case FULLSCREEN_NONE:
 		break;
 	case FULLSCREEN_WORKSPACE:
-		return container_move_to_next_output(container,
-				container->pending.workspace->output, move_dir);
+		return container_move_to_next_output(win,
+				win->pending.workspace->output, move_dir);
 	case FULLSCREEN_GLOBAL:
 		return false;
 	}
 
-	int offs =
-		move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_UP ? -1 : 1;
-	int index = -1;
-	int	desired = -1;
-	list_t *siblings = NULL;
-	struct sway_container *target = NULL;
 
-	// Look for a suitable ancestor of the container to move within
-	struct sway_container *ancestor = NULL;
-	struct sway_container *current = container;
-	bool wrapped = false;
-	while (!ancestor) {
-		// Don't allow containers to move out of their
-		// fullscreen or floating parent
-		if (current->pending.fullscreen_mode || container_is_floating(current)) {
+	if (container_is_floating(win)) {
+		return false;
+	}
+
+	// TODO (wmiiv) windows should always have a parent if not floating.
+	if (!win->pending.parent) {
+		return false;
+	}
+
+	struct sway_container *old_col = win->pending.parent;
+	int old_col_index = list_find(win->pending.workspace->tiling, old_col);
+
+	switch (move_dir) {
+	case WLR_DIRECTION_UP: {
+			// Move within column.
+			// TODO
 			return false;
 		}
+	case WLR_DIRECTION_DOWN: {
+			// Move within column.
+			// TODO
+			return false;
+		}
+	case WLR_DIRECTION_LEFT: {
+			if (old_col_index == 0) {
+				// Window is already in the left most column.
+				// If window is the only child of this column
+				// then attempt to move it to the next
+				// workspace, otherwise insert a new column to
+				// the left and carry on as before.
+				if (old_col->pending.children->length == 1) {
+					// No other windows.  Move to next
+					// workspace.
 
-		enum sway_container_layout parent_layout = container_parent_layout(current);
-		if (!is_parallel(parent_layout, move_dir)) {
-			if (!current->pending.parent) {
-				// TODO (wmiiv) this bit makes absolutely no sense after the switch to
-				// column based layout.
-				// No parallel parent, so we reorient the workspace
-				current = workspace_wrap_children(current->pending.workspace);
-				// TODO (wmiiv) delete me.
-				// current->pending.workspace->layout =
-				// 	move_dir == WLR_DIRECTION_LEFT ||
-				// 	move_dir == WLR_DIRECTION_RIGHT ?
-				// 	L_HORIZ : L_VERT;
-				container->pending.height = container->pending.width = 0;
-				container->height_fraction = container->width_fraction = 0;
-				workspace_update_representation(current->pending.workspace);
-				wrapped = true;
-			} else {
-				// Keep looking for a parallel parent
-				current = current->pending.parent;
+					return container_move_to_next_output(win,
+						win->pending.workspace->output, move_dir);
+				}
+
+				struct sway_container *new_col = column_create();
+				new_col->pending.height = new_col->pending.width = 0;
+				new_col->height_fraction = new_col->width_fraction = 0;
+				new_col->pending.layout = L_STACKED;
+
+				workspace_insert_tiling_direct(win->pending.workspace, new_col, 0);
+				old_col_index += 1;
 			}
-			continue;
+
+			struct sway_container *new_col = win->pending.workspace->tiling->items[old_col_index - 1];
+			container_move_to_container_from_direction(win, new_col, move_dir);
+
+			return true;
 		}
+	case WLR_DIRECTION_RIGHT: {
+			if (old_col_index == win->pending.workspace->tiling->length - 1) {
+				// Window is already in the right most column.
+				// If window is the only child of this column
+				// then attempt to move it to the next
+				// workspace, otherwise insert a new column to
+				// the right and carry on as before.
+				if (old_col->pending.children->length == 1) {
+					// TODO find then move should be separate calls at this level of abstraction.
+					return container_move_to_next_output(win,
+						win->pending.workspace->output, move_dir);
+				}
 
-		// TODO (wmiiv) is this still true?
-		// Only scratchpad hidden containers don't have siblings
-		// so siblings != NULL here
-		siblings = container_get_siblings(current);
-		index = list_find(siblings, current);
-		desired = index + offs;
-		target = desired == -1 || desired == siblings->length ?
-				NULL : siblings->items[desired];
+				struct sway_container *new_col = column_create();
+				new_col->pending.height = new_col->pending.width = 0;
+				new_col->height_fraction = new_col->width_fraction = 0;
+				new_col->pending.layout = L_STACKED;
 
-		// If the move is simple we can complete it here early
-		if (current == container) {
-			if (target) {
-				// Container will swap with or descend into its neighbor
-				container_move_to_container_from_direction(container,
-						target, move_dir);
-				return true;
-			} else if (!container->pending.parent) {
-				// Container is at workspace level so we move it to the
-				// next workspace if possible
-				return container_move_to_next_output(container,
-						current->pending.workspace->output, move_dir);
-			} else {
-				// Container has escaped its immediate parallel parent
-				current = current->pending.parent;
-				continue;
+				workspace_insert_tiling_direct(win->pending.workspace, new_col, old_col_index + 1);
 			}
-		}
 
-		// We found a suitable ancestor, the loop will end
-		ancestor = current;
-	}
+			struct sway_container *new_col = win->pending.workspace->tiling->items[old_col_index + 1];
+			container_move_to_container_from_direction(win, new_col, move_dir);
 
-	if (target) {
-		// Container will move in with its cousin
-		container_move_to_container_from_direction(container,
-				target, move_dir);
-		return true;
-	} else if (!wrapped && !container->pending.parent->pending.parent &&
-			container->pending.parent->pending.children->length == 1) {
-		// Treat singleton children as if they are at workspace level like i3
-		// https://github.com/i3/i3/blob/1d9160f2d247dbaa83fb62f02fd7041dec767fc2/src/move.c#L367
-		return container_move_to_next_output(container,
-				ancestor->pending.workspace->output, move_dir);
-	} else {
-		// Container will be promoted
-		struct sway_container *old_parent = container->pending.parent;
-		if (ancestor->pending.parent) {
-			// Container will move in with its parent
-			container_insert_child(ancestor->pending.parent, container,
-					index + (offs < 0 ? 0 : 1));
-		} else {
-			// Container will move to workspace level,
-			// may be re-split by workspace_layout
-			workspace_insert_tiling(ancestor->pending.workspace, container,
-					index + (offs < 0 ? 0 : 1));
+			return true;
 		}
-		ancestor->pending.height = ancestor->pending.width = 0;
-		ancestor->height_fraction = ancestor->width_fraction = 0;
-		if (old_parent) {
-			column_consider_destroy(old_parent);
-		}
-		return true;
 	}
+	return false;  // TODO unreachable.
 }
 
 static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
@@ -725,7 +706,7 @@ static struct cmd_results *cmd_move_in_direction(
 	struct sway_workspace *old_ws = win->pending.workspace;
 	struct sway_container *old_parent = win->pending.parent;
 
-	if (!container_move_in_direction(win, direction)) {
+	if (!window_move_in_direction(win, direction)) {
 		// Container didn't move
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
