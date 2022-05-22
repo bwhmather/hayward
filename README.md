@@ -1,3 +1,9 @@
+> **Warning**
+>
+> Wmiiv is currently a work-in-progress.  The move from i3's tree-of-containers
+> model to wmii's list-of-columns is only partly complete, and there are many
+> show stopper bugs.
+
 # wmiiv
 
 Wmiiv is a [Wayland] compositor which replicates the wmii interaction model.
