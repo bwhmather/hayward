@@ -761,7 +761,7 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 	if (view->impl->wants_floating && view->impl->wants_floating(view)) {
 		view->container->pending.border = config->floating_border;
 		view->container->pending.border_thickness = config->floating_border_thickness;
-		container_set_floating(view->container, true);
+		window_set_floating(view->container, true);
 	} else {
 		view->container->pending.border = config->border;
 		view->container->pending.border_thickness = config->border_thickness;

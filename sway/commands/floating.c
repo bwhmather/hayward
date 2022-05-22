@@ -28,7 +28,7 @@ struct cmd_results *cmd_floating(int argc, char **argv) {
 	bool wants_floating =
 		parse_boolean(argv[0], container_is_floating(win));
 
-	container_set_floating(win, wants_floating);
+	window_set_floating(win, wants_floating);
 
 	arrange_workspace(win->pending.workspace);
 

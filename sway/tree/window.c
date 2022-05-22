@@ -257,3 +257,79 @@ void window_update_marks_textures(struct sway_container *con) {
 	container_damage_whole(con);
 }
 
+void window_set_floating(struct sway_container *win, bool enable) {
+	if (!sway_assert(container_is_window(win), "Can only float windows")) {
+		return;
+	}
+
+	if (container_is_floating(win) == enable) {
+		return;
+	}
+
+	struct sway_seat *seat = input_manager_current_seat();
+	struct sway_workspace *workspace = win->pending.workspace;
+	struct sway_container *focus = seat_get_focused_container(seat);
+	bool set_focus = focus == win;
+
+	if (enable) {
+		struct sway_container *old_parent = win->pending.parent;
+		container_detach(win);
+		workspace_add_floating(workspace, win);
+		view_set_tiled(win->view, false);
+		if (win->view->using_csd) {
+			win->saved_border = win->pending.border;
+			win->pending.border = B_CSD;
+			if (win->view->xdg_decoration) {
+				struct sway_xdg_decoration *deco = win->view->xdg_decoration;
+				wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration,
+						WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE);
+			}
+		}
+		container_floating_set_default_size(win);
+		container_floating_resize_and_center(win);
+		if (old_parent) {
+			if (set_focus) {
+				seat_set_raw_focus(seat, &old_parent->node);
+				seat_set_raw_focus(seat, &win->node);
+			}
+			column_consider_destroy(old_parent);
+		}
+	} else {
+		// Returning to tiled
+		container_detach(win);
+		struct sway_container *reference =
+			seat_get_focus_inactive_tiling(seat, workspace);
+		if (reference) {
+			if (reference->view) {
+				container_add_sibling(reference, win, 1);
+			} else {
+				container_add_child(reference, win);
+			}
+			win->pending.width = reference->pending.width;
+			win->pending.height = reference->pending.height;
+		} else {
+			struct sway_container *other =
+				workspace_add_tiling(workspace, win);
+			other->pending.width = workspace->width;
+			other->pending.height = workspace->height;
+		}
+		if (win->view) {
+			view_set_tiled(win->view, true);
+			if (win->view->using_csd) {
+				win->pending.border = win->saved_border;
+				if (win->view->xdg_decoration) {
+					struct sway_xdg_decoration *deco = win->view->xdg_decoration;
+					wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration,
+							WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+				}
+			}
+		}
+		win->width_fraction = 0;
+		win->height_fraction = 0;
+	}
+
+	container_end_mouse_operation(win);
+
+	ipc_event_window(win, "floating");
+}
+

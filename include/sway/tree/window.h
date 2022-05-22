@@ -30,4 +30,6 @@ void window_add_mark(struct sway_container *container, char *mark);
 
 void window_update_marks_textures(struct sway_container *container);
 
+void window_set_floating(struct sway_container *container, bool enable);
+
 #endif
