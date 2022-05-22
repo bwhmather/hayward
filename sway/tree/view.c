@@ -713,30 +713,16 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 	if (!ws) {
 		ws = select_workspace(view);
 	}
+	if (!sway_assert(ws, "Could not find workspace to map view to")) {
+		return;
+	}
 
 	struct sway_seat *seat = input_manager_current_seat();
-	struct sway_node *node =
-		seat_get_focus_inactive(seat, ws ? &ws->node : &root->node);
-	struct sway_container *target_sibling = NULL;
-	if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
-		if (container_is_floating(node->sway_container)) {
-			// If we're about to launch the view into the floating container, then
-			// launch it as a tiled view instead.
-			if (ws) {
-				target_sibling = seat_get_focus_inactive_tiling(seat, ws);
-				if (target_sibling) {
-					struct sway_container *con =
-						seat_get_focus_inactive_view(seat, &target_sibling->node);
-					if (con)  {
-						target_sibling = con;
-					}
-				}
-			} else {
-				ws = seat_get_last_known_workspace(seat);
-			}
-		} else {
-			target_sibling = node->sway_container;
-		}
+
+	struct sway_container *target_sibling = seat_get_focus_inactive_tiling(seat, ws);
+	if (target_sibling && container_is_column(target_sibling)) {
+		// TODO (wmiiv) Shouldn't be possible once columns are no longer focusable.
+		target_sibling = seat_get_focus_inactive_view(seat, &target_sibling->node);
 	}
 
 	view->foreign_toplevel =
@@ -754,11 +740,12 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 	wl_signal_add(&view->foreign_toplevel->events.destroy,
 			&view->foreign_destroy);
 
-	struct sway_container *container = view->container;
 	if (target_sibling) {
-		container_add_sibling(target_sibling, container, 1);
+		container_add_sibling(target_sibling, view->container, 1);
 	} else if (ws) {
-		container = workspace_add_tiling(ws, container);
+		struct sway_container *col = column_create();
+		container_add_child(col, view->container);
+		workspace_insert_tiling_direct(ws, col, 0);
 	}
 	ipc_event_window(view->container, "new");
 
@@ -782,26 +769,26 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 	}
 
 	if (config->popup_during_fullscreen == POPUP_LEAVE &&
-			container->pending.workspace &&
-			container->pending.workspace->fullscreen &&
-			container->pending.workspace->fullscreen->view) {
-		struct sway_container *fs = container->pending.workspace->fullscreen;
+			view->container->pending.workspace &&
+			view->container->pending.workspace->fullscreen &&
+			view->container->pending.workspace->fullscreen->view) {
+		struct sway_container *fs = view->container->pending.workspace->fullscreen;
 		if (view_is_transient_for(view, fs->view)) {
 			container_set_fullscreen(fs, false);
 		}
 	}
 
 	view_update_title(view, false);
-	container_update_representation(container);
+	container_update_representation(view->container);
 
 	if (fullscreen) {
 		container_set_fullscreen(view->container, true);
 		arrange_workspace(view->container->pending.workspace);
 	} else {
-		if (container->pending.parent) {
-			arrange_column(container->pending.parent);
-		} else if (container->pending.workspace) {
-			arrange_workspace(container->pending.workspace);
+		if (target_sibling) {
+			arrange_column(view->container->pending.parent);
+		} else if (view->container->pending.workspace) {
+			arrange_workspace(view->container->pending.workspace);
 		}
 	}
 
