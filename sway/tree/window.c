@@ -333,3 +333,182 @@ void window_set_floating(struct sway_container *win, bool enable) {
 	ipc_event_window(win, "floating");
 }
 
+/**
+ * Ensures all seats focus the fullscreen container if needed.
+ */
+static void workspace_focus_fullscreen(struct sway_workspace *workspace) {
+	// TODO (wmiiv) move me.
+	if (!workspace->fullscreen) {
+		return;
+	}
+	struct sway_seat *seat;
+	struct sway_workspace *focus_ws;
+	wl_list_for_each(seat, &server.input->seats, link) {
+		focus_ws = seat_get_focused_workspace(seat);
+		if (focus_ws == workspace) {
+			struct sway_node *new_focus =
+				seat_get_focus_inactive(seat, &workspace->fullscreen->node);
+			seat_set_raw_focus(seat, new_focus);
+		}
+	}
+}
+
+static void window_move_to_column_from_maybe_direction(
+		struct sway_container *win, struct sway_container *col,
+		bool has_move_dir, enum wlr_direction move_dir) {
+	if (!sway_assert(container_is_window(win), "Can only move windows to columns")) {
+		return;
+	}
+	if (!sway_assert(container_is_column(col), "Can only move windows to columns")) {
+		return;
+	}
+
+	if (win->pending.parent == col) {
+		return;
+	}
+
+	struct sway_seat *seat = input_manager_get_default_seat();
+	struct sway_workspace *old_workspace = win->pending.workspace;
+
+	if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
+		sway_log(SWAY_DEBUG, "Reparenting window (parallel)");
+		int index =
+			move_dir == WLR_DIRECTION_DOWN ?
+			0 : col->pending.children->length;
+		container_insert_child(col, win, index);
+		win->pending.width = win->pending.height = 0;
+		win->width_fraction = win->height_fraction = 0;
+	} else {
+		sway_log(SWAY_DEBUG, "Reparenting window (perpendicular)");
+		struct sway_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
+		if (target_sibling) {
+			container_add_sibling(target_sibling, win, 1);
+		} else {
+			container_add_child(col, win);
+		}
+	}
+
+	ipc_event_window(win, "move");
+
+	if (col->pending.workspace) {
+		workspace_focus_fullscreen(col->pending.workspace);
+		workspace_detect_urgent(col->pending.workspace);
+	}
+
+	if (old_workspace && old_workspace != col->pending.workspace) {
+		workspace_detect_urgent(old_workspace);
+	}
+}
+
+/**
+ * Detaches a window from its current column, and by extension workspace, and
+ * attaches it to a new column, possibly in a different workspace.  Where in
+ * the new column it is inserted is determined by the direction of movement.
+ *
+ * If the window was previously floating or fullscreen, all of that state will
+ * be cleared.
+ *
+ * The window will not be automatically focused.
+ */
+void window_move_to_column_from_direction(
+		struct sway_container *win, struct sway_container *col,
+		enum wlr_direction move_dir) {
+	window_move_to_column_from_maybe_direction(win, col, true, move_dir);
+}
+
+/**
+ * Detaches a window from its current column, and by extension workspace, and
+ * attaches it to a new column, possibly in a different workspace.  The window
+ * will be move immediately after the column's last focused child.
+ *
+ * If the window was previously floating or fullscreen, all of that state will
+ * be cleared.
+ *
+ * The window will not be automatically focused.
+ */
+void window_move_to_column(struct sway_container *win,
+		struct sway_container *col) {
+	window_move_to_column_from_maybe_direction(win, col, false, WLR_DIRECTION_DOWN);
+}
+
+static void window_move_to_workspace_from_maybe_direction(
+		struct sway_container *win, struct sway_workspace *ws,
+		bool has_move_dir, enum wlr_direction move_dir) {
+	if (!sway_assert(container_is_window(win), "Can only move windows between workspaces")) {
+		return;
+	}
+
+	if (ws == win->pending.workspace) {
+		return;
+	}
+
+	struct sway_seat *seat = input_manager_get_default_seat();
+
+	// TODO (wmiiv) fullscreen.
+
+	if (container_is_floating(win)) {
+		struct sway_output *old_output = win->pending.workspace->output;
+		container_detach(win);
+		workspace_add_floating(ws, win);
+		container_handle_fullscreen_reparent(win);
+		// If changing output, center it within the workspace
+		if (old_output != ws->output && !win->pending.fullscreen_mode) {
+			container_floating_move_to_center(win);
+		}
+
+		return;
+	}
+
+	win->pending.width = win->pending.height = 0;
+	win->width_fraction = win->height_fraction = 0;
+
+	if (!ws->tiling->length) {
+		struct sway_container *col = column_create();
+		workspace_insert_tiling_direct(ws, col, 0);
+	}
+
+	if (has_move_dir && (move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_RIGHT)) {
+		sway_log(SWAY_DEBUG, "Reparenting window (parallel)");
+		// Move to either left-most or right-most column based on move
+		// direction.
+		int index =
+			move_dir == WLR_DIRECTION_RIGHT ?
+			0 : ws->tiling->length;
+		struct sway_container *col = ws->tiling->items[index];
+		window_move_to_column_from_maybe_direction(win, col, has_move_dir, move_dir);
+	} else {
+		sway_log(SWAY_DEBUG, "Reparenting container (perpendicular)");
+		// Move to the most recently focused column in the workspace.
+		struct sway_container *col = NULL;
+
+		struct sway_container *focus_inactive = seat_get_focus_inactive_tiling(seat, ws);
+		// TODO (wmiiv) only windows should be focusable.
+		focus_inactive = seat_get_focus_inactive_view(seat, &focus_inactive->node);
+		if (focus_inactive) {
+			col = focus_inactive->pending.parent;
+		} else {
+			col = ws->tiling->items[0];
+		}
+		window_move_to_column_from_maybe_direction(win, col, has_move_dir, move_dir);
+	}
+}
+
+/**
+ * Detaches a window from its current workspace and column, and attaches it to
+ * a different one.  The new column, and location within that column, are
+ * determined by the direction of movement.
+ *
+ * If the window is floating or fullscreen, it will remain so.
+ *
+ * The window will not be automatically focused.
+ */
+void window_move_to_workspace_from_direction(
+		struct sway_container *win, struct sway_workspace *ws,
+		enum wlr_direction move_dir) {
+	window_move_to_workspace_from_maybe_direction(win, ws, true, move_dir);
+}
+
+void window_move_to_workspace(struct sway_container *win,
+		struct sway_workspace *ws) {
+	window_move_to_workspace_from_maybe_direction(win, ws, false, WLR_DIRECTION_DOWN);
+}

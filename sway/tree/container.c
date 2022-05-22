@@ -1221,7 +1221,7 @@ void container_discover_outputs(struct sway_container *con) {
 	double new_scale = new_output ? new_output->wlr_output->scale : -1;
 	if (old_scale != new_scale) {
 		container_update_title_textures(con);
-		if (container_is_window(con)) {	
+		if (container_is_window(con)) {
 			window_update_marks_textures(con);
 		}
 	}
@@ -1329,6 +1329,7 @@ void container_add_child(struct sway_container *parent,
 }
 
 void container_detach(struct sway_container *child) {
+	// TODO (wmiiv) move to workspace.
 	if (child->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
 		child->pending.workspace->fullscreen = NULL;
 	}

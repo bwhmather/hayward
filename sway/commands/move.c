@@ -76,207 +76,6 @@ static struct sway_output *output_in_direction(const char *direction_string,
 	return output_by_name_or_id(direction_string);
 }
 
-static bool is_parallel(enum sway_container_layout layout,
-		enum wlr_direction dir) {
-	switch (layout) {
-	case L_TABBED:
-	case L_HORIZ:
-		return dir == WLR_DIRECTION_LEFT || dir == WLR_DIRECTION_RIGHT;
-	case L_STACKED:
-	case L_VERT:
-		return dir == WLR_DIRECTION_UP || dir == WLR_DIRECTION_DOWN;
-	default:
-		return false;
-	}
-}
-
-/**
- * Ensures all seats focus the fullscreen container if needed.
- */
-static void workspace_focus_fullscreen(struct sway_workspace *workspace) {
-	if (!workspace->fullscreen) {
-		return;
-	}
-	struct sway_seat *seat;
-	struct sway_workspace *focus_ws;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		focus_ws = seat_get_focused_workspace(seat);
-		if (focus_ws == workspace) {
-			struct sway_node *new_focus =
-				seat_get_focus_inactive(seat, &workspace->fullscreen->node);
-			seat_set_raw_focus(seat, new_focus);
-		}
-	}
-}
-
-static void container_move_to_container_from_direction(
-		struct sway_container *container, struct sway_container *destination,
-		enum wlr_direction move_dir) {
-	if (destination->view) {
-		if (destination->pending.parent == container->pending.parent &&
-				destination->pending.workspace == container->pending.workspace) {
-			sway_log(SWAY_DEBUG, "Swapping siblings");
-			list_t *siblings = container_get_siblings(container);
-			int container_index = list_find(siblings, container);
-			int destination_index = list_find(siblings, destination);
-			list_swap(siblings, container_index, destination_index);
-			container_update_representation(container);
-		} else {
-			sway_log(SWAY_DEBUG, "Promoting to sibling of cousin");
-			int offset =
-				move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_UP;
-			int index = container_sibling_index(destination) + offset;
-			if (destination->pending.parent) {
-				container_insert_child(destination->pending.parent, container, index);
-			} else {
-				workspace_insert_tiling(destination->pending.workspace,
-						container, index);
-			}
-			container->pending.width = container->pending.height = 0;
-			container->width_fraction = container->height_fraction = 0;
-		}
-		return;
-	}
-
-	if (is_parallel(destination->pending.layout, move_dir)) {
-		sway_log(SWAY_DEBUG, "Reparenting container (parallel)");
-		int index =
-			move_dir == WLR_DIRECTION_RIGHT || move_dir == WLR_DIRECTION_DOWN ?
-			0 : destination->pending.children->length;
-		container_insert_child(destination, container, index);
-		container->pending.width = container->pending.height = 0;
-		container->width_fraction = container->height_fraction = 0;
-		return;
-	}
-
-	sway_log(SWAY_DEBUG, "Reparenting container (perpendicular)");
-	struct sway_node *focus_inactive = seat_get_active_tiling_child(
-			config->handler_context.seat, &destination->node);
-	if (!focus_inactive || focus_inactive == &destination->node) {
-		// The container has no children
-		container_add_child(destination, container);
-		return;
-	}
-
-	// Try again but with the child
-	container_move_to_container_from_direction(container,
-			focus_inactive->sway_container, move_dir);
-}
-
-static void container_move_to_workspace_from_direction(
-		struct sway_container *container, struct sway_workspace *workspace,
-		enum wlr_direction move_dir) {
-	container->pending.width = container->pending.height = 0;
-	container->width_fraction = container->height_fraction = 0;
-
-	// TODO (wmii) check should probably be inlined.
-	if (is_parallel(L_HORIZ, move_dir)) {
-		sway_log(SWAY_DEBUG, "Reparenting container (parallel)");
-		int index =
-			move_dir == WLR_DIRECTION_RIGHT || move_dir == WLR_DIRECTION_DOWN ?
-			0 : workspace->tiling->length;
-		workspace_insert_tiling(workspace, container, index);
-		return;
-	}
-
-	sway_log(SWAY_DEBUG, "Reparenting container (perpendicular)");
-	struct sway_container *focus_inactive = seat_get_focus_inactive_tiling(
-			config->handler_context.seat, workspace);
-	if (!focus_inactive) {
-		// The workspace has no tiling children
-		workspace_add_tiling(workspace, container);
-		return;
-	}
-	while (focus_inactive->pending.parent) {
-		focus_inactive = focus_inactive->pending.parent;
-	}
-	container_move_to_container_from_direction(container, focus_inactive,
-			move_dir);
-}
-
-static void container_move_to_workspace(struct sway_container *win,
-		struct sway_workspace *ws) {
-	if (!sway_assert(container_is_window(win), "can't move columns between workspaces")) {
-		return;
-	}
-	if (win->pending.workspace == ws) {
-		return;
-	}
-
-	struct sway_seat *seat = config->handler_context.seat;
-	struct sway_workspace *old_ws = win->pending.workspace;
-
-	if (container_is_floating(win)) {
-		struct sway_output *old_output = win->pending.workspace->output;
-		container_detach(win);
-		workspace_add_floating(ws, win);
-		container_handle_fullscreen_reparent(win);
-		// If changing output, center it within the workspace
-		if (old_output != ws->output && !win->pending.fullscreen_mode) {
-			container_floating_move_to_center(win);
-		}
-	} else {
-		struct sway_container *target_sibling = seat_get_focus_inactive_tiling(seat, ws);
-		if (target_sibling && container_is_column(target_sibling)) {
-			// TODO (wmiiv) Shouldn't be possible once columns are no longer focusable.
-			target_sibling = seat_get_focus_inactive_view(seat, &target_sibling->node);
-		}
-
-		container_detach(win);
-		if (target_sibling) {
-			container_add_sibling(target_sibling, win, 1);
-			container_update_representation(win->pending.parent);
-		} else if (ws) {
-			struct sway_container *col = column_create();
-			container_add_child(col, win);
-			workspace_insert_tiling_direct(ws, col, 0);
-		}
-	}
-
-	ipc_event_window(win, "move");
-
-	workspace_detect_urgent(old_ws);
-	workspace_detect_urgent(ws);
-	workspace_focus_fullscreen(ws);
-}
-
-static void container_move_to_container(struct sway_container *container,
-		struct sway_container *destination) {
-	if (container == destination
-			|| container_has_ancestor(container, destination)
-			|| container_has_ancestor(destination, container)) {
-		return;
-	}
-	if (container_is_floating(container)) {
-		container_move_to_workspace(container, destination->pending.workspace);
-		return;
-	}
-	struct sway_workspace *old_workspace = container->pending.workspace;
-
-	container_detach(container);
-	container->pending.width = container->pending.height = 0;
-	container->width_fraction = container->height_fraction = 0;
-
-	if (destination->view) {
-		container_add_sibling(destination, container, 1);
-	} else {
-		container_add_child(destination, container);
-	}
-
-	if (container->view) {
-		ipc_event_window(container, "move");
-	}
-
-	if (destination->pending.workspace) {
-		workspace_focus_fullscreen(destination->pending.workspace);
-		workspace_detect_urgent(destination->pending.workspace);
-	}
-
-	if (old_workspace && old_workspace != destination->pending.workspace) {
-		workspace_detect_urgent(old_workspace);
-	}
-}
-
 static bool container_move_to_next_output(struct sway_container *container,
 		struct sway_output *output, enum wlr_direction move_dir) {
 	struct sway_output *next_output =
@@ -288,10 +87,10 @@ static bool container_move_to_next_output(struct sway_container *container,
 		}
 		switch (container->pending.fullscreen_mode) {
 		case FULLSCREEN_NONE:
-			container_move_to_workspace_from_direction(container, ws, move_dir);
+			window_move_to_workspace_from_direction(container, ws, move_dir);
 			return true;
 		case FULLSCREEN_WORKSPACE:
-			container_move_to_workspace(container, ws);
+			window_move_to_workspace(container, ws);
 			return true;
 		case FULLSCREEN_GLOBAL:
 			return false;
@@ -367,7 +166,7 @@ static bool window_move_in_direction(struct sway_container *win,
 			}
 
 			struct sway_container *new_col = win->pending.workspace->tiling->items[old_col_index - 1];
-			container_move_to_container_from_direction(win, new_col, move_dir);
+			window_move_to_column_from_direction(win, new_col, move_dir);
 
 			return true;
 		}
@@ -393,7 +192,7 @@ static bool window_move_in_direction(struct sway_container *win,
 			}
 
 			struct sway_container *new_col = win->pending.workspace->tiling->items[old_col_index + 1];
-			container_move_to_container_from_direction(win, new_col, move_dir);
+			window_move_to_column_from_direction(win, new_col, move_dir);
 
 			return true;
 		}
@@ -409,26 +208,26 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		return error;
 	}
 
-	struct sway_container *container = config->handler_context.window;
+	struct sway_container *win = config->handler_context.window;
 
-	if (!container) {
+	if (!win) {
 		return cmd_results_new(CMD_FAILURE, "Can only move windows");
 	}
 
-	if (container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+	if (win->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 		return cmd_results_new(CMD_FAILURE,
 				"Can't move fullscreen global container");
 	}
 
 	struct sway_seat *seat = config->handler_context.seat;
-	struct sway_container *old_parent = container->pending.parent;
-	struct sway_workspace *old_ws = container->pending.workspace;
+	struct sway_container *old_parent = win->pending.parent;
+	struct sway_workspace *old_ws = win->pending.workspace;
 	struct sway_output *old_output = old_ws ? old_ws->output : NULL;
 	struct sway_node *destination = NULL;
 
 	// determine destination
 	if (strcasecmp(argv[0], "workspace") == 0) {
-		// move container to workspace x
+		// Determine which workspace the window should be moved to.
 		struct sway_workspace *ws = NULL;
 		char *ws_name = NULL;
 		if (strcasecmp(argv[1], "next") == 0 ||
@@ -479,7 +278,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 			// We have to create the workspace, but if the container is
 			// sticky and the workspace is going to be created on the same
 			// output, we'll bail out first.
-			if (container_is_sticky_or_child(container)) {
+			if (container_is_sticky_or_child(win)) {
 				struct sway_output *new_output =
 					workspace_get_initial_output(ws_name);
 				if (old_output == new_output) {
@@ -492,11 +291,44 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 			ws = workspace_create(NULL, ws_name);
 		}
 		free(ws_name);
-		struct sway_container *dst = seat_get_focus_inactive_tiling(seat, ws);
-		destination = dst ? &dst->node : &ws->node;
+
+		// Do the move.
+		window_move_to_workspace(win, ws);
+
+		// Restore focus to the original workspace.
+		struct sway_container *focus = seat_get_focus_inactive_view(seat, &old_ws->node);
+		if (focus) {
+			seat_set_focus_window(seat, focus);
+		} else {
+			seat_set_focus_workspace(seat, old_ws);
+		}
+
+		// If necessary, clean up old column and workspace.
+		if (old_parent) {
+			column_consider_destroy(old_parent);
+		}
+		if (old_ws) {
+			workspace_consider_destroy(old_ws);
+		}
+
+
+		// Re-arrange windows
+		if (root->fullscreen_global) {
+			arrange_root();
+		} else {
+			if (old_ws && !old_ws->node.destroying) {
+				arrange_workspace(old_ws);
+			}
+			// TODO (wmiiv) it should often be possible to get away without rearranging
+			// the entire workspace.
+			arrange_workspace(ws);
+		}
+
+		return cmd_results_new(CMD_SUCCESS, NULL);
+
 	} else if (strcasecmp(argv[0], "output") == 0) {
 		struct sway_output *new_output = output_in_direction(argv[1],
-				old_output, container->pending.x, container->pending.y);
+				old_output, win->pending.x, win->pending.y);
 		if (!new_output) {
 			return cmd_results_new(CMD_FAILURE,
 				"Can't find output with name/direction '%s'", argv[1]);
@@ -513,7 +345,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	if (container_is_sticky_or_child(container) && old_output &&
+	if (container_is_sticky_or_child(win) && old_output &&
 			node_has_ancestor(destination, &old_output->node)) {
 		return cmd_results_new(CMD_FAILURE, "Can't move sticky "
 				"container to another workspace on the same output");
@@ -530,7 +362,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 
 	switch (destination->type) {
 	case N_WORKSPACE:
-		container_move_to_workspace(container, destination->sway_workspace);
+		window_move_to_workspace(win, destination->sway_workspace);
 		break;
 	case N_OUTPUT: {
 			struct sway_output *output = destination->sway_output;
@@ -539,13 +371,13 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 				return cmd_results_new(CMD_FAILURE,
 						"Expected output to have a workspace");
 			}
-			container_move_to_workspace(container, ws);
+			window_move_to_workspace(win, ws);
 		}
 		break;
 	case N_WINDOW:
 		// TODO (wmiiv)
 	case N_COLUMN:
-		container_move_to_container(container, destination->sway_container);
+		window_move_to_column(win, destination->sway_container);
 		break;
 	case N_ROOT:
 		break;
@@ -567,7 +399,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 	}
 
 	// restore focus
-	if (focus == &container->node) {
+	if (focus == &win->node) {
 		focus = NULL;
 		if (old_parent) {
 			focus = seat_get_focus_inactive(seat, &old_parent->node);
@@ -581,8 +413,8 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 	// clean-up, destroying parents if the container was the last child
 	if (old_parent) {
 		column_consider_destroy(old_parent);
-	} else if (old_ws) {
-		// TODO (wmiiv) shouldn't be possible to hit this.
+	}
+	if (old_ws) {
 		workspace_consider_destroy(old_ws);
 	}
 
