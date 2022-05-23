@@ -291,22 +291,7 @@ list_t *container_get_current_siblings(struct sway_container *container);
 
 void container_handle_fullscreen_reparent(struct sway_container *con);
 
-void container_add_child(struct sway_container *parent,
-		struct sway_container *child);
-
-void container_insert_child(struct sway_container *parent,
-		struct sway_container *child, int i);
-
-/**
- * Side should be 0 to add before, or 1 to add after.
- */
-void container_add_sibling(struct sway_container *parent,
-		struct sway_container *child, bool after);
-
 void container_detach(struct sway_container *child);
-
-void container_replace(struct sway_container *container,
-		struct sway_container *replacement);
 
 void container_swap(struct sway_container *con1, struct sway_container *con2);
 

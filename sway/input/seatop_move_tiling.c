@@ -349,14 +349,14 @@ static void finalize_move(struct sway_seat *seat) {
 
 	// Moving container into empty workspace
 	if (target_node->type == N_WORKSPACE && edge == WLR_EDGE_NONE) {
-		con = workspace_add_tiling(new_ws, con);
+		window_move_to_workspace(con, new_ws);
 	} else if (e->split_target) {
 		struct sway_container *target = target_node->sway_container;
 		enum sway_container_layout layout = container_parent_layout(target);
 		if (layout != L_TABBED && layout != L_STACKED) {
 			container_split(target, L_TABBED);
 		}
-		container_add_sibling(target, con, e->insert_after_target);
+		column_add_sibling(target, con, e->insert_after_target);
 		ipc_event_window(con, "move");
 	} else if (target_node->type == N_COLUMN || target_node->type == N_WINDOW) {
 		// Moving container before/after another
@@ -370,7 +370,7 @@ static void finalize_move(struct sway_seat *seat) {
 					edge == WLR_EDGE_BOTTOM ? L_VERT : L_HORIZ;
 				container_split(target, new_layout);
 			}
-			container_add_sibling(target, con, after);
+			column_add_sibling(target, con, after);
 			ipc_event_window(con, "move");
 		}
 	} else {

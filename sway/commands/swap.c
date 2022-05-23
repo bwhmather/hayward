@@ -42,7 +42,7 @@ static void swap_places(struct sway_container *win1,
 
 	int temp_index = container_sibling_index(win1);
 	if (win2->pending.parent) {
-		container_insert_child(win2->pending.parent, win1,
+		column_insert_child(win2->pending.parent, win1,
 				container_sibling_index(win2));
 	} else if (container_is_floating(win2)) {
 		workspace_add_floating(win2->pending.workspace, win1);
@@ -51,7 +51,7 @@ static void swap_places(struct sway_container *win1,
 				container_sibling_index(win2));
 	}
 	if (temp->pending.parent) {
-		container_insert_child(temp->pending.parent, win2, temp_index);
+		column_insert_child(temp->pending.parent, win2, temp_index);
 	} else if (temp_floating) {
 		workspace_add_floating(temp->pending.workspace, win2);
 	} else {

@@ -1285,62 +1285,6 @@ static void set_workspace(struct sway_container *container, void *data) {
 	container->pending.workspace = container->pending.parent->pending.workspace;
 }
 
-void container_insert_child(struct sway_container *parent,
-		struct sway_container *child, int i) {
-	sway_assert(container_is_column(parent), "Target is not a column");
-	sway_assert(container_is_window(active), "Not a window");
-
-	if (!sway_assert(!child->pending.workspace && !child->pending.parent,
-			"Windows must be detatched before they can be added to a column")) {
-		container_detach(child);
-	}
-	list_insert(parent->pending.children, i, child);
-	child->pending.parent = parent;
-	child->pending.workspace = parent->pending.workspace;
-	container_for_each_child(child, set_workspace, NULL);
-	container_handle_fullscreen_reparent(child);
-	container_update_representation(parent);
-}
-
-void container_add_sibling(struct sway_container *fixed,
-		struct sway_container *active, bool after) {
-	sway_assert(container_is_window(fixed), "Target sibling is not a window");
-	sway_assert(container_is_window(active), "Not a window");
-
-	if (!sway_assert(!active->pending.workspace && !active->pending.parent,
-			"Windows must be detatched before they can be added to a column")) {
-		container_detach(active);
-	}
-
-	list_t *siblings = container_get_siblings(fixed);
-	int index = list_find(siblings, fixed);
-	list_insert(siblings, index + after, active);
-	active->pending.parent = fixed->pending.parent;
-	active->pending.workspace = fixed->pending.workspace;
-	container_for_each_child(active, set_workspace, NULL);
-	container_handle_fullscreen_reparent(active);
-	container_update_representation(active);
-}
-
-void container_add_child(struct sway_container *parent,
-		struct sway_container *child) {
-	sway_assert(container_is_column(parent), "Target is not a column");
-	sway_assert(container_is_window(active), "Not a window");
-
-	if (!sway_assert(!child->pending.workspace && !child->pending.workspace,
-			"Windows must be detatched before they can be added to a column")) {
-		container_detach(child);
-	}
-	list_add(parent->pending.children, child);
-	child->pending.parent = parent;
-	child->pending.workspace = parent->pending.workspace;
-	container_for_each_child(child, set_workspace, NULL);
-	container_handle_fullscreen_reparent(child);
-	container_update_representation(parent);
-	node_set_dirty(&child->node);
-	node_set_dirty(&parent->node);
-}
-
 void container_detach(struct sway_container *child) {
 	// TODO (wmiiv) move to workspace.
 	if (child->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
@@ -1373,67 +1317,10 @@ void container_detach(struct sway_container *child) {
 	node_set_dirty(&child->node);
 }
 
-void container_replace(struct sway_container *container,
-		struct sway_container *replacement) {
-	enum sway_fullscreen_mode fullscreen = container->pending.fullscreen_mode;
-	if (fullscreen != FULLSCREEN_NONE) {
-		container_fullscreen_disable(container);
-	}
-	if (container->pending.parent || container->pending.workspace) {
-		float width_fraction = container->width_fraction;
-		float height_fraction = container->height_fraction;
-		container_add_sibling(container, replacement, 1);
-		container_detach(container);
-		replacement->width_fraction = width_fraction;
-		replacement->height_fraction = height_fraction;
-	}
-	switch (fullscreen) {
-	case FULLSCREEN_WORKSPACE:
-		container_fullscreen_workspace(replacement);
-		break;
-	case FULLSCREEN_GLOBAL:
-		container_fullscreen_global(replacement);
-		break;
-	case FULLSCREEN_NONE:
-		// noop
-		break;
-	}
-}
-
 struct sway_container *container_split(struct sway_container *child,
 		enum sway_container_layout layout) {
-	struct sway_seat *seat = input_manager_get_default_seat();
-	bool set_focus = (seat_get_focus(seat) == &child->node);
-
-	if (container_is_floating(child) && child->view) {
-		view_set_tiled(child->view, true);
-		if (child->view->using_csd) {
-			child->pending.border = child->saved_border;
-		}
-	}
-
-	struct sway_container *cont = column_create();
-	cont->pending.width = child->pending.width;
-	cont->pending.height = child->pending.height;
-	cont->width_fraction = child->width_fraction;
-	cont->height_fraction = child->height_fraction;
-	cont->pending.x = child->pending.x;
-	cont->pending.y = child->pending.y;
-	cont->pending.layout = layout;
-
-	container_replace(child, cont);
-	container_add_child(cont, child);
-
-	if (set_focus) {
-		seat_set_raw_focus(seat, &cont->node);
-		if (cont->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-			seat_set_focus(seat, &child->node);
-		} else {
-			seat_set_raw_focus(seat, &child->node);
-		}
-	}
-
-	return cont;
+	sway_assert(false, "container_split is deprecated");
+	return child;
 }
 
 bool container_is_transient_for(struct sway_container *child,

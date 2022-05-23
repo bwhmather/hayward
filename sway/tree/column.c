@@ -85,3 +85,63 @@ struct sway_container *column_find_child(struct sway_container *col,
 	}
 	return NULL;
 }
+
+static void set_workspace(struct sway_container *container, void *data) {
+	container->pending.workspace = container->pending.parent->pending.workspace;
+}
+
+void column_insert_child(struct sway_container *parent,
+		struct sway_container *child, int i) {
+	sway_assert(container_is_column(parent), "Target is not a column");
+	sway_assert(container_is_window(child), "Not a window");
+
+	if (!sway_assert(!child->pending.workspace && !child->pending.parent,
+			"Windows must be detatched before they can be added to a column")) {
+		container_detach(child);
+	}
+	list_insert(parent->pending.children, i, child);
+	child->pending.parent = parent;
+	child->pending.workspace = parent->pending.workspace;
+	container_for_each_child(child, set_workspace, NULL);
+	container_handle_fullscreen_reparent(child);
+	container_update_representation(parent);
+}
+
+void column_add_sibling(struct sway_container *fixed,
+		struct sway_container *active, bool after) {
+	sway_assert(container_is_window(fixed), "Target sibling is not a window");
+	sway_assert(container_is_window(active), "Not a window");
+
+	if (!sway_assert(!active->pending.workspace && !active->pending.parent,
+			"Windows must be detatched before they can be added to a column")) {
+		container_detach(active);
+	}
+
+	list_t *siblings = container_get_siblings(fixed);
+	int index = list_find(siblings, fixed);
+	list_insert(siblings, index + after, active);
+	active->pending.parent = fixed->pending.parent;
+	active->pending.workspace = fixed->pending.workspace;
+	container_for_each_child(active, set_workspace, NULL);
+	container_handle_fullscreen_reparent(active);
+	container_update_representation(active);
+}
+
+void column_add_child(struct sway_container *parent,
+		struct sway_container *child) {
+	sway_assert(container_is_column(parent), "Target is not a column");
+	sway_assert(container_is_window(child), "Not a window");
+
+	if (!sway_assert(!child->pending.workspace && !child->pending.workspace,
+			"Windows must be detatched before they can be added to a column")) {
+		container_detach(child);
+	}
+	list_add(parent->pending.children, child);
+	child->pending.parent = parent;
+	child->pending.workspace = parent->pending.workspace;
+	container_for_each_child(child, set_workspace, NULL);
+	container_handle_fullscreen_reparent(child);
+	container_update_representation(parent);
+	node_set_dirty(&child->node);
+	node_set_dirty(&parent->node);
+}

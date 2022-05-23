@@ -301,9 +301,9 @@ void window_set_floating(struct sway_container *win, bool enable) {
 			seat_get_focus_inactive_tiling(seat, workspace);
 		if (reference) {
 			if (reference->view) {
-				container_add_sibling(reference, win, 1);
+				column_add_sibling(reference, win, 1);
 			} else {
-				container_add_child(reference, win);
+				column_add_child(reference, win);
 			}
 			win->pending.width = reference->pending.width;
 			win->pending.height = reference->pending.height;
@@ -375,16 +375,16 @@ static void window_move_to_column_from_maybe_direction(
 		int index =
 			move_dir == WLR_DIRECTION_DOWN ?
 			0 : col->pending.children->length;
-		container_insert_child(col, win, index);
+		column_insert_child(col, win, index);
 		win->pending.width = win->pending.height = 0;
 		win->width_fraction = win->height_fraction = 0;
 	} else {
 		sway_log(SWAY_DEBUG, "Reparenting window (perpendicular)");
 		struct sway_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
 		if (target_sibling) {
-			container_add_sibling(target_sibling, win, 1);
+			column_add_sibling(target_sibling, win, 1);
 		} else {
-			container_add_child(col, win);
+			column_add_child(col, win);
 		}
 	}
 

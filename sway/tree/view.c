@@ -741,10 +741,10 @@ void view_map(struct sway_view *view, struct wlr_surface *wlr_surface,
 			&view->foreign_destroy);
 
 	if (target_sibling) {
-		container_add_sibling(target_sibling, view->container, 1);
+		column_add_sibling(target_sibling, view->container, 1);
 	} else if (ws) {
 		struct sway_container *col = column_create();
-		container_add_child(col, view->container);
+		column_add_child(col, view->container);
 		workspace_insert_tiling_direct(ws, col, 0);
 	}
 	ipc_event_window(view->container, "new");

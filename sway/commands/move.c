@@ -295,6 +295,8 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		// Do the move.
 		window_move_to_workspace(win, ws);
 
+		ipc_event_window(win, "move");
+
 		// Restore focus to the original workspace.
 		struct sway_container *focus = seat_get_focus_inactive_view(seat, &old_ws->node);
 		if (focus) {
@@ -382,6 +384,8 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 	case N_ROOT:
 		break;
 	}
+
+	ipc_event_window(win, "move");
 
 	// restore focus on destination output back to its last active workspace
 	struct sway_workspace *new_workspace = new_output ?
