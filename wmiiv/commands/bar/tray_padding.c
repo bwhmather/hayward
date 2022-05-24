@@ -34,6 +34,6 @@ struct cmd_results *bar_cmd_tray_padding(int argc, char **argv) {
 	return cmd_results_new(CMD_SUCCESS, NULL);
 #else
 	return cmd_results_new(CMD_INVALID,
-			"Sway has been compiled without tray support");
+			"WMiiv has been compiled without tray support");
 #endif
 }

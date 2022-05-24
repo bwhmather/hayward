@@ -212,7 +212,7 @@ static void workspace_next(struct wmiivbar *bar, struct wmiivbar_output *output,
 	if (new) {
 		ipc_send_workspace_command(bar, new->name);
 
-		// Since we're asking Sway to switch to 'new', it should become visible.
+		// Since we're asking WMiiv to switch to 'new', it should become visible.
 		// Marking it visible right now allows calling workspace_next in a loop.
 		new->visible = true;
 		active->visible = false;

@@ -84,7 +84,7 @@ static const char *ipc_json_output_transform_description(enum wl_output_transfor
 	case WL_OUTPUT_TRANSFORM_NORMAL:
 		return "normal";
 	case WL_OUTPUT_TRANSFORM_90:
-		// Sway uses clockwise transforms, while WL_OUTPUT_TRANSFORM_* describes
+		// WMiiv uses clockwise transforms, while WL_OUTPUT_TRANSFORM_* describes
 		// anti-clockwise transforms.
 		return "270";
 	case WL_OUTPUT_TRANSFORM_180:

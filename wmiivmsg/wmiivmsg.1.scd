@@ -118,7 +118,7 @@ _wmiivmsg_ [options...] [message]
 	or unable to parse wmiiv's reply
 
 *2*
-	Sway returned an error when processing the command (ex. invalid command,
+	WMiiv returned an error when processing the command (ex. invalid command,
 	command failed, and invalid subscription request)
 
 # SEE ALSO

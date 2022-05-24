@@ -42,7 +42,7 @@ On systems without logind nor seatd, you need to suid the wmiiv binary:
 
     sudo chmod a+s /usr/local/bin/wmiiv
 
-Sway will drop root permissions shortly after startup.
+WMiiv will drop root permissions shortly after startup.
 
 ## Running
 

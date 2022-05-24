@@ -417,7 +417,7 @@ static bool should_configure(struct wmiiv_node *node,
 	// Xwayland views are position-aware and need to be reconfigured
 	// when their position changes.
 	if (node->wmiiv_container->view->type == WMIIV_VIEW_XWAYLAND) {
-		// Sway logical coordinates are doubles, but they get truncated to
+		// WMiiv logical coordinates are doubles, but they get truncated to
 		// integers when sent to Xwayland through `xcb_configure_window`.
 		// X11 apps will not respond to duplicate configure requests (from their
 		// truncated point of view) and cause transactions to time out.

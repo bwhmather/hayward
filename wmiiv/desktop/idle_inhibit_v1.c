@@ -18,7 +18,7 @@ static void destroy_inhibitor(struct wmiiv_idle_inhibitor_v1 *inhibitor) {
 static void handle_destroy(struct wl_listener *listener, void *data) {
 	struct wmiiv_idle_inhibitor_v1 *inhibitor =
 		wl_container_of(listener, inhibitor, destroy);
-	wmiiv_log(WMIIV_DEBUG, "Sway idle inhibitor destroyed");
+	wmiiv_log(WMIIV_DEBUG, "WMiiv idle inhibitor destroyed");
 	destroy_inhibitor(inhibitor);
 }
 

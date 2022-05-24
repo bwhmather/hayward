@@ -143,7 +143,7 @@ cairo_surface_t *load_background_image(const char *path) {
 	if (cairo_surface_status(image) != CAIRO_STATUS_SUCCESS) {
 		wmiiv_log(WMIIV_ERROR, "Failed to read background image: %s."
 #if !HAVE_GDK_PIXBUF
-				"\nSway was compiled without gdk_pixbuf support, so only"
+				"\nWMiiv was compiled without gdk_pixbuf support, so only"
 				"\nPNG images can be loaded. This is the likely cause."
 #endif // !HAVE_GDK_PIXBUF
 				, cairo_status_to_string(cairo_surface_status(image)));

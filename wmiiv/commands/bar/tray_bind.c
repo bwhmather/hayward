@@ -82,7 +82,7 @@ static struct cmd_results *tray_bind(int argc, char **argv, bool code) {
 	return cmd_results_new(CMD_SUCCESS, NULL);
 #else
 	return cmd_results_new(CMD_INVALID,
-			"Sway has been compiled without tray support");
+			"WMiiv has been compiled without tray support");
 #endif
 }
 

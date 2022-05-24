@@ -6,7 +6,7 @@ wmiiv-input - input configuration file and commands
 
 # DESCRIPTION
 
-Sway allows for configuration of devices within the wmiiv configuration file.
+WMiiv allows for configuration of devices within the wmiiv configuration file.
 To obtain a list of available device identifiers, run *wmiivmsg -t get_inputs*.
 Settings can also be applied to all input devices by using the wildcard, _\*_,
 in place of _\<identifier\>_ in the commands below. In addition, the settings

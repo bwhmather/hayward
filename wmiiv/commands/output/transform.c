@@ -50,7 +50,7 @@ struct cmd_results *output_cmd_transform(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, "Invalid output transform.");
 	}
 
-	// Sway uses clockwise transforms, while WL_OUTPUT_TRANSFORM_* describe
+	// WMiiv uses clockwise transforms, while WL_OUTPUT_TRANSFORM_* describe
 	// anti-clockwise transforms
 	transform = invert_rotation_direction(transform);
 

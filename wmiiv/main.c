@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
 		wlr_log_init(WLR_ERROR, handle_wlr_log);
 	}
 
-	wmiiv_log(WMIIV_INFO, "Sway version " WMIIV_VERSION);
+	wmiiv_log(WMIIV_INFO, "WMiiv version " WMIIV_VERSION);
 	wmiiv_log(WMIIV_INFO, "wlroots version " WLR_VERSION_STR);
 	log_kernel();
 	log_distro();

@@ -23,7 +23,7 @@ set $menu dmenu_path | dmenu | xargs wmiivmsg exec --
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in @datadir@/backgrounds/wmiiv/)
-output * bg @datadir@/backgrounds/wmiiv/Sway_Wallpaper_Blue_1920x1080.png fill
+output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
 #
 # Example configuration:
 #
@@ -162,7 +162,7 @@ output * bg @datadir@/backgrounds/wmiiv/Sway_Wallpaper_Blue_1920x1080.png fill
 #
 # Scratchpad:
 #
-    # Sway has a "scratchpad", which is a bag of holding for windows.
+    # WMiiv has a "scratchpad", which is a bag of holding for windows.
     # You can send windows there and get them back later.
 
     # Move the currently focused window to the scratchpad

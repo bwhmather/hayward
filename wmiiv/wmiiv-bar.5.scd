@@ -6,7 +6,7 @@ wmiiv-bar - bar configuration file and commands
 
 # DESCRIPTION
 
-Sway allows configuring wmiivbar in the wmiiv configuration file.
+WMiiv allows configuring wmiivbar in the wmiiv configuration file.
 
 # COMMANDS
 
@@ -145,7 +145,7 @@ runtime.
 
 ## TRAY
 
-Swaybar provides a system tray where third-party applications may place icons.
+WMiivbar provides a system tray where third-party applications may place icons.
 The following commands configure the tray.
 
 *tray_bindcode* <event-code>
