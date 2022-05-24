@@ -1,6 +1,6 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 
 struct cmd_results *cmd_workspace_layout(int argc, char **argv) {
 	struct cmd_results *error = NULL;

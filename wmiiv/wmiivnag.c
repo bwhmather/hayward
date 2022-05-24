@@ -8,77 +8,77 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "log.h"
-#include "sway/server.h"
-#include "sway/swaynag.h"
+#include "wmiiv/server.h"
+#include "wmiiv/wmiivnag.h"
 #include "util.h"
 
-static void handle_swaynag_client_destroy(struct wl_listener *listener,
+static void handle_wmiivnag_client_destroy(struct wl_listener *listener,
 		void *data) {
-	struct swaynag_instance *swaynag =
-		wl_container_of(listener, swaynag, client_destroy);
-	wl_list_remove(&swaynag->client_destroy.link);
-	wl_list_init(&swaynag->client_destroy.link);
-	swaynag->client = NULL;
+	struct wmiivnag_instance *wmiivnag =
+		wl_container_of(listener, wmiivnag, client_destroy);
+	wl_list_remove(&wmiivnag->client_destroy.link);
+	wl_list_init(&wmiivnag->client_destroy.link);
+	wmiivnag->client = NULL;
 }
 
-bool swaynag_spawn(const char *swaynag_command,
-		struct swaynag_instance *swaynag) {
-	if (swaynag->client != NULL) {
-		wl_client_destroy(swaynag->client);
+bool wmiivnag_spawn(const char *wmiivnag_command,
+		struct wmiivnag_instance *wmiivnag) {
+	if (wmiivnag->client != NULL) {
+		wl_client_destroy(wmiivnag->client);
 	}
 
-	if (!swaynag_command) {
+	if (!wmiivnag_command) {
 		return true;
 	}
 
-	if (swaynag->detailed) {
-		if (pipe(swaynag->fd) != 0) {
-			sway_log(SWAY_ERROR, "Failed to create pipe for swaynag");
+	if (wmiivnag->detailed) {
+		if (pipe(wmiivnag->fd) != 0) {
+			wmiiv_log(SWAY_ERROR, "Failed to create pipe for wmiivnag");
 			return false;
 		}
-		if (!sway_set_cloexec(swaynag->fd[1], true)) {
+		if (!wmiiv_set_cloexec(wmiivnag->fd[1], true)) {
 			goto failed;
 		}
 	}
 
 	int sockets[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-		sway_log_errno(SWAY_ERROR, "socketpair failed");
+		wmiiv_log_errno(SWAY_ERROR, "socketpair failed");
 		goto failed;
 	}
-	if (!sway_set_cloexec(sockets[0], true) || !sway_set_cloexec(sockets[1], true)) {
-		goto failed;
-	}
-
-	swaynag->client = wl_client_create(server.wl_display, sockets[0]);
-	if (swaynag->client == NULL) {
-		sway_log_errno(SWAY_ERROR, "wl_client_create failed");
+	if (!wmiiv_set_cloexec(sockets[0], true) || !wmiiv_set_cloexec(sockets[1], true)) {
 		goto failed;
 	}
 
-	swaynag->client_destroy.notify = handle_swaynag_client_destroy;
-	wl_client_add_destroy_listener(swaynag->client, &swaynag->client_destroy);
+	wmiivnag->client = wl_client_create(server.wl_display, sockets[0]);
+	if (wmiivnag->client == NULL) {
+		wmiiv_log_errno(SWAY_ERROR, "wl_client_create failed");
+		goto failed;
+	}
+
+	wmiivnag->client_destroy.notify = handle_wmiivnag_client_destroy;
+	wl_client_add_destroy_listener(wmiivnag->client, &wmiivnag->client_destroy);
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		sway_log(SWAY_ERROR, "Failed to create fork for swaynag");
+		wmiiv_log(SWAY_ERROR, "Failed to create fork for wmiivnag");
 		goto failed;
 	} else if (pid == 0) {
 		restore_nofile_limit();
 
 		pid = fork();
 		if (pid < 0) {
-			sway_log_errno(SWAY_ERROR, "fork failed");
+			wmiiv_log_errno(SWAY_ERROR, "fork failed");
 			_exit(EXIT_FAILURE);
 		} else if (pid == 0) {
-			if (!sway_set_cloexec(sockets[1], false)) {
+			if (!wmiiv_set_cloexec(sockets[1], false)) {
 				_exit(EXIT_FAILURE);
 			}
 
-			if (swaynag->detailed) {
-				close(swaynag->fd[1]);
-				dup2(swaynag->fd[0], STDIN_FILENO);
-				close(swaynag->fd[0]);
+			if (wmiivnag->detailed) {
+				close(wmiivnag->fd[1]);
+				dup2(wmiivnag->fd[0], STDIN_FILENO);
+				close(wmiivnag->fd[0]);
 			}
 
 			char wayland_socket_str[16];
@@ -86,60 +86,60 @@ bool swaynag_spawn(const char *swaynag_command,
 					"%d", sockets[1]);
 			setenv("WAYLAND_SOCKET", wayland_socket_str, true);
 
-			size_t length = strlen(swaynag_command) + strlen(swaynag->args) + 2;
+			size_t length = strlen(wmiivnag_command) + strlen(wmiivnag->args) + 2;
 			char *cmd = malloc(length);
-			snprintf(cmd, length, "%s %s", swaynag_command, swaynag->args);
+			snprintf(cmd, length, "%s %s", wmiivnag_command, wmiivnag->args);
 			execlp("sh", "sh", "-c", cmd, NULL);
-			sway_log_errno(SWAY_ERROR, "execlp failed");
+			wmiiv_log_errno(SWAY_ERROR, "execlp failed");
 			_exit(EXIT_FAILURE);
 		}
 		_exit(EXIT_SUCCESS);
 	}
 
-	if (swaynag->detailed) {
-		if (close(swaynag->fd[0]) != 0) {
-			sway_log_errno(SWAY_ERROR, "close failed");
+	if (wmiivnag->detailed) {
+		if (close(wmiivnag->fd[0]) != 0) {
+			wmiiv_log_errno(SWAY_ERROR, "close failed");
 			return false;
 		}
 	}
 
 	if (close(sockets[1]) != 0) {
-		sway_log_errno(SWAY_ERROR, "close failed");
+		wmiiv_log_errno(SWAY_ERROR, "close failed");
 		return false;
 	}
 
 	if (waitpid(pid, NULL, 0) < 0) {
-		sway_log_errno(SWAY_ERROR, "waitpid failed");
+		wmiiv_log_errno(SWAY_ERROR, "waitpid failed");
 		return false;
 	}
 
 	return true;
 
 failed:
-	if (swaynag->detailed) {
-		if (close(swaynag->fd[0]) != 0) {
-			sway_log_errno(SWAY_ERROR, "close failed");
+	if (wmiivnag->detailed) {
+		if (close(wmiivnag->fd[0]) != 0) {
+			wmiiv_log_errno(SWAY_ERROR, "close failed");
 			return false;
 		}
-		if (close(swaynag->fd[1]) != 0) {
-			sway_log_errno(SWAY_ERROR, "close failed");
+		if (close(wmiivnag->fd[1]) != 0) {
+			wmiiv_log_errno(SWAY_ERROR, "close failed");
 		}
 	}
 	return false;
 }
 
-void swaynag_log(const char *swaynag_command, struct swaynag_instance *swaynag,
+void wmiivnag_log(const char *wmiivnag_command, struct wmiivnag_instance *wmiivnag,
 		const char *fmt, ...) {
-	if (!swaynag_command) {
+	if (!wmiivnag_command) {
 		return;
 	}
 
-	if (!swaynag->detailed) {
-		sway_log(SWAY_ERROR, "Attempting to write to non-detailed swaynag inst");
+	if (!wmiivnag->detailed) {
+		wmiiv_log(SWAY_ERROR, "Attempting to write to non-detailed wmiivnag inst");
 		return;
 	}
 
-	if (swaynag->client == NULL && !swaynag_spawn(swaynag_command, swaynag)) {
+	if (wmiivnag->client == NULL && !wmiivnag_spawn(wmiivnag_command, wmiivnag)) {
 		return;
 	}
 
@@ -150,7 +150,7 @@ void swaynag_log(const char *swaynag_command, struct swaynag_instance *swaynag,
 
 	char *temp = malloc(length + 1);
 	if (!temp) {
-		sway_log(SWAY_ERROR, "Failed to allocate buffer for swaynag log entry.");
+		wmiiv_log(SWAY_ERROR, "Failed to allocate buffer for wmiivnag log entry.");
 		return;
 	}
 
@@ -158,14 +158,14 @@ void swaynag_log(const char *swaynag_command, struct swaynag_instance *swaynag,
 	vsnprintf(temp, length, fmt, args);
 	va_end(args);
 
-	write(swaynag->fd[1], temp, length);
+	write(wmiivnag->fd[1], temp, length);
 
 	free(temp);
 }
 
-void swaynag_show(struct swaynag_instance *swaynag) {
-	if (swaynag->detailed && swaynag->client != NULL) {
-		close(swaynag->fd[1]);
+void wmiivnag_show(struct wmiivnag_instance *wmiivnag) {
+	if (wmiivnag->detailed && wmiivnag->client != NULL) {
+		close(wmiivnag->fd[1]);
 	}
 }
 

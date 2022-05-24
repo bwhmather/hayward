@@ -2,20 +2,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
 
 // sort in order of longest->shortest
 static int compare_set_qsort(const void *_l, const void *_r) {
-	struct sway_variable const *l = *(void **)_l;
-	struct sway_variable const *r = *(void **)_r;
+	struct wmiiv_variable const *l = *(void **)_l;
+	struct wmiiv_variable const *r = *(void **)_r;
 	return strlen(r->name) - strlen(l->name);
 }
 
-void free_sway_variable(struct sway_variable *var) {
+void free_wmiiv_variable(struct wmiiv_variable *var) {
 	if (!var) {
 		return;
 	}
@@ -34,7 +34,7 @@ struct cmd_results *cmd_set(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, "variable '%s' must start with $", argv[0]);
 	}
 
-	struct sway_variable *var = NULL;
+	struct wmiiv_variable *var = NULL;
 	// Find old variable if it exists
 	int i;
 	for (i = 0; i < config->symbols->length; ++i) {
@@ -47,7 +47,7 @@ struct cmd_results *cmd_set(int argc, char **argv) {
 	if (var) {
 		free(var->value);
 	} else {
-		var = malloc(sizeof(struct sway_variable));
+		var = malloc(sizeof(struct wmiiv_variable));
 		if (!var) {
 			return cmd_results_new(CMD_FAILURE, "Unable to allocate variable");
 		}

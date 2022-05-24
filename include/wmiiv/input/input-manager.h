@@ -5,11 +5,11 @@
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
-#include "sway/server.h"
-#include "sway/config.h"
+#include "wmiiv/server.h"
+#include "wmiiv/config.h"
 #include "list.h"
 
-struct sway_input_device {
+struct wmiiv_input_device {
 	char *identifier;
 	struct wlr_input_device *wlr_device;
 	struct wl_list link;
@@ -17,7 +17,7 @@ struct sway_input_device {
 	bool is_virtual;
 };
 
-struct sway_input_manager {
+struct wmiiv_input_manager {
 	struct wl_list devices;
 	struct wl_list seats;
 
@@ -34,11 +34,11 @@ struct sway_input_manager {
 	struct wl_listener virtual_pointer_new;
 };
 
-struct sway_input_manager *input_manager_create(struct sway_server *server);
+struct wmiiv_input_manager *input_manager_create(struct wmiiv_server *server);
 
-bool input_manager_has_focus(struct sway_node *node);
+bool input_manager_has_focus(struct wmiiv_node *node);
 
-void input_manager_set_focus(struct sway_node *node);
+void input_manager_set_focus(struct wmiiv_node *node);
 
 void input_manager_configure_xcursor(void);
 
@@ -46,15 +46,15 @@ void input_manager_apply_input_config(struct input_config *input_config);
 
 void input_manager_configure_all_inputs(void);
 
-void input_manager_reset_input(struct sway_input_device *input_device);
+void input_manager_reset_input(struct wmiiv_input_device *input_device);
 
 void input_manager_reset_all_inputs(void);
 
 void input_manager_apply_seat_config(struct seat_config *seat_config);
 
-struct sway_seat *input_manager_get_default_seat(void);
+struct wmiiv_seat *input_manager_get_default_seat(void);
 
-struct sway_seat *input_manager_get_seat(const char *seat_name, bool create);
+struct wmiiv_seat *input_manager_get_seat(const char *seat_name, bool create);
 
 /**
  * If none of the seat configs have a fallback setting (either true or false),
@@ -65,12 +65,12 @@ void input_manager_verify_fallback_seat(void);
 /**
  * Gets the last seat the user interacted with
  */
-struct sway_seat *input_manager_current_seat(void);
+struct wmiiv_seat *input_manager_current_seat(void);
 
-struct input_config *input_device_get_config(struct sway_input_device *device);
+struct input_config *input_device_get_config(struct wmiiv_input_device *device);
 
 char *input_device_get_identifier(struct wlr_input_device *device);
 
-const char *input_device_get_type(struct sway_input_device *device);
+const char *input_device_get_type(struct wmiiv_input_device *device);
 
 #endif

@@ -5,12 +5,12 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_pad.h>
 #include "log.h"
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
-#include "sway/input/tablet.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/input/tablet.h"
 
 static void handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {
-	struct sway_tablet_pad *pad =
+	struct wmiiv_tablet_pad *pad =
 		wl_container_of(listener, pad, tablet_destroy);
 
 	pad->tablet = NULL;
@@ -19,9 +19,9 @@ static void handle_pad_tablet_destroy(struct wl_listener *listener, void *data) 
 	wl_list_init(&pad->tablet_destroy.link);
 }
 
-static void attach_tablet_pad(struct sway_tablet_pad *tablet_pad,
-		struct sway_tablet *tablet) {
-	sway_log(SWAY_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
+static void attach_tablet_pad(struct wmiiv_tablet_pad *tablet_pad,
+		struct wmiiv_tablet *tablet) {
+	wmiiv_log(SWAY_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
 		tablet_pad->seat_device->input_device->wlr_device->name,
 		tablet->seat_device->input_device->wlr_device->name);
 
@@ -33,11 +33,11 @@ static void attach_tablet_pad(struct sway_tablet_pad *tablet_pad,
 		&tablet_pad->tablet_destroy);
 }
 
-struct sway_tablet *sway_tablet_create(struct sway_seat *seat,
-		struct sway_seat_device *device) {
-	struct sway_tablet *tablet =
-		calloc(1, sizeof(struct sway_tablet));
-	if (!sway_assert(tablet, "could not allocate sway tablet for seat")) {
+struct wmiiv_tablet *wmiiv_tablet_create(struct wmiiv_seat *seat,
+		struct wmiiv_seat_device *device) {
+	struct wmiiv_tablet *tablet =
+		calloc(1, sizeof(struct wmiiv_tablet));
+	if (!wmiiv_assert(tablet, "could not allocate wmiiv tablet for seat")) {
 		return NULL;
 	}
 
@@ -49,10 +49,10 @@ struct sway_tablet *sway_tablet_create(struct sway_seat *seat,
 	return tablet;
 }
 
-void sway_configure_tablet(struct sway_tablet *tablet) {
+void wmiiv_configure_tablet(struct wmiiv_tablet *tablet) {
 	struct wlr_input_device *device =
 		tablet->seat_device->input_device->wlr_device;
-	struct sway_seat *seat = tablet->seat_device->sway_seat;
+	struct wmiiv_seat *seat = tablet->seat_device->wmiiv_seat;
 
 	if ((seat->wlr_seat->capabilities & WL_SEAT_CAPABILITY_POINTER) == 0) {
 		seat_configure_xcursor(seat);
@@ -71,7 +71,7 @@ void sway_configure_tablet(struct sway_tablet *tablet) {
 
 	struct libinput_device_group *group =
 		libinput_device_get_device_group(wlr_libinput_get_device_handle(device));
-	struct sway_tablet_pad *tablet_pad;
+	struct wmiiv_tablet_pad *tablet_pad;
 	wl_list_for_each(tablet_pad, &seat->cursor->tablet_pads, link) {
 		struct wlr_input_device *pad_device =
 			tablet_pad->seat_device->input_device->wlr_device;
@@ -89,7 +89,7 @@ void sway_configure_tablet(struct sway_tablet *tablet) {
 	}
 }
 
-void sway_tablet_destroy(struct sway_tablet *tablet) {
+void wmiiv_tablet_destroy(struct wmiiv_tablet *tablet) {
 	if (!tablet) {
 		return;
 	}
@@ -98,11 +98,11 @@ void sway_tablet_destroy(struct sway_tablet *tablet) {
 }
 
 static void handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
-	struct sway_tablet_tool *tool =
+	struct wmiiv_tablet_tool *tool =
 		wl_container_of(listener, tool, set_cursor);
 	struct wlr_tablet_v2_event_cursor *event = data;
 
-	struct sway_cursor *cursor = tool->seat->cursor;
+	struct wmiiv_cursor *cursor = tool->seat->cursor;
 	if (!seatop_allows_set_cursor(cursor->seat)) {
 		return;
 	}
@@ -116,7 +116,7 @@ static void handle_tablet_tool_set_cursor(struct wl_listener *listener, void *da
 	// TODO: check cursor mode
 	if (focused_client == NULL ||
 			event->seat_client->client != focused_client) {
-		sway_log(SWAY_DEBUG, "denying request to set cursor from unfocused client");
+		wmiiv_log(SWAY_DEBUG, "denying request to set cursor from unfocused client");
 		return;
 	}
 
@@ -125,7 +125,7 @@ static void handle_tablet_tool_set_cursor(struct wl_listener *listener, void *da
 }
 
 static void handle_tablet_tool_destroy(struct wl_listener *listener, void *data) {
-	struct sway_tablet_tool *tool =
+	struct wmiiv_tablet_tool *tool =
 		wl_container_of(listener, tool, tool_destroy);
 
 	wl_list_remove(&tool->tool_destroy.link);
@@ -134,11 +134,11 @@ static void handle_tablet_tool_destroy(struct wl_listener *listener, void *data)
 	free(tool);
 }
 
-void sway_tablet_tool_configure(struct sway_tablet *tablet,
+void wmiiv_tablet_tool_configure(struct wmiiv_tablet *tablet,
 		struct wlr_tablet_tool *wlr_tool) {
-	struct sway_tablet_tool *tool =
-		calloc(1, sizeof(struct sway_tablet_tool));
-	if (!sway_assert(tool, "could not allocate sway tablet tool for tablet")) {
+	struct wmiiv_tablet_tool *tool =
+		calloc(1, sizeof(struct wmiiv_tablet_tool));
+	if (!wmiiv_assert(tool, "could not allocate wmiiv tablet tool for tablet")) {
 		return;
 	}
 
@@ -165,11 +165,11 @@ void sway_tablet_tool_configure(struct sway_tablet *tablet,
 		}
 	}
 
-	tool->seat = tablet->seat_device->sway_seat;
+	tool->seat = tablet->seat_device->wmiiv_seat;
 	tool->tablet = tablet;
 	tool->tablet_v2_tool =
 		wlr_tablet_tool_create(server.tablet_v2,
-			tablet->seat_device->sway_seat->wlr_seat, wlr_tool);
+			tablet->seat_device->wmiiv_seat->wlr_seat, wlr_tool);
 
 	tool->tool_destroy.notify = handle_tablet_tool_destroy;
 	wl_signal_add(&wlr_tool->events.destroy, &tool->tool_destroy);
@@ -183,9 +183,9 @@ void sway_tablet_tool_configure(struct sway_tablet *tablet,
 
 static void handle_tablet_pad_attach(struct wl_listener *listener,
 		void *data) {
-	struct sway_tablet_pad *pad = wl_container_of(listener, pad, attach);
+	struct wmiiv_tablet_pad *pad = wl_container_of(listener, pad, attach);
 	struct wlr_tablet_tool *wlr_tool = data;
-	struct sway_tablet_tool *tool = wlr_tool->data;
+	struct wmiiv_tablet_tool *tool = wlr_tool->data;
 
 	if (!tool) {
 		return;
@@ -195,7 +195,7 @@ static void handle_tablet_pad_attach(struct wl_listener *listener,
 }
 
 static void handle_tablet_pad_ring(struct wl_listener *listener, void *data) {
-	struct sway_tablet_pad *pad = wl_container_of(listener, pad, ring);
+	struct wmiiv_tablet_pad *pad = wl_container_of(listener, pad, ring);
 	struct wlr_tablet_pad_ring_event *event = data;
 
 	if (!pad->current_surface) {
@@ -209,7 +209,7 @@ static void handle_tablet_pad_ring(struct wl_listener *listener, void *data) {
 }
 
 static void handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
-	struct sway_tablet_pad *pad = wl_container_of(listener, pad, strip);
+	struct wmiiv_tablet_pad *pad = wl_container_of(listener, pad, strip);
 	struct wlr_tablet_pad_strip_event *event = data;
 
 	if (!pad->current_surface) {
@@ -223,7 +223,7 @@ static void handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
 }
 
 static void handle_tablet_pad_button(struct wl_listener *listener, void *data) {
-	struct sway_tablet_pad *pad = wl_container_of(listener, pad, button);
+	struct wmiiv_tablet_pad *pad = wl_container_of(listener, pad, button);
 	struct wlr_tablet_pad_button_event *event = data;
 
 	if (!pad->current_surface) {
@@ -238,11 +238,11 @@ static void handle_tablet_pad_button(struct wl_listener *listener, void *data) {
 		(enum zwp_tablet_pad_v2_button_state)event->state);
 }
 
-struct sway_tablet_pad *sway_tablet_pad_create(struct sway_seat *seat,
-		struct sway_seat_device *device) {
-	struct sway_tablet_pad *tablet_pad =
-		calloc(1, sizeof(struct sway_tablet_pad));
-	if (!sway_assert(tablet_pad, "could not allocate sway tablet")) {
+struct wmiiv_tablet_pad *wmiiv_tablet_pad_create(struct wmiiv_seat *seat,
+		struct wmiiv_seat_device *device) {
+	struct wmiiv_tablet_pad *tablet_pad =
+		calloc(1, sizeof(struct wmiiv_tablet_pad));
+	if (!wmiiv_assert(tablet_pad, "could not allocate wmiiv tablet")) {
 		return NULL;
 	}
 
@@ -259,10 +259,10 @@ struct sway_tablet_pad *sway_tablet_pad_create(struct sway_seat *seat,
 	return tablet_pad;
 }
 
-void sway_configure_tablet_pad(struct sway_tablet_pad *tablet_pad) {
+void wmiiv_configure_tablet_pad(struct wmiiv_tablet_pad *tablet_pad) {
 	struct wlr_input_device *device =
 		tablet_pad->seat_device->input_device->wlr_device;
-	struct sway_seat *seat = tablet_pad->seat_device->sway_seat;
+	struct wmiiv_seat *seat = tablet_pad->seat_device->wmiiv_seat;
 
 	if (!tablet_pad->tablet_v2_pad) {
 		tablet_pad->tablet_v2_pad =
@@ -294,7 +294,7 @@ void sway_configure_tablet_pad(struct sway_tablet_pad *tablet_pad) {
 
 	struct libinput_device_group *group =
 		libinput_device_get_device_group(wlr_libinput_get_device_handle(device));
-	struct sway_tablet *tool;
+	struct wmiiv_tablet *tool;
 	wl_list_for_each(tool, &seat->cursor->tablets, link) {
 		struct wlr_input_device *tablet =
 			tool->seat_device->input_device->wlr_device;
@@ -312,7 +312,7 @@ void sway_configure_tablet_pad(struct sway_tablet_pad *tablet_pad) {
 	}
 }
 
-void sway_tablet_pad_destroy(struct sway_tablet_pad *tablet_pad) {
+void wmiiv_tablet_pad_destroy(struct wmiiv_tablet_pad *tablet_pad) {
 	if (!tablet_pad) {
 		return;
 	}
@@ -330,7 +330,7 @@ void sway_tablet_pad_destroy(struct sway_tablet_pad *tablet_pad) {
 
 static void handle_pad_tablet_surface_destroy(struct wl_listener *listener,
 		void *data) {
-	struct sway_tablet_pad *tablet_pad =
+	struct wmiiv_tablet_pad *tablet_pad =
 		wl_container_of(listener, tablet_pad, surface_destroy);
 
 	wlr_tablet_v2_tablet_pad_notify_leave(tablet_pad->tablet_v2_pad,
@@ -340,7 +340,7 @@ static void handle_pad_tablet_surface_destroy(struct wl_listener *listener,
 	tablet_pad->current_surface = NULL;
 }
 
-void sway_tablet_pad_notify_enter(struct sway_tablet_pad *tablet_pad,
+void wmiiv_tablet_pad_notify_enter(struct wmiiv_tablet_pad *tablet_pad,
 		struct wlr_surface *surface) {
 	if (!tablet_pad || !tablet_pad->tablet) {
 		return;

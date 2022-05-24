@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 #include "log.h"
 #include "stringop.h"
 
@@ -25,7 +25,7 @@ struct cmd_results *bar_cmd_font(int argc, char **argv) {
 	}
 
 	free(font);
-	sway_log(SWAY_DEBUG, "Settings font '%s' for bar: %s",
+	wmiiv_log(SWAY_DEBUG, "Settings font '%s' for bar: %s",
 			config->current_bar->font, config->current_bar->id);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

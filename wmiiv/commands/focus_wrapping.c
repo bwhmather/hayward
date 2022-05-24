@@ -1,6 +1,6 @@
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "util.h"
 
 struct cmd_results *cmd_focus_wrapping(int argc, char **argv) {

@@ -1,5 +1,5 @@
-#include "sway/config.h"
-#include "sway/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
 #include "util.h"
 
 struct cmd_results *seat_cmd_fallback(int argc, char **argv) {

@@ -4,20 +4,20 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_xcursor_manager.h>
-#include "sway/desktop/transaction.h"
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
-#include "sway/input/tablet.h"
-#include "sway/output.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/input/tablet.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
 #include "log.h"
 #if HAVE_XWAYLAND
-#include "sway/xwayland.h"
+#include "wmiiv/xwayland.h"
 #endif
 
 struct seatop_default_event {
-	struct sway_node *previous_node;
+	struct wmiiv_node *previous_node;
 	uint32_t pressed_buttons[SWAY_CURSOR_PRESSED_BUTTONS_CAP];
 	size_t pressed_button_count;
 };
@@ -30,8 +30,8 @@ struct seatop_default_event {
  * Determine if the edge of the given container is on the edge of the
  * workspace/output.
  */
-static bool edge_is_external(struct sway_container *cont, enum wlr_edges edge) {
-	enum sway_container_layout layout = L_NONE;
+static bool edge_is_external(struct wmiiv_container *cont, enum wlr_edges edge) {
+	enum wmiiv_container_layout layout = L_NONE;
 	switch (edge) {
 	case WLR_EDGE_TOP:
 	case WLR_EDGE_BOTTOM:
@@ -42,7 +42,7 @@ static bool edge_is_external(struct sway_container *cont, enum wlr_edges edge) {
 		layout = L_HORIZ;
 		break;
 	case WLR_EDGE_NONE:
-		sway_assert(false, "Never reached");
+		wmiiv_assert(false, "Never reached");
 		return false;
 	}
 
@@ -65,8 +65,8 @@ static bool edge_is_external(struct sway_container *cont, enum wlr_edges edge) {
 	return true;
 }
 
-static enum wlr_edges find_edge(struct sway_container *cont,
-		struct wlr_surface *surface, struct sway_cursor *cursor) {
+static enum wlr_edges find_edge(struct wmiiv_container *cont,
+		struct wlr_surface *surface, struct wmiiv_cursor *cursor) {
 	if (!cont->view || (surface && cont->view->surface != surface)) {
 		return WLR_EDGE_NONE;
 	}
@@ -99,8 +99,8 @@ static enum wlr_edges find_edge(struct sway_container *cont,
  * If the cursor is over a _resizable_ edge, return the edge.
  * Edges that can't be resized are edges of the workspace.
  */
-enum wlr_edges find_resize_edge(struct sway_container *cont,
-		struct wlr_surface *surface, struct sway_cursor *cursor) {
+enum wlr_edges find_resize_edge(struct wmiiv_container *cont,
+		struct wlr_surface *surface, struct wmiiv_cursor *cursor) {
 	enum wlr_edges edge = find_edge(cont, surface, cursor);
 	if (edge && (!container_is_window(cont) || !window_is_floating(cont)) && edge_is_external(cont, edge)) {
 		return WLR_EDGE_NONE;
@@ -112,7 +112,7 @@ enum wlr_edges find_resize_edge(struct sway_container *cont,
  * Return the mouse binding which matches modifier, click location, release,
  * and pressed button state, otherwise return null.
  */
-static struct sway_binding* get_active_mouse_binding(
+static struct wmiiv_binding* get_active_mouse_binding(
 		struct seatop_default_event *e, list_t *bindings, uint32_t modifiers,
 		bool release, bool on_titlebar, bool on_border, bool on_content,
 		bool on_workspace, const char *identifier) {
@@ -121,9 +121,9 @@ static struct sway_binding* get_active_mouse_binding(
 			((on_border || on_workspace) ? BINDING_BORDER : 0) |
 			((on_content || on_workspace) ? BINDING_CONTENTS : 0);
 
-	struct sway_binding *current = NULL;
+	struct wmiiv_binding *current = NULL;
 	for (int i = 0; i < bindings->length; ++i) {
-		struct sway_binding *binding = bindings->items[i];
+		struct wmiiv_binding *binding = bindings->items[i];
 		if (modifiers ^ binding->modifiers ||
 				e->pressed_button_count != (size_t)binding->keys->length ||
 				release != (binding->flags & BINDING_RELEASE) ||
@@ -204,26 +204,26 @@ static void state_add_button(struct seatop_default_event *e, uint32_t button) {
  * Functions used by handle_tablet_tool_tip  /
  *-----------------------------------------*/
 
-static void handle_tablet_tool_tip(struct sway_seat *seat,
-		struct sway_tablet_tool *tool, uint32_t time_msec,
+static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
+		struct wmiiv_tablet_tool *tool, uint32_t time_msec,
 		enum wlr_tablet_tool_tip_state state) {
 	if (state == WLR_TABLET_TOOL_TIP_UP) {
 		wlr_tablet_v2_tablet_tool_notify_up(tool->tablet_v2_tool);
 		return;
 	}
 
-	struct sway_cursor *cursor = seat->cursor;
+	struct wmiiv_cursor *cursor = seat->cursor;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
-	struct sway_node *node = node_at_coords(seat,
+	struct wmiiv_node *node = node_at_coords(seat,
 		cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
 
-	if (!sway_assert(surface,
+	if (!wmiiv_assert(surface,
 			"Expected null-surface tablet input to route through pointer emulation")) {
 		return;
 	}
 
-	struct sway_container *win = node && node->type == N_WINDOW ? node->sway_container : NULL;
+	struct wmiiv_container *win = node && node->type == N_WINDOW ? node->wmiiv_container : NULL;
 
 	if (wlr_surface_is_layer_surface(surface)) {
 		// Handle tapping a layer surface.
@@ -256,7 +256,7 @@ static void handle_tablet_tool_tip(struct sway_seat *seat,
 
 		// Handle tapping on a container surface
 		seat_set_focus_window(seat, win);
-		seatop_begin_down(seat, node->sway_container, time_msec, sx, sy);
+		seatop_begin_down(seat, node->wmiiv_container, time_msec, sx, sy);
 	}
 #if HAVE_XWAYLAND
 	// Handle tapping on an xwayland unmanaged view
@@ -281,13 +281,13 @@ static void handle_tablet_tool_tip(struct sway_seat *seat,
  * Functions used by handle_button  /
  *--------------------------------*/
 
-static bool trigger_pointer_button_binding(struct sway_seat *seat,
+static bool trigger_pointer_button_binding(struct wmiiv_seat *seat,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state, uint32_t modifiers,
 		bool on_titlebar, bool on_border, bool on_contents, bool on_workspace) {
 	// We can reach this for non-pointer devices if we're currently emulating
 	// pointer input for one. Emulated input should not trigger bindings. The
-	// device can be NULL if this is synthetic (e.g. swaymsg-generated) input.
+	// device can be NULL if this is synthetic (e.g. wmiivmsg-generated) input.
 	if (device && device->type != WLR_INPUT_DEVICE_POINTER) {
 		return false;
 	}
@@ -296,7 +296,7 @@ static bool trigger_pointer_button_binding(struct sway_seat *seat,
 
 	char *device_identifier = device ? input_device_get_identifier(device)
 		: strdup("*");
-	struct sway_binding *binding = NULL;
+	struct wmiiv_binding *binding = NULL;
 	if (state == WLR_BUTTON_PRESSED) {
 		state_add_button(e, button);
 		binding = get_active_mouse_binding(e,
@@ -320,18 +320,18 @@ static bool trigger_pointer_button_binding(struct sway_seat *seat,
 	return false;
 }
 
-static void handle_button(struct sway_seat *seat, uint32_t time_msec,
+static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state) {
-	struct sway_cursor *cursor = seat->cursor;
+	struct wmiiv_cursor *cursor = seat->cursor;
 
 	// Determine what's under the cursor
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
-	struct sway_node *node = node_at_coords(seat,
+	struct wmiiv_node *node = node_at_coords(seat,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
 
-	struct sway_container *win = node && node->type == N_WINDOW ? node->sway_container : NULL;
+	struct wmiiv_container *win = node && node->type == N_WINDOW ? node->wmiiv_container : NULL;
 	bool is_floating = win && window_is_floating(win);
 	bool is_fullscreen = win && window_is_fullscreen(win);
 	enum wlr_edges edge = win ? find_edge(win, surface, cursor) : WLR_EDGE_NONE;
@@ -383,8 +383,8 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 		// change focus to the tab which already had inactive focus -- otherwise, if
 		// the user clicked on the title of a hidden tab, we'd change the active tab
 		// when the user probably just wanted to resize.
-		struct sway_container *win_to_focus = win;
-		enum sway_container_layout layout = container_parent_layout(win);
+		struct wmiiv_container *win_to_focus = win;
+		enum wmiiv_container_layout layout = container_parent_layout(win);
 		if (layout == L_TABBED || layout == L_STACKED) {
 			win_to_focus = seat_get_focus_inactive_view(seat, &win->pending.parent->node);
 		}
@@ -463,7 +463,7 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 			win && win->pending.fullscreen_mode == FULLSCREEN_NONE) {
 		// TODO with focus follows mouse, is there ever a situation where this will
 		// actually be triggered.
-		struct sway_container *focus = seat_get_focused_container(seat);
+		struct wmiiv_container *focus = seat_get_focused_container(seat);
 		if (on_titlebar && focus != win) {
 			seat_set_focus_window(seat, win);
 		}
@@ -517,9 +517,9 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
  * Functions used by handle_pointer_motion  /
  *----------------------------------------*/
 
-static void check_focus_follows_mouse(struct sway_seat *seat,
-		struct seatop_default_event *e, struct sway_node *hovered_node) {
-	struct sway_node *focus = seat_get_focus(seat);
+static void check_focus_follows_mouse(struct wmiiv_seat *seat,
+		struct seatop_default_event *e, struct wmiiv_node *hovered_node) {
+	struct wmiiv_node *focus = seat_get_focus(seat);
 
 	// This is the case if a layer-shell surface is hovered.
 	// If it's on another output, focus the active workspace there.
@@ -529,9 +529,9 @@ static void check_focus_follows_mouse(struct sway_seat *seat,
 		if (wlr_output == NULL) {
 			return;
 		}
-		struct sway_output *hovered_output = wlr_output->data;
+		struct wmiiv_output *hovered_output = wlr_output->data;
 		if (focus && hovered_output != node_get_output(focus)) {
-			struct sway_workspace *ws = output_get_active_workspace(hovered_output);
+			struct wmiiv_workspace *ws = output_get_active_workspace(hovered_output);
 			seat_set_focus(seat, &ws->node);
 			transaction_commit_dirty();
 		}
@@ -541,8 +541,8 @@ static void check_focus_follows_mouse(struct sway_seat *seat,
 	// If a workspace node is hovered (eg. in the gap area), only set focus if
 	// the workspace is on a different output to the previous focus.
 	if (focus && hovered_node->type == N_WORKSPACE) {
-		struct sway_output *focused_output = node_get_output(focus);
-		struct sway_output *hovered_output = node_get_output(hovered_node);
+		struct wmiiv_output *focused_output = node_get_output(focus);
+		struct wmiiv_output *hovered_output = node_get_output(hovered_node);
 		if (hovered_output != focused_output) {
 			seat_set_focus(seat, seat_get_focus_inactive(seat, hovered_node));
 			transaction_commit_dirty();
@@ -553,7 +553,7 @@ static void check_focus_follows_mouse(struct sway_seat *seat,
 	// This is where we handle the common case. We don't want to focus inactive
 	// tabs, hence the view_is_visible check.
 	if (node_is_view(hovered_node) &&
-			view_is_visible(hovered_node->sway_container->view)) {
+			view_is_visible(hovered_node->wmiiv_container->view)) {
 		// e->previous_node is the node which the cursor was over previously.
 		// If focus_follows_mouse is yes and the cursor got over the view due
 		// to, say, a workspace switch, we don't want to set the focus.
@@ -566,13 +566,13 @@ static void check_focus_follows_mouse(struct sway_seat *seat,
 	}
 }
 
-static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
+static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
-	struct sway_cursor *cursor = seat->cursor;
+	struct wmiiv_cursor *cursor = seat->cursor;
 
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
-	struct sway_node *node = node_at_coords(seat,
+	struct wmiiv_node *node = node_at_coords(seat,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
 
 	if (config->focus_follows_mouse != FOLLOWS_NO) {
@@ -589,7 +589,7 @@ static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
 		wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 	}
 
-	struct sway_drag_icon *drag_icon;
+	struct wmiiv_drag_icon *drag_icon;
 	wl_list_for_each(drag_icon, &root->drag_icons, link) {
 		if (drag_icon->seat == seat) {
 			drag_icon_update_position(drag_icon);
@@ -599,14 +599,14 @@ static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
 	e->previous_node = node;
 }
 
-static void handle_tablet_tool_motion(struct sway_seat *seat,
-		struct sway_tablet_tool *tool, uint32_t time_msec) {
+static void handle_tablet_tool_motion(struct wmiiv_seat *seat,
+		struct wmiiv_tablet_tool *tool, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
-	struct sway_cursor *cursor = seat->cursor;
+	struct wmiiv_cursor *cursor = seat->cursor;
 
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
-	struct sway_node *node = node_at_coords(seat,
+	struct wmiiv_node *node = node_at_coords(seat,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
 
 	if (config->focus_follows_mouse != FOLLOWS_NO) {
@@ -624,7 +624,7 @@ static void handle_tablet_tool_motion(struct sway_seat *seat,
 		wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tablet_v2_tool);
 	}
 
-	struct sway_drag_icon *drag_icon;
+	struct wmiiv_drag_icon *drag_icon;
 	wl_list_for_each(drag_icon, &root->drag_icons, link) {
 		if (drag_icon->seat == seat) {
 			drag_icon_update_position(drag_icon);
@@ -645,27 +645,27 @@ static uint32_t wl_axis_to_button(struct wlr_pointer_axis_event *event) {
 	case WLR_AXIS_ORIENTATION_HORIZONTAL:
 		return event->delta < 0 ? SWAY_SCROLL_LEFT : SWAY_SCROLL_RIGHT;
 	default:
-		sway_log(SWAY_DEBUG, "Unknown axis orientation");
+		wmiiv_log(SWAY_DEBUG, "Unknown axis orientation");
 		return 0;
 	}
 }
 
-static void handle_pointer_axis(struct sway_seat *seat,
+static void handle_pointer_axis(struct wmiiv_seat *seat,
 		struct wlr_pointer_axis_event *event) {
-	struct sway_input_device *input_device =
+	struct wmiiv_input_device *input_device =
 		event->pointer ? event->pointer->base.data : NULL;
 	struct input_config *ic =
 		input_device ? input_device_get_config(input_device) : NULL;
-	struct sway_cursor *cursor = seat->cursor;
+	struct wmiiv_cursor *cursor = seat->cursor;
 	struct seatop_default_event *e = seat->seatop_data;
 
 	// Determine what's under the cursor
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
-	struct sway_node *node = node_at_coords(seat,
+	struct wmiiv_node *node = node_at_coords(seat,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
-	struct sway_container *cont = node && (node->type == N_COLUMN || node->type == N_WINDOW) ?
-		node->sway_container : NULL;
+	struct wmiiv_container *cont = node && (node->type == N_COLUMN || node->type == N_WINDOW) ?
+		node->wmiiv_container : NULL;
 	enum wlr_edges edge = cont ? find_edge(cont, surface, cursor) : WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;
 	bool on_titlebar = cont && !on_border && !surface;
@@ -687,7 +687,7 @@ static void handle_pointer_axis(struct sway_seat *seat,
 	uint32_t button = wl_axis_to_button(event);
 
 	// Handle mouse bindings - x11 mouse buttons 4-7 - press event
-	struct sway_binding *binding = NULL;
+	struct wmiiv_binding *binding = NULL;
 	state_add_button(e, button);
 	binding = get_active_mouse_binding(e, config->current_mode->mouse_bindings,
 			modifiers, false, on_titlebar, on_border, on_contents, on_workspace,
@@ -699,13 +699,13 @@ static void handle_pointer_axis(struct sway_seat *seat,
 
 	// Scrolling on a tabbed or stacked title bar (handled as press event)
 	if (!handled && (on_titlebar || on_titlebar_border)) {
-		enum sway_container_layout layout = container_parent_layout(cont);
+		enum wmiiv_container_layout layout = container_parent_layout(cont);
 		if (layout == L_TABBED || layout == L_STACKED) {
-			struct sway_node *tabcontainer = node_get_parent(node);
-			struct sway_node *active =
+			struct wmiiv_node *tabcontainer = node_get_parent(node);
+			struct wmiiv_node *active =
 				seat_get_active_tiling_child(seat, tabcontainer);
 			list_t *siblings = container_get_siblings(cont);
-			int desired = list_find(siblings, active->sway_container) +
+			int desired = list_find(siblings, active->wmiiv_container) +
 				round(scroll_factor * event->delta_discrete);
 			if (desired < 0) {
 				desired = 0;
@@ -713,9 +713,9 @@ static void handle_pointer_axis(struct sway_seat *seat,
 				desired = siblings->length - 1;
 			}
 
-			struct sway_container *new_sibling_con = siblings->items[desired];
-			struct sway_node *new_sibling = &new_sibling_con->node;
-			struct sway_container *new_focus =
+			struct wmiiv_container *new_sibling_con = siblings->items[desired];
+			struct wmiiv_node *new_sibling = &new_sibling_con->node;
+			struct wmiiv_container *new_focus =
 				seat_get_focus_inactive_view(seat, new_sibling);
 			// Use the focused child of the tabbed/stacked container, not the
 			// container the user scrolled on.
@@ -747,9 +747,9 @@ static void handle_pointer_axis(struct sway_seat *seat,
  * Functions used by handle_rebase  /
  *--------------------------------*/
 
-static void handle_rebase(struct sway_seat *seat, uint32_t time_msec) {
+static void handle_rebase(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
-	struct sway_cursor *cursor = seat->cursor;
+	struct wmiiv_cursor *cursor = seat->cursor;
 	struct wlr_surface *surface = NULL;
 	double sx = 0.0, sy = 0.0;
 	e->previous_node = node_at_coords(seat,
@@ -766,7 +766,7 @@ static void handle_rebase(struct sway_seat *seat, uint32_t time_msec) {
 	}
 }
 
-static const struct sway_seatop_impl seatop_impl = {
+static const struct wmiiv_seatop_impl seatop_impl = {
 	.button = handle_button,
 	.pointer_motion = handle_pointer_motion,
 	.pointer_axis = handle_pointer_axis,
@@ -776,12 +776,12 @@ static const struct sway_seatop_impl seatop_impl = {
 	.allow_set_cursor = true,
 };
 
-void seatop_begin_default(struct sway_seat *seat) {
+void seatop_begin_default(struct wmiiv_seat *seat) {
 	seatop_end(seat);
 
 	struct seatop_default_event *e =
 		calloc(1, sizeof(struct seatop_default_event));
-	sway_assert(e, "Unable to allocate seatop_default_event");
+	wmiiv_assert(e, "Unable to allocate seatop_default_event");
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;
 

@@ -1,12 +1,12 @@
 executable(
-	'swaynag', [
+	'wmiivnag', [
 		'config.c',
 		'main.c',
 		'render.c',
-		'swaynag.c',
+		'wmiivnag.c',
 		'types.c',
 	],
-	include_directories: [sway_inc],
+	include_directories: [wmiiv_inc],
 	dependencies: [
 		cairo,
 		client_protos,
@@ -15,6 +15,6 @@ executable(
 		wayland_client,
 		wayland_cursor,
 	],
-	link_with: [lib_sway_common, lib_sway_client],
+	link_with: [lib_wmiiv_common, lib_wmiiv_client],
 	install: true
 )

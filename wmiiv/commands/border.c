@@ -1,19 +1,19 @@
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/cursor.h"
-#include "sway/input/input-manager.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
 
 // A couple of things here:
 // - view->border should never be B_CSD when the view is tiled, even when CSD is
-//   in use (we set using_csd instead and render a sway border).
+//   in use (we set using_csd instead and render a wmiiv border).
 // - view->saved_border should be the last applied border when switching to CSD.
 // - view->using_csd should always reflect whether CSD is applied or not.
-static void set_border(struct sway_container *win,
-		enum sway_container_border new_border) {
+static void set_border(struct wmiiv_container *win,
+		enum wmiiv_container_border new_border) {
 	if (win->view->using_csd && new_border != B_CSD) {
 		view_set_csd_from_server(win->view, false);
 	} else if (!win->view->using_csd && new_border == B_CSD) {
@@ -27,7 +27,7 @@ static void set_border(struct sway_container *win,
 	win->view->using_csd = new_border == B_CSD;
 }
 
-static void border_toggle(struct sway_container *win) {
+static void border_toggle(struct wmiiv_container *win) {
 	if (win->view->using_csd) {
 		set_border(win, B_NONE);
 		return;
@@ -48,7 +48,7 @@ static void border_toggle(struct sway_container *win) {
 		break;
 	case B_CSD:
 		// view->using_csd should be true so it would have returned above
-		sway_assert(false, "Unreachable");
+		wmiiv_assert(false, "Unreachable");
 		break;
 	}
 }
@@ -59,11 +59,11 @@ struct cmd_results *cmd_border(int argc, char **argv) {
 		return error;
 	}
 
-	struct sway_container *win = config->handler_context.window;
+	struct wmiiv_container *win = config->handler_context.window;
 	if (!win) {
 		return cmd_results_new(CMD_INVALID, "Only windows can have borders");
 	}
-	struct sway_view *view = win->view;
+	struct wmiiv_view *view = win->view;
 
 	if (strcmp(argv[0], "none") == 0) {
 		set_border(win, B_NONE);

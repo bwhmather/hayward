@@ -1,31 +1,31 @@
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/input/seat.h"
-#include "sway/input/input-manager.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/input/input-manager.h"
 #include "util.h"
 
 static struct cmd_results *handle_action(struct seat_config *sc,
-		struct sway_seat *seat, const char *action) {
-	struct sway_keyboard_shortcuts_inhibitor *sway_inhibitor = NULL;
+		struct wmiiv_seat *seat, const char *action) {
+	struct wmiiv_keyboard_shortcuts_inhibitor *wmiiv_inhibitor = NULL;
 	if (strcmp(action, "disable") == 0) {
 		sc->shortcuts_inhibit = SHORTCUTS_INHIBIT_DISABLE;
 
-		wl_list_for_each(sway_inhibitor,
+		wl_list_for_each(wmiiv_inhibitor,
 				&seat->keyboard_shortcuts_inhibitors, link) {
 			wlr_keyboard_shortcuts_inhibitor_v1_deactivate(
-					sway_inhibitor->inhibitor);
+					wmiiv_inhibitor->inhibitor);
 		}
 
-		sway_log(SWAY_DEBUG, "Deactivated all keyboard shortcuts inhibitors");
+		wmiiv_log(SWAY_DEBUG, "Deactivated all keyboard shortcuts inhibitors");
 	} else {
-		sway_inhibitor = keyboard_shortcuts_inhibitor_get_for_focused_surface(seat);
-		if (!sway_inhibitor) {
+		wmiiv_inhibitor = keyboard_shortcuts_inhibitor_get_for_focused_surface(seat);
+		if (!wmiiv_inhibitor) {
 			return cmd_results_new(CMD_FAILURE,
 					"No inhibitor found for focused surface");
 		}
 
 		struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor =
-			sway_inhibitor->inhibitor;
+			wmiiv_inhibitor->inhibitor;
 		bool inhibit;
 		if (strcmp(action, "activate") == 0) {
 			inhibit = true;
@@ -44,7 +44,7 @@ static struct cmd_results *handle_action(struct seat_config *sc,
 			wlr_keyboard_shortcuts_inhibitor_v1_deactivate(inhibitor);
 		}
 
-		sway_log(SWAY_DEBUG, "%sctivated keyboard shortcuts inhibitor",
+		wmiiv_log(SWAY_DEBUG, "%sctivated keyboard shortcuts inhibitor",
 				inhibit ? "A" : "Dea");
 	}
 
@@ -75,14 +75,14 @@ struct cmd_results *seat_cmd_shortcuts_inhibitor(int argc, char **argv) {
 				"can be used in the config");
 	} else {
 		if (strcmp(sc->name, "*") != 0) {
-			struct sway_seat *seat = input_manager_get_seat(sc->name, false);
+			struct wmiiv_seat *seat = input_manager_get_seat(sc->name, false);
 			if (!seat) {
 				return cmd_results_new(CMD_FAILURE,
 						"Seat %s does not exist", sc->name);
 			}
 			error = handle_action(sc, seat, argv[0]);
 		} else {
-			struct sway_seat *seat = NULL;
+			struct wmiiv_seat *seat = NULL;
 			wl_list_for_each(seat, &server.input->seats, link) {
 				error = handle_action(sc, seat, argv[0]);
 				if (error && error->status != CMD_SUCCESS) {

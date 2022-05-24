@@ -1,13 +1,13 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/input/seat.h"
-#include "sway/ipc-server.h"
-#include "sway/output.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/ipc-server.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
 #include "list.h"
 #include "util.h"
 
@@ -20,7 +20,7 @@ struct cmd_results *cmd_floating(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct sway_container *win = config->handler_context.window;
+	struct wmiiv_container *win = config->handler_context.window;
 	if (!win) {
 		return cmd_results_new(CMD_INVALID, "Can only float windows");
 	}

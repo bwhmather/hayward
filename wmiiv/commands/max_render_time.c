@@ -1,7 +1,7 @@
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/view.h"
 
 struct cmd_results *cmd_max_render_time(int argc, char **argv) {
 	if (!argc) {
@@ -19,13 +19,13 @@ struct cmd_results *cmd_max_render_time(int argc, char **argv) {
 		}
 	}
 
-	struct sway_container *container = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 	if (!container || !container->view) {
 		return cmd_results_new(CMD_INVALID,
 				"Only views can have a max_render_time");
 	}
 
-	struct sway_view *view = container->view;
+	struct wmiiv_view *view = container->view;
 	view->max_render_time = max_render_time;
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

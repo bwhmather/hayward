@@ -9,7 +9,7 @@ enum layer_parent {
 	LAYER_PARENT_POPUP,
 };
 
-struct sway_layer_surface {
+struct wmiiv_layer_surface {
 	struct wlr_layer_surface_v1 *layer_surface;
 	struct wl_list link;
 
@@ -29,12 +29,12 @@ struct sway_layer_surface {
 	struct wl_list subsurfaces;
 };
 
-struct sway_layer_popup {
+struct wmiiv_layer_popup {
 	struct wlr_xdg_popup *wlr_popup;
 	enum layer_parent parent_type;
 	union {
-		struct sway_layer_surface *parent_layer;
-		struct sway_layer_popup *parent_popup;
+		struct wmiiv_layer_surface *parent_layer;
+		struct wmiiv_layer_popup *parent_popup;
 	};
 	struct wl_listener map;
 	struct wl_listener unmap;
@@ -43,9 +43,9 @@ struct sway_layer_popup {
 	struct wl_listener new_popup;
 };
 
-struct sway_layer_subsurface {
+struct wmiiv_layer_subsurface {
 	struct wlr_subsurface *wlr_subsurface;
-	struct sway_layer_surface *layer_surface;
+	struct wmiiv_layer_surface *layer_surface;
 	struct wl_list link;
 
 	struct wl_listener map;
@@ -54,10 +54,10 @@ struct sway_layer_subsurface {
 	struct wl_listener commit;
 };
 
-struct sway_output;
-void arrange_layers(struct sway_output *output);
+struct wmiiv_output;
+void arrange_layers(struct wmiiv_output *output);
 
-struct sway_layer_surface *layer_from_wlr_layer_surface_v1(
+struct wmiiv_layer_surface *layer_from_wlr_layer_surface_v1(
 	struct wlr_layer_surface_v1 *layer_surface);
 
 #endif

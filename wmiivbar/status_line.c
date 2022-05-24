@@ -11,10 +11,10 @@
 #include <unistd.h>
 #include "log.h"
 #include "loop.h"
-#include "swaybar/bar.h"
-#include "swaybar/config.h"
-#include "swaybar/i3bar.h"
-#include "swaybar/status_line.h"
+#include "wmiivbar/bar.h"
+#include "wmiivbar/config.h"
+#include "wmiivbar/i3bar.h"
+#include "wmiivbar/status_line.h"
 
 static void status_line_close_fds(struct status_line *status) {
 	if (status->read_fd != -1) {
@@ -41,7 +41,7 @@ bool status_handle_readable(struct status_line *status) {
 		errno = 0;
 		int available_bytes;
 		if (ioctl(status->read_fd, FIONREAD, &available_bytes) == -1) {
-			sway_log(SWAY_ERROR, "Unable to read status command output size");
+			wmiiv_log(SWAY_ERROR, "Unable to read status command output size");
 			status_error(status, "[error reading from status command]");
 			return true;
 		}
@@ -52,7 +52,7 @@ bool status_handle_readable(struct status_line *status) {
 			status->buffer = realloc(status->buffer, status->buffer_size);
 		}
 		if (status->buffer == NULL) {
-			sway_log_errno(SWAY_ERROR, "Unable to read status line");
+			wmiiv_log_errno(SWAY_ERROR, "Unable to read status line");
 			status_error(status, "[error reading from status command]");
 			return true;
 		}
@@ -71,13 +71,13 @@ bool status_handle_readable(struct status_line *status) {
 				&& (header = json_tokener_parse(status->buffer))
 				&& json_object_object_get_ex(header, "version", &version)
 				&& json_object_get_int(version) == 1) {
-			sway_log(SWAY_DEBUG, "Using i3bar protocol.");
+			wmiiv_log(SWAY_DEBUG, "Using i3bar protocol.");
 			status->protocol = PROTOCOL_I3BAR;
 
 			json_object *click_events;
 			if (json_object_object_get_ex(header, "click_events", &click_events)
 					&& json_object_get_boolean(click_events)) {
-				sway_log(SWAY_DEBUG, "Enabling click events.");
+				wmiiv_log(SWAY_DEBUG, "Enabling click events.");
 				status->click_events = true;
 				if (write(status->write_fd, "[\n", 2) != 2) {
 					status_error(status, "[failed to write to status command]");
@@ -89,18 +89,18 @@ bool status_handle_readable(struct status_line *status) {
 			json_object *float_event_coords;
 			if (json_object_object_get_ex(header, "float_event_coords", &float_event_coords)
 					&& json_object_get_boolean(float_event_coords)) {
-				sway_log(SWAY_DEBUG, "Enabling floating-point coordinates.");
+				wmiiv_log(SWAY_DEBUG, "Enabling floating-point coordinates.");
 				status->float_event_coords = true;
 			}
 
 			json_object *signal;
 			if (json_object_object_get_ex(header, "stop_signal", &signal)) {
 				status->stop_signal = json_object_get_int(signal);
-				sway_log(SWAY_DEBUG, "Setting stop signal to %d", status->stop_signal);
+				wmiiv_log(SWAY_DEBUG, "Setting stop signal to %d", status->stop_signal);
 			}
 			if (json_object_object_get_ex(header, "cont_signal", &signal)) {
 				status->cont_signal = json_object_get_int(signal);
-				sway_log(SWAY_DEBUG, "Setting cont signal to %d", status->cont_signal);
+				wmiiv_log(SWAY_DEBUG, "Setting cont signal to %d", status->cont_signal);
 			}
 
 			json_object_put(header);
@@ -112,7 +112,7 @@ bool status_handle_readable(struct status_line *status) {
 			return i3bar_handle_readable(status);
 		}
 
-		sway_log(SWAY_DEBUG, "Using text protocol.");
+		wmiiv_log(SWAY_DEBUG, "Using text protocol.");
 		status->protocol = PROTOCOL_TEXT;
 		status->text = status->buffer;
 		// intentional fall-through
@@ -150,7 +150,7 @@ struct status_line *status_line_init(char *cmd) {
 	int pipe_read_fd[2];
 	int pipe_write_fd[2];
 	if (pipe(pipe_read_fd) != 0 || pipe(pipe_write_fd) != 0) {
-		sway_log(SWAY_ERROR, "Unable to create pipes for status_command fork");
+		wmiiv_log(SWAY_ERROR, "Unable to create pipes for status_command fork");
 		exit(1);
 	}
 
@@ -158,7 +158,7 @@ struct status_line *status_line_init(char *cmd) {
 		" starting `status-command`; WAYLAND_SOCKET should not be set");
 	status->pid = fork();
 	if (status->pid < 0) {
-		sway_log_errno(SWAY_ERROR, "fork failed");
+		wmiiv_log_errno(SWAY_ERROR, "fork failed");
 		exit(1);
 	} else if (status->pid == 0) {
 		setpgid(0, 0);

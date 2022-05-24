@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 /**
- * This is an event loop system designed for sway clients, not sway itself.
+ * This is an event loop system designed for wmiiv clients, not wmiiv itself.
  *
  * The loop consists of file descriptors and timers. Typically the Wayland
  * display's file descriptor will be one of the fds in the loop.

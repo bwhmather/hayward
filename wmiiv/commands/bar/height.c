@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 #include "log.h"
 
 struct cmd_results *bar_cmd_height(int argc, char **argv) {
@@ -14,7 +14,7 @@ struct cmd_results *bar_cmd_height(int argc, char **argv) {
 				"Invalid height value: %s", argv[0]);
 	}
 	config->current_bar->height = height;
-	sway_log(SWAY_DEBUG, "Setting bar height to %d on bar: %s",
+	wmiiv_log(SWAY_DEBUG, "Setting bar height to %d on bar: %s",
 			height, config->current_bar->id);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

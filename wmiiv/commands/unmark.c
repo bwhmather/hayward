@@ -1,14 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/root.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/view.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
 
-static void remove_all_marks_iterator(struct sway_container *con, void *data) {
+static void remove_all_marks_iterator(struct wmiiv_container *con, void *data) {
 	if (container_is_window(con)) {
 		window_clear_marks(con);
 		window_update_marks_textures(con);
@@ -22,7 +22,7 @@ static void remove_all_marks_iterator(struct sway_container *con, void *data) {
 
 struct cmd_results *cmd_unmark(int argc, char **argv) {
 	// Determine the container
-	struct sway_container *con = NULL;
+	struct wmiiv_container *con = NULL;
 	if (config->handler_context.node_overridden) {
 		con = config->handler_context.container;
 	}

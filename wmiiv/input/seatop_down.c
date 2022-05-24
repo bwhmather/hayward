@@ -2,24 +2,24 @@
 #include <float.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_tablet_v2.h>
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
-#include "sway/tree/view.h"
-#include "sway/desktop/transaction.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/desktop/transaction.h"
 #include "log.h"
 
 struct seatop_down_event {
-	struct sway_container *con;
-	struct sway_seat *seat;
+	struct wmiiv_container *con;
+	struct wmiiv_seat *seat;
 	struct wl_listener surface_destroy;
 	struct wlr_surface *surface;
 	double ref_lx, ref_ly;         // cursor's x/y at start of op
 	double ref_con_lx, ref_con_ly; // container's x/y at start of op
 };
 
-static void handle_pointer_axis(struct sway_seat *seat,
+static void handle_pointer_axis(struct wmiiv_seat *seat,
 		struct wlr_pointer_axis_event *event) {
-	struct sway_input_device *input_device =
+	struct wmiiv_input_device *input_device =
 		event->pointer ? event->pointer->base.data : NULL;
 	struct input_config *ic =
 		input_device ? input_device_get_config(input_device) : NULL;
@@ -31,7 +31,7 @@ static void handle_pointer_axis(struct sway_seat *seat,
 		round(scroll_factor * event->delta_discrete), event->source);
 }
 
-static void handle_button(struct sway_seat *seat, uint32_t time_msec,
+static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state) {
 	seat_pointer_notify_button(seat, time_msec, button, state);
@@ -41,7 +41,7 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	}
 }
 
-static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
+static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_down_event *e = seat->seatop_data;
 	if (seat_is_input_allowed(seat, e->surface)) {
 		double moved_x = seat->cursor->cursor->x - e->ref_lx;
@@ -52,8 +52,8 @@ static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
 	}
 }
 
-static void handle_tablet_tool_tip(struct sway_seat *seat,
-		struct sway_tablet_tool *tool, uint32_t time_msec,
+static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
+		struct wmiiv_tablet_tool *tool, uint32_t time_msec,
 		enum wlr_tablet_tool_tip_state state) {
 	if (state == WLR_TABLET_TOOL_TIP_UP) {
 		wlr_tablet_v2_tablet_tool_notify_up(tool->tablet_v2_tool);
@@ -61,8 +61,8 @@ static void handle_tablet_tool_tip(struct sway_seat *seat,
 	}
 }
 
-static void handle_tablet_tool_motion(struct sway_seat *seat,
-		struct sway_tablet_tool *tool, uint32_t time_msec) {
+static void handle_tablet_tool_motion(struct wmiiv_seat *seat,
+		struct wmiiv_tablet_tool *tool, uint32_t time_msec) {
 	struct seatop_down_event *e = seat->seatop_data;
 	if (seat_is_input_allowed(seat, e->surface)) {
 		double moved_x = seat->cursor->cursor->x - e->ref_lx;
@@ -81,19 +81,19 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
 	}
 }
 
-static void handle_unref(struct sway_seat *seat, struct sway_container *con) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
 	struct seatop_down_event *e = seat->seatop_data;
 	if (e->con == con) {
 		seatop_begin_default(seat);
 	}
 }
 
-static void handle_end(struct sway_seat *seat) {
+static void handle_end(struct wmiiv_seat *seat) {
 	struct seatop_down_event *e = seat->seatop_data;
 	wl_list_remove(&e->surface_destroy.link);
 }
 
-static const struct sway_seatop_impl seatop_impl = {
+static const struct wmiiv_seatop_impl seatop_impl = {
 	.button = handle_button,
 	.pointer_motion = handle_pointer_motion,
 	.pointer_axis = handle_pointer_axis,
@@ -104,7 +104,7 @@ static const struct sway_seatop_impl seatop_impl = {
 	.allow_set_cursor = true,
 };
 
-void seatop_begin_down(struct sway_seat *seat, struct sway_container *con,
+void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *con,
 		uint32_t time_msec, double sx, double sy) {
 	seatop_begin_down_on_surface(seat, con->view->surface, time_msec, sx, sy);
 	struct seatop_down_event *e = seat->seatop_data;
@@ -114,7 +114,7 @@ void seatop_begin_down(struct sway_seat *seat, struct sway_container *con,
 	transaction_commit_dirty();
 }
 
-void seatop_begin_down_on_surface(struct sway_seat *seat,
+void seatop_begin_down_on_surface(struct wmiiv_seat *seat,
 		struct wlr_surface *surface, uint32_t time_msec, double sx, double sy) {
 	seatop_end(seat);
 

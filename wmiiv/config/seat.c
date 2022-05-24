@@ -2,18 +2,18 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include "sway/config.h"
+#include "wmiiv/config.h"
 #include "log.h"
 
 struct seat_config *new_seat_config(const char* name) {
 	struct seat_config *seat = calloc(1, sizeof(struct seat_config));
 	if (!seat) {
-		sway_log(SWAY_DEBUG, "Unable to allocate seat config");
+		wmiiv_log(SWAY_DEBUG, "Unable to allocate seat config");
 		return NULL;
 	}
 
 	seat->name = strdup(name);
-	if (!sway_assert(seat->name, "could not allocate name for seat")) {
+	if (!wmiiv_assert(seat->name, "could not allocate name for seat")) {
 		free(seat);
 		return NULL;
 	}
@@ -22,7 +22,7 @@ struct seat_config *new_seat_config(const char* name) {
 
 	seat->fallback = -1;
 	seat->attachments = create_list();
-	if (!sway_assert(seat->attachments,
+	if (!wmiiv_assert(seat->attachments,
 				"could not allocate seat attachments list")) {
 		free(seat->name);
 		free(seat);
@@ -43,7 +43,7 @@ static void merge_wildcard_on_all(struct seat_config *wildcard) {
 	for (int i = 0; i < config->seat_configs->length; i++) {
 		struct seat_config *sc = config->seat_configs->items[i];
 		if (strcmp(wildcard->name, sc->name) != 0) {
-			sway_log(SWAY_DEBUG, "Merging seat * config on %s", sc->name);
+			wmiiv_log(SWAY_DEBUG, "Merging seat * config on %s", sc->name);
 			merge_seat_config(sc, wildcard);
 		}
 	}
@@ -57,16 +57,16 @@ struct seat_config *store_seat_config(struct seat_config *sc) {
 
 	int i = list_seq_find(config->seat_configs, seat_name_cmp, sc->name);
 	if (i >= 0) {
-		sway_log(SWAY_DEBUG, "Merging on top of existing seat config");
+		wmiiv_log(SWAY_DEBUG, "Merging on top of existing seat config");
 		struct seat_config *current = config->seat_configs->items[i];
 		merge_seat_config(current, sc);
 		free_seat_config(sc);
 		sc = current;
 	} else if (!wildcard) {
-		sway_log(SWAY_DEBUG, "Adding non-wildcard seat config");
+		wmiiv_log(SWAY_DEBUG, "Adding non-wildcard seat config");
 		i = list_seq_find(config->seat_configs, seat_name_cmp, "*");
 		if (i >= 0) {
-			sway_log(SWAY_DEBUG, "Merging on top of seat * config");
+			wmiiv_log(SWAY_DEBUG, "Merging on top of seat * config");
 			struct seat_config *current = new_seat_config(sc->name);
 			merge_seat_config(current, config->seat_configs->items[i]);
 			merge_seat_config(current, sc);
@@ -76,11 +76,11 @@ struct seat_config *store_seat_config(struct seat_config *sc) {
 		list_add(config->seat_configs, sc);
 	} else {
 		// New wildcard config. Just add it
-		sway_log(SWAY_DEBUG, "Adding seat * config");
+		wmiiv_log(SWAY_DEBUG, "Adding seat * config");
 		list_add(config->seat_configs, sc);
 	}
 
-	sway_log(SWAY_DEBUG, "Config stored for seat %s", sc->name);
+	wmiiv_log(SWAY_DEBUG, "Config stored for seat %s", sc->name);
 
 	return sc;
 }
@@ -89,7 +89,7 @@ struct seat_attachment_config *seat_attachment_config_new(void) {
 	struct seat_attachment_config *attachment =
 		calloc(1, sizeof(struct seat_attachment_config));
 	if (!attachment) {
-		sway_log(SWAY_DEBUG, "cannot allocate attachment config");
+		wmiiv_log(SWAY_DEBUG, "cannot allocate attachment config");
 		return NULL;
 	}
 	return attachment;

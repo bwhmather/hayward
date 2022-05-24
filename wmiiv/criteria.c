@@ -5,12 +5,12 @@
 #include <strings.h>
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
-#include "sway/criteria.h"
-#include "sway/tree/container.h"
-#include "sway/config.h"
-#include "sway/tree/root.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/criteria.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
 #include "stringop.h"
 #include "list.h"
 #include "log.h"
@@ -63,7 +63,7 @@ static bool generate_regex(pcre2_code **regex, char *value) {
 static bool pattern_create(struct pattern **pattern, char *value) {
 	*pattern = calloc(1, sizeof(struct pattern));
 	if (!*pattern) {
-		sway_log(SWAY_ERROR, "Failed to allocate pattern");
+		wmiiv_log(SWAY_ERROR, "Failed to allocate pattern");
 	}
 
 	if (strcmp(value, "__focused__") == 0) {
@@ -110,12 +110,12 @@ static int regex_cmp(const char *item, const pcre2_code *regex) {
 }
 
 #if HAVE_XWAYLAND
-static bool view_has_window_type(struct sway_view *view, enum atom_name name) {
+static bool view_has_window_type(struct wmiiv_view *view, enum atom_name name) {
 	if (view->type != SWAY_VIEW_XWAYLAND) {
 		return false;
 	}
 	struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
-	struct sway_xwayland *xwayland = &server.xwayland;
+	struct wmiiv_xwayland *xwayland = &server.xwayland;
 	xcb_atom_t desired_atom = xwayland->atoms[name];
 	for (size_t i = 0; i < surface->window_type_len; ++i) {
 		if (surface->window_type[i] == desired_atom) {
@@ -127,8 +127,8 @@ static bool view_has_window_type(struct sway_view *view, enum atom_name name) {
 #endif
 
 static int cmp_urgent(const void *_a, const void *_b) {
-	struct sway_view *a = *(void **)_a;
-	struct sway_view *b = *(void **)_b;
+	struct wmiiv_view *a = *(void **)_a;
+	struct wmiiv_view *b = *(void **)_b;
 
 	if (a->urgent.tv_sec < b->urgent.tv_sec) {
 		return -1;
@@ -143,7 +143,7 @@ static int cmp_urgent(const void *_a, const void *_b) {
 	return 0;
 }
 
-static void find_urgent_iterator(struct sway_container *con, void *data) {
+static void find_urgent_iterator(struct wmiiv_container *con, void *data) {
 	if (!con->view || !view_is_urgent(con->view)) {
 		return;
 	}
@@ -156,10 +156,10 @@ static bool has_container_criteria(struct criteria *criteria) {
 }
 
 static bool criteria_matches_container(struct criteria *criteria,
-		struct sway_container *container) {
+		struct wmiiv_container *container) {
 	if (criteria->con_mark) {
 		bool exists = false;
-		struct sway_container *con = container;
+		struct wmiiv_container *con = container;
 		for (int i = 0; i < con->marks->length; ++i) {
 			if (regex_cmp(con->marks->items[i], criteria->con_mark->regex) >= 0) {
 				exists = true;
@@ -181,10 +181,10 @@ static bool criteria_matches_container(struct criteria *criteria,
 }
 
 static bool criteria_matches_view(struct criteria *criteria,
-		struct sway_view *view) {
-	struct sway_seat *seat = input_manager_current_seat();
-	struct sway_container *focus = seat_get_focused_container(seat);
-	struct sway_view *focused = focus ? focus->view : NULL;
+		struct wmiiv_view *view) {
+	struct wmiiv_seat *seat = input_manager_current_seat();
+	struct wmiiv_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_view *focused = focus ? focus->view : NULL;
 
 	if (criteria->title) {
 		const char *title = view_get_title(view);
@@ -344,7 +344,7 @@ static bool criteria_matches_view(struct criteria *criteria,
 		list_t *urgent_views = create_list();
 		root_for_each_container(find_urgent_iterator, urgent_views);
 		list_stable_sort(urgent_views, cmp_urgent);
-		struct sway_view *target;
+		struct wmiiv_view *target;
 		if (criteria->urgent == 'o') { // oldest
 			target = urgent_views->items[0];
 		} else { // latest
@@ -357,7 +357,7 @@ static bool criteria_matches_view(struct criteria *criteria,
 	}
 
 	if (criteria->workspace) {
-		struct sway_workspace *ws = view->container->pending.workspace;
+		struct wmiiv_workspace *ws = view->container->pending.workspace;
 		if (!ws) {
 			return false;
 		}
@@ -386,7 +386,7 @@ static bool criteria_matches_view(struct criteria *criteria,
 	return true;
 }
 
-list_t *criteria_for_view(struct sway_view *view, enum criteria_type types) {
+list_t *criteria_for_view(struct wmiiv_view *view, enum criteria_type types) {
 	list_t *criterias = config->criteria;
 	list_t *matches = create_list();
 	for (int i = 0; i < criterias->length; ++i) {
@@ -403,7 +403,7 @@ struct match_data {
 	list_t *matches;
 };
 
-static void criteria_get_containers_iterator(struct sway_container *container,
+static void criteria_get_containers_iterator(struct wmiiv_container *container,
 		void *data) {
 	struct match_data *match_data = data;
 	if (container->view) {
@@ -545,9 +545,9 @@ static bool parse_token(struct criteria *criteria, char *name, char *value) {
 		break;
 	case T_CON_ID:
 		if (strcmp(value, "__focused__") == 0) {
-			struct sway_seat *seat = input_manager_current_seat();
-			struct sway_container *focus = seat_get_focused_container(seat);
-			struct sway_view *view = focus ? focus->view : NULL;
+			struct wmiiv_seat *seat = input_manager_current_seat();
+			struct wmiiv_container *focus = seat_get_focused_container(seat);
+			struct wmiiv_view *view = focus ? focus->view : NULL;
 			criteria->con_id = view ? view->container->node.id : 0;
 		} else {
 			criteria->con_id = strtoul(value, &endptr, 10);
@@ -715,7 +715,7 @@ struct criteria *criteria_parse(char *raw, char **error_arg) {
 				in_quotes = false;
 			}
 			unescape(value);
-			sway_log(SWAY_DEBUG, "Found pair: %s=%s", name, value);
+			wmiiv_log(SWAY_DEBUG, "Found pair: %s=%s", name, value);
 		}
 		if (!parse_token(criteria, name, value)) {
 			*error_arg = error;

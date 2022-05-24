@@ -1,9 +1,9 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/workspace.h"
 #include "log.h"
 #include "stringop.h"
 #include <math.h>
@@ -109,7 +109,7 @@ static void apply_gaps_op(int *prop, enum gaps_op op, int amount) {
 	}
 }
 
-static void configure_gaps(struct sway_workspace *ws, void *_data) {
+static void configure_gaps(struct wmiiv_workspace *ws, void *_data) {
 	// Apply operation to gaps
 	struct gaps_data *data = _data;
 	if (data->inner) {

@@ -1,7 +1,7 @@
 #ifndef _SWAYNAG_TYPES_H
 #define _SWAYNAG_TYPES_H
 
-struct swaynag_type {
+struct wmiivnag_type {
 	char *name;
 
 	char *font;
@@ -29,18 +29,18 @@ struct swaynag_type {
 	ssize_t button_padding;
 };
 
-struct swaynag_type *swaynag_type_new(const char *name);
+struct wmiivnag_type *wmiivnag_type_new(const char *name);
 
-void swaynag_types_add_default(list_t *types);
+void wmiivnag_types_add_default(list_t *types);
 
-struct swaynag_type *swaynag_type_get(list_t *types, char *name);
+struct wmiivnag_type *wmiivnag_type_get(list_t *types, char *name);
 
-struct swaynag_type *swaynag_type_clone(struct swaynag_type *type);
+struct wmiivnag_type *wmiivnag_type_clone(struct wmiivnag_type *type);
 
-void swaynag_type_merge(struct swaynag_type *dest, struct swaynag_type *src);
+void wmiivnag_type_merge(struct wmiivnag_type *dest, struct wmiivnag_type *src);
 
-void swaynag_type_free(struct swaynag_type *type);
+void wmiivnag_type_free(struct wmiivnag_type *type);
 
-void swaynag_types_free(list_t *types);
+void wmiivnag_types_free(list_t *types);
 
 #endif

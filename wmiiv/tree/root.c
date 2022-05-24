@@ -3,19 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/types/wlr_output_layout.h>
-#include "sway/desktop/transaction.h"
-#include "sway/input/seat.h"
-#include "sway/ipc-server.h"
-#include "sway/output.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/root.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/ipc-server.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/workspace.h"
 #include "list.h"
 #include "log.h"
 #include "util.h"
 
-struct sway_root *root;
+struct wmiiv_root *root;
 
 static void output_layout_handle_change(struct wl_listener *listener,
 		void *data) {
@@ -23,10 +23,10 @@ static void output_layout_handle_change(struct wl_listener *listener,
 	transaction_commit_dirty();
 }
 
-struct sway_root *root_create(void) {
-	struct sway_root *root = calloc(1, sizeof(struct sway_root));
+struct wmiiv_root *root_create(void) {
+	struct wmiiv_root *root = calloc(1, sizeof(struct wmiiv_root));
 	if (!root) {
-		sway_log(SWAY_ERROR, "Unable to allocate sway_root");
+		wmiiv_log(SWAY_ERROR, "Unable to allocate wmiiv_root");
 		return NULL;
 	}
 	node_init(&root->node, N_ROOT, root);
@@ -45,7 +45,7 @@ struct sway_root *root_create(void) {
 	return root;
 }
 
-void root_destroy(struct sway_root *root) {
+void root_destroy(struct wmiiv_root *root) {
 	wl_list_remove(&root->output_layout_change.link);
 	list_free(root->outputs);
 	wlr_output_layout_destroy(root->output_layout);
@@ -57,7 +57,7 @@ struct pid_workspace {
 	char *workspace;
 	struct timespec time_added;
 
-	struct sway_output *output;
+	struct wmiiv_output *output;
 	struct wl_listener output_destroy;
 
 	struct wl_list link;
@@ -106,23 +106,23 @@ static void pid_workspace_destroy(struct pid_workspace *pw) {
 	free(pw);
 }
 
-struct sway_workspace *root_workspace_for_pid(pid_t pid) {
+struct wmiiv_workspace *root_workspace_for_pid(pid_t pid) {
 	if (!pid_workspaces.prev && !pid_workspaces.next) {
 		wl_list_init(&pid_workspaces);
 		return NULL;
 	}
 
-	struct sway_workspace *ws = NULL;
+	struct wmiiv_workspace *ws = NULL;
 	struct pid_workspace *pw = NULL;
 
-	sway_log(SWAY_DEBUG, "Looking up workspace for pid %d", pid);
+	wmiiv_log(SWAY_DEBUG, "Looking up workspace for pid %d", pid);
 
 	do {
 		struct pid_workspace *_pw = NULL;
 		wl_list_for_each(_pw, &pid_workspaces, link) {
 			if (pid == _pw->pid) {
 				pw = _pw;
-				sway_log(SWAY_DEBUG,
+				wmiiv_log(SWAY_DEBUG,
 						"found pid_workspace for pid %d, workspace %s",
 						pid, pw->workspace);
 				goto found;
@@ -136,13 +136,13 @@ found:
 		ws = workspace_by_name(pw->workspace);
 
 		if (!ws) {
-			sway_log(SWAY_DEBUG,
+			wmiiv_log(SWAY_DEBUG,
 					"Creating workspace %s for pid %d because it disappeared",
 					pw->workspace, pid);
 
-			struct sway_output *output = pw->output;
+			struct wmiiv_output *output = pw->output;
 			if (pw->output && !pw->output->enabled) {
-				sway_log(SWAY_DEBUG,
+				wmiiv_log(SWAY_DEBUG,
 						"Workspace output %s is disabled, trying another one",
 						pw->output->wlr_output->name);
 				output = NULL;
@@ -165,20 +165,20 @@ static void pw_handle_output_destroy(struct wl_listener *listener, void *data) {
 }
 
 void root_record_workspace_pid(pid_t pid) {
-	sway_log(SWAY_DEBUG, "Recording workspace for process %d", pid);
+	wmiiv_log(SWAY_DEBUG, "Recording workspace for process %d", pid);
 	if (!pid_workspaces.prev && !pid_workspaces.next) {
 		wl_list_init(&pid_workspaces);
 	}
 
-	struct sway_seat *seat = input_manager_current_seat();
-	struct sway_workspace *ws = seat_get_focused_workspace(seat);
+	struct wmiiv_seat *seat = input_manager_current_seat();
+	struct wmiiv_workspace *ws = seat_get_focused_workspace(seat);
 	if (!ws) {
-		sway_log(SWAY_DEBUG, "Bailing out, no workspace");
+		wmiiv_log(SWAY_DEBUG, "Bailing out, no workspace");
 		return;
 	}
-	struct sway_output *output = ws->output;
+	struct wmiiv_output *output = ws->output;
 	if (!output) {
-		sway_log(SWAY_DEBUG, "Bailing out, no output");
+		wmiiv_log(SWAY_DEBUG, "Bailing out, no output");
 		return;
 	}
 
@@ -218,32 +218,32 @@ void root_remove_workspace_pid(pid_t pid) {
 	}
 }
 
-void root_for_each_workspace(void (*f)(struct sway_workspace *ws, void *data),
+void root_for_each_workspace(void (*f)(struct wmiiv_workspace *ws, void *data),
 		void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		output_for_each_workspace(output, f, data);
 	}
 }
 
-void root_for_each_container(void (*f)(struct sway_container *con, void *data),
+void root_for_each_container(void (*f)(struct wmiiv_container *con, void *data),
 		void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		output_for_each_container(output, f, data);
 	}
 
 	// Saved workspaces
 	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
-		struct sway_workspace *ws = root->fallback_output->workspaces->items[i];
+		struct wmiiv_workspace *ws = root->fallback_output->workspaces->items[i];
 		workspace_for_each_container(ws, f, data);
 	}
 }
 
-struct sway_output *root_find_output(
-		bool (*test)(struct sway_output *output, void *data), void *data) {
+struct wmiiv_output *root_find_output(
+		bool (*test)(struct wmiiv_output *output, void *data), void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		if (test(output, data)) {
 			return output;
 		}
@@ -251,11 +251,11 @@ struct sway_output *root_find_output(
 	return NULL;
 }
 
-struct sway_workspace *root_find_workspace(
-		bool (*test)(struct sway_workspace *ws, void *data), void *data) {
-	struct sway_workspace *result = NULL;
+struct wmiiv_workspace *root_find_workspace(
+		bool (*test)(struct wmiiv_workspace *ws, void *data), void *data) {
+	struct wmiiv_workspace *result = NULL;
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		if ((result = output_find_workspace(output, test, data))) {
 			return result;
 		}
@@ -263,11 +263,11 @@ struct sway_workspace *root_find_workspace(
 	return NULL;
 }
 
-struct sway_container *root_find_container(
-		bool (*test)(struct sway_container *con, void *data), void *data) {
-	struct sway_container *result = NULL;
+struct wmiiv_container *root_find_container(
+		bool (*test)(struct wmiiv_container *con, void *data), void *data) {
+	struct wmiiv_container *result = NULL;
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		if ((result = output_find_container(output, test, data))) {
 			return result;
 		}
@@ -275,7 +275,7 @@ struct sway_container *root_find_container(
 
 	// Saved workspaces
 	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
-		struct sway_workspace *ws = root->fallback_output->workspaces->items[i];
+		struct wmiiv_workspace *ws = root->fallback_output->workspaces->items[i];
 		if ((result = workspace_find_container(ws, test, data))) {
 			return result;
 		}
@@ -284,7 +284,7 @@ struct sway_container *root_find_container(
 	return NULL;
 }
 
-void root_get_box(struct sway_root *root, struct wlr_box *box) {
+void root_get_box(struct wmiiv_root *root, struct wlr_box *box) {
 	box->x = root->x;
 	box->y = root->y;
 	box->width = root->width;

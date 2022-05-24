@@ -2,20 +2,20 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <float.h>
-#include "sway/config.h"
-#include "sway/input/keyboard.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/keyboard.h"
 #include "log.h"
 
 struct input_config *new_input_config(const char* identifier) {
 	struct input_config *input = calloc(1, sizeof(struct input_config));
 	if (!input) {
-		sway_log(SWAY_DEBUG, "Unable to allocate input config");
+		wmiiv_log(SWAY_DEBUG, "Unable to allocate input config");
 		return NULL;
 	}
-	sway_log(SWAY_DEBUG, "new_input_config(%s)", identifier);
+	wmiiv_log(SWAY_DEBUG, "new_input_config(%s)", identifier);
 	if (!(input->identifier = strdup(identifier))) {
 		free(input);
-		sway_log(SWAY_DEBUG, "Unable to allocate input config");
+		wmiiv_log(SWAY_DEBUG, "Unable to allocate input config");
 		return NULL;
 	}
 
@@ -180,7 +180,7 @@ static bool validate_xkb_merge(struct input_config *dest,
 	}
 	merge_input_config(temp, src);
 
-	struct xkb_keymap *keymap = sway_keyboard_compile_keymap(temp, xkb_error);
+	struct xkb_keymap *keymap = wmiiv_keyboard_compile_keymap(temp, xkb_error);
 	free_input_config(temp);
 	if (!keymap) {
 		return false;
@@ -195,7 +195,7 @@ static bool validate_wildcard_on_all(struct input_config *wildcard,
 	for (int i = 0; i < config->input_configs->length; i++) {
 		struct input_config *ic = config->input_configs->items[i];
 		if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-			sway_log(SWAY_DEBUG, "Validating xkb merge of * on %s",
+			wmiiv_log(SWAY_DEBUG, "Validating xkb merge of * on %s",
 					ic->identifier);
 			if (!validate_xkb_merge(ic, wildcard, error)) {
 				return false;
@@ -205,7 +205,7 @@ static bool validate_wildcard_on_all(struct input_config *wildcard,
 
 	for (int i = 0; i < config->input_type_configs->length; i++) {
 		struct input_config *ic = config->input_type_configs->items[i];
-		sway_log(SWAY_DEBUG, "Validating xkb merge of * config on %s",
+		wmiiv_log(SWAY_DEBUG, "Validating xkb merge of * config on %s",
 				ic->identifier);
 		if (!validate_xkb_merge(ic, wildcard, error)) {
 			return false;
@@ -219,14 +219,14 @@ static void merge_wildcard_on_all(struct input_config *wildcard) {
 	for (int i = 0; i < config->input_configs->length; i++) {
 		struct input_config *ic = config->input_configs->items[i];
 		if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-			sway_log(SWAY_DEBUG, "Merging input * config on %s", ic->identifier);
+			wmiiv_log(SWAY_DEBUG, "Merging input * config on %s", ic->identifier);
 			merge_input_config(ic, wildcard);
 		}
 	}
 
 	for (int i = 0; i < config->input_type_configs->length; i++) {
 		struct input_config *ic = config->input_type_configs->items[i];
-		sway_log(SWAY_DEBUG, "Merging input * config on %s", ic->identifier);
+		wmiiv_log(SWAY_DEBUG, "Merging input * config on %s", ic->identifier);
 		merge_input_config(ic, wildcard);
 	}
 }
@@ -240,7 +240,7 @@ static bool validate_type_on_existing(struct input_config *type_wildcard,
 		}
 
 		if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-			sway_log(SWAY_DEBUG, "Validating merge of %s on %s",
+			wmiiv_log(SWAY_DEBUG, "Validating merge of %s on %s",
 				type_wildcard->identifier, ic->identifier);
 			if (!validate_xkb_merge(ic, type_wildcard, error)) {
 				return false;
@@ -258,7 +258,7 @@ static void merge_type_on_existing(struct input_config *type_wildcard) {
 		}
 
 		if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-			sway_log(SWAY_DEBUG, "Merging %s top of %s",
+			wmiiv_log(SWAY_DEBUG, "Merging %s top of %s",
 				type_wildcard->identifier,
 				ic->identifier);
 			merge_input_config(ic, type_wildcard);
@@ -267,7 +267,7 @@ static void merge_type_on_existing(struct input_config *type_wildcard) {
 }
 
 static const char *set_input_type(struct input_config *ic) {
-	struct sway_input_device *input_device;
+	struct wmiiv_input_device *input_device;
 	wl_list_for_each(input_device, &server.input->devices, link) {
 		if (strcmp(input_device->identifier, ic->identifier) == 0) {
 			ic->input_type = input_device_get_type(input_device);
@@ -347,7 +347,7 @@ struct input_config *store_input_config(struct input_config *ic,
 		list_add(config_list, ic);
 	}
 
-	sway_log(SWAY_DEBUG, "Config stored for input %s", ic->identifier);
+	wmiiv_log(SWAY_DEBUG, "Config stored for input %s", ic->identifier);
 
 	return ic;
 }

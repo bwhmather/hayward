@@ -5,7 +5,7 @@
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_pointer_gestures_v1.h>
 #include <wlr/types/wlr_compositor.h>
-#include "sway/input/seat.h"
+#include "wmiiv/input/seat.h"
 #include "config.h"
 
 #define SWAY_CURSOR_PRESSED_BUTTONS_CAP 32
@@ -15,12 +15,12 @@
 #define SWAY_SCROLL_LEFT KEY_MAX + 3
 #define SWAY_SCROLL_RIGHT KEY_MAX + 4
 
-struct sway_cursor {
-	struct sway_seat *seat;
+struct wmiiv_cursor {
+	struct wmiiv_seat *seat;
 	struct wlr_cursor *cursor;
 	struct {
 		double x, y;
-		struct sway_node *node;
+		struct wmiiv_node *node;
 	} previous;
 	struct wlr_xcursor_manager *xcursor_manager;
 	struct wl_list tablets;
@@ -81,54 +81,54 @@ struct sway_cursor {
 	size_t pressed_button_count;
 };
 
-struct sway_node;
+struct wmiiv_node;
 
-struct sway_node *node_at_coords(
-		struct sway_seat *seat, double lx, double ly,
+struct wmiiv_node *node_at_coords(
+		struct wmiiv_seat *seat, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy);
 
-void sway_cursor_destroy(struct sway_cursor *cursor);
-struct sway_cursor *sway_cursor_create(struct sway_seat *seat);
+void wmiiv_cursor_destroy(struct wmiiv_cursor *cursor);
+struct wmiiv_cursor *wmiiv_cursor_create(struct wmiiv_seat *seat);
 
 /**
  * "Rebase" a cursor on top of whatever view is underneath it.
  *
  * This chooses a cursor icon and sends a motion event to the surface.
  */
-void cursor_rebase(struct sway_cursor *cursor);
+void cursor_rebase(struct wmiiv_cursor *cursor);
 void cursor_rebase_all(void);
-void cursor_update_image(struct sway_cursor *cursor, struct sway_node *node);
+void cursor_update_image(struct wmiiv_cursor *cursor, struct wmiiv_node *node);
 
-void cursor_handle_activity_from_idle_source(struct sway_cursor *cursor,
-		enum sway_input_idle_source idle_source);
-void cursor_handle_activity_from_device(struct sway_cursor *cursor,
+void cursor_handle_activity_from_idle_source(struct wmiiv_cursor *cursor,
+		enum wmiiv_input_idle_source idle_source);
+void cursor_handle_activity_from_device(struct wmiiv_cursor *cursor,
 		struct wlr_input_device *device);
-void cursor_unhide(struct sway_cursor *cursor);
-int cursor_get_timeout(struct sway_cursor *cursor);
-void cursor_notify_key_press(struct sway_cursor *cursor);
+void cursor_unhide(struct wmiiv_cursor *cursor);
+int cursor_get_timeout(struct wmiiv_cursor *cursor);
+void cursor_notify_key_press(struct wmiiv_cursor *cursor);
 
-void dispatch_cursor_button(struct sway_cursor *cursor,
+void dispatch_cursor_button(struct wmiiv_cursor *cursor,
 	struct wlr_input_device *device, uint32_t time_msec, uint32_t button,
 	enum wlr_button_state state);
 
-void dispatch_cursor_axis(struct sway_cursor *cursor,
+void dispatch_cursor_axis(struct wmiiv_cursor *cursor,
 		struct wlr_pointer_axis_event *event);
 
-void cursor_set_image(struct sway_cursor *cursor, const char *image,
+void cursor_set_image(struct wmiiv_cursor *cursor, const char *image,
 	struct wl_client *client);
 
-void cursor_set_image_surface(struct sway_cursor *cursor,
+void cursor_set_image_surface(struct wmiiv_cursor *cursor,
 		struct wlr_surface *surface, int32_t hotspot_x, int32_t hotspot_y,
 		struct wl_client *client);
 
-void cursor_warp_to_container(struct sway_cursor *cursor,
-	struct sway_container *container, bool force);
+void cursor_warp_to_container(struct wmiiv_cursor *cursor,
+	struct wmiiv_container *container, bool force);
 
-void cursor_warp_to_workspace(struct sway_cursor *cursor,
-		struct sway_workspace *workspace);
+void cursor_warp_to_workspace(struct wmiiv_cursor *cursor,
+		struct wmiiv_workspace *workspace);
 
 
-void sway_cursor_constrain(struct sway_cursor *cursor,
+void wmiiv_cursor_constrain(struct wmiiv_cursor *cursor,
 	struct wlr_pointer_constraint_v1 *constraint);
 
 uint32_t get_mouse_bindsym(const char *name, char **error);

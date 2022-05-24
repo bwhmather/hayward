@@ -6,12 +6,12 @@
 #include <strings.h>
 #include <stdio.h>
 #include <json.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/criteria.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/criteria.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/tree/view.h"
 #include "stringop.h"
 #include "log.h"
 
@@ -101,8 +101,8 @@ static const struct cmd_handler handlers[] = {
 /* Config-time only commands. Keep alphabetized */
 static const struct cmd_handler config_handlers[] = {
 	{ "include", cmd_include },
-	{ "swaybg_command", cmd_swaybg_command },
-	{ "swaynag_command", cmd_swaynag_command },
+	{ "wmiivbg_command", cmd_wmiivbg_command },
+	{ "wmiivnag_command", cmd_wmiivnag_command },
 	{ "workspace_layout", cmd_workspace_layout },
 	{ "xwayland", cmd_xwayland },
 };
@@ -173,7 +173,7 @@ static const struct cmd_handler *find_core_handler(char *line) {
 			handlers, sizeof(handlers));
 }
 
-static void set_config_node(struct sway_node *node, bool node_overridden) {
+static void set_config_node(struct wmiiv_node *node, bool node_overridden) {
 	config->handler_context.node = node;
 	config->handler_context.workspace = NULL;
 	config->handler_context.container = NULL;
@@ -191,23 +191,23 @@ static void set_config_node(struct sway_node *node, bool node_overridden) {
 	case N_OUTPUT:
 		break;
 	case N_WORKSPACE:
-		config->handler_context.workspace = node->sway_workspace;
+		config->handler_context.workspace = node->wmiiv_workspace;
 		break;
 	case N_COLUMN:
-		config->handler_context.workspace = node->sway_container->pending.workspace;
-		config->handler_context.container = node->sway_container;
-		config->handler_context.column = node->sway_container;
+		config->handler_context.workspace = node->wmiiv_container->pending.workspace;
+		config->handler_context.container = node->wmiiv_container;
+		config->handler_context.column = node->wmiiv_container;
 		break;
 	case N_WINDOW:
-		config->handler_context.workspace = node->sway_container->pending.workspace;
-		config->handler_context.container = node->sway_container;
-		config->handler_context.window = node->sway_container;
+		config->handler_context.workspace = node->wmiiv_container->pending.workspace;
+		config->handler_context.container = node->wmiiv_container;
+		config->handler_context.window = node->wmiiv_container;
 		break;
 	}
 }
 
-list_t *execute_command(char *_exec, struct sway_seat *seat,
-		struct sway_container *con) {
+list_t *execute_command(char *_exec, struct wmiiv_seat *seat,
+		struct wmiiv_container *con) {
 	char *cmd;
 	char matched_delim = ';';
 	list_t *containers = NULL;
@@ -216,7 +216,7 @@ list_t *execute_command(char *_exec, struct sway_seat *seat,
 	if (seat == NULL) {
 		// passing a NULL seat means we just pick the default seat
 		seat = input_manager_get_default_seat();
-		if (!sway_assert(seat, "could not find a seat to run the command on")) {
+		if (!wmiiv_assert(seat, "could not find a seat to run the command on")) {
 			return NULL;
 		}
 	}
@@ -259,10 +259,10 @@ list_t *execute_command(char *_exec, struct sway_seat *seat,
 		for (; isspace(*cmd); ++cmd) {}
 
 		if (strcmp(cmd, "") == 0) {
-			sway_log(SWAY_INFO, "Ignoring empty command.");
+			wmiiv_log(SWAY_INFO, "Ignoring empty command.");
 			continue;
 		}
-		sway_log(SWAY_INFO, "Handling command '%s'", cmd);
+		wmiiv_log(SWAY_INFO, "Handling command '%s'", cmd);
 		//TODO better handling of argv
 		int argc;
 		char **argv = split_args(cmd, &argc);
@@ -308,7 +308,7 @@ list_t *execute_command(char *_exec, struct sway_seat *seat,
 		} else {
 			struct cmd_results *fail_res = NULL;
 			for (int i = 0; i < containers->length; ++i) {
-				struct sway_container *container = containers->items[i];
+				struct wmiiv_container *container = containers->items[i];
 				set_config_node(&container->node, true);
 				struct cmd_results *res = handler->handle(argc-1, argv+1);
 				if (res->status == CMD_SUCCESS) {
@@ -382,7 +382,7 @@ struct cmd_results *config_command(char *exec, char **new_block) {
 	}
 
 	// Determine the command handler
-	sway_log(SWAY_INFO, "Config command: %s", exec);
+	wmiiv_log(SWAY_INFO, "Config command: %s", exec);
 	const struct cmd_handler *handler = find_core_handler(argv[0]);
 	if (!handler || !handler->handle) {
 		const char *error = handler
@@ -402,7 +402,7 @@ struct cmd_results *config_command(char *exec, char **new_block) {
 		argv[1] = temp;
 	}
 	char *command = do_var_replacement(join_args(argv, argc));
-	sway_log(SWAY_INFO, "After replacement: %s", command);
+	wmiiv_log(SWAY_INFO, "After replacement: %s", command);
 	free_argv(argc, argv);
 	argv = split_args(command, &argc);
 	free(command);
@@ -433,7 +433,7 @@ cleanup:
 struct cmd_results *config_subcommand(char **argv, int argc,
 		const struct cmd_handler *handlers, size_t handlers_size) {
 	char *command = join_args(argv, argc);
-	sway_log(SWAY_DEBUG, "Subcommand: %s", command);
+	wmiiv_log(SWAY_DEBUG, "Subcommand: %s", command);
 	free(command);
 
 	const struct cmd_handler *handler = find_handler(argv[0], handlers,
@@ -484,7 +484,7 @@ struct cmd_results *cmd_results_new(enum cmd_status status,
 		const char *format, ...) {
 	struct cmd_results *results = malloc(sizeof(struct cmd_results));
 	if (!results) {
-		sway_log(SWAY_ERROR, "Unable to allocate command results");
+		wmiiv_log(SWAY_ERROR, "Unable to allocate command results");
 		return NULL;
 	}
 	results->status = status;

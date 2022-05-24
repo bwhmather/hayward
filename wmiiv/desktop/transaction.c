@@ -4,57 +4,57 @@
 #include <string.h>
 #include <time.h>
 #include <wlr/types/wlr_buffer.h>
-#include "sway/config.h"
-#include "sway/desktop.h"
-#include "sway/desktop/idle_inhibit_v1.h"
-#include "sway/desktop/transaction.h"
-#include "sway/input/cursor.h"
-#include "sway/input/input-manager.h"
-#include "sway/output.h"
-#include "sway/tree/container.h"
-#include "sway/tree/node.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/config.h"
+#include "wmiiv/desktop.h"
+#include "wmiiv/desktop/idle_inhibit_v1.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/node.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
 #include "list.h"
 #include "log.h"
 
-struct sway_transaction {
+struct wmiiv_transaction {
 	struct wl_event_source *timer;
-	list_t *instructions;   // struct sway_transaction_instruction *
+	list_t *instructions;   // struct wmiiv_transaction_instruction *
 	size_t num_waiting;
 	size_t num_configures;
 	struct timespec commit_time;
 };
 
-struct sway_transaction_instruction {
-	struct sway_transaction *transaction;
-	struct sway_node *node;
+struct wmiiv_transaction_instruction {
+	struct wmiiv_transaction *transaction;
+	struct wmiiv_node *node;
 	union {
-		struct sway_output_state output_state;
-		struct sway_workspace_state workspace_state;
-		struct sway_container_state container_state;
+		struct wmiiv_output_state output_state;
+		struct wmiiv_workspace_state workspace_state;
+		struct wmiiv_container_state container_state;
 	};
 	uint32_t serial;
 	bool server_request;
 	bool waiting;
 };
 
-static struct sway_transaction *transaction_create(void) {
-	struct sway_transaction *transaction =
-		calloc(1, sizeof(struct sway_transaction));
-	if (!sway_assert(transaction, "Unable to allocate transaction")) {
+static struct wmiiv_transaction *transaction_create(void) {
+	struct wmiiv_transaction *transaction =
+		calloc(1, sizeof(struct wmiiv_transaction));
+	if (!wmiiv_assert(transaction, "Unable to allocate transaction")) {
 		return NULL;
 	}
 	transaction->instructions = create_list();
 	return transaction;
 }
 
-static void transaction_destroy(struct sway_transaction *transaction) {
+static void transaction_destroy(struct wmiiv_transaction *transaction) {
 	// Free instructions
 	for (int i = 0; i < transaction->instructions->length; ++i) {
-		struct sway_transaction_instruction *instruction =
+		struct wmiiv_transaction_instruction *instruction =
 			transaction->instructions->items[i];
-		struct sway_node *node = instruction->node;
+		struct wmiiv_node *node = instruction->node;
 		node->ntxnrefs--;
 		if (node->instruction == instruction) {
 			node->instruction = NULL;
@@ -62,19 +62,19 @@ static void transaction_destroy(struct sway_transaction *transaction) {
 		if (node->destroying && node->ntxnrefs == 0) {
 			switch (node->type) {
 			case N_ROOT:
-				sway_assert(false, "Never reached");
+				wmiiv_assert(false, "Never reached");
 				break;
 			case N_OUTPUT:
-				output_destroy(node->sway_output);
+				output_destroy(node->wmiiv_output);
 				break;
 			case N_WORKSPACE:
-				workspace_destroy(node->sway_workspace);
+				workspace_destroy(node->wmiiv_workspace);
 				break;
 			case N_COLUMN:
-				container_destroy(node->sway_container);
+				container_destroy(node->wmiiv_container);
 				break;
 			case N_WINDOW:
-				container_destroy(node->sway_container);
+				container_destroy(node->wmiiv_container);
 				break;
 			}
 		}
@@ -88,9 +88,9 @@ static void transaction_destroy(struct sway_transaction *transaction) {
 	free(transaction);
 }
 
-static void copy_output_state(struct sway_output *output,
-		struct sway_transaction_instruction *instruction) {
-	struct sway_output_state *state = &instruction->output_state;
+static void copy_output_state(struct wmiiv_output *output,
+		struct wmiiv_transaction_instruction *instruction) {
+	struct wmiiv_output_state *state = &instruction->output_state;
 	if (state->workspaces) {
 		state->workspaces->length = 0;
 	} else {
@@ -101,9 +101,9 @@ static void copy_output_state(struct sway_output *output,
 	state->active_workspace = output_get_active_workspace(output);
 }
 
-static void copy_workspace_state(struct sway_workspace *ws,
-		struct sway_transaction_instruction *instruction) {
-	struct sway_workspace_state *state = &instruction->workspace_state;
+static void copy_workspace_state(struct wmiiv_workspace *ws,
+		struct wmiiv_transaction_instruction *instruction) {
+	struct wmiiv_workspace_state *state = &instruction->workspace_state;
 
 	state->fullscreen = ws->fullscreen;
 	state->x = ws->x;
@@ -125,11 +125,11 @@ static void copy_workspace_state(struct sway_workspace *ws,
 	list_cat(state->floating, ws->floating);
 	list_cat(state->tiling, ws->tiling);
 
-	struct sway_seat *seat = input_manager_current_seat();
+	struct wmiiv_seat *seat = input_manager_current_seat();
 	state->focused = seat_get_focus(seat) == &ws->node;
 
 	// Set focused_inactive_child to the direct tiling child
-	struct sway_container *focus = seat_get_focus_inactive_tiling(seat, ws);
+	struct wmiiv_container *focus = seat_get_focus_inactive_tiling(seat, ws);
 	if (focus) {
 		while (focus->pending.parent) {
 			focus = focus->pending.parent;
@@ -138,53 +138,53 @@ static void copy_workspace_state(struct sway_workspace *ws,
 	state->focused_inactive_child = focus;
 }
 
-static void copy_column_state(struct sway_container *container,
-		struct sway_transaction_instruction *instruction) {
-	if (!sway_assert(container_is_column(container), "Expected column")) {
+static void copy_column_state(struct wmiiv_container *container,
+		struct wmiiv_transaction_instruction *instruction) {
+	if (!wmiiv_assert(container_is_column(container), "Expected column")) {
 		return;
 	}
 
-	struct sway_container_state *state = &instruction->container_state;
+	struct wmiiv_container_state *state = &instruction->container_state;
 
 	if (state->children) {
 		list_free(state->children);
 	}
 
-	memcpy(state, &container->pending, sizeof(struct sway_container_state));
+	memcpy(state, &container->pending, sizeof(struct wmiiv_container_state));
 
 	// We store a copy of the child list to avoid having it mutated after
 	// we copy the state.
 	state->children = create_list();
 	list_cat(state->children, container->pending.children);
 
-	struct sway_seat *seat = input_manager_current_seat();
+	struct wmiiv_seat *seat = input_manager_current_seat();
 	state->focused = seat_get_focus(seat) == &container->node;
 
-	struct sway_node *focus =
+	struct wmiiv_node *focus =
 		seat_get_active_tiling_child(seat, &container->node);
-	state->focused_inactive_child = focus ? focus->sway_container : NULL;
+	state->focused_inactive_child = focus ? focus->wmiiv_container : NULL;
 }
 
-static void copy_window_state(struct sway_container *container,
-		struct sway_transaction_instruction *instruction) {
-	struct sway_container_state *state = &instruction->container_state;
+static void copy_window_state(struct wmiiv_container *container,
+		struct wmiiv_transaction_instruction *instruction) {
+	struct wmiiv_container_state *state = &instruction->container_state;
 
-	memcpy(state, &container->pending, sizeof(struct sway_container_state));
+	memcpy(state, &container->pending, sizeof(struct wmiiv_container_state));
 	state->children = NULL;
 
-	struct sway_seat *seat = input_manager_current_seat();
+	struct wmiiv_seat *seat = input_manager_current_seat();
 	state->focused = seat_get_focus(seat) == &container->node;
 }
 
-static void transaction_add_node(struct sway_transaction *transaction,
-		struct sway_node *node, bool server_request) {
-	struct sway_transaction_instruction *instruction = NULL;
+static void transaction_add_node(struct wmiiv_transaction *transaction,
+		struct wmiiv_node *node, bool server_request) {
+	struct wmiiv_transaction_instruction *instruction = NULL;
 
 	// Check if we have an instruction for this node already, in which case we
 	// update that instead of creating a new one.
 	if (node->ntxnrefs > 0) {
 		for (int idx = 0; idx < transaction->instructions->length; idx++) {
-			struct sway_transaction_instruction *other =
+			struct wmiiv_transaction_instruction *other =
 				transaction->instructions->items[idx];
 			if (other->node == node) {
 				instruction = other;
@@ -194,8 +194,8 @@ static void transaction_add_node(struct sway_transaction *transaction,
 	}
 
 	if (!instruction) {
-		instruction = calloc(1, sizeof(struct sway_transaction_instruction));
-		if (!sway_assert(instruction, "Unable to allocate instruction")) {
+		instruction = calloc(1, sizeof(struct wmiiv_transaction_instruction));
+		if (!wmiiv_assert(instruction, "Unable to allocate instruction")) {
 			return;
 		}
 		instruction->transaction = transaction;
@@ -212,39 +212,39 @@ static void transaction_add_node(struct sway_transaction *transaction,
 	case N_ROOT:
 		break;
 	case N_OUTPUT:
-		copy_output_state(node->sway_output, instruction);
+		copy_output_state(node->wmiiv_output, instruction);
 		break;
 	case N_WORKSPACE:
-		copy_workspace_state(node->sway_workspace, instruction);
+		copy_workspace_state(node->wmiiv_workspace, instruction);
 		break;
 	case N_COLUMN:
-		copy_column_state(node->sway_container, instruction);
+		copy_column_state(node->wmiiv_container, instruction);
 		break;
 	case N_WINDOW:
-		copy_window_state(node->sway_container, instruction);
+		copy_window_state(node->wmiiv_container, instruction);
 		break;
 	}
 }
 
-static void apply_output_state(struct sway_output *output,
-		struct sway_output_state *state) {
+static void apply_output_state(struct wmiiv_output *output,
+		struct wmiiv_output_state *state) {
 	output_damage_whole(output);
 	list_free(output->current.workspaces);
-	memcpy(&output->current, state, sizeof(struct sway_output_state));
+	memcpy(&output->current, state, sizeof(struct wmiiv_output_state));
 	output_damage_whole(output);
 }
 
-static void apply_workspace_state(struct sway_workspace *ws,
-		struct sway_workspace_state *state) {
+static void apply_workspace_state(struct wmiiv_workspace *ws,
+		struct wmiiv_workspace_state *state) {
 	output_damage_whole(ws->current.output);
 	list_free(ws->current.floating);
 	list_free(ws->current.tiling);
-	memcpy(&ws->current, state, sizeof(struct sway_workspace_state));
+	memcpy(&ws->current, state, sizeof(struct wmiiv_workspace_state));
 	output_damage_whole(ws->current.output);
 }
 
-static void apply_column_state(struct sway_container *container,
-		struct sway_container_state *state) {
+static void apply_column_state(struct wmiiv_container *container,
+		struct wmiiv_container_state *state) {
 	// Damage the old location
 	desktop_damage_whole_container(container);
 
@@ -255,7 +255,7 @@ static void apply_column_state(struct sway_container *container,
 	// transaction_destroy().
 	list_free(container->current.children);
 
-	memcpy(&container->current, state, sizeof(struct sway_container_state));
+	memcpy(&container->current, state, sizeof(struct wmiiv_container_state));
 
 	// Damage the new location
 	desktop_damage_whole_container(container);
@@ -266,13 +266,13 @@ static void apply_column_state(struct sway_container *container,
 }
 
 
-static void apply_window_state(struct sway_container *container,
-		struct sway_container_state *state) {
-	struct sway_view *view = container->view;
+static void apply_window_state(struct wmiiv_container *container,
+		struct wmiiv_container_state *state) {
+	struct wmiiv_view *view = container->view;
 	// Damage the old location
 	desktop_damage_whole_container(container);
 	if (!wl_list_empty(&view->saved_buffers)) {
-		struct sway_saved_buffer *saved_buf;
+		struct wmiiv_saved_buffer *saved_buf;
 		wl_list_for_each(saved_buf, &view->saved_buffers, link) {
 			struct wlr_box box = {
 				.x = saved_buf->x - view->saved_geometry.x,
@@ -291,7 +291,7 @@ static void apply_window_state(struct sway_container *container,
 	// transaction_destroy().
 	list_free(container->current.children);
 
-	memcpy(&container->current, state, sizeof(struct sway_container_state));
+	memcpy(&container->current, state, sizeof(struct wmiiv_container_state));
 
 	if (!wl_list_empty(&view->saved_buffers)) {
 		if (!container->node.destroying || container->node.ntxnrefs == 1) {
@@ -327,40 +327,40 @@ static void apply_window_state(struct sway_container *container,
 /**
  * Apply a transaction to the "current" state of the tree.
  */
-static void transaction_apply(struct sway_transaction *transaction) {
-	sway_log(SWAY_DEBUG, "Applying transaction %p", transaction);
+static void transaction_apply(struct wmiiv_transaction *transaction) {
+	wmiiv_log(SWAY_DEBUG, "Applying transaction %p", transaction);
 	if (debug.txn_timings) {
 		struct timespec now;
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		struct timespec *commit = &transaction->commit_time;
 		float ms = (now.tv_sec - commit->tv_sec) * 1000 +
 			(now.tv_nsec - commit->tv_nsec) / 1000000.0;
-		sway_log(SWAY_DEBUG, "Transaction %p: %.1fms waiting "
+		wmiiv_log(SWAY_DEBUG, "Transaction %p: %.1fms waiting "
 				"(%.1f frames if 60Hz)", transaction, ms, ms / (1000.0f / 60));
 	}
 
 	// Apply the instruction state to the node's current state
 	for (int i = 0; i < transaction->instructions->length; ++i) {
-		struct sway_transaction_instruction *instruction =
+		struct wmiiv_transaction_instruction *instruction =
 			transaction->instructions->items[i];
-		struct sway_node *node = instruction->node;
+		struct wmiiv_node *node = instruction->node;
 
 		switch (node->type) {
 		case N_ROOT:
 			break;
 		case N_OUTPUT:
-			apply_output_state(node->sway_output, &instruction->output_state);
+			apply_output_state(node->wmiiv_output, &instruction->output_state);
 			break;
 		case N_WORKSPACE:
-			apply_workspace_state(node->sway_workspace,
+			apply_workspace_state(node->wmiiv_workspace,
 					&instruction->workspace_state);
 			break;
 		case N_COLUMN:
-			apply_column_state(node->sway_container,
+			apply_column_state(node->wmiiv_container,
 					&instruction->container_state);
 			break;
 		case N_WINDOW:
-			apply_window_state(node->sway_container,
+			apply_window_state(node->wmiiv_container,
 					&instruction->container_state);
 		}
 
@@ -384,7 +384,7 @@ static void transaction_progress(void) {
 	server.queued_transaction = NULL;
 
 	if (!server.pending_transaction) {
-		sway_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
+		wmiiv_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
 		return;
 	}
 
@@ -392,16 +392,16 @@ static void transaction_progress(void) {
 }
 
 static int handle_timeout(void *data) {
-	struct sway_transaction *transaction = data;
-	sway_log(SWAY_DEBUG, "Transaction %p timed out (%zi waiting)",
+	struct wmiiv_transaction *transaction = data;
+	wmiiv_log(SWAY_DEBUG, "Transaction %p timed out (%zi waiting)",
 			transaction, transaction->num_waiting);
 	transaction->num_waiting = 0;
 	transaction_progress();
 	return 0;
 }
 
-static bool should_configure(struct sway_node *node,
-		struct sway_transaction_instruction *instruction) {
+static bool should_configure(struct wmiiv_node *node,
+		struct wmiiv_transaction_instruction *instruction) {
 	if (!node_is_view(node)) {
 		return false;
 	}
@@ -411,12 +411,12 @@ static bool should_configure(struct sway_node *node,
 	if (!instruction->server_request) {
 		return false;
 	}
-	struct sway_container_state *cstate = &node->sway_container->current;
-	struct sway_container_state *istate = &instruction->container_state;
+	struct wmiiv_container_state *cstate = &node->wmiiv_container->current;
+	struct wmiiv_container_state *istate = &instruction->container_state;
 #if HAVE_XWAYLAND
 	// Xwayland views are position-aware and need to be reconfigured
 	// when their position changes.
-	if (node->sway_container->view->type == SWAY_VIEW_XWAYLAND) {
+	if (node->wmiiv_container->view->type == SWAY_VIEW_XWAYLAND) {
 		// Sway logical coordinates are doubles, but they get truncated to
 		// integers when sent to Xwayland through `xcb_configure_window`.
 		// X11 apps will not respond to duplicate configure requests (from their
@@ -434,18 +434,18 @@ static bool should_configure(struct sway_node *node,
 	return true;
 }
 
-static void transaction_commit(struct sway_transaction *transaction) {
-	sway_log(SWAY_DEBUG, "Transaction %p committing with %i instructions",
+static void transaction_commit(struct wmiiv_transaction *transaction) {
+	wmiiv_log(SWAY_DEBUG, "Transaction %p committing with %i instructions",
 			transaction, transaction->instructions->length);
 	transaction->num_waiting = 0;
 	for (int i = 0; i < transaction->instructions->length; ++i) {
-		struct sway_transaction_instruction *instruction =
+		struct wmiiv_transaction_instruction *instruction =
 			transaction->instructions->items[i];
-		struct sway_node *node = instruction->node;
+		struct wmiiv_node *node = instruction->node;
 		bool hidden = node_is_view(node) && !node->destroying &&
-			!view_is_visible(node->sway_container->view);
+			!view_is_visible(node->wmiiv_container->view);
 		if (should_configure(node, instruction)) {
-			instruction->serial = view_configure(node->sway_container->view,
+			instruction->serial = view_configure(node->wmiiv_container->view,
 					instruction->container_state.content_x,
 					instruction->container_state.content_y,
 					instruction->container_state.content_width,
@@ -462,13 +462,13 @@ static void transaction_commit(struct sway_transaction *transaction) {
 			struct timespec now;
 			clock_gettime(CLOCK_MONOTONIC, &now);
 			wlr_surface_send_frame_done(
-					node->sway_container->view->surface, &now);
+					node->wmiiv_container->view->surface, &now);
 		}
 		if (!hidden && node_is_view(node) &&
-				wl_list_empty(&node->sway_container->view->saved_buffers)) {
-			view_save_buffer(node->sway_container->view);
-			memcpy(&node->sway_container->view->saved_geometry,
-					&node->sway_container->view->geometry,
+				wl_list_empty(&node->wmiiv_container->view->saved_buffers)) {
+			view_save_buffer(node->wmiiv_container->view);
+			memcpy(&node->wmiiv_container->view->saved_geometry,
+					&node->wmiiv_container->view->geometry,
 					sizeof(struct wlr_box));
 		}
 		node->instruction = instruction;
@@ -493,7 +493,7 @@ static void transaction_commit(struct sway_transaction *transaction) {
 			wl_event_source_timer_update(transaction->timer,
 					server.txn_timeout_ms);
 		} else {
-			sway_log_errno(SWAY_ERROR, "Unable to create transaction timer "
+			wmiiv_log_errno(SWAY_ERROR, "Unable to create transaction timer "
 					"(some imperfect frames might be rendered)");
 			transaction->num_waiting = 0;
 		}
@@ -504,7 +504,7 @@ static void transaction_commit_pending(void) {
 	if (server.queued_transaction) {
 		return;
 	}
-	struct sway_transaction *transaction = server.pending_transaction;
+	struct wmiiv_transaction *transaction = server.pending_transaction;
 	server.pending_transaction = NULL;
 	server.queued_transaction = transaction;
 	transaction_commit(transaction);
@@ -512,8 +512,8 @@ static void transaction_commit_pending(void) {
 }
 
 static void set_instruction_ready(
-		struct sway_transaction_instruction *instruction) {
-	struct sway_transaction *transaction = instruction->transaction;
+		struct wmiiv_transaction_instruction *instruction) {
+	struct wmiiv_transaction *transaction = instruction->transaction;
 
 	if (debug.txn_timings) {
 		struct timespec now;
@@ -521,17 +521,17 @@ static void set_instruction_ready(
 		struct timespec *start = &transaction->commit_time;
 		float ms = (now.tv_sec - start->tv_sec) * 1000 +
 			(now.tv_nsec - start->tv_nsec) / 1000000.0;
-		sway_log(SWAY_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
+		wmiiv_log(SWAY_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
 				transaction,
 				transaction->num_configures - transaction->num_waiting + 1,
 				transaction->num_configures, ms,
-				instruction->node->sway_container->title);
+				instruction->node->wmiiv_container->title);
 	}
 
 	// If the transaction has timed out then its num_waiting will be 0 already.
 	if (instruction->waiting && transaction->num_waiting > 0 &&
 			--transaction->num_waiting == 0) {
-		sway_log(SWAY_DEBUG, "Transaction %p is ready", transaction);
+		wmiiv_log(SWAY_DEBUG, "Transaction %p is ready", transaction);
 		wl_event_source_timer_update(transaction->timer, 0);
 	}
 
@@ -539,18 +539,18 @@ static void set_instruction_ready(
 	transaction_progress();
 }
 
-void transaction_notify_view_ready_by_serial(struct sway_view *view,
+void transaction_notify_view_ready_by_serial(struct wmiiv_view *view,
 		uint32_t serial) {
-	struct sway_transaction_instruction *instruction =
+	struct wmiiv_transaction_instruction *instruction =
 		view->container->node.instruction;
 	if (instruction != NULL && instruction->serial == serial) {
 		set_instruction_ready(instruction);
 	}
 }
 
-void transaction_notify_view_ready_by_geometry(struct sway_view *view,
+void transaction_notify_view_ready_by_geometry(struct wmiiv_view *view,
 		double x, double y, int width, int height) {
-	struct sway_transaction_instruction *instruction =
+	struct wmiiv_transaction_instruction *instruction =
 		view->container->node.instruction;
 	if (instruction != NULL &&
 			(int)instruction->container_state.content_x == (int)x &&
@@ -574,7 +574,7 @@ static void _transaction_commit_dirty(bool server_request) {
 	}
 
 	for (int i = 0; i < server.dirty_nodes->length; ++i) {
-		struct sway_node *node = server.dirty_nodes->items[i];
+		struct wmiiv_node *node = server.dirty_nodes->items[i];
 		transaction_add_node(server.pending_transaction, node, server_request);
 		node->dirty = false;
 	}

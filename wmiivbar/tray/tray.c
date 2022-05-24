@@ -2,13 +2,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "swaybar/config.h"
-#include "swaybar/bar.h"
-#include "swaybar/tray/icon.h"
-#include "swaybar/tray/host.h"
-#include "swaybar/tray/item.h"
-#include "swaybar/tray/tray.h"
-#include "swaybar/tray/watcher.h"
+#include "wmiivbar/config.h"
+#include "wmiivbar/bar.h"
+#include "wmiivbar/tray/icon.h"
+#include "wmiivbar/tray/host.h"
+#include "wmiivbar/tray/item.h"
+#include "wmiivbar/tray/tray.h"
+#include "wmiivbar/tray/watcher.h"
 #include "list.h"
 #include "log.h"
 
@@ -17,12 +17,12 @@ static int handle_lost_watcher(sd_bus_message *msg,
 	char *service, *old_owner, *new_owner;
 	int ret = sd_bus_message_read(msg, "sss", &service, &old_owner, &new_owner);
 	if (ret < 0) {
-		sway_log(SWAY_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
+		wmiiv_log(SWAY_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
 		return ret;
 	}
 
 	if (!*new_owner) {
-		struct swaybar_tray *tray = data;
+		struct wmiivbar_tray *tray = data;
 		if (strcmp(service, "org.freedesktop.StatusNotifierWatcher") == 0) {
 			tray->watcher_xdg = create_watcher("freedesktop", tray->bus);
 		} else if (strcmp(service, "org.kde.StatusNotifierWatcher") == 0) {
@@ -33,17 +33,17 @@ static int handle_lost_watcher(sd_bus_message *msg,
 	return 0;
 }
 
-struct swaybar_tray *create_tray(struct swaybar *bar) {
-	sway_log(SWAY_DEBUG, "Initializing tray");
+struct wmiivbar_tray *create_tray(struct wmiivbar *bar) {
+	wmiiv_log(SWAY_DEBUG, "Initializing tray");
 
 	sd_bus *bus;
 	int ret = sd_bus_open_user(&bus);
 	if (ret < 0) {
-		sway_log(SWAY_ERROR, "Failed to connect to user bus: %s", strerror(-ret));
+		wmiiv_log(SWAY_ERROR, "Failed to connect to user bus: %s", strerror(-ret));
 		return NULL;
 	}
 
-	struct swaybar_tray *tray = calloc(1, sizeof(struct swaybar_tray));
+	struct wmiivbar_tray *tray = calloc(1, sizeof(struct wmiivbar_tray));
 	if (!tray) {
 		return NULL;
 	}
@@ -58,7 +58,7 @@ struct swaybar_tray *create_tray(struct swaybar *bar) {
 			"/org/freedesktop/DBus", "org.freedesktop.DBus",
 			"NameOwnerChanged", handle_lost_watcher, tray);
 	if (ret < 0) {
-		sway_log(SWAY_ERROR, "Failed to subscribe to unregistering events: %s",
+		wmiiv_log(SWAY_ERROR, "Failed to subscribe to unregistering events: %s",
 				strerror(-ret));
 	}
 
@@ -72,7 +72,7 @@ struct swaybar_tray *create_tray(struct swaybar *bar) {
 	return tray;
 }
 
-void destroy_tray(struct swaybar_tray *tray) {
+void destroy_tray(struct wmiivbar_tray *tray) {
 	if (!tray) {
 		return;
 	}
@@ -96,20 +96,20 @@ void tray_in(int fd, short mask, void *data) {
 		// This space intentionally left blank
 	}
 	if (ret < 0) {
-		sway_log(SWAY_ERROR, "Failed to process bus: %s", strerror(-ret));
+		wmiiv_log(SWAY_ERROR, "Failed to process bus: %s", strerror(-ret));
 	}
 }
 
 static int cmp_output(const void *item, const void *cmp_to) {
-	const struct swaybar_output *output = cmp_to;
+	const struct wmiivbar_output *output = cmp_to;
 	if (output->identifier && strcmp(item, output->identifier) == 0) {
 		return 0;
 	}
 	return strcmp(item, output->name);
 }
 
-uint32_t render_tray(cairo_t *cairo, struct swaybar_output *output, double *x) {
-	struct swaybar_config *config = output->bar->config;
+uint32_t render_tray(cairo_t *cairo, struct wmiivbar_output *output, double *x) {
+	struct wmiivbar_config *config = output->bar->config;
 	if (config->tray_outputs) {
 		if (list_seq_find(config->tray_outputs, cmp_output, output) == -1) {
 			return 0;
@@ -121,7 +121,7 @@ uint32_t render_tray(cairo_t *cairo, struct swaybar_output *output, double *x) {
 	}
 
 	uint32_t max_height = 0;
-	struct swaybar_tray *tray = output->bar->tray;
+	struct wmiivbar_tray *tray = output->bar->tray;
 	for (int i = 0; i < tray->items->length; ++i) {
 		uint32_t h = render_sni(cairo, output, x, tray->items->items[i]);
 		if (h > max_height) {

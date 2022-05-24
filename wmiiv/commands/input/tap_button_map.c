@@ -1,8 +1,8 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/config.h"
-#include "sway/commands.h"
-#include "sway/input/input-manager.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/input-manager.h"
 
 struct cmd_results *input_cmd_tap_button_map(int argc, char **argv) {
 	struct cmd_results *error = NULL;

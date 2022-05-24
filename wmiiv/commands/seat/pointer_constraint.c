@@ -1,9 +1,9 @@
 #include <string.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
 
 enum operation {
 	OP_ENABLE,
@@ -46,10 +46,10 @@ struct cmd_results *seat_cmd_pointer_constraint(int argc, char **argv) {
 		/* fallthrough */
 	case OP_ESCAPE:;
 		bool wildcard = !strcmp(seat_config->name, "*");
-		struct sway_seat *seat = NULL;
+		struct wmiiv_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {
 			if (wildcard || !strcmp(seat->wlr_seat->name, seat_config->name)) {
-				sway_cursor_constrain(seat->cursor, NULL);
+				wmiiv_cursor_constrain(seat->cursor, NULL);
 			}
 		}
 		break;

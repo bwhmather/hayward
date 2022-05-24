@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/criteria.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/criteria.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
@@ -56,7 +56,7 @@ struct cmd_results *cmd_assign(int argc, char **argv) {
 	criteria->target = join_args(argv, argc);
 
 	list_add(config->criteria, criteria);
-	sway_log(SWAY_DEBUG, "assign: '%s' -> '%s' added", criteria->raw,
+	wmiiv_log(SWAY_DEBUG, "assign: '%s' -> '%s' added", criteria->raw,
 			criteria->target);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

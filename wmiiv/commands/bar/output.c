@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdbool.h>
 #include <string.h>
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 #include "list.h"
 #include "log.h"
 
@@ -42,7 +42,7 @@ struct cmd_results *bar_cmd_output(int argc, char **argv) {
 
 	if (add_output) {
 		list_add(outputs, strdup(output));
-		sway_log(SWAY_DEBUG, "Adding bar: '%s' to output '%s'",
+		wmiiv_log(SWAY_DEBUG, "Adding bar: '%s' to output '%s'",
 				config->current_bar->id, output);
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);

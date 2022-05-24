@@ -1,8 +1,8 @@
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "log.h"
-#include "sway/output.h"
+#include "wmiiv/output.h"
 
 static enum wl_output_transform invert_rotation_direction(
 		enum wl_output_transform t) {
@@ -63,14 +63,14 @@ struct cmd_results *output_cmd_transform(int argc, char **argv) {
 			return cmd_results_new(CMD_INVALID,
 				"Relative transforms cannot be used in the configuration file");
 		}
-		if (!sway_assert(output->name != NULL, "Output config name not set")) {
+		if (!wmiiv_assert(output->name != NULL, "Output config name not set")) {
 			return NULL;
 		}
 		if (strcmp(output->name, "*") == 0) {
 			return cmd_results_new(CMD_INVALID,
 				"Cannot apply relative transform to all outputs.");
 		}
-		struct sway_output *s_output = output_by_name_or_id(output->name);
+		struct wmiiv_output *s_output = output_by_name_or_id(output->name);
 		if (s_output == NULL) {
 			return cmd_results_new(CMD_INVALID,
 				"Cannot apply relative transform to unknown output %s", output->name);

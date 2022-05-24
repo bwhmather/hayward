@@ -8,15 +8,15 @@
 #include "cairo_util.h"
 #include "pango.h"
 #include "pool-buffer.h"
-#include "swaybar/bar.h"
-#include "swaybar/config.h"
-#include "swaybar/i3bar.h"
-#include "swaybar/ipc.h"
-#include "swaybar/render.h"
-#include "swaybar/status_line.h"
+#include "wmiivbar/bar.h"
+#include "wmiivbar/config.h"
+#include "wmiivbar/i3bar.h"
+#include "wmiivbar/ipc.h"
+#include "wmiivbar/render.h"
+#include "wmiivbar/status_line.h"
 #include "log.h"
 #if HAVE_TRAY
-#include "swaybar/tray/tray.h"
+#include "wmiivbar/tray/tray.h"
 #endif
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
@@ -26,7 +26,7 @@ static const double BORDER_WIDTH = 1;
 
 struct render_context {
 	cairo_t *cairo;
-	struct swaybar_output *output;
+	struct wmiivbar_output *output;
 	cairo_font_options_t *textaa_sharp;
 	cairo_font_options_t *textaa_safe;
 	uint32_t background_color;
@@ -48,7 +48,7 @@ static void choose_text_aa_mode(struct render_context *ctx, uint32_t fontcolor) 
 }
 
 static uint32_t render_status_line_error(struct render_context *ctx, double *x) {
-	struct swaybar_output *output = ctx->output;
+	struct wmiivbar_output *output = ctx->output;
 	const char *error = output->bar->status->text;
 	if (!error) {
 		return 0;
@@ -84,14 +84,14 @@ static uint32_t render_status_line_error(struct render_context *ctx, double *x) 
 }
 
 static uint32_t render_status_line_text(struct render_context *ctx, double *x) {
-	struct swaybar_output *output = ctx->output;
+	struct wmiivbar_output *output = ctx->output;
 	const char *text = output->bar->status->text;
 	if (!text) {
 		return 0;
 	}
 
 	cairo_t *cairo = ctx->cairo;
-	struct swaybar_config *config = output->bar->config;
+	struct wmiivbar_config *config = output->bar->config;
 	uint32_t fontcolor = output->focused ?
 			config->colors.focused_statusline : config->colors.statusline;
 	cairo_set_source_u32(cairo, fontcolor);
@@ -159,7 +159,7 @@ static void render_sharp_line(cairo_t *cairo, uint32_t color,
 }
 
 static enum hotspot_event_handling block_hotspot_callback(
-		struct swaybar_output *output, struct swaybar_hotspot *hotspot,
+		struct wmiivbar_output *output, struct wmiivbar_hotspot *hotspot,
 		double x, double y, uint32_t button, void *data) {
 	struct i3bar_block *block = data;
 	struct status_line *status = output->bar->status;
@@ -187,8 +187,8 @@ static uint32_t render_status_block(struct render_context *ctx,
 	}
 
 	cairo_t *cairo = ctx->cairo;
-	struct swaybar_output *output = ctx->output;
-	struct swaybar_config *config = output->bar->config;
+	struct wmiivbar_output *output = ctx->output;
+	struct wmiivbar_config *config = output->bar->config;
 	int text_width, text_height;
 	get_text_size(cairo, config->font, &text_width, &text_height, NULL, 1,
 			block->markup, "%s", text);
@@ -248,7 +248,7 @@ static uint32_t render_status_block(struct render_context *ctx,
 
 	uint32_t height = output->height;
 	if (output->bar->status->click_events) {
-		struct swaybar_hotspot *hotspot = calloc(1, sizeof(struct swaybar_hotspot));
+		struct wmiivbar_hotspot *hotspot = calloc(1, sizeof(struct wmiivbar_hotspot));
 		hotspot->x = *x;
 		hotspot->y = 0;
 		hotspot->width = width;
@@ -345,13 +345,13 @@ static uint32_t render_status_block(struct render_context *ctx,
 }
 
 static void predict_status_block_pos(cairo_t *cairo,
-		struct swaybar_output *output, struct i3bar_block *block, double *x,
+		struct wmiivbar_output *output, struct i3bar_block *block, double *x,
 		bool edge) {
 	if (!block->full_text || !*block->full_text) {
 		return;
 	}
 
-	struct swaybar_config *config = output->bar->config;
+	struct wmiivbar_config *config = output->bar->config;
 
 	int text_width, text_height;
 	get_text_size(cairo, config->font, &text_width, &text_height, NULL, 1,
@@ -410,7 +410,7 @@ static void predict_status_block_pos(cairo_t *cairo,
 }
 
 static double predict_status_line_pos(cairo_t *cairo,
-		struct swaybar_output *output, double x) {
+		struct wmiivbar_output *output, double x) {
 	bool edge = x == output->width;
 	struct i3bar_block *block;
 	wl_list_for_each(block, &output->bar->status->blocks, link) {
@@ -421,9 +421,9 @@ static double predict_status_line_pos(cairo_t *cairo,
 }
 
 static uint32_t predict_workspace_button_length(cairo_t *cairo,
-		struct swaybar_output *output,
-		struct swaybar_workspace *ws) {
-	struct swaybar_config *config = output->bar->config;
+		struct wmiivbar_output *output,
+		struct wmiivbar_workspace *ws) {
+	struct wmiivbar_config *config = output->bar->config;
 
 	int text_width, text_height;
 	get_text_size(cairo, config->font, &text_width, &text_height, NULL, 1,
@@ -449,10 +449,10 @@ static uint32_t predict_workspace_button_length(cairo_t *cairo,
 }
 
 static uint32_t predict_workspace_buttons_length(cairo_t *cairo,
-		struct swaybar_output *output) {
+		struct wmiivbar_output *output) {
 	uint32_t width = 0;
 	if (output->bar->config->workspace_buttons) {
-		struct swaybar_workspace *ws;
+		struct wmiivbar_workspace *ws;
 		wl_list_for_each(ws, &output->workspaces, link) {
 			width += predict_workspace_button_length(cairo, output, ws);
 		}
@@ -461,13 +461,13 @@ static uint32_t predict_workspace_buttons_length(cairo_t *cairo,
 }
 
 static uint32_t predict_binding_mode_indicator_length(cairo_t *cairo,
-		struct swaybar_output *output) {
+		struct wmiivbar_output *output) {
 	const char *mode = output->bar->mode;
 	if (!mode) {
 		return 0;
 	}
 
-	struct swaybar_config *config = output->bar->config;
+	struct wmiivbar_config *config = output->bar->config;
 
 	if (!config->binding_mode_indicator) {
 		return 0;
@@ -497,7 +497,7 @@ static uint32_t predict_binding_mode_indicator_length(cairo_t *cairo,
 }
 
 static uint32_t render_status_line_i3bar(struct render_context *ctx, double *x) {
-	struct swaybar_output *output = ctx->output;
+	struct wmiivbar_output *output = ctx->output;
 	uint32_t max_height = 0;
 	bool edge = *x == output->width;
 	struct i3bar_block *block;
@@ -542,14 +542,14 @@ static uint32_t render_status_line(struct render_context *ctx, double *x) {
 
 static uint32_t render_binding_mode_indicator(struct render_context *ctx,
 		double x) {
-	struct swaybar_output *output = ctx->output;
+	struct wmiivbar_output *output = ctx->output;
 	const char *mode = output->bar->mode;
 	if (!mode) {
 		return 0;
 	}
 
 	cairo_t *cairo = ctx->cairo;
-	struct swaybar_config *config = output->bar->config;
+	struct wmiivbar_config *config = output->bar->config;
 	int text_width, text_height;
 	get_text_size(cairo, config->font, &text_width, &text_height, NULL,
 			1, output->bar->mode_pango_markup,
@@ -598,7 +598,7 @@ static uint32_t render_binding_mode_indicator(struct render_context *ctx,
 }
 
 static enum hotspot_event_handling workspace_hotspot_callback(
-		struct swaybar_output *output, struct swaybar_hotspot *hotspot,
+		struct wmiivbar_output *output, struct wmiivbar_hotspot *hotspot,
 		double x, double y, uint32_t button, void *data) {
 	if (button != BTN_LEFT) {
 		return HOTSPOT_PROCESS;
@@ -608,9 +608,9 @@ static enum hotspot_event_handling workspace_hotspot_callback(
 }
 
 static uint32_t render_workspace_button(struct render_context *ctx,
-		struct swaybar_workspace *ws, double *x) {
-	struct swaybar_output *output = ctx->output;
-	struct swaybar_config *config = output->bar->config;
+		struct wmiivbar_workspace *ws, double *x) {
+	struct wmiivbar_output *output = ctx->output;
+	struct wmiivbar_config *config = output->bar->config;
 	struct box_colors box_colors;
 	if (ws->urgent) {
 		box_colors = config->colors.urgent_workspace;
@@ -669,7 +669,7 @@ static uint32_t render_workspace_button(struct render_context *ctx,
 	render_text(cairo, config->font, 1, config->pango_markup,
 			"%s", ws->label);
 
-	struct swaybar_hotspot *hotspot = calloc(1, sizeof(struct swaybar_hotspot));
+	struct wmiivbar_hotspot *hotspot = calloc(1, sizeof(struct wmiivbar_hotspot));
 	hotspot->x = *x;
 	hotspot->y = 0;
 	hotspot->width = width;
@@ -685,9 +685,9 @@ static uint32_t render_workspace_button(struct render_context *ctx,
 
 static uint32_t render_to_cairo(struct render_context *ctx) {
 	cairo_t *cairo = ctx->cairo;
-	struct swaybar_output *output = ctx->output;
-	struct swaybar *bar = output->bar;
-	struct swaybar_config *config = bar->config;
+	struct wmiivbar_output *output = ctx->output;
+	struct wmiivbar *bar = output->bar;
+	struct wmiivbar_config *config = bar->config;
 	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
 	if (output->focused) {
 		ctx->background_color = config->colors.focused_background;
@@ -721,7 +721,7 @@ static uint32_t render_to_cairo(struct render_context *ctx) {
 	}
 	x = 0;
 	if (config->workspace_buttons) {
-		struct swaybar_workspace *ws;
+		struct wmiivbar_workspace *ws;
 		wl_list_for_each(ws, &output->workspaces, link) {
 			uint32_t h = render_workspace_button(ctx, ws, &x);
 			max_height = h > max_height ? h : max_height;
@@ -738,7 +738,7 @@ static uint32_t render_to_cairo(struct render_context *ctx) {
 static void output_frame_handle_done(void *data, struct wl_callback *callback,
 		uint32_t time) {
 	wl_callback_destroy(callback);
-	struct swaybar_output *output = data;
+	struct wmiivbar_output *output = data;
 	output->frame_scheduled = false;
 	if (output->dirty) {
 		render_frame(output);
@@ -750,7 +750,7 @@ static const struct wl_callback_listener output_frame_listener = {
 	.done = output_frame_handle_done
 };
 
-void render_frame(struct swaybar_output *output) {
+void render_frame(struct wmiivbar_output *output) {
 	assert(output->surface != NULL);
 	if (!output->layer_surface) {
 		return;

@@ -9,7 +9,7 @@
  * A state might contain a new size, or new border settings, or new parent/child
  * relationships.
  *
- * Committing a transaction makes sway notify of all the affected clients with
+ * Committing a transaction makes WMiiv notify of all the affected clients with
  * their new sizes. We then wait for all the views to respond with their new
  * surface sizes. When all are ready, or when a timeout has passed, we apply the
  * updates all at the same time.
@@ -19,8 +19,8 @@
  * create and commits a transaction from the dirty containers.
  */
 
-struct sway_transaction_instruction;
-struct sway_view;
+struct wmiiv_transaction_instruction;
+struct wmiiv_view;
 
 /**
  * Find all dirty containers, create and commit a transaction containing them,
@@ -39,7 +39,7 @@ void transaction_commit_dirty_client(void);
  *
  * When all views in the transaction are ready, the layout will be applied.
  */
-void transaction_notify_view_ready_by_serial(struct sway_view *view,
+void transaction_notify_view_ready_by_serial(struct wmiiv_view *view,
 		uint32_t serial);
 
 /**
@@ -48,7 +48,7 @@ void transaction_notify_view_ready_by_serial(struct sway_view *view,
  *
  * This is used by xwayland views, as they don't have serials.
  */
-void transaction_notify_view_ready_by_geometry(struct sway_view *view,
+void transaction_notify_view_ready_by_geometry(struct wmiiv_view *view,
 		double x, double y, int width, int height);
 
 #endif

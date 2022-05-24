@@ -15,17 +15,17 @@
 #include <strings.h>
 #include <linux/input-event-codes.h>
 #include <wlr/types/wlr_output.h>
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
-#include "sway/input/switch.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/criteria.h"
-#include "sway/desktop/transaction.h"
-#include "sway/swaynag.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/root.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/input/switch.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/criteria.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/wmiivnag.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/workspace.h"
 #include "cairo_util.h"
 #include "pango.h"
 #include "stringop.h"
@@ -33,7 +33,7 @@
 #include "log.h"
 #include "util.h"
 
-struct sway_config *config = NULL;
+struct wmiiv_config *config = NULL;
 
 static struct xkb_state *keysym_translation_state_create(
 		struct xkb_rule_names rules) {
@@ -53,26 +53,26 @@ static void keysym_translation_state_destroy(
 	xkb_state_unref(state);
 }
 
-static void free_mode(struct sway_mode *mode) {
+static void free_mode(struct wmiiv_mode *mode) {
 	if (!mode) {
 		return;
 	}
 	free(mode->name);
 	if (mode->keysym_bindings) {
 		for (int i = 0; i < mode->keysym_bindings->length; i++) {
-			free_sway_binding(mode->keysym_bindings->items[i]);
+			free_wmiiv_binding(mode->keysym_bindings->items[i]);
 		}
 		list_free(mode->keysym_bindings);
 	}
 	if (mode->keycode_bindings) {
 		for (int i = 0; i < mode->keycode_bindings->length; i++) {
-			free_sway_binding(mode->keycode_bindings->items[i]);
+			free_wmiiv_binding(mode->keycode_bindings->items[i]);
 		}
 		list_free(mode->keycode_bindings);
 	}
 	if (mode->mouse_bindings) {
 		for (int i = 0; i < mode->mouse_bindings->length; i++) {
-			free_sway_binding(mode->mouse_bindings->items[i]);
+			free_wmiiv_binding(mode->mouse_bindings->items[i]);
 		}
 		list_free(mode->mouse_bindings);
 	}
@@ -85,7 +85,7 @@ static void free_mode(struct sway_mode *mode) {
 	free(mode);
 }
 
-void free_config(struct sway_config *config) {
+void free_config(struct wmiiv_config *config) {
 	if (!config) {
 		return;
 	}
@@ -95,7 +95,7 @@ void free_config(struct sway_config *config) {
 	// TODO: handle all currently unhandled lists as we add implementations
 	if (config->symbols) {
 		for (int i = 0; i < config->symbols->length; ++i) {
-			free_sway_variable(config->symbols->items[i]);
+			free_wmiiv_variable(config->symbols->items[i]);
 		}
 		list_free(config->symbols);
 	}
@@ -124,8 +124,8 @@ void free_config(struct sway_config *config) {
 		}
 		list_free(config->output_configs);
 	}
-	if (config->swaybg_client != NULL) {
-		wl_client_destroy(config->swaybg_client);
+	if (config->wmiivbg_client != NULL) {
+		wl_client_destroy(config->wmiivbg_client);
 	}
 	if (config->input_configs) {
 		for (int i = 0; i < config->input_configs->length; i++) {
@@ -159,18 +159,18 @@ void free_config(struct sway_config *config) {
 	free(config->floating_scroll_left_cmd);
 	free(config->floating_scroll_right_cmd);
 	free(config->font);
-	free(config->swaybg_command);
-	free(config->swaynag_command);
+	free(config->wmiivbg_command);
+	free(config->wmiivnag_command);
 	free((char *)config->current_config_path);
 	free((char *)config->current_config);
 	keysym_translation_state_destroy(config->keysym_translation_state);
 	free(config);
 }
 
-static void destroy_removed_seats(struct sway_config *old_config,
-		struct sway_config *new_config) {
+static void destroy_removed_seats(struct wmiiv_config *old_config,
+		struct wmiiv_config *new_config) {
 	struct seat_config *seat_config;
-	struct sway_seat *seat;
+	struct wmiiv_seat *seat;
 	int i;
 	for (i = 0; i < old_config->seat_configs->length; i++) {
 		seat_config = old_config->seat_configs->items[i];
@@ -190,15 +190,15 @@ static void destroy_removed_seats(struct sway_config *old_config,
 	}
 }
 
-static void config_defaults(struct sway_config *config) {
-	if (!(config->swaynag_command = strdup("swaynag"))) goto cleanup;
-	config->swaynag_config_errors = (struct swaynag_instance){0};
-	config->swaynag_config_errors.args = "--type error "
+static void config_defaults(struct wmiiv_config *config) {
+	if (!(config->wmiivnag_command = strdup("wmiivnag"))) goto cleanup;
+	config->wmiivnag_config_errors = (struct wmiivnag_instance){0};
+	config->wmiivnag_config_errors.args = "--type error "
 			"--message 'There are errors in your config file' "
 			"--detailed-message "
-			"--button-no-terminal 'Exit sway' 'swaymsg exit' "
-			"--button-no-terminal 'Reload sway' 'swaymsg reload'";
-	config->swaynag_config_errors.detailed = true;
+			"--button-no-terminal 'Exit wmiiv' 'wmiivmsg exit' "
+			"--button-no-terminal 'Reload wmiiv' 'wmiivmsg reload'";
+	config->wmiivnag_config_errors.detailed = true;
 
 	if (!(config->symbols = create_list())) goto cleanup;
 	if (!(config->modes = create_list())) goto cleanup;
@@ -214,7 +214,7 @@ static void config_defaults(struct sway_config *config) {
 
 	if (!(config->cmd_queue = create_list())) goto cleanup;
 
-	if (!(config->current_mode = malloc(sizeof(struct sway_mode))))
+	if (!(config->current_mode = malloc(sizeof(struct wmiiv_mode))))
 		goto cleanup;
 	if (!(config->current_mode->name = malloc(sizeof("default")))) goto cleanup;
 	strcpy(config->current_mode->name, "default");
@@ -274,7 +274,7 @@ static void config_defaults(struct sway_config *config) {
 
 	if (!(config->active_bar_modifiers = create_list())) goto cleanup;
 
-	if (!(config->swaybg_command = strdup("swaybg"))) goto cleanup;
+	if (!(config->wmiivbg_command = strdup("wmiivbg"))) goto cleanup;
 
 	if (!(config->config_chain = create_list())) goto cleanup;
 	config->current_config_path = NULL;
@@ -331,7 +331,7 @@ static void config_defaults(struct sway_config *config) {
 
 	return;
 cleanup:
-	sway_abort("Unable to allocate config structures");
+	wmiiv_abort("Unable to allocate config structures");
 }
 
 static bool file_exists(const char *path) {
@@ -371,11 +371,11 @@ static char *get_config_path(void) {
 	};
 
 	struct config_path config_paths[] = {
-		{ .prefix = home, .config_folder = ".sway"},
-		{ .prefix = config_home, .config_folder = "sway"},
+		{ .prefix = home, .config_folder = ".wmiiv"},
+		{ .prefix = config_home, .config_folder = "wmiiv"},
 		{ .prefix = home, .config_folder = ".i3"},
 		{ .prefix = config_home, .config_folder = "i3"},
-		{ .prefix = SYSCONFDIR, .config_folder = "sway"},
+		{ .prefix = SYSCONFDIR, .config_folder = "wmiiv"},
 		{ .prefix = SYSCONFDIR, .config_folder = "i3"}
 	};
 
@@ -396,32 +396,32 @@ static char *get_config_path(void) {
 	return path;
 }
 
-static bool load_config(const char *path, struct sway_config *config,
-		struct swaynag_instance *swaynag) {
+static bool load_config(const char *path, struct wmiiv_config *config,
+		struct wmiivnag_instance *wmiivnag) {
 	if (path == NULL) {
-		sway_log(SWAY_ERROR, "Unable to find a config file!");
+		wmiiv_log(SWAY_ERROR, "Unable to find a config file!");
 		return false;
 	}
 
-	sway_log(SWAY_INFO, "Loading config from %s", path);
+	wmiiv_log(SWAY_INFO, "Loading config from %s", path);
 
 	struct stat sb;
 	if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) {
-		sway_log(SWAY_ERROR, "%s is a directory not a config file", path);
+		wmiiv_log(SWAY_ERROR, "%s is a directory not a config file", path);
 		return false;
 	}
 
 	FILE *f = fopen(path, "r");
 	if (!f) {
-		sway_log(SWAY_ERROR, "Unable to open %s for reading", path);
+		wmiiv_log(SWAY_ERROR, "Unable to open %s for reading", path);
 		return false;
 	}
 
-	bool config_load_success = read_config(f, config, swaynag);
+	bool config_load_success = read_config(f, config, wmiivnag);
 	fclose(f);
 
 	if (!config_load_success) {
-		sway_log(SWAY_ERROR, "Error(s) loading config!");
+		wmiiv_log(SWAY_ERROR, "Error(s) loading config!");
 	}
 
 	return config->active || !config->validating || config_load_success;
@@ -435,43 +435,43 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 		path = get_config_path();
 	}
 	if (path == NULL) {
-		sway_log(SWAY_ERROR, "Cannot find config file");
+		wmiiv_log(SWAY_ERROR, "Cannot find config file");
 		return false;
 	}
 
 	char *real_path = realpath(path, NULL);
 	if (real_path == NULL) {
-		sway_log(SWAY_ERROR, "%s not found", path);
+		wmiiv_log(SWAY_ERROR, "%s not found", path);
 		free(path);
 		return false;
 	}
 
-	struct sway_config *old_config = config;
-	config = calloc(1, sizeof(struct sway_config));
+	struct wmiiv_config *old_config = config;
+	config = calloc(1, sizeof(struct wmiiv_config));
 	if (!config) {
-		sway_abort("Unable to allocate config");
+		wmiiv_abort("Unable to allocate config");
 	}
 
 	config_defaults(config);
 	config->validating = validating;
 	if (is_active) {
-		sway_log(SWAY_DEBUG, "Performing configuration file %s",
+		wmiiv_log(SWAY_DEBUG, "Performing configuration file %s",
 			validating ? "validation" : "reload");
 		config->reloading = true;
 		config->active = true;
 
 		// xwayland can only be enabled/disabled at launch
-		sway_log(SWAY_DEBUG, "xwayland will remain %s",
+		wmiiv_log(SWAY_DEBUG, "xwayland will remain %s",
 				old_config->xwayland ? "enabled" : "disabled");
 		config->xwayland = old_config->xwayland;
 
 		if (!config->validating) {
-			if (old_config->swaybg_client != NULL) {
-				wl_client_destroy(old_config->swaybg_client);
+			if (old_config->wmiivbg_client != NULL) {
+				wl_client_destroy(old_config->wmiivbg_client);
 			}
 
-			if (old_config->swaynag_config_errors.client != NULL) {
-				wl_client_destroy(old_config->swaynag_config_errors.client);
+			if (old_config->wmiivnag_config_errors.client != NULL) {
+				wl_client_destroy(old_config->wmiivnag_config_errors.client);
 			}
 
 			input_manager_reset_all_inputs();
@@ -488,14 +488,14 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 	// TODO: Security
 	bool success = true;
 	/*
-	DIR *dir = opendir(SYSCONFDIR "/sway/security.d");
+	DIR *dir = opendir(SYSCONFDIR "/wmiiv/security.d");
 	if (!dir) {
-		sway_log(SWAY_ERROR,
-			"%s does not exist, sway will have no security configuration"
-			" and will probably be broken", SYSCONFDIR "/sway/security.d");
+		wmiiv_log(SWAY_ERROR,
+			"%s does not exist, wmiiv will have no security configuration"
+			" and will probably be broken", SYSCONFDIR "/wmiiv/security.d");
 	} else {
 		list_t *secconfigs = create_list();
-		char *base = SYSCONFDIR "/sway/security.d/";
+		char *base = SYSCONFDIR "/wmiiv/security.d/";
 		struct dirent *ent = readdir(dir);
 		struct stat s;
 		while (ent != NULL) {
@@ -519,7 +519,7 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 			if (stat(_path, &s) || s.st_uid != 0 || s.st_gid != 0 ||
 					(((s.st_mode & 0777) != 0644) &&
 					(s.st_mode & 0777) != 0444)) {
-				sway_log(SWAY_ERROR,
+				wmiiv_log(SWAY_ERROR,
 					"Refusing to load %s - it must be owned by root "
 					"and mode 644 or 444", _path);
 				success = false;
@@ -533,7 +533,7 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 	*/
 
 	success = success && load_config(path, config,
-			&config->swaynag_config_errors);
+			&config->wmiivnag_config_errors);
 
 	if (validating) {
 		free_config(config);
@@ -559,14 +559,14 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 		for (int i = 0; i < config->seat_configs->length; i++) {
 			input_manager_apply_seat_config(config->seat_configs->items[i]);
 		}
-		sway_switch_retrigger_bindings_for_all();
+		wmiiv_switch_retrigger_bindings_for_all();
 
 		reset_outputs();
-		spawn_swaybg();
+		spawn_wmiivbg();
 
 		config->reloading = false;
-		if (config->swaynag_config_errors.client != NULL) {
-			swaynag_show(&config->swaynag_config_errors);
+		if (config->wmiivnag_config_errors.client != NULL) {
+			wmiivnag_show(&config->wmiivnag_config_errors);
 		}
 	}
 
@@ -579,7 +579,7 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 }
 
 static bool load_include_config(const char *path, const char *parent_dir,
-		struct sway_config *config, struct swaynag_instance *swaynag) {
+		struct wmiiv_config *config, struct wmiivnag_instance *wmiivnag) {
 	// save parent config
 	const char *parent_config = config->current_config_path;
 
@@ -589,7 +589,7 @@ static bool load_include_config(const char *path, const char *parent_dir,
 		len = len + strlen(parent_dir) + 2;
 		full_path = malloc(len * sizeof(char));
 		if (!full_path) {
-			sway_log(SWAY_ERROR,
+			wmiiv_log(SWAY_ERROR,
 				"Unable to allocate full path to included config");
 			return false;
 		}
@@ -602,7 +602,7 @@ static bool load_include_config(const char *path, const char *parent_dir,
 	free(full_path);
 
 	if (real_path == NULL) {
-		sway_log(SWAY_DEBUG, "%s not found.", path);
+		wmiiv_log(SWAY_DEBUG, "%s not found.", path);
 		return false;
 	}
 
@@ -611,7 +611,7 @@ static bool load_include_config(const char *path, const char *parent_dir,
 	for (j = 0; j < config->config_chain->length; ++j) {
 		char *old_path = config->config_chain->items[j];
 		if (strcmp(real_path, old_path) == 0) {
-			sway_log(SWAY_DEBUG,
+			wmiiv_log(SWAY_DEBUG,
 				"%s already included once, won't be included again.",
 				real_path);
 			free(real_path);
@@ -623,7 +623,7 @@ static bool load_include_config(const char *path, const char *parent_dir,
 	list_add(config->config_chain, real_path);
 	int index = config->config_chain->length - 1;
 
-	if (!load_config(real_path, config, swaynag)) {
+	if (!load_config(real_path, config, wmiivnag)) {
 		free(real_path);
 		config->current_config_path = parent_config;
 		list_del(config->config_chain, index);
@@ -635,14 +635,14 @@ static bool load_include_config(const char *path, const char *parent_dir,
 	return true;
 }
 
-void load_include_configs(const char *path, struct sway_config *config,
-		struct swaynag_instance *swaynag) {
+void load_include_configs(const char *path, struct wmiiv_config *config,
+		struct wmiivnag_instance *wmiivnag) {
 	char *wd = getcwd(NULL, 0);
 	char *parent_path = strdup(config->current_config_path);
 	const char *parent_dir = dirname(parent_path);
 
 	if (chdir(parent_dir) < 0) {
-		sway_log(SWAY_ERROR, "failed to change working directory");
+		wmiiv_log(SWAY_ERROR, "failed to change working directory");
 		goto cleanup;
 	}
 
@@ -651,14 +651,14 @@ void load_include_configs(const char *path, struct sway_config *config,
 		char **w = p.we_wordv;
 		size_t i;
 		for (i = 0; i < p.we_wordc; ++i) {
-			load_include_config(w[i], parent_dir, config, swaynag);
+			load_include_config(w[i], parent_dir, config, wmiivnag);
 		}
 		wordfree(&p);
 	}
 
 	// Attempt to restore working directory before returning.
 	if (chdir(wd) < 0) {
-		sway_log(SWAY_ERROR, "failed to change working directory");
+		wmiiv_log(SWAY_ERROR, "failed to change working directory");
 	}
 cleanup:
 	free(parent_path);
@@ -669,14 +669,14 @@ void run_deferred_commands(void) {
 	if (!config->cmd_queue->length) {
 		return;
 	}
-	sway_log(SWAY_DEBUG, "Running deferred commands");
+	wmiiv_log(SWAY_DEBUG, "Running deferred commands");
 	while (config->cmd_queue->length) {
 		char *line = config->cmd_queue->items[0];
 		list_t *res_list = execute_command(line, NULL, NULL);
 		for (int i = 0; i < res_list->length; ++i) {
 			struct cmd_results *res = res_list->items[i];
 			if (res->status != CMD_SUCCESS) {
-				sway_log(SWAY_ERROR, "Error on line '%s': %s",
+				wmiiv_log(SWAY_ERROR, "Error on line '%s': %s",
 						line, res->error);
 			}
 			free_cmd_results(res);
@@ -688,18 +688,18 @@ void run_deferred_commands(void) {
 }
 
 void run_deferred_bindings(void) {
-	struct sway_seat *seat;
+	struct wmiiv_seat *seat;
 	wl_list_for_each(seat, &(server.input->seats), link) {
 		if (!seat->deferred_bindings->length) {
 			continue;
 		}
-		sway_log(SWAY_DEBUG, "Running deferred bindings for seat %s",
+		wmiiv_log(SWAY_DEBUG, "Running deferred bindings for seat %s",
 				seat->wlr_seat->name);
 		while (seat->deferred_bindings->length) {
-			struct sway_binding *binding = seat->deferred_bindings->items[0];
+			struct wmiiv_binding *binding = seat->deferred_bindings->items[0];
 			seat_execute_command(seat, binding);
 			list_del(seat->deferred_bindings, 0);
-			free_sway_binding(binding);
+			free_wmiiv_binding(binding);
 		}
 	}
 }
@@ -763,7 +763,7 @@ static char *expand_line(const char *block, const char *line, bool add_brace) {
 		+ (add_brace ? 2 : 0) + 1;
 	char *expanded = calloc(1, size);
 	if (!expanded) {
-		sway_log(SWAY_ERROR, "Cannot allocate expanded line buffer");
+		wmiiv_log(SWAY_ERROR, "Cannot allocate expanded line buffer");
 		return NULL;
 	}
 	snprintf(expanded, size, "%s%s%s%s", block ? block : "",
@@ -771,8 +771,8 @@ static char *expand_line(const char *block, const char *line, bool add_brace) {
 	return expanded;
 }
 
-bool read_config(FILE *file, struct sway_config *config,
-		struct swaynag_instance *swaynag) {
+bool read_config(FILE *file, struct wmiiv_config *config,
+		struct wmiivnag_instance *wmiivnag) {
 	bool reading_main_config = false;
 	char *this_config = NULL;
 	size_t config_size = 0;
@@ -782,7 +782,7 @@ bool read_config(FILE *file, struct sway_config *config,
 		int ret_seek = fseek(file, 0, SEEK_END);
 		long ret_tell = ftell(file);
 		if (ret_seek == -1 || ret_tell == -1) {
-			sway_log(SWAY_ERROR, "Unable to get size of config file");
+			wmiiv_log(SWAY_ERROR, "Unable to get size of config file");
 			return false;
 		}
 		config_size = ret_tell;
@@ -790,7 +790,7 @@ bool read_config(FILE *file, struct sway_config *config,
 
 		config->current_config = this_config = calloc(1, config_size + 1);
 		if (this_config == NULL) {
-			sway_log(SWAY_ERROR, "Unable to allocate buffer for config contents");
+			wmiiv_log(SWAY_ERROR, "Unable to allocate buffer for config contents");
 			return false;
 		}
 	}
@@ -806,7 +806,7 @@ bool read_config(FILE *file, struct sway_config *config,
 	while ((nread = getline_with_cont(&line, &line_size, file, &nlines)) != -1) {
 		if (reading_main_config) {
 			if (read + nread > config_size) {
-				sway_log(SWAY_ERROR, "Config file changed during reading");
+				wmiiv_log(SWAY_ERROR, "Config file changed during reading");
 				success = false;
 				break;
 			}
@@ -820,7 +820,7 @@ bool read_config(FILE *file, struct sway_config *config,
 		}
 
 		line_number += nlines;
-		sway_log(SWAY_DEBUG, "Read line %d: %s", line_number, line);
+		wmiiv_log(SWAY_DEBUG, "Read line %d: %s", line_number, line);
 
 		strip_whitespace(line);
 		if (!*line || line[0] == '#') {
@@ -831,7 +831,7 @@ bool read_config(FILE *file, struct sway_config *config,
 			brace_detected = detect_brace(file);
 			if (brace_detected > 0) {
 				line_number += brace_detected;
-				sway_log(SWAY_DEBUG, "Detected open brace on line %d", line_number);
+				wmiiv_log(SWAY_DEBUG, "Detected open brace on line %d", line_number);
 			}
 		}
 		char *block = stack->length ? stack->items[0] : NULL;
@@ -853,10 +853,10 @@ bool read_config(FILE *file, struct sway_config *config,
 		switch(res->status) {
 		case CMD_FAILURE:
 		case CMD_INVALID:
-			sway_log(SWAY_ERROR, "Error on line %i '%s': %s (%s)", line_number,
+			wmiiv_log(SWAY_ERROR, "Error on line %i '%s': %s (%s)", line_number,
 				line, res->error, config->current_config_path);
 			if (!config->validating) {
-				swaynag_log(config->swaynag_command, swaynag,
+				wmiivnag_log(config->wmiivnag_command, wmiivnag,
 					"Error on line %i (%s) '%s': %s", line_number,
 					config->current_config_path, line, res->error);
 			}
@@ -864,17 +864,17 @@ bool read_config(FILE *file, struct sway_config *config,
 			break;
 
 		case CMD_DEFER:
-			sway_log(SWAY_DEBUG, "Deferring command `%s'", line);
+			wmiiv_log(SWAY_DEBUG, "Deferring command `%s'", line);
 			list_add(config->cmd_queue, strdup(expanded));
 			break;
 
 		case CMD_BLOCK_COMMANDS:
-			sway_log(SWAY_DEBUG, "Entering commands block");
+			wmiiv_log(SWAY_DEBUG, "Entering commands block");
 			list_insert(stack, 0, "<commands>");
 			break;
 
 		case CMD_BLOCK:
-			sway_log(SWAY_DEBUG, "Entering block '%s'", new_block);
+			wmiiv_log(SWAY_DEBUG, "Entering block '%s'", new_block);
 			list_insert(stack, 0, strdup(new_block));
 			if (strcmp(new_block, "bar") == 0) {
 				config->current_bar = NULL;
@@ -883,7 +883,7 @@ bool read_config(FILE *file, struct sway_config *config,
 
 		case CMD_BLOCK_END:
 			if (!block) {
-				sway_log(SWAY_DEBUG, "Unmatched '}' on line %i", line_number);
+				wmiiv_log(SWAY_DEBUG, "Unmatched '}' on line %i", line_number);
 				success = false;
 				break;
 			}
@@ -891,7 +891,7 @@ bool read_config(FILE *file, struct sway_config *config,
 				config->current_bar = NULL;
 			}
 
-			sway_log(SWAY_DEBUG, "Exiting block '%s'", block);
+			wmiiv_log(SWAY_DEBUG, "Exiting block '%s'", block);
 			list_del(stack, 0);
 			free(block);
 			memset(&config->handler_context, 0,
@@ -910,7 +910,7 @@ bool read_config(FILE *file, struct sway_config *config,
 	return success;
 }
 
-void config_add_swaynag_warning(char *fmt, ...) {
+void config_add_wmiivnag_warning(char *fmt, ...) {
 	if (config->reading && !config->validating) {
 		va_list args;
 		va_start(args, fmt);
@@ -919,7 +919,7 @@ void config_add_swaynag_warning(char *fmt, ...) {
 
 		char *temp = malloc(length + 1);
 		if (!temp) {
-			sway_log(SWAY_ERROR, "Failed to allocate buffer for warning.");
+			wmiiv_log(SWAY_ERROR, "Failed to allocate buffer for warning.");
 			return;
 		}
 
@@ -927,7 +927,7 @@ void config_add_swaynag_warning(char *fmt, ...) {
 		vsnprintf(temp, length, fmt, args);
 		va_end(args);
 
-		swaynag_log(config->swaynag_command, &config->swaynag_config_errors,
+		wmiivnag_log(config->wmiivnag_command, &config->wmiivnag_config_errors,
 			"Warning on line %i (%s) '%s': %s",
 			config->current_config_line_number, config->current_config_path,
 			config->current_config_line, temp);
@@ -955,13 +955,13 @@ char *do_var_replacement(char *str) {
 		}
 		// Find matching variable
 		for (i = 0; i < config->symbols->length; ++i) {
-			struct sway_variable *var = config->symbols->items[i];
+			struct wmiiv_variable *var = config->symbols->items[i];
 			int vnlen = strlen(var->name);
 			if (strncmp(find, var->name, vnlen) == 0) {
 				int vvlen = strlen(var->value);
 				char *newstr = malloc(strlen(str) - vnlen + vvlen + 1);
 				if (!newstr) {
-					sway_log(SWAY_ERROR,
+					wmiiv_log(SWAY_ERROR,
 						"Unable to allocate replacement "
 						"during variable expansion");
 					break;
@@ -1008,7 +1008,7 @@ void config_update_font_height(void) {
 static void translate_binding_list(list_t *bindings, list_t *bindsyms,
 		list_t *bindcodes) {
 	for (int i = 0; i < bindings->length; ++i) {
-		struct sway_binding *binding = bindings->items[i];
+		struct wmiiv_binding *binding = bindings->items[i];
 		translate_binding(binding);
 
 		switch (binding->type) {
@@ -1019,7 +1019,7 @@ static void translate_binding_list(list_t *bindings, list_t *bindsyms,
 			binding_add_translated(binding, bindcodes);
 			break;
 		default:
-			sway_assert(false, "unexpected translated binding type: %d",
+			wmiiv_assert(false, "unexpected translated binding type: %d",
 					binding->type);
 			break;
 		}
@@ -1036,7 +1036,7 @@ void translate_keysyms(struct input_config *input_config) {
 		keysym_translation_state_create(rules);
 
 	for (int i = 0; i < config->modes->length; ++i) {
-		struct sway_mode *mode = config->modes->items[i];
+		struct wmiiv_mode *mode = config->modes->items[i];
 
 		list_t *bindsyms = create_list();
 		list_t *bindcodes = create_list();
@@ -1051,6 +1051,6 @@ void translate_keysyms(struct input_config *input_config) {
 		mode->keycode_bindings = bindcodes;
 	}
 
-	sway_log(SWAY_DEBUG, "Translated keysyms using config for device '%s'",
+	wmiiv_log(SWAY_DEBUG, "Translated keysyms using config for device '%s'",
 			input_config->identifier);
 }

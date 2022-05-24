@@ -1,21 +1,21 @@
 #ifndef _SWAY_ARRANGE_H
 #define _SWAY_ARRANGE_H
 
-struct sway_output;
-struct sway_workspace;
-struct sway_container;
-struct sway_node;
+struct wmiiv_output;
+struct wmiiv_workspace;
+struct wmiiv_container;
+struct wmiiv_node;
 
 void arrange_root(void);
 
-void arrange_output(struct sway_output *output);
+void arrange_output(struct wmiiv_output *output);
 
-void arrange_node(struct sway_node *node);
+void arrange_node(struct wmiiv_node *node);
 
-void arrange_workspace(struct sway_workspace *workspace);
+void arrange_workspace(struct wmiiv_workspace *workspace);
 
-void arrange_column(struct sway_container *col);
+void arrange_column(struct wmiiv_container *col);
 
-void arrange_window(struct sway_container *win);
+void arrange_window(struct wmiiv_container *win);
 
 #endif

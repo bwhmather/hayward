@@ -1,6 +1,6 @@
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/criteria.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/criteria.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
@@ -24,14 +24,14 @@ struct cmd_results *cmd_for_window(int argc, char **argv) {
 
 	// Check if it already exists
 	if (criteria_already_exists(criteria)) {
-		sway_log(SWAY_DEBUG, "for_window already exists: '%s' -> '%s'",
+		wmiiv_log(SWAY_DEBUG, "for_window already exists: '%s' -> '%s'",
 				criteria->raw, criteria->cmdlist);
 		criteria_destroy(criteria);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
 	list_add(config->criteria, criteria);
-	sway_log(SWAY_DEBUG, "for_window: '%s' -> '%s' added", criteria->raw, criteria->cmdlist);
+	wmiiv_log(SWAY_DEBUG, "for_window: '%s' -> '%s' added", criteria->raw, criteria->cmdlist);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

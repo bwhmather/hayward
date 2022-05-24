@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include "log.h"
 #include "list.h"
-#include "swaynag/swaynag.h"
-#include "swaynag/types.h"
+#include "wmiivnag/wmiivnag.h"
+#include "wmiivnag/types.h"
 #include "util.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
@@ -47,8 +47,8 @@ freebuf:
 	return NULL;
 }
 
-int swaynag_parse_options(int argc, char **argv, struct swaynag *swaynag,
-		list_t *types, struct swaynag_type *type, char **config, bool *debug) {
+int wmiivnag_parse_options(int argc, char **argv, struct wmiivnag *wmiivnag,
+		list_t *types, struct wmiivnag_type *type, char **config, bool *debug) {
 	enum type_options {
 		TO_COLOR_BACKGROUND = 256,
 		TO_COLOR_BORDER,
@@ -106,7 +106,7 @@ int swaynag_parse_options(int argc, char **argv, struct swaynag *swaynag,
 	};
 
 	const char *usage =
-		"Usage: swaynag [options...]\n"
+		"Usage: wmiivnag [options...]\n"
 		"\n"
 		"  -b, --button <text> <action>  Create a button with text that "
 			"executes action in a terminal when pressed. Multiple buttons can "
@@ -114,7 +114,7 @@ int swaynag_parse_options(int argc, char **argv, struct swaynag *swaynag,
 		"  -B, --button-no-terminal <text> <action>  Like --button, but does"
 			"not run the action in a terminal.\n"
 		"  -z, --button-dismiss <text> <action>  Create a button with text that "
-			"dismisses swaynag, and executes action in a terminal when pressed. "
+			"dismisses wmiivnag, and executes action in a terminal when pressed. "
 			"Multiple buttons can be defined.\n"
 		"  -Z, --button-dismiss-no-terminal <text> <action>  Like "
 			"--button-dismiss, but does not run the action in a terminal.\n"
@@ -161,12 +161,12 @@ int swaynag_parse_options(int argc, char **argv, struct swaynag *swaynag,
 		case 'B': // Button (No Terminal)
 		case 'z': // Button (Dismiss)
 		case 'Z': // Button (Dismiss, No Terminal)
-			if (swaynag) {
+			if (wmiivnag) {
 				if (optind >= argc) {
 					fprintf(stderr, "Missing action for button %s\n", optarg);
 					return EXIT_FAILURE;
 				}
-				struct swaynag_button *button = calloc(sizeof(struct swaynag_button), 1);
+				struct wmiivnag_button *button = calloc(sizeof(struct wmiivnag_button), 1);
 				if (!button) {
 					perror("calloc");
 					return EXIT_FAILURE;
@@ -176,7 +176,7 @@ int swaynag_parse_options(int argc, char **argv, struct swaynag *swaynag,
 				button->action = strdup(argv[optind]);
 				button->terminal = c == 'b';
 				button->dismiss = c == 'z' || c == 'Z';
-				list_add(swaynag->buttons, button);
+				list_add(wmiivnag->buttons, button);
 			}
 			optind++;
 			break;
@@ -231,26 +231,26 @@ int swaynag_parse_options(int argc, char **argv, struct swaynag *swaynag,
 			}
 			break;
 		case 'l': // Detailed Message
-			if (swaynag) {
-				free(swaynag->details.message);
-				swaynag->details.message = read_and_trim_stdin();
-				if (!swaynag->details.message) {
+			if (wmiivnag) {
+				free(wmiivnag->details.message);
+				wmiivnag->details.message = read_and_trim_stdin();
+				if (!wmiivnag->details.message) {
 					return EXIT_FAILURE;
 				}
-				swaynag->details.button_up.text = strdup("▲");
-				swaynag->details.button_down.text = strdup("▼");
+				wmiivnag->details.button_up.text = strdup("▲");
+				wmiivnag->details.button_down.text = strdup("▼");
 			}
 			break;
 		case 'L': // Detailed Button Text
-			if (swaynag) {
-				free(swaynag->details.button_details.text);
-				swaynag->details.button_details.text = strdup(optarg);
+			if (wmiivnag) {
+				free(wmiivnag->details.button_details.text);
+				wmiivnag->details.button_details.text = strdup(optarg);
 			}
 			break;
 		case 'm': // Message
-			if (swaynag) {
-				free(swaynag->message);
-				swaynag->message = strdup(optarg);
+			if (wmiivnag) {
+				free(wmiivnag->message);
+				wmiivnag->message = strdup(optarg);
 			}
 			break;
 		case 'o': // Output
@@ -260,23 +260,23 @@ int swaynag_parse_options(int argc, char **argv, struct swaynag *swaynag,
 			}
 			break;
 		case 's': // Dismiss Button Text
-			if (swaynag) {
-				struct swaynag_button *button_close = swaynag->buttons->items[0];
+			if (wmiivnag) {
+				struct wmiivnag_button *button_close = wmiivnag->buttons->items[0];
 				free(button_close->text);
 				button_close->text = strdup(optarg);
 			}
 			break;
 		case 't': // Type
-			if (swaynag) {
-				swaynag->type = swaynag_type_get(types, optarg);
-				if (!swaynag->type) {
+			if (wmiivnag) {
+				wmiivnag->type = wmiivnag_type_get(types, optarg);
+				if (!wmiivnag->type) {
 					fprintf(stderr, "Unknown type %s\n", optarg);
 					return EXIT_FAILURE;
 				}
 			}
 			break;
 		case 'v': // Version
-			printf("swaynag version " SWAY_VERSION "\n");
+			printf("wmiivnag version " SWAY_VERSION "\n");
 			return -1;
 		case TO_COLOR_BACKGROUND: // Background color
 			if (type && !parse_color(optarg, &type->background)) {
@@ -366,16 +366,16 @@ static bool file_exists(const char *path) {
 	return path && access(path, R_OK) != -1;
 }
 
-char *swaynag_get_config_path(void) {
+char *wmiivnag_get_config_path(void) {
 	static const char *config_paths[] = {
-		"$HOME/.swaynag/config",
-		"$XDG_CONFIG_HOME/swaynag/config",
-		SYSCONFDIR "/swaynag/config",
+		"$HOME/.wmiivnag/config",
+		"$XDG_CONFIG_HOME/wmiivnag/config",
+		SYSCONFDIR "/wmiivnag/config",
 	};
 
 	char *config_home = getenv("XDG_CONFIG_HOME");
 	if (!config_home || config_home[0] == '\0') {
-		config_paths[1] = "$HOME/.config/swaynag/config";
+		config_paths[1] = "$HOME/.config/wmiivnag/config";
 	}
 
 	wordexp_t p;
@@ -393,14 +393,14 @@ char *swaynag_get_config_path(void) {
 	return NULL;
 }
 
-int swaynag_load_config(char *path, struct swaynag *swaynag, list_t *types) {
+int wmiivnag_load_config(char *path, struct wmiivnag *wmiivnag, list_t *types) {
 	FILE *config = fopen(path, "r");
 	if (!config) {
 		fprintf(stderr, "Failed to read config. Running without it.\n");
 		return 0;
 	}
 
-	struct swaynag_type *type = swaynag_type_new("<config>");
+	struct wmiivnag_type *type = wmiivnag_type_new("<config>");
 	list_add(types, type);
 
 	char *line = NULL;
@@ -426,9 +426,9 @@ int swaynag_load_config(char *path, struct swaynag *swaynag, list_t *types) {
 				break;
 			}
 			*close = '\0';
-			type = swaynag_type_get(types, &line[1]);
+			type = wmiivnag_type_get(types, &line[1]);
 			if (!type) {
-				type = swaynag_type_new(&line[1]);
+				type = wmiivnag_type_new(&line[1]);
 				list_add(types, type);
 			}
 		} else {
@@ -438,8 +438,8 @@ int swaynag_load_config(char *path, struct swaynag *swaynag, list_t *types) {
 				return EXIT_FAILURE;
 			}
 			snprintf(flag, nread + 3, "--%s", line);
-			char *argv[] = {"swaynag", flag};
-			result = swaynag_parse_options(2, argv, swaynag, types, type,
+			char *argv[] = {"wmiivnag", flag};
+			result = wmiivnag_parse_options(2, argv, wmiivnag, types, type,
 					NULL, NULL);
 			free(flag);
 			if (result != 0) {

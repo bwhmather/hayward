@@ -1,15 +1,9 @@
-#compdef sway
+#compdef wmiiv
 #------------
 # Description
 # -----------
 #
-# Completion script for the sway window manager (http://swaywm.org)
-#
-# ---------------------------------------------
-# Author
-# -------
-#
-# * Seth Barberee <seth.barberee@gmail.com>
+# Completion script for the WMiiv window manager (https://github.com/bwhmather/wmiiv)
 #
 # -------------------------------
 _arguments -s \

@@ -1,4 +1,4 @@
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 
 struct cmd_results *cmd_focus_on_window_activation(int argc, char **argv) {
 	struct cmd_results *error = NULL;

@@ -59,7 +59,7 @@ float parse_float(const char *value) {
 	char *end;
 	float flt = strtof(value, &end);
 	if (*end || errno) {
-		sway_log(SWAY_DEBUG, "Invalid float value '%s', defaulting to NAN", value);
+		wmiiv_log(SWAY_DEBUG, "Invalid float value '%s', defaulting to NAN", value);
 		return NAN;
 	}
 	return flt;
@@ -80,7 +80,7 @@ enum movement_unit parse_movement_unit(const char *unit) {
 
 int parse_movement_amount(int argc, char **argv,
 		struct movement_amount *amount) {
-	if (!sway_assert(argc > 0, "Expected args in parse_movement_amount")) {
+	if (!wmiiv_assert(argc > 0, "Expected args in parse_movement_amount")) {
 		amount->amount = 0;
 		amount->unit = MOVEMENT_UNIT_INVALID;
 		return 0;
@@ -106,7 +106,7 @@ int parse_movement_amount(int argc, char **argv,
 	return 2;
 }
 
-const char *sway_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) {
+const char *wmiiv_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) {
 	switch (subpixel) {
 	case WL_OUTPUT_SUBPIXEL_UNKNOWN:
 		return "unknown";
@@ -121,14 +121,14 @@ const char *sway_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) 
 	case WL_OUTPUT_SUBPIXEL_VERTICAL_BGR:
 		return "vbgr";
 	}
-	sway_assert(false, "Unknown value for wl_output_subpixel.");
+	wmiiv_assert(false, "Unknown value for wl_output_subpixel.");
 	return NULL;
 }
 
-bool sway_set_cloexec(int fd, bool cloexec) {
+bool wmiiv_set_cloexec(int fd, bool cloexec) {
 	int flags = fcntl(fd, F_GETFD);
 	if (flags == -1) {
-		sway_log_errno(SWAY_ERROR, "fcntl failed");
+		wmiiv_log_errno(SWAY_ERROR, "fcntl failed");
 		return false;
 	}
 	if (cloexec) {
@@ -137,7 +137,7 @@ bool sway_set_cloexec(int fd, bool cloexec) {
 		flags = flags & ~FD_CLOEXEC;
 	}
 	if (fcntl(fd, F_SETFD, flags) == -1) {
-		sway_log_errno(SWAY_ERROR, "fcntl failed");
+		wmiiv_log_errno(SWAY_ERROR, "fcntl failed");
 		return false;
 	}
 	return true;

@@ -17,7 +17,7 @@
 #include "ipc-client.h"
 #include "log.h"
 
-void sway_terminate(int exit_code) {
+void wmiiv_terminate(int exit_code) {
 	exit(exit_code);
 }
 
@@ -279,7 +279,7 @@ static void pretty_print_output(json_object *o) {
 static void pretty_print_version(json_object *v) {
 	json_object *ver;
 	json_object_object_get_ex(v, "human_readable", &ver);
-	printf("sway version %s\n", json_object_get_string(ver));
+	printf("wmiiv version %s\n", json_object_get_string(ver));
 }
 
 static void pretty_print_config(json_object *c) {
@@ -389,7 +389,7 @@ int main(int argc, char **argv) {
 	char *socket_path = NULL;
 	char *cmdtype = NULL;
 
-	sway_log_init(SWAY_INFO, NULL);
+	wmiiv_log_init(SWAY_INFO, NULL);
 
 	static const struct option long_options[] = {
 		{"help", no_argument, NULL, 'h'},
@@ -404,7 +404,7 @@ int main(int argc, char **argv) {
 	};
 
 	const char *usage =
-		"Usage: swaymsg [options] [message]\n"
+		"Usage: wmiivmsg [options] [message]\n"
 		"\n"
 		"  -h, --help             Show help message and quit.\n"
 		"  -m, --monitor          Monitor until killed (-t SUBSCRIBE only)\n"
@@ -444,7 +444,7 @@ int main(int argc, char **argv) {
 			cmdtype = strdup(optarg);
 			break;
 		case 'v':
-			printf("swaymsg version " SWAY_VERSION "\n");
+			printf("wmiivmsg version " SWAY_VERSION "\n");
 			exit(EXIT_SUCCESS);
 			break;
 		default:
@@ -462,7 +462,7 @@ int main(int argc, char **argv) {
 			if (quiet) {
 				exit(EXIT_FAILURE);
 			}
-			sway_abort("Unable to retrieve socket path");
+			wmiiv_abort("Unable to retrieve socket path");
 		}
 	}
 
@@ -500,14 +500,14 @@ int main(int argc, char **argv) {
 		if (quiet) {
 			exit(EXIT_FAILURE);
 		}
-		sway_abort("Unknown message type %s", cmdtype);
+		wmiiv_abort("Unknown message type %s", cmdtype);
 	}
 
 	free(cmdtype);
 
 	if (monitor && type != IPC_SUBSCRIBE) {
 		if (!quiet) {
-			sway_log(SWAY_ERROR, "Monitor can only be used with -t SUBSCRIBE");
+			wmiiv_log(SWAY_ERROR, "Monitor can only be used with -t SUBSCRIBE");
 		}
 		free(socket_path);
 		return 1;
@@ -533,14 +533,14 @@ int main(int argc, char **argv) {
 		if (quiet) {
 			exit(EXIT_FAILURE);
 		}
-		sway_abort("failed allocating json_tokener");
+		wmiiv_abort("failed allocating json_tokener");
 	}
 	json_object *obj = json_tokener_parse_ex(tok, resp, -1);
 	enum json_tokener_error err = json_tokener_get_error(tok);
 	json_tokener_free(tok);
 	if (obj == NULL || err != json_tokener_success) {
 		if (!quiet) {
-			sway_log(SWAY_ERROR, "failed to parse payload as json: %s",
+			wmiiv_log(SWAY_ERROR, "failed to parse payload as json: %s",
 				json_tokener_error_desc(err));
 		}
 		ret = 1;
@@ -578,14 +578,14 @@ int main(int argc, char **argv) {
 				if (quiet) {
 					exit(EXIT_FAILURE);
 				}
-				sway_abort("failed allocating json_tokener");
+				wmiiv_abort("failed allocating json_tokener");
 			}
 			json_object *obj = json_tokener_parse_ex(tok, reply->payload, -1);
 			enum json_tokener_error err = json_tokener_get_error(tok);
 			json_tokener_free(tok);
 			if (obj == NULL || err != json_tokener_success) {
 				if (!quiet) {
-					sway_log(SWAY_ERROR, "failed to parse payload as json: %s",
+					wmiiv_log(SWAY_ERROR, "failed to parse payload as json: %s",
 						json_tokener_error_desc(err));
 				}
 				ret = 1;

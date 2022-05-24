@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/tree/view.h"
 #include "log.h"
 
 struct cmd_results *cmd_opacity(int argc, char **argv) {
@@ -11,7 +11,7 @@ struct cmd_results *cmd_opacity(int argc, char **argv) {
 		return error;
 	}
 
-	struct sway_container *con = config->handler_context.container;
+	struct wmiiv_container *con = config->handler_context.container;
 
 	if (con == NULL) {
 		return cmd_results_new(CMD_FAILURE, "No current container");

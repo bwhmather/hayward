@@ -1,14 +1,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/output.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/workspace.h"
 #include "log.h"
 
-static enum sway_container_layout parse_layout_string(char *s) {
+static enum wmiiv_container_layout parse_layout_string(char *s) {
 	if (strcasecmp(s, "splith") == 0) {
 		return L_HORIZ;
 	} else if (strcasecmp(s, "splitv") == 0) {
@@ -26,10 +26,10 @@ static const char expected_syntax[] =
 	"'layout toggle [split|all]' or "
 	"'layout toggle [split|tabbed|stacking|splitv|splith] [split|tabbed|stacking|splitv|splith]...'";
 
-static enum sway_container_layout toggle_split_layout(
-		enum sway_container_layout layout,
-		enum sway_container_layout prev_split_layout,
-		struct sway_output *output) {
+static enum wmiiv_container_layout toggle_split_layout(
+		enum wmiiv_container_layout layout,
+		enum wmiiv_container_layout prev_split_layout,
+		struct wmiiv_output *output) {
 	if (layout == L_HORIZ) {
 		return L_VERT;
 	} else if (layout == L_VERT) {
@@ -42,10 +42,10 @@ static enum sway_container_layout toggle_split_layout(
 	return L_HORIZ;
 }
 
-static enum sway_container_layout get_layout_toggle(int argc, char **argv,
-		enum sway_container_layout layout,
-		enum sway_container_layout prev_split_layout,
-		struct sway_output *output) {
+static enum wmiiv_container_layout get_layout_toggle(int argc, char **argv,
+		enum wmiiv_container_layout layout,
+		enum wmiiv_container_layout prev_split_layout,
+		struct wmiiv_output *output) {
 	// "layout toggle"
 	if (argc == 1) {
 		return toggle_split_layout(layout, prev_split_layout, output);
@@ -65,7 +65,7 @@ static enum sway_container_layout get_layout_toggle(int argc, char **argv,
 		return L_NONE;
 	}
 
-	enum sway_container_layout parsed;
+	enum wmiiv_container_layout parsed;
 	int curr = 1;
 	for (; curr < argc; curr++) {
 		parsed = parse_layout_string(argv[curr]);
@@ -91,12 +91,12 @@ static enum sway_container_layout get_layout_toggle(int argc, char **argv,
 	return L_NONE;
 }
 
-static enum sway_container_layout get_layout(int argc, char **argv,
-		enum sway_container_layout layout,
-		enum sway_container_layout prev_split_layout,
-		struct sway_output *output) {
+static enum wmiiv_container_layout get_layout(int argc, char **argv,
+		enum wmiiv_container_layout layout,
+		enum wmiiv_container_layout prev_split_layout,
+		struct wmiiv_output *output) {
 	// Check if assigned directly
-	enum sway_container_layout parsed = parse_layout_string(argv[0]);
+	enum wmiiv_container_layout parsed = parse_layout_string(argv[0]);
 	if (parsed != L_NONE) {
 		return parsed;
 	}
@@ -121,8 +121,8 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct sway_container *window = config->handler_context.container;
-	struct sway_workspace *workspace = config->handler_context.workspace;
+	struct wmiiv_container *window = config->handler_context.container;
+	struct wmiiv_workspace *workspace = config->handler_context.workspace;
 
 	if (!window) {
 		return cmd_results_new(CMD_INVALID, "No window selected");
@@ -136,14 +136,14 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating containers");
 	}
 
-	struct sway_container *column = window->pending.parent;
+	struct wmiiv_container *column = window->pending.parent;
 	if (!column) {
 		return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
 	}
 
 
-	enum sway_container_layout new_layout = L_NONE;
-	enum sway_container_layout old_layout = L_NONE;
+	enum wmiiv_container_layout new_layout = L_NONE;
+	enum wmiiv_container_layout old_layout = L_NONE;
 
 	old_layout = column->pending.layout;
 	new_layout = get_layout(argc, argv,

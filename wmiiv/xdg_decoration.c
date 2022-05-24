@@ -1,14 +1,14 @@
 #include <stdlib.h>
-#include "sway/desktop/transaction.h"
-#include "sway/server.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
-#include "sway/xdg_decoration.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/xdg_decoration.h"
 #include "log.h"
 
 static void xdg_decoration_handle_destroy(struct wl_listener *listener,
 		void *data) {
-	struct sway_xdg_decoration *deco =
+	struct wmiiv_xdg_decoration *deco =
 		wl_container_of(listener, deco, destroy);
 	if (deco->view) {
 		deco->view->xdg_decoration = NULL;
@@ -21,9 +21,9 @@ static void xdg_decoration_handle_destroy(struct wl_listener *listener,
 
 static void xdg_decoration_handle_request_mode(struct wl_listener *listener,
 		void *data) {
-	struct sway_xdg_decoration *deco =
+	struct wmiiv_xdg_decoration *deco =
 		wl_container_of(listener, deco, request_mode);
-	struct sway_view *view = deco->view;
+	struct wmiiv_view *view = deco->view;
 	enum wlr_xdg_toplevel_decoration_v1_mode mode =
 		WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
 	enum wlr_xdg_toplevel_decoration_v1_mode client_mode =
@@ -53,9 +53,9 @@ static void xdg_decoration_handle_request_mode(struct wl_listener *listener,
 
 void handle_xdg_decoration(struct wl_listener *listener, void *data) {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_deco = data;
-	struct sway_xdg_shell_view *xdg_shell_view = wlr_deco->surface->data;
+	struct wmiiv_xdg_shell_view *xdg_shell_view = wlr_deco->surface->data;
 
-	struct sway_xdg_decoration *deco = calloc(1, sizeof(*deco));
+	struct wmiiv_xdg_decoration *deco = calloc(1, sizeof(*deco));
 	if (deco == NULL) {
 		return;
 	}
@@ -75,9 +75,9 @@ void handle_xdg_decoration(struct wl_listener *listener, void *data) {
 	xdg_decoration_handle_request_mode(&deco->request_mode, wlr_deco);
 }
 
-struct sway_xdg_decoration *xdg_decoration_from_surface(
+struct wmiiv_xdg_decoration *xdg_decoration_from_surface(
 		struct wlr_surface *surface) {
-	struct sway_xdg_decoration *deco;
+	struct wmiiv_xdg_decoration *deco;
 	wl_list_for_each(deco, &server.xdg_decorations, link) {
 		if (deco->wlr_xdg_decoration->surface->surface == surface) {
 			return deco;

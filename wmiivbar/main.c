@@ -4,14 +4,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include <getopt.h>
-#include "swaybar/bar.h"
+#include "wmiivbar/bar.h"
 #include "ipc-client.h"
 #include "log.h"
 
-static struct swaybar swaybar;
+static struct wmiivbar wmiivbar;
 
 void sig_handler(int signal) {
-	swaybar.running = false;
+	wmiivbar.running = false;
 }
 
 int main(int argc, char **argv) {
@@ -28,15 +28,15 @@ int main(int argc, char **argv) {
 	};
 
 	const char *usage =
-		"Usage: swaybar [options...]\n"
+		"Usage: wmiivbar [options...]\n"
 		"\n"
 		"  -h, --help             Show help message and quit.\n"
 		"  -v, --version          Show the version number and quit.\n"
-		"  -s, --socket <socket>  Connect to sway via socket.\n"
+		"  -s, --socket <socket>  Connect to wmiiv via socket.\n"
 		"  -b, --bar_id <id>      Bar ID for which to get the configuration.\n"
 		"  -d, --debug            Enable debugging.\n"
 		"\n"
-		" PLEASE NOTE that swaybar will be automatically started by sway as\n"
+		" PLEASE NOTE that wmiivbar will be automatically started by wmiiv as\n"
 		" soon as there is a 'bar' configuration block in your config file.\n"
 		" You should never need to start it manually.\n";
 
@@ -52,10 +52,10 @@ int main(int argc, char **argv) {
 			socket_path = strdup(optarg);
 			break;
 		case 'b': // Type
-			swaybar.id = strdup(optarg);
+			wmiivbar.id = strdup(optarg);
 			break;
 		case 'v':
-			printf("swaybar version " SWAY_VERSION "\n");
+			printf("wmiivbar version " SWAY_VERSION "\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case 'd': // Debug
@@ -68,26 +68,26 @@ int main(int argc, char **argv) {
 	}
 
 	if (debug) {
-		sway_log_init(SWAY_DEBUG, NULL);
+		wmiiv_log_init(SWAY_DEBUG, NULL);
 	} else {
-		sway_log_init(SWAY_INFO, NULL);
+		wmiiv_log_init(SWAY_INFO, NULL);
 	}
 
-	if (!swaybar.id) {
-		sway_log(SWAY_ERROR, "No bar_id passed. "
-				"Provide --bar_id or let sway start swaybar");
+	if (!wmiivbar.id) {
+		wmiiv_log(SWAY_ERROR, "No bar_id passed. "
+				"Provide --bar_id or let wmiiv start wmiivbar");
 		return 1;
 	}
 
 	if (!socket_path) {
 		socket_path = get_socketpath();
 		if (!socket_path) {
-			sway_log(SWAY_ERROR, "Unable to retrieve socket path");
+			wmiiv_log(SWAY_ERROR, "Unable to retrieve socket path");
 			return 1;
 		}
 	}
 
-	if (!bar_setup(&swaybar, socket_path)) {
+	if (!bar_setup(&wmiivbar, socket_path)) {
 		free(socket_path);
 		return 1;
 	}
@@ -97,8 +97,8 @@ int main(int argc, char **argv) {
 	signal(SIGINT, sig_handler);
 	signal(SIGTERM, sig_handler);
 
-	swaybar.running = true;
-	bar_run(&swaybar);
-	bar_teardown(&swaybar);
+	wmiivbar.running = true;
+	bar_run(&wmiivbar);
+	bar_teardown(&wmiivbar);
 	return 0;
 }

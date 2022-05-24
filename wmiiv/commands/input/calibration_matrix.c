@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 #include <strings.h>
-#include "sway/config.h"
-#include "sway/commands.h"
-#include "sway/input/input-manager.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/input-manager.h"
 #include "log.h"
 #include "stringop.h"
 #include "util.h"

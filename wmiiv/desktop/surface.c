@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <wlr/types/wlr_compositor.h>
-#include "sway/server.h"
-#include "sway/surface.h"
+#include "wmiiv/server.h"
+#include "wmiiv/surface.h"
 
 static void handle_destroy(struct wl_listener *listener, void *data) {
-	struct sway_surface *surface = wl_container_of(listener, surface, destroy);
+	struct wmiiv_surface *surface = wl_container_of(listener, surface, destroy);
 
 	surface->wlr_surface->data = NULL;
 	wl_list_remove(&surface->destroy.link);
@@ -19,7 +19,7 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
 }
 
 static int surface_frame_done_timer_handler(void *data) {
-	struct sway_surface *surface = data;
+	struct wmiiv_surface *surface = data;
 
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -31,7 +31,7 @@ static int surface_frame_done_timer_handler(void *data) {
 void handle_compositor_new_surface(struct wl_listener *listener, void *data) {
 	struct wlr_surface *wlr_surface = data;
 
-	struct sway_surface *surface = calloc(1, sizeof(struct sway_surface));
+	struct wmiiv_surface *surface = calloc(1, sizeof(struct wmiiv_surface));
 	surface->wlr_surface = wlr_surface;
 	wlr_surface->data = surface;
 

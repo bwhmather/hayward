@@ -1,7 +1,7 @@
 #include "strings.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/keyboard.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/keyboard.h"
 
 struct cmd_results *cmd_floating_modifier(int argc, char **argv) {
 	struct cmd_results *error = NULL;

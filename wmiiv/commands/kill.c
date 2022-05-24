@@ -1,12 +1,12 @@
 #include "log.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/commands.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/commands.h"
 
-static void close_container_iterator(struct sway_container *con, void *data) {
+static void close_container_iterator(struct wmiiv_container *con, void *data) {
 	if (con->view) {
 		view_close(con->view);
 	}
@@ -17,8 +17,8 @@ struct cmd_results *cmd_kill(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct sway_container *con = config->handler_context.container;
-	struct sway_workspace *ws = config->handler_context.workspace;
+	struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_workspace *ws = config->handler_context.workspace;
 
 	if (con) {
 		close_container_iterator(con, NULL);

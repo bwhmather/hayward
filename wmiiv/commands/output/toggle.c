@@ -1,6 +1,6 @@
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/output.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/output.h"
 
 struct cmd_results *output_cmd_toggle(int argc, char **argv) {
 	if (!config->handler_context.output_config) {
@@ -14,14 +14,14 @@ struct cmd_results *output_cmd_toggle(int argc, char **argv) {
 				"Cannot apply toggle to all outputs.");
 	}
 
-	struct sway_output *sway_output = all_output_by_name_or_id(oc->name);
+	struct wmiiv_output *wmiiv_output = all_output_by_name_or_id(oc->name);
 
-	if (sway_output == NULL) {
+	if (wmiiv_output == NULL) {
 		return cmd_results_new(CMD_FAILURE,
 				"Cannot apply toggle to unknown output %s", oc->name);
 	}
 
-	oc = find_output_config(sway_output);
+	oc = find_output_config(wmiiv_output);
 
 	if (!oc || oc->enabled != 0) {
 		config->handler_context.output_config->enabled = 0;

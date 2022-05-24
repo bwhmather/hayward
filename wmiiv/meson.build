@@ -1,4 +1,4 @@
-sway_sources = files(
+wmiiv_sources = files(
 	'commands.c',
 	'config.c',
 	'criteria.c',
@@ -8,7 +8,7 @@ sway_sources = files(
 	'lock.c',
 	'main.c',
 	'server.c',
-	'swaynag.c',
+	'wmiivnag.c',
 	'xdg_activation_v1.c',
 	'xdg_decoration.c',
 
@@ -103,8 +103,8 @@ sway_sources = files(
 	'commands/smart_gaps.c',
 	'commands/split.c',
 	'commands/sticky.c',
-	'commands/swaybg_command.c',
-	'commands/swaynag_command.c',
+	'commands/wmiivbg_command.c',
+	'commands/wmiivnag_command.c',
 	'commands/swap.c',
 	'commands/tiling_drag.c',
 	'commands/tiling_drag_threshold.c',
@@ -139,7 +139,7 @@ sway_sources = files(
 	'commands/bar/status_padding.c',
 	'commands/bar/strip_workspace_numbers.c',
 	'commands/bar/strip_workspace_name.c',
-	'commands/bar/swaybar_command.c',
+	'commands/bar/wmiivbar_command.c',
 	'commands/bar/tray_bind.c',
 	'commands/bar/tray_output.c',
 	'commands/bar/tray_padding.c',
@@ -205,7 +205,7 @@ sway_sources = files(
 	'tree/output.c',
 )
 
-sway_deps = [
+wmiiv_deps = [
 	cairo,
 	drm,
 	jsonc,
@@ -225,15 +225,15 @@ sway_deps = [
 ]
 
 if have_xwayland
-	sway_sources += 'desktop/xwayland.c'
-	sway_deps += xcb
+	wmiiv_sources += 'desktop/xwayland.c'
+	wmiiv_deps += xcb
 endif
 
 executable(
-	'sway',
-	sway_sources,
-	include_directories: [sway_inc],
-	dependencies: sway_deps,
-	link_with: [lib_sway_common],
+	'wmiiv',
+	wmiiv_sources,
+	include_directories: [wmiiv_inc],
+	dependencies: wmiiv_deps,
+	link_with: [lib_wmiiv_common],
 	install: true
 )

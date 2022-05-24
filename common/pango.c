@@ -61,7 +61,7 @@ PangoLayout *get_pango_layout(cairo_t *cairo, const char *font,
 			pango_layout_set_text(layout, buf, -1);
 			free(buf);
 		} else {
-			sway_log(SWAY_ERROR, "pango_parse_markup '%s' -> error %s", text,
+			wmiiv_log(SWAY_ERROR, "pango_parse_markup '%s' -> error %s", text,
 					error->message);
 			g_error_free(error);
 			markup = false; // fallback to plain text
@@ -92,7 +92,7 @@ void get_text_size(cairo_t *cairo, const char *font, int *width, int *height,
 
 	char *buf = malloc(length);
 	if (buf == NULL) {
-		sway_log(SWAY_ERROR, "Failed to allocate memory");
+		wmiiv_log(SWAY_ERROR, "Failed to allocate memory");
 		return;
 	}
 	va_start(args, fmt);
@@ -135,7 +135,7 @@ void render_text(cairo_t *cairo, const char *font,
 
 	char *buf = malloc(length);
 	if (buf == NULL) {
-		sway_log(SWAY_ERROR, "Failed to allocate memory");
+		wmiiv_log(SWAY_ERROR, "Failed to allocate memory");
 		return;
 	}
 	va_start(args, fmt);

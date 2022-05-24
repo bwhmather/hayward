@@ -1,14 +1,14 @@
 #include <stdlib.h>
-#include "sway/decoration.h"
-#include "sway/desktop/transaction.h"
-#include "sway/server.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
+#include "wmiiv/decoration.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
 #include "log.h"
 
 static void server_decoration_handle_destroy(struct wl_listener *listener,
 		void *data) {
-	struct sway_server_decoration *deco =
+	struct wmiiv_server_decoration *deco =
 		wl_container_of(listener, deco, destroy);
 	wl_list_remove(&deco->destroy.link);
 	wl_list_remove(&deco->mode.link);
@@ -18,9 +18,9 @@ static void server_decoration_handle_destroy(struct wl_listener *listener,
 
 static void server_decoration_handle_mode(struct wl_listener *listener,
 		void *data) {
-	struct sway_server_decoration *deco =
+	struct wmiiv_server_decoration *deco =
 		wl_container_of(listener, deco, mode);
-	struct sway_view *view =
+	struct wmiiv_view *view =
 		view_from_wlr_surface(deco->wlr_server_decoration->surface);
 	if (view == NULL || view->surface != deco->wlr_server_decoration->surface) {
 		return;
@@ -37,7 +37,7 @@ static void server_decoration_handle_mode(struct wl_listener *listener,
 void handle_server_decoration(struct wl_listener *listener, void *data) {
 	struct wlr_server_decoration *wlr_deco = data;
 
-	struct sway_server_decoration *deco = calloc(1, sizeof(*deco));
+	struct wmiiv_server_decoration *deco = calloc(1, sizeof(*deco));
 	if (deco == NULL) {
 		return;
 	}
@@ -53,9 +53,9 @@ void handle_server_decoration(struct wl_listener *listener, void *data) {
 	wl_list_insert(&server.decorations, &deco->link);
 }
 
-struct sway_server_decoration *decoration_from_surface(
+struct wmiiv_server_decoration *decoration_from_surface(
 		struct wlr_surface *surface) {
-	struct sway_server_decoration *deco;
+	struct wmiiv_server_decoration *deco;
 	wl_list_for_each(deco, &server.decorations, link) {
 		if (deco->wlr_server_decoration->surface == surface) {
 			return deco;

@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
 #include <string.h>
-#include "swaybar/config.h"
+#include "wmiivbar/config.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "config.h"
 #include "stringop.h"
@@ -16,13 +16,13 @@ uint32_t parse_position(const char *position) {
 	} else if (strcmp("bottom", position) == 0) {
 		return ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM | horiz;
 	} else {
-		sway_log(SWAY_ERROR, "Invalid position: %s, defaulting to bottom", position);
+		wmiiv_log(SWAY_ERROR, "Invalid position: %s, defaulting to bottom", position);
 		return ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM | horiz;
 	}
 }
 
-struct swaybar_config *init_config(void) {
-	struct swaybar_config *config = calloc(1, sizeof(struct swaybar_config));
+struct wmiivbar_config *init_config(void) {
+	struct wmiivbar_config *config = calloc(1, sizeof(struct wmiivbar_config));
 	config->status_command = NULL;
 	config->pango_markup = false;
 	config->position = parse_position("bottom");
@@ -85,7 +85,7 @@ struct swaybar_config *init_config(void) {
 	return config;
 }
 
-void free_binding(struct swaybar_binding *binding) {
+void free_binding(struct wmiivbar_binding *binding) {
 	if (!binding) {
 		return;
 	}
@@ -103,14 +103,14 @@ void free_tray_binding(struct tray_binding *binding) {
 }
 #endif
 
-void free_config(struct swaybar_config *config) {
+void free_config(struct wmiivbar_config *config) {
 	free(config->status_command);
 	free(config->font);
 	free(config->mode);
 	free(config->hidden_state);
 	free(config->sep_symbol);
 	for (int i = 0; i < config->bindings->length; i++) {
-		struct swaybar_binding *binding = config->bindings->items[i];
+		struct wmiivbar_binding *binding = config->bindings->items[i];
 		free_binding(binding);
 	}
 	list_free(config->bindings);

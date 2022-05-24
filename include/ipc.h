@@ -19,11 +19,11 @@ enum ipc_command_type {
 	IPC_SYNC = 11,
 	IPC_GET_BINDING_STATE = 12,
 
-	// sway-specific command types
+	// wmiiv-specific command types
 	IPC_GET_INPUTS = 100,
 	IPC_GET_SEATS = 101,
 
-	// Events sent from sway to clients. Events have the highest bits set.
+	// Events sent from wmiiv to clients. Events have the highest bits set.
 	IPC_EVENT_WORKSPACE = ((1<<31) | 0),
 	IPC_EVENT_OUTPUT = ((1<<31) | 1),
 	IPC_EVENT_MODE = ((1<<31) | 2),
@@ -33,7 +33,7 @@ enum ipc_command_type {
 	IPC_EVENT_SHUTDOWN = ((1<<31) | 6),
 	IPC_EVENT_TICK = ((1<<31) | 7),
 
-	// sway-specific event types
+	// wmiiv-specific event types
 	IPC_EVENT_BAR_STATE_UPDATE = ((1<<31) | 20),
 	IPC_EVENT_INPUT = ((1<<31) | 21),
 };

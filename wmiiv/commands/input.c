@@ -1,8 +1,8 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/keyboard.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/keyboard.h"
 #include "log.h"
 #include "stringop.h"
 
@@ -51,7 +51,7 @@ struct cmd_results *cmd_input(int argc, char **argv) {
 		return error;
 	}
 
-	sway_log(SWAY_DEBUG, "entering input block: %s", argv[0]);
+	wmiiv_log(SWAY_DEBUG, "entering input block: %s", argv[0]);
 
 	config->handler_context.input_config = new_input_config(argv[0]);
 	if (!config->handler_context.input_config) {

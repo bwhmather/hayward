@@ -1,5 +1,5 @@
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "util.h"
 
 struct cmd_results *output_cmd_adaptive_sync(int argc, char **argv) {

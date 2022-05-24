@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <strings.h>
 #include "config.h"
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "log.h"
 
 struct cmd_results *bar_cmd_tray_padding(int argc, char **argv) {
@@ -29,7 +29,7 @@ struct cmd_results *bar_cmd_tray_padding(int argc, char **argv) {
 				"Expected 'tray_padding <px> [px]'");
 	}
 
-	sway_log(SWAY_DEBUG, "[Bar %s] Setting tray padding to %d", bar->id, padding);
+	wmiiv_log(SWAY_DEBUG, "[Bar %s] Setting tray padding to %d", bar->id, padding);
 	config->current_bar->tray_padding = padding;
 	return cmd_results_new(CMD_SUCCESS, NULL);
 #else

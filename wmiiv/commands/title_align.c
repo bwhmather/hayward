@@ -1,8 +1,8 @@
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/output.h"
-#include "sway/tree/container.h"
-#include "sway/tree/root.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/root.h"
 
 struct cmd_results *cmd_title_align(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -22,7 +22,7 @@ struct cmd_results *cmd_title_align(int argc, char **argv) {
 	}
 
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		output_damage_whole(output);
 	}
 

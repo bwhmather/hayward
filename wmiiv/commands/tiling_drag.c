@@ -1,4 +1,4 @@
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 #include "util.h"
 
 struct cmd_results *cmd_tiling_drag(int argc, char **argv) {

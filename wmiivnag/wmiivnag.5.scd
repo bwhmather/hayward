@@ -1,18 +1,18 @@
-swaynag(5)
+wmiivnag(5)
 
 # NAME
 
-swaynag - swaynag configuration file
+wmiivnag - wmiivnag configuration file
 
 # SYNOPSIS
 
-$HOME/.swaynag/config, $XDG\_CONFIG\_HOME/swaynag/config,
-SYSCONFDIR/swaynag/config
+$HOME/.wmiivnag/config, $XDG\_CONFIG\_HOME/wmiivnag/config,
+SYSCONFDIR/wmiivnag/config
 
 # CONFIG FILE
 
-At the top of the config file, _swaynag_ options can be set using the format
-_long-option=value_. These will be used as default values if _swaynag_ is not
+At the top of the config file, _wmiivnag_ options can be set using the format
+_long-option=value_. These will be used as default values if _wmiivnag_ is not
 given the option. This can be useful for setting a preferred font, output, and
 edge.
 
@@ -28,13 +28,13 @@ All colors may be given in the form _RRGGBB_ or _RRGGBBAA_. The following
 colors can be set:
 
 *background=<color>*
-	The background color for _swaynag_.
+	The background color for _wmiivnag_.
 
 *border=<color>*
 	The color to use for borders of buttons.
 
 *border-bottom=<color>*
-	The color of the border line at the bottom of _swaynag_.
+	The color of the border line at the bottom of _wmiivnag_.
 
 *button-background=<color>*
 	The background color for the buttons.
@@ -106,4 +106,4 @@ message-padding=10
 
 # SEE
 
-swaynag(1)
+wmiivnag(1)

@@ -1,10 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/seat.h"
-#include "sway/input/cursor.h"
-#include "sway/server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/server.h"
 #include "stringop.h"
 #include "util.h"
 
@@ -40,7 +40,7 @@ struct cmd_results *seat_cmd_hide_cursor(int argc, char **argv) {
 			HIDE_WHEN_TYPING_ENABLE : HIDE_WHEN_TYPING_DISABLE;
 
 		// Invalidate all the caches for this config
-		struct sway_seat *seat = NULL;
+		struct wmiiv_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {
 			seat->cursor->hide_when_typing = HIDE_WHEN_TYPING_DEFAULT;
 		}

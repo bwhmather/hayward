@@ -1,6 +1,6 @@
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 
 struct cmd_results *cmd_popup_during_fullscreen(int argc, char **argv) {
 	struct cmd_results *error = NULL;

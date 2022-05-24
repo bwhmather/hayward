@@ -4,12 +4,12 @@
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>
 #include "list.h"
-#include "sway/tree/node.h"
+#include "wmiiv/tree/node.h"
 
-struct sway_view;
-struct sway_seat;
+struct wmiiv_view;
+struct wmiiv_seat;
 
-enum sway_container_layout {
+enum wmiiv_container_layout {
 	L_NONE,
 	L_HORIZ,
 	L_VERT,
@@ -17,42 +17,42 @@ enum sway_container_layout {
 	L_TABBED,
 };
 
-enum sway_container_border {
+enum wmiiv_container_border {
 	B_NONE,
 	B_PIXEL,
 	B_NORMAL,
 	B_CSD,
 };
 
-enum sway_fullscreen_mode {
+enum wmiiv_fullscreen_mode {
 	FULLSCREEN_NONE,
 	FULLSCREEN_WORKSPACE,
 	FULLSCREEN_GLOBAL,
 };
 
-struct sway_root;
-struct sway_output;
-struct sway_workspace;
-struct sway_view;
+struct wmiiv_root;
+struct wmiiv_output;
+struct wmiiv_workspace;
+struct wmiiv_view;
 
 enum wlr_direction;
 
-struct sway_container_state {
+struct wmiiv_container_state {
 	// Container properties
-	enum sway_container_layout layout;
+	enum wmiiv_container_layout layout;
 	double x, y;
 	double width, height;
 
-	enum sway_fullscreen_mode fullscreen_mode;
+	enum wmiiv_fullscreen_mode fullscreen_mode;
 
-	struct sway_workspace *workspace;
-	struct sway_container *parent;    // NULL if container in root of workspace
-	list_t *children;                 // struct sway_container
+	struct wmiiv_workspace *workspace;
+	struct wmiiv_container *parent;    // NULL if container in root of workspace
+	list_t *children;                 // struct wmiiv_container
 
-	struct sway_container *focused_inactive_child;
+	struct wmiiv_container *focused_inactive_child;
 	bool focused;
 
-	enum sway_container_border border;
+	enum wmiiv_container_border border;
 	int border_thickness;
 	bool border_top;
 	bool border_bottom;
@@ -64,17 +64,17 @@ struct sway_container_state {
 	double content_width, content_height;
 };
 
-struct sway_container {
-	struct sway_node node;
-	struct sway_view *view;
+struct wmiiv_container {
+	struct wmiiv_node node;
+	struct wmiiv_view *view;
 
-	struct sway_container_state current;
-	struct sway_container_state pending;
+	struct wmiiv_container_state current;
+	struct wmiiv_container_state pending;
 
 	char *title;           // The view's title (unformatted)
 	char *formatted_title; // The title displayed in the title bar
 
-	enum sway_container_layout prev_split_layout;
+	enum wmiiv_container_layout prev_split_layout;
 
 	// Whether stickiness has been enabled on this container. Use
 	// `container_is_sticky_[or_child]` rather than accessing this field
@@ -89,7 +89,7 @@ struct sway_container {
 
 	// Used when the view changes to CSD unexpectedly. This will be a non-B_CSD
 	// border which we use to restore when the view returns to SSD.
-	enum sway_container_border saved_border;
+	enum wmiiv_container_border saved_border;
 
 	// The share of the space of parent container this container occupies
 	double width_fraction;
@@ -106,7 +106,7 @@ struct sway_container {
 	double surface_x, surface_y;
 
 	// Outputs currently being intersected
-	list_t *outputs; // struct sway_output
+	list_t *outputs; // struct wmiiv_output
 
 	float alpha;
 
@@ -129,54 +129,54 @@ struct sway_container {
 };
 
 // TODO (wmiiv) Delete whole module
-#include "sway/tree/column.h"
-#include "sway/tree/window.h"
+#include "wmiiv/tree/column.h"
+#include "wmiiv/tree/window.h"
 
 
-bool container_is_column(struct sway_container *con);
-bool container_is_window(struct sway_container *con);
+bool container_is_column(struct wmiiv_container *con);
+bool container_is_window(struct wmiiv_container *con);
 
-void container_destroy(struct sway_container *con);
+void container_destroy(struct wmiiv_container *con);
 
-void container_begin_destroy(struct sway_container *con);
+void container_begin_destroy(struct wmiiv_container *con);
 
 /**
  * Find a container at the given coordinates. Returns the surface and
  * surface-local coordinates of the given layout coordinates if the container
  * is a view and the view contains a surface at those coordinates.
  */
-struct sway_container *container_at(struct sway_workspace *workspace,
+struct wmiiv_container *container_at(struct wmiiv_workspace *workspace,
 		double lx, double ly, struct wlr_surface **surface,
 		double *sx, double *sy);
 
-struct sway_container *tiling_container_at(
-		struct sway_node *parent, double lx, double ly,
+struct wmiiv_container *tiling_container_at(
+		struct wmiiv_node *parent, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy);
 
-void container_for_each_child(struct sway_container *container,
-		void (*f)(struct sway_container *container, void *data), void *data);
+void container_for_each_child(struct wmiiv_container *container,
+		void (*f)(struct wmiiv_container *container, void *data), void *data);
 
 /**
  * Returns the fullscreen container obstructing this container if it exists.
  */
-struct sway_container *container_obstructing_fullscreen_container(struct sway_container *container);
+struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_container *container);
 
 /**
  * Returns true if the given container is an ancestor of this container.
  */
-bool container_has_ancestor(struct sway_container *container,
-		struct sway_container *ancestor);
+bool container_has_ancestor(struct wmiiv_container *container,
+		struct wmiiv_container *ancestor);
 
-void container_update_textures_recursive(struct sway_container *con);
+void container_update_textures_recursive(struct wmiiv_container *con);
 
-void container_damage_whole(struct sway_container *container);
+void container_damage_whole(struct wmiiv_container *container);
 
-void container_update_title_textures(struct sway_container *container);
+void container_update_title_textures(struct wmiiv_container *container);
 
-size_t container_build_representation(enum sway_container_layout layout,
+size_t container_build_representation(enum wmiiv_container_layout layout,
 		list_t *children, char *buffer);
 
-void container_update_representation(struct sway_container *container);
+void container_update_representation(struct wmiiv_container *container);
 
 /**
  * Return the height of a regular title bar.
@@ -186,100 +186,100 @@ size_t container_titlebar_height(void);
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height);
 
-void container_floating_resize_and_center(struct sway_container *con);
+void container_floating_resize_and_center(struct wmiiv_container *con);
 
-void container_floating_set_default_size(struct sway_container *con);
+void container_floating_set_default_size(struct wmiiv_container *con);
 
-void container_set_resizing(struct sway_container *con, bool resizing);
+void container_set_resizing(struct wmiiv_container *con, bool resizing);
 
-void container_set_geometry_from_content(struct sway_container *con);
+void container_set_geometry_from_content(struct wmiiv_container *con);
 
 /**
  * Get a container's box in layout coordinates.
  */
-void container_get_box(struct sway_container *container, struct wlr_box *box);
+void container_get_box(struct wmiiv_container *container, struct wlr_box *box);
 
 /**
  * Move a floating container by the specified amount.
  */
-void container_floating_translate(struct sway_container *con,
+void container_floating_translate(struct wmiiv_container *con,
 		double x_amount, double y_amount);
 
 /**
  * Choose an output for the floating container's new position.
  */
-struct sway_output *container_floating_find_output(struct sway_container *con);
+struct wmiiv_output *container_floating_find_output(struct wmiiv_container *con);
 
 /**
  * Move a floating container to a new layout-local position.
  */
-void container_floating_move_to(struct sway_container *con,
+void container_floating_move_to(struct wmiiv_container *con,
 		double lx, double ly);
 
 /**
  * Move a floating container to the center of the workspace.
  */
-void container_floating_move_to_center(struct sway_container *con);
+void container_floating_move_to_center(struct wmiiv_container *con);
 
-bool container_has_urgent_child(struct sway_container *container);
+bool container_has_urgent_child(struct wmiiv_container *container);
 
 /**
  * If the container is involved in a drag or resize operation via a mouse, this
  * ends the operation.
  */
-void container_end_mouse_operation(struct sway_container *container);
+void container_end_mouse_operation(struct wmiiv_container *container);
 
-void container_set_fullscreen(struct sway_container *con,
-		enum sway_fullscreen_mode mode);
+void container_set_fullscreen(struct wmiiv_container *con,
+		enum wmiiv_fullscreen_mode mode);
 
 /**
  * Convenience function.
  */
-void container_fullscreen_disable(struct sway_container *con);
+void container_fullscreen_disable(struct wmiiv_container *con);
 
 /**
  * Walk up the container tree branch starting at the given container, and return
  * its earliest ancestor.
  */
-struct sway_container *container_toplevel_ancestor(
-		struct sway_container *container);
+struct wmiiv_container *container_toplevel_ancestor(
+		struct wmiiv_container *container);
 
 /**
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
  * If the container is not on any output, return NULL.
  */
-struct sway_output *container_get_effective_output(struct sway_container *con);
+struct wmiiv_output *container_get_effective_output(struct wmiiv_container *con);
 
-void container_discover_outputs(struct sway_container *con);
+void container_discover_outputs(struct wmiiv_container *con);
 
-enum sway_container_layout container_parent_layout(struct sway_container *con);
+enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *con);
 
-enum sway_container_layout container_current_parent_layout(
-		struct sway_container *con);
+enum wmiiv_container_layout container_current_parent_layout(
+		struct wmiiv_container *con);
 
-list_t *container_get_siblings(struct sway_container *container);
+list_t *container_get_siblings(struct wmiiv_container *container);
 
-int container_sibling_index(struct sway_container *child);
+int container_sibling_index(struct wmiiv_container *child);
 
-list_t *container_get_current_siblings(struct sway_container *container);
+list_t *container_get_current_siblings(struct wmiiv_container *container);
 
-void container_handle_fullscreen_reparent(struct sway_container *con);
+void container_handle_fullscreen_reparent(struct wmiiv_container *con);
 
-void container_detach(struct sway_container *child);
+void container_detach(struct wmiiv_container *child);
 
-void container_swap(struct sway_container *con1, struct sway_container *con2);
+void container_swap(struct wmiiv_container *con1, struct wmiiv_container *con2);
 
-struct sway_container *container_split(struct sway_container *child,
-		enum sway_container_layout layout);
+struct wmiiv_container *container_split(struct wmiiv_container *child,
+		enum wmiiv_container_layout layout);
 
-bool container_is_transient_for(struct sway_container *child,
-		struct sway_container *ancestor);
+bool container_is_transient_for(struct wmiiv_container *child,
+		struct wmiiv_container *ancestor);
 
-void container_raise_floating(struct sway_container *con);
+void container_raise_floating(struct wmiiv_container *con);
 
-bool container_is_sticky(struct sway_container *con);
+bool container_is_sticky(struct wmiiv_container *con);
 
-bool container_is_sticky_or_child(struct sway_container *con);
+bool container_is_sticky_or_child(struct wmiiv_container *con);
 
 #endif

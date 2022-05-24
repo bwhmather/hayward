@@ -1,5 +1,5 @@
-lib_sway_client = static_library(
-	'sway-client',
+lib_wmiiv_client = static_library(
+	'wmiiv-client',
 	files(
 		'pool-buffer.c',
 	),
@@ -9,6 +9,6 @@ lib_sway_client = static_library(
 		pangocairo,
 		wayland_client
 	],
-	link_with: [lib_sway_common],
-	include_directories: sway_inc
+	link_with: [lib_wmiiv_common],
+	include_directories: wmiiv_inc
 )

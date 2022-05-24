@@ -3,13 +3,13 @@
 #include <strings.h>
 #include "log.h"
 #include "stringop.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/ipc-server.h"
-#include "sway/output.h"
-#include "sway/tree/container.h"
-#include "sway/tree/workspace.h"
-#include "sway/tree/root.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/ipc-server.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/tree/root.h"
 
 static const char expected_syntax[] =
 	"Expected 'rename workspace <old_name> to <new_name>' or "
@@ -29,7 +29,7 @@ struct cmd_results *cmd_rename(int argc, char **argv) {
 	}
 
 	int argn = 1;
-	struct sway_workspace *workspace = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 
 	if (strcasecmp(argv[1], "to") == 0) {
 		// 'rename workspace to new_name'
@@ -79,7 +79,7 @@ struct cmd_results *cmd_rename(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Cannot use special workspace name '%s'", argv[argn]);
 	}
-	struct sway_workspace *tmp_workspace = workspace_by_name(new_name);
+	struct wmiiv_workspace *tmp_workspace = workspace_by_name(new_name);
 	if (tmp_workspace) {
 		free(new_name);
 		if (tmp_workspace == workspace) {
@@ -89,7 +89,7 @@ struct cmd_results *cmd_rename(int argc, char **argv) {
 		}
 	}
 
-	sway_log(SWAY_DEBUG, "renaming workspace '%s' to '%s'", workspace->name, new_name);
+	wmiiv_log(SWAY_DEBUG, "renaming workspace '%s' to '%s'", workspace->name, new_name);
 
 	root_rename_pid_workspaces(workspace->name, new_name);
 

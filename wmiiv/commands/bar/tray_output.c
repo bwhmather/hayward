@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 #include "config.h"
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "list.h"
 #include "log.h"
 
@@ -19,13 +19,13 @@ struct cmd_results *bar_cmd_tray_output(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[0], "none") == 0) {
-		sway_log(SWAY_DEBUG, "Hiding tray on bar: %s", config->current_bar->id);
+		wmiiv_log(SWAY_DEBUG, "Hiding tray on bar: %s", config->current_bar->id);
 		for (int i = 0; i < outputs->length; ++i) {
 			free(outputs->items[i]);
 		}
 		outputs->length = 0;
 	} else if (strcmp(argv[0], "*") == 0) {
-		sway_log(SWAY_DEBUG, "Showing tray on all outputs for bar: %s",
+		wmiiv_log(SWAY_DEBUG, "Showing tray on all outputs for bar: %s",
 				config->current_bar->id);
 		while (outputs->length) {
 			free(outputs->items[0]);
@@ -33,7 +33,7 @@ struct cmd_results *bar_cmd_tray_output(int argc, char **argv) {
 		}
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	} else {
-		sway_log(SWAY_DEBUG, "Showing tray on output '%s' for bar: %s", argv[0],
+		wmiiv_log(SWAY_DEBUG, "Showing tray on output '%s' for bar: %s", argv[0],
 				config->current_bar->id);
 		if (outputs->length == 1 && strcmp(outputs->items[0], "none") == 0) {
 			free(outputs->items[0]);

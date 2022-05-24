@@ -1,8 +1,8 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
 #include "log.h"
 #include "stringop.h"
 

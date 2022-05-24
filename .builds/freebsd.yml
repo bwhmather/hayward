@@ -26,16 +26,16 @@ packages:
 - x11/pixman
 - x11/xcb-util-wm
 sources:
-- https://github.com/swaywm/sway
+- https://github.com/wmiivwm/wmiiv
 - https://gitlab.freedesktop.org/wlroots/wlroots.git
 tasks:
 - setup: |
-    cd sway
+    cd wmiiv
     mkdir subprojects
     cd subprojects
     ln -s ../../wlroots wlroots
     cd ..
     meson build --fatal-meson-warnings -Dtray=enabled -Dsd-bus-provider=basu
 - build: |
-    cd sway
+    cd wmiiv
     ninja -C build

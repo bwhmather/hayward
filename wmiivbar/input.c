@@ -5,13 +5,13 @@
 #include <wayland-cursor.h>
 #include "list.h"
 #include "log.h"
-#include "swaybar/bar.h"
-#include "swaybar/config.h"
-#include "swaybar/input.h"
-#include "swaybar/ipc.h"
+#include "wmiivbar/bar.h"
+#include "wmiivbar/config.h"
+#include "wmiivbar/input.h"
+#include "wmiivbar/ipc.h"
 
 void free_hotspots(struct wl_list *list) {
-	struct swaybar_hotspot *hotspot, *tmp;
+	struct wmiivbar_hotspot *hotspot, *tmp;
 	wl_list_for_each_safe(hotspot, tmp, list, link) {
 		wl_list_remove(&hotspot->link);
 		if (hotspot->destroy) {
@@ -54,13 +54,13 @@ static uint32_t wl_axis_to_button(uint32_t axis, wl_fixed_t value) {
 	case WL_POINTER_AXIS_HORIZONTAL_SCROLL:
 		return negative ? SWAY_SCROLL_LEFT : SWAY_SCROLL_RIGHT;
 	default:
-		sway_log(SWAY_DEBUG, "Unexpected axis value on mouse scroll");
+		wmiiv_log(SWAY_DEBUG, "Unexpected axis value on mouse scroll");
 		return 0;
 	}
 }
 
-void update_cursor(struct swaybar_seat *seat) {
-	struct swaybar_pointer *pointer = &seat->pointer;
+void update_cursor(struct wmiivbar_seat *seat) {
+	struct wmiivbar_pointer *pointer = &seat->pointer;
 	if (!pointer || !pointer->cursor_surface) {
 		return;
 	}
@@ -99,12 +99,12 @@ void update_cursor(struct swaybar_seat *seat) {
 static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer,
 		uint32_t serial, struct wl_surface *surface,
 		wl_fixed_t surface_x, wl_fixed_t surface_y) {
-	struct swaybar_seat *seat = data;
-	struct swaybar_pointer *pointer = &seat->pointer;
+	struct wmiivbar_seat *seat = data;
+	struct wmiivbar_pointer *pointer = &seat->pointer;
 	seat->pointer.x = wl_fixed_to_double(surface_x);
 	seat->pointer.y = wl_fixed_to_double(surface_y);
 	pointer->serial = serial;
-	struct swaybar_output *output;
+	struct wmiivbar_output *output;
 	wl_list_for_each(output, &seat->bar->outputs, link) {
 		if (output->surface == surface) {
 			pointer->current = output;
@@ -116,22 +116,22 @@ static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer,
 
 static void wl_pointer_leave(void *data, struct wl_pointer *wl_pointer,
 		uint32_t serial, struct wl_surface *surface) {
-	struct swaybar_seat *seat = data;
+	struct wmiivbar_seat *seat = data;
 	seat->pointer.current = NULL;
 }
 
 static void wl_pointer_motion(void *data, struct wl_pointer *wl_pointer,
 		uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {
-	struct swaybar_seat *seat = data;
+	struct wmiivbar_seat *seat = data;
 	seat->pointer.x = wl_fixed_to_double(surface_x);
 	seat->pointer.y = wl_fixed_to_double(surface_y);
 }
 
-static bool check_bindings(struct swaybar *bar, uint32_t button,
+static bool check_bindings(struct wmiivbar *bar, uint32_t button,
 		uint32_t state) {
 	bool released = state == WL_POINTER_BUTTON_STATE_RELEASED;
 	for (int i = 0; i < bar->config->bindings->length; i++) {
-		struct swaybar_binding *binding = bar->config->bindings->items[i];
+		struct wmiivbar_binding *binding = bar->config->bindings->items[i];
 		if (binding->button == button && binding->release == released) {
 			ipc_execute_binding(bar, binding);
 			return true;
@@ -140,9 +140,9 @@ static bool check_bindings(struct swaybar *bar, uint32_t button,
 	return false;
 }
 
-static bool process_hotspots(struct swaybar_output *output,
+static bool process_hotspots(struct wmiivbar_output *output,
 		double x, double y, uint32_t button) {
-	struct swaybar_hotspot *hotspot;
+	struct wmiivbar_hotspot *hotspot;
 	wl_list_for_each(hotspot, &output->hotspots, link) {
 		if (x >= hotspot->x && y >= hotspot->y
 				&& x < hotspot->x + hotspot->width
@@ -159,10 +159,10 @@ static bool process_hotspots(struct swaybar_output *output,
 
 static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer,
 		uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
-	struct swaybar_seat *seat = data;
-	struct swaybar_pointer *pointer = &seat->pointer;
-	struct swaybar_output *output = pointer->current;
-	if (!sway_assert(output, "button with no active output")) {
+	struct wmiivbar_seat *seat = data;
+	struct wmiivbar_pointer *pointer = &seat->pointer;
+	struct wmiivbar_output *output = pointer->current;
+	if (!wmiiv_assert(output, "button with no active output")) {
 		return;
 	}
 
@@ -176,25 +176,25 @@ static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer,
 	process_hotspots(output, pointer->x, pointer->y, button);
 }
 
-static void workspace_next(struct swaybar *bar, struct swaybar_output *output,
+static void workspace_next(struct wmiivbar *bar, struct wmiivbar_output *output,
 		bool left) {
-	struct swaybar_config *config = bar->config;
-	struct swaybar_workspace *first =
+	struct wmiivbar_config *config = bar->config;
+	struct wmiivbar_workspace *first =
 		wl_container_of(output->workspaces.next, first, link);
-	struct swaybar_workspace *last =
+	struct wmiivbar_workspace *last =
 		wl_container_of(output->workspaces.prev, last, link);
 
-	struct swaybar_workspace *active;
+	struct wmiivbar_workspace *active;
 	wl_list_for_each(active, &output->workspaces, link) {
 		if (active->visible) {
 			break;
 		}
 	}
-	if (!sway_assert(active->visible, "axis with null workspace")) {
+	if (!wmiiv_assert(active->visible, "axis with null workspace")) {
 		return;
 	}
 
-	struct swaybar_workspace *new;
+	struct wmiivbar_workspace *new;
 	if (left) {
 		if (active == first) {
 			new = config->wrap_scroll ? last : NULL;
@@ -219,8 +219,8 @@ static void workspace_next(struct swaybar *bar, struct swaybar_output *output,
 	}
 }
 
-static void process_discrete_scroll(struct swaybar_seat *seat,
-		struct swaybar_output *output, struct swaybar_pointer *pointer,
+static void process_discrete_scroll(struct wmiivbar_seat *seat,
+		struct wmiivbar_output *output, struct wmiivbar_pointer *pointer,
 		uint32_t axis, wl_fixed_t value) {
 	// If there is a button press binding, execute it, skip default behavior,
 	// and check button release bindings
@@ -234,14 +234,14 @@ static void process_discrete_scroll(struct swaybar_seat *seat,
 		return;
 	}
 
-	struct swaybar_config *config = seat->bar->config;
+	struct wmiivbar_config *config = seat->bar->config;
 	double amt = wl_fixed_to_double(value);
 	if (amt == 0.0 || !config->workspace_buttons) {
 		check_bindings(seat->bar, button, WL_POINTER_BUTTON_STATE_RELEASED);
 		return;
 	}
 
-	if (!sway_assert(!wl_list_empty(&output->workspaces), "axis with no workspaces")) {
+	if (!wmiiv_assert(!wl_list_empty(&output->workspaces), "axis with no workspaces")) {
 		return;
 	}
 
@@ -251,8 +251,8 @@ static void process_discrete_scroll(struct swaybar_seat *seat,
 	check_bindings(seat->bar, button, WL_POINTER_BUTTON_STATE_RELEASED);
 }
 
-static void process_continuous_scroll(struct swaybar_seat *seat,
-		struct swaybar_output *output, struct swaybar_pointer *pointer,
+static void process_continuous_scroll(struct wmiivbar_seat *seat,
+		struct wmiivbar_output *output, struct wmiivbar_pointer *pointer,
 		uint32_t axis) {
 	while (abs(seat->axis[axis].value) > SWAY_CONTINUOUS_SCROLL_THRESHOLD) {
 		if (seat->axis[axis].value > 0) {
@@ -269,14 +269,14 @@ static void process_continuous_scroll(struct swaybar_seat *seat,
 
 static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
 		uint32_t time, uint32_t axis, wl_fixed_t value) {
-	struct swaybar_seat *seat = data;
-	struct swaybar_pointer *pointer = &seat->pointer;
-	struct swaybar_output *output = pointer->current;
-	if (!sway_assert(output, "axis with no active output")) {
+	struct wmiivbar_seat *seat = data;
+	struct wmiivbar_pointer *pointer = &seat->pointer;
+	struct wmiivbar_output *output = pointer->current;
+	if (!wmiiv_assert(output, "axis with no active output")) {
 		return;
 	}
 
-	if (!sway_assert(axis < 2, "axis out of range")) {
+	if (!wmiiv_assert(axis < 2, "axis out of range")) {
 		return;
 	}
 
@@ -292,9 +292,9 @@ static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
 }
 
 static void wl_pointer_frame(void *data, struct wl_pointer *wl_pointer) {
-	struct swaybar_seat *seat = data;
-	struct swaybar_pointer *pointer = &seat->pointer;
-	struct swaybar_output *output = pointer->current;
+	struct wmiivbar_seat *seat = data;
+	struct wmiivbar_pointer *pointer = &seat->pointer;
+	struct wmiivbar_output *output = pointer->current;
 
 	if (output == NULL) {
 		return;
@@ -331,8 +331,8 @@ static void wl_pointer_axis_stop(void *data, struct wl_pointer *wl_pointer,
 
 static void wl_pointer_axis_discrete(void *data, struct wl_pointer *wl_pointer,
 		uint32_t axis, int32_t discrete) {
-	struct swaybar_seat *seat = data;
-	if (!sway_assert(axis < 2, "axis out of range")) {
+	struct wmiivbar_seat *seat = data;
+	if (!wmiiv_assert(axis < 2, "axis out of range")) {
 		return;
 	}
 
@@ -351,7 +351,7 @@ static const struct wl_pointer_listener pointer_listener = {
 	.axis_discrete = wl_pointer_axis_discrete,
 };
 
-static struct touch_slot *get_touch_slot(struct swaybar_touch *touch, int32_t id) {
+static struct touch_slot *get_touch_slot(struct wmiivbar_touch *touch, int32_t id) {
 	ssize_t next = -1;
 	for (size_t i = 0; i < sizeof(touch->slots) / sizeof(*touch->slots); ++i) {
 		if (touch->slots[i].id == id) {
@@ -362,7 +362,7 @@ static struct touch_slot *get_touch_slot(struct swaybar_touch *touch, int32_t id
 		}
 	}
 	if (next == -1) {
-		sway_log(SWAY_ERROR, "Ran out of touch slots");
+		wmiiv_log(SWAY_ERROR, "Ran out of touch slots");
 		return NULL;
 	}
 	return &touch->slots[next];
@@ -371,8 +371,8 @@ static struct touch_slot *get_touch_slot(struct swaybar_touch *touch, int32_t id
 static void wl_touch_down(void *data, struct wl_touch *wl_touch,
 		uint32_t serial, uint32_t time, struct wl_surface *surface,
 		int32_t id, wl_fixed_t _x, wl_fixed_t _y) {
-	struct swaybar_seat *seat = data;
-	struct swaybar_output *_output = NULL, *output = NULL;
+	struct wmiivbar_seat *seat = data;
+	struct wmiivbar_output *_output = NULL, *output = NULL;
 	wl_list_for_each(_output, &seat->bar->outputs, link) {
 		if (_output->surface == surface) {
 			output = _output;
@@ -380,7 +380,7 @@ static void wl_touch_down(void *data, struct wl_touch *wl_touch,
 		}
 	}
 	if (!output) {
-		sway_log(SWAY_DEBUG, "Got touch event for unknown surface");
+		wmiiv_log(SWAY_DEBUG, "Got touch event for unknown surface");
 		return;
 	}
 	struct touch_slot *slot = get_touch_slot(&seat->touch, id);
@@ -396,7 +396,7 @@ static void wl_touch_down(void *data, struct wl_touch *wl_touch,
 
 static void wl_touch_up(void *data, struct wl_touch *wl_touch,
 		uint32_t serial, uint32_t time, int32_t id) {
-	struct swaybar_seat *seat = data;
+	struct wmiivbar_seat *seat = data;
 	struct touch_slot *slot = get_touch_slot(&seat->touch, id);
 	if (!slot) {
 		return;
@@ -410,7 +410,7 @@ static void wl_touch_up(void *data, struct wl_touch *wl_touch,
 
 static void wl_touch_motion(void *data, struct wl_touch *wl_touch,
 		uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y) {
-	struct swaybar_seat *seat = data;
+	struct wmiivbar_seat *seat = data;
 	struct touch_slot *slot = get_touch_slot(&seat->touch, id);
 	if (!slot) {
 		return;
@@ -434,8 +434,8 @@ static void wl_touch_frame(void *data, struct wl_touch *wl_touch) {
 }
 
 static void wl_touch_cancel(void *data, struct wl_touch *wl_touch) {
-	struct swaybar_seat *seat = data;
-	struct swaybar_touch *touch = &seat->touch;
+	struct wmiivbar_seat *seat = data;
+	struct wmiivbar_touch *touch = &seat->touch;
 	for (size_t i = 0; i < sizeof(touch->slots) / sizeof(*touch->slots); ++i) {
 		touch->slots[i].output = NULL;
 	}
@@ -463,7 +463,7 @@ static const struct wl_touch_listener touch_listener = {
 
 static void seat_handle_capabilities(void *data, struct wl_seat *wl_seat,
 		enum wl_seat_capability caps) {
-	struct swaybar_seat *seat = data;
+	struct wmiivbar_seat *seat = data;
 
 	bool have_pointer = caps & WL_SEAT_CAPABILITY_POINTER;
 	bool have_touch = caps & WL_SEAT_CAPABILITY_TOUCH;
@@ -499,7 +499,7 @@ const struct wl_seat_listener seat_listener = {
 	.name = seat_handle_name,
 };
 
-void swaybar_seat_free(struct swaybar_seat *seat) {
+void wmiivbar_seat_free(struct wmiivbar_seat *seat) {
 	if (!seat) {
 		return;
 	}

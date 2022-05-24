@@ -1,5 +1,5 @@
-lib_sway_common = static_library(
-	'sway-common',
+lib_wmiiv_common = static_library(
+	'wmiiv-common',
 	files(
 		'background-image.c',
 		'cairo.c',
@@ -18,5 +18,5 @@ lib_sway_common = static_library(
 		pangocairo,
 		wayland_client.partial_dependency(compile_args: true)
 	],
-	include_directories: sway_inc
+	include_directories: wmiiv_inc
 )

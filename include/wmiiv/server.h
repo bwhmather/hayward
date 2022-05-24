@@ -23,12 +23,12 @@
 #include "config.h"
 #include "list.h"
 #if HAVE_XWAYLAND
-#include "sway/xwayland.h"
+#include "wmiiv/xwayland.h"
 #endif
 
-struct sway_transaction;
+struct wmiiv_transaction;
 
-struct sway_server {
+struct wmiiv_server {
 	struct wl_display *wl_display;
 	struct wl_event_loop *wl_event_loop;
 	const char *socket;
@@ -46,13 +46,13 @@ struct sway_server {
 
 	struct wlr_data_device_manager *data_device_manager;
 
-	struct sway_input_manager *input;
+	struct wmiiv_input_manager *input;
 
 	struct wl_listener new_output;
 	struct wl_listener output_layout_change;
 
 	struct wlr_idle *idle;
-	struct sway_idle_inhibit_manager_v1 *idle_inhibit_manager_v1;
+	struct wmiiv_idle_inhibit_manager_v1 *idle_inhibit_manager_v1;
 
 	struct wlr_layer_shell_v1 *layer_shell;
 	struct wl_listener layer_shell_surface;
@@ -63,7 +63,7 @@ struct sway_server {
 	struct wlr_tablet_manager_v2 *tablet_v2;
 
 #if HAVE_XWAYLAND
-	struct sway_xwayland xwayland;
+	struct wmiiv_xwayland xwayland;
 	struct wl_listener xwayland_surface;
 	struct wl_listener xwayland_ready;
 #endif
@@ -72,11 +72,11 @@ struct sway_server {
 
 	struct wlr_server_decoration_manager *server_decoration_manager;
 	struct wl_listener server_decoration;
-	struct wl_list decorations; // sway_server_decoration::link
+	struct wl_list decorations; // wmiiv_server_decoration::link
 
 	struct wlr_xdg_decoration_manager_v1 *xdg_decoration_manager;
 	struct wl_listener xdg_decoration;
-	struct wl_list xdg_decorations; // sway_xdg_decoration::link
+	struct wl_list xdg_decorations; // wmiiv_xdg_decoration::link
 
 	struct wlr_drm_lease_v1_manager *drm_lease_manager;
 	struct wl_listener drm_lease_request;
@@ -119,21 +119,21 @@ struct sway_server {
 	// Stores a transaction after it has been committed, but is waiting for
 	// views to ack the new dimensions before being applied. A queued
 	// transaction is frozen and must not have new instructions added to it.
-	struct sway_transaction *queued_transaction;
+	struct wmiiv_transaction *queued_transaction;
 
 	// Stores a pending transaction that will be committed once the existing
 	// queued transaction is applied and freed. The pending transaction can be
 	// updated with new instructions as needed.
-	struct sway_transaction *pending_transaction;
+	struct wmiiv_transaction *pending_transaction;
 
 	// Stores the nodes that have been marked as "dirty" and will be put into
 	// the pending transaction.
 	list_t *dirty_nodes;
 };
 
-extern struct sway_server server;
+extern struct wmiiv_server server;
 
-struct sway_debug {
+struct wmiiv_debug {
 	bool noatomic;         // Ignore atomic layout updates
 	bool txn_timings;      // Log verbose messages about transactions
 	bool txn_wait;         // Always wait for the timeout before applying
@@ -146,14 +146,14 @@ struct sway_debug {
 	} damage;
 };
 
-extern struct sway_debug debug;
+extern struct wmiiv_debug debug;
 
 /* Prepares an unprivileged server_init by performing all privileged operations in advance */
-bool server_privileged_prepare(struct sway_server *server);
-bool server_init(struct sway_server *server);
-void server_fini(struct sway_server *server);
-bool server_start(struct sway_server *server);
-void server_run(struct sway_server *server);
+bool server_privileged_prepare(struct wmiiv_server *server);
+bool server_init(struct wmiiv_server *server);
+void server_fini(struct wmiiv_server *server);
+bool server_start(struct wmiiv_server *server);
+void server_run(struct wmiiv_server *server);
 
 void restore_nofile_limit(void);
 
@@ -162,7 +162,7 @@ void handle_new_output(struct wl_listener *listener, void *data);
 
 void handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
 void handle_layer_shell_surface(struct wl_listener *listener, void *data);
-void sway_session_lock_init(void);
+void wmiiv_session_lock_init(void);
 void handle_xdg_shell_surface(struct wl_listener *listener, void *data);
 #if HAVE_XWAYLAND
 void handle_xwayland_surface(struct wl_listener *listener, void *data);

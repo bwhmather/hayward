@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <strings.h>
 #include "config.h"
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "log.h"
 
 struct cmd_results *bar_cmd_workspace_min_width(int argc, char **argv) {
@@ -26,7 +26,7 @@ struct cmd_results *bar_cmd_workspace_min_width(int argc, char **argv) {
 				"Expected 'workspace_min_width <px> [px]'");
 	}
 
-	sway_log(SWAY_DEBUG, "[Bar %s] Setting minimum workspace button width to %d",
+	wmiiv_log(SWAY_DEBUG, "[Bar %s] Setting minimum workspace button width to %d",
 			bar->id, min_width);
 	config->current_bar->workspace_min_width = min_width;
 	return cmd_results_new(CMD_SUCCESS, NULL);

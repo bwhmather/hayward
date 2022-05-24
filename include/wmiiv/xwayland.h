@@ -19,7 +19,7 @@ enum atom_name {
 	ATOM_LAST,
 };
 
-struct sway_xwayland {
+struct wmiiv_xwayland {
 	struct wlr_xwayland *wlr_xwayland;
 	struct wlr_xcursor_manager *xcursor_manager;
 

@@ -3,9 +3,9 @@
 #include <string.h>
 #include <strings.h>
 #include <stdint.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/seat.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/seat.h"
 
 static const struct {
 	const char *name;

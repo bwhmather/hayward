@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 #include "log.h"
 
 struct cmd_results *bar_cmd_id(int argc, char **argv) {
@@ -26,7 +26,7 @@ struct cmd_results *bar_cmd_id(int argc, char **argv) {
 		}
 	}
 
-	sway_log(SWAY_DEBUG, "Renaming bar: '%s' to '%s'", oldname, name);
+	wmiiv_log(SWAY_DEBUG, "Renaming bar: '%s' to '%s'", oldname, name);
 
 	// free old bar id
 	free(config->current_bar->id);

@@ -1,21 +1,21 @@
 #define _POSIX_C_SOURCE 200809L
-#include "sway/output.h"
-#include "sway/server.h"
-#include "sway/tree/container.h"
-#include "sway/tree/node.h"
-#include "sway/tree/root.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/output.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/node.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/workspace.h"
 #include "log.h"
 
-void node_init(struct sway_node *node, enum sway_node_type type, void *thing) {
+void node_init(struct wmiiv_node *node, enum wmiiv_node_type type, void *thing) {
 	static size_t next_id = 1;
 	node->id = next_id++;
 	node->type = type;
-	node->sway_root = thing;
+	node->wmiiv_root = thing;
 	wl_signal_init(&node->events.destroy);
 }
 
-const char *node_type_to_str(enum sway_node_type type) {
+const char *node_type_to_str(enum wmiiv_node_type type) {
 	switch (type) {
 	case N_ROOT:
 		return "N_ROOT";
@@ -31,7 +31,7 @@ const char *node_type_to_str(enum sway_node_type type) {
 	return "";
 }
 
-void node_set_dirty(struct sway_node *node) {
+void node_set_dirty(struct wmiiv_node *node) {
 	if (node->dirty) {
 		return;
 	}
@@ -40,67 +40,67 @@ void node_set_dirty(struct sway_node *node) {
 }
 
 // TODO (wmiiv) rename to node_is_window.
-bool node_is_view(struct sway_node *node) {
+bool node_is_view(struct wmiiv_node *node) {
 	return node->type == N_WINDOW;
 }
 
-char *node_get_name(struct sway_node *node) {
+char *node_get_name(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		return "root";
 	case N_OUTPUT:
-		return node->sway_output->wlr_output->name;
+		return node->wmiiv_output->wlr_output->name;
 	case N_WORKSPACE:
-		return node->sway_workspace->name;
+		return node->wmiiv_workspace->name;
 	case N_COLUMN:
-		return node->sway_container->title;
+		return node->wmiiv_container->title;
 	case N_WINDOW:
-		return node->sway_container->title;
+		return node->wmiiv_container->title;
 	}
 	return NULL;
 }
 
-void node_get_box(struct sway_node *node, struct wlr_box *box) {
+void node_get_box(struct wmiiv_node *node, struct wlr_box *box) {
 	switch (node->type) {
 	case N_ROOT:
 		root_get_box(root, box);
 		break;
 	case N_OUTPUT:
-		output_get_box(node->sway_output, box);
+		output_get_box(node->wmiiv_output, box);
 		break;
 	case N_WORKSPACE:
-		workspace_get_box(node->sway_workspace, box);
+		workspace_get_box(node->wmiiv_workspace, box);
 		break;
 	case N_COLUMN:
-		container_get_box(node->sway_container, box);
+		container_get_box(node->wmiiv_container, box);
 		break;
 	case N_WINDOW:
-		container_get_box(node->sway_container, box);
+		container_get_box(node->wmiiv_container, box);
 		break;
 	}
 }
 
-struct sway_output *node_get_output(struct sway_node *node) {
+struct wmiiv_output *node_get_output(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_WORKSPACE:
-		return node->sway_workspace->output;
+		return node->wmiiv_workspace->output;
 	case N_OUTPUT:
-		return node->sway_output;
+		return node->wmiiv_output;
 	case N_ROOT:
 		return NULL;
 	case N_COLUMN: {
-			struct sway_workspace *ws = node->sway_container->pending.workspace;
+			struct wmiiv_workspace *ws = node->wmiiv_container->pending.workspace;
 			return ws ? ws->output : NULL;
 		}
 	case N_WINDOW: {
-			struct sway_workspace *ws = node->sway_container->pending.workspace;
+			struct wmiiv_workspace *ws = node->wmiiv_container->pending.workspace;
 			return ws ? ws->output : NULL;
 		}	
 	}
 	return NULL;
 }
 
-enum sway_container_layout node_get_layout(struct sway_node *node) {
+enum wmiiv_container_layout node_get_layout(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		return L_NONE;
@@ -109,28 +109,28 @@ enum sway_container_layout node_get_layout(struct sway_node *node) {
 	case N_WORKSPACE:
 		return L_HORIZ;
 	case N_COLUMN:
-		return node->sway_container->pending.layout;
+		return node->wmiiv_container->pending.layout;
 	case N_WINDOW:
 		return L_NONE;
 	}
 	return L_NONE;
 }
 
-struct sway_node *node_get_parent(struct sway_node *node) {
+struct wmiiv_node *node_get_parent(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		return NULL;
 	case N_OUTPUT:
 		return &root->node;
 	case N_WORKSPACE: {
-			struct sway_workspace *ws = node->sway_workspace;
+			struct wmiiv_workspace *ws = node->wmiiv_workspace;
 			if (ws->output) {
 				return &ws->output->node;
 			}
 		}
 		return NULL;
 	case N_COLUMN: {
-			struct sway_container *con = node->sway_container;
+			struct wmiiv_container *con = node->wmiiv_container;
 			if (con->pending.parent) {
 				return &con->pending.parent->node;
 			}
@@ -140,7 +140,7 @@ struct sway_node *node_get_parent(struct sway_node *node) {
 		}
 		return NULL;
 	case N_WINDOW: {
-			struct sway_container *con = node->sway_container;
+			struct wmiiv_container *con = node->wmiiv_container;
 			if (con->pending.parent) {
 				return &con->pending.parent->node;
 			}
@@ -153,34 +153,34 @@ struct sway_node *node_get_parent(struct sway_node *node) {
 	return NULL;
 }
 
-list_t *node_get_children(struct sway_node *node) {
+list_t *node_get_children(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		return NULL;
 	case N_OUTPUT:
 		return NULL;
 	case N_WORKSPACE:
-		return node->sway_workspace->tiling;
+		return node->wmiiv_workspace->tiling;
 	case N_COLUMN:
-		return node->sway_container->pending.children;
+		return node->wmiiv_container->pending.children;
 	case N_WINDOW:
 		return NULL;
 	}
 	return NULL;
 }
 
-bool node_has_ancestor(struct sway_node *node, struct sway_node *ancestor) {
+bool node_has_ancestor(struct wmiiv_node *node, struct wmiiv_node *ancestor) {
 	if (ancestor->type == N_ROOT && (node->type == N_COLUMN || node->type == N_WINDOW) &&
-			node->sway_container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+			node->wmiiv_container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 		return true;
 	}
-	struct sway_node *parent = node_get_parent(node);
+	struct wmiiv_node *parent = node_get_parent(node);
 	while (parent) {
 		if (parent == ancestor) {
 			return true;
 		}
 		if (ancestor->type == N_ROOT && parent->type == N_COLUMN &&
-				parent->sway_container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+				parent->wmiiv_container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 			return true;
 		}
 		parent = node_get_parent(parent);

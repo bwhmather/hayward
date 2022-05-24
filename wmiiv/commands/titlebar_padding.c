@@ -1,8 +1,8 @@
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/output.h"
-#include "sway/tree/arrange.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/arrange.h"
 #include "log.h"
 
 struct cmd_results *cmd_titlebar_padding(int argc, char **argv) {
@@ -31,7 +31,7 @@ struct cmd_results *cmd_titlebar_padding(int argc, char **argv) {
 	config->titlebar_h_padding = h_value;
 
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		arrange_workspace(output_get_active_workspace(output));
 		output_damage_whole(output);
 	}

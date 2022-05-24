@@ -6,24 +6,24 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/edges.h>
 #include "log.h"
-#include "sway/decoration.h"
-#include "sway/desktop.h"
-#include "sway/desktop/transaction.h"
-#include "sway/input/cursor.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
-#include "sway/output.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/xdg_decoration.h"
+#include "wmiiv/decoration.h"
+#include "wmiiv/desktop.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/xdg_decoration.h"
 
-static const struct sway_view_child_impl popup_impl;
+static const struct wmiiv_view_child_impl popup_impl;
 
-static void popup_get_view_coords(struct sway_view_child *child,
+static void popup_get_view_coords(struct wmiiv_view_child *child,
 		int *sx, int *sy) {
-	struct sway_xdg_popup *popup = (struct sway_xdg_popup *)child;
+	struct wmiiv_xdg_popup *popup = (struct wmiiv_xdg_popup *)child;
 	struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
 	wlr_xdg_popup_get_toplevel_coords(wlr_popup,
@@ -32,42 +32,42 @@ static void popup_get_view_coords(struct sway_view_child *child,
 		sx, sy);
 }
 
-static void popup_destroy(struct sway_view_child *child) {
-	if (!sway_assert(child->impl == &popup_impl,
+static void popup_destroy(struct wmiiv_view_child *child) {
+	if (!wmiiv_assert(child->impl == &popup_impl,
 			"Expected an xdg_shell popup")) {
 		return;
 	}
-	struct sway_xdg_popup *popup = (struct sway_xdg_popup *)child;
+	struct wmiiv_xdg_popup *popup = (struct wmiiv_xdg_popup *)child;
 	wl_list_remove(&popup->new_popup.link);
 	wl_list_remove(&popup->destroy.link);
 	free(popup);
 }
 
-static const struct sway_view_child_impl popup_impl = {
+static const struct wmiiv_view_child_impl popup_impl = {
 	.get_view_coords = popup_get_view_coords,
 	.destroy = popup_destroy,
 };
 
-static struct sway_xdg_popup *popup_create(
-	struct wlr_xdg_popup *wlr_popup, struct sway_view *view);
+static struct wmiiv_xdg_popup *popup_create(
+	struct wlr_xdg_popup *wlr_popup, struct wmiiv_view *view);
 
 static void popup_handle_new_popup(struct wl_listener *listener, void *data) {
-	struct sway_xdg_popup *popup =
+	struct wmiiv_xdg_popup *popup =
 		wl_container_of(listener, popup, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
 	popup_create(wlr_popup, popup->child.view);
 }
 
 static void popup_handle_destroy(struct wl_listener *listener, void *data) {
-	struct sway_xdg_popup *popup = wl_container_of(listener, popup, destroy);
+	struct wmiiv_xdg_popup *popup = wl_container_of(listener, popup, destroy);
 	view_child_destroy(&popup->child);
 }
 
-static void popup_unconstrain(struct sway_xdg_popup *popup) {
-	struct sway_view *view = popup->child.view;
+static void popup_unconstrain(struct wmiiv_xdg_popup *popup) {
+	struct wmiiv_view *view = popup->child.view;
 	struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
-	struct sway_output *output = view->container->pending.workspace->output;
+	struct wmiiv_output *output = view->container->pending.workspace->output;
 
 	// the output box expressed in the coordinate system of the toplevel parent
 	// of the popup
@@ -81,12 +81,12 @@ static void popup_unconstrain(struct sway_xdg_popup *popup) {
 	wlr_xdg_popup_unconstrain_from_box(wlr_popup, &output_toplevel_sx_box);
 }
 
-static struct sway_xdg_popup *popup_create(
-		struct wlr_xdg_popup *wlr_popup, struct sway_view *view) {
+static struct wmiiv_xdg_popup *popup_create(
+		struct wlr_xdg_popup *wlr_popup, struct wmiiv_view *view) {
 	struct wlr_xdg_surface *xdg_surface = wlr_popup->base;
 
-	struct sway_xdg_popup *popup =
-		calloc(1, sizeof(struct sway_xdg_popup));
+	struct wmiiv_xdg_popup *popup =
+		calloc(1, sizeof(struct wmiiv_xdg_popup));
 	if (popup == NULL) {
 		return NULL;
 	}
@@ -107,16 +107,16 @@ static struct sway_xdg_popup *popup_create(
 }
 
 
-static struct sway_xdg_shell_view *xdg_shell_view_from_view(
-		struct sway_view *view) {
-	if (!sway_assert(view->type == SWAY_VIEW_XDG_SHELL,
+static struct wmiiv_xdg_shell_view *xdg_shell_view_from_view(
+		struct wmiiv_view *view) {
+	if (!wmiiv_assert(view->type == SWAY_VIEW_XDG_SHELL,
 			"Expected xdg_shell view")) {
 		return NULL;
 	}
-	return (struct sway_xdg_shell_view *)view;
+	return (struct wmiiv_xdg_shell_view *)view;
 }
 
-static void get_constraints(struct sway_view *view, double *min_width,
+static void get_constraints(struct wmiiv_view *view, double *min_width,
 		double *max_width, double *min_height, double *max_height) {
 	struct wlr_xdg_toplevel_state *state =
 		&view->wlr_xdg_toplevel->current;
@@ -126,8 +126,8 @@ static void get_constraints(struct sway_view *view, double *min_width,
 	*max_height = state->max_height > 0 ? state->max_height : DBL_MAX;
 }
 
-static const char *get_string_prop(struct sway_view *view,
-		enum sway_view_prop prop) {
+static const char *get_string_prop(struct wmiiv_view *view,
+		enum wmiiv_view_prop prop) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return NULL;
 	}
@@ -141,9 +141,9 @@ static const char *get_string_prop(struct sway_view *view,
 	}
 }
 
-static uint32_t configure(struct sway_view *view, double lx, double ly,
+static uint32_t configure(struct wmiiv_view *view, double lx, double ly,
 		int width, int height) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		xdg_shell_view_from_view(view);
 	if (xdg_shell_view == NULL) {
 		return 0;
@@ -152,14 +152,14 @@ static uint32_t configure(struct sway_view *view, double lx, double ly,
 		width, height);
 }
 
-static void set_activated(struct sway_view *view, bool activated) {
+static void set_activated(struct wmiiv_view *view, bool activated) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return;
 	}
 	wlr_xdg_toplevel_set_activated(view->wlr_xdg_toplevel, activated);
 }
 
-static void set_tiled(struct sway_view *view, bool tiled) {
+static void set_tiled(struct wmiiv_view *view, bool tiled) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return;
 	}
@@ -171,21 +171,21 @@ static void set_tiled(struct sway_view *view, bool tiled) {
 	wlr_xdg_toplevel_set_tiled(view->wlr_xdg_toplevel, edges);
 }
 
-static void set_fullscreen(struct sway_view *view, bool fullscreen) {
+static void set_fullscreen(struct wmiiv_view *view, bool fullscreen) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return;
 	}
 	wlr_xdg_toplevel_set_fullscreen(view->wlr_xdg_toplevel, fullscreen);
 }
 
-static void set_resizing(struct sway_view *view, bool resizing) {
+static void set_resizing(struct wmiiv_view *view, bool resizing) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return;
 	}
 	wlr_xdg_toplevel_set_resizing(view->wlr_xdg_toplevel, resizing);
 }
 
-static bool wants_floating(struct sway_view *view) {
+static bool wants_floating(struct wmiiv_view *view) {
 	struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
 	struct wlr_xdg_toplevel_state *state = &toplevel->current;
 	return (state->min_width != 0 && state->min_height != 0
@@ -194,7 +194,7 @@ static bool wants_floating(struct sway_view *view) {
 		|| toplevel->parent;
 }
 
-static void for_each_surface(struct sway_view *view,
+static void for_each_surface(struct wmiiv_view *view,
 		wlr_surface_iterator_func_t iterator, void *user_data) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return;
@@ -203,7 +203,7 @@ static void for_each_surface(struct sway_view *view,
 		user_data);
 }
 
-static void for_each_popup_surface(struct sway_view *view,
+static void for_each_popup_surface(struct wmiiv_view *view,
 		wlr_surface_iterator_func_t iterator, void *user_data) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return;
@@ -212,8 +212,8 @@ static void for_each_popup_surface(struct sway_view *view,
 		iterator, user_data);
 }
 
-static bool is_transient_for(struct sway_view *child,
-		struct sway_view *ancestor) {
+static bool is_transient_for(struct wmiiv_view *child,
+		struct wmiiv_view *ancestor) {
 	if (xdg_shell_view_from_view(child) == NULL) {
 		return false;
 	}
@@ -227,22 +227,22 @@ static bool is_transient_for(struct sway_view *child,
 	return false;
 }
 
-static void _close(struct sway_view *view) {
+static void _close(struct wmiiv_view *view) {
 	if (xdg_shell_view_from_view(view) == NULL) {
 		return;
 	}
 	wlr_xdg_toplevel_send_close(view->wlr_xdg_toplevel);
 }
 
-static void close_popups(struct sway_view *view) {
+static void close_popups(struct wmiiv_view *view) {
 	struct wlr_xdg_popup *popup, *tmp;
 	wl_list_for_each_safe(popup, tmp, &view->wlr_xdg_toplevel->base->popups, link) {
 		wlr_xdg_popup_destroy(popup);
 	}
 }
 
-static void destroy(struct sway_view *view) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+static void destroy(struct wmiiv_view *view) {
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		xdg_shell_view_from_view(view);
 	if (xdg_shell_view == NULL) {
 		return;
@@ -250,7 +250,7 @@ static void destroy(struct sway_view *view) {
 	free(xdg_shell_view);
 }
 
-static const struct sway_view_impl view_impl = {
+static const struct wmiiv_view_impl view_impl = {
 	.get_constraints = get_constraints,
 	.get_string_prop = get_string_prop,
 	.configure = configure,
@@ -268,9 +268,9 @@ static const struct sway_view_impl view_impl = {
 };
 
 static void handle_commit(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, commit);
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 	struct wlr_xdg_surface *xdg_surface = view->wlr_xdg_toplevel->base;
 
 	struct wlr_box new_geo;
@@ -304,42 +304,42 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 }
 
 static void handle_set_title(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, set_title);
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 	view_update_title(view, false);
 	view_execute_criteria(view);
 }
 
 static void handle_set_app_id(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, set_app_id);
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 	view_execute_criteria(view);
 }
 
 static void handle_new_popup(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, new_popup);
 	struct wlr_xdg_popup *wlr_popup = data;
 	popup_create(wlr_popup, &xdg_shell_view->view);
 }
 
 static void handle_request_fullscreen(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, request_fullscreen);
 	struct wlr_xdg_toplevel *toplevel = xdg_shell_view->view.wlr_xdg_toplevel;
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 
 	if (!toplevel->base->mapped) {
 		return;
 	}
 
-	struct sway_container *win = view->container;
+	struct wmiiv_container *win = view->container;
 	struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 	if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
-		struct sway_output *output = req->fullscreen_output->data;
-		struct sway_workspace *ws = output_get_active_workspace(output);
+		struct wmiiv_output *output = req->fullscreen_output->data;
+		struct wmiiv_workspace *ws = output_get_active_workspace(output);
 		if (ws && win->pending.workspace != ws) {
 			if (window_is_floating(win)) {
 				workspace_add_floating(ws, win);
@@ -356,40 +356,40 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 }
 
 static void handle_request_move(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, request_move);
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 	if (!window_is_floating(view->container) ||
 			view->container->pending.fullscreen_mode) {
 		return;
 	}
 	struct wlr_xdg_toplevel_move_event *e = data;
-	struct sway_seat *seat = e->seat->seat->data;
+	struct wmiiv_seat *seat = e->seat->seat->data;
 	if (e->serial == seat->last_button_serial) {
 		seatop_begin_move_floating(seat, view->container);
 	}
 }
 
 static void handle_request_resize(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, request_resize);
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 	if (!window_is_floating(view->container)) {
 		return;
 	}
 	struct wlr_xdg_toplevel_resize_event *e = data;
-	struct sway_seat *seat = e->seat->seat->data;
+	struct wmiiv_seat *seat = e->seat->seat->data;
 	if (e->serial == seat->last_button_serial) {
 		seatop_begin_resize_floating(seat, view->container, e->edges);
 	}
 }
 
 static void handle_unmap(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, unmap);
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 
-	if (!sway_assert(view->surface, "Cannot unmap unmapped view")) {
+	if (!wmiiv_assert(view->surface, "Cannot unmap unmapped view")) {
 		return;
 	}
 
@@ -405,9 +405,9 @@ static void handle_unmap(struct wl_listener *listener, void *data) {
 }
 
 static void handle_map(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, map);
-	struct sway_view *view = &xdg_shell_view->view;
+	struct wmiiv_view *view = &xdg_shell_view->view;
 	struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
 
 	view->natural_width = toplevel->base->current.geometry.width;
@@ -424,7 +424,7 @@ static void handle_map(struct wl_listener *listener, void *data) {
 			view->xdg_decoration->wlr_xdg_decoration->requested_mode;
 		csd = mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
 	} else {
-		struct sway_server_decoration *deco =
+		struct wmiiv_server_decoration *deco =
 				decoration_from_surface(toplevel->base->surface);
 		csd = !deco || deco->wlr_server_decoration->mode ==
 			WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
@@ -467,10 +467,10 @@ static void handle_map(struct wl_listener *listener, void *data) {
 }
 
 static void handle_destroy(struct wl_listener *listener, void *data) {
-	struct sway_xdg_shell_view *xdg_shell_view =
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, destroy);
-	struct sway_view *view = &xdg_shell_view->view;
-	if (!sway_assert(view->surface == NULL, "Tried to destroy a mapped view")) {
+	struct wmiiv_view *view = &xdg_shell_view->view;
+	if (!wmiiv_assert(view->surface == NULL, "Tried to destroy a mapped view")) {
 		return;
 	}
 	wl_list_remove(&xdg_shell_view->destroy.link);
@@ -483,7 +483,7 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
 	view_begin_destroy(view);
 }
 
-struct sway_view *view_from_wlr_xdg_surface(
+struct wmiiv_view *view_from_wlr_xdg_surface(
 		struct wlr_xdg_surface *xdg_surface) {
 	return xdg_surface->data;
 }
@@ -492,17 +492,17 @@ void handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
 	struct wlr_xdg_surface *xdg_surface = data;
 
 	if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
-		sway_log(SWAY_DEBUG, "New xdg_shell popup");
+		wmiiv_log(SWAY_DEBUG, "New xdg_shell popup");
 		return;
 	}
 
-	sway_log(SWAY_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'",
+	wmiiv_log(SWAY_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'",
 		xdg_surface->toplevel->title, xdg_surface->toplevel->app_id);
 	wlr_xdg_surface_ping(xdg_surface);
 
-	struct sway_xdg_shell_view *xdg_shell_view =
-		calloc(1, sizeof(struct sway_xdg_shell_view));
-	if (!sway_assert(xdg_shell_view, "Failed to allocate view")) {
+	struct wmiiv_xdg_shell_view *xdg_shell_view =
+		calloc(1, sizeof(struct wmiiv_xdg_shell_view));
+	if (!wmiiv_assert(xdg_shell_view, "Failed to allocate view")) {
 		return;
 	}
 

@@ -1,7 +1,7 @@
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
 #include "util.h"
 
 struct cmd_results *cmd_smart_borders(int argc, char **argv) {

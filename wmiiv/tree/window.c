@@ -14,26 +14,26 @@
 #include "linux-dmabuf-unstable-v1-protocol.h"
 #include "cairo_util.h"
 #include "pango.h"
-#include "sway/config.h"
-#include "sway/desktop.h"
-#include "sway/desktop/transaction.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
-#include "sway/ipc-server.h"
-#include "sway/output.h"
-#include "sway/server.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/xdg_decoration.h"
+#include "wmiiv/config.h"
+#include "wmiiv/desktop.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/ipc-server.h"
+#include "wmiiv/output.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/xdg_decoration.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
 
-struct sway_container *window_create(struct sway_view *view) {
-	struct sway_container *c = calloc(1, sizeof(struct sway_container));
+struct wmiiv_container *window_create(struct wmiiv_view *view) {
+	struct wmiiv_container *c = calloc(1, sizeof(struct wmiiv_container));
 	if (!c) {
-		sway_log(SWAY_ERROR, "Unable to allocate sway_container");
+		wmiiv_log(SWAY_ERROR, "Unable to allocate wmiiv_container");
 		return NULL;
 	}
 	node_init(&c->node, N_WINDOW, c);
@@ -50,7 +50,7 @@ struct sway_container *window_create(struct sway_view *view) {
 	return c;
 }
 
-static bool find_by_mark_iterator(struct sway_container *con, void *data) {
+static bool find_by_mark_iterator(struct wmiiv_container *con, void *data) {
 	char *mark = data;
 	if (!container_is_window(con)) {
 		return false;
@@ -63,12 +63,12 @@ static bool find_by_mark_iterator(struct sway_container *con, void *data) {
 	return true;
 }
 
-struct sway_container *window_find_mark(char *mark) {
+struct wmiiv_container *window_find_mark(char *mark) {
 	return root_find_container(find_by_mark_iterator, mark);
 }
 
 bool window_find_and_unmark(char *mark) {
-	struct sway_container *con = root_find_container(
+	struct wmiiv_container *con = root_find_container(
 		find_by_mark_iterator, mark);
 	if (!con) {
 		return false;
@@ -87,8 +87,8 @@ bool window_find_and_unmark(char *mark) {
 	return false;
 }
 
-void window_clear_marks(struct sway_container *con) {
-	if (!sway_assert(container_is_window(con), "Cannot only clear marks on windows")) {
+void window_clear_marks(struct wmiiv_container *con) {
+	if (!wmiiv_assert(container_is_window(con), "Cannot only clear marks on windows")) {
 		return;
 	}
 
@@ -99,8 +99,8 @@ void window_clear_marks(struct sway_container *con) {
 	ipc_event_window(con, "mark");
 }
 
-bool window_has_mark(struct sway_container *con, char *mark) {
-	if (!sway_assert(container_is_window(con), "Cannot only check marks on windows")) {
+bool window_has_mark(struct wmiiv_container *con, char *mark) {
+	if (!wmiiv_assert(container_is_window(con), "Cannot only check marks on windows")) {
 		return false;
 	}
 
@@ -113,8 +113,8 @@ bool window_has_mark(struct sway_container *con, char *mark) {
 	return false;
 }
 
-void window_add_mark(struct sway_container *con, char *mark) {
-	if (!sway_assert(container_is_window(con), "Cannot only mark windows")) {
+void window_add_mark(struct wmiiv_container *con, char *mark) {
+	if (!wmiiv_assert(container_is_window(con), "Cannot only mark windows")) {
 		return;
 	}
 
@@ -122,8 +122,8 @@ void window_add_mark(struct sway_container *con, char *mark) {
 	ipc_event_window(con, "mark");
 }
 
-static void render_titlebar_text_texture(struct sway_output *output,
-		struct sway_container *con, struct wlr_texture **texture,
+static void render_titlebar_text_texture(struct wmiiv_output *output,
+		struct wmiiv_container *con, struct wlr_texture **texture,
 		struct border_colors *class, bool pango_markup, char *text) {
 	double scale = output->wlr_output->scale;
 	int width = 0;
@@ -163,7 +163,7 @@ static void render_titlebar_text_texture(struct sway_output *output,
 			CAIRO_FORMAT_ARGB32, width, height);
 	cairo_status_t status = cairo_surface_status(surface);
 	if (status != CAIRO_STATUS_SUCCESS) {
-		sway_log(SWAY_ERROR, "cairo_image_surface_create failed: %s",
+		wmiiv_log(SWAY_ERROR, "cairo_image_surface_create failed: %s",
 			cairo_status_to_string(status));
 		return;
 	}
@@ -193,9 +193,9 @@ static void render_titlebar_text_texture(struct sway_output *output,
 	cairo_destroy(cairo);
 }
 
-static void update_marks_texture(struct sway_container *con,
+static void update_marks_texture(struct wmiiv_container *con,
 		struct wlr_texture **texture, struct border_colors *class) {
-	struct sway_output *output = container_get_effective_output(con);
+	struct wmiiv_output *output = container_get_effective_output(con);
 	if (!output) {
 		return;
 	}
@@ -217,7 +217,7 @@ static void update_marks_texture(struct sway_container *con,
 	char *buffer = calloc(len + 1, 1);
 	char *part = malloc(len + 1);
 
-	if (!sway_assert(buffer && part, "Unable to allocate memory")) {
+	if (!wmiiv_assert(buffer && part, "Unable to allocate memory")) {
 		free(buffer);
 		return;
 	}
@@ -236,8 +236,8 @@ static void update_marks_texture(struct sway_container *con,
 	free(buffer);
 }
 
-void window_update_marks_textures(struct sway_container *con) {
-	if (!sway_assert(container_is_window(con), "Only windows have marks textures")) {
+void window_update_marks_textures(struct wmiiv_container *con) {
+	if (!wmiiv_assert(container_is_window(con), "Only windows have marks textures")) {
 		return;
 	}
 
@@ -257,8 +257,8 @@ void window_update_marks_textures(struct sway_container *con) {
 	container_damage_whole(con);
 }
 
-bool window_is_floating(struct sway_container *win) {
-	if (!sway_assert(container_is_window(win), "Only windows can float")) {
+bool window_is_floating(struct wmiiv_container *win) {
+	if (!wmiiv_assert(container_is_window(win), "Only windows can float")) {
 		return false;
 	}
 
@@ -269,8 +269,8 @@ bool window_is_floating(struct sway_container *win) {
 	return false;
 }
 
-bool window_is_current_floating(struct sway_container *win) {
-	if (!sway_assert(container_is_window(win), "Only windows can float")) {
+bool window_is_current_floating(struct wmiiv_container *win) {
+	if (!wmiiv_assert(container_is_window(win), "Only windows can float")) {
 		return false;
 	}
 	if (!win->current.parent && win->current.workspace &&
@@ -280,8 +280,8 @@ bool window_is_current_floating(struct sway_container *win) {
 	return false;
 }
 
-void window_set_floating(struct sway_container *win, bool enable) {
-	if (!sway_assert(container_is_window(win), "Can only float windows")) {
+void window_set_floating(struct wmiiv_container *win, bool enable) {
+	if (!wmiiv_assert(container_is_window(win), "Can only float windows")) {
 		return;
 	}
 
@@ -289,13 +289,13 @@ void window_set_floating(struct sway_container *win, bool enable) {
 		return;
 	}
 
-	struct sway_seat *seat = input_manager_current_seat();
-	struct sway_workspace *workspace = win->pending.workspace;
-	struct sway_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_seat *seat = input_manager_current_seat();
+	struct wmiiv_workspace *workspace = win->pending.workspace;
+	struct wmiiv_container *focus = seat_get_focused_container(seat);
 	bool set_focus = focus == win;
 
 	if (enable) {
-		struct sway_container *old_parent = win->pending.parent;
+		struct wmiiv_container *old_parent = win->pending.parent;
 		container_detach(win);
 		workspace_add_floating(workspace, win);
 		view_set_tiled(win->view, false);
@@ -303,7 +303,7 @@ void window_set_floating(struct sway_container *win, bool enable) {
 			win->saved_border = win->pending.border;
 			win->pending.border = B_CSD;
 			if (win->view->xdg_decoration) {
-				struct sway_xdg_decoration *deco = win->view->xdg_decoration;
+				struct wmiiv_xdg_decoration *deco = win->view->xdg_decoration;
 				wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration,
 						WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE);
 			}
@@ -320,7 +320,7 @@ void window_set_floating(struct sway_container *win, bool enable) {
 	} else {
 		// Returning to tiled
 		container_detach(win);
-		struct sway_container *reference =
+		struct wmiiv_container *reference =
 			seat_get_focus_inactive_tiling(seat, workspace);
 		if (reference) {
 			if (reference->view) {
@@ -331,7 +331,7 @@ void window_set_floating(struct sway_container *win, bool enable) {
 			win->pending.width = reference->pending.width;
 			win->pending.height = reference->pending.height;
 		} else {
-			struct sway_container *other =
+			struct wmiiv_container *other =
 				workspace_add_tiling(workspace, win);
 			other->pending.width = workspace->width;
 			other->pending.height = workspace->height;
@@ -341,7 +341,7 @@ void window_set_floating(struct sway_container *win, bool enable) {
 			if (win->view->using_csd) {
 				win->pending.border = win->saved_border;
 				if (win->view->xdg_decoration) {
-					struct sway_xdg_decoration *deco = win->view->xdg_decoration;
+					struct wmiiv_xdg_decoration *deco = win->view->xdg_decoration;
 					wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration,
 							WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
 				}
@@ -356,8 +356,8 @@ void window_set_floating(struct sway_container *win, bool enable) {
 	ipc_event_window(win, "floating");
 }
 
-bool window_is_fullscreen(struct sway_container* win) {
-	if (!sway_assert(container_is_window(win), "Only windows can be fullscreen")) {
+bool window_is_fullscreen(struct wmiiv_container* win) {
+	if (!wmiiv_assert(container_is_window(win), "Only windows can be fullscreen")) {
 		return false;
 	}
 
@@ -367,17 +367,17 @@ bool window_is_fullscreen(struct sway_container* win) {
 /**
  * Ensures all seats focus the fullscreen container if needed.
  */
-static void workspace_focus_fullscreen(struct sway_workspace *workspace) {
+static void workspace_focus_fullscreen(struct wmiiv_workspace *workspace) {
 	// TODO (wmiiv) move me.
 	if (!workspace->fullscreen) {
 		return;
 	}
-	struct sway_seat *seat;
-	struct sway_workspace *focus_ws;
+	struct wmiiv_seat *seat;
+	struct wmiiv_workspace *focus_ws;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		focus_ws = seat_get_focused_workspace(seat);
 		if (focus_ws == workspace) {
-			struct sway_node *new_focus =
+			struct wmiiv_node *new_focus =
 				seat_get_focus_inactive(seat, &workspace->fullscreen->node);
 			seat_set_raw_focus(seat, new_focus);
 		}
@@ -385,12 +385,12 @@ static void workspace_focus_fullscreen(struct sway_workspace *workspace) {
 }
 
 static void window_move_to_column_from_maybe_direction(
-		struct sway_container *win, struct sway_container *col,
+		struct wmiiv_container *win, struct wmiiv_container *col,
 		bool has_move_dir, enum wlr_direction move_dir) {
-	if (!sway_assert(container_is_window(win), "Can only move windows to columns")) {
+	if (!wmiiv_assert(container_is_window(win), "Can only move windows to columns")) {
 		return;
 	}
-	if (!sway_assert(container_is_column(col), "Can only move windows to columns")) {
+	if (!wmiiv_assert(container_is_column(col), "Can only move windows to columns")) {
 		return;
 	}
 
@@ -398,11 +398,11 @@ static void window_move_to_column_from_maybe_direction(
 		return;
 	}
 
-	struct sway_seat *seat = input_manager_get_default_seat();
-	struct sway_workspace *old_workspace = win->pending.workspace;
+	struct wmiiv_seat *seat = input_manager_get_default_seat();
+	struct wmiiv_workspace *old_workspace = win->pending.workspace;
 
 	if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
-		sway_log(SWAY_DEBUG, "Reparenting window (parallel)");
+		wmiiv_log(SWAY_DEBUG, "Reparenting window (parallel)");
 		int index =
 			move_dir == WLR_DIRECTION_DOWN ?
 			0 : col->pending.children->length;
@@ -411,8 +411,8 @@ static void window_move_to_column_from_maybe_direction(
 		win->pending.width = win->pending.height = 0;
 		win->width_fraction = win->height_fraction = 0;
 	} else {
-		sway_log(SWAY_DEBUG, "Reparenting window (perpendicular)");
-		struct sway_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
+		wmiiv_log(SWAY_DEBUG, "Reparenting window (perpendicular)");
+		struct wmiiv_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
 		container_detach(win);
 		if (target_sibling) {
 			column_add_sibling(target_sibling, win, 1);
@@ -434,20 +434,20 @@ static void window_move_to_column_from_maybe_direction(
 }
 
 void window_move_to_column_from_direction(
-		struct sway_container *win, struct sway_container *col,
+		struct wmiiv_container *win, struct wmiiv_container *col,
 		enum wlr_direction move_dir) {
 	window_move_to_column_from_maybe_direction(win, col, true, move_dir);
 }
 
-void window_move_to_column(struct sway_container *win,
-		struct sway_container *col) {
+void window_move_to_column(struct wmiiv_container *win,
+		struct wmiiv_container *col) {
 	window_move_to_column_from_maybe_direction(win, col, false, WLR_DIRECTION_DOWN);
 }
 
 static void window_move_to_workspace_from_maybe_direction(
-		struct sway_container *win, struct sway_workspace *ws,
+		struct wmiiv_container *win, struct wmiiv_workspace *ws,
 		bool has_move_dir, enum wlr_direction move_dir) {
-	if (!sway_assert(container_is_window(win), "Can only move windows between workspaces")) {
+	if (!wmiiv_assert(container_is_window(win), "Can only move windows between workspaces")) {
 		return;
 	}
 
@@ -455,12 +455,12 @@ static void window_move_to_workspace_from_maybe_direction(
 		return;
 	}
 
-	struct sway_seat *seat = input_manager_get_default_seat();
+	struct wmiiv_seat *seat = input_manager_get_default_seat();
 
 	// TODO (wmiiv) fullscreen.
 
 	if (window_is_floating(win)) {
-		struct sway_output *old_output = win->pending.workspace->output;
+		struct wmiiv_output *old_output = win->pending.workspace->output;
 		container_detach(win);
 		workspace_add_floating(ws, win);
 		container_handle_fullscreen_reparent(win);
@@ -476,25 +476,25 @@ static void window_move_to_workspace_from_maybe_direction(
 	win->width_fraction = win->height_fraction = 0;
 
 	if (!ws->tiling->length) {
-		struct sway_container *col = column_create();
+		struct wmiiv_container *col = column_create();
 		workspace_insert_tiling_direct(ws, col, 0);
 	}
 
 	if (has_move_dir && (move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_RIGHT)) {
-		sway_log(SWAY_DEBUG, "Reparenting window (parallel)");
+		wmiiv_log(SWAY_DEBUG, "Reparenting window (parallel)");
 		// Move to either left-most or right-most column based on move
 		// direction.
 		int index =
 			move_dir == WLR_DIRECTION_RIGHT ?
 			0 : ws->tiling->length;
-		struct sway_container *col = ws->tiling->items[index];
+		struct wmiiv_container *col = ws->tiling->items[index];
 		window_move_to_column_from_maybe_direction(win, col, has_move_dir, move_dir);
 	} else {
-		sway_log(SWAY_DEBUG, "Reparenting container (perpendicular)");
+		wmiiv_log(SWAY_DEBUG, "Reparenting container (perpendicular)");
 		// Move to the most recently focused column in the workspace.
-		struct sway_container *col = NULL;
+		struct wmiiv_container *col = NULL;
 
-		struct sway_container *focus_inactive = seat_get_focus_inactive_tiling(seat, ws);
+		struct wmiiv_container *focus_inactive = seat_get_focus_inactive_tiling(seat, ws);
 		// TODO (wmiiv) only windows should be focusable.
 		focus_inactive = seat_get_focus_inactive_view(seat, &focus_inactive->node);
 		if (focus_inactive) {
@@ -507,12 +507,12 @@ static void window_move_to_workspace_from_maybe_direction(
 }
 
 void window_move_to_workspace_from_direction(
-		struct sway_container *win, struct sway_workspace *ws,
+		struct wmiiv_container *win, struct wmiiv_workspace *ws,
 		enum wlr_direction move_dir) {
 	window_move_to_workspace_from_maybe_direction(win, ws, true, move_dir);
 }
 
-void window_move_to_workspace(struct sway_container *win,
-		struct sway_workspace *ws) {
+void window_move_to_workspace(struct wmiiv_container *win,
+		struct wmiiv_workspace *ws) {
 	window_move_to_workspace_from_maybe_direction(win, ws, false, WLR_DIRECTION_DOWN);
 }

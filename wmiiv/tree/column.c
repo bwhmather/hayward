@@ -14,26 +14,26 @@
 #include "linux-dmabuf-unstable-v1-protocol.h"
 #include "cairo_util.h"
 #include "pango.h"
-#include "sway/config.h"
-#include "sway/desktop.h"
-#include "sway/desktop/transaction.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
-#include "sway/ipc-server.h"
-#include "sway/output.h"
-#include "sway/server.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/xdg_decoration.h"
+#include "wmiiv/config.h"
+#include "wmiiv/desktop.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/ipc-server.h"
+#include "wmiiv/output.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/xdg_decoration.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
 
-struct sway_container *column_create(void) {
-	struct sway_container *c = calloc(1, sizeof(struct sway_container));
+struct wmiiv_container *column_create(void) {
+	struct wmiiv_container *c = calloc(1, sizeof(struct wmiiv_container));
 	if (!c) {
-		sway_log(SWAY_ERROR, "Unable to allocate sway_container");
+		wmiiv_log(SWAY_ERROR, "Unable to allocate wmiiv_container");
 		return NULL;
 	}
 	node_init(&c->node, N_COLUMN, c);
@@ -53,11 +53,11 @@ struct sway_container *column_create(void) {
 	return c;
 }
 
-void column_consider_destroy(struct sway_container *col) {
-	if (!sway_assert(container_is_column(col), "Cannot reap a non-column container")) {
+void column_consider_destroy(struct wmiiv_container *col) {
+	if (!wmiiv_assert(container_is_column(col), "Cannot reap a non-column container")) {
 		return;
 	}
-	struct sway_workspace *ws = col->pending.workspace;
+	struct wmiiv_workspace *ws = col->pending.workspace;
 
 	if (col->pending.children->length) {
 		return;
@@ -69,16 +69,16 @@ void column_consider_destroy(struct sway_container *col) {
 	}
 }
 
-struct sway_container *column_find_child(struct sway_container *col,
-		bool (*test)(struct sway_container *con, void *data), void *data) {
-	if (!sway_assert(container_is_column(col), "Cannot find children in non-column containers")) {
+struct wmiiv_container *column_find_child(struct wmiiv_container *col,
+		bool (*test)(struct wmiiv_container *con, void *data), void *data) {
+	if (!wmiiv_assert(container_is_column(col), "Cannot find children in non-column containers")) {
 		return NULL;
 	}
 	if (!col->pending.children) {
 		return NULL;
 	}
 	for (int i = 0; i < col->pending.children->length; ++i) {
-		struct sway_container *child = col->pending.children->items[i];
+		struct wmiiv_container *child = col->pending.children->items[i];
 		if (test(child, data)) {
 			return child;
 		}
@@ -86,16 +86,16 @@ struct sway_container *column_find_child(struct sway_container *col,
 	return NULL;
 }
 
-static void set_workspace(struct sway_container *container, void *data) {
+static void set_workspace(struct wmiiv_container *container, void *data) {
 	container->pending.workspace = container->pending.parent->pending.workspace;
 }
 
-void column_insert_child(struct sway_container *parent,
-		struct sway_container *child, int i) {
-	sway_assert(container_is_column(parent), "Target is not a column");
-	sway_assert(container_is_window(child), "Not a window");
+void column_insert_child(struct wmiiv_container *parent,
+		struct wmiiv_container *child, int i) {
+	wmiiv_assert(container_is_column(parent), "Target is not a column");
+	wmiiv_assert(container_is_window(child), "Not a window");
 
-	if (!sway_assert(!child->pending.workspace && !child->pending.parent,
+	if (!wmiiv_assert(!child->pending.workspace && !child->pending.parent,
 			"Windows must be detatched before they can be added to a column")) {
 		container_detach(child);
 	}
@@ -107,12 +107,12 @@ void column_insert_child(struct sway_container *parent,
 	container_update_representation(parent);
 }
 
-void column_add_sibling(struct sway_container *fixed,
-		struct sway_container *active, bool after) {
-	sway_assert(container_is_window(fixed), "Target sibling is not a window");
-	sway_assert(container_is_window(active), "Not a window");
+void column_add_sibling(struct wmiiv_container *fixed,
+		struct wmiiv_container *active, bool after) {
+	wmiiv_assert(container_is_window(fixed), "Target sibling is not a window");
+	wmiiv_assert(container_is_window(active), "Not a window");
 
-	if (!sway_assert(!active->pending.workspace && !active->pending.parent,
+	if (!wmiiv_assert(!active->pending.workspace && !active->pending.parent,
 			"Windows must be detatched before they can be added to a column")) {
 		container_detach(active);
 	}
@@ -127,12 +127,12 @@ void column_add_sibling(struct sway_container *fixed,
 	container_update_representation(active);
 }
 
-void column_add_child(struct sway_container *parent,
-		struct sway_container *child) {
-	sway_assert(container_is_column(parent), "Target is not a column");
-	sway_assert(container_is_window(child), "Not a window");
+void column_add_child(struct wmiiv_container *parent,
+		struct wmiiv_container *child) {
+	wmiiv_assert(container_is_column(parent), "Target is not a column");
+	wmiiv_assert(container_is_window(child), "Not a window");
 
-	if (!sway_assert(!child->pending.workspace && !child->pending.workspace,
+	if (!wmiiv_assert(!child->pending.workspace && !child->pending.workspace,
 			"Windows must be detatched before they can be added to a column")) {
 		container_detach(child);
 	}

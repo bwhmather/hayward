@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
-#include "sway/config.h"
-#include "sway/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
 #include "log.h"
 
 struct cmd_results *input_cmd_xkb_options(int argc, char **argv) {
@@ -15,7 +15,7 @@ struct cmd_results *input_cmd_xkb_options(int argc, char **argv) {
 
 	ic->xkb_options = strdup(argv[0]);
 
-	sway_log(SWAY_DEBUG, "set-xkb_options for config: %s options: %s",
+	wmiiv_log(SWAY_DEBUG, "set-xkb_options for config: %s options: %s",
 			ic->identifier, ic->xkb_options);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

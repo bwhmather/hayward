@@ -5,8 +5,8 @@
 #if WLR_HAS_X11_BACKEND
 #include <wlr/backend/x11.h>
 #endif
-#include "sway/commands.h"
-#include "sway/server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/server.h"
 #include "log.h"
 
 static void create_output(struct wlr_backend *backend, void *data) {
@@ -34,7 +34,7 @@ static void create_output(struct wlr_backend *backend, void *data) {
  * This command is intended for developer use only.
  */
 struct cmd_results *cmd_create_output(int argc, char **argv) {
-	sway_assert(wlr_backend_is_multi(server.backend),
+	wmiiv_assert(wlr_backend_is_multi(server.backend),
 			"Expected a multi backend");
 
 	bool done = false;

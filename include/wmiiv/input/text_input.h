@@ -4,7 +4,7 @@
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_compositor.h>
-#include "sway/input/seat.h"
+#include "wmiiv/input/seat.h"
 
 /**
  * The relay structure manages the relationship between text-input and
@@ -18,10 +18,10 @@
  * in the focused state, wl_keyboard sent an enter as well. However, having
  * wl_keyboard focused doesn't mean that text-input will be focused.
  */
-struct sway_input_method_relay {
-	struct sway_seat *seat;
+struct wmiiv_input_method_relay {
+	struct wmiiv_seat *seat;
 
-	struct wl_list text_inputs; // sway_text_input::link
+	struct wl_list text_inputs; // wmiiv_text_input::link
 	struct wlr_input_method_v2 *input_method; // doesn't have to be present
 
 	struct wl_listener text_input_new;
@@ -34,8 +34,8 @@ struct sway_input_method_relay {
 	struct wl_listener input_method_keyboard_grab_destroy;
 };
 
-struct sway_text_input {
-	struct sway_input_method_relay *relay;
+struct wmiiv_text_input {
+	struct wmiiv_input_method_relay *relay;
 
 	struct wlr_text_input_v3 *input;
 	// The surface getting seat's focus. Stored for when text-input cannot
@@ -53,17 +53,17 @@ struct sway_text_input {
 	struct wl_listener text_input_destroy;
 };
 
-void sway_input_method_relay_init(struct sway_seat *seat,
-	struct sway_input_method_relay *relay);
+void wmiiv_input_method_relay_init(struct wmiiv_seat *seat,
+	struct wmiiv_input_method_relay *relay);
 
-void sway_input_method_relay_finish(struct sway_input_method_relay *relay);
+void wmiiv_input_method_relay_finish(struct wmiiv_input_method_relay *relay);
 
 // Updates currently focused surface. Surface must belong to the same seat.
-void sway_input_method_relay_set_focus(struct sway_input_method_relay *relay,
+void wmiiv_input_method_relay_set_focus(struct wmiiv_input_method_relay *relay,
 	struct wlr_surface *surface);
 
-struct sway_text_input *sway_text_input_create(
-	struct sway_input_method_relay *relay,
+struct wmiiv_text_input *wmiiv_text_input_create(
+	struct wmiiv_input_method_relay *relay,
 	struct wlr_text_input_v3 *text_input);
 
 #endif

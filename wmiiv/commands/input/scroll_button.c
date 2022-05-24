@@ -1,7 +1,7 @@
 #include <libevdev/libevdev.h>
-#include "sway/config.h"
-#include "sway/commands.h"
-#include "sway/input/cursor.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/cursor.h"
 
 struct cmd_results *input_cmd_scroll_button(int argc, char **argv) {
 	struct cmd_results *error = NULL;

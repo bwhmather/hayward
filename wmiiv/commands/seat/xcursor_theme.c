@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 
 struct cmd_results *seat_cmd_xcursor_theme(int argc, char **argv) {
 	struct cmd_results *error = NULL;

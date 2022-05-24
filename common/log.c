@@ -9,22 +9,22 @@
 
 static terminate_callback_t log_terminate = exit;
 
-void _sway_abort(const char *format, ...) {
+void _wmiiv_abort(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
-	_sway_vlog(SWAY_ERROR, format, args);
+	_wmiiv_vlog(SWAY_ERROR, format, args);
 	va_end(args);
 	log_terminate(EXIT_FAILURE);
 }
 
-bool _sway_assert(bool condition, const char *format, ...) {
+bool _wmiiv_assert(bool condition, const char *format, ...) {
 	if (condition) {
 		return true;
 	}
 
 	va_list args;
 	va_start(args, format);
-	_sway_vlog(SWAY_ERROR, format, args);
+	_wmiiv_vlog(SWAY_ERROR, format, args);
 	va_end(args);
 
 #ifndef NDEBUG
@@ -35,7 +35,7 @@ bool _sway_assert(bool condition, const char *format, ...) {
 }
 
 static bool colored = true;
-static sway_log_importance_t log_importance = SWAY_ERROR;
+static wmiiv_log_importance_t log_importance = SWAY_ERROR;
 static struct timespec start_time = {-1, -1};
 
 static const char *verbosity_colors[] = {
@@ -70,7 +70,7 @@ static void init_start_time(void) {
 	clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
-static void sway_log_stderr(sway_log_importance_t verbosity, const char *fmt,
+static void wmiiv_log_stderr(wmiiv_log_importance_t verbosity, const char *fmt,
 		va_list args) {
 	init_start_time();
 
@@ -103,7 +103,7 @@ static void sway_log_stderr(sway_log_importance_t verbosity, const char *fmt,
 	fprintf(stderr, "\n");
 }
 
-void sway_log_init(sway_log_importance_t verbosity, terminate_callback_t callback) {
+void wmiiv_log_init(wmiiv_log_importance_t verbosity, terminate_callback_t callback) {
 	init_start_time();
 
 	if (verbosity < SWAY_LOG_IMPORTANCE_LAST) {
@@ -114,13 +114,13 @@ void sway_log_init(sway_log_importance_t verbosity, terminate_callback_t callbac
 	}
 }
 
-void _sway_vlog(sway_log_importance_t verbosity, const char *fmt, va_list args) {
-	sway_log_stderr(verbosity, fmt, args);
+void _wmiiv_vlog(wmiiv_log_importance_t verbosity, const char *fmt, va_list args) {
+	wmiiv_log_stderr(verbosity, fmt, args);
 }
 
-void _sway_log(sway_log_importance_t verbosity, const char *fmt, ...) {
+void _wmiiv_log(wmiiv_log_importance_t verbosity, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	sway_log_stderr(verbosity, fmt, args);
+	wmiiv_log_stderr(verbosity, fmt, args);
 	va_end(args);
 }

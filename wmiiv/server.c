@@ -37,24 +37,24 @@
 #include "config.h"
 #include "list.h"
 #include "log.h"
-#include "sway/config.h"
-#include "sway/desktop/idle_inhibit_v1.h"
-#include "sway/input/input-manager.h"
-#include "sway/output.h"
-#include "sway/server.h"
-#include "sway/tree/root.h"
+#include "wmiiv/config.h"
+#include "wmiiv/desktop/idle_inhibit_v1.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/output.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/root.h"
 #if HAVE_XWAYLAND
-#include "sway/xwayland.h"
+#include "wmiiv/xwayland.h"
 #endif
 
-bool server_privileged_prepare(struct sway_server *server) {
-	sway_log(SWAY_DEBUG, "Preparing Wayland server initialization");
+bool server_privileged_prepare(struct wmiiv_server *server) {
+	wmiiv_log(SWAY_DEBUG, "Preparing Wayland server initialization");
 	server->wl_display = wl_display_create();
 	server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
 	server->backend = wlr_backend_autocreate(server->wl_display);
 
 	if (!server->backend) {
-		sway_log(SWAY_ERROR, "Unable to create backend");
+		wmiiv_log(SWAY_ERROR, "Unable to create backend");
 		return false;
 	}
 	return true;
@@ -67,17 +67,17 @@ static void handle_drm_lease_request(struct wl_listener *listener, void *data) {
 	struct wlr_drm_lease_request_v1 *req = data;
 	struct wlr_drm_lease_v1 *lease = wlr_drm_lease_request_v1_grant(req);
 	if (!lease) {
-		sway_log(SWAY_ERROR, "Failed to grant lease request");
+		wmiiv_log(SWAY_ERROR, "Failed to grant lease request");
 		wlr_drm_lease_request_v1_reject(req);
 	}
 }
 
-bool server_init(struct sway_server *server) {
-	sway_log(SWAY_DEBUG, "Initializing Wayland server");
+bool server_init(struct wmiiv_server *server) {
+	wmiiv_log(SWAY_DEBUG, "Initializing Wayland server");
 
 	server->renderer = wlr_renderer_autocreate(server->backend);
 	if (!server->renderer) {
-		sway_log(SWAY_ERROR, "Failed to create renderer");
+		wmiiv_log(SWAY_ERROR, "Failed to create renderer");
 		return false;
 	}
 
@@ -92,7 +92,7 @@ bool server_init(struct sway_server *server) {
 	server->allocator = wlr_allocator_autocreate(server->backend,
 		server->renderer);
 	if (!server->allocator) {
-		sway_log(SWAY_ERROR, "Failed to create allocator");
+		wmiiv_log(SWAY_ERROR, "Failed to create allocator");
 		return false;
 	}
 
@@ -119,7 +119,7 @@ bool server_init(struct sway_server *server) {
 
 	server->idle = wlr_idle_create(server->wl_display);
 	server->idle_inhibit_manager_v1 =
-		sway_idle_inhibit_manager_v1_create(server->wl_display, server->idle);
+		wmiiv_idle_inhibit_manager_v1_create(server->wl_display, server->idle);
 
 	server->layer_shell = wlr_layer_shell_v1_create(server->wl_display);
 	wl_signal_add(&server->layer_shell->events.new_surface,
@@ -183,7 +183,7 @@ bool server_init(struct sway_server *server) {
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
 
-	sway_session_lock_init();
+	wmiiv_session_lock_init();
 
 	server->drm_lease_manager=
 		wlr_drm_lease_v1_manager_create(server->wl_display, server->backend);
@@ -192,8 +192,8 @@ bool server_init(struct sway_server *server) {
 		wl_signal_add(&server->drm_lease_manager->events.request,
 				&server->drm_lease_request);
 	} else {
-		sway_log(SWAY_DEBUG, "Failed to create wlr_drm_lease_device_v1");
-		sway_log(SWAY_INFO, "VR will not be available");
+		wmiiv_log(SWAY_DEBUG, "Failed to create wlr_drm_lease_device_v1");
+		wmiiv_log(SWAY_INFO, "VR will not be available");
 	}
 
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
@@ -224,14 +224,14 @@ bool server_init(struct sway_server *server) {
 	}
 
 	if (!server->socket) {
-		sway_log(SWAY_ERROR, "Unable to open wayland socket");
+		wmiiv_log(SWAY_ERROR, "Unable to open wayland socket");
 		wlr_backend_destroy(server->backend);
 		return false;
 	}
 
 	server->headless_backend = wlr_headless_backend_create(server->wl_display);
 	if (!server->headless_backend) {
-		sway_log(SWAY_ERROR, "Failed to create secondary headless backend");
+		wmiiv_log(SWAY_ERROR, "Failed to create secondary headless backend");
 		wlr_backend_destroy(server->backend);
 		return false;
 	} else {
@@ -256,8 +256,8 @@ bool server_init(struct sway_server *server) {
 	return true;
 }
 
-void server_fini(struct sway_server *server) {
-	// TODO: free sway-specific resources
+void server_fini(struct wmiiv_server *server) {
+	// TODO: free wmiiv-specific resources
 #if HAVE_XWAYLAND
 	wlr_xwayland_destroy(server->xwayland.wlr_xwayland);
 #endif
@@ -266,16 +266,16 @@ void server_fini(struct sway_server *server) {
 	list_free(server->dirty_nodes);
 }
 
-bool server_start(struct sway_server *server) {
+bool server_start(struct wmiiv_server *server) {
 #if HAVE_XWAYLAND
 	if (config->xwayland != XWAYLAND_MODE_DISABLED) {
-		sway_log(SWAY_DEBUG, "Initializing Xwayland (lazy=%d)",
+		wmiiv_log(SWAY_DEBUG, "Initializing Xwayland (lazy=%d)",
 				config->xwayland == XWAYLAND_MODE_LAZY);
 		server->xwayland.wlr_xwayland =
 			wlr_xwayland_create(server->wl_display, server->compositor,
 					config->xwayland == XWAYLAND_MODE_LAZY);
 		if (!server->xwayland.wlr_xwayland) {
-			sway_log(SWAY_ERROR, "Failed to start Xwayland");
+			wmiiv_log(SWAY_ERROR, "Failed to start Xwayland");
 			unsetenv("DISPLAY");
 		} else {
 			wl_signal_add(&server->xwayland.wlr_xwayland->events.new_surface,
@@ -292,10 +292,10 @@ bool server_start(struct sway_server *server) {
 	}
 #endif
 
-	sway_log(SWAY_INFO, "Starting backend on wayland display '%s'",
+	wmiiv_log(SWAY_INFO, "Starting backend on wayland display '%s'",
 			server->socket);
 	if (!wlr_backend_start(server->backend)) {
-		sway_log(SWAY_ERROR, "Failed to start backend");
+		wmiiv_log(SWAY_ERROR, "Failed to start backend");
 		wlr_backend_destroy(server->backend);
 		return false;
 	}
@@ -303,8 +303,8 @@ bool server_start(struct sway_server *server) {
 	return true;
 }
 
-void server_run(struct sway_server *server) {
-	sway_log(SWAY_INFO, "Running compositor on wayland display '%s'",
+void server_run(struct wmiiv_server *server) {
+	wmiiv_log(SWAY_INFO, "Running compositor on wayland display '%s'",
 			server->socket);
 	wl_display_run(server->wl_display);
 }

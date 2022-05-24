@@ -1,24 +1,24 @@
 #define _POSIX_C_SOURCE 200809L
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
-#include "sway/commands.h"
-#include "sway/desktop/transaction.h"
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
 
 struct seatop_resize_tiling_event {
-	struct sway_container *con;    // leaf container
+	struct wmiiv_container *con;    // leaf container
 
 	// con, or ancestor of con which will be resized horizontally/vertically
-	struct sway_container *h_con;
-	struct sway_container *v_con;
+	struct wmiiv_container *h_con;
+	struct wmiiv_container *v_con;
 
 	// sibling con(s) that will be resized to accommodate
-	struct sway_container *h_sib;
-	struct sway_container *v_sib;
+	struct wmiiv_container *h_sib;
+	struct wmiiv_container *v_sib;
 
 	enum wlr_edges edge;
 	enum wlr_edges edge_x, edge_y;
@@ -27,8 +27,8 @@ struct seatop_resize_tiling_event {
 	double v_con_orig_height;      // height of the vertical ancestor at start
 };
 
-static struct sway_container *container_get_resize_sibling(
-		struct sway_container *con, uint32_t edge) {
+static struct wmiiv_container *container_get_resize_sibling(
+		struct wmiiv_container *con, uint32_t edge) {
 	if (!con) {
 		return NULL;
 	}
@@ -44,7 +44,7 @@ static struct sway_container *container_get_resize_sibling(
 	}
 }
 
-static void handle_button(struct sway_seat *seat, uint32_t time_msec,
+static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state) {
 	struct seatop_resize_tiling_event *e = seat->seatop_data;
@@ -73,7 +73,7 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	}
 }
 
-static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
+static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_resize_tiling_event *e = seat->seatop_data;
 	int amount_x = 0;
 	int amount_y = 0;
@@ -104,7 +104,7 @@ static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct sway_seat *seat, struct sway_container *con) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
 	struct seatop_resize_tiling_event *e = seat->seatop_data;
 	if (e->con == con) {
 		seatop_begin_default(seat);
@@ -114,14 +114,14 @@ static void handle_unref(struct sway_seat *seat, struct sway_container *con) {
 	}
 }
 
-static const struct sway_seatop_impl seatop_impl = {
+static const struct wmiiv_seatop_impl seatop_impl = {
 	.button = handle_button,
 	.pointer_motion = handle_pointer_motion,
 	.unref = handle_unref,
 };
 
-void seatop_begin_resize_tiling(struct sway_seat *seat,
-		struct sway_container *con, enum wlr_edges edge) {
+void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
+		struct wmiiv_container *con, enum wlr_edges edge) {
 	seatop_end(seat);
 
 	struct seatop_resize_tiling_event *e =

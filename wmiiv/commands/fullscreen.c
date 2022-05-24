@@ -1,11 +1,11 @@
 #include <strings.h>
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
 #include "util.h"
 
 // fullscreen [enable|disable|toggle] [global]
@@ -18,7 +18,7 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct sway_container *container = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 
 	if (!container) {
 		// If the focus is not a container, do nothing successfully
@@ -41,7 +41,7 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 		global = strcasecmp(argv[1], "global") == 0;
 	}
 
-	enum sway_fullscreen_mode mode = FULLSCREEN_NONE;
+	enum wmiiv_fullscreen_mode mode = FULLSCREEN_NONE;
 	if (enable) {
 		mode = global ? FULLSCREEN_GLOBAL : FULLSCREEN_WORKSPACE;
 	}

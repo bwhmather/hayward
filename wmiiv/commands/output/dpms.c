@@ -1,6 +1,6 @@
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/output.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/output.h"
 #include "util.h"
 #include <strings.h>
 
@@ -22,13 +22,13 @@ struct cmd_results *output_cmd_dpms(int argc, char **argv) {
 					"Cannot apply toggle to all outputs.");
 		}
 
-		struct sway_output *sway_output = all_output_by_name_or_id(oc_name);
-		if (!sway_output || !sway_output->wlr_output) {
+		struct wmiiv_output *wmiiv_output = all_output_by_name_or_id(oc_name);
+		if (!wmiiv_output || !wmiiv_output->wlr_output) {
 			return cmd_results_new(CMD_FAILURE,
 					"Cannot apply toggle to unknown output %s", oc_name);
 		}
 
-		if (sway_output->enabled && !sway_output->wlr_output->enabled) {
+		if (wmiiv_output->enabled && !wmiiv_output->wlr_output->enabled) {
 			current_dpms = DPMS_OFF;
 		}
 	}

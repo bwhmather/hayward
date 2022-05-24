@@ -1,16 +1,16 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/root.h"
-#include "sway/tree/view.h"
-#include "sway/output.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/output.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
 #include "util.h"
 
-static void rebuild_marks_iterator(struct sway_container *con, void *data) {
+static void rebuild_marks_iterator(struct wmiiv_container *con, void *data) {
 	if (container_is_window(con)) {
 		window_update_marks_textures(con);
 	}
@@ -29,7 +29,7 @@ struct cmd_results *cmd_show_marks(int argc, char **argv) {
 	}
 
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		output_damage_whole(output);
 	}
 

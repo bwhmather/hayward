@@ -1,11 +1,11 @@
-#include "sway/tree/container.h"
-#include "sway/desktop.h"
-#include "sway/output.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/desktop.h"
+#include "wmiiv/output.h"
 
 void desktop_damage_surface(struct wlr_surface *surface, double lx, double ly,
 		bool whole) {
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		struct wlr_box output_box;
 		wlr_output_layout_get_box(root->output_layout,
 			output->wlr_output, &output_box);
@@ -14,21 +14,21 @@ void desktop_damage_surface(struct wlr_surface *surface, double lx, double ly,
 	}
 }
 
-void desktop_damage_whole_container(struct sway_container *con) {
+void desktop_damage_whole_container(struct wmiiv_container *con) {
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		output_damage_whole_container(output, con);
 	}
 }
 
 void desktop_damage_box(struct wlr_box *box) {
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		output_damage_box(output, box);
 	}
 }
 
-void desktop_damage_view(struct sway_view *view) {
+void desktop_damage_view(struct wmiiv_view *view) {
 	desktop_damage_whole_container(view->container);
 	struct wlr_box box = {
 		.x = view->container->current.content_x - view->geometry.x,

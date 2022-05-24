@@ -1,7 +1,7 @@
 #include <drm_fourcc.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 
 struct cmd_results *output_cmd_render_bit_depth(int argc, char **argv) {
 	if (!config->handler_context.output_config) {

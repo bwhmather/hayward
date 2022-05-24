@@ -5,13 +5,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "swaybar/bar.h"
-#include "swaybar/config.h"
-#include "swaybar/input.h"
-#include "swaybar/tray/host.h"
-#include "swaybar/tray/icon.h"
-#include "swaybar/tray/item.h"
-#include "swaybar/tray/tray.h"
+#include "wmiivbar/bar.h"
+#include "wmiivbar/config.h"
+#include "wmiivbar/input.h"
+#include "wmiivbar/tray/host.h"
+#include "wmiivbar/tray/icon.h"
+#include "wmiivbar/tray/item.h"
+#include "wmiivbar/tray/tray.h"
 #include "background-image.h"
 #include "cairo_util.h"
 #include "list.h"
@@ -20,29 +20,29 @@
 
 // TODO menu
 
-static bool sni_ready(struct swaybar_sni *sni) {
+static bool sni_ready(struct wmiivbar_sni *sni) {
 	return sni->status && (sni->status[0] == 'N' ? // NeedsAttention
 			sni->attention_icon_name || sni->attention_icon_pixmap :
 			sni->icon_name || sni->icon_pixmap);
 }
 
-static void set_sni_dirty(struct swaybar_sni *sni) {
+static void set_sni_dirty(struct wmiivbar_sni *sni) {
 	if (sni_ready(sni)) {
 		sni->target_size = sni->min_size = sni->max_size = 0; // invalidate previous icon
 		set_bar_dirty(sni->tray->bar);
 	}
 }
 
-static int read_pixmap(sd_bus_message *msg, struct swaybar_sni *sni,
+static int read_pixmap(sd_bus_message *msg, struct wmiivbar_sni *sni,
 		const char *prop, list_t **dest) {
 	int ret = sd_bus_message_enter_container(msg, 'a', "(iiay)");
 	if (ret < 0) {
-		sway_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+		wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 		return ret;
 	}
 
 	if (sd_bus_message_at_end(msg, 0)) {
-		sway_log(SWAY_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
+		wmiiv_log(SWAY_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
 		return ret;
 	}
 
@@ -54,14 +54,14 @@ static int read_pixmap(sd_bus_message *msg, struct swaybar_sni *sni,
 	while (!sd_bus_message_at_end(msg, 0)) {
 		ret = sd_bus_message_enter_container(msg, 'r', "iiay");
 		if (ret < 0) {
-			sway_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto error;
 		}
 
 		int width, height;
 		ret = sd_bus_message_read(msg, "ii", &width, &height);
 		if (ret < 0) {
-			sway_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto error;
 		}
 
@@ -69,14 +69,14 @@ static int read_pixmap(sd_bus_message *msg, struct swaybar_sni *sni,
 		size_t npixels;
 		ret = sd_bus_message_read_array(msg, 'y', &pixels, &npixels);
 		if (ret < 0) {
-			sway_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto error;
 		}
 
 		if (height > 0 && width == height) {
-			sway_log(SWAY_DEBUG, "%s %s: found icon w:%d h:%d", sni->watcher_id, prop, width, height);
-			struct swaybar_pixmap *pixmap =
-				malloc(sizeof(struct swaybar_pixmap) + npixels);
+			wmiiv_log(SWAY_DEBUG, "%s %s: found icon w:%d h:%d", sni->watcher_id, prop, width, height);
+			struct wmiivbar_pixmap *pixmap =
+				malloc(sizeof(struct wmiivbar_pixmap) + npixels);
 			pixmap->size = height;
 
 			// convert from network byte order to host byte order
@@ -86,20 +86,20 @@ static int read_pixmap(sd_bus_message *msg, struct swaybar_sni *sni,
 
 			list_add(pixmaps, pixmap);
 		} else {
-			sway_log(SWAY_DEBUG, "%s %s: discard invalid icon w:%d h:%d", sni->watcher_id, prop, width, height);
+			wmiiv_log(SWAY_DEBUG, "%s %s: discard invalid icon w:%d h:%d", sni->watcher_id, prop, width, height);
 		}
 
 		sd_bus_message_exit_container(msg);
 	}
 
 	if (pixmaps->length < 1) {
-		sway_log(SWAY_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
+		wmiiv_log(SWAY_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
 		goto error;
 	}
 
 	list_free_items_and_destroy(*dest);
 	*dest = pixmaps;
-	sway_log(SWAY_DEBUG, "%s %s no. of icons = %d", sni->watcher_id, prop,
+	wmiiv_log(SWAY_DEBUG, "%s %s no. of icons = %d", sni->watcher_id, prop,
 			pixmaps->length);
 
 	return ret;
@@ -110,8 +110,8 @@ error:
 
 static int get_property_callback(sd_bus_message *msg, void *data,
 		sd_bus_error *error) {
-	struct swaybar_sni_slot *d = data;
-	struct swaybar_sni *sni = d->sni;
+	struct wmiivbar_sni_slot *d = data;
+	struct wmiivbar_sni *sni = d->sni;
 	const char *prop = d->prop;
 	const char *type = d->type;
 	void *dest = d->dest;
@@ -119,19 +119,19 @@ static int get_property_callback(sd_bus_message *msg, void *data,
 	int ret;
 	if (sd_bus_message_is_method_error(msg, NULL)) {
 		const sd_bus_error *err = sd_bus_message_get_error(msg);
-		sway_log_importance_t log_lv = SWAY_ERROR;
+		wmiiv_log_importance_t log_lv = SWAY_ERROR;
 		if ((!strcmp(prop, "IconThemePath")) &&
 				(!strcmp(err->name, SD_BUS_ERROR_UNKNOWN_PROPERTY))) {
 			log_lv = SWAY_DEBUG;
 		}
-		sway_log(log_lv, "%s %s: %s", sni->watcher_id, prop, err->message);
+		wmiiv_log(log_lv, "%s %s: %s", sni->watcher_id, prop, err->message);
 		ret = sd_bus_message_get_errno(msg);
 		goto cleanup;
 	}
 
 	ret = sd_bus_message_enter_container(msg, 'v', type);
 	if (ret < 0) {
-		sway_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+		wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 		goto cleanup;
 	}
 
@@ -147,16 +147,16 @@ static int get_property_callback(sd_bus_message *msg, void *data,
 
 		ret = sd_bus_message_read(msg, type, dest);
 		if (ret < 0) {
-			sway_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto cleanup;
 		}
 
 		if (*type == 's' || *type == 'o') {
 			char **str = dest;
 			*str = strdup(*str);
-			sway_log(SWAY_DEBUG, "%s %s = '%s'", sni->watcher_id, prop, *str);
+			wmiiv_log(SWAY_DEBUG, "%s %s = '%s'", sni->watcher_id, prop, *str);
 		} else if (*type == 'b') {
-			sway_log(SWAY_DEBUG, "%s %s = %s", sni->watcher_id, prop,
+			wmiiv_log(SWAY_DEBUG, "%s %s = %s", sni->watcher_id, prop,
 					*(bool *)dest ? "true" : "false");
 		}
 	}
@@ -171,9 +171,9 @@ cleanup:
 	return ret;
 }
 
-static void sni_get_property_async(struct swaybar_sni *sni, const char *prop,
+static void sni_get_property_async(struct wmiivbar_sni *sni, const char *prop,
 		const char *type, void *dest) {
-	struct swaybar_sni_slot *data = calloc(1, sizeof(struct swaybar_sni_slot));
+	struct wmiivbar_sni_slot *data = calloc(1, sizeof(struct wmiivbar_sni_slot));
 	data->sni = sni;
 	data->prop = prop;
 	data->type = type;
@@ -184,7 +184,7 @@ static void sni_get_property_async(struct swaybar_sni *sni, const char *prop,
 	if (ret >= 0) {
 		wl_list_insert(&sni->slots, &data->link);
 	} else {
-		sway_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+		wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 		free(data);
 	}
 }
@@ -203,21 +203,21 @@ static void sni_get_property_async(struct swaybar_sni *sni, const char *prop,
  * can stop since it has already found the required callback, otherwise, it
  * returns 0, which allows matching to continue.
  */
-static int sni_check_msg_sender(struct swaybar_sni *sni, sd_bus_message *msg,
+static int sni_check_msg_sender(struct wmiivbar_sni *sni, sd_bus_message *msg,
 		const char *signal) {
 	bool has_well_known_names =
 		sd_bus_creds_get_mask(sd_bus_message_get_creds(msg)) & SD_BUS_CREDS_WELL_KNOWN_NAMES;
 	if (sni->service[0] == ':' || has_well_known_names) {
-		sway_log(SWAY_DEBUG, "%s has new %s", sni->watcher_id, signal);
+		wmiiv_log(SWAY_DEBUG, "%s has new %s", sni->watcher_id, signal);
 		return 1;
 	} else {
-		sway_log(SWAY_DEBUG, "%s may have new %s", sni->watcher_id, signal);
+		wmiiv_log(SWAY_DEBUG, "%s may have new %s", sni->watcher_id, signal);
 		return 0;
 	}
 }
 
 static int handle_new_icon(sd_bus_message *msg, void *data, sd_bus_error *error) {
-	struct swaybar_sni *sni = data;
+	struct wmiivbar_sni *sni = data;
 	sni_get_property_async(sni, "IconName", "s", &sni->icon_name);
 	sni_get_property_async(sni, "IconPixmap", NULL, &sni->icon_pixmap);
 	if (!strcmp(sni->interface, "org.kde.StatusNotifierItem")) {
@@ -228,25 +228,25 @@ static int handle_new_icon(sd_bus_message *msg, void *data, sd_bus_error *error)
 
 static int handle_new_attention_icon(sd_bus_message *msg, void *data,
 		sd_bus_error *error) {
-	struct swaybar_sni *sni = data;
+	struct wmiivbar_sni *sni = data;
 	sni_get_property_async(sni, "AttentionIconName", "s", &sni->attention_icon_name);
 	sni_get_property_async(sni, "AttentionIconPixmap", NULL, &sni->attention_icon_pixmap);
 	return sni_check_msg_sender(sni, msg, "attention icon");
 }
 
 static int handle_new_status(sd_bus_message *msg, void *data, sd_bus_error *error) {
-	struct swaybar_sni *sni = data;
+	struct wmiivbar_sni *sni = data;
 	int ret = sni_check_msg_sender(sni, msg, "status");
 	if (ret == 1) {
 		char *status;
 		int r = sd_bus_message_read(msg, "s", &status);
 		if (r < 0) {
-			sway_log(SWAY_ERROR, "%s new status error: %s", sni->watcher_id, strerror(-ret));
+			wmiiv_log(SWAY_ERROR, "%s new status error: %s", sni->watcher_id, strerror(-ret));
 			ret = r;
 		} else {
 			free(sni->status);
 			sni->status = strdup(status);
-			sway_log(SWAY_DEBUG, "%s has new status = '%s'", sni->watcher_id, status);
+			wmiiv_log(SWAY_DEBUG, "%s has new status = '%s'", sni->watcher_id, status);
 			set_sni_dirty(sni);
 		}
 	} else {
@@ -256,22 +256,22 @@ static int handle_new_status(sd_bus_message *msg, void *data, sd_bus_error *erro
 	return ret;
 }
 
-static void sni_match_signal_async(struct swaybar_sni *sni, char *signal,
+static void sni_match_signal_async(struct wmiivbar_sni *sni, char *signal,
 		sd_bus_message_handler_t callback) {
-	struct swaybar_sni_slot *slot = calloc(1, sizeof(struct swaybar_sni_slot));
+	struct wmiivbar_sni_slot *slot = calloc(1, sizeof(struct wmiivbar_sni_slot));
 	int ret = sd_bus_match_signal_async(sni->tray->bus, &slot->slot,
 			sni->service, sni->path, sni->interface, signal, callback, NULL, sni);
 	if (ret >= 0) {
 		wl_list_insert(&sni->slots, &slot->link);
 	} else {
-		sway_log(SWAY_ERROR, "%s failed to subscribe to signal %s: %s",
+		wmiiv_log(SWAY_ERROR, "%s failed to subscribe to signal %s: %s",
 				sni->service, signal, strerror(-ret));
 		free(slot);
 	}
 }
 
-struct swaybar_sni *create_sni(char *id, struct swaybar_tray *tray) {
-	struct swaybar_sni *sni = calloc(1, sizeof(struct swaybar_sni));
+struct wmiivbar_sni *create_sni(char *id, struct wmiivbar_tray *tray) {
+	struct wmiivbar_sni *sni = calloc(1, sizeof(struct wmiivbar_sni));
 	if (!sni) {
 		return NULL;
 	}
@@ -307,7 +307,7 @@ struct swaybar_sni *create_sni(char *id, struct swaybar_tray *tray) {
 	return sni;
 }
 
-void destroy_sni(struct swaybar_sni *sni) {
+void destroy_sni(struct wmiivbar_sni *sni) {
 	if (!sni) {
 		return;
 	}
@@ -324,7 +324,7 @@ void destroy_sni(struct swaybar_sni *sni) {
 	free(sni->menu);
 	free(sni->icon_theme_path);
 
-	struct swaybar_sni_slot *slot, *slot_tmp;
+	struct wmiivbar_sni_slot *slot, *slot_tmp;
 	wl_list_for_each_safe(slot, slot_tmp, &sni->slots, link) {
 		sd_bus_slot_unref(slot->slot);
 		free(slot);
@@ -333,7 +333,7 @@ void destroy_sni(struct swaybar_sni *sni) {
 	free(sni);
 }
 
-static void handle_click(struct swaybar_sni *sni, int x, int y,
+static void handle_click(struct wmiivbar_sni *sni, int x, int y,
 		uint32_t button, int delta) {
 	const char *method = NULL;
 	struct tray_binding *binding = NULL;
@@ -379,38 +379,38 @@ static void handle_click(struct swaybar_sni *sni, int x, int y,
 }
 
 static int cmp_sni_id(const void *item, const void *cmp_to) {
-	const struct swaybar_sni *sni = item;
+	const struct wmiivbar_sni *sni = item;
 	return strcmp(sni->watcher_id, cmp_to);
 }
 
 static enum hotspot_event_handling icon_hotspot_callback(
-		struct swaybar_output *output, struct swaybar_hotspot *hotspot,
+		struct wmiivbar_output *output, struct wmiivbar_hotspot *hotspot,
 		double x, double y, uint32_t button, void *data) {
-	sway_log(SWAY_DEBUG, "Clicked on %s", (char *)data);
+	wmiiv_log(SWAY_DEBUG, "Clicked on %s", (char *)data);
 
-	struct swaybar_tray *tray = output->bar->tray;
+	struct wmiivbar_tray *tray = output->bar->tray;
 	int idx = list_seq_find(tray->items, cmp_sni_id, data);
 
 	if (idx != -1) {
-		struct swaybar_sni *sni = tray->items->items[idx];
+		struct wmiivbar_sni *sni = tray->items->items[idx];
 		// guess global position since wayland doesn't expose it
-		struct swaybar_config *config = tray->bar->config;
+		struct wmiivbar_config *config = tray->bar->config;
 		int global_x = output->output_x + config->gaps.left + x;
 		bool top_bar = config->position & ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP;
 		int global_y = output->output_y + (top_bar ? config->gaps.top + y:
 				(int) output->output_height - config->gaps.bottom - y);
 
-		sway_log(SWAY_DEBUG, "Guessing click position at (%d, %d)", global_x, global_y);
+		wmiiv_log(SWAY_DEBUG, "Guessing click position at (%d, %d)", global_x, global_y);
 		handle_click(sni, global_x, global_y, button, 1); // TODO get delta from event
 		return HOTSPOT_IGNORE;
 	} else {
-		sway_log(SWAY_DEBUG, "but it doesn't exist");
+		wmiiv_log(SWAY_DEBUG, "but it doesn't exist");
 	}
 
 	return HOTSPOT_PROCESS;
 }
 
-static void reload_sni(struct swaybar_sni *sni, char *icon_theme,
+static void reload_sni(struct wmiivbar_sni *sni, char *icon_theme,
 		int target_size) {
 	char *icon_name = sni->status[0] == 'N' ?
 		sni->attention_icon_name : sni->icon_name;
@@ -435,10 +435,10 @@ static void reload_sni(struct swaybar_sni *sni, char *icon_theme,
 	list_t *pixmaps = sni->status[0] == 'N' ?
 		sni->attention_icon_pixmap : sni->icon_pixmap;
 	if (pixmaps) {
-		struct swaybar_pixmap *pixmap = NULL;
+		struct wmiivbar_pixmap *pixmap = NULL;
 		int min_error = INT_MAX;
 		for (int i = 0; i < pixmaps->length; ++i) {
-			struct swaybar_pixmap *p = pixmaps->items[i];
+			struct wmiivbar_pixmap *p = pixmaps->items[i];
 			int e = abs(target_size - p->size);
 			if (e < min_error) {
 				pixmap = p;
@@ -452,8 +452,8 @@ static void reload_sni(struct swaybar_sni *sni, char *icon_theme,
 	}
 }
 
-uint32_t render_sni(cairo_t *cairo, struct swaybar_output *output, double *x,
-		struct swaybar_sni *sni) {
+uint32_t render_sni(cairo_t *cairo, struct wmiivbar_output *output, double *x,
+		struct wmiivbar_sni *sni) {
 	uint32_t height = output->height * output->scale;
 	int padding = output->bar->config->tray_padding;
 	int target_size = height - 2*padding;
@@ -523,7 +523,7 @@ uint32_t render_sni(cairo_t *cairo, struct swaybar_output *output, double *x,
 	cairo_pattern_destroy(icon_pattern);
 	cairo_surface_destroy(icon);
 
-	struct swaybar_hotspot *hotspot = calloc(1, sizeof(struct swaybar_hotspot));
+	struct wmiivbar_hotspot *hotspot = calloc(1, sizeof(struct wmiivbar_hotspot));
 	hotspot->x = *x;
 	hotspot->y = 0;
 	hotspot->width = size;

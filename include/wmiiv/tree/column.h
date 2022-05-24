@@ -4,30 +4,30 @@
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>
 #include "list.h"
-#include "sway/tree/node.h"
+#include "wmiiv/tree/node.h"
 
-struct sway_container *column_create(void);
+struct wmiiv_container *column_create(void);
 
-void column_consider_destroy(struct sway_container *con);
+void column_consider_destroy(struct wmiiv_container *con);
 
 /**
  * Search a container's descendants a container based on test criteria. Returns
  * the first container that passes the test.
  */
-struct sway_container *column_find_child(struct sway_container *container,
-		bool (*test)(struct sway_container *view, void *data), void *data);
+struct wmiiv_container *column_find_child(struct wmiiv_container *container,
+		bool (*test)(struct wmiiv_container *view, void *data), void *data);
 
-void column_add_child(struct sway_container *parent,
-		struct sway_container *child);
+void column_add_child(struct wmiiv_container *parent,
+		struct wmiiv_container *child);
 
-void column_insert_child(struct sway_container *parent,
-		struct sway_container *child, int i);
+void column_insert_child(struct wmiiv_container *parent,
+		struct wmiiv_container *child, int i);
 
 /**
  * Side should be 0 to add before, or 1 to add after.
  */
-void column_add_sibling(struct sway_container *parent,
-		struct sway_container *child, bool after);
+void column_add_sibling(struct wmiiv_container *parent,
+		struct wmiiv_container *child, bool after);
 
 
 #endif

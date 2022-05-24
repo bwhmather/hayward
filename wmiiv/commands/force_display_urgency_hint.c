@@ -1,5 +1,5 @@
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include <errno.h>
 
 struct cmd_results *cmd_force_display_urgency_hint(int argc, char **argv) {

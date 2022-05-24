@@ -5,24 +5,24 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_output.h>
 #include "config.h"
-#include "sway/tree/node.h"
-#include "sway/tree/view.h"
+#include "wmiiv/tree/node.h"
+#include "wmiiv/tree/view.h"
 
-struct sway_server;
-struct sway_container;
+struct wmiiv_server;
+struct wmiiv_container;
 
-struct sway_output_state {
+struct wmiiv_output_state {
 	list_t *workspaces;
-	struct sway_workspace *active_workspace;
+	struct wmiiv_workspace *active_workspace;
 };
 
-struct sway_output {
-	struct sway_node node;
+struct wmiiv_output {
+	struct wmiiv_node node;
 	struct wlr_output *wlr_output;
-	struct sway_server *server;
+	struct wmiiv_server *server;
 	struct wl_list link;
 
-	struct wl_list layers[4]; // sway_layer_surface::link
+	struct wl_list layers[4]; // wmiiv_layer_surface::link
 	struct wlr_box usable_area;
 
 	struct timespec last_frame;
@@ -38,7 +38,7 @@ struct sway_output {
 	bool enabling, enabled;
 	list_t *workspaces;
 
-	struct sway_output_state current;
+	struct wmiiv_output_state current;
 
 	struct wl_listener destroy;
 	struct wl_listener commit;
@@ -57,108 +57,108 @@ struct sway_output {
 	struct wl_event_source *repaint_timer;
 };
 
-struct sway_output *output_create(struct wlr_output *wlr_output);
+struct wmiiv_output *output_create(struct wlr_output *wlr_output);
 
-void output_destroy(struct sway_output *output);
+void output_destroy(struct wmiiv_output *output);
 
-void output_begin_destroy(struct sway_output *output);
+void output_begin_destroy(struct wmiiv_output *output);
 
-struct sway_output *output_from_wlr_output(struct wlr_output *output);
+struct wmiiv_output *output_from_wlr_output(struct wlr_output *output);
 
-struct sway_output *output_get_in_direction(struct sway_output *reference,
+struct wmiiv_output *output_get_in_direction(struct wmiiv_output *reference,
 		enum wlr_direction direction);
 
-void output_add_workspace(struct sway_output *output,
-		struct sway_workspace *workspace);
+void output_add_workspace(struct wmiiv_output *output,
+		struct wmiiv_workspace *workspace);
 
-typedef void (*sway_surface_iterator_func_t)(struct sway_output *output,
-	struct sway_view *view, struct wlr_surface *surface, struct wlr_box *box,
+typedef void (*wmiiv_surface_iterator_func_t)(struct wmiiv_output *output,
+	struct wmiiv_view *view, struct wlr_surface *surface, struct wlr_box *box,
 	void *user_data);
 
-void output_damage_whole(struct sway_output *output);
+void output_damage_whole(struct wmiiv_output *output);
 
-void output_damage_surface(struct sway_output *output, double ox, double oy,
+void output_damage_surface(struct wmiiv_output *output, double ox, double oy,
 	struct wlr_surface *surface, bool whole);
 
-void output_damage_from_view(struct sway_output *output,
-	struct sway_view *view);
+void output_damage_from_view(struct wmiiv_output *output,
+	struct wmiiv_view *view);
 
-void output_damage_box(struct sway_output *output, struct wlr_box *box);
+void output_damage_box(struct wmiiv_output *output, struct wlr_box *box);
 
-void output_damage_whole_container(struct sway_output *output,
-	struct sway_container *con);
+void output_damage_whole_container(struct wmiiv_output *output,
+	struct wmiiv_container *con);
 
 // this ONLY includes the enabled outputs
-struct sway_output *output_by_name_or_id(const char *name_or_id);
+struct wmiiv_output *output_by_name_or_id(const char *name_or_id);
 
 // this includes all the outputs, including disabled ones
-struct sway_output *all_output_by_name_or_id(const char *name_or_id);
+struct wmiiv_output *all_output_by_name_or_id(const char *name_or_id);
 
-void output_sort_workspaces(struct sway_output *output);
+void output_sort_workspaces(struct wmiiv_output *output);
 
-void output_enable(struct sway_output *output);
+void output_enable(struct wmiiv_output *output);
 
-void output_disable(struct sway_output *output);
+void output_disable(struct wmiiv_output *output);
 
-bool output_has_opaque_overlay_layer_surface(struct sway_output *output);
+bool output_has_opaque_overlay_layer_surface(struct wmiiv_output *output);
 
-struct sway_workspace *output_get_active_workspace(struct sway_output *output);
+struct wmiiv_workspace *output_get_active_workspace(struct wmiiv_output *output);
 
-void output_render(struct sway_output *output, struct timespec *when,
+void output_render(struct wmiiv_output *output, struct timespec *when,
 	pixman_region32_t *damage);
 
-void output_surface_for_each_surface(struct sway_output *output,
+void output_surface_for_each_surface(struct wmiiv_output *output,
 		struct wlr_surface *surface, double ox, double oy,
-		sway_surface_iterator_func_t iterator, void *user_data);
+		wmiiv_surface_iterator_func_t iterator, void *user_data);
 
-void output_view_for_each_surface(struct sway_output *output,
-	struct sway_view *view, sway_surface_iterator_func_t iterator,
+void output_view_for_each_surface(struct wmiiv_output *output,
+	struct wmiiv_view *view, wmiiv_surface_iterator_func_t iterator,
 	void *user_data);
 
-void output_view_for_each_popup_surface(struct sway_output *output,
-		struct sway_view *view, sway_surface_iterator_func_t iterator,
+void output_view_for_each_popup_surface(struct wmiiv_output *output,
+		struct wmiiv_view *view, wmiiv_surface_iterator_func_t iterator,
 		void *user_data);
 
-void output_layer_for_each_surface(struct sway_output *output,
-	struct wl_list *layer_surfaces, sway_surface_iterator_func_t iterator,
+void output_layer_for_each_surface(struct wmiiv_output *output,
+	struct wl_list *layer_surfaces, wmiiv_surface_iterator_func_t iterator,
 	void *user_data);
 
-void output_layer_for_each_toplevel_surface(struct sway_output *output,
-	struct wl_list *layer_surfaces, sway_surface_iterator_func_t iterator,
+void output_layer_for_each_toplevel_surface(struct wmiiv_output *output,
+	struct wl_list *layer_surfaces, wmiiv_surface_iterator_func_t iterator,
 	void *user_data);
 
-void output_layer_for_each_popup_surface(struct sway_output *output,
-	struct wl_list *layer_surfaces, sway_surface_iterator_func_t iterator,
+void output_layer_for_each_popup_surface(struct wmiiv_output *output,
+	struct wl_list *layer_surfaces, wmiiv_surface_iterator_func_t iterator,
 	void *user_data);
 
 #if HAVE_XWAYLAND
-void output_unmanaged_for_each_surface(struct sway_output *output,
-	struct wl_list *unmanaged, sway_surface_iterator_func_t iterator,
+void output_unmanaged_for_each_surface(struct wmiiv_output *output,
+	struct wl_list *unmanaged, wmiiv_surface_iterator_func_t iterator,
 	void *user_data);
 #endif
 
-void output_drag_icons_for_each_surface(struct sway_output *output,
-	struct wl_list *drag_icons, sway_surface_iterator_func_t iterator,
+void output_drag_icons_for_each_surface(struct wmiiv_output *output,
+	struct wl_list *drag_icons, wmiiv_surface_iterator_func_t iterator,
 	void *user_data);
 
-void output_for_each_workspace(struct sway_output *output,
-		void (*f)(struct sway_workspace *ws, void *data), void *data);
+void output_for_each_workspace(struct wmiiv_output *output,
+		void (*f)(struct wmiiv_workspace *ws, void *data), void *data);
 
-void output_for_each_container(struct sway_output *output,
-		void (*f)(struct sway_container *con, void *data), void *data);
+void output_for_each_container(struct wmiiv_output *output,
+		void (*f)(struct wmiiv_container *con, void *data), void *data);
 
-struct sway_workspace *output_find_workspace(struct sway_output *output,
-		bool (*test)(struct sway_workspace *ws, void *data), void *data);
+struct wmiiv_workspace *output_find_workspace(struct wmiiv_output *output,
+		bool (*test)(struct wmiiv_workspace *ws, void *data), void *data);
 
-struct sway_container *output_find_container(struct sway_output *output,
-		bool (*test)(struct sway_container *con, void *data), void *data);
+struct wmiiv_container *output_find_container(struct wmiiv_output *output,
+		bool (*test)(struct wmiiv_container *con, void *data), void *data);
 
-void output_get_box(struct sway_output *output, struct wlr_box *box);
+void output_get_box(struct wmiiv_output *output, struct wlr_box *box);
 
-enum sway_container_layout output_get_default_layout(
-		struct sway_output *output);
+enum wmiiv_container_layout output_get_default_layout(
+		struct wmiiv_output *output);
 
-void render_rect(struct sway_output *output,
+void render_rect(struct wmiiv_output *output,
 		pixman_region32_t *output_damage, const struct wlr_box *_box,
 		float color[static 4]);
 

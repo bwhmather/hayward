@@ -14,36 +14,36 @@
 #include "linux-dmabuf-unstable-v1-protocol.h"
 #include "cairo_util.h"
 #include "pango.h"
-#include "sway/config.h"
-#include "sway/desktop.h"
-#include "sway/desktop/transaction.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
-#include "sway/ipc-server.h"
-#include "sway/output.h"
-#include "sway/server.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/xdg_decoration.h"
+#include "wmiiv/config.h"
+#include "wmiiv/desktop.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/ipc-server.h"
+#include "wmiiv/output.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/xdg_decoration.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
 
-bool container_is_column(struct sway_container* con) {
+bool container_is_column(struct wmiiv_container* con) {
 	return con->view == NULL;
 }
 
-bool container_is_window(struct sway_container* con) {
+bool container_is_window(struct wmiiv_container* con) {
 	return con->view != NULL;
 }
 
-void container_destroy(struct sway_container *con) {
-	if (!sway_assert(con->node.destroying,
+void container_destroy(struct wmiiv_container *con) {
+	if (!wmiiv_assert(con->node.destroying,
 				"Tried to free container which wasn't marked as destroying")) {
 		return;
 	}
-	if (!sway_assert(con->node.ntxnrefs == 0, "Tried to free container "
+	if (!wmiiv_assert(con->node.ntxnrefs == 0, "Tried to free container "
 				"which is still referenced by transactions")) {
 		return;
 	}
@@ -75,7 +75,7 @@ void container_destroy(struct sway_container *con) {
 	free(con);
 }
 
-void container_begin_destroy(struct sway_container *con) {
+void container_begin_destroy(struct wmiiv_container *con) {
 	if (con->view) {
 		ipc_event_window(con, "close");
 	}
@@ -101,12 +101,12 @@ void container_begin_destroy(struct sway_container *con) {
 	}
 }
 
-static struct sway_container *surface_at_view(struct sway_container *con, double lx, double ly,
+static struct wmiiv_container *surface_at_view(struct wmiiv_container *con, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
-	if (!sway_assert(con->view, "Expected a view")) {
+	if (!wmiiv_assert(con->view, "Expected a view")) {
 		return NULL;
 	}
-	struct sway_view *view = con->view;
+	struct wmiiv_view *view = con->view;
 	double view_sx = lx - con->surface_x + view->geometry.x;
 	double view_sy = ly - con->surface_y + view->geometry.y;
 
@@ -137,7 +137,7 @@ static struct sway_container *surface_at_view(struct sway_container *con, double
 /**
  * container_at for a container with layout L_TABBED.
  */
-static struct sway_container *container_at_tabbed(struct sway_node *parent,
+static struct wmiiv_container *container_at_tabbed(struct wmiiv_node *parent,
 		double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	struct wlr_box box;
@@ -146,7 +146,7 @@ static struct sway_container *container_at_tabbed(struct sway_node *parent,
 			ly < box.y || ly > box.y + box.height) {
 		return NULL;
 	}
-	struct sway_seat *seat = input_manager_current_seat();
+	struct wmiiv_seat *seat = input_manager_current_seat();
 	list_t *children = node_get_children(parent);
 	if (!children->length) {
 		return NULL;
@@ -160,19 +160,19 @@ static struct sway_container *container_at_tabbed(struct sway_node *parent,
 		if (child_index >= children->length) {
 			child_index = children->length - 1;
 		}
-		struct sway_container *child = children->items[child_index];
+		struct wmiiv_container *child = children->items[child_index];
 		return child;
 	}
 
 	// Surfaces
-	struct sway_node *current = seat_get_active_tiling_child(seat, parent);
+	struct wmiiv_node *current = seat_get_active_tiling_child(seat, parent);
 	return current ? tiling_container_at(current, lx, ly, surface, sx, sy) : NULL;
 }
 
 /**
  * container_at for a container with layout L_STACKED.
  */
-static struct sway_container *container_at_stacked(struct sway_node *parent,
+static struct wmiiv_container *container_at_stacked(struct wmiiv_node *parent,
 		double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	struct wlr_box box;
@@ -181,7 +181,7 @@ static struct sway_container *container_at_stacked(struct sway_node *parent,
 			ly < box.y || ly > box.y + box.height) {
 		return NULL;
 	}
-	struct sway_seat *seat = input_manager_current_seat();
+	struct wmiiv_seat *seat = input_manager_current_seat();
 	list_t *children = node_get_children(parent);
 
 	// Title bars
@@ -189,26 +189,26 @@ static struct sway_container *container_at_stacked(struct sway_node *parent,
 	if (title_height > 0) {
 		int child_index = (ly - box.y) / title_height;
 		if (child_index < children->length) {
-			struct sway_container *child = children->items[child_index];
+			struct wmiiv_container *child = children->items[child_index];
 			return child;
 		}
 	}
 
 	// Surfaces
-	struct sway_node *current = seat_get_active_tiling_child(seat, parent);
+	struct wmiiv_node *current = seat_get_active_tiling_child(seat, parent);
 	return current ? tiling_container_at(current, lx, ly, surface, sx, sy) : NULL;
 }
 
 /**
  * container_at for a container with layout L_HORIZ or L_VERT.
  */
-static struct sway_container *container_at_linear(struct sway_node *parent,
+static struct wmiiv_container *container_at_linear(struct wmiiv_node *parent,
 		double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	list_t *children = node_get_children(parent);
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
-		struct sway_container *container =
+		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_container *container =
 			tiling_container_at(&child->node, lx, ly, surface, sx, sy);
 		if (container) {
 			return container;
@@ -217,23 +217,23 @@ static struct sway_container *container_at_linear(struct sway_node *parent,
 	return NULL;
 }
 
-static struct sway_container *floating_container_at(double lx, double ly,
+static struct wmiiv_container *floating_container_at(double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	// For outputs with floating containers that overhang the output bounds,
 	// those at the end of the output list appear on top of floating
 	// containers from other outputs, so iterate the list in reverse.
 	for (int i = root->outputs->length - 1; i >= 0; --i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		for (int j = 0; j < output->workspaces->length; ++j) {
-			struct sway_workspace *ws = output->workspaces->items[j];
+			struct wmiiv_workspace *ws = output->workspaces->items[j];
 			if (!workspace_is_visible(ws)) {
 				continue;
 			}
 			// Items at the end of the list are on top, so iterate the list in
 			// reverse.
 			for (int k = ws->floating->length - 1; k >= 0; --k) {
-				struct sway_container *floater = ws->floating->items[k];
-				struct sway_container *container =
+				struct wmiiv_container *floater = ws->floating->items[k];
+				struct wmiiv_container *container =
 					tiling_container_at(&floater->node, lx, ly, surface, sx, sy);
 				if (container) {
 					return container;
@@ -244,14 +244,14 @@ static struct sway_container *floating_container_at(double lx, double ly,
 	return NULL;
 }
 
-static struct sway_container *view_container_content_at(struct sway_node *parent,
+static struct wmiiv_container *view_container_content_at(struct wmiiv_node *parent,
 		double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
-	if (!sway_assert(node_is_view(parent), "Expected a view")) {
+	if (!wmiiv_assert(node_is_view(parent), "Expected a view")) {
 		return NULL;
 	}
 
-	struct sway_container *container = parent->sway_container;
+	struct wmiiv_container *container = parent->wmiiv_container;
 	struct wlr_box box = {
 		.x = container->pending.content_x,
 		.y = container->pending.content_y,
@@ -260,21 +260,21 @@ static struct sway_container *view_container_content_at(struct sway_node *parent
 	};
 
 	if (wlr_box_contains_point(&box, lx, ly)) {
-		surface_at_view(parent->sway_container, lx, ly, surface, sx, sy);
+		surface_at_view(parent->wmiiv_container, lx, ly, surface, sx, sy);
 		return container;
 	}
 
 	return NULL;
 }
 
-static struct sway_container *view_container_at(struct sway_node *parent,
+static struct wmiiv_container *view_container_at(struct wmiiv_node *parent,
 		double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
-	if (!sway_assert(node_is_view(parent), "Expected a view")) {
+	if (!wmiiv_assert(node_is_view(parent), "Expected a view")) {
 		return NULL;
 	}
 
-	struct sway_container *container = parent->sway_container;
+	struct wmiiv_container *container = parent->wmiiv_container;
 	struct wlr_box box = {
 		.x = container->pending.x,
 		.y = container->pending.y,
@@ -283,14 +283,14 @@ static struct sway_container *view_container_at(struct sway_node *parent,
 	};
 
 	if (wlr_box_contains_point(&box, lx, ly)) {
-		surface_at_view(parent->sway_container, lx, ly, surface, sx, sy);
+		surface_at_view(parent->wmiiv_container, lx, ly, surface, sx, sy);
 		return container;
 	}
 
 	return NULL;
 }
 
-struct sway_container *tiling_container_at(struct sway_node *parent,
+struct wmiiv_container *tiling_container_at(struct wmiiv_node *parent,
 		double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	if (node_is_view(parent)) {
@@ -327,13 +327,13 @@ static bool surface_is_popup(struct wlr_surface *surface) {
 	return xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP;
 }
 
-struct sway_container *container_at(struct sway_workspace *workspace,
+struct wmiiv_container *container_at(struct wmiiv_workspace *workspace,
 		double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
-	struct sway_container *c;
+	struct wmiiv_container *c;
 
-	struct sway_seat *seat = input_manager_current_seat();
-	struct sway_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_seat *seat = input_manager_current_seat();
+	struct wmiiv_container *focus = seat_get_focused_container(seat);
 	bool is_floating = focus && window_is_floating(focus);
 
 	// Focused view's popups
@@ -361,25 +361,25 @@ struct sway_container *container_at(struct sway_workspace *workspace,
 	return NULL;
 }
 
-void container_for_each_child(struct sway_container *container,
-		void (*f)(struct sway_container *container, void *data),
+void container_for_each_child(struct wmiiv_container *container,
+		void (*f)(struct wmiiv_container *container, void *data),
 		void *data) {
 	if (container->pending.children)  {
 		for (int i = 0; i < container->pending.children->length; ++i) {
-			struct sway_container *child = container->pending.children->items[i];
+			struct wmiiv_container *child = container->pending.children->items[i];
 			f(child, data);
 			container_for_each_child(child, f, data);
 		}
 	}
 }
 
-struct sway_container *container_obstructing_fullscreen_container(struct sway_container *win)
+struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_container *win)
 {
-	if (!sway_assert(container_is_window(win), "Only windows can be fullscreen")) {
+	if (!wmiiv_assert(container_is_window(win), "Only windows can be fullscreen")) {
 		return NULL;
 	}
 
-	struct sway_workspace *workspace = win->pending.workspace;
+	struct wmiiv_workspace *workspace = win->pending.workspace;
 
 	if (workspace && workspace->fullscreen && !window_is_fullscreen(win)) {
 		if (container_is_transient_for(win, workspace->fullscreen)) {
@@ -388,7 +388,7 @@ struct sway_container *container_obstructing_fullscreen_container(struct sway_co
 		return workspace->fullscreen;
 	}
 
-	struct sway_container *fullscreen_global = root->fullscreen_global;
+	struct wmiiv_container *fullscreen_global = root->fullscreen_global;
 	if (fullscreen_global && win != fullscreen_global) {
 		if (container_is_transient_for(win, fullscreen_global)) {
 			return NULL;
@@ -399,8 +399,8 @@ struct sway_container *container_obstructing_fullscreen_container(struct sway_co
 	return NULL;
 }
 
-bool container_has_ancestor(struct sway_container *descendant,
-		struct sway_container *ancestor) {
+bool container_has_ancestor(struct wmiiv_container *descendant,
+		struct wmiiv_container *ancestor) {
 	while (descendant) {
 		descendant = descendant->pending.parent;
 		if (descendant == ancestor) {
@@ -410,9 +410,9 @@ bool container_has_ancestor(struct sway_container *descendant,
 	return false;
 }
 
-void container_damage_whole(struct sway_container *container) {
+void container_damage_whole(struct wmiiv_container *container) {
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		output_damage_whole_container(output, container);
 	}
 }
@@ -421,15 +421,15 @@ void container_damage_whole(struct sway_container *container) {
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
  */
-struct sway_output *container_get_effective_output(struct sway_container *con) {
+struct wmiiv_output *container_get_effective_output(struct wmiiv_container *con) {
 	if (con->outputs->length == 0) {
 		return NULL;
 	}
 	return con->outputs->items[con->outputs->length - 1];
 }
 
-static void render_titlebar_text_texture(struct sway_output *output,
-		struct sway_container *con, struct wlr_texture **texture,
+static void render_titlebar_text_texture(struct wmiiv_output *output,
+		struct wmiiv_container *con, struct wlr_texture **texture,
 		struct border_colors *class, bool pango_markup, char *text) {
 	// TODO (wmiiv) duplicated in in window. remove once columns stop rendering titles.
 	double scale = output->wlr_output->scale;
@@ -470,7 +470,7 @@ static void render_titlebar_text_texture(struct sway_output *output,
 			CAIRO_FORMAT_ARGB32, width, height);
 	cairo_status_t status = cairo_surface_status(surface);
 	if (status != CAIRO_STATUS_SUCCESS) {
-		sway_log(SWAY_ERROR, "cairo_image_surface_create failed: %s",
+		wmiiv_log(SWAY_ERROR, "cairo_image_surface_create failed: %s",
 			cairo_status_to_string(status));
 		return;
 	}
@@ -500,9 +500,9 @@ static void render_titlebar_text_texture(struct sway_output *output,
 	cairo_destroy(cairo);
 }
 
-static void update_title_texture(struct sway_container *con,
+static void update_title_texture(struct wmiiv_container *con,
 		struct wlr_texture **texture, struct border_colors *class) {
-	struct sway_output *output = container_get_effective_output(con);
+	struct wmiiv_output *output = container_get_effective_output(con);
 	if (!output) {
 		return;
 	}
@@ -518,7 +518,7 @@ static void update_title_texture(struct sway_container *con,
 		config->pango_markup, con->formatted_title);
 }
 
-void container_update_title_textures(struct sway_container *container) {
+void container_update_title_textures(struct wmiiv_container *container) {
 	update_title_texture(container, &container->title_focused,
 			&config->border_colors.focused);
 	update_title_texture(container, &container->title_focused_inactive,
@@ -537,7 +537,7 @@ void container_update_title_textures(struct sway_container *container) {
  * An example tree representation is: V[Terminal, Firefox]
  * If buffer is not NULL, also populate the buffer with the representation.
  */
-size_t container_build_representation(enum sway_container_layout layout,
+size_t container_build_representation(enum wmiiv_container_layout layout,
 		list_t *children, char *buffer) {
 	size_t len = 2;
 	switch (layout) {
@@ -562,7 +562,7 @@ size_t container_build_representation(enum sway_container_layout layout,
 			++len;
 			lenient_strcat(buffer, " ");
 		}
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		const char *identifier = NULL;
 		if (child->view) {
 			identifier = view_get_class(child->view);
@@ -585,13 +585,13 @@ size_t container_build_representation(enum sway_container_layout layout,
 	return len;
 }
 
-void container_update_representation(struct sway_container *con) {
+void container_update_representation(struct wmiiv_container *con) {
 	if (!con->view) {
 		size_t len = container_build_representation(con->pending.layout,
 				con->pending.children, NULL);
 		free(con->formatted_title);
 		con->formatted_title = calloc(len + 1, sizeof(char));
-		if (!sway_assert(con->formatted_title,
+		if (!wmiiv_assert(con->formatted_title,
 					"Unable to allocate title string")) {
 			return;
 		}
@@ -649,7 +649,7 @@ void floating_calculate_constraints(int *min_width, int *max_width,
 
 }
 
-static void floating_natural_resize(struct sway_container *con) {
+static void floating_natural_resize(struct wmiiv_container *con) {
 	int min_width, max_width, min_height, max_height;
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);
@@ -657,7 +657,7 @@ static void floating_natural_resize(struct sway_container *con) {
 		con->pending.width = fmax(min_width, fmin(con->pending.width, max_width));
 		con->pending.height = fmax(min_height, fmin(con->pending.height, max_height));
 	} else {
-		struct sway_view *view = con->view;
+		struct wmiiv_view *view = con->view;
 		con->pending.content_width =
 			fmax(min_width, fmin(view->natural_width, max_width));
 		con->pending.content_height =
@@ -666,8 +666,8 @@ static void floating_natural_resize(struct sway_container *con) {
 	}
 }
 
-void container_floating_resize_and_center(struct sway_container *con) {
-	struct sway_workspace *ws = con->pending.workspace;
+void container_floating_resize_and_center(struct wmiiv_container *con) {
+	struct wmiiv_workspace *ws = con->pending.workspace;
 
 	struct wlr_box ob;
 	wlr_output_layout_get_box(root->output_layout, ws->output->wlr_output, &ob);
@@ -707,8 +707,8 @@ void container_floating_resize_and_center(struct sway_container *con) {
 	}
 }
 
-void container_floating_set_default_size(struct sway_container *con) {
-	if (!sway_assert(con->pending.workspace, "Expected a container on a workspace")) {
+void container_floating_set_default_size(struct wmiiv_container *con) {
+	if (!wmiiv_assert(con->pending.workspace, "Expected a container on a workspace")) {
 		return;
 	}
 
@@ -737,7 +737,7 @@ void container_floating_set_default_size(struct sway_container *con) {
  * Indicate to clients in this container that they are participating in (or
  * have just finished) an interactive resize
  */
-void container_set_resizing(struct sway_container *con, bool resizing) {
+void container_set_resizing(struct wmiiv_container *con, bool resizing) {
 	if (!con) {
 		return;
 	}
@@ -748,17 +748,17 @@ void container_set_resizing(struct sway_container *con, bool resizing) {
 		}
 	} else {
 		for (int i = 0; i < con->pending.children->length; ++i ) {
-			struct sway_container *child = con->pending.children->items[i];
+			struct wmiiv_container *child = con->pending.children->items[i];
 			container_set_resizing(child, resizing);
 		}
 	}
 }
 
-void container_set_geometry_from_content(struct sway_container *con) {
-	if (!sway_assert(con->view, "Expected a view")) {
+void container_set_geometry_from_content(struct wmiiv_container *con) {
+	if (!wmiiv_assert(con->view, "Expected a view")) {
 		return;
 	}
-	if (!sway_assert(window_is_floating(con), "Expected a floating view")) {
+	if (!wmiiv_assert(window_is_floating(con), "Expected a floating view")) {
 		return;
 	}
 	size_t border_width = 0;
@@ -777,7 +777,7 @@ void container_set_geometry_from_content(struct sway_container *con) {
 	node_set_dirty(&con->node);
 }
 
-void container_get_box(struct sway_container *container, struct wlr_box *box) {
+void container_get_box(struct wmiiv_container *container, struct wlr_box *box) {
 	box->x = container->pending.x;
 	box->y = container->pending.y;
 	box->width = container->pending.width;
@@ -787,7 +787,7 @@ void container_get_box(struct sway_container *container, struct wlr_box *box) {
 /**
  * Translate the container's position as well as all children.
  */
-void container_floating_translate(struct sway_container *con,
+void container_floating_translate(struct wmiiv_container *con,
 		double x_amount, double y_amount) {
 	con->pending.x += x_amount;
 	con->pending.y += y_amount;
@@ -796,7 +796,7 @@ void container_floating_translate(struct sway_container *con,
 
 	if (con->pending.children) {
 		for (int i = 0; i < con->pending.children->length; ++i) {
-			struct sway_container *child = con->pending.children->items[i];
+			struct wmiiv_container *child = con->pending.children->items[i];
 			container_floating_translate(child, x_amount, y_amount);
 		}
 	}
@@ -811,13 +811,13 @@ void container_floating_translate(struct sway_container *con,
  * one, otherwise we'll choose whichever output is closest to the container's
  * center.
  */
-struct sway_output *container_floating_find_output(struct sway_container *con) {
+struct wmiiv_output *container_floating_find_output(struct wmiiv_container *con) {
 	double center_x = con->pending.x + con->pending.width / 2;
 	double center_y = con->pending.y + con->pending.height / 2;
-	struct sway_output *closest_output = NULL;
+	struct wmiiv_output *closest_output = NULL;
 	double closest_distance = DBL_MAX;
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		struct wlr_box output_box;
 		double closest_x, closest_y;
 		output_get_box(output, &output_box);
@@ -838,19 +838,19 @@ struct sway_output *container_floating_find_output(struct sway_container *con) {
 	return closest_output;
 }
 
-void container_floating_move_to(struct sway_container *con,
+void container_floating_move_to(struct wmiiv_container *con,
 		double lx, double ly) {
-	if (!sway_assert(window_is_floating(con),
+	if (!wmiiv_assert(window_is_floating(con),
 			"Expected a floating container")) {
 		return;
 	}
 	container_floating_translate(con, lx - con->pending.x, ly - con->pending.y);
-	struct sway_workspace *old_workspace = con->pending.workspace;
-	struct sway_output *new_output = container_floating_find_output(con);
-	if (!sway_assert(new_output, "Unable to find any output")) {
+	struct wmiiv_workspace *old_workspace = con->pending.workspace;
+	struct wmiiv_output *new_output = container_floating_find_output(con);
+	if (!wmiiv_assert(new_output, "Unable to find any output")) {
 		return;
 	}
-	struct sway_workspace *new_workspace =
+	struct wmiiv_workspace *new_workspace =
 		output_get_active_workspace(new_output);
 	if (new_workspace && old_workspace != new_workspace) {
 		container_detach(con);
@@ -862,27 +862,27 @@ void container_floating_move_to(struct sway_container *con,
 	}
 }
 
-void container_floating_move_to_center(struct sway_container *con) {
-	if (!sway_assert(window_is_floating(con),
+void container_floating_move_to_center(struct wmiiv_container *con) {
+	if (!wmiiv_assert(window_is_floating(con),
 			"Expected a floating container")) {
 		return;
 	}
-	struct sway_workspace *ws = con->pending.workspace;
+	struct wmiiv_workspace *ws = con->pending.workspace;
 	double new_lx = ws->x + (ws->width - con->pending.width) / 2;
 	double new_ly = ws->y + (ws->height - con->pending.height) / 2;
 	container_floating_translate(con, new_lx - con->pending.x, new_ly - con->pending.y);
 }
 
-static bool find_urgent_iterator(struct sway_container *con, void *data) {
+static bool find_urgent_iterator(struct wmiiv_container *con, void *data) {
 	return con->view && view_is_urgent(con->view);
 }
 
-bool container_has_urgent_child(struct sway_container *container) {
+bool container_has_urgent_child(struct wmiiv_container *container) {
 	return column_find_child(container, find_urgent_iterator, NULL);
 }
 
-void container_end_mouse_operation(struct sway_container *container) {
-	struct sway_seat *seat;
+void container_end_mouse_operation(struct wmiiv_container *container) {
+	struct wmiiv_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		seatop_unref(seat, container);
 	}
@@ -891,14 +891,14 @@ void container_end_mouse_operation(struct sway_container *container) {
 static bool devid_from_fd(int fd, dev_t *devid) {
 	struct stat stat;
 	if (fstat(fd, &stat) != 0) {
-		sway_log_errno(SWAY_ERROR, "fstat failed");
+		wmiiv_log_errno(SWAY_ERROR, "fstat failed");
 		return false;
 	}
 	*devid = stat.st_rdev;
 	return true;
 }
 
-static void set_fullscreen(struct sway_container *con, bool enable) {
+static void set_fullscreen(struct wmiiv_container *con, bool enable) {
 	if (!con->view) {
 		return;
 	}
@@ -923,7 +923,7 @@ static void set_fullscreen(struct sway_container *con, bool enable) {
 		return;
 	}
 
-	struct sway_output *output = con->pending.workspace->output;
+	struct wmiiv_output *output = con->pending.workspace->output;
 	struct wlr_output *wlr_output = output->wlr_output;
 
 	// TODO: add wlroots helpers for all of this stuff
@@ -980,11 +980,11 @@ static void set_fullscreen(struct sway_container *con, bool enable) {
 	wlr_drm_format_set_finish(&scanout_formats);
 }
 
-static void container_fullscreen_workspace(struct sway_container *win) {
-	if (!sway_assert(container_is_window(win), "Expected window")) {
+static void container_fullscreen_workspace(struct wmiiv_container *win) {
+	if (!wmiiv_assert(container_is_window(win), "Expected window")) {
 		return;
 	}
-	if (!sway_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
+	if (!wmiiv_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
 	}
@@ -998,14 +998,14 @@ static void container_fullscreen_workspace(struct sway_container *win) {
 
 	if (win->pending.workspace) {
 		win->pending.workspace->fullscreen = win;
-		struct sway_seat *seat;
-		struct sway_workspace *focus_ws;
+		struct wmiiv_seat *seat;
+		struct wmiiv_workspace *focus_ws;
 		wl_list_for_each(seat, &server.input->seats, link) {
 			focus_ws = seat_get_focused_workspace(seat);
 			if (focus_ws == win->pending.workspace) {
 				seat_set_focus_window(seat, win);
 			} else {
-				struct sway_node *focus =
+				struct wmiiv_node *focus =
 					seat_get_focus_inactive(seat, &root->node);
 				seat_set_raw_focus(seat, &win->node);
 				seat_set_raw_focus(seat, focus);
@@ -1017,11 +1017,11 @@ static void container_fullscreen_workspace(struct sway_container *win) {
 	ipc_event_window(win, "fullscreen_mode");
 }
 
-static void container_fullscreen_global(struct sway_container *win) {
-	if (!sway_assert(container_is_window(win), "Expected window")) {
+static void container_fullscreen_global(struct wmiiv_container *win) {
+	if (!wmiiv_assert(container_is_window(win), "Expected window")) {
 		return;
 	}
-	if (!sway_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
+	if (!wmiiv_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
 	}
@@ -1033,9 +1033,9 @@ static void container_fullscreen_global(struct sway_container *win) {
 	win->saved_width = win->pending.width;
 	win->saved_height = win->pending.height;
 
-	struct sway_seat *seat;
+	struct wmiiv_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
-		struct sway_container *focus = seat_get_focused_container(seat);
+		struct wmiiv_container *focus = seat_get_focused_container(seat);
 		if (focus && focus != win) {
 			seat_set_focus_window(seat, win);
 		}
@@ -1046,11 +1046,11 @@ static void container_fullscreen_global(struct sway_container *win) {
 	ipc_event_window(win, "fullscreen_mode");
 }
 
-void container_fullscreen_disable(struct sway_container *win) {
-	if (!sway_assert(container_is_window(win), "Expected window")) {
+void container_fullscreen_disable(struct wmiiv_container *win) {
+	if (!wmiiv_assert(container_is_window(win), "Expected window")) {
 		return;
 	}
-	if (!sway_assert(win->pending.fullscreen_mode != FULLSCREEN_NONE,
+	if (!wmiiv_assert(win->pending.fullscreen_mode != FULLSCREEN_NONE,
 				"Expected a fullscreen container")) {
 		return;
 	}
@@ -1067,7 +1067,7 @@ void container_fullscreen_disable(struct sway_container *win) {
 		if (win->pending.workspace) {
 			win->pending.workspace->fullscreen = NULL;
 			if (window_is_floating(win)) {
-				struct sway_output *output =
+				struct wmiiv_output *output =
 					container_floating_find_output(win);
 				if (win->pending.workspace->output != output) {
 					container_floating_move_to_center(win);
@@ -1090,8 +1090,8 @@ void container_fullscreen_disable(struct sway_container *win) {
 	ipc_event_window(win, "fullscreen_mode");
 }
 
-void container_set_fullscreen(struct sway_container *con,
-		enum sway_fullscreen_mode mode) {
+void container_set_fullscreen(struct wmiiv_container *con,
+		enum wmiiv_fullscreen_mode mode) {
 	if (con->pending.fullscreen_mode == mode) {
 		return;
 	}
@@ -1124,8 +1124,8 @@ void container_set_fullscreen(struct sway_container *con,
 	}
 }
 
-struct sway_container *container_toplevel_ancestor(
-		struct sway_container *container) {
+struct wmiiv_container *container_toplevel_ancestor(
+		struct wmiiv_container *container) {
 	while (container->pending.parent) {
 		container = container->pending.parent;
 	}
@@ -1145,17 +1145,17 @@ static void surface_send_leave_iterator(struct wlr_surface *surface,
 	wlr_surface_send_leave(surface, wlr_output);
 }
 
-void container_discover_outputs(struct sway_container *con) {
+void container_discover_outputs(struct wmiiv_container *con) {
 	struct wlr_box con_box = {
 		.x = con->current.x,
 		.y = con->current.y,
 		.width = con->current.width,
 		.height = con->current.height,
 	};
-	struct sway_output *old_output = container_get_effective_output(con);
+	struct wmiiv_output *old_output = container_get_effective_output(con);
 
 	for (int i = 0; i < root->outputs->length; ++i) {
-		struct sway_output *output = root->outputs->items[i];
+		struct wmiiv_output *output = root->outputs->items[i];
 		struct wlr_box output_box;
 		output_get_box(output, &output_box);
 		struct wlr_box intersection;
@@ -1165,7 +1165,7 @@ void container_discover_outputs(struct sway_container *con) {
 
 		if (intersects && index == -1) {
 			// Send enter
-			sway_log(SWAY_DEBUG, "Container %p entered output %p", con, output);
+			wmiiv_log(SWAY_DEBUG, "Container %p entered output %p", con, output);
 			if (con->view) {
 				view_for_each_surface(con->view,
 						surface_send_enter_iterator, output->wlr_output);
@@ -1177,7 +1177,7 @@ void container_discover_outputs(struct sway_container *con) {
 			list_add(con->outputs, output);
 		} else if (!intersects && index != -1) {
 			// Send leave
-			sway_log(SWAY_DEBUG, "Container %p left output %p", con, output);
+			wmiiv_log(SWAY_DEBUG, "Container %p left output %p", con, output);
 			if (con->view) {
 				view_for_each_surface(con->view,
 					surface_send_leave_iterator, output->wlr_output);
@@ -1189,7 +1189,7 @@ void container_discover_outputs(struct sway_container *con) {
 			list_del(con->outputs, index);
 		}
 	}
-	struct sway_output *new_output = container_get_effective_output(con);
+	struct wmiiv_output *new_output = container_get_effective_output(con);
 	double old_scale = old_output && old_output->enabled ?
 		old_output->wlr_output->scale : -1;
 	double new_scale = new_output ? new_output->wlr_output->scale : -1;
@@ -1201,7 +1201,7 @@ void container_discover_outputs(struct sway_container *con) {
 	}
 }
 
-enum sway_container_layout container_parent_layout(struct sway_container *con) {
+enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *con) {
 	if (container_is_window(con)) {
 		if (con->pending.parent) {
 			return con->pending.parent->pending.layout;
@@ -1220,8 +1220,8 @@ enum sway_container_layout container_parent_layout(struct sway_container *con) {
 	}
 }
 
-enum sway_container_layout container_current_parent_layout(
-		struct sway_container *con) {
+enum wmiiv_container_layout container_current_parent_layout(
+		struct wmiiv_container *con) {
 	if (con->current.parent) {
 		return con->current.parent->current.layout;
 	}
@@ -1229,7 +1229,7 @@ enum sway_container_layout container_current_parent_layout(
 	return L_HORIZ;
 }
 
-list_t *container_get_siblings(struct sway_container *container) {
+list_t *container_get_siblings(struct wmiiv_container *container) {
 	if (container->pending.parent) {
 		return container->pending.parent->pending.children;
 	}
@@ -1239,18 +1239,18 @@ list_t *container_get_siblings(struct sway_container *container) {
 	return container->pending.workspace->floating;
 }
 
-int container_sibling_index(struct sway_container *child) {
+int container_sibling_index(struct wmiiv_container *child) {
 	return list_find(container_get_siblings(child), child);
 }
 
-list_t *container_get_current_siblings(struct sway_container *container) {
+list_t *container_get_current_siblings(struct wmiiv_container *container) {
 	if (container->current.parent) {
 		return container->current.parent->current.children;
 	}
 	return container->current.workspace->current.tiling;
 }
 
-void container_handle_fullscreen_reparent(struct sway_container *con) {
+void container_handle_fullscreen_reparent(struct wmiiv_container *con) {
 	if (con->pending.fullscreen_mode != FULLSCREEN_WORKSPACE || !con->pending.workspace ||
 			con->pending.workspace->fullscreen == con) {
 		return;
@@ -1263,11 +1263,11 @@ void container_handle_fullscreen_reparent(struct sway_container *con) {
 	arrange_workspace(con->pending.workspace);
 }
 
-static void set_workspace(struct sway_container *container, void *data) {
+static void set_workspace(struct wmiiv_container *container, void *data) {
 	container->pending.workspace = container->pending.parent->pending.workspace;
 }
 
-void container_detach(struct sway_container *child) {
+void container_detach(struct wmiiv_container *child) {
 	// TODO (wmiiv) move to workspace.
 	if (child->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
 		child->pending.workspace->fullscreen = NULL;
@@ -1276,8 +1276,8 @@ void container_detach(struct sway_container *child) {
 		root->fullscreen_global = NULL;
 	}
 
-	struct sway_container *old_parent = child->pending.parent;
-	struct sway_workspace *old_workspace = child->pending.workspace;
+	struct wmiiv_container *old_parent = child->pending.parent;
+	struct wmiiv_workspace *old_workspace = child->pending.workspace;
 	list_t *siblings = container_get_siblings(child);
 	if (siblings) {
 		int index = list_find(siblings, child);
@@ -1299,20 +1299,20 @@ void container_detach(struct sway_container *child) {
 	node_set_dirty(&child->node);
 }
 
-struct sway_container *container_split(struct sway_container *child,
-		enum sway_container_layout layout) {
-	sway_assert(false, "container_split is deprecated");
+struct wmiiv_container *container_split(struct wmiiv_container *child,
+		enum wmiiv_container_layout layout) {
+	wmiiv_assert(false, "container_split is deprecated");
 	return child;
 }
 
-bool container_is_transient_for(struct sway_container *child,
-		struct sway_container *ancestor) {
+bool container_is_transient_for(struct wmiiv_container *child,
+		struct wmiiv_container *ancestor) {
 	return config->popup_during_fullscreen == POPUP_SMART &&
 		child->view && ancestor->view &&
 		view_is_transient_for(child->view, ancestor->view);
 }
 
-void container_raise_floating(struct sway_container *win) {
+void container_raise_floating(struct wmiiv_container *win) {
 	// Bring container to front by putting it at the end of the floating list.
 	if (window_is_floating(win) && win->pending.workspace) {
 		list_move_to_end(win->pending.workspace->floating, win);
@@ -1320,10 +1320,10 @@ void container_raise_floating(struct sway_container *win) {
 	}
 }
 
-bool container_is_sticky(struct sway_container *con) {
+bool container_is_sticky(struct wmiiv_container *con) {
 	return container_is_window(con) && con->is_sticky && window_is_floating(con);
 }
 
-bool container_is_sticky_or_child(struct sway_container *con) {
+bool container_is_sticky_or_child(struct wmiiv_container *con) {
 	return container_is_sticky(container_toplevel_ancestor(con));
 }

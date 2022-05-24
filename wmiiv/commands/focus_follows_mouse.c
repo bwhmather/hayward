@@ -1,6 +1,6 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 #include "util.h"
 
 struct cmd_results *cmd_focus_follows_mouse(int argc, char **argv) {

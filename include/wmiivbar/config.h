@@ -14,17 +14,17 @@ struct box_colors {
 };
 
 struct config_output {
-	struct wl_list link; // swaybar_config::outputs
+	struct wl_list link; // wmiivbar_config::outputs
 	char *name;
 };
 
-struct swaybar_binding {
+struct wmiivbar_binding {
 	uint32_t button;
 	char *command;
 	bool release;
 };
 
-struct swaybar_config {
+struct wmiivbar_config {
 	char *status_command;
 	bool pango_markup;
 	uint32_t position; // zwlr_layer_surface_v1_anchor
@@ -86,9 +86,9 @@ struct tray_binding {
 void free_tray_binding(struct tray_binding *binding);
 #endif
 
-struct swaybar_config *init_config(void);
-void free_config(struct swaybar_config *config);
+struct wmiivbar_config *init_config(void);
+void free_config(struct wmiivbar_config *config);
 uint32_t parse_position(const char *position);
-void free_binding(struct swaybar_binding *binding);
+void free_binding(struct wmiivbar_binding *binding);
 
 #endif

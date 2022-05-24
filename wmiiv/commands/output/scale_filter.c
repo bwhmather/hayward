@@ -1,8 +1,8 @@
 #include <string.h>
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/output.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/output.h"
 
 struct cmd_results *output_cmd_scale_filter(int argc, char **argv) {
 	if (!config->handler_context.output_config) {

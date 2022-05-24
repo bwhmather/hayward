@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/view.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
@@ -18,7 +18,7 @@ struct cmd_results *cmd_mark(int argc, char **argv) {
 	if ((error = checkarg(argc, "mark", EXPECTED_AT_LEAST, 1))) {
 		return error;
 	}
-	struct sway_container *container = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 	if (!container || !container_is_window(container)) {
 		return cmd_results_new(CMD_INVALID, "Only containers can have marks");
 	}

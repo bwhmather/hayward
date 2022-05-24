@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <wordexp.h>
-#include "swaybar/tray/icon.h"
+#include "wmiivbar/tray/icon.h"
 #include "config.h"
 #include "list.h"
 #include "log.h"
@@ -310,7 +310,7 @@ static struct icon_theme *read_theme_file(char *basedir, char *theme_name) {
 		theme->dir = strdup(theme_name);
 	} else {
 		char *last_group = groups->length > 0 ? groups->items[groups->length-1] : "n/a";
-		sway_log(SWAY_DEBUG, "Failed to load theme '%s' - parsing of file "
+		wmiiv_log(SWAY_DEBUG, "Failed to load theme '%s' - parsing of file "
 				"'%s/%s/index.theme' failed on line %d (group '%s'): %s",
 				theme_name, basedir, theme_name, line_no, last_group, error);
 		destroy_theme(theme);
@@ -345,7 +345,7 @@ static list_t *load_themes_in_dir(char *basedir) {
 
 static void log_loaded_themes(list_t *themes) {
 	if (themes->length == 0) {
-		sway_log(SWAY_INFO, "Warning: no icon themes loaded");
+		wmiiv_log(SWAY_INFO, "Warning: no icon themes loaded");
 		return;
 	}
 
@@ -376,7 +376,7 @@ static void log_loaded_themes(list_t *themes) {
 	}
 	*p = '\0';
 
-	sway_log(SWAY_DEBUG, "Loaded icon themes: %s", str);
+	wmiiv_log(SWAY_DEBUG, "Loaded icon themes: %s", str);
 	free(str);
 }
 

@@ -14,7 +14,7 @@
 #include "util.h"
 
 static int create_pool_file(size_t size, char **name) {
-	static const char template[] = "sway-client-XXXXXX";
+	static const char template[] = "wmiiv-client-XXXXXX";
 	const char *path = getenv("XDG_RUNTIME_DIR");
 	if (path == NULL) {
 		fprintf(stderr, "XDG_RUNTIME_DIR is not set\n");
@@ -34,7 +34,7 @@ static int create_pool_file(size_t size, char **name) {
 		return -1;
 	}
 
-	if (!sway_set_cloexec(fd, true)) {
+	if (!wmiiv_set_cloexec(fd, true)) {
 		close(fd);
 		return -1;
 	}

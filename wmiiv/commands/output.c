@@ -1,7 +1,7 @@
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/output.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/output.h"
 #include "list.h"
 #include "log.h"
 
@@ -48,27 +48,27 @@ struct cmd_results *cmd_output(int argc, char **argv) {
 					"Current output alias (%s) cannot be used in the config",
 					argv[0]);
 		}
-		struct sway_output *sway_output = config->handler_context.node ?
+		struct wmiiv_output *wmiiv_output = config->handler_context.node ?
 			node_get_output(config->handler_context.node) : NULL;
-		if (!sway_output) {
+		if (!wmiiv_output) {
 			return cmd_results_new(CMD_FAILURE, "Unknown output");
 		}
-		if (sway_output == root->fallback_output) {
+		if (wmiiv_output == root->fallback_output) {
 			return cmd_results_new(CMD_FAILURE,
 					"Refusing to configure the no op output");
 		}
 		if (strcmp(argv[0], "-") == 0) {
-			output = new_output_config(sway_output->wlr_output->name);
+			output = new_output_config(wmiiv_output->wlr_output->name);
 		} else {
 			char identifier[128];
-			output_get_identifier(identifier, 128, sway_output);
+			output_get_identifier(identifier, 128, wmiiv_output);
 			output = new_output_config(identifier);
 		}
 	} else {
 		output = new_output_config(argv[0]);
 	}
 	if (!output) {
-		sway_log(SWAY_ERROR, "Failed to allocate output config");
+		wmiiv_log(SWAY_ERROR, "Failed to allocate output config");
 		return NULL;
 	}
 	argc--; argv++;
@@ -109,7 +109,7 @@ struct cmd_results *cmd_output(int argc, char **argv) {
 	if (!config->reloading && !config->validating) {
 		apply_output_config_to_outputs(output);
 		if (background) {
-			spawn_swaybg();
+			spawn_wmiivbg();
 		}
 	}
 

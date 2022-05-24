@@ -5,11 +5,11 @@
 #include <string.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/output.h"
-#include "sway/tree/workspace.h"
-#include "sway/tree/view.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/tree/view.h"
 #include "list.h"
 #include "log.h"
 
@@ -23,7 +23,7 @@ static void apply_horiz_layout(list_t *children, struct wlr_box *parent) {
 	int new_children = 0;
 	double current_width_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		current_width_fraction += child->width_fraction;
 		if (child->width_fraction <= 0) {
 			new_children += 1;
@@ -33,7 +33,7 @@ static void apply_horiz_layout(list_t *children, struct wlr_box *parent) {
 	// Calculate each height fraction
 	double total_width_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		if (child->width_fraction <= 0) {
 			if (current_width_fraction <= 0) {
 				child->width_fraction = 1.0;
@@ -48,21 +48,21 @@ static void apply_horiz_layout(list_t *children, struct wlr_box *parent) {
 	}
 	// Normalize width fractions so the sum is 1.0
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		child->width_fraction /= total_width_fraction;
 	}
 
 	// Calculate gap size
 	double inner_gap = 0;
-	struct sway_container *child = children->items[0];
-	struct sway_workspace *ws = child->pending.workspace;
+	struct wmiiv_container *child = children->items[0];
+	struct wmiiv_workspace *ws = child->pending.workspace;
 	if (ws) {
 		inner_gap = ws->gaps_inner;
 	}
 	// Descendants of tabbed/stacked containers don't have gaps
-	struct sway_container *temp = child;
+	struct wmiiv_container *temp = child;
 	while (temp) {
-		enum sway_container_layout layout = container_parent_layout(temp);
+		enum wmiiv_container_layout layout = container_parent_layout(temp);
 		if (layout == L_TABBED || layout == L_STACKED) {
 			inner_gap = 0;
 		}
@@ -74,10 +74,10 @@ static void apply_horiz_layout(list_t *children, struct wlr_box *parent) {
 	inner_gap = floor(total_gap / (children->length - 1));
 
 	// Resize windows
-	sway_log(SWAY_DEBUG, "Arranging %p horizontally", parent);
+	wmiiv_log(SWAY_DEBUG, "Arranging %p horizontally", parent);
 	double child_x = parent->x;
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		child->child_total_width = child_total_width;
 		child->pending.x = child_x;
 		child->pending.y = parent->y;
@@ -102,7 +102,7 @@ static void apply_vert_layout(list_t *children, struct wlr_box *parent) {
 	int new_children = 0;
 	double current_height_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		current_height_fraction += child->height_fraction;
 		if (child->height_fraction <= 0) {
 			new_children += 1;
@@ -112,7 +112,7 @@ static void apply_vert_layout(list_t *children, struct wlr_box *parent) {
 	// Calculate each height fraction
 	double total_height_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		if (child->height_fraction <= 0) {
 			if (current_height_fraction <= 0) {
 				child->height_fraction = 1.0;
@@ -127,21 +127,21 @@ static void apply_vert_layout(list_t *children, struct wlr_box *parent) {
 	}
 	// Normalize height fractions so the sum is 1.0
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		child->height_fraction /= total_height_fraction;
 	}
 
 	// Calculate gap size
 	double inner_gap = 0;
-	struct sway_container *child = children->items[0];
-	struct sway_workspace *ws = child->pending.workspace;
+	struct wmiiv_container *child = children->items[0];
+	struct wmiiv_workspace *ws = child->pending.workspace;
 	if (ws) {
 		inner_gap = ws->gaps_inner;
 	}
 	// Descendants of tabbed/stacked containers don't have gaps
-	struct sway_container *temp = child;
+	struct wmiiv_container *temp = child;
 	while (temp) {
-		enum sway_container_layout layout = container_parent_layout(temp);
+		enum wmiiv_container_layout layout = container_parent_layout(temp);
 		if (layout == L_TABBED || layout == L_STACKED) {
 			inner_gap = 0;
 		}
@@ -153,10 +153,10 @@ static void apply_vert_layout(list_t *children, struct wlr_box *parent) {
 	inner_gap = floor(total_gap / (children->length - 1));
 
 	// Resize windows
-	sway_log(SWAY_DEBUG, "Arranging %p vertically", parent);
+	wmiiv_log(SWAY_DEBUG, "Arranging %p vertically", parent);
 	double child_y = parent->y;
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		child->child_total_height = child_total_height;
 		child->pending.x = parent->x;
 		child->pending.y = child_y;
@@ -176,7 +176,7 @@ static void apply_tabbed_layout(list_t *children, struct wlr_box *parent) {
 		return;
 	}
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		int parent_offset = child->view ? 0 : container_titlebar_height();
 		child->pending.x = parent->x;
 		child->pending.y = parent->y + parent_offset;
@@ -190,7 +190,7 @@ static void apply_stacked_layout(list_t *children, struct wlr_box *parent) {
 		return;
 	}
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		int parent_offset = child->view ?  0 :
 			container_titlebar_height() * children->length;
 		child->pending.x = parent->x;
@@ -202,13 +202,13 @@ static void apply_stacked_layout(list_t *children, struct wlr_box *parent) {
 
 static void arrange_floating(list_t *floating) {
 	for (int i = 0; i < floating->length; ++i) {
-		struct sway_container *floater = floating->items[i];
+		struct wmiiv_container *floater = floating->items[i];
 		arrange_window(floater);
 	}
 }
 
 static void arrange_children(list_t *children,
-		enum sway_container_layout layout, struct wlr_box *parent) {
+		enum wmiiv_container_layout layout, struct wlr_box *parent) {
 	// Calculate x, y, width and height of children
 	switch (layout) {
 	case L_HORIZ:
@@ -230,7 +230,7 @@ static void arrange_children(list_t *children,
 
 	// Recurse into child containers
 	for (int i = 0; i < children->length; ++i) {
-		struct sway_container *child = children->items[i];
+		struct wmiiv_container *child = children->items[i];
 		if (container_is_window(child)) {
 			arrange_window(child);
 		} else {
@@ -240,7 +240,7 @@ static void arrange_children(list_t *children,
 	}
 }
 
-void arrange_column(struct sway_container *col) {
+void arrange_column(struct wmiiv_container *col) {
 	if (config->reloading) {
 		return;
 	}
@@ -250,7 +250,7 @@ void arrange_column(struct sway_container *col) {
 	node_set_dirty(&col->node);
 }
 
-void arrange_window(struct sway_container *win) {
+void arrange_window(struct wmiiv_container *win) {
 	if (config->reloading) {
 		return;
 	}
@@ -258,7 +258,7 @@ void arrange_window(struct sway_container *win) {
 	node_set_dirty(&win->node);
 }
 
-void arrange_workspace(struct sway_workspace *workspace) {
+void arrange_workspace(struct wmiiv_workspace *workspace) {
 	if (config->reloading) {
 		return;
 	}
@@ -266,9 +266,9 @@ void arrange_workspace(struct sway_workspace *workspace) {
 		// Happens when there are no outputs connected
 		return;
 	}
-	struct sway_output *output = workspace->output;
+	struct wmiiv_output *output = workspace->output;
 	struct wlr_box *area = &output->usable_area;
-	sway_log(SWAY_DEBUG, "Usable area for ws: %dx%d@%d,%d",
+	wmiiv_log(SWAY_DEBUG, "Usable area for ws: %dx%d@%d,%d",
 			area->width, area->height, area->x, area->y);
 
 	bool first_arrange = workspace->width == 0 && workspace->height == 0;
@@ -284,7 +284,7 @@ void arrange_workspace(struct sway_workspace *workspace) {
 	double diff_y = workspace->y - prev_y;
 	if (!first_arrange && (diff_x != 0 || diff_y != 0)) {
 		for (int i = 0; i < workspace->floating->length; ++i) {
-			struct sway_container *floater = workspace->floating->items[i];
+			struct wmiiv_container *floater = workspace->floating->items[i];
 			container_floating_translate(floater, diff_x, diff_y);
 			double center_x = floater->pending.x + floater->pending.width / 2;
 			double center_y = floater->pending.y + floater->pending.height / 2;
@@ -298,10 +298,10 @@ void arrange_workspace(struct sway_workspace *workspace) {
 
 	workspace_add_gaps(workspace);
 	node_set_dirty(&workspace->node);
-	sway_log(SWAY_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
+	wmiiv_log(SWAY_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
 			workspace->x, workspace->y);
 	if (workspace->fullscreen) {
-		struct sway_container *fs = workspace->fullscreen;
+		struct wmiiv_container *fs = workspace->fullscreen;
 		fs->pending.x = output->lx;
 		fs->pending.y = output->ly;
 		fs->pending.width = output->width;
@@ -315,7 +315,7 @@ void arrange_workspace(struct sway_workspace *workspace) {
 	}
 }
 
-void arrange_output(struct sway_output *output) {
+void arrange_output(struct wmiiv_output *output) {
 	if (config->reloading) {
 		return;
 	}
@@ -328,7 +328,7 @@ void arrange_output(struct sway_output *output) {
 	output->height = output_box.height;
 
 	for (int i = 0; i < output->workspaces->length; ++i) {
-		struct sway_workspace *workspace = output->workspaces->items[i];
+		struct wmiiv_workspace *workspace = output->workspaces->items[i];
 		arrange_workspace(workspace);
 	}
 }
@@ -345,7 +345,7 @@ void arrange_root(void) {
 	root->height = layout_box.height;
 
 	if (root->fullscreen_global) {
-		struct sway_container *fs = root->fullscreen_global;
+		struct wmiiv_container *fs = root->fullscreen_global;
 		fs->pending.x = root->x;
 		fs->pending.y = root->y;
 		fs->pending.width = root->width;
@@ -353,28 +353,28 @@ void arrange_root(void) {
 		arrange_window(fs);
 	} else {
 		for (int i = 0; i < root->outputs->length; ++i) {
-			struct sway_output *output = root->outputs->items[i];
+			struct wmiiv_output *output = root->outputs->items[i];
 			arrange_output(output);
 		}
 	}
 }
 
-void arrange_node(struct sway_node *node) {
+void arrange_node(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		arrange_root();
 		break;
 	case N_OUTPUT:
-		arrange_output(node->sway_output);
+		arrange_output(node->wmiiv_output);
 		break;
 	case N_WORKSPACE:
-		arrange_workspace(node->sway_workspace);
+		arrange_workspace(node->wmiiv_workspace);
 		break;
 	case N_COLUMN:
-		arrange_column(node->sway_container);
+		arrange_column(node->wmiiv_container);
 		break;
 	case N_WINDOW:
-		arrange_window(node->sway_container);
+		arrange_window(node->wmiiv_container);
 		break;
 	}
 }

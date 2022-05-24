@@ -1,7 +1,7 @@
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/container.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/container.h"
 
 struct cmd_results *cmd_default_floating_border(int argc, char **argv) {
 	struct cmd_results *error = NULL;

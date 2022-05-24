@@ -8,19 +8,19 @@
 #include <xkbcommon/xkbcommon.h>
 #include "config.h"
 #include "log.h"
-#include "sway/config.h"
-#include "sway/ipc-json.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/output.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
+#include "wmiiv/config.h"
+#include "wmiiv/ipc-json.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/output.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
 #include "wlr-layer-shell-unstable-v1-protocol.h"
-#include "sway/desktop/idle_inhibit_v1.h"
+#include "wmiiv/desktop/idle_inhibit_v1.h"
 
-static const char *ipc_json_node_type_description(enum sway_node_type node_type) {
+static const char *ipc_json_node_type_description(enum wmiiv_node_type node_type) {
 	switch (node_type) {
 	case N_ROOT:
 		return "root";
@@ -38,7 +38,7 @@ static const char *ipc_json_node_type_description(enum sway_node_type node_type)
 	return "none";
 }
 
-static const char *ipc_json_layout_description(enum sway_container_layout l) {
+static const char *ipc_json_layout_description(enum wmiiv_container_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "splitv";
@@ -54,7 +54,7 @@ static const char *ipc_json_layout_description(enum sway_container_layout l) {
 	return "none";
 }
 
-static const char *ipc_json_orientation_description(enum sway_container_layout l) {
+static const char *ipc_json_orientation_description(enum wmiiv_container_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "vertical";
@@ -65,7 +65,7 @@ static const char *ipc_json_orientation_description(enum sway_container_layout l
 	}
 }
 
-static const char *ipc_json_border_description(enum sway_container_border border) {
+static const char *ipc_json_border_description(enum wmiiv_container_border border) {
 	switch (border) {
 	case B_NONE:
 		return "none";
@@ -120,9 +120,9 @@ static const char *ipc_json_output_adaptive_sync_status_description(
 }
 
 #if HAVE_XWAYLAND
-static const char *ipc_json_xwindow_type_description(struct sway_view *view) {
+static const char *ipc_json_xwindow_type_description(struct wmiiv_view *view) {
 	struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
-	struct sway_xwayland *xwayland = &server.xwayland;
+	struct wmiiv_xwayland *xwayland = &server.xwayland;
 
 	for (size_t i = 0; i < surface->window_type_len; ++i) {
 		xcb_atom_t type = surface->window_type[i];
@@ -155,7 +155,7 @@ static const char *ipc_json_xwindow_type_description(struct sway_view *view) {
 }
 #endif
 
-static const char *ipc_json_user_idle_inhibitor_description(enum sway_idle_inhibit_mode mode) {
+static const char *ipc_json_user_idle_inhibitor_description(enum wmiiv_idle_inhibit_mode mode) {
 	switch (mode) {
 	case INHIBIT_IDLE_FOCUS:
 		return "focus";
@@ -178,7 +178,7 @@ json_object *ipc_json_get_version(void) {
 	sscanf(SWAY_VERSION, "%d.%d.%d", &major, &minor, &patch);
 
 	json_object_object_add(version, "human_readable", json_object_new_string(SWAY_VERSION));
-	json_object_object_add(version, "variant", json_object_new_string("sway"));
+	json_object_object_add(version, "variant", json_object_new_string("wmiiv"));
 	json_object_object_add(version, "major", json_object_new_int(major));
 	json_object_object_add(version, "minor", json_object_new_int(minor));
 	json_object_object_add(version, "patch", json_object_new_int(patch));
@@ -243,7 +243,7 @@ static json_object *ipc_json_create_node(int id, const char* type, char *name,
 	return object;
 }
 
-static void ipc_json_describe_output(struct sway_output *output,
+static void ipc_json_describe_output(struct wmiiv_output *output,
 		json_object *object) {
 	struct wlr_output *wlr_output = output->wlr_output;
 	json_object_object_add(object, "active", json_object_new_boolean(true));
@@ -264,7 +264,7 @@ static void ipc_json_describe_output(struct sway_output *output,
 			json_object_new_double(wlr_output->scale));
 	json_object_object_add(object, "scale_filter",
 		json_object_new_string(
-			sway_output_scale_filter_to_string(output->scale_filter)));
+			wmiiv_output_scale_filter_to_string(output->scale_filter)));
 	json_object_object_add(object, "transform",
 		json_object_new_string(
 			ipc_json_output_transform_description(wlr_output->transform)));
@@ -274,8 +274,8 @@ static void ipc_json_describe_output(struct sway_output *output,
 	json_object_object_add(object, "adaptive_sync_status",
 		json_object_new_string(adaptive_sync_status));
 
-	struct sway_workspace *ws = output_get_active_workspace(output);
-	if (!sway_assert(ws, "Expected output to have a workspace")) {
+	struct wmiiv_workspace *ws = output_get_active_workspace(output);
+	if (!wmiiv_assert(ws, "Expected output to have a workspace")) {
 		return;
 	}
 	json_object_object_add(object, "current_workspace",
@@ -305,7 +305,7 @@ static void ipc_json_describe_output(struct sway_output *output,
 		json_object_new_int(wlr_output->refresh));
 	json_object_object_add(object, "current_mode", current_mode_object);
 
-	struct sway_node *parent = node_get_parent(&output->node);
+	struct wmiiv_node *parent = node_get_parent(&output->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};
 
 	if (parent != NULL) {
@@ -321,7 +321,7 @@ static void ipc_json_describe_output(struct sway_output *output,
 	json_object_object_add(object, "max_render_time", json_object_new_int(output->max_render_time));
 }
 
-json_object *ipc_json_describe_disabled_output(struct sway_output *output) {
+json_object *ipc_json_describe_disabled_output(struct wmiiv_output *output) {
 	struct wlr_output *wlr_output = output->wlr_output;
 
 	json_object *object = json_object_new_object();
@@ -368,7 +368,7 @@ json_object *ipc_json_describe_disabled_output(struct sway_output *output) {
 	return object;
 }
 
-static void ipc_json_describe_workspace(struct sway_workspace *workspace,
+static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 		json_object *object) {
 	int num;
 	if (isdigit(workspace->name[0])) {
@@ -403,7 +403,7 @@ static void ipc_json_describe_workspace(struct sway_workspace *workspace,
 	// Floating
 	json_object *floating_array = json_object_new_array();
 	for (int i = 0; i < workspace->floating->length; ++i) {
-		struct sway_container *floater = workspace->floating->items[i];
+		struct wmiiv_container *floater = workspace->floating->items[i];
 		json_object_array_add(floating_array,
 				ipc_json_describe_node_recursive(&floater->node));
 	}
@@ -411,7 +411,7 @@ static void ipc_json_describe_workspace(struct sway_workspace *workspace,
 }
 
 
-static void column_get_deco_rect(struct sway_container *col, struct wlr_box *deco_rect) {
+static void column_get_deco_rect(struct wmiiv_container *col, struct wlr_box *deco_rect) {
 	// TODO it's unclear whether columns should actually ever have a decoration rectangle.
 	if (col->pending.workspace == NULL) {
 		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
@@ -425,8 +425,8 @@ static void column_get_deco_rect(struct sway_container *col, struct wlr_box *dec
 	deco_rect->height = container_titlebar_height();
 }
 
-static void window_get_deco_rect(struct sway_container *win, struct wlr_box *deco_rect) {
-	enum sway_container_layout parent_layout = container_parent_layout(win);
+static void window_get_deco_rect(struct wmiiv_container *win, struct wlr_box *deco_rect) {
+	enum wmiiv_container_layout parent_layout = container_parent_layout(win);
 	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
 
 	if (((!tab_or_stack || window_is_floating(win)) &&
@@ -463,7 +463,7 @@ static void window_get_deco_rect(struct sway_container *win, struct wlr_box *dec
 	}
 }
 
-static void ipc_json_describe_view(struct sway_container *c, json_object *object) {
+static void ipc_json_describe_view(struct wmiiv_container *c, json_object *object) {
 	json_object_object_add(object, "pid", json_object_new_int(c->view->pid));
 
 	const char *app_id = view_get_app_id(c->view);
@@ -494,8 +494,8 @@ static void ipc_json_describe_view(struct sway_container *c, json_object *object
 
 	json_object *idle_inhibitors = json_object_new_object();
 
-	struct sway_idle_inhibitor_v1 *user_inhibitor =
-		sway_idle_inhibit_v1_user_inhibitor_for_view(c->view);
+	struct wmiiv_idle_inhibitor_v1 *user_inhibitor =
+		wmiiv_idle_inhibit_v1_user_inhibitor_for_view(c->view);
 
 	if (user_inhibitor) {
 		json_object_object_add(idle_inhibitors, "user",
@@ -506,8 +506,8 @@ static void ipc_json_describe_view(struct sway_container *c, json_object *object
 			json_object_new_string("none"));
 	}
 
-	struct sway_idle_inhibitor_v1 *application_inhibitor =
-		sway_idle_inhibit_v1_application_inhibitor_for_view(c->view);
+	struct wmiiv_idle_inhibitor_v1 *application_inhibitor =
+		wmiiv_idle_inhibit_v1_application_inhibitor_for_view(c->view);
 
 	if (application_inhibitor) {
 		json_object_object_add(idle_inhibitors, "application",
@@ -560,7 +560,7 @@ static void ipc_json_describe_view(struct sway_container *c, json_object *object
 #endif
 }
 
-static void ipc_json_describe_column(struct sway_container *col, json_object *object) {
+static void ipc_json_describe_column(struct wmiiv_container *col, json_object *object) {
 	json_object_object_add(object, "name",
 			col->title ? json_object_new_string(col->title) : NULL);
 
@@ -579,7 +579,7 @@ static void ipc_json_describe_column(struct sway_container *col, json_object *ob
 	json_object_object_add(object, "fullscreen_mode",
 			json_object_new_int(col->pending.fullscreen_mode));
 
-	struct sway_node *parent = node_get_parent(&col->node);
+	struct wmiiv_node *parent = node_get_parent(&col->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};
 
 	if (parent != NULL) {
@@ -604,7 +604,7 @@ static void ipc_json_describe_column(struct sway_container *col, json_object *ob
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 }
 
-static void ipc_json_describe_window(struct sway_container *win, json_object *object) {
+static void ipc_json_describe_window(struct wmiiv_container *win, json_object *object) {
 	json_object_object_add(object, "name",
 			win->title ? json_object_new_string(win->title) : NULL);
 	if (window_is_floating(win)) {
@@ -627,7 +627,7 @@ static void ipc_json_describe_window(struct sway_container *win, json_object *ob
 	json_object_object_add(object, "fullscreen_mode",
 			json_object_new_int(win->pending.fullscreen_mode));
 
-	struct sway_node *parent = node_get_parent(&win->node);
+	struct wmiiv_node *parent = node_get_parent(&win->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};
 
 	if (parent != NULL) {
@@ -663,16 +663,16 @@ static void ipc_json_describe_window(struct sway_container *win, json_object *ob
 }
 
 struct focus_inactive_data {
-	struct sway_node *node;
+	struct wmiiv_node *node;
 	json_object *object;
 };
 
-static void focus_inactive_children_iterator(struct sway_node *node,
+static void focus_inactive_children_iterator(struct wmiiv_node *node,
 		void *_data) {
 	struct focus_inactive_data *data = _data;
 	json_object *focus = data->object;
 	if (data->node == &root->node) {
-		struct sway_output *output = node_get_output(node);
+		struct wmiiv_output *output = node_get_output(node);
 		if (output == NULL) {
 			return;
 		}
@@ -690,8 +690,8 @@ static void focus_inactive_children_iterator(struct sway_node *node,
 	json_object_array_add(focus, json_object_new_int(node->id));
 }
 
-json_object *ipc_json_describe_node(struct sway_node *node) {
-	struct sway_seat *seat = input_manager_get_default_seat();
+json_object *ipc_json_describe_node(struct wmiiv_node *node) {
+	struct wmiiv_seat *seat = input_manager_get_default_seat();
 	bool focused = seat_get_focus(seat) == node;
 	char *name = node_get_name(node);
 
@@ -700,17 +700,17 @@ json_object *ipc_json_describe_node(struct sway_node *node) {
 
 	if (node->type == N_COLUMN) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
-		column_get_deco_rect(node->sway_container, &deco_rect);
+		column_get_deco_rect(node->wmiiv_container, &deco_rect);
 		box.y += deco_rect.height;
 		box.height -= deco_rect.height;
 	}
 
 	if (node->type == N_WINDOW) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
-		window_get_deco_rect(node->sway_container, &deco_rect);
+		window_get_deco_rect(node->wmiiv_container, &deco_rect);
 		size_t count = 1;
-		if (container_parent_layout(node->sway_container) == L_STACKED) {
-			count = container_get_siblings(node->sway_container)->length;
+		if (container_parent_layout(node->wmiiv_container) == L_STACKED) {
+			count = container_get_siblings(node->wmiiv_container)->length;
 		}
 		box.y += deco_rect.height * count;
 		box.height -= deco_rect.height * count;
@@ -730,23 +730,23 @@ json_object *ipc_json_describe_node(struct sway_node *node) {
 	case N_ROOT:
 		break;
 	case N_OUTPUT:
-		ipc_json_describe_output(node->sway_output, object);
+		ipc_json_describe_output(node->wmiiv_output, object);
 		break;
 	case N_WORKSPACE:
-		ipc_json_describe_workspace(node->sway_workspace, object);
+		ipc_json_describe_workspace(node->wmiiv_workspace, object);
 		break;
 	case N_COLUMN:
-		ipc_json_describe_column(node->sway_container, object);
+		ipc_json_describe_column(node->wmiiv_container, object);
 		break;
 	case N_WINDOW:
-		ipc_json_describe_window(node->sway_container, object);
+		ipc_json_describe_window(node->wmiiv_container, object);
 		break;
 	}
 
 	return object;
 }
 
-json_object *ipc_json_describe_node_recursive(struct sway_node *node) {
+json_object *ipc_json_describe_node_recursive(struct wmiiv_node *node) {
 	json_object *object = ipc_json_describe_node(node);
 	int i;
 
@@ -754,30 +754,30 @@ json_object *ipc_json_describe_node_recursive(struct sway_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		for (i = 0; i < root->outputs->length; ++i) {
-			struct sway_output *output = root->outputs->items[i];
+			struct wmiiv_output *output = root->outputs->items[i];
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&output->node));
 		}
 		break;
 	case N_OUTPUT:
-		for (i = 0; i < node->sway_output->workspaces->length; ++i) {
-			struct sway_workspace *ws = node->sway_output->workspaces->items[i];
+		for (i = 0; i < node->wmiiv_output->workspaces->length; ++i) {
+			struct wmiiv_workspace *ws = node->wmiiv_output->workspaces->items[i];
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&ws->node));
 		}
 		break;
 	case N_WORKSPACE:
-		for (i = 0; i < node->sway_workspace->tiling->length; ++i) {
-			struct sway_container *con = node->sway_workspace->tiling->items[i];
+		for (i = 0; i < node->wmiiv_workspace->tiling->length; ++i) {
+			struct wmiiv_container *con = node->wmiiv_workspace->tiling->items[i];
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&con->node));
 		}
 		break;
 	case N_COLUMN:
-		if (node->sway_container->pending.children) {
-			for (i = 0; i < node->sway_container->pending.children->length; ++i) {
-				struct sway_container *child =
-					node->sway_container->pending.children->items[i];
+		if (node->wmiiv_container->pending.children) {
+			for (i = 0; i < node->wmiiv_container->pending.children->length; ++i) {
+				struct wmiiv_container *child =
+					node->wmiiv_container->pending.children->items[i];
 				json_object_array_add(children,
 						ipc_json_describe_node_recursive(&child->node));
 			}
@@ -985,8 +985,8 @@ static json_object *describe_libinput_device(struct libinput_device *device) {
 	return object;
 }
 
-json_object *ipc_json_describe_input(struct sway_input_device *device) {
-	if (!(sway_assert(device, "Device must not be null"))) {
+json_object *ipc_json_describe_input(struct wmiiv_input_device *device) {
+	if (!(wmiiv_assert(device, "Device must not be null"))) {
 		return NULL;
 	}
 
@@ -1056,13 +1056,13 @@ json_object *ipc_json_describe_input(struct sway_input_device *device) {
 	return object;
 }
 
-json_object *ipc_json_describe_seat(struct sway_seat *seat) {
-	if (!(sway_assert(seat, "Seat must not be null"))) {
+json_object *ipc_json_describe_seat(struct wmiiv_seat *seat) {
+	if (!(wmiiv_assert(seat, "Seat must not be null"))) {
 		return NULL;
 	}
 
 	json_object *object = json_object_new_object();
-	struct sway_node *focus = seat_get_focus(seat);
+	struct wmiiv_node *focus = seat_get_focus(seat);
 
 	json_object_object_add(object, "name",
 		json_object_new_string(seat->wlr_seat->name));
@@ -1072,7 +1072,7 @@ json_object *ipc_json_describe_seat(struct sway_seat *seat) {
 		json_object_new_int(focus ? focus->id : 0));
 
 	json_object *devices = json_object_new_array();
-	struct sway_seat_device *device = NULL;
+	struct wmiiv_seat_device *device = NULL;
 	wl_list_for_each(device, &seat->devices, link) {
 		json_object_array_add(devices, ipc_json_describe_input(device->input_device));
 	}
@@ -1107,7 +1107,7 @@ static uint32_t event_to_x11_button(uint32_t event) {
 }
 
 json_object *ipc_json_describe_bar_config(struct bar_config *bar) {
-	if (!sway_assert(bar, "Bar must not be NULL")) {
+	if (!wmiiv_assert(bar, "Bar must not be NULL")) {
 		return NULL;
 	}
 

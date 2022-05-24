@@ -1,6 +1,6 @@
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/input/keyboard.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/keyboard.h"
 #include "log.h"
 #include "stringop.h"
 
@@ -32,7 +32,7 @@ struct cmd_results *bar_cmd_modifier(int argc, char **argv) {
 		list_free_items_and_destroy(split);
 	}
 	config->current_bar->modifier = mod;
-	sway_log(SWAY_DEBUG,
+	wmiiv_log(SWAY_DEBUG,
 			"Show/Hide the bar when pressing '%s' in hide mode.", argv[0]);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

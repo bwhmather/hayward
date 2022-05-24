@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdbool.h>
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/ipc-server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/ipc-server.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
@@ -39,10 +39,10 @@ struct cmd_results *cmd_mode(int argc, char **argv) {
 
 	char *mode_name = *argv;
 	strip_quotes(mode_name);
-	struct sway_mode *mode = NULL;
+	struct wmiiv_mode *mode = NULL;
 	// Find mode
 	for (int i = 0; i < config->modes->length; ++i) {
-		struct sway_mode *test = config->modes->items[i];
+		struct wmiiv_mode *test = config->modes->items[i];
 		if (strcmp(test->name, mode_name) == 0) {
 			mode = test;
 			break;
@@ -50,7 +50,7 @@ struct cmd_results *cmd_mode(int argc, char **argv) {
 	}
 	// Create mode if it doesn't exist
 	if (!mode && argc > 1) {
-		mode = calloc(1, sizeof(struct sway_mode));
+		mode = calloc(1, sizeof(struct wmiiv_mode));
 		if (!mode) {
 			return cmd_results_new(CMD_FAILURE, "Unable to allocate mode");
 		}
@@ -67,11 +67,11 @@ struct cmd_results *cmd_mode(int argc, char **argv) {
 		return error;
 	}
 	// Set current mode
-	struct sway_mode *stored_mode = config->current_mode;
+	struct wmiiv_mode *stored_mode = config->current_mode;
 	config->current_mode = mode;
 	if (argc == 1) {
 		// trigger IPC mode event
-		sway_log(SWAY_DEBUG, "Switching to mode `%s' (pango=%d)",
+		wmiiv_log(SWAY_DEBUG, "Switching to mode `%s' (pango=%d)",
 				mode->name, mode->pango);
 		ipc_event_mode(config->current_mode->name,
 				config->current_mode->pango);

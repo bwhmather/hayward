@@ -1,6 +1,6 @@
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/criteria.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/criteria.h"
 #include "list.h"
 #include "log.h"
 
@@ -23,7 +23,7 @@ struct cmd_results *cmd_no_focus(int argc, char **argv) {
 
 	// Check if it already exists
 	if (criteria_already_exists(criteria)) {
-		sway_log(SWAY_DEBUG, "no_focus already exists: '%s'", criteria->raw);
+		wmiiv_log(SWAY_DEBUG, "no_focus already exists: '%s'", criteria->raw);
 		criteria_destroy(criteria);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}

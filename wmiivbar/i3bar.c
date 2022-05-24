@@ -6,11 +6,11 @@
 #include <string.h>
 #include <unistd.h>
 #include "log.h"
-#include "swaybar/bar.h"
-#include "swaybar/config.h"
-#include "swaybar/i3bar.h"
-#include "swaybar/input.h"
-#include "swaybar/status_line.h"
+#include "wmiivbar/bar.h"
+#include "wmiivbar/config.h"
+#include "wmiivbar/i3bar.h"
+#include "wmiivbar/input.h"
+#include "wmiivbar/status_line.h"
 
 void i3bar_block_unref(struct i3bar_block *block) {
 	if (block == NULL) {
@@ -36,7 +36,7 @@ static bool i3bar_parse_json_color(json_object *json, uint32_t *color) {
 	const char *hexstring = json_object_get_string(json);
 	bool color_set = parse_color(hexstring, color);
 	if (!color_set) {
-		sway_log(SWAY_ERROR, "Ignoring invalid block hexadecimal color string: %s", hexstring);
+		wmiiv_log(SWAY_ERROR, "Ignoring invalid block hexadecimal color string: %s", hexstring);
 	}
 	return color_set;
 }
@@ -128,7 +128,7 @@ bool i3bar_handle_readable(struct status_line *status) {
 				memmove(status->buffer, &status->buffer[c], status->buffer_index);
 				break;
 			} else if (!isspace(status->buffer[c])) {
-				sway_log(SWAY_DEBUG, "Invalid i3bar json: expected '[' but encountered '%c'",
+				wmiiv_log(SWAY_DEBUG, "Invalid i3bar json: expected '[' but encountered '%c'",
 						status->buffer[c]);
 				status_error(status, "[invalid i3bar json]");
 				return true;
@@ -168,7 +168,7 @@ bool i3bar_handle_readable(struct status_line *status) {
 					++buffer_pos;
 					break;
 				} else if (!isspace(status->buffer[buffer_pos])) {
-					sway_log(SWAY_DEBUG, "Invalid i3bar json: expected ',' but encountered '%c'",
+					wmiiv_log(SWAY_DEBUG, "Invalid i3bar json: expected ',' but encountered '%c'",
 							status->buffer[buffer_pos]);
 					status_error(status, "[invalid i3bar json]");
 					return true;
@@ -203,7 +203,7 @@ bool i3bar_handle_readable(struct status_line *status) {
 				}
 				*last_char_pos = '\0';
 				size_t offset = strspn(&status->buffer[buffer_pos], " \f\n\r\t\v");
-				sway_log(SWAY_DEBUG, "Received i3bar json: '%s%c'",
+				wmiiv_log(SWAY_DEBUG, "Received i3bar json: '%s%c'",
 						&status->buffer[buffer_pos + offset], last_char);
 				*last_char_pos = last_char;
 
@@ -237,7 +237,7 @@ bool i3bar_handle_readable(struct status_line *status) {
 			} else {
 				char last_char = status->buffer[status->buffer_index - 1];
 				status->buffer[status->buffer_index - 1] = '\0';
-				sway_log(SWAY_DEBUG, "Failed to parse i3bar json - %s: '%s%c'",
+				wmiiv_log(SWAY_DEBUG, "Failed to parse i3bar json - %s: '%s%c'",
 						json_tokener_error_desc(err), &status->buffer[buffer_pos], last_char);
 				status_error(status, "[failed to parse i3bar json]");
 				return true;
@@ -258,7 +258,7 @@ bool i3bar_handle_readable(struct status_line *status) {
 	}
 
 	if (last_object) {
-		sway_log(SWAY_DEBUG, "Rendering last received json");
+		wmiiv_log(SWAY_DEBUG, "Rendering last received json");
 		i3bar_parse_json(status, last_object);
 		json_object_put(last_object);
 		return true;
@@ -270,7 +270,7 @@ bool i3bar_handle_readable(struct status_line *status) {
 enum hotspot_event_handling i3bar_block_send_click(struct status_line *status,
 		struct i3bar_block *block, double x, double y, double rx, double ry,
 		double w, double h, int scale, uint32_t button) {
-	sway_log(SWAY_DEBUG, "block %s clicked", block->name);
+	wmiiv_log(SWAY_DEBUG, "block %s clicked", block->name);
 	if (!block->name || !status->click_events) {
 		return HOTSPOT_PROCESS;
 	}

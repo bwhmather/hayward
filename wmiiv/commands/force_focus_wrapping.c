@@ -1,13 +1,13 @@
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "log.h"
 #include "util.h"
 
 struct cmd_results *cmd_force_focus_wrapping(int argc, char **argv) {
-	sway_log(SWAY_INFO, "Warning: force_focus_wrapping is deprecated. "
+	wmiiv_log(SWAY_INFO, "Warning: force_focus_wrapping is deprecated. "
 		"Use focus_wrapping instead.");
 	if (config->reading) {
-		config_add_swaynag_warning("force_focus_wrapping is deprecated. "
+		config_add_wmiivnag_warning("force_focus_wrapping is deprecated. "
 			"Use focus_wrapping instead.");
 	}
 

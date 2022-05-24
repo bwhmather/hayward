@@ -4,17 +4,17 @@
 #include <strings.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_pointer.h>
-#include "sway/commands.h"
-#include "sway/input/cursor.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/cursor.h"
 
-static struct cmd_results *press_or_release(struct sway_cursor *cursor,
+static struct cmd_results *press_or_release(struct wmiiv_cursor *cursor,
 		char *action, char *button_str);
 
 static const char expected_syntax[] = "Expected 'cursor <move> <x> <y>' or "
 					"'cursor <set> <x> <y>' or "
 					"'cursor <press|release> <button[1-9]|event-name-or-code>'";
 
-static struct cmd_results *handle_command(struct sway_cursor *cursor,
+static struct cmd_results *handle_command(struct wmiiv_cursor *cursor,
 		int argc, char **argv) {
 	if (strcasecmp(argv[0], "move") == 0) {
 		if (argc < 3) {
@@ -64,14 +64,14 @@ struct cmd_results *seat_cmd_cursor(int argc, char **argv) {
 	}
 
 	if (strcmp(sc->name, "*") != 0) {
-		struct sway_seat *seat = input_manager_get_seat(sc->name, false);
+		struct wmiiv_seat *seat = input_manager_get_seat(sc->name, false);
 		if (!seat) {
 			return cmd_results_new(CMD_FAILURE,
 					"Seat %s does not exist", sc->name);
 		}
 		error = handle_command(seat->cursor, argc, argv);
 	} else {
-		struct sway_seat *seat = NULL;
+		struct wmiiv_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {
 			error = handle_command(seat->cursor, argc, argv);
 			if (error && error->status != CMD_SUCCESS) {
@@ -83,7 +83,7 @@ struct cmd_results *seat_cmd_cursor(int argc, char **argv) {
 	return error ? error : cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *press_or_release(struct sway_cursor *cursor,
+static struct cmd_results *press_or_release(struct wmiiv_cursor *cursor,
 		char *action, char *button_str) {
 	enum wlr_button_state state;
 	uint32_t button;

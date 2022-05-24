@@ -10,9 +10,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <wordexp.h>
-#include "sway/config.h"
-#include "sway/input/keyboard.h"
-#include "sway/output.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/keyboard.h"
+#include "wmiiv/output.h"
 #include "config.h"
 #include "list.h"
 #include "log.h"
@@ -36,7 +36,7 @@ void free_bar_config(struct bar_config *bar) {
 	free(bar->position);
 	free(bar->hidden_state);
 	free(bar->status_command);
-	free(bar->swaybar_command);
+	free(bar->wmiivbar_command);
 	free(bar->font);
 	free(bar->separator_symbol);
 	if (bar->bindings) {
@@ -92,7 +92,7 @@ struct bar_config *default_bar_config(void) {
 	bar->outputs = NULL;
 	bar->position = strdup("bottom");
 	bar->pango_markup = PANGO_MARKUP_DEFAULT;
-	bar->swaybar_command = NULL;
+	bar->wmiivbar_command = NULL;
 	bar->font = NULL;
 	bar->height = 0;
 	bar->workspace_buttons = true;
@@ -181,7 +181,7 @@ cleanup:
 	return NULL;
 }
 
-static void handle_swaybar_client_destroy(struct wl_listener *listener,
+static void handle_wmiivbar_client_destroy(struct wl_listener *listener,
 		void *data) {
 	struct bar_config *bar = wl_container_of(listener, bar, client_destroy);
 	wl_list_remove(&bar->client_destroy.link);
@@ -189,28 +189,28 @@ static void handle_swaybar_client_destroy(struct wl_listener *listener,
 	bar->client = NULL;
 }
 
-static void invoke_swaybar(struct bar_config *bar) {
+static void invoke_wmiivbar(struct bar_config *bar) {
 	int sockets[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-		sway_log_errno(SWAY_ERROR, "socketpair failed");
+		wmiiv_log_errno(SWAY_ERROR, "socketpair failed");
 		return;
 	}
-	if (!sway_set_cloexec(sockets[0], true) || !sway_set_cloexec(sockets[1], true)) {
+	if (!wmiiv_set_cloexec(sockets[0], true) || !wmiiv_set_cloexec(sockets[1], true)) {
 		return;
 	}
 
 	bar->client = wl_client_create(server.wl_display, sockets[0]);
 	if (bar->client == NULL) {
-		sway_log_errno(SWAY_ERROR, "wl_client_create failed");
+		wmiiv_log_errno(SWAY_ERROR, "wl_client_create failed");
 		return;
 	}
 
-	bar->client_destroy.notify = handle_swaybar_client_destroy;
+	bar->client_destroy.notify = handle_wmiivbar_client_destroy;
 	wl_client_add_destroy_listener(bar->client, &bar->client_destroy);
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		sway_log(SWAY_ERROR, "Failed to create fork for swaybar");
+		wmiiv_log(SWAY_ERROR, "Failed to create fork for wmiivbar");
 		return;
 	} else if (pid == 0) {
 		// Remove the SIGUSR1 handler that wlroots adds for xwayland
@@ -223,10 +223,10 @@ static void invoke_swaybar(struct bar_config *bar) {
 
 		pid = fork();
 		if (pid < 0) {
-			sway_log_errno(SWAY_ERROR, "fork failed");
+			wmiiv_log_errno(SWAY_ERROR, "fork failed");
 			_exit(EXIT_FAILURE);
 		} else if (pid == 0) {
-			if (!sway_set_cloexec(sockets[1], false)) {
+			if (!wmiiv_set_cloexec(sockets[1], false)) {
 				_exit(EXIT_FAILURE);
 			}
 
@@ -235,9 +235,9 @@ static void invoke_swaybar(struct bar_config *bar) {
 					"%d", sockets[1]);
 			setenv("WAYLAND_SOCKET", wayland_socket_str, true);
 
-			// run custom swaybar
+			// run custom wmiivbar
 			char *const cmd[] = {
-					bar->swaybar_command ? bar->swaybar_command : "swaybar",
+					bar->wmiivbar_command ? bar->wmiivbar_command : "wmiivbar",
 					"-b", bar->id, NULL};
 			execvp(cmd[0], cmd);
 			_exit(EXIT_FAILURE);
@@ -246,30 +246,30 @@ static void invoke_swaybar(struct bar_config *bar) {
 	}
 
 	if (close(sockets[1]) != 0) {
-		sway_log_errno(SWAY_ERROR, "close failed");
+		wmiiv_log_errno(SWAY_ERROR, "close failed");
 		return;
 	}
 
 	if (waitpid(pid, NULL, 0) < 0) {
-		sway_log_errno(SWAY_ERROR, "waitpid failed");
+		wmiiv_log_errno(SWAY_ERROR, "waitpid failed");
 		return;
 	}
 
-	sway_log(SWAY_DEBUG, "Spawned swaybar %s", bar->id);
+	wmiiv_log(SWAY_DEBUG, "Spawned wmiivbar %s", bar->id);
 	return;
 }
 
-void load_swaybar(struct bar_config *bar) {
+void load_wmiivbar(struct bar_config *bar) {
 	if (bar->client != NULL) {
 		wl_client_destroy(bar->client);
 	}
-	sway_log(SWAY_DEBUG, "Invoking swaybar for bar id '%s'", bar->id);
-	invoke_swaybar(bar);
+	wmiiv_log(SWAY_DEBUG, "Invoking wmiivbar for bar id '%s'", bar->id);
+	invoke_wmiivbar(bar);
 }
 
-void load_swaybars(void) {
+void load_wmiivbars(void) {
 	for (int i = 0; i < config->bars->length; ++i) {
 		struct bar_config *bar = config->bars->items[i];
-		load_swaybar(bar);
+		load_wmiivbar(bar);
 	}
 }

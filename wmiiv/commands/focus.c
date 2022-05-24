@@ -2,21 +2,21 @@
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
-#include "sway/output.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/root.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
 #include "stringop.h"
 #include "util.h"
 
-static bool get_direction_from_next_prev(struct sway_container *container,
-		struct sway_seat *seat, const char *name, enum wlr_direction *out) {
-	enum sway_container_layout parent_layout = L_NONE;
+static bool get_direction_from_next_prev(struct wmiiv_container *container,
+		struct wmiiv_seat *seat, const char *name, enum wlr_direction *out) {
+	enum wmiiv_container_layout parent_layout = L_NONE;
 	if (container) {
 		parent_layout = container_parent_layout(container);
 	}
@@ -81,18 +81,18 @@ static bool parse_direction(const char *name,
  *
  *  Node should always be either a workspace or a window.
  */
-static struct sway_node *get_node_in_output_direction(
-		struct sway_output *output, enum wlr_direction dir) {
-	struct sway_seat *seat = config->handler_context.seat;
-	struct sway_workspace *ws = output_get_active_workspace(output);
-	if (!sway_assert(ws, "Expected output to have a workspace")) {
+static struct wmiiv_node *get_node_in_output_direction(
+		struct wmiiv_output *output, enum wlr_direction dir) {
+	struct wmiiv_seat *seat = config->handler_context.seat;
+	struct wmiiv_workspace *ws = output_get_active_workspace(output);
+	if (!wmiiv_assert(ws, "Expected output to have a workspace")) {
 		return NULL;
 	}
 	if (ws->fullscreen) {
 		return &ws->fullscreen->node;
 	}
-	struct sway_container *col = NULL;
-	struct sway_container *win = NULL;
+	struct wmiiv_container *col = NULL;
+	struct wmiiv_container *win = NULL;
 
 	if (ws->tiling->length > 0) {
 		switch (dir) {
@@ -126,16 +126,16 @@ static struct sway_node *get_node_in_output_direction(
 	return &ws->node;
 }
 
-static struct sway_node *node_get_in_direction_tiling(
-		struct sway_container *container, struct sway_seat *seat,
+static struct wmiiv_node *node_get_in_direction_tiling(
+		struct wmiiv_container *container, struct wmiiv_seat *seat,
 		enum wlr_direction dir) {
-	struct sway_container *wrap_candidate = NULL;
-	struct sway_container *current = container;
+	struct wmiiv_container *wrap_candidate = NULL;
+	struct wmiiv_container *current = container;
 	while (current) {
 		if (current->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
 			// Fullscreen container with a direction - go straight to outputs
-			struct sway_output *output = current->pending.workspace->output;
-			struct sway_output *new_output =
+			struct wmiiv_output *output = current->pending.workspace->output;
+			struct wmiiv_output *new_output =
 				output_get_in_direction(output, dir);
 			if (!new_output) {
 				return NULL;
@@ -149,7 +149,7 @@ static struct sway_node *node_get_in_direction_tiling(
 		bool can_move = false;
 		int desired;
 		int idx = container_sibling_index(current);
-		enum sway_container_layout parent_layout =
+		enum wmiiv_container_layout parent_layout =
 			container_parent_layout(current);
 		list_t *siblings = container_get_siblings(current);
 
@@ -176,14 +176,14 @@ static struct sway_node *node_get_in_direction_tiling(
 						wrap_candidate = siblings->items[0];
 					}
 					if (config->focus_wrapping == WRAP_FORCE) {
-						struct sway_container *c = seat_get_focus_inactive_view(
+						struct wmiiv_container *c = seat_get_focus_inactive_view(
 								seat, &wrap_candidate->node);
 						return &c->node;
 					}
 				}
 			} else {
-				struct sway_container *desired_con = siblings->items[desired];
-				struct sway_container *c = seat_get_focus_inactive_view(
+				struct wmiiv_container *desired_con = siblings->items[desired];
+				struct wmiiv_container *c = seat_get_focus_inactive_view(
 						seat, &desired_con->node);
 				return &c->node;
 			}
@@ -193,8 +193,8 @@ static struct sway_node *node_get_in_direction_tiling(
 	}
 
 	// Check a different output
-	struct sway_output *output = container->pending.workspace->output;
-	struct sway_output *new_output = output_get_in_direction(output, dir);
+	struct wmiiv_output *output = container->pending.workspace->output;
+	struct wmiiv_output *new_output = output_get_in_direction(output, dir);
 	if ((config->focus_wrapping != WRAP_WORKSPACE ||
 				container->node.type == N_WORKSPACE) && new_output) {
 		return get_node_in_output_direction(new_output, dir);
@@ -202,7 +202,7 @@ static struct sway_node *node_get_in_direction_tiling(
 
 	// If there is a wrap candidate, return its focus inactive view
 	if (wrap_candidate) {
-		struct sway_container *wrap_inactive = seat_get_focus_inactive_view(
+		struct wmiiv_container *wrap_inactive = seat_get_focus_inactive_view(
 				seat, &wrap_candidate->node);
 		return &wrap_inactive->node;
 	}
@@ -210,20 +210,20 @@ static struct sway_node *node_get_in_direction_tiling(
 	return NULL;
 }
 
-static struct sway_node *node_get_in_direction_floating(
-		struct sway_container *con, struct sway_seat *seat,
+static struct wmiiv_node *node_get_in_direction_floating(
+		struct wmiiv_container *con, struct wmiiv_seat *seat,
 		enum wlr_direction dir) {
 	double ref_lx = con->pending.x + con->pending.width / 2;
 	double ref_ly = con->pending.y + con->pending.height / 2;
 	double closest_distance = DBL_MAX;
-	struct sway_container *closest_con = NULL;
+	struct wmiiv_container *closest_con = NULL;
 
 	if (!con->pending.workspace) {
 		return NULL;
 	}
 
 	for (int i = 0; i < con->pending.workspace->floating->length; i++) {
-		struct sway_container *floater = con->pending.workspace->floating->items[i];
+		struct wmiiv_container *floater = con->pending.workspace->floating->items[i];
 		if (floater == con) {
 			continue;
 		}
@@ -245,9 +245,9 @@ static struct sway_node *node_get_in_direction_floating(
 	return closest_con ? &closest_con->node : NULL;
 }
 
-static struct cmd_results *focus_mode(struct sway_workspace *ws,
-		struct sway_seat *seat, bool floating) {
-	struct sway_container *new_focus = NULL;
+static struct cmd_results *focus_mode(struct wmiiv_workspace *ws,
+		struct wmiiv_seat *seat, bool floating) {
+	struct wmiiv_container *new_focus = NULL;
 	if (floating) {
 		new_focus = seat_get_focus_inactive_floating(seat, ws);
 	} else {
@@ -273,14 +273,14 @@ static struct cmd_results *focus_mode(struct sway_workspace *ws,
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *focus_output(struct sway_seat *seat,
+static struct cmd_results *focus_output(struct wmiiv_seat *seat,
 		int argc, char **argv) {
 	if (!argc) {
 		return cmd_results_new(CMD_INVALID,
 			"Expected 'focus output <direction|name>'.");
 	}
 	char *identifier = join_args(argv, argc);
-	struct sway_output *output = output_by_name_or_id(identifier);
+	struct wmiiv_output *output = output_by_name_or_id(identifier);
 
 	if (!output) {
 		enum wlr_direction direction;
@@ -289,7 +289,7 @@ static struct cmd_results *focus_output(struct sway_seat *seat,
 			return cmd_results_new(CMD_INVALID,
 				"There is no output with that name.");
 		}
-		struct sway_workspace *ws = seat_get_focused_workspace(seat);
+		struct wmiiv_workspace *ws = seat_get_focused_workspace(seat);
 		if (!ws) {
 			free(identifier);
 			return cmd_results_new(CMD_FAILURE,
@@ -326,10 +326,10 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct sway_node *node = config->handler_context.node;
-	struct sway_workspace *workspace = config->handler_context.workspace;
-	struct sway_container *win = config->handler_context.window;
-	struct sway_seat *seat = config->handler_context.seat;
+	struct wmiiv_node *node = config->handler_context.node;
+	struct wmiiv_workspace *workspace = config->handler_context.workspace;
+	struct wmiiv_container *win = config->handler_context.window;
+	struct wmiiv_seat *seat = config->handler_context.seat;
 	if (node->type < N_WORKSPACE) {
 		return cmd_results_new(CMD_FAILURE,
 			"Command 'focus' cannot be used above the workspace level.");
@@ -342,7 +342,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 
 		// if we are switching to a container under a fullscreen window, we first
 		// need to exit fullscreen so that the newly focused container becomes visible
-		struct sway_container *obstructing = container_obstructing_fullscreen_container(win);
+		struct wmiiv_container *obstructing = container_obstructing_fullscreen_container(win);
 		if (obstructing) {
 			container_fullscreen_disable(obstructing);
 			arrange_root();
@@ -382,23 +382,23 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 
 	if (node->type == N_WORKSPACE) {
 		// Jump to the next output
-		struct sway_output *new_output =
+		struct wmiiv_output *new_output =
 			output_get_in_direction(workspace->output, direction);
 		if (!new_output) {
 			return cmd_results_new(CMD_SUCCESS, NULL);
 		}
 
-		struct sway_node *node =
+		struct wmiiv_node *node =
 			get_node_in_output_direction(new_output, direction);
 		seat_set_focus(seat, node);
 		seat_consider_warp_to_focus(seat);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	if (!sway_assert(win, "Expected container to be non null")) {
+	if (!wmiiv_assert(win, "Expected container to be non null")) {
 		return cmd_results_new(CMD_FAILURE, "");
 	}
-	struct sway_node *next_focus = NULL;
+	struct wmiiv_node *next_focus = NULL;
 	if (window_is_floating(win) &&
 			win->pending.fullscreen_mode == FULLSCREEN_NONE) {
 		next_focus = node_get_in_direction_floating(win, seat, direction);
@@ -410,7 +410,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		seat_consider_warp_to_focus(seat);
 
 		if (next_focus->type == N_COLUMN || next_focus->type == N_WINDOW) {
-			container_raise_floating(next_focus->sway_container);
+			container_raise_floating(next_focus->wmiiv_container);
 		}
 	}
 

@@ -2,16 +2,16 @@
 #include <limits.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_xcursor_manager.h>
-#include "sway/desktop/transaction.h"
-#include "sway/input/cursor.h"
-#include "sway/input/seat.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/tree/container.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/tree/container.h"
 
 struct seatop_resize_floating_event {
-	struct sway_container *con;
+	struct wmiiv_container *con;
 	enum wlr_edges edge;
 	bool preserve_ratio;
 	double ref_lx, ref_ly;         // cursor's x/y at start of op
@@ -19,11 +19,11 @@ struct seatop_resize_floating_event {
 	double ref_con_lx, ref_con_ly; // container's x/y at start of op
 };
 
-static void handle_button(struct sway_seat *seat, uint32_t time_msec,
+static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state) {
 	struct seatop_resize_floating_event *e = seat->seatop_data;
-	struct sway_container *con = e->con;
+	struct wmiiv_container *con = e->con;
 
 	if (seat->cursor->pressed_button_count == 0) {
 		container_set_resizing(con, false);
@@ -37,11 +37,11 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 	}
 }
 
-static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
+static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_resize_floating_event *e = seat->seatop_data;
-	struct sway_container *con = e->con;
+	struct wmiiv_container *con = e->con;
 	enum wlr_edges edge = e->edge;
-	struct sway_cursor *cursor = seat->cursor;
+	struct wmiiv_cursor *cursor = seat->cursor;
 
 	// The amount the mouse has moved since the start of the resize operation
 	// Positive is down/right
@@ -66,7 +66,7 @@ static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
 		grow_height = e->ref_height * max_multiplier;
 	}
 
-	struct sway_container_state *state = &con->current;
+	struct wmiiv_container_state *state = &con->current;
 	double border_width = 0.0;
 	if (con->current.border == B_NORMAL || con->current.border == B_PIXEL) {
 		border_width = state->border_thickness * 2;
@@ -154,21 +154,21 @@ static void handle_pointer_motion(struct sway_seat *seat, uint32_t time_msec) {
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct sway_seat *seat, struct sway_container *con) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
 	struct seatop_resize_floating_event *e = seat->seatop_data;
 	if (e->con == con) {
 		seatop_begin_default(seat);
 	}
 }
 
-static const struct sway_seatop_impl seatop_impl = {
+static const struct wmiiv_seatop_impl seatop_impl = {
 	.button = handle_button,
 	.pointer_motion = handle_pointer_motion,
 	.unref = handle_unref,
 };
 
-void seatop_begin_resize_floating(struct sway_seat *seat,
-		struct sway_container *con, enum wlr_edges edge) {
+void seatop_begin_resize_floating(struct wmiiv_seat *seat,
+		struct wmiiv_container *con, enum wlr_edges edge) {
 	seatop_end(seat);
 
 	struct seatop_resize_floating_event *e =

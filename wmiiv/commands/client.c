@@ -1,11 +1,11 @@
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/output.h"
-#include "sway/tree/container.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/container.h"
 #include "util.h"
 
-static void rebuild_textures_iterator(struct sway_container *con, void *data) {
+static void rebuild_textures_iterator(struct wmiiv_container *con, void *data) {
 	container_update_title_textures(con);
 	if (container_is_window(con)) {
 		window_update_marks_textures(con);
@@ -21,7 +21,7 @@ static struct cmd_results *handle_command(int argc, char **argv, char *cmd_name,
 	}
 
 	if (argc > 3 && strcmp(cmd_name, "client.focused_tab_title") == 0) {
-		sway_log(SWAY_ERROR,
+		wmiiv_log(SWAY_ERROR,
 				"Warning: indicator and child_border colors have no effect for %s",
 				cmd_name);
 	}
@@ -56,7 +56,7 @@ static struct cmd_results *handle_command(int argc, char **argv, char *cmd_name,
 		root_for_each_container(rebuild_textures_iterator, NULL);
 
 		for (int i = 0; i < root->outputs->length; ++i) {
-			struct sway_output *output = root->outputs->items[i];
+			struct wmiiv_output *output = root->outputs->items[i];
 			output_damage_whole(output);
 		}
 	}
@@ -85,7 +85,7 @@ struct cmd_results *cmd_client_urgent(int argc, char **argv) {
 }
 
 struct cmd_results *cmd_client_noop(int argc, char **argv) {
-	sway_log(SWAY_INFO, "Warning: %s is ignored by sway", argv[-1]);
+	wmiiv_log(SWAY_INFO, "Warning: %s is ignored by wmiiv", argv[-1]);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 

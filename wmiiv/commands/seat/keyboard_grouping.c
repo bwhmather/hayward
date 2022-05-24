@@ -1,6 +1,6 @@
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 #include "stringop.h"
 
 struct cmd_results *seat_cmd_keyboard_grouping(int argc, char **argv) {

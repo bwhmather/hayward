@@ -3,7 +3,7 @@
 
 #include <wlr/types/wlr_server_decoration.h>
 
-struct sway_server_decoration {
+struct wmiiv_server_decoration {
 	struct wlr_server_decoration *wlr_server_decoration;
 	struct wl_list link;
 
@@ -11,7 +11,7 @@ struct sway_server_decoration {
 	struct wl_listener mode;
 };
 
-struct sway_server_decoration *decoration_from_surface(
+struct wmiiv_server_decoration *decoration_from_surface(
 	struct wlr_surface *surface);
 
 #endif

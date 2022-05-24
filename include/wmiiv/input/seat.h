@@ -5,55 +5,55 @@
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/edges.h>
-#include "sway/config.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/tablet.h"
-#include "sway/input/text_input.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/tablet.h"
+#include "wmiiv/input/text_input.h"
 
-struct sway_seat;
+struct wmiiv_seat;
 
-struct sway_seatop_impl {
-	void (*button)(struct sway_seat *seat, uint32_t time_msec,
+struct wmiiv_seatop_impl {
+	void (*button)(struct wmiiv_seat *seat, uint32_t time_msec,
 			struct wlr_input_device *device, uint32_t button,
 			enum wlr_button_state state);
-	void (*pointer_motion)(struct sway_seat *seat, uint32_t time_msec);
-	void (*pointer_axis)(struct sway_seat *seat,
+	void (*pointer_motion)(struct wmiiv_seat *seat, uint32_t time_msec);
+	void (*pointer_axis)(struct wmiiv_seat *seat,
 			struct wlr_pointer_axis_event *event);
-	void (*rebase)(struct sway_seat *seat, uint32_t time_msec);
-	void (*tablet_tool_motion)(struct sway_seat *seat,
-			struct sway_tablet_tool *tool, uint32_t time_msec);
-	void (*tablet_tool_tip)(struct sway_seat *seat, struct sway_tablet_tool *tool,
+	void (*rebase)(struct wmiiv_seat *seat, uint32_t time_msec);
+	void (*tablet_tool_motion)(struct wmiiv_seat *seat,
+			struct wmiiv_tablet_tool *tool, uint32_t time_msec);
+	void (*tablet_tool_tip)(struct wmiiv_seat *seat, struct wmiiv_tablet_tool *tool,
 			uint32_t time_msec, enum wlr_tablet_tool_tip_state state);
-	void (*end)(struct sway_seat *seat);
-	void (*unref)(struct sway_seat *seat, struct sway_container *con);
-	void (*render)(struct sway_seat *seat, struct sway_output *output,
+	void (*end)(struct wmiiv_seat *seat);
+	void (*unref)(struct wmiiv_seat *seat, struct wmiiv_container *con);
+	void (*render)(struct wmiiv_seat *seat, struct wmiiv_output *output,
 			pixman_region32_t *damage);
 	bool allow_set_cursor;
 };
 
-struct sway_seat_device {
-	struct sway_seat *sway_seat;
-	struct sway_input_device *input_device;
-	struct sway_keyboard *keyboard;
-	struct sway_switch *switch_device;
-	struct sway_tablet *tablet;
-	struct sway_tablet_pad *tablet_pad;
-	struct wl_list link; // sway_seat::devices
+struct wmiiv_seat_device {
+	struct wmiiv_seat *wmiiv_seat;
+	struct wmiiv_input_device *input_device;
+	struct wmiiv_keyboard *keyboard;
+	struct wmiiv_switch *switch_device;
+	struct wmiiv_tablet *tablet;
+	struct wmiiv_tablet_pad *tablet_pad;
+	struct wl_list link; // wmiiv_seat::devices
 };
 
-struct sway_seat_node {
-	struct sway_seat *seat;
-	struct sway_node *node;
+struct wmiiv_seat_node {
+	struct wmiiv_seat *seat;
+	struct wmiiv_node *node;
 
-	struct wl_list link; // sway_seat::focus_stack
+	struct wl_list link; // wmiiv_seat::focus_stack
 
 	struct wl_listener destroy;
 };
 
-struct sway_drag_icon {
-	struct sway_seat *seat;
+struct wmiiv_drag_icon {
+	struct wmiiv_seat *seat;
 	struct wlr_drag_icon *wlr_drag_icon;
-	struct wl_list link; // sway_root::drag_icons
+	struct wl_list link; // wmiiv_root::drag_icons
 
 	double x, y; // in layout-local coordinates
 
@@ -63,19 +63,19 @@ struct sway_drag_icon {
 	struct wl_listener destroy;
 };
 
-struct sway_drag {
-	struct sway_seat *seat;
+struct wmiiv_drag {
+	struct wmiiv_seat *seat;
 	struct wlr_drag *wlr_drag;
 	struct wl_listener destroy;
 };
 
-struct sway_seat {
+struct wmiiv_seat {
 	struct wlr_seat *wlr_seat;
-	struct sway_cursor *cursor;
+	struct wmiiv_cursor *cursor;
 
 	bool has_focus;
 	struct wl_list focus_stack; // list of containers in focus order
-	struct sway_workspace *workspace;
+	struct wmiiv_workspace *workspace;
 	char *prev_workspace_name; // for workspace back_and_forth
 
 	// If the focused layer is set, views cannot receive keyboard focus
@@ -89,16 +89,16 @@ struct sway_seat {
 	double touch_x, touch_y;
 
 	// Seat operations (drag and resize)
-	const struct sway_seatop_impl *seatop_impl;
+	const struct wmiiv_seatop_impl *seatop_impl;
 	void *seatop_data;
 
 	uint32_t last_button_serial;
 
 	uint32_t idle_inhibit_sources, idle_wake_sources;
 
-	list_t *deferred_bindings; // struct sway_binding
+	list_t *deferred_bindings; // struct wmiiv_binding
 
-	struct sway_input_method_relay im_relay;
+	struct wmiiv_input_method_relay im_relay;
 
 	struct wl_listener focus_destroy;
 	struct wl_listener new_node;
@@ -107,58 +107,58 @@ struct sway_seat {
 	struct wl_listener request_set_selection;
 	struct wl_listener request_set_primary_selection;
 
-	struct wl_list devices; // sway_seat_device::link
-	struct wl_list keyboard_groups; // sway_keyboard_group::link
+	struct wl_list devices; // wmiiv_seat_device::link
+	struct wl_list keyboard_groups; // wmiiv_keyboard_group::link
 	struct wl_list keyboard_shortcuts_inhibitors;
-				// sway_keyboard_shortcuts_inhibitor::link
+				// wmiiv_keyboard_shortcuts_inhibitor::link
 
 	struct wl_list link; // input_manager::seats
 };
 
-struct sway_pointer_constraint {
-	struct sway_cursor *cursor;
+struct wmiiv_pointer_constraint {
+	struct wmiiv_cursor *cursor;
 	struct wlr_pointer_constraint_v1 *constraint;
 
 	struct wl_listener set_region;
 	struct wl_listener destroy;
 };
 
-struct sway_keyboard_shortcuts_inhibitor {
+struct wmiiv_keyboard_shortcuts_inhibitor {
 	struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor;
 
 	struct wl_listener destroy;
 
-	struct wl_list link; // sway_seat::keyboard_shortcuts_inhibitors
+	struct wl_list link; // wmiiv_seat::keyboard_shortcuts_inhibitors
 };
 
-struct sway_seat *seat_create(const char *seat_name);
+struct wmiiv_seat *seat_create(const char *seat_name);
 
-void seat_destroy(struct sway_seat *seat);
+void seat_destroy(struct wmiiv_seat *seat);
 
-void seat_add_device(struct sway_seat *seat,
-		struct sway_input_device *device);
+void seat_add_device(struct wmiiv_seat *seat,
+		struct wmiiv_input_device *device);
 
-void seat_configure_device(struct sway_seat *seat,
-		struct sway_input_device *device);
+void seat_configure_device(struct wmiiv_seat *seat,
+		struct wmiiv_input_device *device);
 
-void seat_reset_device(struct sway_seat *seat,
-		struct sway_input_device *input_device);
+void seat_reset_device(struct wmiiv_seat *seat,
+		struct wmiiv_input_device *input_device);
 
-void seat_remove_device(struct sway_seat *seat,
-		struct sway_input_device *device);
+void seat_remove_device(struct wmiiv_seat *seat,
+		struct wmiiv_input_device *device);
 
-void seat_configure_xcursor(struct sway_seat *seat);
-
-// TODO (wmiiv) deprecated.
-void seat_set_focus(struct sway_seat *seat, struct sway_node *node);
-
-void seat_clear_focus(struct sway_seat *seat);
-
-void seat_set_focus_window(struct sway_seat *seat, struct sway_container *win);
+void seat_configure_xcursor(struct wmiiv_seat *seat);
 
 // TODO (wmiiv) deprecated.
-void seat_set_focus_workspace(struct sway_seat *seat,
-		struct sway_workspace *ws);
+void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node);
+
+void seat_clear_focus(struct wmiiv_seat *seat);
+
+void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *win);
+
+// TODO (wmiiv) deprecated.
+void seat_set_focus_workspace(struct wmiiv_seat *seat,
+		struct wmiiv_workspace *ws);
 
 /**
  * Manipulate the focus stack without triggering any other behaviour.
@@ -167,31 +167,31 @@ void seat_set_focus_workspace(struct sway_seat *seat,
  * with the real focus.
  */
 // TODO (wmiiv) deprecated.  Should be replaced with window-only equivalent.
-void seat_set_raw_focus(struct sway_seat *seat, struct sway_node *node);
+void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node);
 
-void seat_set_focus_surface(struct sway_seat *seat,
+void seat_set_focus_surface(struct wmiiv_seat *seat,
 		struct wlr_surface *surface, bool unfocus);
 
-void seat_set_focus_layer(struct sway_seat *seat,
+void seat_set_focus_layer(struct wmiiv_seat *seat,
 		struct wlr_layer_surface_v1 *layer);
 
-void seat_set_exclusive_client(struct sway_seat *seat,
+void seat_set_exclusive_client(struct wmiiv_seat *seat,
 		struct wl_client *client);
 
-struct sway_node *seat_get_focus(struct sway_seat *seat);
+struct wmiiv_node *seat_get_focus(struct wmiiv_seat *seat);
 
-struct sway_workspace *seat_get_focused_workspace(struct sway_seat *seat);
+struct wmiiv_workspace *seat_get_focused_workspace(struct wmiiv_seat *seat);
 
 // If a scratchpad container is fullscreen global, this can be used to try to
 // determine the last focused workspace. Otherwise, this should yield the same
 // results as seat_get_focused_workspace.
-struct sway_workspace *seat_get_last_known_workspace(struct sway_seat *seat);
+struct wmiiv_workspace *seat_get_last_known_workspace(struct wmiiv_seat *seat);
 
-struct sway_container *seat_get_focused_container(struct sway_seat *seat);
+struct wmiiv_container *seat_get_focused_container(struct wmiiv_seat *seat);
 
 // Force focus to a particular surface that is not part of the workspace
 // hierarchy (used for lockscreen)
-void sway_force_focus(struct wlr_surface *surface);
+void wmiiv_force_focus(struct wlr_surface *surface);
 
 /**
  * Return the last container to be focused for the seat (or the most recently
@@ -202,131 +202,131 @@ void sway_force_focus(struct wlr_surface *surface);
  * is destroyed, or focus moves to a container with children and we need to
  * descend into the next leaf in focus order.
  */
-struct sway_node *seat_get_focus_inactive(struct sway_seat *seat,
-		struct sway_node *node);
+struct wmiiv_node *seat_get_focus_inactive(struct wmiiv_seat *seat,
+		struct wmiiv_node *node);
 
-struct sway_container *seat_get_focus_inactive_tiling(struct sway_seat *seat,
-		struct sway_workspace *workspace);
+struct wmiiv_container *seat_get_focus_inactive_tiling(struct wmiiv_seat *seat,
+		struct wmiiv_workspace *workspace);
 
 /**
  * Descend into the focus stack to find the focus-inactive view. Useful for
  * container placement when they change position in the tree.
  */
-struct sway_container *seat_get_focus_inactive_view(struct sway_seat *seat,
-		struct sway_node *ancestor);
+struct wmiiv_container *seat_get_focus_inactive_view(struct wmiiv_seat *seat,
+		struct wmiiv_node *ancestor);
 
 /**
  * Return the immediate child of container which was most recently focused.
  */
-struct sway_node *seat_get_active_tiling_child(struct sway_seat *seat,
-		struct sway_node *parent);
+struct wmiiv_node *seat_get_active_tiling_child(struct wmiiv_seat *seat,
+		struct wmiiv_node *parent);
 
 /**
  * Iterate over the focus-inactive children of the container calling the
  * function on each.
  */
-void seat_for_each_node(struct sway_seat *seat,
-		void (*f)(struct sway_node *node, void *data), void *data);
+void seat_for_each_node(struct wmiiv_seat *seat,
+		void (*f)(struct wmiiv_node *node, void *data), void *data);
 
-void seat_apply_config(struct sway_seat *seat, struct seat_config *seat_config);
+void seat_apply_config(struct wmiiv_seat *seat, struct seat_config *seat_config);
 
-struct seat_config *seat_get_config(struct sway_seat *seat);
+struct seat_config *seat_get_config(struct wmiiv_seat *seat);
 
 struct seat_config *seat_get_config_by_name(const char *name);
 
-void seat_idle_notify_activity(struct sway_seat *seat,
-		enum sway_input_idle_source source);
+void seat_idle_notify_activity(struct wmiiv_seat *seat,
+		enum wmiiv_input_idle_source source);
 
-bool seat_is_input_allowed(struct sway_seat *seat, struct wlr_surface *surface);
+bool seat_is_input_allowed(struct wmiiv_seat *seat, struct wlr_surface *surface);
 
-void drag_icon_update_position(struct sway_drag_icon *icon);
+void drag_icon_update_position(struct wmiiv_drag_icon *icon);
 
-enum wlr_edges find_resize_edge(struct sway_container *cont,
-		struct wlr_surface *surface, struct sway_cursor *cursor);
+enum wlr_edges find_resize_edge(struct wmiiv_container *cont,
+		struct wlr_surface *surface, struct wmiiv_cursor *cursor);
 
-void seatop_begin_default(struct sway_seat *seat);
+void seatop_begin_default(struct wmiiv_seat *seat);
 
-void seatop_begin_down(struct sway_seat *seat, struct sway_container *con,
+void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *con,
 		uint32_t time_msec, double sx, double sy);
 
-void seatop_begin_down_on_surface(struct sway_seat *seat,
+void seatop_begin_down_on_surface(struct wmiiv_seat *seat,
 		struct wlr_surface *surface, uint32_t time_msec, double sx, double sy);
 
-void seatop_begin_move_floating(struct sway_seat *seat,
-		struct sway_container *con);
+void seatop_begin_move_floating(struct wmiiv_seat *seat,
+		struct wmiiv_container *con);
 
-void seatop_begin_move_tiling_threshold(struct sway_seat *seat,
-		struct sway_container *con);
+void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
+		struct wmiiv_container *con);
 
-void seatop_begin_move_tiling(struct sway_seat *seat,
-		struct sway_container *con);
+void seatop_begin_move_tiling(struct wmiiv_seat *seat,
+		struct wmiiv_container *con);
 
-void seatop_begin_resize_floating(struct sway_seat *seat,
-		struct sway_container *con, enum wlr_edges edge);
+void seatop_begin_resize_floating(struct wmiiv_seat *seat,
+		struct wmiiv_container *con, enum wlr_edges edge);
 
-void seatop_begin_resize_tiling(struct sway_seat *seat,
-		struct sway_container *con, enum wlr_edges edge);
+void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
+		struct wmiiv_container *con, enum wlr_edges edge);
 
-struct sway_container *seat_get_focus_inactive_floating(struct sway_seat *seat,
-		struct sway_workspace *workspace);
+struct wmiiv_container *seat_get_focus_inactive_floating(struct wmiiv_seat *seat,
+		struct wmiiv_workspace *workspace);
 
-void seat_pointer_notify_button(struct sway_seat *seat, uint32_t time_msec,
+void seat_pointer_notify_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		uint32_t button, enum wlr_button_state state);
 
-void seat_consider_warp_to_focus(struct sway_seat *seat);
+void seat_consider_warp_to_focus(struct wmiiv_seat *seat);
 
-void seatop_button(struct sway_seat *seat, uint32_t time_msec,
+void seatop_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state);
 
-void seatop_pointer_motion(struct sway_seat *seat, uint32_t time_msec);
+void seatop_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec);
 
-void seatop_pointer_axis(struct sway_seat *seat,
+void seatop_pointer_axis(struct wmiiv_seat *seat,
 		struct wlr_pointer_axis_event *event);
 
-void seatop_tablet_tool_tip(struct sway_seat *seat,
-		struct sway_tablet_tool *tool, uint32_t time_msec,
+void seatop_tablet_tool_tip(struct wmiiv_seat *seat,
+		struct wmiiv_tablet_tool *tool, uint32_t time_msec,
 		enum wlr_tablet_tool_tip_state state);
 
-void seatop_tablet_tool_motion(struct sway_seat *seat,
-		struct sway_tablet_tool *tool, uint32_t time_msec);
+void seatop_tablet_tool_motion(struct wmiiv_seat *seat,
+		struct wmiiv_tablet_tool *tool, uint32_t time_msec);
 
-void seatop_rebase(struct sway_seat *seat, uint32_t time_msec);
+void seatop_rebase(struct wmiiv_seat *seat, uint32_t time_msec);
 
 /**
  * End a seatop (ie. free any seatop specific resources).
  */
-void seatop_end(struct sway_seat *seat);
+void seatop_end(struct wmiiv_seat *seat);
 
 /**
  * Instructs the seatop implementation to drop any references to the given
  * container (eg. because the container is destroying).
  * The seatop may choose to abort itself in response to this.
  */
-void seatop_unref(struct sway_seat *seat, struct sway_container *con);
+void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_container *con);
 
 /**
  * Instructs a seatop to render anything that it needs to render
  * (eg. dropzone for move-tiling)
  */
-void seatop_render(struct sway_seat *seat, struct sway_output *output,
+void seatop_render(struct wmiiv_seat *seat, struct wmiiv_output *output,
 		pixman_region32_t *damage);
 
-bool seatop_allows_set_cursor(struct sway_seat *seat);
+bool seatop_allows_set_cursor(struct wmiiv_seat *seat);
 
 /**
  * Returns the keyboard shortcuts inhibitor that applies to the given surface
  * or NULL if none exists.
  */
-struct sway_keyboard_shortcuts_inhibitor *
-keyboard_shortcuts_inhibitor_get_for_surface(const struct sway_seat *seat,
+struct wmiiv_keyboard_shortcuts_inhibitor *
+keyboard_shortcuts_inhibitor_get_for_surface(const struct wmiiv_seat *seat,
 		const struct wlr_surface *surface);
 
 /**
  * Returns the keyboard shortcuts inhibitor that applies to the currently
  * focused surface of a seat or NULL if none exists.
  */
-struct sway_keyboard_shortcuts_inhibitor *
-keyboard_shortcuts_inhibitor_get_for_focused_surface(const struct sway_seat *seat);
+struct wmiiv_keyboard_shortcuts_inhibitor *
+keyboard_shortcuts_inhibitor_get_for_focused_surface(const struct wmiiv_seat *seat);
 
 #endif

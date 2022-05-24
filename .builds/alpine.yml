@@ -21,7 +21,7 @@ packages:
   - xcb-util-wm-dev
   - xwayland
 sources:
-  - https://github.com/swaywm/sway
+  - https://github.com/wmiivwm/wmiiv
   - https://gitlab.freedesktop.org/wlroots/wlroots.git
 tasks:
   - wlroots: |
@@ -30,17 +30,17 @@ tasks:
       ninja -C build
       sudo ninja -C build install
   - setup: |
-      cd sway
+      cd wmiiv
       meson build --fatal-meson-warnings -Dauto_features=enabled -Dtray=disabled
   - build: |
-      cd sway
+      cd wmiiv
       ninja -C build
   - build-no-xwayland: |
-      cd sway
+      cd wmiiv
       meson configure build -Dxwayland=disabled
       ninja -C build
   - build-static: |
-      cd sway
+      cd wmiiv
       mkdir subprojects
       ln -s ../../wlroots subprojects/wlroots
       rm -rf build

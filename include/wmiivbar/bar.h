@@ -7,15 +7,15 @@
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 
-struct swaybar_config;
-struct swaybar_output;
+struct wmiivbar_config;
+struct wmiivbar_output;
 #if HAVE_TRAY
-struct swaybar_tray;
+struct wmiivbar_tray;
 #endif
-struct swaybar_workspace;
+struct wmiivbar_workspace;
 struct loop;
 
-struct swaybar {
+struct wmiivbar {
 	char *id;
 	char *mode;
 	bool mode_pango_markup;
@@ -32,7 +32,7 @@ struct swaybar {
 	struct zxdg_output_manager_v1 *xdg_output_manager;
 	struct wl_shm *shm;
 
-	struct swaybar_config *config;
+	struct wmiivbar_config *config;
 	struct status_line *status;
 
 	struct loop *eventloop;
@@ -40,28 +40,28 @@ struct swaybar {
 	int ipc_event_socketfd;
 	int ipc_socketfd;
 
-	struct wl_list outputs; // swaybar_output::link
-	struct wl_list unused_outputs; // swaybar_output::link
-	struct wl_list seats; // swaybar_seat::link
+	struct wl_list outputs; // wmiivbar_output::link
+	struct wl_list unused_outputs; // wmiivbar_output::link
+	struct wl_list seats; // wmiivbar_seat::link
 
 #if HAVE_TRAY
-	struct swaybar_tray *tray;
+	struct wmiivbar_tray *tray;
 #endif
 
 	bool running;
 };
 
-struct swaybar_output {
-	struct wl_list link; // swaybar::outputs
-	struct swaybar *bar;
+struct wmiivbar_output {
+	struct wl_list link; // wmiivbar::outputs
+	struct wmiivbar *bar;
 	struct wl_output *output;
 	struct zxdg_output_v1 *xdg_output;
 	struct wl_surface *surface;
 	struct zwlr_layer_surface_v1 *layer_surface;
 	uint32_t wl_name;
 
-	struct wl_list workspaces; // swaybar_workspace::link
-	struct wl_list hotspots; // swaybar_hotspot::link
+	struct wl_list workspaces; // wmiivbar_workspace::link
+	struct wl_list hotspots; // wmiivbar_hotspot::link
 
 	char *name;
 	char *identifier;
@@ -78,8 +78,8 @@ struct swaybar_output {
 	uint32_t output_height, output_width, output_x, output_y;
 };
 
-struct swaybar_workspace {
-	struct wl_list link; // swaybar_output::workspaces
+struct wmiivbar_workspace {
+	struct wl_list link; // wmiivbar_output::workspaces
 	int num;
 	char *name;
 	char *label;
@@ -88,11 +88,11 @@ struct swaybar_workspace {
 	bool urgent;
 };
 
-bool bar_setup(struct swaybar *bar, const char *socket_path);
-void bar_run(struct swaybar *bar);
-void bar_teardown(struct swaybar *bar);
+bool bar_setup(struct wmiivbar *bar, const char *socket_path);
+void bar_run(struct wmiivbar *bar);
+void bar_teardown(struct wmiivbar *bar);
 
-void set_bar_dirty(struct swaybar *bar);
+void set_bar_dirty(struct wmiivbar *bar);
 
 /*
  * Determines whether the bar should be visible and changes it to be so.
@@ -106,11 +106,11 @@ void set_bar_dirty(struct swaybar *bar);
  *
  * Returns true if the bar is now visible, otherwise false.
  */
-bool determine_bar_visibility(struct swaybar *bar, bool moving_layer);
+bool determine_bar_visibility(struct wmiivbar *bar, bool moving_layer);
 void free_workspaces(struct wl_list *list);
 
 void status_in(int fd, short mask, void *data);
 
-void destroy_layer_surface(struct swaybar_output *output);
+void destroy_layer_surface(struct wmiivbar_output *output);
 
 #endif

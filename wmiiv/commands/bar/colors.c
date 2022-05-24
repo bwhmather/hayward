@@ -1,5 +1,5 @@
 #include <string.h>
-#include "sway/commands.h"
+#include "wmiiv/commands.h"
 #include "log.h"
 #include "util.h"
 

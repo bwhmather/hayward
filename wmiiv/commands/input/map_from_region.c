@@ -3,9 +3,9 @@
 #include <string.h>
 #include <strings.h>
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/input-manager.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/input-manager.h"
 
 static bool parse_coords(const char *str, double *x, double *y, bool *mm) {
 	*mm = false;

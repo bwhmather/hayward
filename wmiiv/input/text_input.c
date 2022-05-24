@@ -1,12 +1,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "log.h"
-#include "sway/input/seat.h"
-#include "sway/input/text_input.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/input/text_input.h"
 
-static struct sway_text_input *relay_get_focusable_text_input(
-		struct sway_input_method_relay *relay) {
-	struct sway_text_input *text_input = NULL;
+static struct wmiiv_text_input *relay_get_focusable_text_input(
+		struct wmiiv_input_method_relay *relay) {
+	struct wmiiv_text_input *text_input = NULL;
 	wl_list_for_each(text_input, &relay->text_inputs, link) {
 		if (text_input->pending_focused_surface) {
 			return text_input;
@@ -15,9 +15,9 @@ static struct sway_text_input *relay_get_focusable_text_input(
 	return NULL;
 }
 
-static struct sway_text_input *relay_get_focused_text_input(
-		struct sway_input_method_relay *relay) {
-	struct sway_text_input *text_input = NULL;
+static struct wmiiv_text_input *relay_get_focused_text_input(
+		struct wmiiv_input_method_relay *relay) {
+	struct wmiiv_text_input *text_input = NULL;
 	wl_list_for_each(text_input, &relay->text_inputs, link) {
 		if (text_input->input->focused_surface) {
 			return text_input;
@@ -27,10 +27,10 @@ static struct sway_text_input *relay_get_focused_text_input(
 }
 
 static void handle_im_commit(struct wl_listener *listener, void *data) {
-	struct sway_input_method_relay *relay = wl_container_of(listener, relay,
+	struct wmiiv_input_method_relay *relay = wl_container_of(listener, relay,
 		input_method_commit);
 
-	struct sway_text_input *text_input = relay_get_focused_text_input(relay);
+	struct wmiiv_text_input *text_input = relay_get_focused_text_input(relay);
 	if (!text_input) {
 		return;
 	}
@@ -56,7 +56,7 @@ static void handle_im_commit(struct wl_listener *listener, void *data) {
 }
 
 static void handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *data) {
-	struct sway_input_method_relay *relay = wl_container_of(listener, relay,
+	struct wmiiv_input_method_relay *relay = wl_container_of(listener, relay,
 		input_method_keyboard_grab_destroy);
 	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
 	wl_list_remove(&relay->input_method_keyboard_grab_destroy.link);
@@ -69,7 +69,7 @@ static void handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *
 }
 
 static void handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
-	struct sway_input_method_relay *relay = wl_container_of(listener, relay,
+	struct wmiiv_input_method_relay *relay = wl_container_of(listener, relay,
 		input_method_grab_keyboard);
 	struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
 
@@ -85,7 +85,7 @@ static void handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
 }
 
 static void text_input_set_pending_focused_surface(
-		struct sway_text_input *text_input, struct wlr_surface *surface) {
+		struct wmiiv_text_input *text_input, struct wlr_surface *surface) {
 	wl_list_remove(&text_input->pending_focused_surface_destroy.link);
 	text_input->pending_focused_surface = surface;
 
@@ -98,12 +98,12 @@ static void text_input_set_pending_focused_surface(
 }
 
 static void handle_im_destroy(struct wl_listener *listener, void *data) {
-	struct sway_input_method_relay *relay = wl_container_of(listener, relay,
+	struct wmiiv_input_method_relay *relay = wl_container_of(listener, relay,
 		input_method_destroy);
 	struct wlr_input_method_v2 *context = data;
 	assert(context == relay->input_method);
 	relay->input_method = NULL;
-	struct sway_text_input *text_input = relay_get_focused_text_input(relay);
+	struct wmiiv_text_input *text_input = relay_get_focused_text_input(relay);
 	if (text_input) {
 		// keyboard focus is still there, so keep the surface at hand in case
 		// the input method returns
@@ -113,11 +113,11 @@ static void handle_im_destroy(struct wl_listener *listener, void *data) {
 	}
 }
 
-static void relay_send_im_state(struct sway_input_method_relay *relay,
+static void relay_send_im_state(struct wmiiv_input_method_relay *relay,
 		struct wlr_text_input_v3 *input) {
 	struct wlr_input_method_v2 *input_method = relay->input_method;
 	if (!input_method) {
-		sway_log(SWAY_INFO, "Sending IM_DONE but im is gone");
+		wmiiv_log(SWAY_INFO, "Sending IM_DONE but im is gone");
 		return;
 	}
 	// TODO: only send each of those if they were modified
@@ -138,10 +138,10 @@ static void relay_send_im_state(struct sway_input_method_relay *relay,
 }
 
 static void handle_text_input_enable(struct wl_listener *listener, void *data) {
-	struct sway_text_input *text_input = wl_container_of(listener, text_input,
+	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		text_input_enable);
 	if (text_input->relay->input_method == NULL) {
-		sway_log(SWAY_INFO, "Enabling text input when input method is gone");
+		wmiiv_log(SWAY_INFO, "Enabling text input when input method is gone");
 		return;
 	}
 	wlr_input_method_v2_send_activate(text_input->relay->input_method);
@@ -150,24 +150,24 @@ static void handle_text_input_enable(struct wl_listener *listener, void *data) {
 
 static void handle_text_input_commit(struct wl_listener *listener,
 		void *data) {
-	struct sway_text_input *text_input = wl_container_of(listener, text_input,
+	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		text_input_commit);
 	if (!text_input->input->current_enabled) {
-		sway_log(SWAY_INFO, "Inactive text input tried to commit an update");
+		wmiiv_log(SWAY_INFO, "Inactive text input tried to commit an update");
 		return;
 	}
-	sway_log(SWAY_DEBUG, "Text input committed update");
+	wmiiv_log(SWAY_DEBUG, "Text input committed update");
 	if (text_input->relay->input_method == NULL) {
-		sway_log(SWAY_INFO, "Text input committed, but input method is gone");
+		wmiiv_log(SWAY_INFO, "Text input committed, but input method is gone");
 		return;
 	}
 	relay_send_im_state(text_input->relay, text_input->input);
 }
 
-static void relay_disable_text_input(struct sway_input_method_relay *relay,
-		struct sway_text_input *text_input) {
+static void relay_disable_text_input(struct wmiiv_input_method_relay *relay,
+		struct wmiiv_text_input *text_input) {
 	if (relay->input_method == NULL) {
-		sway_log(SWAY_DEBUG, "Disabling text input, but input method is gone");
+		wmiiv_log(SWAY_DEBUG, "Disabling text input, but input method is gone");
 		return;
 	}
 	wlr_input_method_v2_send_deactivate(relay->input_method);
@@ -176,10 +176,10 @@ static void relay_disable_text_input(struct sway_input_method_relay *relay,
 
 static void handle_text_input_disable(struct wl_listener *listener,
 		void *data) {
-	struct sway_text_input *text_input = wl_container_of(listener, text_input,
+	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		text_input_disable);
 	if (text_input->input->focused_surface == NULL) {
-		sway_log(SWAY_DEBUG, "Disabling text input, but no longer focused");
+		wmiiv_log(SWAY_DEBUG, "Disabling text input, but no longer focused");
 		return;
 	}
 	relay_disable_text_input(text_input->relay, text_input);
@@ -187,7 +187,7 @@ static void handle_text_input_disable(struct wl_listener *listener,
 
 static void handle_text_input_destroy(struct wl_listener *listener,
 		void *data) {
-	struct sway_text_input *text_input = wl_container_of(listener, text_input,
+	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		text_input_destroy);
 
 	if (text_input->input->current_enabled) {
@@ -204,7 +204,7 @@ static void handle_text_input_destroy(struct wl_listener *listener,
 
 static void handle_pending_focused_surface_destroy(struct wl_listener *listener,
 		void *data) {
-	struct sway_text_input *text_input = wl_container_of(listener, text_input,
+	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		pending_focused_surface_destroy);
 	struct wlr_surface *surface = data;
 	assert(text_input->pending_focused_surface == surface);
@@ -213,10 +213,10 @@ static void handle_pending_focused_surface_destroy(struct wl_listener *listener,
 	wl_list_init(&text_input->pending_focused_surface_destroy.link);
 }
 
-struct sway_text_input *sway_text_input_create(
-		struct sway_input_method_relay *relay,
+struct wmiiv_text_input *wmiiv_text_input_create(
+		struct wmiiv_input_method_relay *relay,
 		struct wlr_text_input_v3 *text_input) {
-	struct sway_text_input *input = calloc(1, sizeof(struct sway_text_input));
+	struct wmiiv_text_input *input = calloc(1, sizeof(struct wmiiv_text_input));
 	if (!input) {
 		return NULL;
 	}
@@ -245,19 +245,19 @@ struct sway_text_input *sway_text_input_create(
 
 static void relay_handle_text_input(struct wl_listener *listener,
 		void *data) {
-	struct sway_input_method_relay *relay = wl_container_of(listener, relay,
+	struct wmiiv_input_method_relay *relay = wl_container_of(listener, relay,
 		text_input_new);
 	struct wlr_text_input_v3 *wlr_text_input = data;
 	if (relay->seat->wlr_seat != wlr_text_input->seat) {
 		return;
 	}
 
-	sway_text_input_create(relay, wlr_text_input);
+	wmiiv_text_input_create(relay, wlr_text_input);
 }
 
 static void relay_handle_input_method(struct wl_listener *listener,
 		void *data) {
-	struct sway_input_method_relay *relay = wl_container_of(listener, relay,
+	struct wmiiv_input_method_relay *relay = wl_container_of(listener, relay,
 		input_method_new);
 	struct wlr_input_method_v2 *input_method = data;
 	if (relay->seat->wlr_seat != input_method->seat) {
@@ -265,7 +265,7 @@ static void relay_handle_input_method(struct wl_listener *listener,
 	}
 
 	if (relay->input_method != NULL) {
-		sway_log(SWAY_INFO, "Attempted to connect second input method to a seat");
+		wmiiv_log(SWAY_INFO, "Attempted to connect second input method to a seat");
 		wlr_input_method_v2_send_unavailable(input_method);
 		return;
 	}
@@ -281,7 +281,7 @@ static void relay_handle_input_method(struct wl_listener *listener,
 		&relay->input_method_destroy);
 	relay->input_method_destroy.notify = handle_im_destroy;
 
-	struct sway_text_input *text_input = relay_get_focusable_text_input(relay);
+	struct wmiiv_text_input *text_input = relay_get_focusable_text_input(relay);
 	if (text_input) {
 		wlr_text_input_v3_send_enter(text_input->input,
 			text_input->pending_focused_surface);
@@ -289,8 +289,8 @@ static void relay_handle_input_method(struct wl_listener *listener,
 	}
 }
 
-void sway_input_method_relay_init(struct sway_seat *seat,
-		struct sway_input_method_relay *relay) {
+void wmiiv_input_method_relay_init(struct wmiiv_seat *seat,
+		struct wmiiv_input_method_relay *relay) {
 	relay->seat = seat;
 	wl_list_init(&relay->text_inputs);
 
@@ -304,14 +304,14 @@ void sway_input_method_relay_init(struct sway_seat *seat,
 		&relay->input_method_new);
 }
 
-void sway_input_method_relay_finish(struct sway_input_method_relay *relay) {
+void wmiiv_input_method_relay_finish(struct wmiiv_input_method_relay *relay) {
 	wl_list_remove(&relay->input_method_new.link);
 	wl_list_remove(&relay->text_input_new.link);
 }
 
-void sway_input_method_relay_set_focus(struct sway_input_method_relay *relay,
+void wmiiv_input_method_relay_set_focus(struct wmiiv_input_method_relay *relay,
 		struct wlr_surface *surface) {
-	struct sway_text_input *text_input;
+	struct wmiiv_text_input *text_input;
 	wl_list_for_each(text_input, &relay->text_inputs, link) {
 		if (text_input->pending_focused_surface) {
 			assert(text_input->input->focused_surface == NULL);
@@ -324,7 +324,7 @@ void sway_input_method_relay_set_focus(struct sway_input_method_relay *relay,
 				relay_disable_text_input(relay, text_input);
 				wlr_text_input_v3_send_leave(text_input->input);
 			} else {
-				sway_log(SWAY_DEBUG, "IM relay set_focus already focused");
+				wmiiv_log(SWAY_DEBUG, "IM relay set_focus already focused");
 				continue;
 			}
 		}

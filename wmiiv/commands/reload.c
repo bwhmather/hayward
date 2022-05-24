@@ -1,15 +1,15 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/ipc-server.h"
-#include "sway/server.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/ipc-server.h"
+#include "wmiiv/server.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/view.h"
 #include "list.h"
 #include "log.h"
 
-static void rebuild_textures_iterator(struct sway_container *con, void *data) {
+static void rebuild_textures_iterator(struct wmiiv_container *con, void *data) {
 	container_update_title_textures(con);
 	if (container_is_window(con)) {
 		window_update_marks_textures(con);
@@ -30,14 +30,14 @@ static void do_reload(void *data) {
 	}
 
 	if (!load_main_config(path, true, false)) {
-		sway_log(SWAY_ERROR, "Error(s) reloading config");
+		wmiiv_log(SWAY_ERROR, "Error(s) reloading config");
 		list_free_items_and_destroy(bar_ids);
 		return;
 	}
 
 	ipc_event_workspace(NULL, NULL, "reload");
 
-	load_swaybars();
+	load_wmiivbars();
 
 	for (int i = 0; i < config->bars->length; ++i) {
 		struct bar_config *bar = config->bars->items[i];

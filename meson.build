@@ -1,5 +1,5 @@
 project(
-	'sway',
+	'wmiiv',
 	'c',
 	version: '1.8-dev',
 	license: 'MIT',
@@ -81,7 +81,7 @@ foreach name, _ : wlroots_features
 endforeach
 
 if get_option('xwayland').enabled() and not wlroots_features['xwayland']
-	error('Cannot enable Xwayland in sway: wlroots has been built without Xwayland support')
+	error('Cannot enable Xwayland in wmiiv: wlroots has been built without Xwayland support')
 endif
 have_xwayland = xcb.found() and wlroots_features['xwayland']
 
@@ -120,20 +120,20 @@ if scdoc.found()
 	scdoc_prog = find_program(scdoc.get_variable(pkgconfig: 'scdoc'), native: true)
 	mandir = get_option('mandir')
 	man_files = [
-		'sway/sway.1.scd',
-		'sway/sway.5.scd',
-		'sway/sway-bar.5.scd',
-		'sway/sway-input.5.scd',
-		'sway/sway-ipc.7.scd',
-		'sway/sway-output.5.scd',
-		'swaybar/swaybar-protocol.7.scd',
-		'swaymsg/swaymsg.1.scd',
+		'wmiiv/wmiiv.1.scd',
+		'wmiiv/wmiiv.5.scd',
+		'wmiiv/wmiiv-bar.5.scd',
+		'wmiiv/wmiiv-input.5.scd',
+		'wmiiv/wmiiv-ipc.7.scd',
+		'wmiiv/wmiiv-output.5.scd',
+		'wmiivbar/wmiivbar-protocol.7.scd',
+		'wmiivmsg/wmiivmsg.1.scd',
 	]
 
-	if get_option('swaynag')
+	if get_option('wmiivnag')
 		man_files += [
-			'swaynag/swaynag.1.scd',
-			'swaynag/swaynag.5.scd',
+			'wmiivnag/wmiivnag.1.scd',
+			'wmiivnag/wmiivnag.5.scd',
 		]
 	endif
 
@@ -210,22 +210,22 @@ else
 endif
 
 
-sway_inc = include_directories('include')
+wmiiv_inc = include_directories('include')
 
 subdir('include')
 subdir('protocols')
 subdir('common')
-subdir('sway')
-subdir('swaymsg')
+subdir('wmiiv')
+subdir('wmiivmsg')
 
-if get_option('swaybar') or get_option('swaynag')
+if get_option('wmiivbar') or get_option('wmiivnag')
 	subdir('client')
 endif
-if get_option('swaybar')
-	subdir('swaybar')
+if get_option('wmiivbar')
+	subdir('wmiivbar')
 endif
-if get_option('swaynag')
-	subdir('swaynag')
+if get_option('wmiivnag')
+	subdir('wmiivnag')
 endif
 
 config = configuration_data()
@@ -237,11 +237,11 @@ configure_file(
 	configuration: config,
 	input: 'config.in',
 	output: '@BASENAME@',
-	install_dir: join_paths(sysconfdir, 'sway')
+	install_dir: join_paths(sysconfdir, 'wmiiv')
 )
 
 install_data(
-	'sway.desktop',
+	'wmiiv.desktop',
 	install_dir: join_paths(datadir, 'wayland-sessions')
 )
 
@@ -256,15 +256,15 @@ if get_option('default-wallpaper')
 		'assets/Sway_Wallpaper_Blue_2048x1536.png',
 		'assets/Sway_Wallpaper_Blue_2048x1536_Portrait.png',
 	)
-	wallpaper_install_dir = join_paths(datadir, 'backgrounds', 'sway')
+	wallpaper_install_dir = join_paths(datadir, 'backgrounds', 'wmiiv')
 
 	install_data(wallpaper_files, install_dir: wallpaper_install_dir)
 endif
 
 if get_option('zsh-completions')
 	zsh_files = files(
-		'completions/zsh/_sway',
-		'completions/zsh/_swaymsg',
+		'completions/zsh/_wmiiv',
+		'completions/zsh/_wmiivmsg',
 	)
 	zsh_install_dir = join_paths(datadir, 'zsh', 'site-functions')
 
@@ -273,12 +273,12 @@ endif
 
 if get_option('bash-completions')
 	bash_files = files(
-		'completions/bash/sway',
-		'completions/bash/swaymsg',
+		'completions/bash/wmiiv',
+		'completions/bash/wmiivmsg',
 	)
 
-	if get_option('swaybar')
-		bash_files += files('completions/bash/swaybar')
+	if get_option('wmiivbar')
+		bash_files += files('completions/bash/wmiivbar')
 	endif
 
 	if bash_comp.found()
@@ -295,12 +295,12 @@ endif
 
 if get_option('fish-completions')
 	fish_files = files(
-		'completions/fish/sway.fish',
-		'completions/fish/swaymsg.fish',
+		'completions/fish/wmiiv.fish',
+		'completions/fish/wmiivmsg.fish',
 	)
 
-	if get_option('swaynag')
-		fish_files += files('completions/fish/swaynag.fish')
+	if get_option('wmiivnag')
+		fish_files += files('completions/fish/wmiivnag.fish')
 	endif
 
 	if fish_comp.found()

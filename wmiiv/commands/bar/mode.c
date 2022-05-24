@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/ipc-server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/ipc-server.h"
 #include "log.h"
 
 static struct cmd_results *bar_set_mode(struct bar_config *bar, const char *mode) {
@@ -30,7 +30,7 @@ static struct cmd_results *bar_set_mode(struct bar_config *bar, const char *mode
 		if (!config->current_bar) {
 			ipc_event_barconfig_update(bar);
 		}
-		sway_log(SWAY_DEBUG, "Setting mode: '%s' for bar: %s", bar->mode, bar->id);
+		wmiiv_log(SWAY_DEBUG, "Setting mode: '%s' for bar: %s", bar->mode, bar->id);
 	}
 
 	// free old mode

@@ -3,10 +3,10 @@
 #include <limits.h>
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/seat.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/seat.h"
+#include "wmiiv/tree/workspace.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
@@ -187,9 +187,9 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 			++argv;
 		}
 
-		struct sway_seat *seat = config->handler_context.seat;
+		struct wmiiv_seat *seat = config->handler_context.seat;
 
-		struct sway_workspace *ws = NULL;
+		struct wmiiv_workspace *ws = NULL;
 		if (strcasecmp(argv[0], "number") == 0) {
 			if (argc < 2) {
 				return cmd_results_new(CMD_INVALID,

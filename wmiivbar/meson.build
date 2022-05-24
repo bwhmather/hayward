@@ -6,7 +6,7 @@ tray_files = have_tray ? [
 	'tray/watcher.c'
 ] : []
 
-swaybar_deps = [
+wmiivbar_deps = [
 	cairo,
 	client_protos,
 	gdk_pixbuf,
@@ -19,11 +19,11 @@ swaybar_deps = [
 	wayland_cursor
 ]
 if have_tray
-	swaybar_deps += sdbus
+	wmiivbar_deps += sdbus
 endif
 
 executable(
-	'swaybar', [
+	'wmiivbar', [
 		'bar.c',
 		'config.c',
 		'i3bar.c',
@@ -34,8 +34,8 @@ executable(
 		'status_line.c',
 		tray_files
 	],
-	include_directories: [sway_inc],
-	dependencies: swaybar_deps,
-	link_with: [lib_sway_common, lib_sway_client],
+	include_directories: [wmiiv_inc],
+	dependencies: wmiivbar_deps,
+	link_with: [lib_wmiiv_common, lib_wmiiv_client],
 	install: true
 )

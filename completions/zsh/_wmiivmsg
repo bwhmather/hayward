@@ -1,17 +1,9 @@
-#compdef swaymsg
+#compdef wmiivmsg
 #-----------------
 # Description
 # -----------
 #
-# Completion script for swaymsg in sway wm (http://swaywm.org)
-#
-# ------------------------------------------------------
-# Author
-# --------
-#
-#  * Seth Barberee <seth.barberee@gmail.com>
-#
-#  -------------------------------------------
+# Completion script for wmiivmsg in WMiiv
 
 types=(
 'get_workspaces'

@@ -1,9 +1,9 @@
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
 
 static void set_tool_mode(struct input_config *ic,
-		enum wlr_tablet_tool_type type, enum sway_tablet_tool_mode mode) {
+		enum wlr_tablet_tool_type type, enum wmiiv_tablet_tool_mode mode) {
 	for (int i = 0; i < ic->tools->length; i++) {
 		struct input_config_tool *tool = ic->tools->items[i];
 		if (tool->type == type) {
@@ -31,7 +31,7 @@ struct cmd_results *input_cmd_tool_mode(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "No input device defined.");
 	}
 
-	enum sway_tablet_tool_mode tool_mode;
+	enum wmiiv_tablet_tool_mode tool_mode;
 	if (!strcasecmp(argv[1], "absolute")) {
 		tool_mode = SWAY_TABLET_TOOL_MODE_ABSOLUTE;
 	} else if (!strcasecmp(argv[1], "relative")) {

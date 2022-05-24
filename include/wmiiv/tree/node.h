@@ -6,14 +6,14 @@
 #define MIN_SANE_W 100
 #define MIN_SANE_H 60
 
-struct sway_root;
-struct sway_output;
-struct sway_workspace;
-struct sway_container;
-struct sway_transaction_instruction;
+struct wmiiv_root;
+struct wmiiv_output;
+struct wmiiv_workspace;
+struct wmiiv_container;
+struct wmiiv_transaction_instruction;
 struct wlr_box;
 
-enum sway_node_type {
+enum wmiiv_node_type {
 	N_ROOT,
 	N_OUTPUT,
 	N_WORKSPACE,
@@ -21,13 +21,13 @@ enum sway_node_type {
 	N_WINDOW,
 };
 
-struct sway_node {
-	enum sway_node_type type;
+struct wmiiv_node {
+	enum wmiiv_node_type type;
 	union {
-		struct sway_root *sway_root;
-		struct sway_output *sway_output;
-		struct sway_workspace *sway_workspace;
-		struct sway_container *sway_container;
+		struct wmiiv_root *wmiiv_root;
+		struct wmiiv_output *wmiiv_output;
+		struct wmiiv_workspace *wmiiv_workspace;
+		struct wmiiv_container *wmiiv_container;
 	};
 
 	/**
@@ -36,7 +36,7 @@ struct sway_node {
 	 */
 	size_t id;
 
-	struct sway_transaction_instruction *instruction;
+	struct wmiiv_transaction_instruction *instruction;
 	size_t ntxnrefs;
 	bool destroying;
 
@@ -49,30 +49,30 @@ struct sway_node {
 	} events;
 };
 
-void node_init(struct sway_node *node, enum sway_node_type type, void *thing);
+void node_init(struct wmiiv_node *node, enum wmiiv_node_type type, void *thing);
 
-const char *node_type_to_str(enum sway_node_type type);
+const char *node_type_to_str(enum wmiiv_node_type type);
 
 /**
  * Mark a node as dirty if it isn't already. Dirty nodes will be included in the
  * next transaction then unmarked as dirty.
  */
-void node_set_dirty(struct sway_node *node);
+void node_set_dirty(struct wmiiv_node *node);
 
-bool node_is_view(struct sway_node *node);
+bool node_is_view(struct wmiiv_node *node);
 
-char *node_get_name(struct sway_node *node);
+char *node_get_name(struct wmiiv_node *node);
 
-void node_get_box(struct sway_node *node, struct wlr_box *box);
+void node_get_box(struct wmiiv_node *node, struct wlr_box *box);
 
-struct sway_output *node_get_output(struct sway_node *node);
+struct wmiiv_output *node_get_output(struct wmiiv_node *node);
 
-enum sway_container_layout node_get_layout(struct sway_node *node);
+enum wmiiv_container_layout node_get_layout(struct wmiiv_node *node);
 
-struct sway_node *node_get_parent(struct sway_node *node);
+struct wmiiv_node *node_get_parent(struct wmiiv_node *node);
 
-list_t *node_get_children(struct sway_node *node);
+list_t *node_get_children(struct wmiiv_node *node);
 
-bool node_has_ancestor(struct sway_node *node, struct sway_node *ancestor);
+bool node_has_ancestor(struct wmiiv_node *node, struct wmiiv_node *ancestor);
 
 #endif

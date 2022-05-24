@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <unistd.h>
 #include <errno.h>
-#include "sway/config.h"
-#include "sway/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
 #include "log.h"
 #include "stringop.h"
 
@@ -29,21 +29,21 @@ struct cmd_results *input_cmd_xkb_file(int argc, char **argv) {
 			return error;
 		}
 		if (!ic->xkb_file) {
-			sway_log(SWAY_ERROR, "Failed to allocate expanded path");
+			wmiiv_log(SWAY_ERROR, "Failed to allocate expanded path");
 			return cmd_results_new(CMD_FAILURE, "Unable to allocate resource");
 		}
 
 		bool can_access = access(ic->xkb_file, F_OK) != -1;
 		if (!can_access) {
-			sway_log_errno(SWAY_ERROR, "Unable to access xkb file '%s'",
+			wmiiv_log_errno(SWAY_ERROR, "Unable to access xkb file '%s'",
 					ic->xkb_file);
-			config_add_swaynag_warning("Unable to access xkb file '%s'",
+			config_add_wmiivnag_warning("Unable to access xkb file '%s'",
 					ic->xkb_file);
 		}
 	}
 	ic->xkb_file_is_set = true;
 
-	sway_log(SWAY_DEBUG, "set-xkb_file for config: %s file: %s",
+	wmiiv_log(SWAY_DEBUG, "set-xkb_file for config: %s file: %s",
 			ic->identifier, ic->xkb_file);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

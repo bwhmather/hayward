@@ -4,28 +4,28 @@
 #include <cairo.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "swaybar/tray/tray.h"
+#include "wmiivbar/tray/tray.h"
 #include "list.h"
 
-struct swaybar_output;
+struct wmiivbar_output;
 
-struct swaybar_pixmap {
+struct wmiivbar_pixmap {
 	int size;
 	unsigned char pixels[];
 };
 
-struct swaybar_sni_slot {
-	struct wl_list link; // swaybar_sni::slots
-	struct swaybar_sni *sni;
+struct wmiivbar_sni_slot {
+	struct wl_list link; // wmiivbar_sni::slots
+	struct wmiivbar_sni *sni;
 	const char *prop;
 	const char *type;
 	void *dest;
 	sd_bus_slot *slot;
 };
 
-struct swaybar_sni {
+struct wmiivbar_sni {
 	// icon properties
-	struct swaybar_tray *tray;
+	struct wmiivbar_tray *tray;
 	cairo_surface_t *icon;
 	int min_size;
 	int max_size;
@@ -39,19 +39,19 @@ struct swaybar_sni {
 
 	char *status;
 	char *icon_name;
-	list_t *icon_pixmap; // struct swaybar_pixmap *
+	list_t *icon_pixmap; // struct wmiivbar_pixmap *
 	char *attention_icon_name;
-	list_t *attention_icon_pixmap; // struct swaybar_pixmap *
+	list_t *attention_icon_pixmap; // struct wmiivbar_pixmap *
 	bool item_is_menu;
 	char *menu;
 	char *icon_theme_path; // non-standard KDE property
 
-	struct wl_list slots; // swaybar_sni_slot::link
+	struct wl_list slots; // wmiivbar_sni_slot::link
 };
 
-struct swaybar_sni *create_sni(char *id, struct swaybar_tray *tray);
-void destroy_sni(struct swaybar_sni *sni);
-uint32_t render_sni(cairo_t *cairo, struct swaybar_output *output, double *x,
-		struct swaybar_sni *sni);
+struct wmiivbar_sni *create_sni(char *id, struct wmiivbar_tray *tray);
+void destroy_sni(struct wmiivbar_sni *sni);
+uint32_t render_sni(cairo_t *cairo, struct wmiivbar_output *output, double *x,
+		struct wmiivbar_sni *sni);
 
 #endif

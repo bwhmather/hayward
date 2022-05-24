@@ -4,67 +4,67 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/render/wlr_texture.h>
-#include "sway/tree/container.h"
-#include "sway/tree/node.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/node.h"
 #include "config.h"
 #include "list.h"
 
-extern struct sway_root *root;
+extern struct wmiiv_root *root;
 
-struct sway_root {
-	struct sway_node node;
+struct wmiiv_root {
+	struct wmiiv_node node;
 	struct wlr_output_layout *output_layout;
 
 	struct wl_listener output_layout_change;
 #if HAVE_XWAYLAND
-	struct wl_list xwayland_unmanaged; // sway_xwayland_unmanaged::link
+	struct wl_list xwayland_unmanaged; // wmiiv_xwayland_unmanaged::link
 #endif
-	struct wl_list drag_icons; // sway_drag_icon::link
+	struct wl_list drag_icons; // wmiiv_drag_icon::link
 
 	// Includes disabled outputs
-	struct wl_list all_outputs; // sway_output::link
+	struct wl_list all_outputs; // wmiiv_output::link
 
 	double x, y;
 	double width, height;
 
-	list_t *outputs; // struct sway_output
+	list_t *outputs; // struct wmiiv_output
 
 	// For when there's no connected outputs
-	struct sway_output *fallback_output;
+	struct wmiiv_output *fallback_output;
 
-	struct sway_container *fullscreen_global;
+	struct wmiiv_container *fullscreen_global;
 
 	struct {
 		struct wl_signal new_node;
 	} events;
 };
 
-struct sway_root *root_create(void);
+struct wmiiv_root *root_create(void);
 
-void root_destroy(struct sway_root *root);
+void root_destroy(struct wmiiv_root *root);
 
-struct sway_workspace *root_workspace_for_pid(pid_t pid);
+struct wmiiv_workspace *root_workspace_for_pid(pid_t pid);
 
 void root_record_workspace_pid(pid_t pid);
 
 void root_remove_workspace_pid(pid_t pid);
 
-void root_for_each_workspace(void (*f)(struct sway_workspace *ws, void *data),
+void root_for_each_workspace(void (*f)(struct wmiiv_workspace *ws, void *data),
 		void *data);
 
-void root_for_each_container(void (*f)(struct sway_container *con, void *data),
+void root_for_each_container(void (*f)(struct wmiiv_container *con, void *data),
 		void *data);
 
-struct sway_output *root_find_output(
-		bool (*test)(struct sway_output *output, void *data), void *data);
+struct wmiiv_output *root_find_output(
+		bool (*test)(struct wmiiv_output *output, void *data), void *data);
 
-struct sway_workspace *root_find_workspace(
-		bool (*test)(struct sway_workspace *ws, void *data), void *data);
+struct wmiiv_workspace *root_find_workspace(
+		bool (*test)(struct wmiiv_workspace *ws, void *data), void *data);
 
-struct sway_container *root_find_container(
-		bool (*test)(struct sway_container *con, void *data), void *data);
+struct wmiiv_container *root_find_container(
+		bool (*test)(struct wmiiv_container *con, void *data), void *data);
 
-void root_get_box(struct sway_root *root, struct wlr_box *box);
+void root_get_box(struct wmiiv_root *root, struct wlr_box *box);
 
 void root_rename_pid_workspaces(const char *old_name, const char *new_name);
 

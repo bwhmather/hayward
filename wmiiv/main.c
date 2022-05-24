@@ -14,13 +14,13 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include <wlr/version.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/server.h"
-#include "sway/swaynag.h"
-#include "sway/desktop/transaction.h"
-#include "sway/tree/root.h"
-#include "sway/ipc-server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/server.h"
+#include "wmiiv/wmiivnag.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/ipc-server.h"
 #include "ipc-client.h"
 #include "log.h"
 #include "stringop.h"
@@ -29,10 +29,10 @@
 static bool terminate_request = false;
 static int exit_value = 0;
 static struct rlimit original_nofile_rlimit = {0};
-struct sway_server server = {0};
-struct sway_debug debug = {0};
+struct wmiiv_server server = {0};
+struct wmiiv_debug debug = {0};
 
-void sway_terminate(int exit_code) {
+void wmiiv_terminate(int exit_code) {
 	if (!server.wl_display) {
 		// Running as IPC client
 		exit(exit_code);
@@ -46,7 +46,7 @@ void sway_terminate(int exit_code) {
 }
 
 void sig_handler(int signal) {
-	sway_terminate(EXIT_SUCCESS);
+	wmiiv_terminate(EXIT_SUCCESS);
 }
 
 void detect_proprietary(int allow_unsupported_gpu) {
@@ -59,12 +59,12 @@ void detect_proprietary(int allow_unsupported_gpu) {
 	while (getline(&line, &line_size, f) != -1) {
 		if (strncmp(line, "nvidia ", 7) == 0) {
 			if (allow_unsupported_gpu) {
-				sway_log(SWAY_ERROR,
+				wmiiv_log(SWAY_ERROR,
 						"!!! Proprietary Nvidia drivers are in use !!!");
 			} else {
-				sway_log(SWAY_ERROR,
+				wmiiv_log(SWAY_ERROR,
 					"Proprietary Nvidia drivers are NOT supported. "
-					"Use Nouveau. To launch sway anyway, launch with "
+					"Use Nouveau. To launch wmiiv anyway, launch with "
 					"--unsupported-gpu and DO NOT report issues.");
 				exit(EXIT_FAILURE);
 			}
@@ -72,11 +72,11 @@ void detect_proprietary(int allow_unsupported_gpu) {
 		}
 		if (strstr(line, "fglrx")) {
 			if (allow_unsupported_gpu) {
-				sway_log(SWAY_ERROR,
+				wmiiv_log(SWAY_ERROR,
 						"!!! Proprietary AMD drivers are in use !!!");
 			} else {
-				sway_log(SWAY_ERROR, "Proprietary AMD drivers do NOT support "
-					"Wayland. Use radeon. To try anyway, launch sway with "
+				wmiiv_log(SWAY_ERROR, "Proprietary AMD drivers do NOT support "
+					"Wayland. Use radeon. To try anyway, launch wmiiv with "
 					"--unsupported-gpu and DO NOT report issues.");
 				exit(EXIT_FAILURE);
 			}
@@ -105,7 +105,7 @@ static void log_env(void) {
 	};
 	for (size_t i = 0; i < sizeof(log_vars) / sizeof(char *); ++i) {
 		char *value = getenv(log_vars[i]);
-		sway_log(SWAY_INFO, "%s=%s", log_vars[i], value != NULL ? value : "");
+		wmiiv_log(SWAY_INFO, "%s=%s", log_vars[i], value != NULL ? value : "");
 	}
 }
 
@@ -117,7 +117,7 @@ static void log_file(FILE *f) {
 		if (line[nread - 1] == '\n') {
 			line[nread - 1] = '\0';
 		}
-		sway_log(SWAY_INFO, "%s", line);
+		wmiiv_log(SWAY_INFO, "%s", line);
 	}
 	free(line);
 }
@@ -133,7 +133,7 @@ static void log_distro(void) {
 	for (size_t i = 0; i < sizeof(paths) / sizeof(char *); ++i) {
 		FILE *f = fopen(paths[i], "r");
 		if (f) {
-			sway_log(SWAY_INFO, "Contents of %s:", paths[i]);
+			wmiiv_log(SWAY_INFO, "Contents of %s:", paths[i]);
 			log_file(f);
 			fclose(f);
 		}
@@ -143,7 +143,7 @@ static void log_distro(void) {
 static void log_kernel(void) {
 	FILE *f = popen("uname -a", "r");
 	if (!f) {
-		sway_log(SWAY_INFO, "Unable to determine kernel version");
+		wmiiv_log(SWAY_INFO, "Unable to determine kernel version");
 		return;
 	}
 	log_file(f);
@@ -153,21 +153,21 @@ static void log_kernel(void) {
 
 static bool drop_permissions(void) {
 	if (getuid() != geteuid() || getgid() != getegid()) {
-		sway_log(SWAY_ERROR, "!!! DEPRECATION WARNING: "
+		wmiiv_log(SWAY_ERROR, "!!! DEPRECATION WARNING: "
 			"SUID privilege drop will be removed in a future release, please migrate to seatd-launch");
 
 		// Set the gid and uid in the correct order.
 		if (setgid(getgid()) != 0) {
-			sway_log(SWAY_ERROR, "Unable to drop root group, refusing to start");
+			wmiiv_log(SWAY_ERROR, "Unable to drop root group, refusing to start");
 			return false;
 		}
 		if (setuid(getuid()) != 0) {
-			sway_log(SWAY_ERROR, "Unable to drop root user, refusing to start");
+			wmiiv_log(SWAY_ERROR, "Unable to drop root user, refusing to start");
 			return false;
 		}
 	}
 	if (setgid(0) != -1 || setuid(0) != -1) {
-		sway_log(SWAY_ERROR, "Unable to drop root (we shouldn't be able to "
+		wmiiv_log(SWAY_ERROR, "Unable to drop root (we shouldn't be able to "
 			"restore it after setuid), refusing to start");
 		return false;
 	}
@@ -176,7 +176,7 @@ static bool drop_permissions(void) {
 
 static void increase_nofile_limit(void) {
 	if (getrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-		sway_log_errno(SWAY_ERROR, "Failed to bump max open files limit: "
+		wmiiv_log_errno(SWAY_ERROR, "Failed to bump max open files limit: "
 			"getrlimit(NOFILE) failed");
 		return;
 	}
@@ -184,9 +184,9 @@ static void increase_nofile_limit(void) {
 	struct rlimit new_rlimit = original_nofile_rlimit;
 	new_rlimit.rlim_cur = new_rlimit.rlim_max;
 	if (setrlimit(RLIMIT_NOFILE, &new_rlimit) != 0) {
-		sway_log_errno(SWAY_ERROR, "Failed to bump max open files limit: "
+		wmiiv_log_errno(SWAY_ERROR, "Failed to bump max open files limit: "
 			"setrlimit(NOFILE) failed");
-		sway_log(SWAY_INFO, "Running with %d max open files",
+		wmiiv_log(SWAY_INFO, "Running with %d max open files",
 			(int)original_nofile_rlimit.rlim_cur);
 	}
 }
@@ -196,7 +196,7 @@ void restore_nofile_limit(void) {
 		return;
 	}
 	if (setrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-		sway_log_errno(SWAY_ERROR, "Failed to restore max open files limit: "
+		wmiiv_log_errno(SWAY_ERROR, "Failed to restore max open files limit: "
 			"setrlimit(NOFILE) failed");
 	}
 }
@@ -217,11 +217,11 @@ void enable_debug_flag(const char *flag) {
 	} else if (strcmp(flag, "noscanout") == 0) {
 		debug.noscanout = true;
 	} else {
-		sway_log(SWAY_ERROR, "Unknown debug flag: %s", flag);
+		wmiiv_log(SWAY_ERROR, "Unknown debug flag: %s", flag);
 	}
 }
 
-static sway_log_importance_t convert_wlr_log_importance(
+static wmiiv_log_importance_t convert_wlr_log_importance(
 		enum wlr_log_importance importance) {
 	switch (importance) {
 	case WLR_ERROR:
@@ -235,9 +235,9 @@ static sway_log_importance_t convert_wlr_log_importance(
 
 static void handle_wlr_log(enum wlr_log_importance importance,
 		const char *fmt, va_list args) {
-	static char sway_fmt[1024];
-	snprintf(sway_fmt, sizeof(sway_fmt), "[wlr] %s", fmt);
-	_sway_vlog(convert_wlr_log_importance(importance), sway_fmt, args);
+	static char wmiiv_fmt[1024];
+	snprintf(wmiiv_fmt, sizeof(wmiiv_fmt), "[wlr] %s", fmt);
+	_wmiiv_vlog(convert_wlr_log_importance(importance), wmiiv_fmt, args);
 }
 
 static const struct option long_options[] = {
@@ -253,7 +253,7 @@ static const struct option long_options[] = {
 };
 
 static const char usage[] =
-	"Usage: sway [options] [command]\n"
+	"Usage: wmiiv [options] [command]\n"
 	"\n"
 	"  -h, --help             Show help message and quit.\n"
 	"  -c, --config <config>  Specify a config file.\n"
@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
 			allow_unsupported_gpu = true;
 			break;
 		case 'v': // version
-			printf("sway version " SWAY_VERSION "\n");
+			printf("wmiiv version " SWAY_VERSION "\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case 'V': // verbose
@@ -309,7 +309,7 @@ int main(int argc, char **argv) {
 				printf("%s\n", getenv("SWAYSOCK"));
 				exit(EXIT_SUCCESS);
 			} else {
-				fprintf(stderr, "sway socket not detected.\n");
+				fprintf(stderr, "wmiiv socket not detected.\n");
 				exit(EXIT_FAILURE);
 			}
 			break;
@@ -328,33 +328,33 @@ int main(int argc, char **argv) {
 	}
 
 	// As the 'callback' function for wlr_log is equivalent to that for
-	// sway, we do not need to override it.
+	// wmiiv, we do not need to override it.
 	if (debug) {
-		sway_log_init(SWAY_DEBUG, sway_terminate);
+		wmiiv_log_init(SWAY_DEBUG, wmiiv_terminate);
 		wlr_log_init(WLR_DEBUG, handle_wlr_log);
 	} else if (verbose) {
-		sway_log_init(SWAY_INFO, sway_terminate);
+		wmiiv_log_init(SWAY_INFO, wmiiv_terminate);
 		wlr_log_init(WLR_INFO, handle_wlr_log);
 	} else {
-		sway_log_init(SWAY_ERROR, sway_terminate);
+		wmiiv_log_init(SWAY_ERROR, wmiiv_terminate);
 		wlr_log_init(WLR_ERROR, handle_wlr_log);
 	}
 
-	sway_log(SWAY_INFO, "Sway version " SWAY_VERSION);
-	sway_log(SWAY_INFO, "wlroots version " WLR_VERSION_STR);
+	wmiiv_log(SWAY_INFO, "Sway version " SWAY_VERSION);
+	wmiiv_log(SWAY_INFO, "wlroots version " WLR_VERSION_STR);
 	log_kernel();
 	log_distro();
 	log_env();
 
 	if (optind < argc) { // Behave as IPC client
 		if (optind != 1) {
-			sway_log(SWAY_ERROR,
+			wmiiv_log(SWAY_ERROR,
 					"Detected both options and positional arguments. If you "
 					"are trying to use the IPC client, options are not "
 					"supported. Otherwise, check the provided arguments for "
-					"issues. See `man 1 sway` or `sway -h` for usage. If you "
+					"issues. See `man 1 wmiiv` or `wmiiv -h` for usage. If you "
 					"are trying to generate a debug log, use "
-					"`sway -d 2>sway.log`.");
+					"`wmiiv -d 2>wmiiv.log`.");
 			exit(EXIT_FAILURE);
 		}
 		if (!drop_permissions()) {
@@ -362,7 +362,7 @@ int main(int argc, char **argv) {
 		}
 		char *socket_path = getenv("SWAYSOCK");
 		if (!socket_path) {
-			sway_log(SWAY_ERROR, "Unable to retrieve socket path");
+			wmiiv_log(SWAY_ERROR, "Unable to retrieve socket path");
 			exit(EXIT_FAILURE);
 		}
 		char *command = join_args(argv + optind, argc - optind);
@@ -388,10 +388,10 @@ int main(int argc, char **argv) {
 	signal(SIGTERM, sig_handler);
 	signal(SIGINT, sig_handler);
 
-	// prevent ipc from crashing sway
+	// prevent ipc from crashing wmiiv
 	signal(SIGPIPE, SIG_IGN);
 
-	sway_log(SWAY_INFO, "Starting sway version " SWAY_VERSION);
+	wmiiv_log(SWAY_INFO, "Starting wmiiv version " SWAY_VERSION);
 
 	root = root_create();
 
@@ -409,29 +409,29 @@ int main(int argc, char **argv) {
 
 	setenv("WAYLAND_DISPLAY", server.socket, true);
 	if (!load_main_config(config_path, false, false)) {
-		sway_terminate(EXIT_FAILURE);
+		wmiiv_terminate(EXIT_FAILURE);
 		goto shutdown;
 	}
 
 	if (!server_start(&server)) {
-		sway_terminate(EXIT_FAILURE);
+		wmiiv_terminate(EXIT_FAILURE);
 		goto shutdown;
 	}
 
 	config->active = true;
-	load_swaybars();
+	load_wmiivbars();
 	run_deferred_commands();
 	run_deferred_bindings();
 	transaction_commit_dirty();
 
-	if (config->swaynag_config_errors.client != NULL) {
-		swaynag_show(&config->swaynag_config_errors);
+	if (config->wmiivnag_config_errors.client != NULL) {
+		wmiivnag_show(&config->wmiivnag_config_errors);
 	}
 
 	server_run(&server);
 
 shutdown:
-	sway_log(SWAY_INFO, "Shutting down sway");
+	wmiiv_log(SWAY_INFO, "Shutting down wmiiv");
 
 	server_fini(&server);
 	root_destroy(root);

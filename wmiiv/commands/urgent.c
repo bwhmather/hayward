@@ -1,9 +1,9 @@
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
 #include "util.h"
 
 struct cmd_results *cmd_urgent(int argc, char **argv) {
@@ -11,14 +11,14 @@ struct cmd_results *cmd_urgent(int argc, char **argv) {
 	if ((error = checkarg(argc, "urgent", EXPECTED_EQUAL_TO, 1))) {
 		return error;
 	}
-	struct sway_container *container = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 	if (!container) {
 		return cmd_results_new(CMD_FAILURE, "No current container");
 	}
 	if (!container->view) {
 		return cmd_results_new(CMD_INVALID, "Only views can be urgent");
 	}
-	struct sway_view *view = container->view;
+	struct wmiiv_view *view = container->view;
 
 	if (strcmp(argv[0], "allow") == 0) {
 		view->allow_request_urgent = true;

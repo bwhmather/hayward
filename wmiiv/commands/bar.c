@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/ipc-server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/ipc-server.h"
 #include "log.h"
 
 // Must be in alphabetical order for bsearch
@@ -43,7 +43,7 @@ static const struct cmd_handler bar_handlers[] = {
 // Must be in alphabetical order for bsearch
 static const struct cmd_handler bar_config_handlers[] = {
 	{ "id", bar_cmd_id },
-	{ "swaybar_command", bar_cmd_swaybar_command },
+	{ "wmiivbar_command", bar_cmd_wmiivbar_command },
 };
 
 // Determines whether the subcommand is valid in any bar handler struct
@@ -63,7 +63,7 @@ struct cmd_results *cmd_bar(int argc, char **argv) {
 		for (int i = 0; i < config->bars->length; ++i) {
 			struct bar_config *item = config->bars->items[i];
 			if (strcmp(item->id, argv[0]) == 0) {
-				sway_log(SWAY_DEBUG, "Selecting bar: %s", argv[0]);
+				wmiiv_log(SWAY_DEBUG, "Selecting bar: %s", argv[0]);
 				config->current_bar = item;
 				break;
 			}
@@ -90,7 +90,7 @@ struct cmd_results *cmd_bar(int argc, char **argv) {
 	}
 
 	if (id) {
-		sway_log(SWAY_DEBUG, "Creating bar: %s", id);
+		wmiiv_log(SWAY_DEBUG, "Creating bar: %s", id);
 		config->current_bar = default_bar_config();
 		if (!config->current_bar) {
 			free(id);
@@ -129,7 +129,7 @@ struct cmd_results *cmd_bar(int argc, char **argv) {
 	if (!config->reading && config->current_bar) {
 		ipc_event_barconfig_update(config->current_bar);
 		if (id) {
-			load_swaybar(config->current_bar);
+			load_wmiivbar(config->current_bar);
 		}
 		config->current_bar = NULL;
 	}

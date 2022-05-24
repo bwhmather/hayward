@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/ipc-server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/ipc-server.h"
 #include "log.h"
 
 struct cmd_results *bar_cmd_gaps(int argc, char **argv) {
@@ -44,7 +44,7 @@ struct cmd_results *bar_cmd_gaps(int argc, char **argv) {
 	config->current_bar->gaps.bottom = bottom;
 	config->current_bar->gaps.left = left;
 
-	sway_log(SWAY_DEBUG, "Setting bar gaps to %d %d %d %d on bar: %s",
+	wmiiv_log(SWAY_DEBUG, "Setting bar gaps to %d %d %d %d on bar: %s",
 			config->current_bar->gaps.top, config->current_bar->gaps.right,
 			config->current_bar->gaps.bottom, config->current_bar->gaps.left,
 			config->current_bar->id);

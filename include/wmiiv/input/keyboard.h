@@ -1,7 +1,7 @@
 #ifndef _SWAY_INPUT_KEYBOARD_H
 #define _SWAY_INPUT_KEYBOARD_H
 
-#include "sway/input/seat.h"
+#include "wmiiv/input/seat.h"
 
 #define SWAY_KEYBOARD_PRESSED_KEYS_CAP 32
 
@@ -26,7 +26,7 @@ const char *get_modifier_name_by_mask(uint32_t modifier);
  */
 int get_modifier_names(const char **names, uint32_t modifier_masks);
 
-struct sway_shortcut_state {
+struct wmiiv_shortcut_state {
 	/**
 	 * A list of pressed key ids (either keysyms or keycodes),
 	 * including duplicates when different keycodes produce the same key id.
@@ -48,8 +48,8 @@ struct sway_shortcut_state {
 	uint32_t current_key;
 };
 
-struct sway_keyboard {
-	struct sway_seat_device *seat_device;
+struct wmiiv_keyboard {
+	struct wmiiv_seat_device *seat_device;
 
 	struct xkb_keymap *keymap;
 	xkb_layout_index_t effective_layout;
@@ -60,35 +60,35 @@ struct sway_keyboard {
 	struct wl_listener keyboard_key;
 	struct wl_listener keyboard_modifiers;
 
-	struct sway_shortcut_state state_keysyms_translated;
-	struct sway_shortcut_state state_keysyms_raw;
-	struct sway_shortcut_state state_keycodes;
-	struct sway_shortcut_state state_pressed_sent;
-	struct sway_binding *held_binding;
+	struct wmiiv_shortcut_state state_keysyms_translated;
+	struct wmiiv_shortcut_state state_keysyms_raw;
+	struct wmiiv_shortcut_state state_keycodes;
+	struct wmiiv_shortcut_state state_pressed_sent;
+	struct wmiiv_binding *held_binding;
 
 	struct wl_event_source *key_repeat_source;
-	struct sway_binding *repeat_binding;
+	struct wmiiv_binding *repeat_binding;
 };
 
-struct sway_keyboard_group {
+struct wmiiv_keyboard_group {
 	struct wlr_keyboard_group *wlr_group;
-	struct sway_seat_device *seat_device;
+	struct wmiiv_seat_device *seat_device;
 	struct wl_listener keyboard_key;
 	struct wl_listener keyboard_modifiers;
 	struct wl_listener enter;
 	struct wl_listener leave;
-	struct wl_list link; // sway_seat::keyboard_groups
+	struct wl_list link; // wmiiv_seat::keyboard_groups
 };
 
-struct xkb_keymap *sway_keyboard_compile_keymap(struct input_config *ic,
+struct xkb_keymap *wmiiv_keyboard_compile_keymap(struct input_config *ic,
 		char **error);
 
-struct sway_keyboard *sway_keyboard_create(struct sway_seat *seat,
-		struct sway_seat_device *device);
+struct wmiiv_keyboard *wmiiv_keyboard_create(struct wmiiv_seat *seat,
+		struct wmiiv_seat_device *device);
 
-void sway_keyboard_configure(struct sway_keyboard *keyboard);
+void wmiiv_keyboard_configure(struct wmiiv_keyboard *keyboard);
 
-void sway_keyboard_destroy(struct sway_keyboard *keyboard);
+void wmiiv_keyboard_destroy(struct wmiiv_keyboard *keyboard);
 
-void sway_keyboard_disarm_key_repeat(struct sway_keyboard *keyboard);
+void wmiiv_keyboard_disarm_key_repeat(struct wmiiv_keyboard *keyboard);
 #endif

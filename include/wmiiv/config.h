@@ -11,10 +11,10 @@
 #include <xf86drmMode.h>
 #include "../include/config.h"
 #include "list.h"
-#include "swaynag.h"
+#include "wmiivnag.h"
 #include "tree/container.h"
-#include "sway/input/tablet.h"
-#include "sway/tree/root.h"
+#include "wmiiv/input/tablet.h"
+#include "wmiiv/tree/root.h"
 #include "wlr-layer-shell-unstable-v1-protocol.h"
 
 // TODO: Refactor this shit
@@ -22,7 +22,7 @@
 /**
  * Describes a variable created via the `set` command.
  */
-struct sway_variable {
+struct wmiiv_variable {
 	char *name;
 	char *value;
 };
@@ -50,7 +50,7 @@ enum binding_flags {
 /**
  * A key (or mouse) binding and an associated command.
  */
-struct sway_binding {
+struct wmiiv_binding {
 	enum binding_input_type type;
 	int order;
 	char *input;
@@ -62,7 +62,7 @@ struct sway_binding {
 	char *command;
 };
 
-enum sway_switch_trigger {
+enum wmiiv_switch_trigger {
 	SWAY_SWITCH_TRIGGER_OFF,
 	SWAY_SWITCH_TRIGGER_ON,
 	SWAY_SWITCH_TRIGGER_TOGGLE,
@@ -71,9 +71,9 @@ enum sway_switch_trigger {
 /**
  * A laptop switch binding and an associated command.
  */
-struct sway_switch_binding {
+struct wmiiv_switch_binding {
 	enum wlr_switch_type type;
-	enum sway_switch_trigger trigger;
+	enum wmiiv_switch_trigger trigger;
 	uint32_t flags;
 	char *command;
 };
@@ -81,7 +81,7 @@ struct sway_switch_binding {
 /**
  * Focus on window activation.
  */
-enum sway_fowa {
+enum wmiiv_fowa {
 	FOWA_SMART,
 	FOWA_URGENT,
 	FOWA_FOCUS,
@@ -91,7 +91,7 @@ enum sway_fowa {
 /**
  * A "mode" of keybindings created via the `mode` command.
  */
-struct sway_mode {
+struct wmiiv_mode {
 	char *name;
 	list_t *keysym_bindings;
 	list_t *keycode_bindings;
@@ -119,7 +119,7 @@ enum input_config_mapped_to {
 
 struct input_config_tool {
 	enum wlr_tablet_tool_type type;
-	enum sway_tablet_tool_mode mode;
+	enum wmiiv_tablet_tool_mode mode;
 };
 
 /**
@@ -204,7 +204,7 @@ enum seat_keyboard_grouping {
 	KEYBOARD_GROUP_SMART, // keymap and repeat info
 };
 
-enum sway_input_idle_source {
+enum wmiiv_input_idle_source {
 	IDLE_SOURCE_KEYBOARD = 1 << 0,
 	IDLE_SOURCE_POINTER = 1 << 1,
 	IDLE_SOURCE_TOUCH = 1 << 2,
@@ -312,7 +312,7 @@ enum pango_markup_config {
 };
 
 struct bar_config {
-	char *swaybar_command;
+	char *wmiivbar_command;
 	struct wl_client *client;
 	struct wl_listener client_destroy;
 
@@ -423,7 +423,7 @@ enum edge_border_smart_types {
 	ESMART_NO_GAPS, /**< hide edges if one window and gaps to edge is zero */
 };
 
-enum sway_popup_during_fullscreen {
+enum wmiiv_popup_during_fullscreen {
 	POPUP_SMART,
 	POPUP_IGNORE,
 	POPUP_LEAVE,
@@ -463,9 +463,9 @@ enum xwayland_mode {
 /**
  * The configuration struct. The result of loading a config file.
  */
-struct sway_config {
-	char *swaynag_command;
-	struct swaynag_instance swaynag_config_errors;
+struct wmiiv_config {
+	char *wmiivnag_command;
+	struct wmiivnag_instance wmiivnag_config_errors;
 	list_t *symbols;
 	list_t *modes;
 	list_t *bars;
@@ -478,7 +478,7 @@ struct sway_config {
 	list_t *criteria;
 	list_t *no_focus;
 	list_t *active_bar_modifiers;
-	struct sway_mode *current_mode;
+	struct wmiiv_mode *current_mode;
 	struct bar_config *current_bar;
 	uint32_t floating_mod;
 	bool floating_mod_inverse;
@@ -488,7 +488,7 @@ struct sway_config {
 	char *floating_scroll_down_cmd;
 	char *floating_scroll_left_cmd;
 	char *floating_scroll_right_cmd;
-	enum sway_container_layout default_layout;
+	enum wmiiv_container_layout default_layout;
 	char *font;
 	int font_height;
 	int font_baseline;
@@ -497,14 +497,14 @@ struct sway_config {
 	int titlebar_h_padding;
 	int titlebar_v_padding;
 	size_t urgent_timeout;
-	enum sway_fowa focus_on_window_activation;
-	enum sway_popup_during_fullscreen popup_during_fullscreen;
+	enum wmiiv_fowa focus_on_window_activation;
+	enum wmiiv_popup_during_fullscreen popup_during_fullscreen;
 	enum xwayland_mode xwayland;
 
-	// swaybg
-	char *swaybg_command;
-	struct wl_client *swaybg_client;
-	struct wl_listener swaybg_client_destroy;
+	// wmiivbg
+	char *wmiivbg_command;
+	struct wl_client *wmiivbg_client;
+	struct wl_listener wmiivbg_client_destroy;
 
 	// Flags
 	enum focus_follows_mouse_mode focus_follows_mouse;
@@ -533,8 +533,8 @@ struct sway_config {
 	int current_config_line_number;
 	char *current_config_line;
 
-	enum sway_container_border border;
-	enum sway_container_border floating_border;
+	enum wmiiv_container_border border;
+	enum wmiiv_container_border floating_border;
 	int border_thickness;
 	int floating_border_thickness;
 	enum edge_border_types hide_edge_borders;
@@ -568,12 +568,12 @@ struct sway_config {
 		struct input_config *input_config;
 		struct output_config *output_config;
 		struct seat_config *seat_config;
-		struct sway_seat *seat;
-		struct sway_node *node;
-		struct sway_workspace *workspace;
-		struct sway_container *container;  // TODO (wmiiv) deprecated.
-		struct sway_container *column;
-		struct sway_container *window;
+		struct wmiiv_seat *seat;
+		struct wmiiv_node *node;
+		struct wmiiv_workspace *workspace;
+		struct wmiiv_container *container;  // TODO (wmiiv) deprecated.
+		struct wmiiv_container *column;
+		struct wmiiv_container *window;
 		bool node_overridden; // True if the node is selected by means other than focus
 		struct {
 			int argc;
@@ -591,14 +591,14 @@ bool load_main_config(const char *path, bool is_active, bool validating);
 /**
  * Loads an included config. Can only be used after load_main_config.
  */
-void load_include_configs(const char *path, struct sway_config *config,
-		struct swaynag_instance *swaynag);
+void load_include_configs(const char *path, struct wmiiv_config *config,
+		struct wmiivnag_instance *wmiivnag);
 
 /**
  * Reads the config from the given FILE.
  */
-bool read_config(FILE *file, struct sway_config *config,
-		struct swaynag_instance *swaynag);
+bool read_config(FILE *file, struct wmiiv_config *config,
+		struct wmiivnag_instance *wmiivnag);
 
 /**
  * Run the commands that were deferred when reading the config file.
@@ -611,16 +611,16 @@ void run_deferred_commands(void);
 void run_deferred_bindings(void);
 
 /**
- * Adds a warning entry to the swaynag instance used for errors.
+ * Adds a warning entry to the wmiivnag instance used for errors.
  */
-void config_add_swaynag_warning(char *fmt, ...);
+void config_add_wmiivnag_warning(char *fmt, ...);
 
 /**
  * Free config struct
  */
-void free_config(struct sway_config *config);
+void free_config(struct wmiiv_config *config);
 
-void free_sway_variable(struct sway_variable *var);
+void free_wmiiv_variable(struct wmiiv_variable *var);
 
 /**
  * Does variable replacement for a string based on the config's currently loaded variables.
@@ -660,21 +660,21 @@ struct seat_config *store_seat_config(struct seat_config *seat);
 int output_name_cmp(const void *item, const void *data);
 
 void output_get_identifier(char *identifier, size_t len,
-	struct sway_output *output);
+	struct wmiiv_output *output);
 
-const char *sway_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
+const char *wmiiv_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
 
 struct output_config *new_output_config(const char *name);
 
 void merge_output_config(struct output_config *dst, struct output_config *src);
 
-bool apply_output_config(struct output_config *oc, struct sway_output *output);
+bool apply_output_config(struct output_config *oc, struct wmiiv_output *output);
 
-bool test_output_config(struct output_config *oc, struct sway_output *output);
+bool test_output_config(struct output_config *oc, struct wmiiv_output *output);
 
 struct output_config *store_output_config(struct output_config *oc);
 
-struct output_config *find_output_config(struct sway_output *output);
+struct output_config *find_output_config(struct wmiiv_output *output);
 
 void apply_output_config_to_outputs(struct output_config *oc);
 
@@ -682,19 +682,19 @@ void reset_outputs(void);
 
 void free_output_config(struct output_config *oc);
 
-bool spawn_swaybg(void);
+bool spawn_wmiivbg(void);
 
 int workspace_output_cmp_workspace(const void *a, const void *b);
 
-void free_sway_binding(struct sway_binding *sb);
+void free_wmiiv_binding(struct wmiiv_binding *sb);
 
-void free_switch_binding(struct sway_switch_binding *binding);
+void free_switch_binding(struct wmiiv_switch_binding *binding);
 
-void seat_execute_command(struct sway_seat *seat, struct sway_binding *binding);
+void seat_execute_command(struct wmiiv_seat *seat, struct wmiiv_binding *binding);
 
-void load_swaybar(struct bar_config *bar);
+void load_wmiivbar(struct bar_config *bar);
 
-void load_swaybars(void);
+void load_wmiivbars(void);
 
 struct bar_config *default_bar_config(void);
 
@@ -717,13 +717,13 @@ void config_update_font_height(void);
  * Convert bindsym into bindcode using the first configured layout.
  * Return false in case the conversion is unsuccessful.
  */
-bool translate_binding(struct sway_binding *binding);
+bool translate_binding(struct wmiiv_binding *binding);
 
 void translate_keysyms(struct input_config *input_config);
 
-void binding_add_translated(struct sway_binding *binding, list_t *bindings);
+void binding_add_translated(struct wmiiv_binding *binding, list_t *bindings);
 
 /* Global config singleton. */
-extern struct sway_config *config;
+extern struct wmiiv_config *config;
 
 #endif

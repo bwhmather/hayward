@@ -1,17 +1,17 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/container.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
-#include "sway/input/input-manager.h"
-#include "sway/input/seat.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
+#include "wmiiv/input/input-manager.h"
+#include "wmiiv/input/seat.h"
 #include "log.h"
 
 static struct cmd_results *do_split(int layout) {
-	struct sway_container *con = config->handler_context.container;
-	struct sway_workspace *ws = config->handler_context.workspace;
+	struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_workspace *ws = config->handler_context.workspace;
 	if (con) {
 		container_split(con, layout);
 	} else {
@@ -29,8 +29,8 @@ static struct cmd_results *do_split(int layout) {
 
 static struct cmd_results *do_unsplit() {
 	// TODO (wmiiv)
-	// struct sway_container *con = config->handler_context.container;
-	struct sway_workspace *ws = config->handler_context.workspace;
+	// struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_workspace *ws = config->handler_context.workspace;
 
 	// TODO (wmiiv)
 	// if (con && con->pending.parent && con->pending.parent->pending.children->length == 1) {
@@ -63,7 +63,7 @@ struct cmd_results *cmd_split(int argc, char **argv) {
 		return do_split(L_HORIZ);
 	} else if (strcasecmp(argv[0], "t") == 0 ||
 			strcasecmp(argv[0], "toggle") == 0) {
-		struct sway_container *focused = config->handler_context.container;
+		struct wmiiv_container *focused = config->handler_context.container;
 
 		if (focused && container_parent_layout(focused) == L_VERT) {
 			return do_split(L_HORIZ);
@@ -102,7 +102,7 @@ struct cmd_results *cmd_splitt(int argc, char **argv) {
 		return error;
 	}
 
-	struct sway_container *con = config->handler_context.container;
+	struct wmiiv_container *con = config->handler_context.container;
 
 	if (con && container_parent_layout(con) == L_VERT) {
 		return do_split(L_HORIZ);

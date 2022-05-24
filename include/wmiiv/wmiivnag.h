@@ -2,7 +2,7 @@
 #define _SWAY_SWAYNAG_H
 #include <wayland-server-core.h>
 
-struct swaynag_instance {
+struct wmiivnag_instance {
 	struct wl_client *client;
 	struct wl_listener client_destroy;
 
@@ -11,19 +11,19 @@ struct swaynag_instance {
 	bool detailed;
 };
 
-// Spawn swaynag. If swaynag->detailed, then swaynag->fd[1] will left open
-// so it can be written to. Call swaynag_show when done writing. This will
-// be automatically called by swaynag_log if the instance is not spawned and
-// swaynag->detailed is true.
-bool swaynag_spawn(const char *swaynag_command,
-		struct swaynag_instance *swaynag);
+// Spawn wmiivnag. If wmiivnag->detailed, then wmiivnag->fd[1] will left open
+// so it can be written to. Call wmiivnag_show when done writing. This will
+// be automatically called by wmiivnag_log if the instance is not spawned and
+// wmiivnag->detailed is true.
+bool wmiivnag_spawn(const char *wmiivnag_command,
+		struct wmiivnag_instance *wmiivnag);
 
-// Write a log message to swaynag->fd[1]. This will fail when swaynag->detailed
+// Write a log message to wmiivnag->fd[1]. This will fail when wmiivnag->detailed
 // is false.
-void swaynag_log(const char *swaynag_command, struct swaynag_instance *swaynag,
+void wmiivnag_log(const char *wmiivnag_command, struct wmiivnag_instance *wmiivnag,
 		const char *fmt, ...);
 
-// If swaynag->detailed, close swaynag->fd[1] so swaynag displays
-void swaynag_show(struct swaynag_instance *swaynag);
+// If wmiivnag->detailed, close wmiivnag->fd[1] so wmiivnag displays
+void wmiivnag_show(struct wmiivnag_instance *wmiivnag);
 
 #endif

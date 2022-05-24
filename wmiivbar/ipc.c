@@ -5,11 +5,11 @@
 #include <string.h>
 #include <strings.h>
 #include <json.h>
-#include "swaybar/config.h"
-#include "swaybar/ipc.h"
-#include "swaybar/status_line.h"
+#include "wmiivbar/config.h"
+#include "wmiivbar/ipc.h"
+#include "wmiivbar/status_line.h"
 #if HAVE_TRAY
-#include "swaybar/tray/tray.h"
+#include "wmiivbar/tray/tray.h"
 #endif
 #include "config.h"
 #include "ipc-client.h"
@@ -18,7 +18,7 @@
 #include "loop.h"
 #include "util.h"
 
-void ipc_send_workspace_command(struct swaybar *bar, const char *ws) {
+void ipc_send_workspace_command(struct wmiivbar *bar, const char *ws) {
 	uint32_t size = strlen("workspace \"\"") + strlen(ws);
 	for (size_t i = 0; i < strlen(ws); ++i) {
 		if (ws[i] == '"' || ws[i] == '\\') {
@@ -54,7 +54,7 @@ char *parse_font(const char *font) {
 }
 
 static void ipc_parse_colors(
-		struct swaybar_config *config, json_object *colors) {
+		struct wmiivbar_config *config, json_object *colors) {
 	struct {
 		const char *name;
 		uint32_t *color;
@@ -87,7 +87,7 @@ static void ipc_parse_colors(
 		if (json_object_object_get_ex(colors, properties[i].name, &object)) {
 			const char *hexstring = json_object_get_string(object);
 			if (!parse_color(hexstring, properties[i].color)) {
-				sway_log(SWAY_ERROR, "Ignoring invalid %s: %s",
+				wmiiv_log(SWAY_ERROR, "Ignoring invalid %s: %s",
 						properties[i].name, hexstring);
 			}
 		}
@@ -95,12 +95,12 @@ static void ipc_parse_colors(
 }
 
 static bool ipc_parse_config(
-		struct swaybar_config *config, const char *payload) {
+		struct wmiivbar_config *config, const char *payload) {
 	json_object *bar_config = json_tokener_parse(payload);
 	json_object *success;
 	if (json_object_object_get_ex(bar_config, "success", &success)
 			&& !json_object_get_boolean(success)) {
-		sway_log(SWAY_ERROR, "No bar with that ID. Use 'swaymsg -t "
+		wmiiv_log(SWAY_ERROR, "No bar with that ID. Use 'wmiivmsg -t "
 				"get_bar_config' to get the available bar configs.");
 		json_object_put(bar_config);
 		return false;
@@ -120,7 +120,7 @@ static bool ipc_parse_config(
 
 	json_object *bindings = json_object_object_get(bar_config, "bindings");
 	while (config->bindings->length) {
-		struct swaybar_binding *binding = config->bindings->items[0];
+		struct wmiivbar_binding *binding = config->bindings->items[0];
 		list_del(config->bindings, 0);
 		free_binding(binding);
 	}
@@ -128,8 +128,8 @@ static bool ipc_parse_config(
 		int length = json_object_array_length(bindings);
 		for (int i = 0; i < length; ++i) {
 			json_object *bindobj = json_object_array_get_idx(bindings, i);
-			struct swaybar_binding *binding =
-				calloc(1, sizeof(struct swaybar_binding));
+			struct wmiivbar_binding *binding =
+				calloc(1, sizeof(struct wmiivbar_binding));
 			binding->button = json_object_get_int(
 					json_object_object_get(bindobj, "event_code"));
 			binding->command = strdup(json_object_get_string(
@@ -335,8 +335,8 @@ static bool ipc_parse_config(
 	return true;
 }
 
-bool ipc_get_workspaces(struct swaybar *bar) {
-	struct swaybar_output *output;
+bool ipc_get_workspaces(struct wmiivbar *bar) {
+	struct wmiivbar_output *output;
 	wl_list_for_each(output, &bar->outputs, link) {
 		free_workspaces(&output->workspaces);
 		output->focused = false;
@@ -367,8 +367,8 @@ bool ipc_get_workspaces(struct swaybar *bar) {
 		wl_list_for_each(output, &bar->outputs, link) {
 			const char *ws_output = json_object_get_string(out);
 			if (ws_output != NULL && strcmp(ws_output, output->name) == 0) {
-				struct swaybar_workspace *ws =
-					calloc(1, sizeof(struct swaybar_workspace));
+				struct wmiivbar_workspace *ws =
+					calloc(1, sizeof(struct wmiivbar_workspace));
 				ws->num = json_object_get_int(num);
 				ws->name = strdup(json_object_get_string(name));
 				ws->label = strdup(ws->name);
@@ -406,15 +406,15 @@ bool ipc_get_workspaces(struct swaybar *bar) {
 	return determine_bar_visibility(bar, false);
 }
 
-void ipc_execute_binding(struct swaybar *bar, struct swaybar_binding *bind) {
-	sway_log(SWAY_DEBUG, "Executing binding for button %u (release=%d): `%s`",
+void ipc_execute_binding(struct wmiivbar *bar, struct wmiivbar_binding *bind) {
+	wmiiv_log(SWAY_DEBUG, "Executing binding for button %u (release=%d): `%s`",
 			bind->button, bind->release, bind->command);
 	uint32_t len = strlen(bind->command);
 	free(ipc_single_command(bar->ipc_socketfd,
 			IPC_COMMAND, bind->command, &len));
 }
 
-bool ipc_initialize(struct swaybar *bar) {
+bool ipc_initialize(struct wmiivbar *bar) {
 	uint32_t len = strlen(bar->id);
 	char *res = ipc_single_command(bar->ipc_socketfd,
 			IPC_GET_BAR_CONFIG, bar->id, &len);
@@ -424,7 +424,7 @@ bool ipc_initialize(struct swaybar *bar) {
 	}
 	free(res);
 
-	struct swaybar_config *config = bar->config;
+	struct wmiivbar_config *config = bar->config;
 	char subscribe[128]; // suitably large buffer
 	len = snprintf(subscribe, 128,
 			"[ \"barconfig_update\" , \"bar_state_update\" %s %s ]",
@@ -435,7 +435,7 @@ bool ipc_initialize(struct swaybar *bar) {
 	return true;
 }
 
-static bool handle_bar_state_update(struct swaybar *bar, json_object *event) {
+static bool handle_bar_state_update(struct wmiivbar *bar, json_object *event) {
 	json_object *json_id;
 	json_object_object_get_ex(event, "id", &json_id);
 	const char *id = json_object_get_string(json_id);
@@ -456,7 +456,7 @@ static bool handle_bar_state_update(struct swaybar *bar, json_object *event) {
 	return determine_bar_visibility(bar, false);
 }
 
-static bool handle_barconfig_update(struct swaybar *bar, const char *payload,
+static bool handle_barconfig_update(struct wmiivbar *bar, const char *payload,
 		json_object *json_config) {
 	json_object *json_id = json_object_object_get(json_config, "id");
 	const char *id = json_object_get_string(json_id);
@@ -464,13 +464,13 @@ static bool handle_barconfig_update(struct swaybar *bar, const char *payload,
 		return false;
 	}
 
-	struct swaybar_config *newcfg = init_config();
+	struct wmiivbar_config *newcfg = init_config();
 	ipc_parse_config(newcfg, payload);
 
-	struct swaybar_config *oldcfg = bar->config;
+	struct wmiivbar_config *oldcfg = bar->config;
 	bar->config = newcfg;
 
-	struct swaybar_output *output, *tmp_output;
+	struct wmiivbar_output *output, *tmp_output;
 	wl_list_for_each_safe(output, tmp_output, &bar->outputs, link) {
 		bool found = wl_list_empty(&newcfg->outputs);
 		struct config_output *coutput;
@@ -541,7 +541,7 @@ static bool handle_barconfig_update(struct swaybar *bar, const char *payload,
 	return true;
 }
 
-bool handle_ipc_readable(struct swaybar *bar) {
+bool handle_ipc_readable(struct wmiivbar *bar) {
 	struct ipc_response *resp = ipc_recv_response(bar->ipc_event_socketfd);
 	if (!resp) {
 		return false;
@@ -552,7 +552,7 @@ bool handle_ipc_readable(struct swaybar *bar) {
 	// all the memory for its stack.
 	json_tokener *tok = json_tokener_new_ex(JSON_MAX_DEPTH);
 	if (!tok) {
-		sway_log_errno(SWAY_ERROR, "failed to create tokener");
+		wmiiv_log_errno(SWAY_ERROR, "failed to create tokener");
 		free_ipc_response(resp);
 		return false;
 	}
@@ -562,7 +562,7 @@ bool handle_ipc_readable(struct swaybar *bar) {
 	json_tokener_free(tok);
 
 	if (err != json_tokener_success) {
-		sway_log(SWAY_ERROR, "failed to parse payload as json: %s",
+		wmiiv_log(SWAY_ERROR, "failed to parse payload as json: %s",
 				json_tokener_error_desc(err));
 		free_ipc_response(resp);
 		return false;
@@ -582,7 +582,7 @@ bool handle_ipc_readable(struct swaybar *bar) {
 			bar->visible_by_mode = bar->mode != NULL;
 			determine_bar_visibility(bar, false);
 		} else {
-			sway_log(SWAY_ERROR, "failed to parse response");
+			wmiiv_log(SWAY_ERROR, "failed to parse response");
 			bar_is_dirty = false;
 			break;
 		}

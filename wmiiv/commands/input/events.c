@@ -2,13 +2,13 @@
 #include <string.h>
 #include <strings.h>
 #include <wlr/backend/libinput.h>
-#include "sway/config.h"
-#include "sway/commands.h"
-#include "sway/input/input-manager.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/input-manager.h"
 #include "log.h"
 
 static void toggle_supported_send_events_for_device(struct input_config *ic,
-		struct sway_input_device *input_device) {
+		struct wmiiv_input_device *input_device) {
 	struct wlr_input_device *wlr_device = input_device->wlr_device;
 	if (!wlr_input_device_is_libinput(wlr_device)) {
 		return;
@@ -55,7 +55,7 @@ static int mode_for_name(const char *name) {
 }
 
 static void toggle_select_send_events_for_device(struct input_config *ic,
-		struct sway_input_device *input_device, int argc, char **argv) {
+		struct wmiiv_input_device *input_device, int argc, char **argv) {
 	if (!wlr_input_device_is_libinput(input_device->wlr_device)) {
 		return;
 	}
@@ -79,7 +79,7 @@ static void toggle_send_events(int argc, char **argv) {
 	bool wildcard = strcmp(ic->identifier, "*") == 0;
 	const char *type = strncmp(ic->identifier, "type:", strlen("type:")) == 0
 		? ic->identifier + strlen("type:") : NULL;
-	struct sway_input_device *device = NULL;
+	struct wmiiv_input_device *device = NULL;
 	wl_list_for_each(device, &server.input->devices, link) {
 		if (wildcard || type) {
 			ic = new_input_config(device->identifier);

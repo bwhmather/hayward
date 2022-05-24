@@ -7,15 +7,15 @@
 #include <strings.h>
 #include "list.h"
 #include "log.h"
-#include "swaynag/config.h"
-#include "swaynag/types.h"
+#include "wmiivnag/config.h"
+#include "wmiivnag/types.h"
 #include "util.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
-struct swaynag_type *swaynag_type_new(const char *name) {
-	struct swaynag_type *type = calloc(1, sizeof(struct swaynag_type));
+struct wmiivnag_type *wmiivnag_type_new(const char *name) {
+	struct wmiivnag_type *type = calloc(1, sizeof(struct wmiivnag_type));
 	if (!type) {
-		sway_abort("Failed to allocate type: %s", name);
+		wmiiv_abort("Failed to allocate type: %s", name);
 	}
 	type->name = strdup(name);
 	type->bar_border_thickness = -1;
@@ -30,8 +30,8 @@ struct swaynag_type *swaynag_type_new(const char *name) {
 	return type;
 }
 
-void swaynag_types_add_default(list_t *types) {
-	struct swaynag_type *type_defaults = swaynag_type_new("<defaults>");
+void wmiivnag_types_add_default(list_t *types) {
+	struct wmiivnag_type *type_defaults = wmiivnag_type_new("<defaults>");
 	type_defaults->font = strdup("pango:Monospace 10");
 	type_defaults->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP
 		| ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
@@ -54,7 +54,7 @@ void swaynag_types_add_default(list_t *types) {
 	type_defaults->button_padding = 3;
 	list_add(types, type_defaults);
 
-	struct swaynag_type *type_error = swaynag_type_new("error");
+	struct wmiivnag_type *type_error = wmiivnag_type_new("error");
 	type_error->button_background = 0x680A0AFF;
 	type_error->details_background = 0x680A0AFF;
 	type_error->background = 0x900000FF;
@@ -64,7 +64,7 @@ void swaynag_types_add_default(list_t *types) {
 	type_error->border_bottom = 0x470909FF;
 	list_add(types, type_error);
 
-	struct swaynag_type *type_warning = swaynag_type_new("warning");
+	struct wmiivnag_type *type_warning = wmiivnag_type_new("warning");
 	type_warning->button_background = 0xFFC100FF;
 	type_warning->details_background = 0xFFC100FF;
 	type_warning->background = 0xFFA800FF;
@@ -75,9 +75,9 @@ void swaynag_types_add_default(list_t *types) {
 	list_add(types, type_warning);
 }
 
-struct swaynag_type *swaynag_type_get(list_t *types, char *name) {
+struct wmiivnag_type *wmiivnag_type_get(list_t *types, char *name) {
 	for (int i = 0; i < types->length; i++) {
-		struct swaynag_type *type = types->items[i];
+		struct wmiivnag_type *type = types->items[i];
 		if (strcasecmp(type->name, name) == 0) {
 			return type;
 		}
@@ -85,7 +85,7 @@ struct swaynag_type *swaynag_type_get(list_t *types, char *name) {
 	return NULL;
 }
 
-void swaynag_type_merge(struct swaynag_type *dest, struct swaynag_type *src) {
+void wmiivnag_type_merge(struct wmiivnag_type *dest, struct wmiivnag_type *src) {
 	if (!dest || !src) {
 		return;
 	}
@@ -170,16 +170,16 @@ void swaynag_type_merge(struct swaynag_type *dest, struct swaynag_type *src) {
 	}
 }
 
-void swaynag_type_free(struct swaynag_type *type) {
+void wmiivnag_type_free(struct wmiivnag_type *type) {
 	free(type->name);
 	free(type->font);
 	free(type->output);
 	free(type);
 }
 
-void swaynag_types_free(list_t *types) {
+void wmiivnag_types_free(list_t *types) {
 	for (int i = 0; i < types->length; ++i) {
-		swaynag_type_free(types->items[i]);
+		wmiivnag_type_free(types->items[i]);
 	}
 	list_free(types);
 }

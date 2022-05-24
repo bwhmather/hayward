@@ -6,12 +6,12 @@
 #include <xkbcommon/xkbcommon.h>
 #include <xkbcommon/xkbcommon-names.h>
 #include <wlr/types/wlr_cursor.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/desktop/transaction.h"
-#include "sway/input/cursor.h"
-#include "sway/input/keyboard.h"
-#include "sway/ipc-server.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/desktop/transaction.h"
+#include "wmiiv/input/cursor.h"
+#include "wmiiv/input/keyboard.h"
+#include "wmiiv/ipc-server.h"
 #include "list.h"
 #include "log.h"
 #include "stringop.h"
@@ -19,7 +19,7 @@
 
 int binding_order = 0;
 
-void free_sway_binding(struct sway_binding *binding) {
+void free_wmiiv_binding(struct wmiiv_binding *binding) {
 	if (!binding) {
 		return;
 	}
@@ -31,7 +31,7 @@ void free_sway_binding(struct sway_binding *binding) {
 	free(binding);
 }
 
-void free_switch_binding(struct sway_switch_binding *binding) {
+void free_switch_binding(struct wmiiv_switch_binding *binding) {
 	if (!binding) {
 		return;
 	}
@@ -42,8 +42,8 @@ void free_switch_binding(struct sway_switch_binding *binding) {
 /**
  * Returns true if the bindings have the same switch type and state combinations.
  */
-static bool binding_switch_compare(struct sway_switch_binding *binding_a,
-		struct sway_switch_binding *binding_b) {
+static bool binding_switch_compare(struct wmiiv_switch_binding *binding_a,
+		struct wmiiv_switch_binding *binding_b) {
 	if (binding_a->type != binding_b->type) {
 		return false;
 	}
@@ -62,8 +62,8 @@ static bool binding_switch_compare(struct sway_switch_binding *binding_a,
  * Note that keyboard layout is not considered, so the bindings might actually
  * not be equivalent on some layouts.
  */
-static bool binding_key_compare(struct sway_binding *binding_a,
-		struct sway_binding *binding_b) {
+static bool binding_key_compare(struct wmiiv_binding *binding_a,
+		struct wmiiv_binding *binding_b) {
 	if (strcmp(binding_a->input, binding_b->input) != 0) {
 		return false;
 	}
@@ -208,18 +208,18 @@ static struct cmd_results *identify_key(const char* name, bool first_key,
 }
 
 static struct cmd_results *switch_binding_add(
-		struct sway_switch_binding *binding, const char *bindtype,
+		struct wmiiv_switch_binding *binding, const char *bindtype,
 		const char *switchcombo, bool warn) {
 	list_t *mode_bindings = config->current_mode->switch_bindings;
 	// overwrite the binding if it already exists
 	bool overwritten = false;
 	for (int i = 0; i < mode_bindings->length; ++i) {
-		struct sway_switch_binding *config_binding = mode_bindings->items[i];
+		struct wmiiv_switch_binding *config_binding = mode_bindings->items[i];
 		if (binding_switch_compare(binding, config_binding)) {
-			sway_log(SWAY_INFO, "Overwriting binding '%s' to `%s` from `%s`",
+			wmiiv_log(SWAY_INFO, "Overwriting binding '%s' to `%s` from `%s`",
 					switchcombo, binding->command, config_binding->command);
 			if (warn) {
-				config_add_swaynag_warning("Overwriting binding"
+				config_add_wmiivnag_warning("Overwriting binding"
 						"'%s' to `%s` from `%s`",
 						switchcombo, binding->command,
 						config_binding->command);
@@ -232,7 +232,7 @@ static struct cmd_results *switch_binding_add(
 
 	if (!overwritten) {
 		list_add(mode_bindings, binding);
-		sway_log(SWAY_DEBUG, "%s - Bound %s to command `%s`",
+		wmiiv_log(SWAY_DEBUG, "%s - Bound %s to command `%s`",
 				bindtype, switchcombo, binding->command);
 	}
 
@@ -240,16 +240,16 @@ static struct cmd_results *switch_binding_add(
 }
 
 static struct cmd_results *switch_binding_remove(
-		struct sway_switch_binding *binding, const char *bindtype,
+		struct wmiiv_switch_binding *binding, const char *bindtype,
 		const char *switchcombo) {
 	list_t *mode_bindings = config->current_mode->switch_bindings;
 	for (int i = 0; i < mode_bindings->length; ++i) {
-		struct sway_switch_binding *config_binding = mode_bindings->items[i];
+		struct wmiiv_switch_binding *config_binding = mode_bindings->items[i];
 		if (binding_switch_compare(binding, config_binding)) {
 			free_switch_binding(config_binding);
 			free_switch_binding(binding);
 			list_del(mode_bindings, i);
-			sway_log(SWAY_DEBUG, "%s - Unbound %s switch",
+			wmiiv_log(SWAY_DEBUG, "%s - Unbound %s switch",
 					bindtype, switchcombo);
 			return cmd_results_new(CMD_SUCCESS, NULL);
 		}
@@ -264,10 +264,10 @@ static struct cmd_results *switch_binding_remove(
  * Insert or update the binding.
  * Return the binding which has been replaced or NULL.
  */
-static struct sway_binding *binding_upsert(struct sway_binding *binding,
+static struct wmiiv_binding *binding_upsert(struct wmiiv_binding *binding,
 		list_t *mode_bindings) {
 	for (int i = 0; i < mode_bindings->length; ++i) {
-		struct sway_binding *config_binding = mode_bindings->items[i];
+		struct wmiiv_binding *config_binding = mode_bindings->items[i];
 		if (binding_key_compare(binding, config_binding)) {
 			mode_bindings->items[i] = binding;
 			return config_binding;
@@ -278,45 +278,45 @@ static struct sway_binding *binding_upsert(struct sway_binding *binding,
 	return NULL;
 }
 
-static struct cmd_results *binding_add(struct sway_binding *binding,
+static struct cmd_results *binding_add(struct wmiiv_binding *binding,
 		list_t *mode_bindings, const char *bindtype,
 		const char *keycombo, bool warn) {
-	struct sway_binding *config_binding = binding_upsert(binding, mode_bindings);
+	struct wmiiv_binding *config_binding = binding_upsert(binding, mode_bindings);
 
 	if (config_binding) {
-		sway_log(SWAY_INFO, "Overwriting binding '%s' for device '%s' "
+		wmiiv_log(SWAY_INFO, "Overwriting binding '%s' for device '%s' "
 				"to `%s` from `%s`", keycombo, binding->input,
 				binding->command, config_binding->command);
 		if (warn) {
-			config_add_swaynag_warning("Overwriting binding"
+			config_add_wmiivnag_warning("Overwriting binding"
 					"'%s' for device '%s' to `%s` from `%s`",
 					keycombo, binding->input, binding->command,
 					config_binding->command);
 		}
-		free_sway_binding(config_binding);
+		free_wmiiv_binding(config_binding);
 	} else {
-		sway_log(SWAY_DEBUG, "%s - Bound %s to command `%s` for device '%s'",
+		wmiiv_log(SWAY_DEBUG, "%s - Bound %s to command `%s` for device '%s'",
 				bindtype, keycombo, binding->command, binding->input);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *binding_remove(struct sway_binding *binding,
+static struct cmd_results *binding_remove(struct wmiiv_binding *binding,
 		list_t *mode_bindings, const char *bindtype,
 		const char *keycombo) {
 	for (int i = 0; i < mode_bindings->length; ++i) {
-		struct sway_binding *config_binding = mode_bindings->items[i];
+		struct wmiiv_binding *config_binding = mode_bindings->items[i];
 		if (binding_key_compare(binding, config_binding)) {
-			sway_log(SWAY_DEBUG, "%s - Unbound `%s` from device '%s'",
+			wmiiv_log(SWAY_DEBUG, "%s - Unbound `%s` from device '%s'",
 					bindtype, keycombo, binding->input);
-			free_sway_binding(config_binding);
-			free_sway_binding(binding);
+			free_wmiiv_binding(config_binding);
+			free_wmiiv_binding(binding);
 			list_del(mode_bindings, i);
 			return cmd_results_new(CMD_SUCCESS, NULL);
 		}
 	}
-	free_sway_binding(binding);
+	free_wmiiv_binding(binding);
 	return cmd_results_new(CMD_FAILURE, "Could not find binding `%s` "
 			"for the given flags", keycombo);
 }
@@ -337,7 +337,7 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 		return error;
 	}
 
-	struct sway_binding *binding = calloc(1, sizeof(struct sway_binding));
+	struct wmiiv_binding *binding = calloc(1, sizeof(struct wmiiv_binding));
 	if (!binding) {
 		return cmd_results_new(CMD_FAILURE, "Unable to allocate binding");
 	}
@@ -389,7 +389,7 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 	}
 
 	if (argc < minargs) {
-		free_sway_binding(binding);
+		free_wmiiv_binding(binding);
 		return cmd_results_new(CMD_FAILURE,
 			"Invalid %s command "
 			"(expected at least %d non-option arguments, got %d)",
@@ -401,7 +401,7 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 		// Check for group
 		if (strncmp(split->items[i], "Group", strlen("Group")) == 0) {
 			if (binding->group != XKB_LAYOUT_INVALID) {
-				free_sway_binding(binding);
+				free_wmiiv_binding(binding);
 				list_free_items_and_destroy(split);
 				return cmd_results_new(CMD_FAILURE,
 						"Only one group can be specified");
@@ -409,7 +409,7 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 			char *end;
 			int group = strtol(split->items[i] + strlen("Group"), &end, 10);
 			if (group < 1 || group > 4 || end[0] != '\0') {
-				free_sway_binding(binding);
+				free_wmiiv_binding(binding);
 				list_free_items_and_destroy(split);
 				return cmd_results_new(CMD_FAILURE, "Invalid group");
 			}
@@ -418,7 +418,7 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 		} else if (strcmp(split->items[i], "Mode_switch") == 0) {
 			// For full i3 compatibility, Mode_switch is an alias for Group2
 			if (binding->group != XKB_LAYOUT_INVALID) {
-				free_sway_binding(binding);
+				free_wmiiv_binding(binding);
 				list_free_items_and_destroy(split);
 				return cmd_results_new(CMD_FAILURE,
 						"Only one group can be specified");
@@ -438,14 +438,14 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 		error = identify_key(split->items[i], binding->keys->length == 0,
 				     &key_val, &binding->type);
 		if (error) {
-			free_sway_binding(binding);
+			free_wmiiv_binding(binding);
 			list_free(split);
 			return error;
 		}
 
 		uint32_t *key = calloc(1, sizeof(uint32_t));
 		if (!key) {
-			free_sway_binding(binding);
+			free_wmiiv_binding(binding);
 			list_free_items_and_destroy(split);
 			return cmd_results_new(CMD_FAILURE,
 					"Unable to allocate binding key");
@@ -469,7 +469,7 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 
 	// translate keysyms into keycodes
 	if (!translate_binding(binding)) {
-		sway_log(SWAY_INFO,
+		wmiiv_log(SWAY_INFO,
 				"Unable to translate bindsym into bindcode: %s", argv[0]);
 	}
 
@@ -504,7 +504,7 @@ struct cmd_results *cmd_bind_or_unbind_switch(int argc, char **argv,
 	if ((error = checkarg(argc, bindtype, EXPECTED_AT_LEAST, minargs))) {
 		return error;
 	}
-	struct sway_switch_binding *binding = calloc(1, sizeof(struct sway_switch_binding));
+	struct wmiiv_switch_binding *binding = calloc(1, sizeof(struct wmiiv_switch_binding));
 	if (!binding) {
 		return cmd_results_new(CMD_FAILURE, "Unable to allocate binding");
 	}
@@ -599,32 +599,32 @@ struct cmd_results *cmd_unbindswitch(int argc, char **argv) {
 /**
  * Execute the command associated to a binding
  */
-void seat_execute_command(struct sway_seat *seat, struct sway_binding *binding) {
+void seat_execute_command(struct wmiiv_seat *seat, struct wmiiv_binding *binding) {
 	if (!config->active) {
-		sway_log(SWAY_DEBUG, "deferring command for binding: %s",
+		wmiiv_log(SWAY_DEBUG, "deferring command for binding: %s",
 				binding->command);
-		struct sway_binding *deferred = calloc(1, sizeof(struct sway_binding));
+		struct wmiiv_binding *deferred = calloc(1, sizeof(struct wmiiv_binding));
 		if (!deferred) {
-			sway_log(SWAY_ERROR, "Failed to allocate deferred binding");
+			wmiiv_log(SWAY_ERROR, "Failed to allocate deferred binding");
 			return;
 		}
-		memcpy(deferred, binding, sizeof(struct sway_binding));
+		memcpy(deferred, binding, sizeof(struct wmiiv_binding));
 		deferred->command = binding->command ? strdup(binding->command) : NULL;
 		list_add(seat->deferred_bindings, deferred);
 		return;
 	}
 
-	sway_log(SWAY_DEBUG, "running command for binding: %s", binding->command);
-	struct sway_container *con = NULL;
+	wmiiv_log(SWAY_DEBUG, "running command for binding: %s", binding->command);
+	struct wmiiv_container *con = NULL;
 	if (binding->type == BINDING_MOUSESYM
 			|| binding->type == BINDING_MOUSECODE) {
 		struct wlr_surface *surface = NULL;
 		double sx, sy;
-		struct sway_node *node = node_at_coords(seat,
+		struct wmiiv_node *node = node_at_coords(seat,
 				seat->cursor->cursor->x, seat->cursor->cursor->y,
 				&surface, &sx, &sy);
 		if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
-			con = node->sway_container;
+			con = node->wmiiv_container;
 		}
 	}
 
@@ -633,7 +633,7 @@ void seat_execute_command(struct sway_seat *seat, struct sway_binding *binding) 
 	for (int i = 0; i < res_list->length; ++i) {
 		struct cmd_results *results = res_list->items[i];
 		if (results->status != CMD_SUCCESS) {
-			sway_log(SWAY_DEBUG, "could not run command for binding: %s (%s)",
+			wmiiv_log(SWAY_DEBUG, "could not run command for binding: %s (%s)",
 				binding->command, results->error);
 			success = false;
 		}
@@ -693,7 +693,7 @@ static struct keycode_matches get_keycode_for_keysym(xkb_keysym_t keysym) {
 	return matches;
 }
 
-bool translate_binding(struct sway_binding *binding) {
+bool translate_binding(struct wmiiv_binding *binding) {
 	if ((binding->flags & BINDING_CODE) == 0) {
 		return true;
 	}
@@ -718,7 +718,7 @@ bool translate_binding(struct sway_binding *binding) {
 		struct keycode_matches matches = get_keycode_for_keysym(*keysym);
 
 		if (matches.count != 1) {
-			sway_log(SWAY_INFO, "Unable to convert keysym %" PRIu32 " into"
+			wmiiv_log(SWAY_INFO, "Unable to convert keysym %" PRIu32 " into"
 					" a single keycode (found %d matches)",
 					*keysym, matches.count);
 			goto error;
@@ -726,7 +726,7 @@ bool translate_binding(struct sway_binding *binding) {
 
 		xkb_keycode_t *keycode = malloc(sizeof(xkb_keycode_t));
 		if (!keycode) {
-			sway_log(SWAY_ERROR, "Unable to allocate memory for a keycode");
+			wmiiv_log(SWAY_ERROR, "Unable to allocate memory for a keycode");
 			goto error;
 		}
 
@@ -746,15 +746,15 @@ error:
 	return false;
 }
 
-void binding_add_translated(struct sway_binding *binding,
+void binding_add_translated(struct wmiiv_binding *binding,
 		list_t *mode_bindings) {
-	struct sway_binding *config_binding =
+	struct wmiiv_binding *config_binding =
 		binding_upsert(binding, mode_bindings);
 
 	if (config_binding) {
-		sway_log(SWAY_INFO, "Overwriting binding for device '%s' "
+		wmiiv_log(SWAY_INFO, "Overwriting binding for device '%s' "
 				"to `%s` from `%s`", binding->input,
 				binding->command, config_binding->command);
-		free_sway_binding(config_binding);
+		free_wmiiv_binding(config_binding);
 	}
 }

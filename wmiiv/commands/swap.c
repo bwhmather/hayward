@@ -2,20 +2,20 @@
 #include <strings.h>
 #include "config.h"
 #include "log.h"
-#include "sway/commands.h"
-#include "sway/output.h"
-#include "sway/tree/arrange.h"
-#include "sway/tree/root.h"
-#include "sway/tree/view.h"
-#include "sway/tree/workspace.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/output.h"
+#include "wmiiv/tree/arrange.h"
+#include "wmiiv/tree/root.h"
+#include "wmiiv/tree/view.h"
+#include "wmiiv/tree/workspace.h"
 #include "stringop.h"
 
 static const char expected_syntax[] =
 	"Expected 'swap container with id|con_id|mark <arg>'";
 
-static void swap_places(struct sway_container *win1,
-		struct sway_container *win2) {
-	struct sway_container *temp = malloc(sizeof(struct sway_container));
+static void swap_places(struct wmiiv_container *win1,
+		struct wmiiv_container *win2) {
+	struct wmiiv_container *temp = malloc(sizeof(struct wmiiv_container));
 	temp->pending.x = win1->pending.x;
 	temp->pending.y = win1->pending.y;
 	temp->pending.width = win1->pending.width;
@@ -61,14 +61,14 @@ static void swap_places(struct sway_container *win1,
 	free(temp);
 }
 
-static void swap_focus(struct sway_container *win1,
-		struct sway_container *win2, struct sway_seat *seat,
-		struct sway_container *focus) {
+static void swap_focus(struct wmiiv_container *win1,
+		struct wmiiv_container *win2, struct wmiiv_seat *seat,
+		struct wmiiv_container *focus) {
 	if (focus == win1 || focus == win2) {
-		struct sway_workspace *ws1 = win1->pending.workspace;
-		struct sway_workspace *ws2 = win2->pending.workspace;
-		enum sway_container_layout layout1 = container_parent_layout(win1);
-		enum sway_container_layout layout2 = container_parent_layout(win2);
+		struct wmiiv_workspace *ws1 = win1->pending.workspace;
+		struct wmiiv_workspace *ws2 = win2->pending.workspace;
+		enum wmiiv_container_layout layout1 = container_parent_layout(win1);
+		enum wmiiv_container_layout layout2 = container_parent_layout(win2);
 		if (focus == win1 && (layout2 == L_TABBED || layout2 == L_STACKED)) {
 			if (workspace_is_visible(ws2)) {
 				seat_set_raw_focus(seat, &win2->node);
@@ -95,36 +95,36 @@ static void swap_focus(struct sway_container *win1,
 	}
 }
 
-void container_swap(struct sway_container *win1, struct sway_container *win2) {
-	if (!sway_assert(win1 && win2, "Cannot swap with nothing")) {
+void container_swap(struct wmiiv_container *win1, struct wmiiv_container *win2) {
+	if (!wmiiv_assert(win1 && win2, "Cannot swap with nothing")) {
 		return;
 	}
-	if (!sway_assert(container_is_window(win1), "Can only swap windows")) {
+	if (!wmiiv_assert(container_is_window(win1), "Can only swap windows")) {
 		return;
 	}
-	if (!sway_assert(container_is_window(win1), "Can only swap windows")) {
+	if (!wmiiv_assert(container_is_window(win1), "Can only swap windows")) {
 		return;
 	}
 
-	sway_log(SWAY_DEBUG, "Swapping containers %zu and %zu",
+	wmiiv_log(SWAY_DEBUG, "Swapping containers %zu and %zu",
 			win1->node.id, win2->node.id);
 
-	enum sway_fullscreen_mode fs1 = win1->pending.fullscreen_mode;
+	enum wmiiv_fullscreen_mode fs1 = win1->pending.fullscreen_mode;
 	if (fs1) {
 		container_fullscreen_disable(win1);
 	}
-	enum sway_fullscreen_mode fs2 = win2->pending.fullscreen_mode;
+	enum wmiiv_fullscreen_mode fs2 = win2->pending.fullscreen_mode;
 	if (fs2) {
 		container_fullscreen_disable(win2);
 	}
 
-	struct sway_seat *seat = config->handler_context.seat;
-	struct sway_container *focus = seat_get_focused_container(seat);
-	struct sway_workspace *vis1 =
+	struct wmiiv_seat *seat = config->handler_context.seat;
+	struct wmiiv_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_workspace *vis1 =
 		output_get_active_workspace(win1->pending.workspace->output);
-	struct sway_workspace *vis2 =
+	struct wmiiv_workspace *vis2 =
 		output_get_active_workspace(win2->pending.workspace->output);
-	if (!sway_assert(vis1 && vis2, "win1 or win2 are on an output without a"
+	if (!wmiiv_assert(vis1 && vis2, "win1 or win2 are on an output without a"
 				"workspace. This should not happen")) {
 		return;
 	}
@@ -158,20 +158,20 @@ void container_swap(struct sway_container *win1, struct sway_container *win2) {
 	}
 }
 
-static bool test_con_id(struct sway_container *container, void *data) {
+static bool test_con_id(struct wmiiv_container *container, void *data) {
 	size_t *con_id = data;
 	return container->node.id == *con_id;
 }
 
 #if HAVE_XWAYLAND
-static bool test_id(struct sway_container *container, void *data) {
+static bool test_id(struct wmiiv_container *container, void *data) {
 	xcb_window_t *wid = data;
 	return (container->view && container->view->type == SWAY_VIEW_XWAYLAND
 			&& container->view->wlr_xwayland_surface->window_id == *wid);
 }
 #endif
 
-static bool test_mark(struct sway_container *container, void *mark) {
+static bool test_mark(struct wmiiv_container *container, void *mark) {
 	if (container->marks->length) {
 		return list_seq_find(container->marks,
 				(int (*)(const void *, const void *))strcmp, mark) != -1;
@@ -193,8 +193,8 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	struct sway_container *current = config->handler_context.window;
-	struct sway_container *other = NULL;
+	struct wmiiv_container *current = config->handler_context.window;
+	struct wmiiv_container *other = NULL;
 
 	char *value = join_args(argv + 3, argc - 3);
 	if (strcasecmp(argv[2], "id") == 0) {
@@ -239,8 +239,8 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 	if (root->fullscreen_global) {
 		arrange_root();
 	} else {
-		struct sway_node *current_parent = node_get_parent(&current->node);
-		struct sway_node *other_parent = node_get_parent(&other->node);
+		struct wmiiv_node *current_parent = node_get_parent(&current->node);
+		struct wmiiv_node *other_parent = node_get_parent(&other->node);
 		if (current_parent) {
 			arrange_node(current_parent);
 		}

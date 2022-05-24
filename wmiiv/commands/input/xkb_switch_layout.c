@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <wlr/interfaces/wlr_keyboard.h>
-#include "sway/config.h"
-#include "sway/commands.h"
-#include "sway/input/input-manager.h"
+#include "wmiiv/config.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/input/input-manager.h"
 #include "log.h"
 
 struct xkb_switch_layout_action {
@@ -84,7 +84,7 @@ struct cmd_results *input_cmd_xkb_switch_layout(int argc, char **argv) {
 	/* Calculate new indexes first because switching a layout in one
 	   keyboard may result in a change on other keyboards as well because
 	   of keyboard groups. */
-	struct sway_input_device *dev;
+	struct wmiiv_input_device *dev;
 	wl_list_for_each(dev, &server.input->devices, link) {
 		if (strcmp(ic->identifier, "*") != 0 &&
 				strcmp(ic->identifier, "type:keyboard") != 0 &&

@@ -1,8 +1,8 @@
 #include <string.h>
 #include <strings.h>
-#include "sway/commands.h"
-#include "sway/config.h"
-#include "sway/input/input-manager.h"
+#include "wmiiv/commands.h"
+#include "wmiiv/config.h"
+#include "wmiiv/input/input-manager.h"
 #include "log.h"
 
 struct cmd_results *input_cmd_click_method(int argc, char **argv) {
