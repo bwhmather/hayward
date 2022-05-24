@@ -427,7 +427,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 		// we only recenter the surface.
 		desktop_damage_view(view);
 		memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
-		if (container_is_floating(view->container)) {
+		if (window_is_floating(view->container)) {
 			view_update_size(view);
 			transaction_commit_dirty_client();
 		} else {
@@ -539,7 +539,7 @@ static void handle_request_configure(struct wl_listener *listener, void *data) {
 			ev->width, ev->height);
 		return;
 	}
-	if (container_is_floating(view->container)) {
+	if (window_is_floating(view->container)) {
 		// Respect minimum and maximum sizes
 		view->natural_width = ev->width;
 		view->natural_height = ev->height;
@@ -595,7 +595,7 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
 	if (!xsurface->mapped) {
 		return;
 	}
-	if (!container_is_floating(view->container) ||
+	if (!window_is_floating(view->container) ||
 			view->container->pending.fullscreen_mode) {
 		return;
 	}
@@ -611,7 +611,7 @@ static void handle_request_resize(struct wl_listener *listener, void *data) {
 	if (!xsurface->mapped) {
 		return;
 	}
-	if (!container_is_floating(view->container)) {
+	if (!window_is_floating(view->container)) {
 		return;
 	}
 	struct wlr_xwayland_resize_event *e = data;
