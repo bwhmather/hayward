@@ -358,7 +358,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	} else if (strcmp(argv[0], "tiling") == 0) {
 		return focus_mode(workspace, seat, false);
 	} else if (strcmp(argv[0], "mode_toggle") == 0) {
-		bool floating = win && container_is_floating_or_child(win);
+		bool floating = win && window_is_floating(win);
 		return focus_mode(workspace, seat, !floating);
 	}
 
@@ -399,7 +399,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "");
 	}
 	struct sway_node *next_focus = NULL;
-	if (container_is_floating(win) &&
+	if (window_is_floating(win) &&
 			win->pending.fullscreen_mode == FULLSCREEN_NONE) {
 		next_focus = node_get_in_direction_floating(win, seat, direction);
 	} else {

@@ -125,13 +125,15 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 	struct sway_workspace *workspace = config->handler_context.workspace;
 
 	if (!window) {
-		// TODO (wmiiv) assertion failure.
-		return cmd_results_new(CMD_FAILURE, "No window selected");
+		return cmd_results_new(CMD_INVALID, "No window selected");
 	}
 
 	if (!container_is_window(window)) {
-		// TODO (wmiiv) assertion failure.
 		return cmd_results_new(CMD_FAILURE, "Can only run this command on a window");
+	}
+
+	if (window_is_floating(window)) {
+		return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating containers");
 	}
 
 	struct sway_container *column = window->pending.parent;
@@ -139,10 +141,6 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
 	}
 
-	if (container_is_floating(column)) {
-		// TODO (wmiiv) assertion failure.
-		return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating containers");
-	}
 
 	enum sway_container_layout new_layout = L_NONE;
 	enum sway_container_layout old_layout = L_NONE;

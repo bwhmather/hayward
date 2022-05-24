@@ -203,12 +203,7 @@ static void apply_stacked_layout(list_t *children, struct wlr_box *parent) {
 static void arrange_floating(list_t *floating) {
 	for (int i = 0; i < floating->length; ++i) {
 		struct sway_container *floater = floating->items[i];
-		if (container_is_column(floater)) {
-			// TODO (wmiiv) only windows should float.
-			arrange_column(floater);
-		} else {
-			arrange_window(floater);
-		}
+		arrange_window(floater);
 	}
 }
 

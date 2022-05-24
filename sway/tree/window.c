@@ -257,12 +257,35 @@ void window_update_marks_textures(struct sway_container *con) {
 	container_damage_whole(con);
 }
 
+bool window_is_floating(struct sway_container *win) {
+	if (!sway_assert(container_is_window(win), "Only windows can float")) {
+		return false;
+	}
+
+	if (!win->pending.parent && win->pending.workspace &&
+			list_find(win->pending.workspace->floating, win) != -1) {
+		return true;
+	}
+	return false;
+}
+
+bool window_is_current_floating(struct sway_container *win) {
+	if (!sway_assert(container_is_window(win), "Only windows can float")) {
+		return false;
+	}
+	if (!win->current.parent && win->current.workspace &&
+			list_find(win->current.workspace->floating, win) != -1) {
+		return true;
+	}
+	return false;
+}
+
 void window_set_floating(struct sway_container *win, bool enable) {
 	if (!sway_assert(container_is_window(win), "Can only float windows")) {
 		return;
 	}
 
-	if (container_is_floating(win) == enable) {
+	if (window_is_floating(win) == enable) {
 		return;
 	}
 
@@ -331,6 +354,14 @@ void window_set_floating(struct sway_container *win, bool enable) {
 	container_end_mouse_operation(win);
 
 	ipc_event_window(win, "floating");
+}
+
+bool window_is_fullscreen(struct sway_container* win) {
+	if (!sway_assert(container_is_window(win), "Only windows can be fullscreen")) {
+		return false;
+	}
+
+	return win->pending.fullscreen_mode;
 }
 
 /**
@@ -426,7 +457,7 @@ static void window_move_to_workspace_from_maybe_direction(
 
 	// TODO (wmiiv) fullscreen.
 
-	if (container_is_floating(win)) {
+	if (window_is_floating(win)) {
 		struct sway_output *old_output = win->pending.workspace->output;
 		container_detach(win);
 		workspace_add_floating(ws, win);

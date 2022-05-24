@@ -31,7 +31,7 @@ static void xdg_decoration_handle_request_mode(struct wl_listener *listener,
 
 	bool floating;
 	if (view->container) {
-		floating = container_is_floating(view->container);
+		floating = window_is_floating(view->container);
 		bool csd = false;
 		csd = client_mode ==
 			WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;

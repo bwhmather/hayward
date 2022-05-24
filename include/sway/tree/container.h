@@ -195,19 +195,6 @@ void container_set_resizing(struct sway_container *con, bool resizing);
 void container_set_geometry_from_content(struct sway_container *con);
 
 /**
- * Determine if the given container is itself floating.
- * This will return false for any descendants of a floating container.
- *
- * Uses pending container state.
- */
-bool container_is_floating(struct sway_container *container);
-
-/**
- * Same as above, but for current container state.
- */
-bool container_is_current_floating(struct sway_container *container);
-
-/**
  * Get a container's box in layout coordinates.
  */
 void container_get_box(struct sway_container *container, struct wlr_box *box);
@@ -256,18 +243,6 @@ void container_fullscreen_disable(struct sway_container *con);
  */
 struct sway_container *container_toplevel_ancestor(
 		struct sway_container *container);
-
-/**
- * Return true if the container is floating, or a child of a floating split
- * container.
- */
-bool container_is_floating_or_child(struct sway_container *container);
-
-/**
- * Return true if the container is fullscreen, or a child of a fullscreen split
- * container.
- */
-bool container_is_fullscreen_or_child(struct sway_container *container);
 
 /**
  * Return the output which will be used for scale purposes.

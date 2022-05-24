@@ -26,7 +26,7 @@ struct cmd_results *cmd_floating(int argc, char **argv) {
 	}
 
 	bool wants_floating =
-		parse_boolean(argv[0], container_is_floating(win));
+		parse_boolean(argv[0], window_is_floating(win));
 
 	window_set_floating(win, wants_floating);
 

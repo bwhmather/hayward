@@ -117,8 +117,7 @@ static bool window_move_in_direction(struct sway_container *win,
 		return false;
 	}
 
-
-	if (container_is_floating(win)) {
+	if (window_is_floating(win)) {
 		return false;
 	}
 
@@ -522,7 +521,7 @@ static struct cmd_results *cmd_move_in_direction(
 		return cmd_results_new(CMD_FAILURE,
 				"Cannot move workspaces in a direction");
 	}
-	if (container_is_floating(win)) {
+	if (window_is_floating(win)) {
 		if (win->pending.fullscreen_mode) {
 			return cmd_results_new(CMD_FAILURE,
 					"Cannot move fullscreen floating win");
@@ -627,8 +626,8 @@ static const char expected_position_syntax[] =
 	"'move position cursor|mouse|pointer'";
 
 static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
-	struct sway_container *container = config->handler_context.container;
-	if (!container || !container_is_floating(container)) {
+	struct sway_container *win = config->handler_context.window;
+	if (!win || !window_is_floating(win)) {
 		return cmd_results_new(CMD_FAILURE, "Only floating containers "
 				"can be moved to an absolute position");
 	}
@@ -658,22 +657,22 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		if (absolute) {
 			return cmd_results_new(CMD_INVALID, expected_position_syntax);
 		}
-		return cmd_move_to_position_pointer(container);
+		return cmd_move_to_position_pointer(win);
 	} else if (strcmp(argv[0], "center") == 0) {
 		double lx, ly;
 		if (absolute) {
-			lx = root->x + (root->width - container->pending.width) / 2;
-			ly = root->y + (root->height - container->pending.height) / 2;
+			lx = root->x + (root->width - win->pending.width) / 2;
+			ly = root->y + (root->height - win->pending.height) / 2;
 		} else {
-			struct sway_workspace *ws = container->pending.workspace;
+			struct sway_workspace *ws = win->pending.workspace;
 			if (!ws) {
 				struct sway_seat *seat = config->handler_context.seat;
 				ws = seat_get_focused_workspace(seat);
 			}
-			lx = ws->x + (ws->width - container->pending.width) / 2;
-			ly = ws->y + (ws->height - container->pending.height) / 2;
+			lx = ws->x + (ws->width - win->pending.width) / 2;
+			ly = ws->y + (ws->height - win->pending.height) / 2;
 		}
-		container_floating_move_to(container, lx, ly);
+		container_floating_move_to(win, lx, ly);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
@@ -706,7 +705,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, "Invalid y position specified");
 	}
 
-	struct sway_workspace *ws = container->pending.workspace;
+	struct sway_workspace *ws = win->pending.workspace;
 	if (!ws) {
 		struct sway_seat *seat = config->handler_context.seat;
 		ws = seat_get_focused_workspace(seat);
@@ -751,7 +750,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		lx.amount += ws->x;
 		ly.amount += ws->y;
 	}
-	container_floating_move_to(container, lx.amount, ly.amount);
+	container_floating_move_to(win, lx.amount, ly.amount);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 

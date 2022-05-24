@@ -286,7 +286,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 		// we only recenter the surface.
 		desktop_damage_view(view);
 		memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
-		if (container_is_floating(view->container)) {
+		if (window_is_floating(view->container)) {
 			view_update_size(view);
 			transaction_commit_dirty_client();
 		} else {
@@ -335,21 +335,21 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 		return;
 	}
 
-	struct sway_container *container = view->container;
+	struct sway_container *win = view->container;
 	struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 	if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
 		struct sway_output *output = req->fullscreen_output->data;
 		struct sway_workspace *ws = output_get_active_workspace(output);
-		if (ws && container->pending.workspace != ws) {
-			if (container_is_floating(container)) {
-				workspace_add_floating(ws, container);
+		if (ws && win->pending.workspace != ws) {
+			if (window_is_floating(win)) {
+				workspace_add_floating(ws, win);
 			} else {
-				container = workspace_add_tiling(ws, container);
+				workspace_add_tiling(ws, win);
 			}
 		}
 	}
 
-	container_set_fullscreen(container, req->fullscreen);
+	container_set_fullscreen(win, req->fullscreen);
 
 	arrange_root();
 	transaction_commit_dirty();
@@ -359,7 +359,7 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
 	struct sway_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, request_move);
 	struct sway_view *view = &xdg_shell_view->view;
-	if (!container_is_floating(view->container) ||
+	if (!window_is_floating(view->container) ||
 			view->container->pending.fullscreen_mode) {
 		return;
 	}
@@ -374,7 +374,7 @@ static void handle_request_resize(struct wl_listener *listener, void *data) {
 	struct sway_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, request_resize);
 	struct sway_view *view = &xdg_shell_view->view;
-	if (!container_is_floating(view->container)) {
+	if (!window_is_floating(view->container)) {
 		return;
 	}
 	struct wlr_xdg_toplevel_resize_event *e = data;

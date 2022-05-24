@@ -260,7 +260,7 @@ static void render_view_toplevels(struct sway_view *view,
 		.alpha = alpha,
 	};
 	struct wlr_box clip_box;
-	if (!container_is_current_floating(view->container)) {
+	if (!window_is_current_floating(view->container)) {
 		// As we pass the geometry offsets to the surface iterator, we will
 		// need to account for the offsets in the clip dimensions.
 		clip_box.width = view->container->current.content_width + view->geometry.x;
@@ -294,7 +294,7 @@ static void render_saved_view(struct sway_view *view,
 		return;
 	}
 
-	bool floating = container_is_current_floating(view->container);
+	bool floating = window_is_current_floating(view->container);
 
 	struct sway_saved_buffer *saved_buf;
 	wl_list_for_each(saved_buf, &view->saved_buffers, link) {
@@ -351,26 +351,26 @@ static void render_saved_view(struct sway_view *view,
  * Render a view's surface and left/bottom/right borders.
  */
 static void render_view(struct sway_output *output, pixman_region32_t *damage,
-		struct sway_container *con, struct border_colors *colors) {
-	struct sway_view *view = con->view;
+		struct sway_container *win, struct border_colors *colors) {
+	struct sway_view *view = win->view;
 	if (!wl_list_empty(&view->saved_buffers)) {
 		render_saved_view(view, output, damage, view->container->alpha);
 	} else if (view->surface) {
 		render_view_toplevels(view, output, damage, view->container->alpha);
 	}
 
-	if (con->current.border == B_NONE || con->current.border == B_CSD) {
+	if (win->current.border == B_NONE || win->current.border == B_CSD) {
 		return;
 	}
 
 	struct wlr_box box;
 	float output_scale = output->wlr_output->scale;
 	float color[4];
-	struct sway_container_state *state = &con->current;
+	struct sway_container_state *state = &win->current;
 
 	if (state->border_left) {
 		memcpy(&color, colors->child_border, sizeof(float) * 4);
-		premultiply_alpha(color, con->alpha);
+		premultiply_alpha(color, win->alpha);
 		box.x = floor(state->x);
 		box.y = floor(state->content_y);
 		box.width = state->border_thickness;
@@ -379,17 +379,13 @@ static void render_view(struct sway_output *output, pixman_region32_t *damage,
 		render_rect(output, damage, &box, color);
 	}
 
-	list_t *siblings = container_get_current_siblings(con);
+	list_t *siblings = container_get_current_siblings(win);
 	enum sway_container_layout layout =
-		container_current_parent_layout(con);
+		container_current_parent_layout(win);
 
 	if (state->border_right) {
-		if (!container_is_current_floating(con) && siblings->length == 1 && layout == L_HORIZ) {
-			memcpy(&color, colors->indicator, sizeof(float) * 4);
-		} else {
-			memcpy(&color, colors->child_border, sizeof(float) * 4);
-		}
-		premultiply_alpha(color, con->alpha);
+		memcpy(&color, colors->child_border, sizeof(float) * 4);
+		premultiply_alpha(color, win->alpha);
 		box.x = floor(state->content_x + state->content_width);
 		box.y = floor(state->content_y);
 		box.width = state->border_thickness;
@@ -399,12 +395,12 @@ static void render_view(struct sway_output *output, pixman_region32_t *damage,
 	}
 
 	if (state->border_bottom) {
-		if (!container_is_current_floating(con) && siblings->length == 1 && layout == L_VERT) {
+		if (!window_is_current_floating(win) && siblings->length == 1 && layout == L_VERT) {
 			memcpy(&color, colors->indicator, sizeof(float) * 4);
 		} else {
 			memcpy(&color, colors->child_border, sizeof(float) * 4);
 		}
-		premultiply_alpha(color, con->alpha);
+		premultiply_alpha(color, win->alpha);
 		box.x = floor(state->x);
 		box.y = floor(state->content_y + state->content_height);
 		box.width = state->width;

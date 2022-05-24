@@ -102,7 +102,7 @@ static enum wlr_edges find_edge(struct sway_container *cont,
 enum wlr_edges find_resize_edge(struct sway_container *cont,
 		struct wlr_surface *surface, struct sway_cursor *cursor) {
 	enum wlr_edges edge = find_edge(cont, surface, cursor);
-	if (edge && !container_is_floating(cont) && edge_is_external(cont, edge)) {
+	if (edge && (!container_is_window(cont) || !window_is_floating(cont)) && edge_is_external(cont, edge)) {
 		return WLR_EDGE_NONE;
 	}
 	return edge;
@@ -234,8 +234,8 @@ static void handle_tablet_tool_tip(struct sway_seat *seat,
 			transaction_commit_dirty();
 		}
 	} else if (win) {
-		bool is_floating_or_child = container_is_floating_or_child(win);
-		bool is_fullscreen_or_child = container_is_fullscreen_or_child(win);
+		bool is_floating_or_child = window_is_floating(win);
+		bool is_fullscreen_or_child = window_is_fullscreen(win);
 		struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
 		bool mod_pressed = keyboard &&
 			(wlr_keyboard_get_modifiers(keyboard) & config->floating_mod);
@@ -332,8 +332,8 @@ static void handle_button(struct sway_seat *seat, uint32_t time_msec,
 			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
 
 	struct sway_container *win = node && node->type == N_WINDOW ? node->sway_container : NULL;
-	bool is_floating = win && container_is_floating(win);
-	bool is_fullscreen = win && container_is_fullscreen_or_child(win);
+	bool is_floating = win && window_is_floating(win);
+	bool is_fullscreen = win && window_is_fullscreen(win);
 	enum wlr_edges edge = win ? find_edge(win, surface, cursor) : WLR_EDGE_NONE;
 	enum wlr_edges resize_edge = win && edge ?
 		find_resize_edge(win, surface, cursor) : WLR_EDGE_NONE;

@@ -325,8 +325,12 @@ static struct cmd_results *resize_set_tiled(struct sway_container *con,
 /**
  * Implement `resize set` for a floating container.
  */
-static struct cmd_results *resize_set_floating(struct sway_container *con,
+static struct cmd_results *resize_set_floating(struct sway_container *win,
 		struct movement_amount *width, struct movement_amount *height) {
+	if (!sway_assert(container_is_window(win), "Not a window")) {
+		return cmd_results_new(CMD_FAILURE, NULL);
+	}
+
 	int min_width, max_width, min_height, max_height, grow_width = 0, grow_height = 0;
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);
@@ -335,15 +339,15 @@ static struct cmd_results *resize_set_floating(struct sway_container *con,
 		switch (width->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			width->amount = con->pending.workspace->width * width->amount / 100;
+			width->amount = win->pending.workspace->width * width->amount / 100;
 			width->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
 		case MOVEMENT_UNIT_DEFAULT:
 			width->amount = fmax(min_width, fmin(width->amount, max_width));
-			grow_width = width->amount - con->pending.width;
-			con->pending.x -= grow_width / 2;
-			con->pending.width = width->amount;
+			grow_width = width->amount - win->pending.width;
+			win->pending.x -= grow_width / 2;
+			win->pending.width = width->amount;
 			break;
 		case MOVEMENT_UNIT_INVALID:
 			sway_assert(false, "invalid width unit");
@@ -355,15 +359,15 @@ static struct cmd_results *resize_set_floating(struct sway_container *con,
 		switch (height->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			height->amount = con->pending.workspace->height * height->amount / 100;
+			height->amount = win->pending.workspace->height * height->amount / 100;
 			height->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
 		case MOVEMENT_UNIT_DEFAULT:
 			height->amount = fmax(min_height, fmin(height->amount, max_height));
-			grow_height = height->amount - con->pending.height;
-			con->pending.y -= grow_height / 2;
-			con->pending.height = height->amount;
+			grow_height = height->amount - win->pending.height;
+			win->pending.y -= grow_height / 2;
+			win->pending.height = height->amount;
 			break;
 		case MOVEMENT_UNIT_INVALID:
 			sway_assert(false, "invalid height unit");
@@ -371,12 +375,12 @@ static struct cmd_results *resize_set_floating(struct sway_container *con,
 		}
 	}
 
-	con->pending.content_x -= grow_width / 2;
-	con->pending.content_y -= grow_height / 2;
-	con->pending.content_width += grow_width;
-	con->pending.content_height += grow_height;
+	win->pending.content_x -= grow_width / 2;
+	win->pending.content_y -= grow_height / 2;
+	win->pending.content_width += grow_width;
+	win->pending.content_height += grow_height;
 
-	arrange_window(con);
+	arrange_window(win);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -435,7 +439,7 @@ static struct cmd_results *cmd_resize_set(int argc, char **argv) {
 		height.amount = con->pending.height;
 	}
 
-	if (container_is_floating(con)) {
+	if (container_is_window(con) && window_is_floating(con)) {
 		return resize_set_floating(con, &width, &height);
 	}
 	return resize_set_tiled(con, &width, &height);
@@ -498,8 +502,8 @@ static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
 	first_amount.amount *= multiplier;
 	second_amount.amount *= multiplier;
 
-	struct sway_container *con = config->handler_context.container;
-	if (container_is_floating(con)) {
+	struct sway_container *win = config->handler_context.window;
+	if (win && window_is_floating(win)) {
 		// Floating containers can only resize in px. Choose an amount which
 		// uses px, with fallback to an amount that specified no unit.
 		if (first_amount.unit == MOVEMENT_UNIT_PX) {
@@ -512,7 +516,7 @@ static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
 			return resize_adjust_floating(axis, &second_amount);
 		} else {
 			return cmd_results_new(CMD_INVALID,
-					"Floating containers cannot use ppt measurements");
+					"Floating windows cannot use ppt measurements");
 		}
 	}
 

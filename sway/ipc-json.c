@@ -410,39 +410,55 @@ static void ipc_json_describe_workspace(struct sway_workspace *workspace,
 	json_object_object_add(object, "floating_nodes", floating_array);
 }
 
-static void get_deco_rect(struct sway_container *c, struct wlr_box *deco_rect) {
-	enum sway_container_layout parent_layout = container_parent_layout(c);
-	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
-	if (((!tab_or_stack || container_is_floating(c)) &&
-				c->current.border != B_NORMAL) ||
-			c->pending.fullscreen_mode != FULLSCREEN_NONE ||
-			c->pending.workspace == NULL) {
+
+static void column_get_deco_rect(struct sway_container *col, struct wlr_box *deco_rect) {
+	// TODO it's unclear whether columns should actually ever have a decoration rectangle.
+	if (col->pending.workspace == NULL) {
 		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
 		return;
 	}
 
-	if (c->pending.parent) {
-		deco_rect->x = c->pending.x - c->pending.parent->pending.x;
-		deco_rect->y = c->pending.y - c->pending.parent->pending.y;
-	} else {
-		deco_rect->x = c->pending.x - c->pending.workspace->x;
-		deco_rect->y = c->pending.y - c->pending.workspace->y;
+	deco_rect->x = col->pending.x - col->pending.workspace->x;
+	deco_rect->y = col->pending.y - col->pending.workspace->y;
+
+	deco_rect->width = col->pending.width;
+	deco_rect->height = container_titlebar_height();
+}
+
+static void window_get_deco_rect(struct sway_container *win, struct wlr_box *deco_rect) {
+	enum sway_container_layout parent_layout = container_parent_layout(win);
+	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
+
+	if (((!tab_or_stack || window_is_floating(win)) &&
+				win->current.border != B_NORMAL) ||
+			win->pending.fullscreen_mode != FULLSCREEN_NONE ||
+			win->pending.workspace == NULL) {
+		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
+		return;
 	}
-	deco_rect->width = c->pending.width;
+
+	if (win->pending.parent) {
+		deco_rect->x = win->pending.x - win->pending.parent->pending.x;
+		deco_rect->y = win->pending.y - win->pending.parent->pending.y;
+	} else {
+		deco_rect->x = win->pending.x - win->pending.workspace->x;
+		deco_rect->y = win->pending.y - win->pending.workspace->y;
+	}
+	deco_rect->width = win->pending.width;
 	deco_rect->height = container_titlebar_height();
 
-	if (!container_is_floating(c)) {
+	if (!window_is_floating(win)) {
 		if (parent_layout == L_TABBED) {
-			deco_rect->width = c->pending.parent
-				? c->pending.parent->pending.width / c->pending.parent->pending.children->length
-				: c->pending.workspace->width / c->pending.workspace->tiling->length;
-			deco_rect->x += deco_rect->width * container_sibling_index(c);
+			deco_rect->width = win->pending.parent
+				? win->pending.parent->pending.width / win->pending.parent->pending.children->length
+				: win->pending.workspace->width / win->pending.workspace->tiling->length;
+			deco_rect->x += deco_rect->width * container_sibling_index(win);
 		} else if (parent_layout == L_STACKED) {
-			if (!c->view) {
-				size_t siblings = container_get_siblings(c)->length;
+			if (!win->view) {
+				size_t siblings = container_get_siblings(win)->length;
 				deco_rect->y -= deco_rect->height * siblings;
 			}
-			deco_rect->y += deco_rect->height * container_sibling_index(c);
+			deco_rect->y += deco_rect->height * container_sibling_index(win);
 		}
 	}
 }
@@ -547,10 +563,6 @@ static void ipc_json_describe_view(struct sway_container *c, json_object *object
 static void ipc_json_describe_column(struct sway_container *col, json_object *object) {
 	json_object_object_add(object, "name",
 			col->title ? json_object_new_string(col->title) : NULL);
-	if (container_is_floating(col)) {
-		json_object_object_add(object, "type",
-				json_object_new_string("floating_con"));
-	}
 
 	json_object_object_add(object, "layout",
 			json_object_new_string(
@@ -588,14 +600,14 @@ static void ipc_json_describe_column(struct sway_container *col, json_object *ob
 	json_object_object_add(object, "floating_nodes", json_object_new_array());
 
 	struct wlr_box deco_box = {0, 0, 0, 0};
-	get_deco_rect(col, &deco_box);
+	column_get_deco_rect(col, &deco_box);
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 }
 
 static void ipc_json_describe_window(struct sway_container *win, json_object *object) {
 	json_object_object_add(object, "name",
 			win->title ? json_object_new_string(win->title) : NULL);
-	if (container_is_floating(win)) {
+	if (window_is_floating(win)) {
 		json_object_object_add(object, "type",
 				json_object_new_string("floating_con"));
 	}
@@ -636,7 +648,7 @@ static void ipc_json_describe_window(struct sway_container *win, json_object *ob
 	json_object_object_add(object, "floating_nodes", json_object_new_array());
 
 	struct wlr_box deco_box = {0, 0, 0, 0};
-	get_deco_rect(win, &deco_box);
+	window_get_deco_rect(win, &deco_box);
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 
 	json_object *marks = json_object_new_array();
@@ -686,9 +698,16 @@ json_object *ipc_json_describe_node(struct sway_node *node) {
 	struct wlr_box box;
 	node_get_box(node, &box);
 
-	if (node->type == N_COLUMN || node->type == N_WINDOW) {
+	if (node->type == N_COLUMN) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
-		get_deco_rect(node->sway_container, &deco_rect);
+		column_get_deco_rect(node->sway_container, &deco_rect);
+		box.y += deco_rect.height;
+		box.height -= deco_rect.height;
+	}
+
+	if (node->type == N_WINDOW) {
+		struct wlr_box deco_rect = {0, 0, 0, 0};
+		window_get_deco_rect(node->sway_container, &deco_rect);
 		size_t count = 1;
 		if (container_parent_layout(node->sway_container) == L_STACKED) {
 			count = container_get_siblings(node->sway_container)->length;

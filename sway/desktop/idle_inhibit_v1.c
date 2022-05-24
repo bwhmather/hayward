@@ -119,7 +119,7 @@ bool sway_idle_inhibit_v1_is_active(struct sway_idle_inhibitor_v1 *inhibitor) {
 		return false;
 	case INHIBIT_IDLE_FULLSCREEN:
 		return inhibitor->view->container &&
-			container_is_fullscreen_or_child(inhibitor->view->container) &&
+			window_is_fullscreen(inhibitor->view->container) &&
 			view_is_visible(inhibitor->view);
 	case INHIBIT_IDLE_OPEN:
 		// Inhibitor is destroyed on unmap so it must be open/mapped

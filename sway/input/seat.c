@@ -1393,11 +1393,19 @@ struct sway_container *seat_get_focus_inactive_tiling(struct sway_seat *seat,
 	struct sway_seat_node *current;
 	wl_list_for_each(current, &seat->focus_stack, link) {
 		struct sway_node *node = current->node;
-		if ((node->type == N_COLUMN || node->type == N_WINDOW) &&
-				!container_is_floating_or_child(node->sway_container) &&
-				node->sway_container->pending.workspace == workspace) {
-			return node->sway_container;
+		if (node->sway_container->pending.workspace != workspace) {
+			continue;
 		}
+
+		if (node->type != N_COLUMN && node->type != N_WINDOW) {
+			continue;
+		}
+
+		if (node->type == N_WINDOW && window_is_floating(node->sway_container)) {
+			continue;
+		}
+
+		return node->sway_container;
 	}
 	return NULL;
 }
@@ -1410,11 +1418,19 @@ struct sway_container *seat_get_focus_inactive_floating(struct sway_seat *seat,
 	struct sway_seat_node *current;
 	wl_list_for_each(current, &seat->focus_stack, link) {
 		struct sway_node *node = current->node;
-		if ((node->type == N_COLUMN || node->type == N_WINDOW) &&
-				container_is_floating_or_child(node->sway_container) &&
-				node->sway_container->pending.workspace == workspace) {
-			return node->sway_container;
+		if (node->sway_container->pending.workspace != workspace) {
+			continue;
 		}
+
+		if (node->type != N_WINDOW) {
+			continue;
+		}
+
+		if (!window_is_floating(node->sway_container)) {
+			continue;
+		}
+
+		return node->sway_container;
 	}
 	return NULL;
 }

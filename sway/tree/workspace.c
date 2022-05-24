@@ -888,7 +888,7 @@ void workspace_get_box(struct sway_workspace *workspace, struct wlr_box *box) {
 }
 
 static void count_tiling_views(struct sway_container *con, void *data) {
-	if (con->view && !container_is_floating_or_child(con)) {
+	if (container_is_window(con) && !window_is_floating(con)) {
 		size_t *count = data;
 		*count += 1;
 	}

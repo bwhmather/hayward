@@ -30,7 +30,16 @@ void window_add_mark(struct sway_container *container, char *mark);
 
 void window_update_marks_textures(struct sway_container *container);
 
+bool window_is_floating(struct sway_container *container);
+
+/**
+ * Same as `window_is_floating`, but for current container state.
+ */
+bool window_is_current_floating(struct sway_container *container);
+
 void window_set_floating(struct sway_container *container, bool enable);
+
+bool window_is_fullscreen(struct sway_container *container);
 
 /**
  * Detaches a window from its current column, and by extension workspace, and
