@@ -29,13 +29,13 @@ struct cmd_results *input_cmd_xkb_file(int argc, char **argv) {
 			return error;
 		}
 		if (!ic->xkb_file) {
-			wmiiv_log(SWAY_ERROR, "Failed to allocate expanded path");
+			wmiiv_log(WMIIV_ERROR, "Failed to allocate expanded path");
 			return cmd_results_new(CMD_FAILURE, "Unable to allocate resource");
 		}
 
 		bool can_access = access(ic->xkb_file, F_OK) != -1;
 		if (!can_access) {
-			wmiiv_log_errno(SWAY_ERROR, "Unable to access xkb file '%s'",
+			wmiiv_log_errno(WMIIV_ERROR, "Unable to access xkb file '%s'",
 					ic->xkb_file);
 			config_add_wmiivnag_warning("Unable to access xkb file '%s'",
 					ic->xkb_file);
@@ -43,7 +43,7 @@ struct cmd_results *input_cmd_xkb_file(int argc, char **argv) {
 	}
 	ic->xkb_file_is_set = true;
 
-	wmiiv_log(SWAY_DEBUG, "set-xkb_file for config: %s file: %s",
+	wmiiv_log(WMIIV_DEBUG, "set-xkb_file for config: %s file: %s",
 			ic->identifier, ic->xkb_file);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

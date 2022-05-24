@@ -1,5 +1,5 @@
-#ifndef _SWAY_SURFACE_H
-#define _SWAY_SURFACE_H
+#ifndef _WMIIV_SURFACE_H
+#define _WMIIV_SURFACE_H
 #include <wlr/types/wlr_compositor.h>
 
 struct wmiiv_surface {

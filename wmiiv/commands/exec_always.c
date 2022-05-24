@@ -29,7 +29,7 @@ struct cmd_results *cmd_exec_process(int argc, char **argv) {
 	struct cmd_results *error = NULL;
 	char *cmd = NULL;
 	if (strcmp(argv[0], "--no-startup-id") == 0) {
-		wmiiv_log(SWAY_INFO, "exec switch '--no-startup-id' not supported, ignored.");
+		wmiiv_log(WMIIV_INFO, "exec switch '--no-startup-id' not supported, ignored.");
 		--argc; ++argv;
 		if ((error = checkarg(argc, argv[-1], EXPECTED_AT_LEAST, 1))) {
 			return error;
@@ -43,11 +43,11 @@ struct cmd_results *cmd_exec_process(int argc, char **argv) {
 		cmd = join_args(argv, argc);
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Executing %s", cmd);
+	wmiiv_log(WMIIV_DEBUG, "Executing %s", cmd);
 
 	int fd[2];
 	if (pipe(fd) != 0) {
-		wmiiv_log(SWAY_ERROR, "Unable to create pipe for fork");
+		wmiiv_log(WMIIV_ERROR, "Unable to create pipe for fork");
 	}
 
 	pid_t pid, child;
@@ -64,7 +64,7 @@ struct cmd_results *cmd_exec_process(int argc, char **argv) {
 		if ((child = fork()) == 0) {
 			close(fd[1]);
 			execlp("sh", "sh", "-c", cmd, (void *)NULL);
-			wmiiv_log_errno(SWAY_ERROR, "execlp failed");
+			wmiiv_log_errno(WMIIV_ERROR, "execlp failed");
 			_exit(1);
 		}
 		ssize_t s = 0;
@@ -89,7 +89,7 @@ struct cmd_results *cmd_exec_process(int argc, char **argv) {
 	// cleanup child process
 	waitpid(pid, NULL, 0);
 	if (child > 0) {
-		wmiiv_log(SWAY_DEBUG, "Child process created with pid %d", child);
+		wmiiv_log(WMIIV_DEBUG, "Child process created with pid %d", child);
 		root_record_workspace_pid(child);
 	} else {
 		return cmd_results_new(CMD_FAILURE, "Second fork() failed");

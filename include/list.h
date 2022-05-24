@@ -1,5 +1,5 @@
-#ifndef _SWAY_LIST_H
-#define _SWAY_LIST_H
+#ifndef _WMIIV_LIST_H
+#define _WMIIV_LIST_H
 
 typedef struct {
 	int capacity;

@@ -1,5 +1,5 @@
-#ifndef _SWAY_TRANSACTION_H
-#define _SWAY_TRANSACTION_H
+#ifndef _WMIIV_TRANSACTION_H
+#define _WMIIV_TRANSACTION_H
 #include <stdint.h>
 
 /**

@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_TRAY_TRAY_H
-#define _SWAYBAR_TRAY_TRAY_H
+#ifndef _WMIIVBAR_TRAY_TRAY_H
+#define _WMIIVBAR_TRAY_TRAY_H
 
 #include "config.h"
 #if HAVE_LIBSYSTEMD

@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_I3BAR_H
-#define _SWAYBAR_I3BAR_H
+#ifndef _WMIIVBAR_I3BAR_H
+#define _WMIIVBAR_I3BAR_H
 
 #include "input.h"
 #include "status_line.h"

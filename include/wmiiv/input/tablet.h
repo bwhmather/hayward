@@ -1,5 +1,5 @@
-#ifndef _SWAY_INPUT_TABLET_H
-#define _SWAY_INPUT_TABLET_H
+#ifndef _WMIIV_INPUT_TABLET_H
+#define _WMIIV_INPUT_TABLET_H
 #include <wlr/types/wlr_layer_shell_v1.h>
 
 struct wmiiv_seat;
@@ -12,8 +12,8 @@ struct wmiiv_tablet {
 };
 
 enum wmiiv_tablet_tool_mode {
-	SWAY_TABLET_TOOL_MODE_ABSOLUTE,
-	SWAY_TABLET_TOOL_MODE_RELATIVE,
+	WMIIV_TABLET_TOOL_MODE_ABSOLUTE,
+	WMIIV_TABLET_TOOL_MODE_RELATIVE,
 };
 
 struct wmiiv_tablet_tool {

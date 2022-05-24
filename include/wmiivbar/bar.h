@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_BAR_H
-#define _SWAYBAR_BAR_H
+#ifndef _WMIIVBAR_BAR_H
+#define _WMIIVBAR_BAR_H
 #include <wayland-client.h>
 #include "config.h"
 #include "input.h"

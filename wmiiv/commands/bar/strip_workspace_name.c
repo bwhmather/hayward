@@ -17,10 +17,10 @@ struct cmd_results *bar_cmd_strip_workspace_name(int argc, char **argv) {
 	if (config->current_bar->strip_workspace_name) {
 		config->current_bar->strip_workspace_numbers = false;
 
-		wmiiv_log(SWAY_DEBUG, "Stripping workspace name on bar: %s",
+		wmiiv_log(WMIIV_DEBUG, "Stripping workspace name on bar: %s",
 				config->current_bar->id);
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Enabling workspace name on bar: %s",
+		wmiiv_log(WMIIV_DEBUG, "Enabling workspace name on bar: %s",
 				config->current_bar->id);
 	}
 

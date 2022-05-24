@@ -21,10 +21,10 @@ static bool terminal_execute(char *terminal, char *command) {
 	char fname[] = "/tmp/wmiivnagXXXXXX";
 	FILE *tmp= fdopen(mkstemp(fname), "w");
 	if (!tmp) {
-		wmiiv_log(SWAY_ERROR, "Failed to create temp script");
+		wmiiv_log(WMIIV_ERROR, "Failed to create temp script");
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "Created temp script: %s", fname);
+	wmiiv_log(WMIIV_DEBUG, "Created temp script: %s", fname);
 	fprintf(tmp, "#!/bin/sh\nrm %s\n%s", fname, command);
 	fclose(tmp);
 	chmod(fname, S_IRUSR | S_IWUSR | S_IXUSR);
@@ -36,46 +36,46 @@ static bool terminal_execute(char *terminal, char *command) {
 	}
 	snprintf(cmd, cmd_size, "%s -e %s", terminal, fname);
 	execlp("sh", "sh", "-c", cmd, NULL);
-	wmiiv_log_errno(SWAY_ERROR, "Failed to run command, execlp() returned.");
+	wmiiv_log_errno(WMIIV_ERROR, "Failed to run command, execlp() returned.");
 	free(cmd);
 	return false;
 }
 
 static void wmiivnag_button_execute(struct wmiivnag *wmiivnag,
 		struct wmiivnag_button *button) {
-	wmiiv_log(SWAY_DEBUG, "Executing [%s]: %s", button->text, button->action);
-	if (button->type == SWAYNAG_ACTION_DISMISS) {
+	wmiiv_log(WMIIV_DEBUG, "Executing [%s]: %s", button->text, button->action);
+	if (button->type == WMIIVNAG_ACTION_DISMISS) {
 		wmiivnag->run_display = false;
-	} else if (button->type == SWAYNAG_ACTION_EXPAND) {
+	} else if (button->type == WMIIVNAG_ACTION_EXPAND) {
 		wmiivnag->details.visible = !wmiivnag->details.visible;
 		render_frame(wmiivnag);
 	} else {
 		pid_t pid = fork();
 		if (pid < 0) {
-			wmiiv_log_errno(SWAY_DEBUG, "Failed to fork");
+			wmiiv_log_errno(WMIIV_DEBUG, "Failed to fork");
 			return;
 		} else if (pid == 0) {
 			// Child process. Will be used to prevent zombie processes
 			pid = fork();
 			if (pid < 0) {
-				wmiiv_log_errno(SWAY_DEBUG, "Failed to fork");
+				wmiiv_log_errno(WMIIV_DEBUG, "Failed to fork");
 				return;
 			} else if (pid == 0) {
 				// Child of the child. Will be reparented to the init process
 				char *terminal = getenv("TERMINAL");
 				if (button->terminal && terminal && *terminal) {
-					wmiiv_log(SWAY_DEBUG, "Found $TERMINAL: %s", terminal);
+					wmiiv_log(WMIIV_DEBUG, "Found $TERMINAL: %s", terminal);
 					if (!terminal_execute(terminal, button->action)) {
 						wmiivnag_destroy(wmiivnag);
 						_exit(EXIT_FAILURE);
 					}
 				} else {
 					if (button->terminal) {
-						wmiiv_log(SWAY_DEBUG,
+						wmiiv_log(WMIIV_DEBUG,
 								"$TERMINAL not found. Running directly");
 					}
 					execlp("sh", "sh", "-c", button->action, NULL);
-					wmiiv_log_errno(SWAY_DEBUG, "execlp failed");
+					wmiiv_log_errno(WMIIV_DEBUG, "execlp failed");
 					_exit(EXIT_FAILURE);
 				}
 			}
@@ -87,7 +87,7 @@ static void wmiivnag_button_execute(struct wmiivnag *wmiivnag,
 		}
 
 		if (waitpid(pid, NULL, 0) < 0) {
-			wmiiv_log_errno(SWAY_DEBUG, "waitpid failed");
+			wmiiv_log_errno(WMIIV_DEBUG, "waitpid failed");
 		}
 	}
 }
@@ -119,7 +119,7 @@ static void surface_enter(void *data, struct wl_surface *surface,
 	struct wmiivnag_output *wmiivnag_output;
 	wl_list_for_each(wmiivnag_output, &wmiivnag->outputs, link) {
 		if (wmiivnag_output->wl_output == output) {
-			wmiiv_log(SWAY_DEBUG, "Surface enter on output %s",
+			wmiiv_log(WMIIV_DEBUG, "Surface enter on output %s",
 					wmiivnag_output->name);
 			wmiivnag->output = wmiivnag_output;
 			wmiivnag->scale = wmiivnag->output->scale;
@@ -320,7 +320,7 @@ static void output_name(void *data, struct wl_output *output,
 	const char *outname = wmiivnag_output->wmiivnag->type->output;
 	if (!wmiivnag_output->wmiivnag->output && outname &&
 			strcmp(outname, name) == 0) {
-		wmiiv_log(SWAY_DEBUG, "Using output %s", name);
+		wmiiv_log(WMIIV_DEBUG, "Using output %s", name);
 		wmiivnag_output->wmiivnag->output = wmiivnag_output;
 	}
 }
@@ -445,13 +445,13 @@ void wmiivnag_setup(struct wmiivnag *wmiivnag) {
 
 	// Second roundtrip to get wl_output properties
 	if (wl_display_roundtrip(wmiivnag->display) < 0) {
-		wmiiv_log(SWAY_ERROR, "Error during outputs init.");
+		wmiiv_log(WMIIV_ERROR, "Error during outputs init.");
 		wmiivnag_destroy(wmiivnag);
 		exit(EXIT_FAILURE);
 	}
 
 	if (!wmiivnag->output && wmiivnag->type->output) {
-		wmiiv_log(SWAY_ERROR, "Output '%s' not found", wmiivnag->type->output);
+		wmiiv_log(WMIIV_ERROR, "Output '%s' not found", wmiivnag->type->output);
 		wmiivnag_destroy(wmiivnag);
 		exit(EXIT_FAILURE);
 	}

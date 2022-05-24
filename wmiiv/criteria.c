@@ -63,7 +63,7 @@ static bool generate_regex(pcre2_code **regex, char *value) {
 static bool pattern_create(struct pattern **pattern, char *value) {
 	*pattern = calloc(1, sizeof(struct pattern));
 	if (!*pattern) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate pattern");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate pattern");
 	}
 
 	if (strcmp(value, "__focused__") == 0) {
@@ -111,7 +111,7 @@ static int regex_cmp(const char *item, const pcre2_code *regex) {
 
 #if HAVE_XWAYLAND
 static bool view_has_window_type(struct wmiiv_view *view, enum atom_name name) {
-	if (view->type != SWAY_VIEW_XWAYLAND) {
+	if (view->type != WMIIV_VIEW_XWAYLAND) {
 		return false;
 	}
 	struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
@@ -715,7 +715,7 @@ struct criteria *criteria_parse(char *raw, char **error_arg) {
 				in_quotes = false;
 			}
 			unescape(value);
-			wmiiv_log(SWAY_DEBUG, "Found pair: %s=%s", name, value);
+			wmiiv_log(WMIIV_DEBUG, "Found pair: %s=%s", name, value);
 		}
 		if (!parse_token(criteria, name, value)) {
 			*error_arg = error;

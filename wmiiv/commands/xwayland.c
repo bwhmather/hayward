@@ -26,7 +26,7 @@ struct cmd_results *cmd_xwayland(int argc, char **argv) {
 	}
 	config->xwayland = xwayland;
 #else
-	wmiiv_log(SWAY_INFO, "Ignoring `xwayland` command, "
+	wmiiv_log(WMIIV_INFO, "Ignoring `xwayland` command, "
 		"wmiiv hasn't been built with Xwayland support");
 #endif
 

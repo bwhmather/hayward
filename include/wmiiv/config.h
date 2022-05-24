@@ -1,5 +1,5 @@
-#ifndef _SWAY_CONFIG_H
-#define _SWAY_CONFIG_H
+#ifndef _WMIIV_CONFIG_H
+#define _WMIIV_CONFIG_H
 #include <libinput.h>
 #include <stdint.h>
 #include <string.h>
@@ -63,9 +63,9 @@ struct wmiiv_binding {
 };
 
 enum wmiiv_switch_trigger {
-	SWAY_SWITCH_TRIGGER_OFF,
-	SWAY_SWITCH_TRIGGER_ON,
-	SWAY_SWITCH_TRIGGER_TOGGLE,
+	WMIIV_SWITCH_TRIGGER_OFF,
+	WMIIV_SWITCH_TRIGGER_ON,
+	WMIIV_SWITCH_TRIGGER_TOGGLE,
 };
 
 /**

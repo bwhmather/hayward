@@ -16,7 +16,7 @@ uint32_t parse_position(const char *position) {
 	} else if (strcmp("bottom", position) == 0) {
 		return ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM | horiz;
 	} else {
-		wmiiv_log(SWAY_ERROR, "Invalid position: %s, defaulting to bottom", position);
+		wmiiv_log(WMIIV_ERROR, "Invalid position: %s, defaulting to bottom", position);
 		return ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM | horiz;
 	}
 }

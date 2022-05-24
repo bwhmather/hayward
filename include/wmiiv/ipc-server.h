@@ -1,5 +1,5 @@
-#ifndef _SWAY_IPC_SERVER_H
-#define _SWAY_IPC_SERVER_H
+#ifndef _WMIIV_IPC_SERVER_H
+#define _WMIIV_IPC_SERVER_H
 #include <sys/socket.h>
 #include "wmiiv/config.h"
 #include "wmiiv/input/input-manager.h"

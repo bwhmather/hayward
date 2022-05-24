@@ -11,7 +11,7 @@
 
 static void log_status(enum libinput_config_status status) {
 	if (status != LIBINPUT_CONFIG_STATUS_SUCCESS) {
-		wmiiv_log(SWAY_ERROR, "Failed to apply libinput config: %s",
+		wmiiv_log(WMIIV_ERROR, "Failed to apply libinput config: %s",
 			libinput_config_status_to_str(status));
 	}
 }
@@ -20,7 +20,7 @@ static bool set_send_events(struct libinput_device *device, uint32_t mode) {
 	if (libinput_device_config_send_events_get_mode(device) == mode) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "send_events_set_mode(%" PRIu32 ")", mode);
+	wmiiv_log(WMIIV_DEBUG, "send_events_set_mode(%" PRIu32 ")", mode);
 	log_status(libinput_device_config_send_events_set_mode(device, mode));
 	return true;
 }
@@ -31,7 +31,7 @@ static bool set_tap(struct libinput_device *device,
 			libinput_device_config_tap_get_enabled(device) == tap) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "tap_set_enabled(%d)", tap);
+	wmiiv_log(WMIIV_DEBUG, "tap_set_enabled(%d)", tap);
 	log_status(libinput_device_config_tap_set_enabled(device, tap));
 	return true;
 }
@@ -42,7 +42,7 @@ static bool set_tap_button_map(struct libinput_device *device,
 			libinput_device_config_tap_get_button_map(device) == map) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "tap_set_button_map(%d)", map);
+	wmiiv_log(WMIIV_DEBUG, "tap_set_button_map(%d)", map);
 	log_status(libinput_device_config_tap_set_button_map(device, map));
 	return true;
 }
@@ -53,7 +53,7 @@ static bool set_tap_drag(struct libinput_device *device,
 			libinput_device_config_tap_get_drag_enabled(device) == drag) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "tap_set_drag_enabled(%d)", drag);
+	wmiiv_log(WMIIV_DEBUG, "tap_set_drag_enabled(%d)", drag);
 	log_status(libinput_device_config_tap_set_drag_enabled(device, drag));
 	return true;
 }
@@ -64,7 +64,7 @@ static bool set_tap_drag_lock(struct libinput_device *device,
 			libinput_device_config_tap_get_drag_lock_enabled(device) == lock) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "tap_set_drag_lock_enabled(%d)", lock);
+	wmiiv_log(WMIIV_DEBUG, "tap_set_drag_lock_enabled(%d)", lock);
 	log_status(libinput_device_config_tap_set_drag_lock_enabled(device, lock));
 	return true;
 }
@@ -74,7 +74,7 @@ static bool set_accel_speed(struct libinput_device *device, double speed) {
 			libinput_device_config_accel_get_speed(device) == speed) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "accel_set_speed(%f)", speed);
+	wmiiv_log(WMIIV_DEBUG, "accel_set_speed(%f)", speed);
 	log_status(libinput_device_config_accel_set_speed(device, speed));
 	return true;
 }
@@ -85,7 +85,7 @@ static bool set_accel_profile(struct libinput_device *device,
 			libinput_device_config_accel_get_profile(device) == profile) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "accel_set_profile(%d)", profile);
+	wmiiv_log(WMIIV_DEBUG, "accel_set_profile(%d)", profile);
 	log_status(libinput_device_config_accel_set_profile(device, profile));
 	return true;
 }
@@ -95,7 +95,7 @@ static bool set_natural_scroll(struct libinput_device *d, bool n) {
 			libinput_device_config_scroll_get_natural_scroll_enabled(d) == n) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "scroll_set_natural_scroll(%d)", n);
+	wmiiv_log(WMIIV_DEBUG, "scroll_set_natural_scroll(%d)", n);
 	log_status(libinput_device_config_scroll_set_natural_scroll_enabled(d, n));
 	return true;
 }
@@ -105,7 +105,7 @@ static bool set_left_handed(struct libinput_device *device, bool left) {
 			libinput_device_config_left_handed_get(device) == left) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "left_handed_set(%d)", left);
+	wmiiv_log(WMIIV_DEBUG, "left_handed_set(%d)", left);
 	log_status(libinput_device_config_left_handed_set(device, left));
 	return true;
 }
@@ -117,7 +117,7 @@ static bool set_click_method(struct libinput_device *device,
 			libinput_device_config_click_get_method(device) == method) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "click_set_method(%d)", method);
+	wmiiv_log(WMIIV_DEBUG, "click_set_method(%d)", method);
 	log_status(libinput_device_config_click_set_method(device, method));
 	return true;
 }
@@ -128,7 +128,7 @@ static bool set_middle_emulation(struct libinput_device *dev,
 			libinput_device_config_middle_emulation_get_enabled(dev) == mid) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "middle_emulation_set_enabled(%d)", mid);
+	wmiiv_log(WMIIV_DEBUG, "middle_emulation_set_enabled(%d)", mid);
 	log_status(libinput_device_config_middle_emulation_set_enabled(dev, mid));
 	return true;
 }
@@ -140,7 +140,7 @@ static bool set_scroll_method(struct libinput_device *device,
 			libinput_device_config_scroll_get_method(device) == method) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "scroll_set_method(%d)", method);
+	wmiiv_log(WMIIV_DEBUG, "scroll_set_method(%d)", method);
 	log_status(libinput_device_config_scroll_set_method(device, method));
 	return true;
 }
@@ -151,7 +151,7 @@ static bool set_scroll_button(struct libinput_device *dev, uint32_t button) {
 			libinput_device_config_scroll_get_button(dev) == button) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "scroll_set_button(%" PRIu32 ")", button);
+	wmiiv_log(WMIIV_DEBUG, "scroll_set_button(%" PRIu32 ")", button);
 	log_status(libinput_device_config_scroll_set_button(dev, button));
 	return true;
 }
@@ -161,7 +161,7 @@ static bool set_dwt(struct libinput_device *device, bool dwt) {
 			libinput_device_config_dwt_get_enabled(device) == dwt) {
 		return false;
 	}
-	wmiiv_log(SWAY_DEBUG, "dwt_set_enabled(%d)", dwt);
+	wmiiv_log(WMIIV_DEBUG, "dwt_set_enabled(%d)", dwt);
 	log_status(libinput_device_config_dwt_set_enabled(device, dwt));
 	return true;
 }
@@ -180,7 +180,7 @@ static bool set_calibration_matrix(struct libinput_device *dev, float mat[6]) {
 		}
 	}
 	if (changed) {
-		wmiiv_log(SWAY_DEBUG, "calibration_set_matrix(%f, %f, %f, %f, %f, %f)",
+		wmiiv_log(WMIIV_DEBUG, "calibration_set_matrix(%f, %f, %f, %f, %f, %f)",
 				mat[0], mat[1], mat[2], mat[3], mat[4], mat[5]);
 		log_status(libinput_device_config_calibration_set_matrix(dev, mat));
 	}
@@ -195,13 +195,13 @@ void wmiiv_input_configure_libinput_device(struct wmiiv_input_device *input_devi
 
 	struct libinput_device *device =
 		wlr_libinput_get_device_handle(input_device->wlr_device);
-	wmiiv_log(SWAY_DEBUG, "wmiiv_input_configure_libinput_device('%s' on '%s')",
+	wmiiv_log(WMIIV_DEBUG, "wmiiv_input_configure_libinput_device('%s' on '%s')",
 			ic->identifier, input_device->identifier);
 
 	bool changed = false;
 	if (ic->mapped_to_output &&
 			!output_by_name_or_id(ic->mapped_to_output)) {
-		wmiiv_log(SWAY_DEBUG,
+		wmiiv_log(WMIIV_DEBUG,
 				"%s '%s' is mapped to offline output '%s'; disabling input",
 				ic->input_type, ic->identifier, ic->mapped_to_output);
 		changed |= set_send_events(device,
@@ -271,7 +271,7 @@ void wmiiv_input_reset_libinput_device(struct wmiiv_input_device *input_device) 
 
 	struct libinput_device *device =
 		wlr_libinput_get_device_handle(input_device->wlr_device);
-	wmiiv_log(SWAY_DEBUG, "wmiiv_input_reset_libinput_device(%s)",
+	wmiiv_log(WMIIV_DEBUG, "wmiiv_input_reset_libinput_device(%s)",
 		input_device->identifier);
 	bool changed = false;
 

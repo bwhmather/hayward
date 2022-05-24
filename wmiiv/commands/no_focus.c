@@ -23,7 +23,7 @@ struct cmd_results *cmd_no_focus(int argc, char **argv) {
 
 	// Check if it already exists
 	if (criteria_already_exists(criteria)) {
-		wmiiv_log(SWAY_DEBUG, "no_focus already exists: '%s'", criteria->raw);
+		wmiiv_log(WMIIV_DEBUG, "no_focus already exists: '%s'", criteria->raw);
 		criteria_destroy(criteria);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}

@@ -12,7 +12,7 @@ static terminate_callback_t log_terminate = exit;
 void _wmiiv_abort(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
-	_wmiiv_vlog(SWAY_ERROR, format, args);
+	_wmiiv_vlog(WMIIV_ERROR, format, args);
 	va_end(args);
 	log_terminate(EXIT_FAILURE);
 }
@@ -24,7 +24,7 @@ bool _wmiiv_assert(bool condition, const char *format, ...) {
 
 	va_list args;
 	va_start(args, format);
-	_wmiiv_vlog(SWAY_ERROR, format, args);
+	_wmiiv_vlog(WMIIV_ERROR, format, args);
 	va_end(args);
 
 #ifndef NDEBUG
@@ -35,21 +35,21 @@ bool _wmiiv_assert(bool condition, const char *format, ...) {
 }
 
 static bool colored = true;
-static wmiiv_log_importance_t log_importance = SWAY_ERROR;
+static wmiiv_log_importance_t log_importance = WMIIV_ERROR;
 static struct timespec start_time = {-1, -1};
 
 static const char *verbosity_colors[] = {
-	[SWAY_SILENT] = "",
-	[SWAY_ERROR ] = "\x1B[1;31m",
-	[SWAY_INFO  ] = "\x1B[1;34m",
-	[SWAY_DEBUG ] = "\x1B[1;90m",
+	[WMIIV_SILENT] = "",
+	[WMIIV_ERROR ] = "\x1B[1;31m",
+	[WMIIV_INFO  ] = "\x1B[1;34m",
+	[WMIIV_DEBUG ] = "\x1B[1;90m",
 };
 
 static const char *verbosity_headers[] = {
-	[SWAY_SILENT] = "",
-	[SWAY_ERROR] = "[ERROR]",
-	[SWAY_INFO] = "[INFO]",
-	[SWAY_DEBUG] = "[DEBUG]",
+	[WMIIV_SILENT] = "",
+	[WMIIV_ERROR] = "[ERROR]",
+	[WMIIV_INFO] = "[INFO]",
+	[WMIIV_DEBUG] = "[DEBUG]",
 };
 
 static void timespec_sub(struct timespec *r, const struct timespec *a,
@@ -86,8 +86,8 @@ static void wmiiv_log_stderr(wmiiv_log_importance_t verbosity, const char *fmt,
 		(int)(ts.tv_sec / 60 % 60), (int)(ts.tv_sec % 60),
 		ts.tv_nsec / 1000000);
 
-	unsigned c = (verbosity < SWAY_LOG_IMPORTANCE_LAST) ? verbosity :
-		SWAY_LOG_IMPORTANCE_LAST - 1;
+	unsigned c = (verbosity < WMIIV_LOG_IMPORTANCE_LAST) ? verbosity :
+		WMIIV_LOG_IMPORTANCE_LAST - 1;
 
 	if (colored && isatty(STDERR_FILENO)) {
 		fprintf(stderr, "%s", verbosity_colors[c]);
@@ -106,7 +106,7 @@ static void wmiiv_log_stderr(wmiiv_log_importance_t verbosity, const char *fmt,
 void wmiiv_log_init(wmiiv_log_importance_t verbosity, terminate_callback_t callback) {
 	init_start_time();
 
-	if (verbosity < SWAY_LOG_IMPORTANCE_LAST) {
+	if (verbosity < WMIIV_LOG_IMPORTANCE_LAST) {
 		log_importance = verbosity;
 	}
 	if (callback) {

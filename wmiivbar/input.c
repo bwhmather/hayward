@@ -29,13 +29,13 @@ uint32_t event_to_x11_button(uint32_t event) {
 		return 2;
 	case BTN_RIGHT:
 		return 3;
-	case SWAY_SCROLL_UP:
+	case WMIIV_SCROLL_UP:
 		return 4;
-	case SWAY_SCROLL_DOWN:
+	case WMIIV_SCROLL_DOWN:
 		return 5;
-	case SWAY_SCROLL_LEFT:
+	case WMIIV_SCROLL_LEFT:
 		return 6;
-	case SWAY_SCROLL_RIGHT:
+	case WMIIV_SCROLL_RIGHT:
 		return 7;
 	case BTN_SIDE:
 		return 8;
@@ -50,11 +50,11 @@ static uint32_t wl_axis_to_button(uint32_t axis, wl_fixed_t value) {
 	bool negative = wl_fixed_to_double(value) < 0;
 	switch (axis) {
 	case WL_POINTER_AXIS_VERTICAL_SCROLL:
-		return negative ? SWAY_SCROLL_UP : SWAY_SCROLL_DOWN;
+		return negative ? WMIIV_SCROLL_UP : WMIIV_SCROLL_DOWN;
 	case WL_POINTER_AXIS_HORIZONTAL_SCROLL:
-		return negative ? SWAY_SCROLL_LEFT : SWAY_SCROLL_RIGHT;
+		return negative ? WMIIV_SCROLL_LEFT : WMIIV_SCROLL_RIGHT;
 	default:
-		wmiiv_log(SWAY_DEBUG, "Unexpected axis value on mouse scroll");
+		wmiiv_log(WMIIV_DEBUG, "Unexpected axis value on mouse scroll");
 		return 0;
 	}
 }
@@ -254,15 +254,15 @@ static void process_discrete_scroll(struct wmiivbar_seat *seat,
 static void process_continuous_scroll(struct wmiivbar_seat *seat,
 		struct wmiivbar_output *output, struct wmiivbar_pointer *pointer,
 		uint32_t axis) {
-	while (abs(seat->axis[axis].value) > SWAY_CONTINUOUS_SCROLL_THRESHOLD) {
+	while (abs(seat->axis[axis].value) > WMIIV_CONTINUOUS_SCROLL_THRESHOLD) {
 		if (seat->axis[axis].value > 0) {
 			process_discrete_scroll(seat, output, pointer, axis,
-				SWAY_CONTINUOUS_SCROLL_THRESHOLD);
-			seat->axis[axis].value -= SWAY_CONTINUOUS_SCROLL_THRESHOLD;
+				WMIIV_CONTINUOUS_SCROLL_THRESHOLD);
+			seat->axis[axis].value -= WMIIV_CONTINUOUS_SCROLL_THRESHOLD;
 		} else {
 			process_discrete_scroll(seat, output, pointer, axis,
-				-SWAY_CONTINUOUS_SCROLL_THRESHOLD);
-			seat->axis[axis].value += SWAY_CONTINUOUS_SCROLL_THRESHOLD;
+				-WMIIV_CONTINUOUS_SCROLL_THRESHOLD);
+			seat->axis[axis].value += WMIIV_CONTINUOUS_SCROLL_THRESHOLD;
 		}
 	}
 }
@@ -283,7 +283,7 @@ static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
 	// If there's a while since the last scroll event,
 	// set 'value' to zero as if to reset the "virtual scroll wheel"
 	if (seat->axis[axis].discrete_steps == 0 &&
-			time - seat->axis[axis].update_time > SWAY_CONTINUOUS_SCROLL_TIMEOUT) {
+			time - seat->axis[axis].update_time > WMIIV_CONTINUOUS_SCROLL_TIMEOUT) {
 		seat->axis[axis].value = 0;
 	}
 
@@ -362,7 +362,7 @@ static struct touch_slot *get_touch_slot(struct wmiivbar_touch *touch, int32_t i
 		}
 	}
 	if (next == -1) {
-		wmiiv_log(SWAY_ERROR, "Ran out of touch slots");
+		wmiiv_log(WMIIV_ERROR, "Ran out of touch slots");
 		return NULL;
 	}
 	return &touch->slots[next];
@@ -380,7 +380,7 @@ static void wl_touch_down(void *data, struct wl_touch *wl_touch,
 		}
 	}
 	if (!output) {
-		wmiiv_log(SWAY_DEBUG, "Got touch event for unknown surface");
+		wmiiv_log(WMIIV_DEBUG, "Got touch event for unknown surface");
 		return;
 	}
 	struct touch_slot *slot = get_touch_slot(&seat->touch, id);

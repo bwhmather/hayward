@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_STATUS_LINE_H
-#define _SWAYBAR_STATUS_LINE_H
+#ifndef _WMIIVBAR_STATUS_LINE_H
+#define _WMIIVBAR_STATUS_LINE_H
 #include <json.h>
 #include <stdint.h>
 #include <stdio.h>

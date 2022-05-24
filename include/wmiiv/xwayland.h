@@ -1,5 +1,5 @@
-#ifndef SWAY_XWAYLAND_H
-#define SWAY_XWAYLAND_H
+#ifndef WMIIV_XWAYLAND_H
+#define WMIIV_XWAYLAND_H
 
 #include <wlr/xwayland.h>
 #include <xcb/xproto.h>

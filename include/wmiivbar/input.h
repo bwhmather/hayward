@@ -1,17 +1,17 @@
-#ifndef _SWAYBAR_INPUT_H
-#define _SWAYBAR_INPUT_H
+#ifndef _WMIIVBAR_INPUT_H
+#define _WMIIVBAR_INPUT_H
 
 #include <wayland-client.h>
 #include <stdbool.h>
 #include "list.h"
 
-#define SWAY_SCROLL_UP KEY_MAX + 1
-#define SWAY_SCROLL_DOWN KEY_MAX + 2
-#define SWAY_SCROLL_LEFT KEY_MAX + 3
-#define SWAY_SCROLL_RIGHT KEY_MAX + 4
+#define WMIIV_SCROLL_UP KEY_MAX + 1
+#define WMIIV_SCROLL_DOWN KEY_MAX + 2
+#define WMIIV_SCROLL_LEFT KEY_MAX + 3
+#define WMIIV_SCROLL_RIGHT KEY_MAX + 4
 
-#define SWAY_CONTINUOUS_SCROLL_TIMEOUT 1000
-#define SWAY_CONTINUOUS_SCROLL_THRESHOLD 10000
+#define WMIIV_CONTINUOUS_SCROLL_TIMEOUT 1000
+#define WMIIV_CONTINUOUS_SCROLL_THRESHOLD 10000
 
 struct wmiivbar;
 struct wmiivbar_output;

@@ -1,5 +1,5 @@
-#ifndef _SWAY_UTIL_H
-#define _SWAY_UTIL_H
+#ifndef _WMIIV_UTIL_H
+#define _WMIIV_UTIL_H
 
 #include <stdint.h>
 #include <stdbool.h>

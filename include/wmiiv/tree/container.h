@@ -1,5 +1,5 @@
-#ifndef _SWAY_CONTAINER_H
-#define _SWAY_CONTAINER_H
+#ifndef _WMIIV_CONTAINER_H
+#define _WMIIV_CONTAINER_H
 #include <stdint.h>
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>

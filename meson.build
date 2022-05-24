@@ -170,7 +170,7 @@ if git.found()
 		)
 	endif
 endif
-add_project_arguments('-DSWAY_VERSION=@0@'.format(version), language: 'c')
+add_project_arguments('-DWMIIV_VERSION=@0@'.format(version), language: 'c')
 
 # Compute the relative path used by compiler invocations.
 source_root = meson.current_source_dir().split('/')
@@ -204,7 +204,7 @@ if cc.has_argument('-fmacro-prefix-map=/prefix/to/hide=')
 	)
 else
 	add_project_arguments(
-		'-DSWAY_REL_SRC_DIR="@0@"'.format(relative_dir),
+		'-DWMIIV_REL_SRC_DIR="@0@"'.format(relative_dir),
 		language: 'c',
 	)
 endif

@@ -36,13 +36,13 @@ int main(int argc, char **argv) {
 	if (status != 0)  {
 		goto cleanup;
 	}
-	wmiiv_log_init(debug ? SWAY_DEBUG : SWAY_ERROR, NULL);
+	wmiiv_log_init(debug ? WMIIV_DEBUG : WMIIV_ERROR, NULL);
 
 	if (!config_path) {
 		config_path = wmiivnag_get_config_path();
 	}
 	if (config_path) {
-		wmiiv_log(SWAY_DEBUG, "Loading config file: %s", config_path);
+		wmiiv_log(WMIIV_DEBUG, "Loading config file: %s", config_path);
 		status = wmiivnag_load_config(config_path, &wmiivnag, types);
 		if (status != 0) {
 			goto cleanup;
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
 	}
 
 	wmiivnag.details.button_details.text = strdup("Toggle details");
-	wmiivnag.details.button_details.type = SWAYNAG_ACTION_EXPAND;
+	wmiivnag.details.button_details.type = WMIIVNAG_ACTION_EXPAND;
 
 	if (argc > 1) {
 		struct wmiivnag_type *type_args = wmiivnag_type_new("<args>");
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (!wmiivnag.message) {
-		wmiiv_log(SWAY_ERROR, "No message passed. Please provide --message/-m");
+		wmiiv_log(WMIIV_ERROR, "No message passed. Please provide --message/-m");
 		status = EXIT_FAILURE;
 		goto cleanup;
 	}
@@ -87,22 +87,22 @@ int main(int argc, char **argv) {
 
 	struct wmiivnag_button button_close = { 0 };
 	button_close.text = strdup("X");
-	button_close.type = SWAYNAG_ACTION_DISMISS;
+	button_close.type = WMIIVNAG_ACTION_DISMISS;
 	list_add(wmiivnag.buttons, &button_close);
 
 	if (wmiivnag.details.message) {
 		list_add(wmiivnag.buttons, &wmiivnag.details.button_details);
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Output: %s", wmiivnag.type->output);
-	wmiiv_log(SWAY_DEBUG, "Anchors: %" PRIu32, wmiivnag.type->anchors);
-	wmiiv_log(SWAY_DEBUG, "Type: %s", wmiivnag.type->name);
-	wmiiv_log(SWAY_DEBUG, "Message: %s", wmiivnag.message);
-	wmiiv_log(SWAY_DEBUG, "Font: %s", wmiivnag.type->font);
-	wmiiv_log(SWAY_DEBUG, "Buttons");
+	wmiiv_log(WMIIV_DEBUG, "Output: %s", wmiivnag.type->output);
+	wmiiv_log(WMIIV_DEBUG, "Anchors: %" PRIu32, wmiivnag.type->anchors);
+	wmiiv_log(WMIIV_DEBUG, "Type: %s", wmiivnag.type->name);
+	wmiiv_log(WMIIV_DEBUG, "Message: %s", wmiivnag.message);
+	wmiiv_log(WMIIV_DEBUG, "Font: %s", wmiivnag.type->font);
+	wmiiv_log(WMIIV_DEBUG, "Buttons");
 	for (int i = 0; i < wmiivnag.buttons->length; i++) {
 		struct wmiivnag_button *button = wmiivnag.buttons->items[i];
-		wmiiv_log(SWAY_DEBUG, "\t[%s] `%s`", button->text, button->action);
+		wmiiv_log(WMIIV_DEBUG, "\t[%s] `%s`", button->text, button->action);
 	}
 
 	signal(SIGTERM, sig_handler);

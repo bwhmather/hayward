@@ -192,7 +192,7 @@ static void handle_wmiivbar_client_destroy(struct wl_listener *listener,
 static void invoke_wmiivbar(struct bar_config *bar) {
 	int sockets[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "socketpair failed");
+		wmiiv_log_errno(WMIIV_ERROR, "socketpair failed");
 		return;
 	}
 	if (!wmiiv_set_cloexec(sockets[0], true) || !wmiiv_set_cloexec(sockets[1], true)) {
@@ -201,7 +201,7 @@ static void invoke_wmiivbar(struct bar_config *bar) {
 
 	bar->client = wl_client_create(server.wl_display, sockets[0]);
 	if (bar->client == NULL) {
-		wmiiv_log_errno(SWAY_ERROR, "wl_client_create failed");
+		wmiiv_log_errno(WMIIV_ERROR, "wl_client_create failed");
 		return;
 	}
 
@@ -210,7 +210,7 @@ static void invoke_wmiivbar(struct bar_config *bar) {
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to create fork for wmiivbar");
+		wmiiv_log(WMIIV_ERROR, "Failed to create fork for wmiivbar");
 		return;
 	} else if (pid == 0) {
 		// Remove the SIGUSR1 handler that wlroots adds for xwayland
@@ -223,7 +223,7 @@ static void invoke_wmiivbar(struct bar_config *bar) {
 
 		pid = fork();
 		if (pid < 0) {
-			wmiiv_log_errno(SWAY_ERROR, "fork failed");
+			wmiiv_log_errno(WMIIV_ERROR, "fork failed");
 			_exit(EXIT_FAILURE);
 		} else if (pid == 0) {
 			if (!wmiiv_set_cloexec(sockets[1], false)) {
@@ -246,16 +246,16 @@ static void invoke_wmiivbar(struct bar_config *bar) {
 	}
 
 	if (close(sockets[1]) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "close failed");
+		wmiiv_log_errno(WMIIV_ERROR, "close failed");
 		return;
 	}
 
 	if (waitpid(pid, NULL, 0) < 0) {
-		wmiiv_log_errno(SWAY_ERROR, "waitpid failed");
+		wmiiv_log_errno(WMIIV_ERROR, "waitpid failed");
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Spawned wmiivbar %s", bar->id);
+	wmiiv_log(WMIIV_DEBUG, "Spawned wmiivbar %s", bar->id);
 	return;
 }
 
@@ -263,7 +263,7 @@ void load_wmiivbar(struct bar_config *bar) {
 	if (bar->client != NULL) {
 		wl_client_destroy(bar->client);
 	}
-	wmiiv_log(SWAY_DEBUG, "Invoking wmiivbar for bar id '%s'", bar->id);
+	wmiiv_log(WMIIV_DEBUG, "Invoking wmiivbar for bar id '%s'", bar->id);
 	invoke_wmiivbar(bar);
 }
 

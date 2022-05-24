@@ -1,5 +1,5 @@
-#ifndef _SWAY_OUTPUT_H
-#define _SWAY_OUTPUT_H
+#ifndef _WMIIV_OUTPUT_H
+#define _WMIIV_OUTPUT_H
 #include <time.h>
 #include <unistd.h>
 #include <wayland-server-core.h>

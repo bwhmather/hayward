@@ -11,7 +11,7 @@ struct cmd_results *cmd_exec(int argc, char **argv) {
 	}
 	if (config->reloading) {
 		char *args = join_args(argv, argc);
-		wmiiv_log(SWAY_DEBUG, "Ignoring 'exec %s' due to reload", args);
+		wmiiv_log(WMIIV_DEBUG, "Ignoring 'exec %s' due to reload", args);
 		free(args);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}

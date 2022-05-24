@@ -1,5 +1,5 @@
-#ifndef _SWAY_INPUT_SEAT_H
-#define _SWAY_INPUT_SEAT_H
+#ifndef _WMIIV_INPUT_SEAT_H
+#define _WMIIV_INPUT_SEAT_H
 
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>

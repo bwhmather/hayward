@@ -1,5 +1,5 @@
-#ifndef _SWAY_SWAYNAG_H
-#define _SWAY_SWAYNAG_H
+#ifndef _WMIIV_WMIIVNAG_H
+#define _WMIIV_WMIIVNAG_H
 #include <wayland-server-core.h>
 
 struct wmiivnag_instance {

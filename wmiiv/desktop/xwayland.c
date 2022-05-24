@@ -175,7 +175,7 @@ static struct wmiiv_xwayland_unmanaged *create_unmanaged(
 	struct wmiiv_xwayland_unmanaged *surface =
 		calloc(1, sizeof(struct wmiiv_xwayland_unmanaged));
 	if (surface == NULL) {
-		wmiiv_log(SWAY_ERROR, "Allocation failed");
+		wmiiv_log(WMIIV_ERROR, "Allocation failed");
 		return NULL;
 	}
 
@@ -200,7 +200,7 @@ static struct wmiiv_xwayland_unmanaged *create_unmanaged(
 
 static struct wmiiv_xwayland_view *xwayland_view_from_view(
 		struct wmiiv_view *view) {
-	if (!wmiiv_assert(view->type == SWAY_VIEW_XWAYLAND,
+	if (!wmiiv_assert(view->type == WMIIV_VIEW_XWAYLAND,
 			"Expected xwayland view")) {
 		return NULL;
 	}
@@ -703,7 +703,7 @@ struct wmiiv_view *view_from_wlr_xwayland_surface(
 }
 
 struct wmiiv_xwayland_view *create_xwayland_view(struct wlr_xwayland_surface *xsurface) {
-	wmiiv_log(SWAY_DEBUG, "New xwayland surface title='%s' class='%s'",
+	wmiiv_log(WMIIV_DEBUG, "New xwayland surface title='%s' class='%s'",
 		xsurface->title, xsurface->class);
 
 	struct wmiiv_xwayland_view *xwayland_view =
@@ -712,7 +712,7 @@ struct wmiiv_xwayland_view *create_xwayland_view(struct wlr_xwayland_surface *xs
 		return NULL;
 	}
 
-	view_init(&xwayland_view->view, SWAY_VIEW_XWAYLAND, &view_impl);
+	view_init(&xwayland_view->view, WMIIV_VIEW_XWAYLAND, &view_impl);
 	xwayland_view->view.wlr_xwayland_surface = xsurface;
 
 	wl_signal_add(&xsurface->events.destroy, &xwayland_view->destroy);
@@ -781,7 +781,7 @@ void handle_xwayland_surface(struct wl_listener *listener, void *data) {
 	struct wlr_xwayland_surface *xsurface = data;
 
 	if (xsurface->override_redirect) {
-		wmiiv_log(SWAY_DEBUG, "New xwayland unmanaged surface");
+		wmiiv_log(WMIIV_DEBUG, "New xwayland unmanaged surface");
 		create_unmanaged(xsurface);
 		return;
 	}
@@ -797,7 +797,7 @@ void handle_xwayland_ready(struct wl_listener *listener, void *data) {
 	xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
 	int err = xcb_connection_has_error(xcb_conn);
 	if (err) {
-		wmiiv_log(SWAY_ERROR, "XCB connect failed: %d", err);
+		wmiiv_log(WMIIV_ERROR, "XCB connect failed: %d", err);
 		return;
 	}
 
@@ -816,7 +816,7 @@ void handle_xwayland_ready(struct wl_listener *listener, void *data) {
 		free(reply);
 
 		if (error != NULL) {
-			wmiiv_log(SWAY_ERROR, "could not resolve atom %s, X11 error code %d",
+			wmiiv_log(WMIIV_ERROR, "could not resolve atom %s, X11 error code %d",
 				atom_map[i], error->error_code);
 			free(error);
 			break;

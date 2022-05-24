@@ -1,5 +1,5 @@
-#ifndef _SWAY_INPUT_LIBINPUT_H
-#define _SWAY_INPUT_LIBINPUT_H
+#ifndef _WMIIV_INPUT_LIBINPUT_H
+#define _WMIIV_INPUT_LIBINPUT_H
 #include "wmiiv/input/input-manager.h"
 
 void wmiiv_input_configure_libinput_device(struct wmiiv_input_device *device);

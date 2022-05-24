@@ -1,5 +1,5 @@
-#ifndef _SWAY_SERVER_H
-#define _SWAY_SERVER_H
+#ifndef _WMIIV_SERVER_H
+#define _WMIIV_SERVER_H
 #include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wlr/backend.h>

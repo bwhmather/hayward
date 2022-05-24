@@ -1,5 +1,5 @@
-#ifndef _SWAY_NODE_H
-#define _SWAY_NODE_H
+#ifndef _WMIIV_NODE_H
+#define _WMIIV_NODE_H
 #include <stdbool.h>
 #include "list.h"
 

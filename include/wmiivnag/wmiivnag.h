@@ -1,19 +1,19 @@
-#ifndef _SWAYNAG_SWAYNAG_H
-#define _SWAYNAG_SWAYNAG_H
+#ifndef _WMIIVNAG_WMIIVNAG_H
+#define _WMIIVNAG_WMIIVNAG_H
 #include <stdint.h>
 #include <strings.h>
 #include "list.h"
 #include "pool-buffer.h"
 #include "wmiivnag/types.h"
 
-#define SWAYNAG_MAX_HEIGHT 500
+#define WMIIVNAG_MAX_HEIGHT 500
 
 struct wmiivnag;
 
 enum wmiivnag_action_type {
-	SWAYNAG_ACTION_DISMISS,
-	SWAYNAG_ACTION_EXPAND,
-	SWAYNAG_ACTION_COMMAND,
+	WMIIVNAG_ACTION_DISMISS,
+	WMIIVNAG_ACTION_EXPAND,
+	WMIIVNAG_ACTION_COMMAND,
 };
 
 struct wmiivnag_pointer {

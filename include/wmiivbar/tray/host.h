@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_TRAY_HOST_H
-#define _SWAYBAR_TRAY_HOST_H
+#ifndef _WMIIVBAR_TRAY_HOST_H
+#define _WMIIVBAR_TRAY_HOST_H
 
 #include <stdbool.h>
 

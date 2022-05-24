@@ -48,13 +48,13 @@
 #endif
 
 bool server_privileged_prepare(struct wmiiv_server *server) {
-	wmiiv_log(SWAY_DEBUG, "Preparing Wayland server initialization");
+	wmiiv_log(WMIIV_DEBUG, "Preparing Wayland server initialization");
 	server->wl_display = wl_display_create();
 	server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
 	server->backend = wlr_backend_autocreate(server->wl_display);
 
 	if (!server->backend) {
-		wmiiv_log(SWAY_ERROR, "Unable to create backend");
+		wmiiv_log(WMIIV_ERROR, "Unable to create backend");
 		return false;
 	}
 	return true;
@@ -67,17 +67,17 @@ static void handle_drm_lease_request(struct wl_listener *listener, void *data) {
 	struct wlr_drm_lease_request_v1 *req = data;
 	struct wlr_drm_lease_v1 *lease = wlr_drm_lease_request_v1_grant(req);
 	if (!lease) {
-		wmiiv_log(SWAY_ERROR, "Failed to grant lease request");
+		wmiiv_log(WMIIV_ERROR, "Failed to grant lease request");
 		wlr_drm_lease_request_v1_reject(req);
 	}
 }
 
 bool server_init(struct wmiiv_server *server) {
-	wmiiv_log(SWAY_DEBUG, "Initializing Wayland server");
+	wmiiv_log(WMIIV_DEBUG, "Initializing Wayland server");
 
 	server->renderer = wlr_renderer_autocreate(server->backend);
 	if (!server->renderer) {
-		wmiiv_log(SWAY_ERROR, "Failed to create renderer");
+		wmiiv_log(WMIIV_ERROR, "Failed to create renderer");
 		return false;
 	}
 
@@ -92,7 +92,7 @@ bool server_init(struct wmiiv_server *server) {
 	server->allocator = wlr_allocator_autocreate(server->backend,
 		server->renderer);
 	if (!server->allocator) {
-		wmiiv_log(SWAY_ERROR, "Failed to create allocator");
+		wmiiv_log(WMIIV_ERROR, "Failed to create allocator");
 		return false;
 	}
 
@@ -192,8 +192,8 @@ bool server_init(struct wmiiv_server *server) {
 		wl_signal_add(&server->drm_lease_manager->events.request,
 				&server->drm_lease_request);
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Failed to create wlr_drm_lease_device_v1");
-		wmiiv_log(SWAY_INFO, "VR will not be available");
+		wmiiv_log(WMIIV_DEBUG, "Failed to create wlr_drm_lease_device_v1");
+		wmiiv_log(WMIIV_INFO, "VR will not be available");
 	}
 
 	wlr_export_dmabuf_manager_v1_create(server->wl_display);
@@ -224,14 +224,14 @@ bool server_init(struct wmiiv_server *server) {
 	}
 
 	if (!server->socket) {
-		wmiiv_log(SWAY_ERROR, "Unable to open wayland socket");
+		wmiiv_log(WMIIV_ERROR, "Unable to open wayland socket");
 		wlr_backend_destroy(server->backend);
 		return false;
 	}
 
 	server->headless_backend = wlr_headless_backend_create(server->wl_display);
 	if (!server->headless_backend) {
-		wmiiv_log(SWAY_ERROR, "Failed to create secondary headless backend");
+		wmiiv_log(WMIIV_ERROR, "Failed to create secondary headless backend");
 		wlr_backend_destroy(server->backend);
 		return false;
 	} else {
@@ -269,13 +269,13 @@ void server_fini(struct wmiiv_server *server) {
 bool server_start(struct wmiiv_server *server) {
 #if HAVE_XWAYLAND
 	if (config->xwayland != XWAYLAND_MODE_DISABLED) {
-		wmiiv_log(SWAY_DEBUG, "Initializing Xwayland (lazy=%d)",
+		wmiiv_log(WMIIV_DEBUG, "Initializing Xwayland (lazy=%d)",
 				config->xwayland == XWAYLAND_MODE_LAZY);
 		server->xwayland.wlr_xwayland =
 			wlr_xwayland_create(server->wl_display, server->compositor,
 					config->xwayland == XWAYLAND_MODE_LAZY);
 		if (!server->xwayland.wlr_xwayland) {
-			wmiiv_log(SWAY_ERROR, "Failed to start Xwayland");
+			wmiiv_log(WMIIV_ERROR, "Failed to start Xwayland");
 			unsetenv("DISPLAY");
 		} else {
 			wl_signal_add(&server->xwayland.wlr_xwayland->events.new_surface,
@@ -292,10 +292,10 @@ bool server_start(struct wmiiv_server *server) {
 	}
 #endif
 
-	wmiiv_log(SWAY_INFO, "Starting backend on wayland display '%s'",
+	wmiiv_log(WMIIV_INFO, "Starting backend on wayland display '%s'",
 			server->socket);
 	if (!wlr_backend_start(server->backend)) {
-		wmiiv_log(SWAY_ERROR, "Failed to start backend");
+		wmiiv_log(WMIIV_ERROR, "Failed to start backend");
 		wlr_backend_destroy(server->backend);
 		return false;
 	}
@@ -304,7 +304,7 @@ bool server_start(struct wmiiv_server *server) {
 }
 
 void server_run(struct wmiiv_server *server) {
-	wmiiv_log(SWAY_INFO, "Running compositor on wayland display '%s'",
+	wmiiv_log(WMIIV_INFO, "Running compositor on wayland display '%s'",
 			server->socket);
 	wl_display_run(server->wl_display);
 }

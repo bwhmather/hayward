@@ -1,5 +1,5 @@
-#ifndef _SWAY_INPUT_TEXT_INPUT_H
-#define _SWAY_INPUT_TEXT_INPUT_H
+#ifndef _WMIIV_INPUT_TEXT_INPUT_H
+#define _WMIIV_INPUT_TEXT_INPUT_H
 
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_input_method_v2.h>

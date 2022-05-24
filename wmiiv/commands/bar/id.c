@@ -26,7 +26,7 @@ struct cmd_results *bar_cmd_id(int argc, char **argv) {
 		}
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Renaming bar: '%s' to '%s'", oldname, name);
+	wmiiv_log(WMIIV_DEBUG, "Renaming bar: '%s' to '%s'", oldname, name);
 
 	// free old bar id
 	free(config->current_bar->id);

@@ -1,5 +1,5 @@
-#ifndef _SWAY_XDG_DECORATION_H
-#define _SWAY_XDG_DECORATION_H
+#ifndef _WMIIV_XDG_DECORATION_H
+#define _WMIIV_XDG_DECORATION_H
 
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 

@@ -109,7 +109,7 @@ static struct wmiiv_xdg_popup *popup_create(
 
 static struct wmiiv_xdg_shell_view *xdg_shell_view_from_view(
 		struct wmiiv_view *view) {
-	if (!wmiiv_assert(view->type == SWAY_VIEW_XDG_SHELL,
+	if (!wmiiv_assert(view->type == WMIIV_VIEW_XDG_SHELL,
 			"Expected xdg_shell view")) {
 		return NULL;
 	}
@@ -492,11 +492,11 @@ void handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
 	struct wlr_xdg_surface *xdg_surface = data;
 
 	if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
-		wmiiv_log(SWAY_DEBUG, "New xdg_shell popup");
+		wmiiv_log(WMIIV_DEBUG, "New xdg_shell popup");
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'",
+	wmiiv_log(WMIIV_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'",
 		xdg_surface->toplevel->title, xdg_surface->toplevel->app_id);
 	wlr_xdg_surface_ping(xdg_surface);
 
@@ -506,7 +506,7 @@ void handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
 		return;
 	}
 
-	view_init(&xdg_shell_view->view, SWAY_VIEW_XDG_SHELL, &view_impl);
+	view_init(&xdg_shell_view->view, WMIIV_VIEW_XDG_SHELL, &view_impl);
 	xdg_shell_view->view.wlr_xdg_toplevel = xdg_surface->toplevel;
 
 	xdg_shell_view->map.notify = handle_map;

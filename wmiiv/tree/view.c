@@ -141,10 +141,10 @@ uint32_t view_get_window_type(struct wmiiv_view *view) {
 
 const char *view_get_shell(struct wmiiv_view *view) {
 	switch(view->type) {
-	case SWAY_VIEW_XDG_SHELL:
+	case WMIIV_VIEW_XDG_SHELL:
 		return "xdg_shell";
 #if HAVE_XWAYLAND
-	case SWAY_VIEW_XWAYLAND:
+	case WMIIV_VIEW_XWAYLAND:
 		return "xwayland";
 #endif
 	}
@@ -383,7 +383,7 @@ void view_request_activate(struct wmiiv_view *view) {
 }
 
 void view_set_csd_from_server(struct wmiiv_view *view, bool enabled) {
-	wmiiv_log(SWAY_DEBUG, "Telling view %p to set CSD to %i", view, enabled);
+	wmiiv_log(WMIIV_DEBUG, "Telling view %p to set CSD to %i", view, enabled);
 	if (view->xdg_decoration) {
 		uint32_t mode = enabled ?
 			WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE :
@@ -395,7 +395,7 @@ void view_set_csd_from_server(struct wmiiv_view *view, bool enabled) {
 }
 
 void view_update_csd_from_client(struct wmiiv_view *view, bool enabled) {
-	wmiiv_log(SWAY_DEBUG, "View %p updated CSD to %i", view, enabled);
+	wmiiv_log(WMIIV_DEBUG, "View %p updated CSD to %i", view, enabled);
 	struct wmiiv_container *win = view->container;
 	if (enabled && win && win->pending.border != B_CSD) {
 		win->saved_border = win->pending.border;
@@ -487,12 +487,12 @@ void view_execute_criteria(struct wmiiv_view *view) {
 	list_t *criterias = criteria_for_view(view, CT_COMMAND);
 	for (int i = 0; i < criterias->length; i++) {
 		struct criteria *criteria = criterias->items[i];
-		wmiiv_log(SWAY_DEBUG, "Checking criteria %s", criteria->raw);
+		wmiiv_log(WMIIV_DEBUG, "Checking criteria %s", criteria->raw);
 		if (view_has_executed_criteria(view, criteria)) {
-			wmiiv_log(SWAY_DEBUG, "Criteria already executed");
+			wmiiv_log(WMIIV_DEBUG, "Criteria already executed");
 			continue;
 		}
-		wmiiv_log(SWAY_DEBUG, "for_window '%s' matches view %p, cmd: '%s'",
+		wmiiv_log(WMIIV_DEBUG, "for_window '%s' matches view %p, cmd: '%s'",
 				criteria->raw, view, criteria->cmdlist);
 		list_add(view->executed_criteria, criteria);
 		list_t *res_list = execute_command(
@@ -511,13 +511,13 @@ static void view_populate_pid(struct wmiiv_view *view) {
 	pid_t pid;
 	switch (view->type) {
 #if HAVE_XWAYLAND
-	case SWAY_VIEW_XWAYLAND:;
+	case WMIIV_VIEW_XWAYLAND:;
 		struct wlr_xwayland_surface *surf =
 			wlr_xwayland_surface_from_wlr_surface(view->surface);
 		pid = surf->pid;
 		break;
 #endif
-	case SWAY_VIEW_XDG_SHELL:;
+	case WMIIV_VIEW_XDG_SHELL:;
 		struct wl_client *client =
 			wl_resource_get_client(view->surface->resource);
 		wl_client_get_credentials(client, &pid, NULL, NULL);
@@ -932,7 +932,7 @@ static void view_subsurface_create(struct wmiiv_view *view,
 	struct wmiiv_subsurface *subsurface =
 		calloc(1, sizeof(struct wmiiv_subsurface));
 	if (subsurface == NULL) {
-		wmiiv_log(SWAY_ERROR, "Allocation failed");
+		wmiiv_log(WMIIV_ERROR, "Allocation failed");
 		return;
 	}
 	view_child_init(&subsurface->child, &subsurface_impl, view,
@@ -951,7 +951,7 @@ static void view_child_subsurface_create(struct wmiiv_view_child *child,
 	struct wmiiv_subsurface *subsurface =
 		calloc(1, sizeof(struct wmiiv_subsurface));
 	if (subsurface == NULL) {
-		wmiiv_log(SWAY_ERROR, "Allocation failed");
+		wmiiv_log(WMIIV_ERROR, "Allocation failed");
 		return;
 	}
 	subsurface->child.parent = child;
@@ -1164,7 +1164,7 @@ struct wmiiv_view *view_from_wlr_surface(struct wlr_surface *wlr_surface) {
 	}
 
 	const char *role = wlr_surface->role ? wlr_surface->role->name : NULL;
-	wmiiv_log(SWAY_DEBUG, "Surface of unknown type (role %s): %p",
+	wmiiv_log(WMIIV_DEBUG, "Surface of unknown type (role %s): %p",
 		role, wlr_surface);
 	return NULL;
 }

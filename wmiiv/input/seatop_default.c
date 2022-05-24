@@ -18,7 +18,7 @@
 
 struct seatop_default_event {
 	struct wmiiv_node *previous_node;
-	uint32_t pressed_buttons[SWAY_CURSOR_PRESSED_BUTTONS_CAP];
+	uint32_t pressed_buttons[WMIIV_CURSOR_PRESSED_BUTTONS_CAP];
 	size_t pressed_button_count;
 };
 
@@ -184,7 +184,7 @@ static void state_erase_button(struct seatop_default_event *e,
  * is space.
  */
 static void state_add_button(struct seatop_default_event *e, uint32_t button) {
-	if (e->pressed_button_count >= SWAY_CURSOR_PRESSED_BUTTONS_CAP) {
+	if (e->pressed_button_count >= WMIIV_CURSOR_PRESSED_BUTTONS_CAP) {
 		return;
 	}
 	size_t i = 0;
@@ -641,11 +641,11 @@ static void handle_tablet_tool_motion(struct wmiiv_seat *seat,
 static uint32_t wl_axis_to_button(struct wlr_pointer_axis_event *event) {
 	switch (event->orientation) {
 	case WLR_AXIS_ORIENTATION_VERTICAL:
-		return event->delta < 0 ? SWAY_SCROLL_UP : SWAY_SCROLL_DOWN;
+		return event->delta < 0 ? WMIIV_SCROLL_UP : WMIIV_SCROLL_DOWN;
 	case WLR_AXIS_ORIENTATION_HORIZONTAL:
-		return event->delta < 0 ? SWAY_SCROLL_LEFT : SWAY_SCROLL_RIGHT;
+		return event->delta < 0 ? WMIIV_SCROLL_LEFT : WMIIV_SCROLL_RIGHT;
 	default:
-		wmiiv_log(SWAY_DEBUG, "Unknown axis orientation");
+		wmiiv_log(WMIIV_DEBUG, "Unknown axis orientation");
 		return 0;
 	}
 }

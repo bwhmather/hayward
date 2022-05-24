@@ -1,5 +1,5 @@
-#ifndef _SWAY_INPUT_CURSOR_H
-#define _SWAY_INPUT_CURSOR_H
+#ifndef _WMIIV_INPUT_CURSOR_H
+#define _WMIIV_INPUT_CURSOR_H
 #include <stdbool.h>
 #include <stdint.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
@@ -8,12 +8,12 @@
 #include "wmiiv/input/seat.h"
 #include "config.h"
 
-#define SWAY_CURSOR_PRESSED_BUTTONS_CAP 32
+#define WMIIV_CURSOR_PRESSED_BUTTONS_CAP 32
 
-#define SWAY_SCROLL_UP KEY_MAX + 1
-#define SWAY_SCROLL_DOWN KEY_MAX + 2
-#define SWAY_SCROLL_LEFT KEY_MAX + 3
-#define SWAY_SCROLL_RIGHT KEY_MAX + 4
+#define WMIIV_SCROLL_UP KEY_MAX + 1
+#define WMIIV_SCROLL_DOWN KEY_MAX + 2
+#define WMIIV_SCROLL_LEFT KEY_MAX + 3
+#define WMIIV_SCROLL_RIGHT KEY_MAX + 4
 
 struct wmiiv_cursor {
 	struct wmiiv_seat *seat;

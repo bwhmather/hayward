@@ -1,5 +1,5 @@
-#ifndef _SWAY_IPC_JSON_H
-#define _SWAY_IPC_JSON_H
+#ifndef _WMIIV_IPC_JSON_H
+#define _WMIIV_IPC_JSON_H
 #include <json.h>
 #include "wmiiv/tree/container.h"
 #include "wmiiv/input/input-manager.h"

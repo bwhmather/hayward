@@ -124,7 +124,7 @@ void output_enable(struct wmiiv_output *output) {
 	if (!output->workspaces->length) {
 		// Create workspace
 		char *ws_name = workspace_next_name(wlr_output->name);
-		wmiiv_log(SWAY_DEBUG, "Creating default workspace %s", ws_name);
+		wmiiv_log(WMIIV_DEBUG, "Creating default workspace %s", ws_name);
 		ws = workspace_create(output, ws_name);
 		// Set each seat's focus if not already set
 		struct wmiiv_seat *seat = NULL;
@@ -254,7 +254,7 @@ void output_disable(struct wmiiv_output *output) {
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Disabling output '%s'", output->wlr_output->name);
+	wmiiv_log(WMIIV_DEBUG, "Disabling output '%s'", output->wlr_output->name);
 	wl_signal_emit(&output->events.disable, output);
 
 	output_evacuate(output);
@@ -278,7 +278,7 @@ void output_begin_destroy(struct wmiiv_output *output) {
 	if (!wmiiv_assert(!output->enabled, "Expected a disabled output")) {
 		return;
 	}
-	wmiiv_log(SWAY_DEBUG, "Destroying output '%s'", output->wlr_output->name);
+	wmiiv_log(WMIIV_DEBUG, "Destroying output '%s'", output->wlr_output->name);
 	wl_signal_emit(&output->node.events.destroy, &output->node);
 
 	output->node.destroying = true;

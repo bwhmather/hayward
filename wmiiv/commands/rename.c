@@ -89,7 +89,7 @@ struct cmd_results *cmd_rename(int argc, char **argv) {
 		}
 	}
 
-	wmiiv_log(SWAY_DEBUG, "renaming workspace '%s' to '%s'", workspace->name, new_name);
+	wmiiv_log(WMIIV_DEBUG, "renaming workspace '%s' to '%s'", workspace->name, new_name);
 
 	root_rename_pid_workspaces(workspace->name, new_name);
 

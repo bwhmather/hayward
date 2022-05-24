@@ -102,14 +102,14 @@ static struct cmd_results *press_or_release(struct wmiiv_cursor *cursor,
 			cmd_results_new(CMD_INVALID, message);
 		free(message);
 		return error;
-	} else if (button == SWAY_SCROLL_UP || button == SWAY_SCROLL_DOWN
-			|| button == SWAY_SCROLL_LEFT || button == SWAY_SCROLL_RIGHT) {
+	} else if (button == WMIIV_SCROLL_UP || button == WMIIV_SCROLL_DOWN
+			|| button == WMIIV_SCROLL_LEFT || button == WMIIV_SCROLL_RIGHT) {
 		// Dispatch axis event
 		enum wlr_axis_orientation orientation =
-			(button == SWAY_SCROLL_UP || button == SWAY_SCROLL_DOWN)
+			(button == WMIIV_SCROLL_UP || button == WMIIV_SCROLL_DOWN)
 			? WLR_AXIS_ORIENTATION_VERTICAL
 			: WLR_AXIS_ORIENTATION_HORIZONTAL;
-		double delta = (button == SWAY_SCROLL_UP || button == SWAY_SCROLL_LEFT)
+		double delta = (button == WMIIV_SCROLL_UP || button == WMIIV_SCROLL_LEFT)
 			? -1 : 1;
 		struct wlr_pointer_axis_event event = {
 			.pointer = NULL,

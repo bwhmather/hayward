@@ -193,7 +193,7 @@ void arrange_layers(struct wmiiv_output *output) {
 
 	if (memcmp(&usable_area, &output->usable_area,
 				sizeof(struct wlr_box)) != 0) {
-		wmiiv_log(SWAY_DEBUG, "Usable area changed, rearranging output");
+		wmiiv_log(WMIIV_DEBUG, "Usable area changed, rearranging output");
 		memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
 		arrange_output(output);
 	}
@@ -345,7 +345,7 @@ static void layer_subsurface_destroy(struct wmiiv_layer_subsurface *subsurface);
 static void handle_destroy(struct wl_listener *listener, void *data) {
 	struct wmiiv_layer_surface *wmiiv_layer =
 		wl_container_of(listener, wmiiv_layer, destroy);
-	wmiiv_log(SWAY_DEBUG, "Layer surface destroyed (%s)",
+	wmiiv_log(WMIIV_DEBUG, "Layer surface destroyed (%s)",
 		wmiiv_layer->layer_surface->namespace);
 	if (wmiiv_layer->layer_surface->mapped) {
 		unmap(wmiiv_layer);
@@ -607,7 +607,7 @@ struct wmiiv_layer_surface *layer_from_wlr_layer_surface_v1(
 
 void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 	struct wlr_layer_surface_v1 *layer_surface = data;
-	wmiiv_log(SWAY_DEBUG, "new layer surface: namespace %s layer %d anchor %" PRIu32
+	wmiiv_log(WMIIV_DEBUG, "new layer surface: namespace %s layer %d anchor %" PRIu32
 			" size %" PRIu32 "x%" PRIu32 " margin %" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",",
 		layer_surface->namespace,
 		layer_surface->pending.layer,
@@ -631,7 +631,7 @@ void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 		}
 		if (!output || output == root->fallback_output) {
 			if (!root->outputs->length) {
-				wmiiv_log(SWAY_ERROR,
+				wmiiv_log(WMIIV_ERROR,
 						"no output to auto-assign layer surface '%s' to",
 						layer_surface->namespace);
 				// Note that layer_surface->output can be NULL

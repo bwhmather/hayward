@@ -1,5 +1,5 @@
-#ifndef _SWAY_COMMANDS_H
-#define _SWAY_COMMANDS_H
+#ifndef _WMIIV_COMMANDS_H
+#define _WMIIV_COMMANDS_H
 
 #include <wlr/util/edges.h>
 #include "config.h"

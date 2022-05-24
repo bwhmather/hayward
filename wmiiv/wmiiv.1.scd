@@ -71,7 +71,7 @@ with *i3-msg*(1) or even with *i3*(1).
 
 The following environment variables have an effect on wmiiv:
 
-_SWAYSOCK_
+_WMIIVSOCK_
 	Specifies the path to the wmiiv IPC socket.
 
 _XKB\_DEFAULT\_RULES_, _XKB\_DEFAULT\_MODEL_, _XKB\_DEFAULT\_LAYOUT_,
@@ -89,7 +89,7 @@ _DISPLAY_
 _I3SOCK_
 	For compatibility with i3, specifies the path to the wmiiv IPC socket.
 
-_SWAYSOCK_
+_WMIIVSOCK_
 	Specifies the path to the wmiiv IPC socket.
 
 _WAYLAND_DISPLAY_

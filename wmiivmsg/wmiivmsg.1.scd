@@ -31,7 +31,7 @@ _wmiivmsg_ [options...] [message]
 
 *-s, --socket* <path>
 	Use the specified socket path. Otherwise, wmiivmsg will ask wmiiv where the
-	socket is (which is the value of $SWAYSOCK, then of $I3SOCK).
+	socket is (which is the value of $WMIIVSOCK, then of $I3SOCK).
 
 *-t, --type* <type>
 	Specify the type of IPC message. See below.

@@ -44,7 +44,7 @@ static void wmiivbar_output_free(struct wmiivbar_output *output) {
 	if (!output) {
 		return;
 	}
-	wmiiv_log(SWAY_DEBUG, "Removing output %s", output->name);
+	wmiiv_log(WMIIV_DEBUG, "Removing output %s", output->name);
 	if (output->layer_surface != NULL) {
 		zwlr_layer_surface_v1_destroy(output->layer_surface);
 	}
@@ -165,7 +165,7 @@ bool determine_bar_visibility(struct wmiivbar *bar, bool moving_layer) {
 		bar->visible = visible;
 
 		if (bar->status) {
-			wmiiv_log(SWAY_DEBUG, "Sending %s signal to status command",
+			wmiiv_log(WMIIV_DEBUG, "Sending %s signal to status command",
 					visible ? "cont" : "stop");
 			kill(-bar->status->pid, visible ?
 					bar->status->cont_signal : bar->status->stop_signal);
@@ -294,7 +294,7 @@ static void xdg_output_handle_description(void *data,
 		size_t length = paren - description;
 		output->identifier = malloc(length);
 		if (!output->identifier) {
-			wmiiv_log(SWAY_ERROR, "Failed to allocate output identifier");
+			wmiiv_log(WMIIV_ERROR, "Failed to allocate output identifier");
 			return;
 		}
 		strncpy(output->identifier, description, length);
@@ -458,13 +458,13 @@ static void display_in(int fd, short mask, void *data) {
 	struct wmiivbar *bar = data;
 	if (mask & (POLLHUP | POLLERR)) {
 		if (mask & POLLERR) {
-			wmiiv_log(SWAY_ERROR, "Wayland display poll error");
+			wmiiv_log(WMIIV_ERROR, "Wayland display poll error");
 		}
 		bar->running = false;
 		return;
 	}
 	if (wl_display_dispatch(bar->display) == -1) {
-		wmiiv_log(SWAY_ERROR, "wl_display_dispatch failed");
+		wmiiv_log(WMIIV_ERROR, "wl_display_dispatch failed");
 		bar->running = false;
 	}
 }
@@ -473,7 +473,7 @@ static void ipc_in(int fd, short mask, void *data) {
 	struct wmiivbar *bar = data;
 	if (mask & (POLLHUP | POLLERR)) {
 		if (mask & POLLERR) {
-			wmiiv_log(SWAY_ERROR, "IPC poll error");
+			wmiiv_log(WMIIV_ERROR, "IPC poll error");
 		}
 		bar->running = false;
 		return;

@@ -74,7 +74,7 @@ static void apply_horiz_layout(list_t *children, struct wlr_box *parent) {
 	inner_gap = floor(total_gap / (children->length - 1));
 
 	// Resize windows
-	wmiiv_log(SWAY_DEBUG, "Arranging %p horizontally", parent);
+	wmiiv_log(WMIIV_DEBUG, "Arranging %p horizontally", parent);
 	double child_x = parent->x;
 	for (int i = 0; i < children->length; ++i) {
 		struct wmiiv_container *child = children->items[i];
@@ -153,7 +153,7 @@ static void apply_vert_layout(list_t *children, struct wlr_box *parent) {
 	inner_gap = floor(total_gap / (children->length - 1));
 
 	// Resize windows
-	wmiiv_log(SWAY_DEBUG, "Arranging %p vertically", parent);
+	wmiiv_log(WMIIV_DEBUG, "Arranging %p vertically", parent);
 	double child_y = parent->y;
 	for (int i = 0; i < children->length; ++i) {
 		struct wmiiv_container *child = children->items[i];
@@ -268,7 +268,7 @@ void arrange_workspace(struct wmiiv_workspace *workspace) {
 	}
 	struct wmiiv_output *output = workspace->output;
 	struct wlr_box *area = &output->usable_area;
-	wmiiv_log(SWAY_DEBUG, "Usable area for ws: %dx%d@%d,%d",
+	wmiiv_log(WMIIV_DEBUG, "Usable area for ws: %dx%d@%d,%d",
 			area->width, area->height, area->x, area->y);
 
 	bool first_arrange = workspace->width == 0 && workspace->height == 0;
@@ -298,7 +298,7 @@ void arrange_workspace(struct wmiiv_workspace *workspace) {
 
 	workspace_add_gaps(workspace);
 	node_set_dirty(&workspace->node);
-	wmiiv_log(SWAY_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
+	wmiiv_log(WMIIV_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
 			workspace->x, workspace->y);
 	if (workspace->fullscreen) {
 		struct wmiiv_container *fs = workspace->fullscreen;

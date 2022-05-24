@@ -1,5 +1,5 @@
-#ifndef _SWAY_PANGO_H
-#define _SWAY_PANGO_H
+#ifndef _WMIIV_PANGO_H
+#define _WMIIV_PANGO_H
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>

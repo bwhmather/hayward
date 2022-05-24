@@ -80,7 +80,7 @@ char *input_device_get_identifier(struct wlr_input_device *device) {
 	int len = snprintf(NULL, 0, fmt, vendor, product, name) + 1;
 	char *identifier = malloc(len);
 	if (!identifier) {
-		wmiiv_log(SWAY_ERROR, "Unable to allocate unique input device name");
+		wmiiv_log(WMIIV_ERROR, "Unable to allocate unique input device name");
 		return NULL;
 	}
 
@@ -181,7 +181,7 @@ static bool input_has_seat_fallback_configuration(void) {
 void input_manager_verify_fallback_seat(void) {
 	struct wmiiv_seat *seat = NULL;
 	if (!input_has_seat_fallback_configuration()) {
-		wmiiv_log(SWAY_DEBUG, "no fallback seat config - creating default");
+		wmiiv_log(WMIIV_DEBUG, "no fallback seat config - creating default");
 		seat = input_manager_get_default_seat();
 		struct seat_config *sc = new_seat_config(seat->wlr_seat->name);
 		sc->fallback = true;
@@ -199,7 +199,7 @@ static void handle_device_destroy(struct wl_listener *listener, void *data) {
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "removing device: '%s'",
+	wmiiv_log(WMIIV_DEBUG, "removing device: '%s'",
 		input_device->identifier);
 
 	struct wmiiv_seat *seat = NULL;
@@ -231,7 +231,7 @@ static void handle_new_input(struct wl_listener *listener, void *data) {
 	input_device->identifier = input_device_get_identifier(device);
 	wl_list_insert(&input->devices, &input_device->link);
 
-	wmiiv_log(SWAY_DEBUG, "adding device: '%s'",
+	wmiiv_log(WMIIV_DEBUG, "adding device: '%s'",
 		input_device->identifier);
 
 	apply_input_type_config(input_device);
@@ -268,7 +268,7 @@ static void handle_new_input(struct wl_listener *listener, void *data) {
 	}
 
 	if (!added) {
-		wmiiv_log(SWAY_DEBUG,
+		wmiiv_log(WMIIV_DEBUG,
 			"device '%s' is not configured on any seats",
 			input_device->identifier);
 	}
@@ -309,7 +309,7 @@ static void handle_keyboard_shortcuts_inhibitor_destroy(
 	struct wmiiv_keyboard_shortcuts_inhibitor *wmiiv_inhibitor =
 		wl_container_of(listener, wmiiv_inhibitor, destroy);
 
-	wmiiv_log(SWAY_DEBUG, "Removing keyboard shortcuts inhibitor");
+	wmiiv_log(WMIIV_DEBUG, "Removing keyboard shortcuts inhibitor");
 
 	// wmiiv_seat::keyboard_shortcuts_inhibitors
 	wl_list_remove(&wmiiv_inhibitor->link);
@@ -324,7 +324,7 @@ static void handle_keyboard_shortcuts_inhibit_new_inhibitor(
 				keyboard_shortcuts_inhibit_new_inhibitor);
 	struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor = data;
 
-	wmiiv_log(SWAY_DEBUG, "Adding keyboard shortcuts inhibitor");
+	wmiiv_log(WMIIV_DEBUG, "Adding keyboard shortcuts inhibitor");
 
 	struct wmiiv_keyboard_shortcuts_inhibitor *wmiiv_inhibitor =
 		calloc(1, sizeof(struct wmiiv_keyboard_shortcuts_inhibitor));
@@ -400,7 +400,7 @@ void handle_virtual_keyboard(struct wl_listener *listener, void *data) {
 	input_device->identifier = input_device_get_identifier(device);
 	wl_list_insert(&input_manager->devices, &input_device->link);
 
-	wmiiv_log(SWAY_DEBUG, "adding virtual keyboard: '%s'",
+	wmiiv_log(WMIIV_DEBUG, "adding virtual keyboard: '%s'",
 		input_device->identifier);
 
 	wl_signal_add(&device->events.destroy, &input_device->device_destroy);
@@ -432,7 +432,7 @@ void handle_virtual_pointer(struct wl_listener *listener, void *data) {
 	input_device->identifier = input_device_get_identifier(device);
 	wl_list_insert(&input_manager->devices, &input_device->link);
 
-	wmiiv_log(SWAY_DEBUG, "adding virtual pointer: '%s'",
+	wmiiv_log(WMIIV_DEBUG, "adding virtual pointer: '%s'",
 		input_device->identifier);
 
 	wl_signal_add(&device->events.destroy, &input_device->device_destroy);
@@ -586,7 +586,7 @@ void input_manager_reset_all_inputs(void) {
 }
 
 void input_manager_apply_seat_config(struct seat_config *seat_config) {
-	wmiiv_log(SWAY_DEBUG, "applying seat config for seat %s", seat_config->name);
+	wmiiv_log(WMIIV_DEBUG, "applying seat config for seat %s", seat_config->name);
 	if (strcmp(seat_config->name, "*") == 0) {
 		struct wmiiv_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {

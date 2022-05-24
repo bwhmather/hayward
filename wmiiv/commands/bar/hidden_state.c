@@ -26,7 +26,7 @@ static struct cmd_results *bar_set_hidden_state(struct bar_config *bar,
 		if (!config->current_bar) {
 			ipc_event_barconfig_update(bar);
 		}
-		wmiiv_log(SWAY_DEBUG, "Setting hidden_state: '%s' for bar: %s",
+		wmiiv_log(WMIIV_DEBUG, "Setting hidden_state: '%s' for bar: %s",
 				bar->hidden_state, bar->id);
 	}
 	// free old mode

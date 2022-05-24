@@ -10,7 +10,7 @@ This details the interprocess communication (IPC) protocol for *wmiiv*(1). This
 IPC protocol can be used to control or obtain information from a wmiiv process.
 
 The IPC protocol uses a UNIX socket as the method of communication. The path
-to the socket is stored in the environment variable _SWAYSOCK_ and, for
+to the socket is stored in the environment variable _WMIIVSOCK_ and, for
 backwards compatibility with i3, _I3SOCK_. You can also retrieve the socket
 path by calling _wmiiv --get-socketpath_.
 

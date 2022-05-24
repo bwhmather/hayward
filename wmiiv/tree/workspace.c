@@ -60,12 +60,12 @@ struct wmiiv_workspace *workspace_create(struct wmiiv_output *output,
 		output = workspace_get_initial_output(name);
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Adding workspace %s for output %s", name,
+	wmiiv_log(WMIIV_DEBUG, "Adding workspace %s for output %s", name,
 			output->wlr_output->name);
 
 	struct wmiiv_workspace *ws = calloc(1, sizeof(struct wmiiv_workspace));
 	if (!ws) {
-		wmiiv_log(SWAY_ERROR, "Unable to allocate wmiiv_workspace");
+		wmiiv_log(WMIIV_ERROR, "Unable to allocate wmiiv_workspace");
 		return NULL;
 	}
 	node_init(&ws->node, N_WORKSPACE, ws);
@@ -138,7 +138,7 @@ void workspace_destroy(struct wmiiv_workspace *workspace) {
 }
 
 void workspace_begin_destroy(struct wmiiv_workspace *workspace) {
-	wmiiv_log(SWAY_DEBUG, "Destroying workspace '%s'", workspace->name);
+	wmiiv_log(WMIIV_DEBUG, "Destroying workspace '%s'", workspace->name);
 	ipc_event_workspace(NULL, workspace, "empty"); // intentional
 	wl_signal_emit(&workspace->node.events.destroy, &workspace->node);
 
@@ -213,7 +213,7 @@ static void workspace_name_from_binding(const struct wmiiv_binding * binding,
 		char *_target = strdup(name);
 		_target = do_var_replacement(_target);
 		strip_quotes(_target);
-		wmiiv_log(SWAY_DEBUG, "Got valid workspace command for target: '%s'",
+		wmiiv_log(WMIIV_DEBUG, "Got valid workspace command for target: '%s'",
 				_target);
 
 		// Make sure that the command references an actual workspace
@@ -238,7 +238,7 @@ static void workspace_name_from_binding(const struct wmiiv_binding * binding,
 			temp[length - 1] = '\0';
 			free(_target);
 			_target = temp;
-			wmiiv_log(SWAY_DEBUG, "Isolated name from workspace number: '%s'", _target);
+			wmiiv_log(WMIIV_DEBUG, "Isolated name from workspace number: '%s'", _target);
 
 			// Make sure the workspace number doesn't already exist
 			if (isdigit(_target[0]) && workspace_by_number(_target)) {
@@ -267,7 +267,7 @@ static void workspace_name_from_binding(const struct wmiiv_binding * binding,
 			*min_order = binding->order;
 			free(*earliest_name);
 			*earliest_name = _target;
-			wmiiv_log(SWAY_DEBUG, "Workspace: Found free name %s", _target);
+			wmiiv_log(WMIIV_DEBUG, "Workspace: Found free name %s", _target);
 		} else {
 			free(_target);
 		}
@@ -276,7 +276,7 @@ static void workspace_name_from_binding(const struct wmiiv_binding * binding,
 }
 
 char *workspace_next_name(const char *output_name) {
-	wmiiv_log(SWAY_DEBUG, "Workspace: Generating new workspace name for output %s",
+	wmiiv_log(WMIIV_DEBUG, "Workspace: Generating new workspace name for output %s",
 			output_name);
 	// Scan for available workspace names by looking through output-workspace
 	// assignments primarily, falling back to bindings and numbers.
@@ -530,7 +530,7 @@ static struct wmiiv_workspace *workspace_output_prev_next_impl(
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_workspace *workspace = seat_get_focused_workspace(seat);
 	if (!workspace) {
-		wmiiv_log(SWAY_DEBUG,
+		wmiiv_log(WMIIV_DEBUG,
 				"No focused workspace to base prev/next on output off of");
 		return NULL;
 	}
@@ -574,7 +574,7 @@ struct wmiiv_workspace *workspace_auto_back_and_forth(
 bool workspace_switch(struct wmiiv_workspace *workspace) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
 
-	wmiiv_log(SWAY_DEBUG, "Switching to workspace %p:%s",
+	wmiiv_log(WMIIV_DEBUG, "Switching to workspace %p:%s",
 		workspace, workspace->name);
 	struct wmiiv_node *next = seat_get_focus_inactive(seat, &workspace->node);
 	if (next == NULL) {

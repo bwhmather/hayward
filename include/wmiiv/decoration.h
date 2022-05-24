@@ -1,5 +1,5 @@
-#ifndef _SWAY_DECORATION_H
-#define _SWAY_DECORATION_H
+#ifndef _WMIIV_DECORATION_H
+#define _WMIIV_DECORATION_H
 
 #include <wlr/types/wlr_server_decoration.h>
 

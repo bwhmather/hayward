@@ -1,5 +1,5 @@
-#ifndef _SWAY_INPUT_INPUT_MANAGER_H
-#define _SWAY_INPUT_INPUT_MANAGER_H
+#ifndef _WMIIV_INPUT_INPUT_MANAGER_H
+#define _WMIIV_INPUT_INPUT_MANAGER_H
 #include <libinput.h>
 #include <wlr/types/wlr_input_inhibitor.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>

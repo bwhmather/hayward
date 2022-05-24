@@ -37,12 +37,12 @@ static int read_pixmap(sd_bus_message *msg, struct wmiivbar_sni *sni,
 		const char *prop, list_t **dest) {
 	int ret = sd_bus_message_enter_container(msg, 'a', "(iiay)");
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 		return ret;
 	}
 
 	if (sd_bus_message_at_end(msg, 0)) {
-		wmiiv_log(SWAY_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
+		wmiiv_log(WMIIV_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
 		return ret;
 	}
 
@@ -54,14 +54,14 @@ static int read_pixmap(sd_bus_message *msg, struct wmiivbar_sni *sni,
 	while (!sd_bus_message_at_end(msg, 0)) {
 		ret = sd_bus_message_enter_container(msg, 'r', "iiay");
 		if (ret < 0) {
-			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(WMIIV_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto error;
 		}
 
 		int width, height;
 		ret = sd_bus_message_read(msg, "ii", &width, &height);
 		if (ret < 0) {
-			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(WMIIV_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto error;
 		}
 
@@ -69,12 +69,12 @@ static int read_pixmap(sd_bus_message *msg, struct wmiivbar_sni *sni,
 		size_t npixels;
 		ret = sd_bus_message_read_array(msg, 'y', &pixels, &npixels);
 		if (ret < 0) {
-			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(WMIIV_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto error;
 		}
 
 		if (height > 0 && width == height) {
-			wmiiv_log(SWAY_DEBUG, "%s %s: found icon w:%d h:%d", sni->watcher_id, prop, width, height);
+			wmiiv_log(WMIIV_DEBUG, "%s %s: found icon w:%d h:%d", sni->watcher_id, prop, width, height);
 			struct wmiivbar_pixmap *pixmap =
 				malloc(sizeof(struct wmiivbar_pixmap) + npixels);
 			pixmap->size = height;
@@ -86,20 +86,20 @@ static int read_pixmap(sd_bus_message *msg, struct wmiivbar_sni *sni,
 
 			list_add(pixmaps, pixmap);
 		} else {
-			wmiiv_log(SWAY_DEBUG, "%s %s: discard invalid icon w:%d h:%d", sni->watcher_id, prop, width, height);
+			wmiiv_log(WMIIV_DEBUG, "%s %s: discard invalid icon w:%d h:%d", sni->watcher_id, prop, width, height);
 		}
 
 		sd_bus_message_exit_container(msg);
 	}
 
 	if (pixmaps->length < 1) {
-		wmiiv_log(SWAY_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
+		wmiiv_log(WMIIV_DEBUG, "%s %s no. of icons = 0", sni->watcher_id, prop);
 		goto error;
 	}
 
 	list_free_items_and_destroy(*dest);
 	*dest = pixmaps;
-	wmiiv_log(SWAY_DEBUG, "%s %s no. of icons = %d", sni->watcher_id, prop,
+	wmiiv_log(WMIIV_DEBUG, "%s %s no. of icons = %d", sni->watcher_id, prop,
 			pixmaps->length);
 
 	return ret;
@@ -119,10 +119,10 @@ static int get_property_callback(sd_bus_message *msg, void *data,
 	int ret;
 	if (sd_bus_message_is_method_error(msg, NULL)) {
 		const sd_bus_error *err = sd_bus_message_get_error(msg);
-		wmiiv_log_importance_t log_lv = SWAY_ERROR;
+		wmiiv_log_importance_t log_lv = WMIIV_ERROR;
 		if ((!strcmp(prop, "IconThemePath")) &&
 				(!strcmp(err->name, SD_BUS_ERROR_UNKNOWN_PROPERTY))) {
-			log_lv = SWAY_DEBUG;
+			log_lv = WMIIV_DEBUG;
 		}
 		wmiiv_log(log_lv, "%s %s: %s", sni->watcher_id, prop, err->message);
 		ret = sd_bus_message_get_errno(msg);
@@ -131,7 +131,7 @@ static int get_property_callback(sd_bus_message *msg, void *data,
 
 	ret = sd_bus_message_enter_container(msg, 'v', type);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 		goto cleanup;
 	}
 
@@ -147,16 +147,16 @@ static int get_property_callback(sd_bus_message *msg, void *data,
 
 		ret = sd_bus_message_read(msg, type, dest);
 		if (ret < 0) {
-			wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+			wmiiv_log(WMIIV_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 			goto cleanup;
 		}
 
 		if (*type == 's' || *type == 'o') {
 			char **str = dest;
 			*str = strdup(*str);
-			wmiiv_log(SWAY_DEBUG, "%s %s = '%s'", sni->watcher_id, prop, *str);
+			wmiiv_log(WMIIV_DEBUG, "%s %s = '%s'", sni->watcher_id, prop, *str);
 		} else if (*type == 'b') {
-			wmiiv_log(SWAY_DEBUG, "%s %s = %s", sni->watcher_id, prop,
+			wmiiv_log(WMIIV_DEBUG, "%s %s = %s", sni->watcher_id, prop,
 					*(bool *)dest ? "true" : "false");
 		}
 	}
@@ -184,7 +184,7 @@ static void sni_get_property_async(struct wmiivbar_sni *sni, const char *prop,
 	if (ret >= 0) {
 		wl_list_insert(&sni->slots, &data->link);
 	} else {
-		wmiiv_log(SWAY_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "%s %s: %s", sni->watcher_id, prop, strerror(-ret));
 		free(data);
 	}
 }
@@ -208,10 +208,10 @@ static int sni_check_msg_sender(struct wmiivbar_sni *sni, sd_bus_message *msg,
 	bool has_well_known_names =
 		sd_bus_creds_get_mask(sd_bus_message_get_creds(msg)) & SD_BUS_CREDS_WELL_KNOWN_NAMES;
 	if (sni->service[0] == ':' || has_well_known_names) {
-		wmiiv_log(SWAY_DEBUG, "%s has new %s", sni->watcher_id, signal);
+		wmiiv_log(WMIIV_DEBUG, "%s has new %s", sni->watcher_id, signal);
 		return 1;
 	} else {
-		wmiiv_log(SWAY_DEBUG, "%s may have new %s", sni->watcher_id, signal);
+		wmiiv_log(WMIIV_DEBUG, "%s may have new %s", sni->watcher_id, signal);
 		return 0;
 	}
 }
@@ -241,12 +241,12 @@ static int handle_new_status(sd_bus_message *msg, void *data, sd_bus_error *erro
 		char *status;
 		int r = sd_bus_message_read(msg, "s", &status);
 		if (r < 0) {
-			wmiiv_log(SWAY_ERROR, "%s new status error: %s", sni->watcher_id, strerror(-ret));
+			wmiiv_log(WMIIV_ERROR, "%s new status error: %s", sni->watcher_id, strerror(-ret));
 			ret = r;
 		} else {
 			free(sni->status);
 			sni->status = strdup(status);
-			wmiiv_log(SWAY_DEBUG, "%s has new status = '%s'", sni->watcher_id, status);
+			wmiiv_log(WMIIV_DEBUG, "%s has new status = '%s'", sni->watcher_id, status);
 			set_sni_dirty(sni);
 		}
 	} else {
@@ -264,7 +264,7 @@ static void sni_match_signal_async(struct wmiivbar_sni *sni, char *signal,
 	if (ret >= 0) {
 		wl_list_insert(&sni->slots, &slot->link);
 	} else {
-		wmiiv_log(SWAY_ERROR, "%s failed to subscribe to signal %s: %s",
+		wmiiv_log(WMIIV_ERROR, "%s failed to subscribe to signal %s: %s",
 				sni->service, signal, strerror(-ret));
 		free(slot);
 	}
@@ -386,7 +386,7 @@ static int cmp_sni_id(const void *item, const void *cmp_to) {
 static enum hotspot_event_handling icon_hotspot_callback(
 		struct wmiivbar_output *output, struct wmiivbar_hotspot *hotspot,
 		double x, double y, uint32_t button, void *data) {
-	wmiiv_log(SWAY_DEBUG, "Clicked on %s", (char *)data);
+	wmiiv_log(WMIIV_DEBUG, "Clicked on %s", (char *)data);
 
 	struct wmiivbar_tray *tray = output->bar->tray;
 	int idx = list_seq_find(tray->items, cmp_sni_id, data);
@@ -400,11 +400,11 @@ static enum hotspot_event_handling icon_hotspot_callback(
 		int global_y = output->output_y + (top_bar ? config->gaps.top + y:
 				(int) output->output_height - config->gaps.bottom - y);
 
-		wmiiv_log(SWAY_DEBUG, "Guessing click position at (%d, %d)", global_x, global_y);
+		wmiiv_log(WMIIV_DEBUG, "Guessing click position at (%d, %d)", global_x, global_y);
 		handle_click(sni, global_x, global_y, button, 1); // TODO get delta from event
 		return HOTSPOT_IGNORE;
 	} else {
-		wmiiv_log(SWAY_DEBUG, "but it doesn't exist");
+		wmiiv_log(WMIIV_DEBUG, "but it doesn't exist");
 	}
 
 	return HOTSPOT_PROCESS;

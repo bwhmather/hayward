@@ -21,7 +21,7 @@ static void handle_pad_tablet_destroy(struct wl_listener *listener, void *data) 
 
 static void attach_tablet_pad(struct wmiiv_tablet_pad *tablet_pad,
 		struct wmiiv_tablet *tablet) {
-	wmiiv_log(SWAY_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
+	wmiiv_log(WMIIV_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
 		tablet_pad->seat_device->input_device->wlr_device->name,
 		tablet->seat_device->input_device->wlr_device->name);
 
@@ -116,7 +116,7 @@ static void handle_tablet_tool_set_cursor(struct wl_listener *listener, void *da
 	// TODO: check cursor mode
 	if (focused_client == NULL ||
 			event->seat_client->client != focused_client) {
-		wmiiv_log(SWAY_DEBUG, "denying request to set cursor from unfocused client");
+		wmiiv_log(WMIIV_DEBUG, "denying request to set cursor from unfocused client");
 		return;
 	}
 
@@ -145,10 +145,10 @@ void wmiiv_tablet_tool_configure(struct wmiiv_tablet *tablet,
 	switch (wlr_tool->type) {
 	case WLR_TABLET_TOOL_TYPE_LENS:
 	case WLR_TABLET_TOOL_TYPE_MOUSE:
-		tool->mode = SWAY_TABLET_TOOL_MODE_RELATIVE;
+		tool->mode = WMIIV_TABLET_TOOL_MODE_RELATIVE;
 		break;
 	default:
-		tool->mode = SWAY_TABLET_TOOL_MODE_ABSOLUTE;
+		tool->mode = WMIIV_TABLET_TOOL_MODE_ABSOLUTE;
 
 		struct input_config *ic = input_device_get_config(
 			tablet->seat_device->input_device);

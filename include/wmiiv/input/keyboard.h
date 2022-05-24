@@ -1,9 +1,9 @@
-#ifndef _SWAY_INPUT_KEYBOARD_H
-#define _SWAY_INPUT_KEYBOARD_H
+#ifndef _WMIIV_INPUT_KEYBOARD_H
+#define _WMIIV_INPUT_KEYBOARD_H
 
 #include "wmiiv/input/seat.h"
 
-#define SWAY_KEYBOARD_PRESSED_KEYS_CAP 32
+#define WMIIV_KEYBOARD_PRESSED_KEYS_CAP 32
 
 /**
  * Get modifier mask from modifier name.
@@ -36,12 +36,12 @@ struct wmiiv_shortcut_state {
 	 * keycode release without recalculating the transient link between
 	 * keycode and key id at the time of the key press.
 	 */
-	uint32_t pressed_keys[SWAY_KEYBOARD_PRESSED_KEYS_CAP];
+	uint32_t pressed_keys[WMIIV_KEYBOARD_PRESSED_KEYS_CAP];
 	/**
 	 * The list of keycodes associated to currently pressed key ids,
 	 * including duplicates when a keycode generates multiple key ids.
 	 */
-	uint32_t pressed_keycodes[SWAY_KEYBOARD_PRESSED_KEYS_CAP];
+	uint32_t pressed_keycodes[WMIIV_KEYBOARD_PRESSED_KEYS_CAP];
 	uint32_t last_keycode;
 	uint32_t last_raw_modifiers;
 	size_t npressed;

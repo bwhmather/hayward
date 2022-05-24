@@ -33,7 +33,7 @@ bool wmiivnag_spawn(const char *wmiivnag_command,
 
 	if (wmiivnag->detailed) {
 		if (pipe(wmiivnag->fd) != 0) {
-			wmiiv_log(SWAY_ERROR, "Failed to create pipe for wmiivnag");
+			wmiiv_log(WMIIV_ERROR, "Failed to create pipe for wmiivnag");
 			return false;
 		}
 		if (!wmiiv_set_cloexec(wmiivnag->fd[1], true)) {
@@ -43,7 +43,7 @@ bool wmiivnag_spawn(const char *wmiivnag_command,
 
 	int sockets[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "socketpair failed");
+		wmiiv_log_errno(WMIIV_ERROR, "socketpair failed");
 		goto failed;
 	}
 	if (!wmiiv_set_cloexec(sockets[0], true) || !wmiiv_set_cloexec(sockets[1], true)) {
@@ -52,7 +52,7 @@ bool wmiivnag_spawn(const char *wmiivnag_command,
 
 	wmiivnag->client = wl_client_create(server.wl_display, sockets[0]);
 	if (wmiivnag->client == NULL) {
-		wmiiv_log_errno(SWAY_ERROR, "wl_client_create failed");
+		wmiiv_log_errno(WMIIV_ERROR, "wl_client_create failed");
 		goto failed;
 	}
 
@@ -61,14 +61,14 @@ bool wmiivnag_spawn(const char *wmiivnag_command,
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to create fork for wmiivnag");
+		wmiiv_log(WMIIV_ERROR, "Failed to create fork for wmiivnag");
 		goto failed;
 	} else if (pid == 0) {
 		restore_nofile_limit();
 
 		pid = fork();
 		if (pid < 0) {
-			wmiiv_log_errno(SWAY_ERROR, "fork failed");
+			wmiiv_log_errno(WMIIV_ERROR, "fork failed");
 			_exit(EXIT_FAILURE);
 		} else if (pid == 0) {
 			if (!wmiiv_set_cloexec(sockets[1], false)) {
@@ -90,7 +90,7 @@ bool wmiivnag_spawn(const char *wmiivnag_command,
 			char *cmd = malloc(length);
 			snprintf(cmd, length, "%s %s", wmiivnag_command, wmiivnag->args);
 			execlp("sh", "sh", "-c", cmd, NULL);
-			wmiiv_log_errno(SWAY_ERROR, "execlp failed");
+			wmiiv_log_errno(WMIIV_ERROR, "execlp failed");
 			_exit(EXIT_FAILURE);
 		}
 		_exit(EXIT_SUCCESS);
@@ -98,18 +98,18 @@ bool wmiivnag_spawn(const char *wmiivnag_command,
 
 	if (wmiivnag->detailed) {
 		if (close(wmiivnag->fd[0]) != 0) {
-			wmiiv_log_errno(SWAY_ERROR, "close failed");
+			wmiiv_log_errno(WMIIV_ERROR, "close failed");
 			return false;
 		}
 	}
 
 	if (close(sockets[1]) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "close failed");
+		wmiiv_log_errno(WMIIV_ERROR, "close failed");
 		return false;
 	}
 
 	if (waitpid(pid, NULL, 0) < 0) {
-		wmiiv_log_errno(SWAY_ERROR, "waitpid failed");
+		wmiiv_log_errno(WMIIV_ERROR, "waitpid failed");
 		return false;
 	}
 
@@ -118,11 +118,11 @@ bool wmiivnag_spawn(const char *wmiivnag_command,
 failed:
 	if (wmiivnag->detailed) {
 		if (close(wmiivnag->fd[0]) != 0) {
-			wmiiv_log_errno(SWAY_ERROR, "close failed");
+			wmiiv_log_errno(WMIIV_ERROR, "close failed");
 			return false;
 		}
 		if (close(wmiivnag->fd[1]) != 0) {
-			wmiiv_log_errno(SWAY_ERROR, "close failed");
+			wmiiv_log_errno(WMIIV_ERROR, "close failed");
 		}
 	}
 	return false;
@@ -135,7 +135,7 @@ void wmiivnag_log(const char *wmiivnag_command, struct wmiivnag_instance *wmiivn
 	}
 
 	if (!wmiivnag->detailed) {
-		wmiiv_log(SWAY_ERROR, "Attempting to write to non-detailed wmiivnag inst");
+		wmiiv_log(WMIIV_ERROR, "Attempting to write to non-detailed wmiivnag inst");
 		return;
 	}
 
@@ -150,7 +150,7 @@ void wmiivnag_log(const char *wmiivnag_command, struct wmiivnag_instance *wmiivn
 
 	char *temp = malloc(length + 1);
 	if (!temp) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate buffer for wmiivnag log entry.");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate buffer for wmiivnag log entry.");
 		return;
 	}
 

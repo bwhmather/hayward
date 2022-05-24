@@ -114,12 +114,12 @@ static struct wmiiv_container *surface_at_view(struct wmiiv_container *con, doub
 	struct wlr_surface *_surface = NULL;
 	switch (view->type) {
 #if HAVE_XWAYLAND
-	case SWAY_VIEW_XWAYLAND:
+	case WMIIV_VIEW_XWAYLAND:
 		_surface = wlr_surface_surface_at(view->surface,
 				view_sx, view_sy, &_sx, &_sy);
 		break;
 #endif
-	case SWAY_VIEW_XDG_SHELL:
+	case WMIIV_VIEW_XDG_SHELL:
 		_surface = wlr_xdg_surface_surface_at(
 				view->wlr_xdg_toplevel->base,
 				view_sx, view_sy, &_sx, &_sy);
@@ -470,7 +470,7 @@ static void render_titlebar_text_texture(struct wmiiv_output *output,
 			CAIRO_FORMAT_ARGB32, width, height);
 	cairo_status_t status = cairo_surface_status(surface);
 	if (status != CAIRO_STATUS_SUCCESS) {
-		wmiiv_log(SWAY_ERROR, "cairo_image_surface_create failed: %s",
+		wmiiv_log(WMIIV_ERROR, "cairo_image_surface_create failed: %s",
 			cairo_status_to_string(status));
 		return;
 	}
@@ -891,7 +891,7 @@ void container_end_mouse_operation(struct wmiiv_container *container) {
 static bool devid_from_fd(int fd, dev_t *devid) {
 	struct stat stat;
 	if (fstat(fd, &stat) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "fstat failed");
+		wmiiv_log_errno(WMIIV_ERROR, "fstat failed");
 		return false;
 	}
 	*devid = stat.st_rdev;
@@ -1165,7 +1165,7 @@ void container_discover_outputs(struct wmiiv_container *con) {
 
 		if (intersects && index == -1) {
 			// Send enter
-			wmiiv_log(SWAY_DEBUG, "Container %p entered output %p", con, output);
+			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", con, output);
 			if (con->view) {
 				view_for_each_surface(con->view,
 						surface_send_enter_iterator, output->wlr_output);
@@ -1177,7 +1177,7 @@ void container_discover_outputs(struct wmiiv_container *con) {
 			list_add(con->outputs, output);
 		} else if (!intersects && index != -1) {
 			// Send leave
-			wmiiv_log(SWAY_DEBUG, "Container %p left output %p", con, output);
+			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", con, output);
 			if (con->view) {
 				view_for_each_surface(con->view,
 					surface_send_leave_iterator, output->wlr_output);

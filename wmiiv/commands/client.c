@@ -21,7 +21,7 @@ static struct cmd_results *handle_command(int argc, char **argv, char *cmd_name,
 	}
 
 	if (argc > 3 && strcmp(cmd_name, "client.focused_tab_title") == 0) {
-		wmiiv_log(SWAY_ERROR,
+		wmiiv_log(WMIIV_ERROR,
 				"Warning: indicator and child_border colors have no effect for %s",
 				cmd_name);
 	}
@@ -85,7 +85,7 @@ struct cmd_results *cmd_client_urgent(int argc, char **argv) {
 }
 
 struct cmd_results *cmd_client_noop(int argc, char **argv) {
-	wmiiv_log(SWAY_INFO, "Warning: %s is ignored by wmiiv", argv[-1]);
+	wmiiv_log(WMIIV_INFO, "Warning: %s is ignored by wmiiv", argv[-1]);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 

@@ -26,7 +26,7 @@ struct cmd_results *bar_cmd_workspace_min_width(int argc, char **argv) {
 				"Expected 'workspace_min_width <px> [px]'");
 	}
 
-	wmiiv_log(SWAY_DEBUG, "[Bar %s] Setting minimum workspace button width to %d",
+	wmiiv_log(WMIIV_DEBUG, "[Bar %s] Setting minimum workspace button width to %d",
 			bar->id, min_width);
 	config->current_bar->workspace_min_width = min_width;
 	return cmd_results_new(CMD_SUCCESS, NULL);

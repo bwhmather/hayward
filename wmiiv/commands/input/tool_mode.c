@@ -33,9 +33,9 @@ struct cmd_results *input_cmd_tool_mode(int argc, char **argv) {
 
 	enum wmiiv_tablet_tool_mode tool_mode;
 	if (!strcasecmp(argv[1], "absolute")) {
-		tool_mode = SWAY_TABLET_TOOL_MODE_ABSOLUTE;
+		tool_mode = WMIIV_TABLET_TOOL_MODE_ABSOLUTE;
 	} else if (!strcasecmp(argv[1], "relative")) {
-		tool_mode = SWAY_TABLET_TOOL_MODE_RELATIVE;
+		tool_mode = WMIIV_TABLET_TOOL_MODE_RELATIVE;
 	} else {
 		goto invalid_command;
 	}

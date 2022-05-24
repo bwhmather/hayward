@@ -534,11 +534,11 @@ static int output_repaint_timer_handler(void *data) {
 			scan_out_fullscreen_view(output, fullscreen_con->view);
 
 		if (scanned_out && !last_scanned_out) {
-			wmiiv_log(SWAY_DEBUG, "Scanning out fullscreen view on %s",
+			wmiiv_log(WMIIV_DEBUG, "Scanning out fullscreen view on %s",
 				output->wlr_output->name);
 		}
 		if (last_scanned_out && !scanned_out) {
-			wmiiv_log(SWAY_DEBUG, "Stopping fullscreen view scan out on %s",
+			wmiiv_log(WMIIV_DEBUG, "Stopping fullscreen view scan out on %s",
 				output->wlr_output->name);
 			output_damage_whole(output);
 		}
@@ -804,7 +804,7 @@ static void handle_mode(struct wl_listener *listener, void *data) {
 			// We want to enable this output, but it didn't work last time,
 			// possibly because we hadn't enough CRTCs. Try again now that the
 			// output has a mode.
-			wmiiv_log(SWAY_DEBUG, "Output %s has gained a CRTC, "
+			wmiiv_log(WMIIV_DEBUG, "Output %s has gained a CRTC, "
 				"trying to enable it", output->wlr_output->name);
 			apply_output_config(oc, output);
 		}
@@ -876,11 +876,11 @@ void handle_new_output(struct wl_listener *listener, void *data) {
 		wlr_output_set_name(wlr_output, name);
 	}
 
-	wmiiv_log(SWAY_DEBUG, "New output %p: %s (non-desktop: %d)",
+	wmiiv_log(WMIIV_DEBUG, "New output %p: %s (non-desktop: %d)",
 			wlr_output, wlr_output->name, wlr_output->non_desktop);
 
 	if (wlr_output->non_desktop) {
-		wmiiv_log(SWAY_DEBUG, "Not configuring non-desktop output");
+		wmiiv_log(WMIIV_DEBUG, "Not configuring non-desktop output");
 		if (server->drm_lease_manager) {
 			wlr_drm_lease_v1_manager_offer_output(server->drm_lease_manager,
 					wlr_output);
@@ -890,7 +890,7 @@ void handle_new_output(struct wl_listener *listener, void *data) {
 
 	if (!wlr_output_init_render(wlr_output, server->allocator,
 			server->renderer)) {
-		wmiiv_log(SWAY_ERROR, "Failed to init output render");
+		wmiiv_log(WMIIV_ERROR, "Failed to init output render");
 		return;
 	}
 

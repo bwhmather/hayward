@@ -59,7 +59,7 @@ float parse_float(const char *value) {
 	char *end;
 	float flt = strtof(value, &end);
 	if (*end || errno) {
-		wmiiv_log(SWAY_DEBUG, "Invalid float value '%s', defaulting to NAN", value);
+		wmiiv_log(WMIIV_DEBUG, "Invalid float value '%s', defaulting to NAN", value);
 		return NAN;
 	}
 	return flt;
@@ -128,7 +128,7 @@ const char *wmiiv_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel)
 bool wmiiv_set_cloexec(int fd, bool cloexec) {
 	int flags = fcntl(fd, F_GETFD);
 	if (flags == -1) {
-		wmiiv_log_errno(SWAY_ERROR, "fcntl failed");
+		wmiiv_log_errno(WMIIV_ERROR, "fcntl failed");
 		return false;
 	}
 	if (cloexec) {
@@ -137,7 +137,7 @@ bool wmiiv_set_cloexec(int fd, bool cloexec) {
 		flags = flags & ~FD_CLOEXEC;
 	}
 	if (fcntl(fd, F_SETFD, flags) == -1) {
-		wmiiv_log_errno(SWAY_ERROR, "fcntl failed");
+		wmiiv_log_errno(WMIIV_ERROR, "fcntl failed");
 		return false;
 	}
 	return true;

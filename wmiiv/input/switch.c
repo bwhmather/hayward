@@ -14,7 +14,7 @@ struct wmiiv_switch *wmiiv_switch_create(struct wmiiv_seat *seat,
 	switch_device->seat_device = device;
 	switch_device->state = WLR_SWITCH_STATE_OFF;
 	wl_list_init(&switch_device->switch_toggle.link);
-	wmiiv_log(SWAY_DEBUG, "Allocated switch for device");
+	wmiiv_log(WMIIV_DEBUG, "Allocated switch for device");
 
 	return switch_device;
 }
@@ -22,11 +22,11 @@ struct wmiiv_switch *wmiiv_switch_create(struct wmiiv_seat *seat,
 static bool wmiiv_switch_trigger_test(enum wmiiv_switch_trigger trigger,
 		enum wlr_switch_state state) {
 	switch (trigger) {
-	case SWAY_SWITCH_TRIGGER_ON:
+	case WMIIV_SWITCH_TRIGGER_ON:
 		return state == WLR_SWITCH_STATE_ON;
-	case SWAY_SWITCH_TRIGGER_OFF:
+	case WMIIV_SWITCH_TRIGGER_OFF:
 		return state == WLR_SWITCH_STATE_OFF;
-	case SWAY_SWITCH_TRIGGER_TOGGLE:
+	case WMIIV_SWITCH_TRIGGER_TOGGLE:
 		return true;
 	}
 	abort(); // unreachable
@@ -47,7 +47,7 @@ static void execute_binding(struct wmiiv_switch *wmiiv_switch) {
 		if (!wmiiv_switch_trigger_test(binding->trigger, wmiiv_switch->state)) {
 			continue;
 		}
-		if (config->reloading && (binding->trigger == SWAY_SWITCH_TRIGGER_TOGGLE
+		if (config->reloading && (binding->trigger == WMIIV_SWITCH_TRIGGER_TOGGLE
 				|| (binding->flags & BINDING_RELOAD) == 0)) {
 			continue;
 		}
@@ -85,7 +85,7 @@ static void handle_switch_toggle(struct wl_listener *listener, void *data) {
 	struct wlr_input_device *wlr_device =
 		wmiiv_switch->seat_device->input_device->wlr_device;
 	char *device_identifier = input_device_get_identifier(wlr_device);
-	wmiiv_log(SWAY_DEBUG, "%s: type %d state %d", device_identifier,
+	wmiiv_log(WMIIV_DEBUG, "%s: type %d state %d", device_identifier,
 			event->switch_type, event->switch_state);
 	free(device_identifier);
 
@@ -101,7 +101,7 @@ void wmiiv_switch_configure(struct wmiiv_switch *wmiiv_switch) {
 	wl_signal_add(&wlr_device->switch_device->events.toggle,
 			&wmiiv_switch->switch_toggle);
 	wmiiv_switch->switch_toggle.notify = handle_switch_toggle;
-	wmiiv_log(SWAY_DEBUG, "Configured switch for device");
+	wmiiv_log(WMIIV_DEBUG, "Configured switch for device");
 }
 
 void wmiiv_switch_destroy(struct wmiiv_switch *wmiiv_switch) {

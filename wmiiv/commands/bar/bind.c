@@ -20,7 +20,7 @@ static struct cmd_results *binding_add(struct bar_binding *binding,
 			overwritten = true;
 			mode_bindings->items[i] = binding;
 			free_bar_binding(other);
-			wmiiv_log(SWAY_DEBUG, "[bar %s] Updated binding for %u (%s)%s",
+			wmiiv_log(WMIIV_DEBUG, "[bar %s] Updated binding for %u (%s)%s",
 					config->current_bar->id, binding->button, name,
 					binding->release ? " - release" : "");
 			break;
@@ -28,7 +28,7 @@ static struct cmd_results *binding_add(struct bar_binding *binding,
 	}
 	if (!overwritten) {
 		list_add(mode_bindings, binding);
-		wmiiv_log(SWAY_DEBUG, "[bar %s] Added binding for %u (%s)%s",
+		wmiiv_log(WMIIV_DEBUG, "[bar %s] Added binding for %u (%s)%s",
 				config->current_bar->id, binding->button, name,
 				binding->release ? " - release" : "");
 	}
@@ -42,7 +42,7 @@ static struct cmd_results *binding_remove(struct bar_binding *binding,
 		struct bar_binding *other = mode_bindings->items[i];
 		if (other->button == binding->button &&
 				other->release == binding->release) {
-			wmiiv_log(SWAY_DEBUG, "[bar %s] Unbound binding for %u (%s)%s",
+			wmiiv_log(WMIIV_DEBUG, "[bar %s] Unbound binding for %u (%s)%s",
 					config->current_bar->id, binding->button, name,
 					binding->release ? " - release" : "");
 			free_bar_binding(other);

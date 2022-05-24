@@ -1,5 +1,5 @@
-#ifndef _SWAY_LOG_H
-#define _SWAY_LOG_H
+#ifndef _WMIIV_LOG_H
+#define _WMIIV_LOG_H
 
 #include <stdbool.h>
 #include <stdarg.h>
@@ -7,11 +7,11 @@
 #include <errno.h>
 
 typedef enum {
-	SWAY_SILENT = 0,
-	SWAY_ERROR = 1,
-	SWAY_INFO = 2,
-	SWAY_DEBUG = 3,
-	SWAY_LOG_IMPORTANCE_LAST,
+	WMIIV_SILENT = 0,
+	WMIIV_ERROR = 1,
+	WMIIV_INFO = 2,
+	WMIIV_DEBUG = 3,
+	WMIIV_LOG_IMPORTANCE_LAST,
 } wmiiv_log_importance_t;
 
 #ifdef __GNUC__
@@ -33,26 +33,26 @@ void _wmiiv_vlog(wmiiv_log_importance_t verbosity, const char *format, va_list a
 void _wmiiv_abort(const char *filename, ...) ATTRIB_PRINTF(1, 2);
 bool _wmiiv_assert(bool condition, const char* format, ...) ATTRIB_PRINTF(2, 3);
 
-#ifdef SWAY_REL_SRC_DIR
+#ifdef WMIIV_REL_SRC_DIR
 // strip prefix from __FILE__, leaving the path relative to the project root
-#define _SWAY_FILENAME ((const char *)__FILE__ + sizeof(SWAY_REL_SRC_DIR) - 1)
+#define _WMIIV_FILENAME ((const char *)__FILE__ + sizeof(WMIIV_REL_SRC_DIR) - 1)
 #else
-#define _SWAY_FILENAME __FILE__
+#define _WMIIV_FILENAME __FILE__
 #endif
 
 #define wmiiv_log(verb, fmt, ...) \
-	_wmiiv_log(verb, "[%s:%d] " fmt, _SWAY_FILENAME, __LINE__, ##__VA_ARGS__)
+	_wmiiv_log(verb, "[%s:%d] " fmt, _WMIIV_FILENAME, __LINE__, ##__VA_ARGS__)
 
 #define wmiiv_vlog(verb, fmt, args) \
-	_wmiiv_vlog(verb, "[%s:%d] " fmt, _SWAY_FILENAME, __LINE__, args)
+	_wmiiv_vlog(verb, "[%s:%d] " fmt, _WMIIV_FILENAME, __LINE__, args)
 
 #define wmiiv_log_errno(verb, fmt, ...) \
 	wmiiv_log(verb, fmt ": %s", ##__VA_ARGS__, strerror(errno))
 
 #define wmiiv_abort(FMT, ...) \
-	_wmiiv_abort("[%s:%d] " FMT, _SWAY_FILENAME, __LINE__, ##__VA_ARGS__)
+	_wmiiv_abort("[%s:%d] " FMT, _WMIIV_FILENAME, __LINE__, ##__VA_ARGS__)
 
 #define wmiiv_assert(COND, FMT, ...) \
-	_wmiiv_assert(COND, "[%s:%d] %s:" FMT, _SWAY_FILENAME, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+	_wmiiv_assert(COND, "[%s:%d] %s:" FMT, _WMIIV_FILENAME, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__)
 
 #endif

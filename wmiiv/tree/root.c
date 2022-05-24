@@ -26,7 +26,7 @@ static void output_layout_handle_change(struct wl_listener *listener,
 struct wmiiv_root *root_create(void) {
 	struct wmiiv_root *root = calloc(1, sizeof(struct wmiiv_root));
 	if (!root) {
-		wmiiv_log(SWAY_ERROR, "Unable to allocate wmiiv_root");
+		wmiiv_log(WMIIV_ERROR, "Unable to allocate wmiiv_root");
 		return NULL;
 	}
 	node_init(&root->node, N_ROOT, root);
@@ -115,14 +115,14 @@ struct wmiiv_workspace *root_workspace_for_pid(pid_t pid) {
 	struct wmiiv_workspace *ws = NULL;
 	struct pid_workspace *pw = NULL;
 
-	wmiiv_log(SWAY_DEBUG, "Looking up workspace for pid %d", pid);
+	wmiiv_log(WMIIV_DEBUG, "Looking up workspace for pid %d", pid);
 
 	do {
 		struct pid_workspace *_pw = NULL;
 		wl_list_for_each(_pw, &pid_workspaces, link) {
 			if (pid == _pw->pid) {
 				pw = _pw;
-				wmiiv_log(SWAY_DEBUG,
+				wmiiv_log(WMIIV_DEBUG,
 						"found pid_workspace for pid %d, workspace %s",
 						pid, pw->workspace);
 				goto found;
@@ -136,13 +136,13 @@ found:
 		ws = workspace_by_name(pw->workspace);
 
 		if (!ws) {
-			wmiiv_log(SWAY_DEBUG,
+			wmiiv_log(WMIIV_DEBUG,
 					"Creating workspace %s for pid %d because it disappeared",
 					pw->workspace, pid);
 
 			struct wmiiv_output *output = pw->output;
 			if (pw->output && !pw->output->enabled) {
-				wmiiv_log(SWAY_DEBUG,
+				wmiiv_log(WMIIV_DEBUG,
 						"Workspace output %s is disabled, trying another one",
 						pw->output->wlr_output->name);
 				output = NULL;
@@ -165,7 +165,7 @@ static void pw_handle_output_destroy(struct wl_listener *listener, void *data) {
 }
 
 void root_record_workspace_pid(pid_t pid) {
-	wmiiv_log(SWAY_DEBUG, "Recording workspace for process %d", pid);
+	wmiiv_log(WMIIV_DEBUG, "Recording workspace for process %d", pid);
 	if (!pid_workspaces.prev && !pid_workspaces.next) {
 		wl_list_init(&pid_workspaces);
 	}
@@ -173,12 +173,12 @@ void root_record_workspace_pid(pid_t pid) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_workspace *ws = seat_get_focused_workspace(seat);
 	if (!ws) {
-		wmiiv_log(SWAY_DEBUG, "Bailing out, no workspace");
+		wmiiv_log(WMIIV_DEBUG, "Bailing out, no workspace");
 		return;
 	}
 	struct wmiiv_output *output = ws->output;
 	if (!output) {
-		wmiiv_log(SWAY_DEBUG, "Bailing out, no output");
+		wmiiv_log(WMIIV_DEBUG, "Bailing out, no output");
 		return;
 	}
 

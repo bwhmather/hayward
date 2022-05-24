@@ -59,10 +59,10 @@ void detect_proprietary(int allow_unsupported_gpu) {
 	while (getline(&line, &line_size, f) != -1) {
 		if (strncmp(line, "nvidia ", 7) == 0) {
 			if (allow_unsupported_gpu) {
-				wmiiv_log(SWAY_ERROR,
+				wmiiv_log(WMIIV_ERROR,
 						"!!! Proprietary Nvidia drivers are in use !!!");
 			} else {
-				wmiiv_log(SWAY_ERROR,
+				wmiiv_log(WMIIV_ERROR,
 					"Proprietary Nvidia drivers are NOT supported. "
 					"Use Nouveau. To launch wmiiv anyway, launch with "
 					"--unsupported-gpu and DO NOT report issues.");
@@ -72,10 +72,10 @@ void detect_proprietary(int allow_unsupported_gpu) {
 		}
 		if (strstr(line, "fglrx")) {
 			if (allow_unsupported_gpu) {
-				wmiiv_log(SWAY_ERROR,
+				wmiiv_log(WMIIV_ERROR,
 						"!!! Proprietary AMD drivers are in use !!!");
 			} else {
-				wmiiv_log(SWAY_ERROR, "Proprietary AMD drivers do NOT support "
+				wmiiv_log(WMIIV_ERROR, "Proprietary AMD drivers do NOT support "
 					"Wayland. Use radeon. To try anyway, launch wmiiv with "
 					"--unsupported-gpu and DO NOT report issues.");
 				exit(EXIT_FAILURE);
@@ -101,11 +101,11 @@ static void log_env(void) {
 		"LD_LIBRARY_PATH",
 		"LD_PRELOAD",
 		"PATH",
-		"SWAYSOCK",
+		"WMIIVSOCK",
 	};
 	for (size_t i = 0; i < sizeof(log_vars) / sizeof(char *); ++i) {
 		char *value = getenv(log_vars[i]);
-		wmiiv_log(SWAY_INFO, "%s=%s", log_vars[i], value != NULL ? value : "");
+		wmiiv_log(WMIIV_INFO, "%s=%s", log_vars[i], value != NULL ? value : "");
 	}
 }
 
@@ -117,7 +117,7 @@ static void log_file(FILE *f) {
 		if (line[nread - 1] == '\n') {
 			line[nread - 1] = '\0';
 		}
-		wmiiv_log(SWAY_INFO, "%s", line);
+		wmiiv_log(WMIIV_INFO, "%s", line);
 	}
 	free(line);
 }
@@ -133,7 +133,7 @@ static void log_distro(void) {
 	for (size_t i = 0; i < sizeof(paths) / sizeof(char *); ++i) {
 		FILE *f = fopen(paths[i], "r");
 		if (f) {
-			wmiiv_log(SWAY_INFO, "Contents of %s:", paths[i]);
+			wmiiv_log(WMIIV_INFO, "Contents of %s:", paths[i]);
 			log_file(f);
 			fclose(f);
 		}
@@ -143,7 +143,7 @@ static void log_distro(void) {
 static void log_kernel(void) {
 	FILE *f = popen("uname -a", "r");
 	if (!f) {
-		wmiiv_log(SWAY_INFO, "Unable to determine kernel version");
+		wmiiv_log(WMIIV_INFO, "Unable to determine kernel version");
 		return;
 	}
 	log_file(f);
@@ -153,21 +153,21 @@ static void log_kernel(void) {
 
 static bool drop_permissions(void) {
 	if (getuid() != geteuid() || getgid() != getegid()) {
-		wmiiv_log(SWAY_ERROR, "!!! DEPRECATION WARNING: "
+		wmiiv_log(WMIIV_ERROR, "!!! DEPRECATION WARNING: "
 			"SUID privilege drop will be removed in a future release, please migrate to seatd-launch");
 
 		// Set the gid and uid in the correct order.
 		if (setgid(getgid()) != 0) {
-			wmiiv_log(SWAY_ERROR, "Unable to drop root group, refusing to start");
+			wmiiv_log(WMIIV_ERROR, "Unable to drop root group, refusing to start");
 			return false;
 		}
 		if (setuid(getuid()) != 0) {
-			wmiiv_log(SWAY_ERROR, "Unable to drop root user, refusing to start");
+			wmiiv_log(WMIIV_ERROR, "Unable to drop root user, refusing to start");
 			return false;
 		}
 	}
 	if (setgid(0) != -1 || setuid(0) != -1) {
-		wmiiv_log(SWAY_ERROR, "Unable to drop root (we shouldn't be able to "
+		wmiiv_log(WMIIV_ERROR, "Unable to drop root (we shouldn't be able to "
 			"restore it after setuid), refusing to start");
 		return false;
 	}
@@ -176,7 +176,7 @@ static bool drop_permissions(void) {
 
 static void increase_nofile_limit(void) {
 	if (getrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "Failed to bump max open files limit: "
+		wmiiv_log_errno(WMIIV_ERROR, "Failed to bump max open files limit: "
 			"getrlimit(NOFILE) failed");
 		return;
 	}
@@ -184,9 +184,9 @@ static void increase_nofile_limit(void) {
 	struct rlimit new_rlimit = original_nofile_rlimit;
 	new_rlimit.rlim_cur = new_rlimit.rlim_max;
 	if (setrlimit(RLIMIT_NOFILE, &new_rlimit) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "Failed to bump max open files limit: "
+		wmiiv_log_errno(WMIIV_ERROR, "Failed to bump max open files limit: "
 			"setrlimit(NOFILE) failed");
-		wmiiv_log(SWAY_INFO, "Running with %d max open files",
+		wmiiv_log(WMIIV_INFO, "Running with %d max open files",
 			(int)original_nofile_rlimit.rlim_cur);
 	}
 }
@@ -196,7 +196,7 @@ void restore_nofile_limit(void) {
 		return;
 	}
 	if (setrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "Failed to restore max open files limit: "
+		wmiiv_log_errno(WMIIV_ERROR, "Failed to restore max open files limit: "
 			"setrlimit(NOFILE) failed");
 	}
 }
@@ -217,7 +217,7 @@ void enable_debug_flag(const char *flag) {
 	} else if (strcmp(flag, "noscanout") == 0) {
 		debug.noscanout = true;
 	} else {
-		wmiiv_log(SWAY_ERROR, "Unknown debug flag: %s", flag);
+		wmiiv_log(WMIIV_ERROR, "Unknown debug flag: %s", flag);
 	}
 }
 
@@ -225,11 +225,11 @@ static wmiiv_log_importance_t convert_wlr_log_importance(
 		enum wlr_log_importance importance) {
 	switch (importance) {
 	case WLR_ERROR:
-		return SWAY_ERROR;
+		return WMIIV_ERROR;
 	case WLR_INFO:
-		return SWAY_INFO;
+		return WMIIV_INFO;
 	default:
-		return SWAY_DEBUG;
+		return WMIIV_DEBUG;
 	}
 }
 
@@ -298,15 +298,15 @@ int main(int argc, char **argv) {
 			allow_unsupported_gpu = true;
 			break;
 		case 'v': // version
-			printf("wmiiv version " SWAY_VERSION "\n");
+			printf("wmiiv version " WMIIV_VERSION "\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case 'V': // verbose
 			verbose = true;
 			break;
 		case 'p': ; // --get-socketpath
-			if (getenv("SWAYSOCK")) {
-				printf("%s\n", getenv("SWAYSOCK"));
+			if (getenv("WMIIVSOCK")) {
+				printf("%s\n", getenv("WMIIVSOCK"));
 				exit(EXIT_SUCCESS);
 			} else {
 				fprintf(stderr, "wmiiv socket not detected.\n");
@@ -330,25 +330,25 @@ int main(int argc, char **argv) {
 	// As the 'callback' function for wlr_log is equivalent to that for
 	// wmiiv, we do not need to override it.
 	if (debug) {
-		wmiiv_log_init(SWAY_DEBUG, wmiiv_terminate);
+		wmiiv_log_init(WMIIV_DEBUG, wmiiv_terminate);
 		wlr_log_init(WLR_DEBUG, handle_wlr_log);
 	} else if (verbose) {
-		wmiiv_log_init(SWAY_INFO, wmiiv_terminate);
+		wmiiv_log_init(WMIIV_INFO, wmiiv_terminate);
 		wlr_log_init(WLR_INFO, handle_wlr_log);
 	} else {
-		wmiiv_log_init(SWAY_ERROR, wmiiv_terminate);
+		wmiiv_log_init(WMIIV_ERROR, wmiiv_terminate);
 		wlr_log_init(WLR_ERROR, handle_wlr_log);
 	}
 
-	wmiiv_log(SWAY_INFO, "Sway version " SWAY_VERSION);
-	wmiiv_log(SWAY_INFO, "wlroots version " WLR_VERSION_STR);
+	wmiiv_log(WMIIV_INFO, "Sway version " WMIIV_VERSION);
+	wmiiv_log(WMIIV_INFO, "wlroots version " WLR_VERSION_STR);
 	log_kernel();
 	log_distro();
 	log_env();
 
 	if (optind < argc) { // Behave as IPC client
 		if (optind != 1) {
-			wmiiv_log(SWAY_ERROR,
+			wmiiv_log(WMIIV_ERROR,
 					"Detected both options and positional arguments. If you "
 					"are trying to use the IPC client, options are not "
 					"supported. Otherwise, check the provided arguments for "
@@ -360,9 +360,9 @@ int main(int argc, char **argv) {
 		if (!drop_permissions()) {
 			exit(EXIT_FAILURE);
 		}
-		char *socket_path = getenv("SWAYSOCK");
+		char *socket_path = getenv("WMIIVSOCK");
 		if (!socket_path) {
-			wmiiv_log(SWAY_ERROR, "Unable to retrieve socket path");
+			wmiiv_log(WMIIV_ERROR, "Unable to retrieve socket path");
 			exit(EXIT_FAILURE);
 		}
 		char *command = join_args(argv + optind, argc - optind);
@@ -391,7 +391,7 @@ int main(int argc, char **argv) {
 	// prevent ipc from crashing wmiiv
 	signal(SIGPIPE, SIG_IGN);
 
-	wmiiv_log(SWAY_INFO, "Starting wmiiv version " SWAY_VERSION);
+	wmiiv_log(WMIIV_INFO, "Starting wmiiv version " WMIIV_VERSION);
 
 	root = root_create();
 
@@ -431,7 +431,7 @@ int main(int argc, char **argv) {
 	server_run(&server);
 
 shutdown:
-	wmiiv_log(SWAY_INFO, "Shutting down wmiiv");
+	wmiiv_log(WMIIV_INFO, "Shutting down wmiiv");
 
 	server_fini(&server);
 	root_destroy(root);

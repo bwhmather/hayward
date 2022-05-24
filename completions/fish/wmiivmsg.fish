@@ -6,7 +6,7 @@ complete -c wmiivmsg -s m -l monitor --description "Monitor subscribed events un
 complete -c wmiivmsg -s p -l pretty --description "Use pretty output even when not using a tty."
 complete -c wmiivmsg -s q -l quiet --description "Sends the IPC message but does not print the response from wmiiv."
 complete -c wmiivmsg -s r -l raw --description "Use raw output even if using tty."
-complete -c wmiivmsg -s s -l socket -r --description "Use the specified socket path. Otherwise, wmiivmsg will ask where the socket is (which is the value of $SWAYSOCK, then of $I3SOCK)."
+complete -c wmiivmsg -s s -l socket -r --description "Use the specified socket path. Otherwise, wmiivmsg will ask where the socket is (which is the value of $WMIIVSOCK, then of $I3SOCK)."
 complete -c wmiivmsg -s v -l version --description "Print the version (of wmiivmsg) and quit."
 
 complete -c wmiivmsg -s t -l type -fr --description "Specify the type of IPC message."

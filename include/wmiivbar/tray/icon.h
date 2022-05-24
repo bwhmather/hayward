@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_TRAY_ICON_H
-#define _SWAYBAR_TRAY_ICON_H
+#ifndef _WMIIVBAR_TRAY_ICON_H
+#define _WMIIVBAR_TRAY_ICON_H
 
 #include "list.h"
 

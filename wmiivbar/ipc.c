@@ -87,7 +87,7 @@ static void ipc_parse_colors(
 		if (json_object_object_get_ex(colors, properties[i].name, &object)) {
 			const char *hexstring = json_object_get_string(object);
 			if (!parse_color(hexstring, properties[i].color)) {
-				wmiiv_log(SWAY_ERROR, "Ignoring invalid %s: %s",
+				wmiiv_log(WMIIV_ERROR, "Ignoring invalid %s: %s",
 						properties[i].name, hexstring);
 			}
 		}
@@ -100,7 +100,7 @@ static bool ipc_parse_config(
 	json_object *success;
 	if (json_object_object_get_ex(bar_config, "success", &success)
 			&& !json_object_get_boolean(success)) {
-		wmiiv_log(SWAY_ERROR, "No bar with that ID. Use 'wmiivmsg -t "
+		wmiiv_log(WMIIV_ERROR, "No bar with that ID. Use 'wmiivmsg -t "
 				"get_bar_config' to get the available bar configs.");
 		json_object_put(bar_config);
 		return false;
@@ -407,7 +407,7 @@ bool ipc_get_workspaces(struct wmiivbar *bar) {
 }
 
 void ipc_execute_binding(struct wmiivbar *bar, struct wmiivbar_binding *bind) {
-	wmiiv_log(SWAY_DEBUG, "Executing binding for button %u (release=%d): `%s`",
+	wmiiv_log(WMIIV_DEBUG, "Executing binding for button %u (release=%d): `%s`",
 			bind->button, bind->release, bind->command);
 	uint32_t len = strlen(bind->command);
 	free(ipc_single_command(bar->ipc_socketfd,
@@ -552,7 +552,7 @@ bool handle_ipc_readable(struct wmiivbar *bar) {
 	// all the memory for its stack.
 	json_tokener *tok = json_tokener_new_ex(JSON_MAX_DEPTH);
 	if (!tok) {
-		wmiiv_log_errno(SWAY_ERROR, "failed to create tokener");
+		wmiiv_log_errno(WMIIV_ERROR, "failed to create tokener");
 		free_ipc_response(resp);
 		return false;
 	}
@@ -562,7 +562,7 @@ bool handle_ipc_readable(struct wmiivbar *bar) {
 	json_tokener_free(tok);
 
 	if (err != json_tokener_success) {
-		wmiiv_log(SWAY_ERROR, "failed to parse payload as json: %s",
+		wmiiv_log(WMIIV_ERROR, "failed to parse payload as json: %s",
 				json_tokener_error_desc(err));
 		free_ipc_response(resp);
 		return false;
@@ -582,7 +582,7 @@ bool handle_ipc_readable(struct wmiivbar *bar) {
 			bar->visible_by_mode = bar->mode != NULL;
 			determine_bar_visibility(bar, false);
 		} else {
-			wmiiv_log(SWAY_ERROR, "failed to parse response");
+			wmiiv_log(WMIIV_ERROR, "failed to parse response");
 			bar_is_dirty = false;
 			break;
 		}

@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 			wmiivbar.id = strdup(optarg);
 			break;
 		case 'v':
-			printf("wmiivbar version " SWAY_VERSION "\n");
+			printf("wmiivbar version " WMIIV_VERSION "\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case 'd': // Debug
@@ -68,13 +68,13 @@ int main(int argc, char **argv) {
 	}
 
 	if (debug) {
-		wmiiv_log_init(SWAY_DEBUG, NULL);
+		wmiiv_log_init(WMIIV_DEBUG, NULL);
 	} else {
-		wmiiv_log_init(SWAY_INFO, NULL);
+		wmiiv_log_init(WMIIV_INFO, NULL);
 	}
 
 	if (!wmiivbar.id) {
-		wmiiv_log(SWAY_ERROR, "No bar_id passed. "
+		wmiiv_log(WMIIV_ERROR, "No bar_id passed. "
 				"Provide --bar_id or let wmiiv start wmiivbar");
 		return 1;
 	}
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 	if (!socket_path) {
 		socket_path = get_socketpath();
 		if (!socket_path) {
-			wmiiv_log(SWAY_ERROR, "Unable to retrieve socket path");
+			wmiiv_log(WMIIV_ERROR, "Unable to retrieve socket path");
 			return 1;
 		}
 	}

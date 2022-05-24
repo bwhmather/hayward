@@ -328,14 +328,14 @@ static void apply_window_state(struct wmiiv_container *container,
  * Apply a transaction to the "current" state of the tree.
  */
 static void transaction_apply(struct wmiiv_transaction *transaction) {
-	wmiiv_log(SWAY_DEBUG, "Applying transaction %p", transaction);
+	wmiiv_log(WMIIV_DEBUG, "Applying transaction %p", transaction);
 	if (debug.txn_timings) {
 		struct timespec now;
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		struct timespec *commit = &transaction->commit_time;
 		float ms = (now.tv_sec - commit->tv_sec) * 1000 +
 			(now.tv_nsec - commit->tv_nsec) / 1000000.0;
-		wmiiv_log(SWAY_DEBUG, "Transaction %p: %.1fms waiting "
+		wmiiv_log(WMIIV_DEBUG, "Transaction %p: %.1fms waiting "
 				"(%.1f frames if 60Hz)", transaction, ms, ms / (1000.0f / 60));
 	}
 
@@ -393,7 +393,7 @@ static void transaction_progress(void) {
 
 static int handle_timeout(void *data) {
 	struct wmiiv_transaction *transaction = data;
-	wmiiv_log(SWAY_DEBUG, "Transaction %p timed out (%zi waiting)",
+	wmiiv_log(WMIIV_DEBUG, "Transaction %p timed out (%zi waiting)",
 			transaction, transaction->num_waiting);
 	transaction->num_waiting = 0;
 	transaction_progress();
@@ -416,7 +416,7 @@ static bool should_configure(struct wmiiv_node *node,
 #if HAVE_XWAYLAND
 	// Xwayland views are position-aware and need to be reconfigured
 	// when their position changes.
-	if (node->wmiiv_container->view->type == SWAY_VIEW_XWAYLAND) {
+	if (node->wmiiv_container->view->type == WMIIV_VIEW_XWAYLAND) {
 		// Sway logical coordinates are doubles, but they get truncated to
 		// integers when sent to Xwayland through `xcb_configure_window`.
 		// X11 apps will not respond to duplicate configure requests (from their
@@ -435,7 +435,7 @@ static bool should_configure(struct wmiiv_node *node,
 }
 
 static void transaction_commit(struct wmiiv_transaction *transaction) {
-	wmiiv_log(SWAY_DEBUG, "Transaction %p committing with %i instructions",
+	wmiiv_log(WMIIV_DEBUG, "Transaction %p committing with %i instructions",
 			transaction, transaction->instructions->length);
 	transaction->num_waiting = 0;
 	for (int i = 0; i < transaction->instructions->length; ++i) {
@@ -493,7 +493,7 @@ static void transaction_commit(struct wmiiv_transaction *transaction) {
 			wl_event_source_timer_update(transaction->timer,
 					server.txn_timeout_ms);
 		} else {
-			wmiiv_log_errno(SWAY_ERROR, "Unable to create transaction timer "
+			wmiiv_log_errno(WMIIV_ERROR, "Unable to create transaction timer "
 					"(some imperfect frames might be rendered)");
 			transaction->num_waiting = 0;
 		}
@@ -521,7 +521,7 @@ static void set_instruction_ready(
 		struct timespec *start = &transaction->commit_time;
 		float ms = (now.tv_sec - start->tv_sec) * 1000 +
 			(now.tv_nsec - start->tv_nsec) / 1000000.0;
-		wmiiv_log(SWAY_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
+		wmiiv_log(WMIIV_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
 				transaction,
 				transaction->num_configures - transaction->num_waiting + 1,
 				transaction->num_configures, ms,
@@ -531,7 +531,7 @@ static void set_instruction_ready(
 	// If the transaction has timed out then its num_waiting will be 0 already.
 	if (instruction->waiting && transaction->num_waiting > 0 &&
 			--transaction->num_waiting == 0) {
-		wmiiv_log(SWAY_DEBUG, "Transaction %p is ready", transaction);
+		wmiiv_log(WMIIV_DEBUG, "Transaction %p is ready", transaction);
 		wl_event_source_timer_update(transaction->timer, 0);
 	}
 

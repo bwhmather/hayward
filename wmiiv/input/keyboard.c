@@ -101,7 +101,7 @@ static bool state_erase_key(struct wmiiv_shortcut_state *state,
  */
 static void state_add_key(struct wmiiv_shortcut_state *state,
 		uint32_t keycode, uint32_t key_id) {
-	if (state->npressed >= SWAY_KEYBOARD_PRESSED_KEYS_CAP) {
+	if (state->npressed >= WMIIV_KEYBOARD_PRESSED_KEYS_CAP) {
 		return;
 	}
 	size_t i = 0;
@@ -210,7 +210,7 @@ static void get_active_binding(const struct wmiiv_shortcut_state *state,
 					&& current_locked == binding_locked
 					&& current_inhibited == binding_inhibited
 					&& current_group_set == binding_group_set) {
-				wmiiv_log(SWAY_DEBUG,
+				wmiiv_log(WMIIV_DEBUG,
 						"Encountered conflicting bindings %d and %d",
 						(*current_binding)->order, binding->order);
 				continue;
@@ -330,7 +330,7 @@ void wmiiv_keyboard_disarm_key_repeat(struct wmiiv_keyboard *keyboard) {
 	}
 	keyboard->repeat_binding = NULL;
 	if (wl_event_source_timer_update(keyboard->key_repeat_source, 0) < 0) {
-		wmiiv_log(SWAY_DEBUG, "failed to disarm key repeat timer");
+		wmiiv_log(WMIIV_DEBUG, "failed to disarm key repeat timer");
 	}
 }
 
@@ -482,7 +482,7 @@ static void handle_key_event(struct wmiiv_keyboard *keyboard,
 		keyboard->repeat_binding = binding;
 		if (wl_event_source_timer_update(keyboard->key_repeat_source,
 				wlr_device->keyboard->repeat_info.delay) < 0) {
-			wmiiv_log(SWAY_DEBUG, "failed to set key repeat timer");
+			wmiiv_log(WMIIV_DEBUG, "failed to set key repeat timer");
 		}
 	} else if (keyboard->repeat_binding) {
 		wmiiv_keyboard_disarm_key_repeat(keyboard);
@@ -627,7 +627,7 @@ static int handle_keyboard_repeat(void *data) {
 			// We queue the next event first, as the command might cancel it
 			if (wl_event_source_timer_update(keyboard->key_repeat_source,
 					1000 / wlr_device->repeat_info.rate) < 0) {
-				wmiiv_log(SWAY_DEBUG, "failed to update key repeat timer");
+				wmiiv_log(WMIIV_DEBUG, "failed to update key repeat timer");
 			}
 		}
 
@@ -732,7 +732,7 @@ static void handle_xkb_context_log(struct xkb_context *context,
 
 	char *error = malloc(length);
 	if (!error) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate libxkbcommon log message");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate libxkbcommon log message");
 		return;
 	}
 
@@ -744,16 +744,16 @@ static void handle_xkb_context_log(struct xkb_context *context,
 		error[length - 2] = '\0';
 	}
 
-	wmiiv_log_importance_t importance = SWAY_DEBUG;
+	wmiiv_log_importance_t importance = WMIIV_DEBUG;
 	if (level <= XKB_LOG_LEVEL_ERROR) { // Critical and Error
-		importance = SWAY_ERROR;
+		importance = WMIIV_ERROR;
 	} else if (level <= XKB_LOG_LEVEL_INFO) { // Warning and Info
-		importance = SWAY_INFO;
+		importance = WMIIV_INFO;
 	}
 	wmiiv_log(importance, "[xkbcommon] %s", error);
 
 	char **data = xkb_context_get_user_data(context);
-	if (importance == SWAY_ERROR && data && !*data) {
+	if (importance == WMIIV_ERROR && data && !*data) {
 		*data = error;
 	} else {
 		free(error);
@@ -774,7 +774,7 @@ struct xkb_keymap *wmiiv_keyboard_compile_keymap(struct input_config *ic,
 	if (ic && ic->xkb_file) {
 		FILE *keymap_file = fopen(ic->xkb_file, "r");
 		if (!keymap_file) {
-			wmiiv_log_errno(SWAY_ERROR, "cannot read xkb file %s", ic->xkb_file);
+			wmiiv_log_errno(WMIIV_ERROR, "cannot read xkb file %s", ic->xkb_file);
 			if (error) {
 				size_t len = snprintf(NULL, 0, "cannot read xkb file %s: %s",
 						ic->xkb_file, strerror(errno)) + 1;
@@ -791,7 +791,7 @@ struct xkb_keymap *wmiiv_keyboard_compile_keymap(struct input_config *ic,
 					XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
 
 		if (fclose(keymap_file) != 0) {
-			wmiiv_log_errno(SWAY_ERROR, "Failed to close xkb file %s",
+			wmiiv_log_errno(WMIIV_ERROR, "Failed to close xkb file %s",
 					ic->xkb_file);
 		}
 	} else {
@@ -823,13 +823,13 @@ static void wmiiv_keyboard_group_remove(struct wmiiv_keyboard *keyboard) {
 	struct wlr_keyboard *wlr_keyboard = device->wlr_device->keyboard;
 	struct wlr_keyboard_group *wlr_group = wlr_keyboard->group;
 
-	wmiiv_log(SWAY_DEBUG, "Removing keyboard %s from group %p",
+	wmiiv_log(WMIIV_DEBUG, "Removing keyboard %s from group %p",
 			device->identifier, wlr_group);
 
 	wlr_keyboard_group_remove_keyboard(wlr_keyboard->group, wlr_keyboard);
 
 	if (wl_list_empty(&wlr_group->devices)) {
-		wmiiv_log(SWAY_DEBUG, "Destroying empty keyboard group %p",
+		wmiiv_log(WMIIV_DEBUG, "Destroying empty keyboard group %p",
 				wlr_group);
 		struct wmiiv_keyboard_group *wmiiv_group = wlr_group->data;
 		wlr_group->data = NULL;
@@ -910,7 +910,7 @@ static void wmiiv_keyboard_group_add(struct wmiiv_keyboard *keyboard) {
 			if (wlr_keyboard_keymaps_match(keyboard->keymap,
 						wlr_group->keyboard.keymap) &&
 					repeat_info_match(keyboard, &wlr_group->keyboard)) {
-				wmiiv_log(SWAY_DEBUG, "Adding keyboard %s to group %p",
+				wmiiv_log(WMIIV_DEBUG, "Adding keyboard %s to group %p",
 						device->identifier, wlr_group);
 				wlr_keyboard_group_add_keyboard(wlr_group, wlr_keyboard);
 				return;
@@ -922,24 +922,24 @@ static void wmiiv_keyboard_group_add(struct wmiiv_keyboard *keyboard) {
 	struct wmiiv_keyboard_group *wmiiv_group =
 		calloc(1, sizeof(struct wmiiv_keyboard_group));
 	if (!wmiiv_group) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate wmiiv_keyboard_group");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate wmiiv_keyboard_group");
 		return;
 	}
 
 	wmiiv_group->wlr_group = wlr_keyboard_group_create();
 	if (!wmiiv_group->wlr_group) {
-		wmiiv_log(SWAY_ERROR, "Failed to create keyboard group");
+		wmiiv_log(WMIIV_ERROR, "Failed to create keyboard group");
 		goto cleanup;
 	}
 	wmiiv_group->wlr_group->data = wmiiv_group;
 	wlr_keyboard_set_keymap(&wmiiv_group->wlr_group->keyboard, keyboard->keymap);
 	wlr_keyboard_set_repeat_info(&wmiiv_group->wlr_group->keyboard,
 			keyboard->repeat_rate, keyboard->repeat_delay);
-	wmiiv_log(SWAY_DEBUG, "Created keyboard group %p", wmiiv_group->wlr_group);
+	wmiiv_log(WMIIV_DEBUG, "Created keyboard group %p", wmiiv_group->wlr_group);
 
 	wmiiv_group->seat_device = calloc(1, sizeof(struct wmiiv_seat_device));
 	if (!wmiiv_group->seat_device) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate wmiiv_seat_device for group");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate wmiiv_seat_device for group");
 		goto cleanup;
 	}
 	wmiiv_group->seat_device->wmiiv_seat = seat;
@@ -947,18 +947,18 @@ static void wmiiv_keyboard_group_add(struct wmiiv_keyboard *keyboard) {
 	wmiiv_group->seat_device->input_device =
 		calloc(1, sizeof(struct wmiiv_input_device));
 	if (!wmiiv_group->seat_device->input_device) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate wmiiv_input_device for group");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate wmiiv_input_device for group");
 		goto cleanup;
 	}
 	wmiiv_group->seat_device->input_device->wlr_device =
 		&wmiiv_group->wlr_group->keyboard.base;
 
 	if (!wmiiv_keyboard_create(seat, wmiiv_group->seat_device)) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate wmiiv_keyboard for group");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate wmiiv_keyboard for group");
 		goto cleanup;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Adding keyboard %s to group %p",
+	wmiiv_log(WMIIV_DEBUG, "Adding keyboard %s to group %p",
 			device->identifier, wmiiv_group->wlr_group);
 	wlr_keyboard_group_add_keyboard(wmiiv_group->wlr_group, wlr_keyboard);
 
@@ -1003,10 +1003,10 @@ void wmiiv_keyboard_configure(struct wmiiv_keyboard *keyboard) {
 
 	struct xkb_keymap *keymap = wmiiv_keyboard_compile_keymap(input_config, NULL);
 	if (!keymap) {
-		wmiiv_log(SWAY_ERROR, "Failed to compile keymap. Attempting defaults");
+		wmiiv_log(WMIIV_ERROR, "Failed to compile keymap. Attempting defaults");
 		keymap = wmiiv_keyboard_compile_keymap(NULL, NULL);
 		if (!keymap) {
-			wmiiv_log(SWAY_ERROR,
+			wmiiv_log(WMIIV_ERROR,
 					"Failed to compile default keymap. Aborting configure");
 			return;
 		}

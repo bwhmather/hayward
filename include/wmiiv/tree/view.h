@@ -1,5 +1,5 @@
-#ifndef _SWAY_VIEW_H
-#define _SWAY_VIEW_H
+#ifndef _WMIIV_VIEW_H
+#define _WMIIV_VIEW_H
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_compositor.h>
 #include "config.h"
@@ -13,9 +13,9 @@ struct wmiiv_container;
 struct wmiiv_xdg_decoration;
 
 enum wmiiv_view_type {
-	SWAY_VIEW_XDG_SHELL,
+	WMIIV_VIEW_XDG_SHELL,
 #if HAVE_XWAYLAND
-	SWAY_VIEW_XWAYLAND,
+	WMIIV_VIEW_XWAYLAND,
 #endif
 };
 

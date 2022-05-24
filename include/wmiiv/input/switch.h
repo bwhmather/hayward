@@ -1,5 +1,5 @@
-#ifndef _SWAY_INPUT_SWITCH_H
-#define _SWAY_INPUT_SWITCH_H
+#ifndef _WMIIV_INPUT_SWITCH_H
+#define _WMIIV_INPUT_SWITCH_H
 
 #include "wmiiv/input/seat.h"
 

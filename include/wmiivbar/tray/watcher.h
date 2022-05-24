@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_TRAY_WATCHER_H
-#define _SWAYBAR_TRAY_WATCHER_H
+#ifndef _WMIIVBAR_TRAY_WATCHER_H
+#define _WMIIVBAR_TRAY_WATCHER_H
 
 #include "wmiivbar/tray/tray.h"
 #include "list.h"

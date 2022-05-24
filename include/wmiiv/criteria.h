@@ -1,5 +1,5 @@
-#ifndef _SWAY_CRITERIA_H
-#define _SWAY_CRITERIA_H
+#ifndef _WMIIV_CRITERIA_H
+#define _WMIIV_CRITERIA_H
 
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>

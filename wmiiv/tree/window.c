@@ -33,7 +33,7 @@
 struct wmiiv_container *window_create(struct wmiiv_view *view) {
 	struct wmiiv_container *c = calloc(1, sizeof(struct wmiiv_container));
 	if (!c) {
-		wmiiv_log(SWAY_ERROR, "Unable to allocate wmiiv_container");
+		wmiiv_log(WMIIV_ERROR, "Unable to allocate wmiiv_container");
 		return NULL;
 	}
 	node_init(&c->node, N_WINDOW, c);
@@ -163,7 +163,7 @@ static void render_titlebar_text_texture(struct wmiiv_output *output,
 			CAIRO_FORMAT_ARGB32, width, height);
 	cairo_status_t status = cairo_surface_status(surface);
 	if (status != CAIRO_STATUS_SUCCESS) {
-		wmiiv_log(SWAY_ERROR, "cairo_image_surface_create failed: %s",
+		wmiiv_log(WMIIV_ERROR, "cairo_image_surface_create failed: %s",
 			cairo_status_to_string(status));
 		return;
 	}
@@ -402,7 +402,7 @@ static void window_move_to_column_from_maybe_direction(
 	struct wmiiv_workspace *old_workspace = win->pending.workspace;
 
 	if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
-		wmiiv_log(SWAY_DEBUG, "Reparenting window (parallel)");
+		wmiiv_log(WMIIV_DEBUG, "Reparenting window (parallel)");
 		int index =
 			move_dir == WLR_DIRECTION_DOWN ?
 			0 : col->pending.children->length;
@@ -411,7 +411,7 @@ static void window_move_to_column_from_maybe_direction(
 		win->pending.width = win->pending.height = 0;
 		win->width_fraction = win->height_fraction = 0;
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Reparenting window (perpendicular)");
+		wmiiv_log(WMIIV_DEBUG, "Reparenting window (perpendicular)");
 		struct wmiiv_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
 		container_detach(win);
 		if (target_sibling) {
@@ -481,7 +481,7 @@ static void window_move_to_workspace_from_maybe_direction(
 	}
 
 	if (has_move_dir && (move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_RIGHT)) {
-		wmiiv_log(SWAY_DEBUG, "Reparenting window (parallel)");
+		wmiiv_log(WMIIV_DEBUG, "Reparenting window (parallel)");
 		// Move to either left-most or right-most column based on move
 		// direction.
 		int index =
@@ -490,7 +490,7 @@ static void window_move_to_workspace_from_maybe_direction(
 		struct wmiiv_container *col = ws->tiling->items[index];
 		window_move_to_column_from_maybe_direction(win, col, has_move_dir, move_dir);
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Reparenting container (perpendicular)");
+		wmiiv_log(WMIIV_DEBUG, "Reparenting container (perpendicular)");
 		// Move to the most recently focused column in the workspace.
 		struct wmiiv_container *col = NULL;
 

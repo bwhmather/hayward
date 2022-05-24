@@ -1,5 +1,5 @@
-#ifndef _SWAY_COLUMN_H
-#define _SWAY_COLUMN_H
+#ifndef _WMIIV_COLUMN_H
+#define _WMIIV_COLUMN_H
 #include <stdint.h>
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>

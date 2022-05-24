@@ -139,7 +139,7 @@ static void merge_wildcard_on_all(struct output_config *wildcard) {
 	for (int i = 0; i < config->output_configs->length; i++) {
 		struct output_config *oc = config->output_configs->items[i];
 		if (strcmp(wildcard->name, oc->name) != 0) {
-			wmiiv_log(SWAY_DEBUG, "Merging output * config on %s", oc->name);
+			wmiiv_log(WMIIV_DEBUG, "Merging output * config on %s", oc->name);
 			merge_output_config(oc, wildcard);
 		}
 	}
@@ -157,7 +157,7 @@ static void merge_id_on_name(struct output_config *oc) {
 			size_t length = snprintf(NULL, 0, "%s on %s", id, name) + 1;
 			id_on_name = malloc(length);
 			if (!id_on_name) {
-				wmiiv_log(SWAY_ERROR, "Failed to allocate id on name string");
+				wmiiv_log(WMIIV_ERROR, "Failed to allocate id on name string");
 				return;
 			}
 			snprintf(id_on_name, length, "%s on %s", id, name);
@@ -171,7 +171,7 @@ static void merge_id_on_name(struct output_config *oc) {
 
 	int i = list_seq_find(config->output_configs, output_name_cmp, id_on_name);
 	if (i >= 0) {
-		wmiiv_log(SWAY_DEBUG, "Merging on top of existing id on name config");
+		wmiiv_log(WMIIV_DEBUG, "Merging on top of existing id on name config");
 		merge_output_config(config->output_configs->items[i], oc);
 	} else {
 		// If both a name and identifier config, exist generate an id on name
@@ -188,7 +188,7 @@ static void merge_id_on_name(struct output_config *oc) {
 			}
 			merge_output_config(ion_oc, oc);
 			list_add(config->output_configs, ion_oc);
-			wmiiv_log(SWAY_DEBUG, "Generated id on name output config \"%s\""
+			wmiiv_log(WMIIV_DEBUG, "Generated id on name output config \"%s\""
 				" (enabled: %d) (%dx%d@%fHz position %d,%d scale %f "
 				"transform %d) (bg %s %s) (dpms %d) (max render time: %d)",
 				ion_oc->name, ion_oc->enabled, ion_oc->width, ion_oc->height,
@@ -211,16 +211,16 @@ struct output_config *store_output_config(struct output_config *oc) {
 
 	int i = list_seq_find(config->output_configs, output_name_cmp, oc->name);
 	if (i >= 0) {
-		wmiiv_log(SWAY_DEBUG, "Merging on top of existing output config");
+		wmiiv_log(WMIIV_DEBUG, "Merging on top of existing output config");
 		struct output_config *current = config->output_configs->items[i];
 		merge_output_config(current, oc);
 		free_output_config(oc);
 		oc = current;
 	} else if (!wildcard) {
-		wmiiv_log(SWAY_DEBUG, "Adding non-wildcard output config");
+		wmiiv_log(WMIIV_DEBUG, "Adding non-wildcard output config");
 		i = list_seq_find(config->output_configs, output_name_cmp, "*");
 		if (i >= 0) {
-			wmiiv_log(SWAY_DEBUG, "Merging on top of output * config");
+			wmiiv_log(WMIIV_DEBUG, "Merging on top of output * config");
 			struct output_config *current = new_output_config(oc->name);
 			merge_output_config(current, config->output_configs->items[i]);
 			merge_output_config(current, oc);
@@ -230,11 +230,11 @@ struct output_config *store_output_config(struct output_config *oc) {
 		list_add(config->output_configs, oc);
 	} else {
 		// New wildcard config. Just add it
-		wmiiv_log(SWAY_DEBUG, "Adding output * config");
+		wmiiv_log(WMIIV_DEBUG, "Adding output * config");
 		list_add(config->output_configs, oc);
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Config stored for output %s (enabled: %d) (%dx%d@%fHz "
+	wmiiv_log(WMIIV_DEBUG, "Config stored for output %s (enabled: %d) (%dx%d@%fHz "
 		"position %d,%d scale %f subpixel %s transform %d) (bg %s %s) (dpms %d) "
 		"(max render time: %d)",
 		oc->name, oc->enabled, oc->width, oc->height, oc->refresh_rate,
@@ -253,7 +253,7 @@ static void set_mode(struct wlr_output *output, int width, int height,
 	int mhz = (int)round(refresh_rate * 1000);
 
 	if (wl_list_empty(&output->modes) || custom) {
-		wmiiv_log(SWAY_DEBUG, "Assigning custom mode to %s", output->name);
+		wmiiv_log(WMIIV_DEBUG, "Assigning custom mode to %s", output->name);
 		wlr_output_set_custom_mode(output, width, height,
 			refresh_rate > 0 ? mhz : 0);
 		return;
@@ -272,21 +272,21 @@ static void set_mode(struct wlr_output *output, int width, int height,
 		}
 	}
 	if (!best) {
-		wmiiv_log(SWAY_ERROR, "Configured mode for %s not available", output->name);
-		wmiiv_log(SWAY_INFO, "Picking preferred mode instead");
+		wmiiv_log(WMIIV_ERROR, "Configured mode for %s not available", output->name);
+		wmiiv_log(WMIIV_INFO, "Picking preferred mode instead");
 		best = wlr_output_preferred_mode(output);
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Assigning configured mode to %s", output->name);
+		wmiiv_log(WMIIV_DEBUG, "Assigning configured mode to %s", output->name);
 	}
 	wlr_output_set_mode(output, best);
 }
 
 static void set_modeline(struct wlr_output *output, drmModeModeInfo *drm_mode) {
 	if (!wlr_output_is_drm(output)) {
-		wmiiv_log(SWAY_ERROR, "Modeline can only be set to DRM output");
+		wmiiv_log(WMIIV_ERROR, "Modeline can only be set to DRM output");
 		return;
 	}
-	wmiiv_log(SWAY_DEBUG, "Assigning custom modeline to %s", output->name);
+	wmiiv_log(WMIIV_DEBUG, "Assigning custom modeline to %s", output->name);
 	struct wlr_output_mode *mode = wlr_drm_connector_add_mode(output, drm_mode);
 	if (mode) {
 		wlr_output_set_mode(output, mode);
@@ -348,7 +348,7 @@ static int compute_default_scale(struct wlr_output *output) {
 
 	double dpi_x = (double) width / (output->phys_width / MM_PER_INCH);
 	double dpi_y = (double) height / (output->phys_height / MM_PER_INCH);
-	wmiiv_log(SWAY_DEBUG, "Output DPI: %fx%f", dpi_x, dpi_y);
+	wmiiv_log(WMIIV_DEBUG, "Output DPI: %fx%f", dpi_x, dpi_y);
 	if (dpi_x <= HIDPI_DPI_LIMIT || dpi_y <= HIDPI_DPI_LIMIT) {
 		return 1;
 	}
@@ -382,31 +382,31 @@ static void queue_output_config(struct output_config *oc,
 	struct wlr_output *wlr_output = output->wlr_output;
 
 	if (oc && (!oc->enabled || oc->dpms_state == DPMS_OFF)) {
-		wmiiv_log(SWAY_DEBUG, "Turning off output %s", wlr_output->name);
+		wmiiv_log(WMIIV_DEBUG, "Turning off output %s", wlr_output->name);
 		wlr_output_enable(wlr_output, false);
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Turning on output %s", wlr_output->name);
+	wmiiv_log(WMIIV_DEBUG, "Turning on output %s", wlr_output->name);
 	wlr_output_enable(wlr_output, true);
 
 	if (oc && oc->drm_mode.type != 0 && oc->drm_mode.type != (uint32_t) -1) {
-		wmiiv_log(SWAY_DEBUG, "Set %s modeline",
+		wmiiv_log(WMIIV_DEBUG, "Set %s modeline",
 			wlr_output->name);
 		set_modeline(wlr_output, &oc->drm_mode);
 	} else if (oc && oc->width > 0 && oc->height > 0) {
-		wmiiv_log(SWAY_DEBUG, "Set %s mode to %dx%d (%f Hz)",
+		wmiiv_log(WMIIV_DEBUG, "Set %s mode to %dx%d (%f Hz)",
 			wlr_output->name, oc->width, oc->height, oc->refresh_rate);
 		set_mode(wlr_output, oc->width, oc->height,
 			oc->refresh_rate, oc->custom_mode == 1);
 	} else if (!wl_list_empty(&wlr_output->modes)) {
-		wmiiv_log(SWAY_DEBUG, "Set preferred mode");
+		wmiiv_log(WMIIV_DEBUG, "Set preferred mode");
 		struct wlr_output_mode *preferred_mode =
 			wlr_output_preferred_mode(wlr_output);
 		wlr_output_set_mode(wlr_output, preferred_mode);
 
 		if (!wlr_output_test(wlr_output)) {
-			wmiiv_log(SWAY_DEBUG, "Preferred mode rejected, "
+			wmiiv_log(WMIIV_DEBUG, "Preferred mode rejected, "
 				"falling back to another mode");
 			struct wlr_output_mode *mode;
 			wl_list_for_each(mode, &wlr_output->modes, link) {
@@ -423,7 +423,7 @@ static void queue_output_config(struct output_config *oc,
 	}
 
 	if (oc && (oc->subpixel != WL_OUTPUT_SUBPIXEL_UNKNOWN || config->reloading)) {
-		wmiiv_log(SWAY_DEBUG, "Set %s subpixel to %s", oc->name,
+		wmiiv_log(WMIIV_DEBUG, "Set %s subpixel to %s", oc->name,
 			wmiiv_wl_output_subpixel_to_string(oc->subpixel));
 		wlr_output_set_subpixel(wlr_output, oc->subpixel);
 	}
@@ -433,10 +433,10 @@ static void queue_output_config(struct output_config *oc,
 		tr = oc->transform;
 	} else if (wlr_output_is_drm(wlr_output)) {
 		tr = wlr_drm_connector_get_panel_orientation(wlr_output);
-		wmiiv_log(SWAY_DEBUG, "Auto-detected output transform: %d", tr);
+		wmiiv_log(WMIIV_DEBUG, "Auto-detected output transform: %d", tr);
 	}
 	if (wlr_output->transform != tr) {
-		wmiiv_log(SWAY_DEBUG, "Set %s transform to %d", oc->name, tr);
+		wmiiv_log(WMIIV_DEBUG, "Set %s transform to %d", oc->name, tr);
 		wlr_output_set_transform(wlr_output, tr);
 	}
 
@@ -447,15 +447,15 @@ static void queue_output_config(struct output_config *oc,
 		scale = oc->scale;
 	} else {
 		scale = compute_default_scale(wlr_output);
-		wmiiv_log(SWAY_DEBUG, "Auto-detected output scale: %f", scale);
+		wmiiv_log(WMIIV_DEBUG, "Auto-detected output scale: %f", scale);
 	}
 	if (scale != wlr_output->scale) {
-		wmiiv_log(SWAY_DEBUG, "Set %s scale to %f", wlr_output->name, scale);
+		wmiiv_log(WMIIV_DEBUG, "Set %s scale to %f", wlr_output->name, scale);
 		wlr_output_set_scale(wlr_output, scale);
 	}
 
 	if (oc && oc->adaptive_sync != -1) {
-		wmiiv_log(SWAY_DEBUG, "Set %s adaptive sync to %d", wlr_output->name,
+		wmiiv_log(WMIIV_DEBUG, "Set %s adaptive sync to %d", wlr_output->name,
 			oc->adaptive_sync);
 		wlr_output_enable_adaptive_sync(wlr_output, oc->adaptive_sync == 1);
 	}
@@ -470,7 +470,7 @@ static void queue_output_config(struct output_config *oc,
 				break;
 			}
 
-			wmiiv_log(SWAY_DEBUG, "Preferred output format 0x%08x "
+			wmiiv_log(WMIIV_DEBUG, "Preferred output format 0x%08x "
 				"failed to work, falling back to next in "
 				"list, 0x%08x", fmts[i], fmts[i + 1]);
 		}
@@ -493,12 +493,12 @@ bool apply_output_config(struct output_config *oc, struct wmiiv_output *output) 
 		output->current_mode = wlr_output->pending.mode;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Committing output %s", wlr_output->name);
+	wmiiv_log(WMIIV_DEBUG, "Committing output %s", wlr_output->name);
 	if (!wlr_output_commit(wlr_output)) {
 		// Failed to commit output changes, maybe the output is missing a CRTC.
 		// Leave the output disabled for now and try again when the output gets
 		// the mode we asked for.
-		wmiiv_log(SWAY_ERROR, "Failed to commit output %s", wlr_output->name);
+		wmiiv_log(WMIIV_ERROR, "Failed to commit output %s", wlr_output->name);
 		output->enabling = false;
 		return false;
 	}
@@ -506,7 +506,7 @@ bool apply_output_config(struct output_config *oc, struct wmiiv_output *output) 
 	output->enabling = false;
 
 	if (oc && !oc->enabled) {
-		wmiiv_log(SWAY_DEBUG, "Disabling output %s", oc->name);
+		wmiiv_log(WMIIV_DEBUG, "Disabling output %s", oc->name);
 		if (output->enabled) {
 			output_disable(output);
 			wlr_output_layout_remove(root->output_layout, wlr_output);
@@ -532,14 +532,14 @@ bool apply_output_config(struct output_config *oc, struct wmiiv_output *output) 
 				break;
 		}
 		if (scale_filter_old != output->scale_filter) {
-			wmiiv_log(SWAY_DEBUG, "Set %s scale_filter to %s", oc->name,
+			wmiiv_log(WMIIV_DEBUG, "Set %s scale_filter to %s", oc->name,
 				wmiiv_output_scale_filter_to_string(output->scale_filter));
 		}
 	}
 
 	// Find position for it
 	if (oc && (oc->x != -1 || oc->y != -1)) {
-		wmiiv_log(SWAY_DEBUG, "Set %s position to %d, %d", oc->name, oc->x, oc->y);
+		wmiiv_log(WMIIV_DEBUG, "Set %s position to %d, %d", oc->name, oc->x, oc->y);
 		wlr_output_layout_add(root->output_layout, wlr_output, oc->x, oc->y);
 	} else {
 		wlr_output_layout_add_auto(root->output_layout, wlr_output);
@@ -558,7 +558,7 @@ bool apply_output_config(struct output_config *oc, struct wmiiv_output *output) 
 	}
 
 	if (oc && oc->max_render_time >= 0) {
-		wmiiv_log(SWAY_DEBUG, "Set %s max render time to %d",
+		wmiiv_log(WMIIV_DEBUG, "Set %s max render time to %d",
 			oc->name, oc->max_render_time);
 		output->max_render_time = oc->max_render_time;
 	}
@@ -651,7 +651,7 @@ static struct output_config *get_output_config(char *identifier,
 		result->name = strdup(id_on_name);
 		merge_output_config(result, temp);
 
-		wmiiv_log(SWAY_DEBUG, "Generated output config \"%s\" (enabled: %d)"
+		wmiiv_log(WMIIV_DEBUG, "Generated output config \"%s\" (enabled: %d)"
 			" (%dx%d@%fHz position %d,%d scale %f transform %d) (bg %s %s)"
 			" (dpms %d) (max render time: %d)", result->name, result->enabled,
 			result->width, result->height, result->refresh_rate,
@@ -708,7 +708,7 @@ void apply_output_config_to_outputs(struct output_config *oc) {
 			struct output_config *current = get_output_config(id, wmiiv_output);
 			if (!current) {
 				// No stored output config matched, apply oc directly
-				wmiiv_log(SWAY_DEBUG, "Applying oc directly");
+				wmiiv_log(WMIIV_DEBUG, "Applying oc directly");
 				current = new_output_config(oc->name);
 				merge_output_config(current, oc);
 			}
@@ -766,7 +766,7 @@ static bool _spawn_wmiivbg(char **command) {
 	}
 	int sockets[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "socketpair failed");
+		wmiiv_log_errno(WMIIV_ERROR, "socketpair failed");
 		return false;
 	}
 	if (!wmiiv_set_cloexec(sockets[0], true) || !wmiiv_set_cloexec(sockets[1], true)) {
@@ -775,7 +775,7 @@ static bool _spawn_wmiivbg(char **command) {
 
 	config->wmiivbg_client = wl_client_create(server.wl_display, sockets[0]);
 	if (config->wmiivbg_client == NULL) {
-		wmiiv_log_errno(SWAY_ERROR, "wl_client_create failed");
+		wmiiv_log_errno(WMIIV_ERROR, "wl_client_create failed");
 		return false;
 	}
 
@@ -785,14 +785,14 @@ static bool _spawn_wmiivbg(char **command) {
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		wmiiv_log_errno(SWAY_ERROR, "fork failed");
+		wmiiv_log_errno(WMIIV_ERROR, "fork failed");
 		return false;
 	} else if (pid == 0) {
 		restore_nofile_limit();
 
 		pid = fork();
 		if (pid < 0) {
-			wmiiv_log_errno(SWAY_ERROR, "fork failed");
+			wmiiv_log_errno(WMIIV_ERROR, "fork failed");
 			_exit(EXIT_FAILURE);
 		} else if (pid == 0) {
 			if (!wmiiv_set_cloexec(sockets[1], false)) {
@@ -805,18 +805,18 @@ static bool _spawn_wmiivbg(char **command) {
 			setenv("WAYLAND_SOCKET", wayland_socket_str, true);
 
 			execvp(command[0], command);
-			wmiiv_log_errno(SWAY_ERROR, "execvp failed");
+			wmiiv_log_errno(WMIIV_ERROR, "execvp failed");
 			_exit(EXIT_FAILURE);
 		}
 		_exit(EXIT_SUCCESS);
 	}
 
 	if (close(sockets[1]) != 0) {
-		wmiiv_log_errno(SWAY_ERROR, "close failed");
+		wmiiv_log_errno(WMIIV_ERROR, "close failed");
 		return false;
 	}
 	if (waitpid(pid, NULL, 0) < 0) {
-		wmiiv_log_errno(SWAY_ERROR, "waitpid failed");
+		wmiiv_log_errno(WMIIV_ERROR, "waitpid failed");
 		return false;
 	}
 
@@ -845,7 +845,7 @@ bool spawn_wmiivbg(void) {
 
 	char **cmd = calloc(length, sizeof(char *));
 	if (!cmd) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate spawn_wmiivbg command");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate spawn_wmiivbg command");
 		return false;
 	}
 
@@ -877,7 +877,7 @@ bool spawn_wmiivbg(void) {
 	}
 
 	for (size_t k = 0; k < i; k++) {
-		wmiiv_log(SWAY_DEBUG, "spawn_wmiivbg cmd[%zd] = %s", k, cmd[k]);
+		wmiiv_log(WMIIV_DEBUG, "spawn_wmiivbg cmd[%zd] = %s", k, cmd[k]);
 	}
 
 	bool result = _spawn_wmiivbg(cmd);

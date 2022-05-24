@@ -12,10 +12,10 @@ struct cmd_results *bar_cmd_wrap_scroll(int argc, char **argv) {
 	config->current_bar->wrap_scroll =
 			parse_boolean(argv[0], config->current_bar->wrap_scroll);
 	if (config->current_bar->wrap_scroll) {
-		wmiiv_log(SWAY_DEBUG, "Enabling wrap scroll on bar: %s",
+		wmiiv_log(WMIIV_DEBUG, "Enabling wrap scroll on bar: %s",
 			config->current_bar->id);
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Disabling wrap scroll on bar: %s",
+		wmiiv_log(WMIIV_DEBUG, "Disabling wrap scroll on bar: %s",
 				config->current_bar->id);
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);

@@ -1,5 +1,5 @@
-#ifndef _SWAY_IPC_H
-#define _SWAY_IPC_H
+#ifndef _WMIIV_IPC_H
+#define _WMIIV_IPC_H
 
 #define event_mask(ev) (1 << (ev & 0x7F))
 

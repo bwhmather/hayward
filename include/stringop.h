@@ -1,5 +1,5 @@
-#ifndef _SWAY_STRINGOP_H
-#define _SWAY_STRINGOP_H
+#ifndef _WMIIV_STRINGOP_H
+#define _WMIIV_STRINGOP_H
 
 #include <stdbool.h>
 #include "list.h"

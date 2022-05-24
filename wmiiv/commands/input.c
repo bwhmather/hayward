@@ -51,7 +51,7 @@ struct cmd_results *cmd_input(int argc, char **argv) {
 		return error;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "entering input block: %s", argv[0]);
+	wmiiv_log(WMIIV_DEBUG, "entering input block: %s", argv[0]);
 
 	config->handler_context.input_config = new_input_config(argv[0]);
 	if (!config->handler_context.input_config) {

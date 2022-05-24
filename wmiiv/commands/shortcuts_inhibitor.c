@@ -35,7 +35,7 @@ struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {
 
 			wlr_keyboard_shortcuts_inhibitor_v1_deactivate(
 					wmiiv_inhibitor->inhibitor);
-			wmiiv_log(SWAY_DEBUG, "Deactivated keyboard shortcuts "
+			wmiiv_log(WMIIV_DEBUG, "Deactivated keyboard shortcuts "
 					"inhibitor for seat %s on view",
 					seat->wlr_seat->name);
 

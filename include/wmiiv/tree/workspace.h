@@ -1,5 +1,5 @@
-#ifndef _SWAY_WORKSPACE_H
-#define _SWAY_WORKSPACE_H
+#ifndef _WMIIV_WORKSPACE_H
+#define _WMIIV_WORKSPACE_H
 
 #include <stdbool.h>
 #include "wmiiv/tree/container.h"

@@ -24,8 +24,8 @@ struct cmd_results *input_cmd_scroll_button(int argc, char **argv) {
 		error = cmd_results_new(CMD_INVALID, message);
 		free(message);
 		return error;
-	} else if (button == SWAY_SCROLL_UP || button == SWAY_SCROLL_DOWN
-			|| button == SWAY_SCROLL_LEFT || button == SWAY_SCROLL_RIGHT) {
+	} else if (button == WMIIV_SCROLL_UP || button == WMIIV_SCROLL_DOWN
+			|| button == WMIIV_SCROLL_LEFT || button == WMIIV_SCROLL_RIGHT) {
 		return cmd_results_new(CMD_INVALID,
 				"X11 axis buttons are not supported for scroll_button");
 	} else if (!button) {

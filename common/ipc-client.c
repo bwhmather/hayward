@@ -14,7 +14,7 @@ static const char ipc_magic[] = {'i', '3', '-', 'i', 'p', 'c'};
 #define IPC_HEADER_SIZE (sizeof(ipc_magic) + 8)
 
 char *get_socketpath(void) {
-	const char *wmiivsock = getenv("SWAYSOCK");
+	const char *wmiivsock = getenv("WMIIVSOCK");
 	if (wmiivsock) {
 		return strdup(wmiivsock);
 	}
@@ -71,7 +71,7 @@ int ipc_open_socket(const char *socket_path) {
 
 bool ipc_set_recv_timeout(int socketfd, struct timeval tv) {
 	if (setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1) {
-		wmiiv_log_errno(SWAY_ERROR, "Failed to set ipc recv timeout");
+		wmiiv_log_errno(WMIIV_ERROR, "Failed to set ipc recv timeout");
 		return false;
 	}
 	return true;
@@ -117,7 +117,7 @@ struct ipc_response *ipc_recv_response(int socketfd) {
 error_2:
 	free(response);
 error_1:
-	wmiiv_log(SWAY_ERROR, "Unable to allocate memory for IPC response");
+	wmiiv_log(WMIIV_ERROR, "Unable to allocate memory for IPC response");
 	return NULL;
 }
 

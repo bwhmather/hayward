@@ -117,7 +117,7 @@ static void relay_send_im_state(struct wmiiv_input_method_relay *relay,
 		struct wlr_text_input_v3 *input) {
 	struct wlr_input_method_v2 *input_method = relay->input_method;
 	if (!input_method) {
-		wmiiv_log(SWAY_INFO, "Sending IM_DONE but im is gone");
+		wmiiv_log(WMIIV_INFO, "Sending IM_DONE but im is gone");
 		return;
 	}
 	// TODO: only send each of those if they were modified
@@ -141,7 +141,7 @@ static void handle_text_input_enable(struct wl_listener *listener, void *data) {
 	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		text_input_enable);
 	if (text_input->relay->input_method == NULL) {
-		wmiiv_log(SWAY_INFO, "Enabling text input when input method is gone");
+		wmiiv_log(WMIIV_INFO, "Enabling text input when input method is gone");
 		return;
 	}
 	wlr_input_method_v2_send_activate(text_input->relay->input_method);
@@ -153,12 +153,12 @@ static void handle_text_input_commit(struct wl_listener *listener,
 	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		text_input_commit);
 	if (!text_input->input->current_enabled) {
-		wmiiv_log(SWAY_INFO, "Inactive text input tried to commit an update");
+		wmiiv_log(WMIIV_INFO, "Inactive text input tried to commit an update");
 		return;
 	}
-	wmiiv_log(SWAY_DEBUG, "Text input committed update");
+	wmiiv_log(WMIIV_DEBUG, "Text input committed update");
 	if (text_input->relay->input_method == NULL) {
-		wmiiv_log(SWAY_INFO, "Text input committed, but input method is gone");
+		wmiiv_log(WMIIV_INFO, "Text input committed, but input method is gone");
 		return;
 	}
 	relay_send_im_state(text_input->relay, text_input->input);
@@ -167,7 +167,7 @@ static void handle_text_input_commit(struct wl_listener *listener,
 static void relay_disable_text_input(struct wmiiv_input_method_relay *relay,
 		struct wmiiv_text_input *text_input) {
 	if (relay->input_method == NULL) {
-		wmiiv_log(SWAY_DEBUG, "Disabling text input, but input method is gone");
+		wmiiv_log(WMIIV_DEBUG, "Disabling text input, but input method is gone");
 		return;
 	}
 	wlr_input_method_v2_send_deactivate(relay->input_method);
@@ -179,7 +179,7 @@ static void handle_text_input_disable(struct wl_listener *listener,
 	struct wmiiv_text_input *text_input = wl_container_of(listener, text_input,
 		text_input_disable);
 	if (text_input->input->focused_surface == NULL) {
-		wmiiv_log(SWAY_DEBUG, "Disabling text input, but no longer focused");
+		wmiiv_log(WMIIV_DEBUG, "Disabling text input, but no longer focused");
 		return;
 	}
 	relay_disable_text_input(text_input->relay, text_input);
@@ -265,7 +265,7 @@ static void relay_handle_input_method(struct wl_listener *listener,
 	}
 
 	if (relay->input_method != NULL) {
-		wmiiv_log(SWAY_INFO, "Attempted to connect second input method to a seat");
+		wmiiv_log(WMIIV_INFO, "Attempted to connect second input method to a seat");
 		wlr_input_method_v2_send_unavailable(input_method);
 		return;
 	}
@@ -324,7 +324,7 @@ void wmiiv_input_method_relay_set_focus(struct wmiiv_input_method_relay *relay,
 				relay_disable_text_input(relay, text_input);
 				wlr_text_input_v3_send_leave(text_input->input);
 			} else {
-				wmiiv_log(SWAY_DEBUG, "IM relay set_focus already focused");
+				wmiiv_log(WMIIV_DEBUG, "IM relay set_focus already focused");
 				continue;
 			}
 		}

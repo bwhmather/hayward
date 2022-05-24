@@ -68,7 +68,7 @@ struct cmd_results *cmd_output(int argc, char **argv) {
 		output = new_output_config(argv[0]);
 	}
 	if (!output) {
-		wmiiv_log(SWAY_ERROR, "Failed to allocate output config");
+		wmiiv_log(WMIIV_ERROR, "Failed to allocate output config");
 		return NULL;
 	}
 	argc--; argv++;

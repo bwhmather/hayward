@@ -18,7 +18,7 @@ static void destroy_inhibitor(struct wmiiv_idle_inhibitor_v1 *inhibitor) {
 static void handle_destroy(struct wl_listener *listener, void *data) {
 	struct wmiiv_idle_inhibitor_v1 *inhibitor =
 		wl_container_of(listener, inhibitor, destroy);
-	wmiiv_log(SWAY_DEBUG, "Sway idle inhibitor destroyed");
+	wmiiv_log(WMIIV_DEBUG, "Sway idle inhibitor destroyed");
 	destroy_inhibitor(inhibitor);
 }
 
@@ -26,7 +26,7 @@ void handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
 	struct wlr_idle_inhibitor_v1 *wlr_inhibitor = data;
 	struct wmiiv_idle_inhibit_manager_v1 *manager =
 		wl_container_of(listener, manager, new_idle_inhibitor_v1);
-	wmiiv_log(SWAY_DEBUG, "New wmiiv idle inhibitor");
+	wmiiv_log(WMIIV_DEBUG, "New wmiiv idle inhibitor");
 
 	struct wmiiv_idle_inhibitor_v1 *inhibitor =
 		calloc(1, sizeof(struct wmiiv_idle_inhibitor_v1));

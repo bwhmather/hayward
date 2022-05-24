@@ -1,5 +1,5 @@
-#ifndef _SWAYNAG_CONFIG_H
-#define _SWAYNAG_CONFIG_H
+#ifndef _WMIIVNAG_CONFIG_H
+#define _WMIIVNAG_CONFIG_H
 #include "wmiivnag/wmiivnag.h"
 #include "list.h"
 

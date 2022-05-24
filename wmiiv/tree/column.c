@@ -33,7 +33,7 @@
 struct wmiiv_container *column_create(void) {
 	struct wmiiv_container *c = calloc(1, sizeof(struct wmiiv_container));
 	if (!c) {
-		wmiiv_log(SWAY_ERROR, "Unable to allocate wmiiv_container");
+		wmiiv_log(WMIIV_ERROR, "Unable to allocate wmiiv_container");
 		return NULL;
 	}
 	node_init(&c->node, N_COLUMN, c);

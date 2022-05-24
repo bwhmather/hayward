@@ -174,14 +174,14 @@ static void seat_send_focus(struct wmiiv_node *node, struct wmiiv_seat *seat) {
 	}
 
 	if (!seat_is_input_allowed(seat, node->wmiiv_container->view->surface)) {
-		wmiiv_log(SWAY_DEBUG, "Refusing to set focus, input is inhibited");
+		wmiiv_log(WMIIV_DEBUG, "Refusing to set focus, input is inhibited");
 		return;
 	}
 
 	view_set_activated(node->wmiiv_container->view, true);
 	struct wmiiv_view *view = node->wmiiv_container->view;
 #if HAVE_XWAYLAND
-	if (view->type == SWAY_VIEW_XWAYLAND) {
+	if (view->type == WMIIV_VIEW_XWAYLAND) {
 		struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
 		wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
 	}
@@ -334,7 +334,7 @@ static struct wmiiv_seat_node *seat_node_from_node(
 
 	seat_node = calloc(1, sizeof(struct wmiiv_seat_node));
 	if (seat_node == NULL) {
-		wmiiv_log(SWAY_ERROR, "could not allocate seat node");
+		wmiiv_log(WMIIV_ERROR, "could not allocate seat node");
 		return NULL;
 	}
 
@@ -460,7 +460,7 @@ static void handle_request_start_drag(struct wl_listener *listener,
 
 	// TODO: tablet grabs
 
-	wmiiv_log(SWAY_DEBUG, "Ignoring start_drag request: "
+	wmiiv_log(WMIIV_DEBUG, "Ignoring start_drag request: "
 		"could not validate pointer or touch serial %" PRIu32, event->serial);
 	wlr_data_source_destroy(event->drag->source);
 }
@@ -471,7 +471,7 @@ static void handle_start_drag(struct wl_listener *listener, void *data) {
 
 	struct wmiiv_drag *drag = calloc(1, sizeof(struct wmiiv_drag));
 	if (drag == NULL) {
-		wmiiv_log(SWAY_ERROR, "Allocation failed");
+		wmiiv_log(WMIIV_ERROR, "Allocation failed");
 		return;
 	}
 	drag->seat = seat;
@@ -485,7 +485,7 @@ static void handle_start_drag(struct wl_listener *listener, void *data) {
 	if (wlr_drag_icon != NULL) {
 		struct wmiiv_drag_icon *icon = calloc(1, sizeof(struct wmiiv_drag_icon));
 		if (icon == NULL) {
-			wmiiv_log(SWAY_ERROR, "Allocation failed");
+			wmiiv_log(WMIIV_ERROR, "Allocation failed");
 			return;
 		}
 		icon->seat = seat;
@@ -662,7 +662,7 @@ static void seat_update_capabilities(struct wmiiv_seat *seat) {
 
 static void seat_reset_input_config(struct wmiiv_seat *seat,
 		struct wmiiv_seat_device *wmiiv_device) {
-	wmiiv_log(SWAY_DEBUG, "Resetting output mapping for input device %s",
+	wmiiv_log(WMIIV_DEBUG, "Resetting output mapping for input device %s",
 		wmiiv_device->input_device->identifier);
 	wlr_cursor_map_input_to_output(seat->cursor->cursor,
 		wmiiv_device->input_device->wlr_device, NULL);
@@ -707,7 +707,7 @@ static void seat_apply_input_config(struct wmiiv_seat *seat,
 	struct input_config *ic =
 		input_device_get_config(wmiiv_device->input_device);
 
-	wmiiv_log(SWAY_DEBUG, "Applying input config to %s",
+	wmiiv_log(WMIIV_DEBUG, "Applying input config to %s",
 		wmiiv_device->input_device->identifier);
 
 	const char *mapped_to_output = ic == NULL ? NULL : ic->mapped_to_output;
@@ -739,7 +739,7 @@ static void seat_apply_input_config(struct wmiiv_seat *seat,
 				wmiiv_libinput_device_is_builtin(wmiiv_device->input_device)) {
 			mapped_to_output = get_builtin_output_name();
 			if (mapped_to_output) {
-				wmiiv_log(SWAY_DEBUG, "Auto-detected output '%s' for device '%s'",
+				wmiiv_log(WMIIV_DEBUG, "Auto-detected output '%s' for device '%s'",
 					mapped_to_output, wmiiv_device->input_device->identifier);
 			}
 		}
@@ -748,19 +748,19 @@ static void seat_apply_input_config(struct wmiiv_seat *seat,
 		}
 		/* fallthrough */
 	case MAPPED_TO_OUTPUT:
-		wmiiv_log(SWAY_DEBUG, "Mapping input device %s to output %s",
+		wmiiv_log(WMIIV_DEBUG, "Mapping input device %s to output %s",
 			wmiiv_device->input_device->identifier, mapped_to_output);
 		if (strcmp("*", mapped_to_output) == 0) {
 			wlr_cursor_map_input_to_output(seat->cursor->cursor,
 				wmiiv_device->input_device->wlr_device, NULL);
 			wlr_cursor_map_input_to_region(seat->cursor->cursor,
 				wmiiv_device->input_device->wlr_device, NULL);
-			wmiiv_log(SWAY_DEBUG, "Reset output mapping");
+			wmiiv_log(WMIIV_DEBUG, "Reset output mapping");
 			return;
 		}
 		struct wmiiv_output *output = output_by_name_or_id(mapped_to_output);
 		if (!output) {
-			wmiiv_log(SWAY_DEBUG, "Requested output %s for device %s isn't present",
+			wmiiv_log(WMIIV_DEBUG, "Requested output %s for device %s isn't present",
 				mapped_to_output, wmiiv_device->input_device->identifier);
 			return;
 		}
@@ -768,11 +768,11 @@ static void seat_apply_input_config(struct wmiiv_seat *seat,
 			wmiiv_device->input_device->wlr_device, output->wlr_output);
 		wlr_cursor_map_input_to_region(seat->cursor->cursor,
 			wmiiv_device->input_device->wlr_device, NULL);
-		wmiiv_log(SWAY_DEBUG,
+		wmiiv_log(WMIIV_DEBUG,
 			"Mapped to output %s", output->wlr_output->name);
 		return;
 	case MAPPED_TO_REGION:
-		wmiiv_log(SWAY_DEBUG, "Mapping input device %s to %d,%d %dx%d",
+		wmiiv_log(WMIIV_DEBUG, "Mapping input device %s to %d,%d %dx%d",
 			wmiiv_device->input_device->identifier,
 			mapped_to_region->x, mapped_to_region->y,
 			mapped_to_region->width, mapped_to_region->height);
@@ -919,10 +919,10 @@ void seat_reset_device(struct wmiiv_seat *seat,
 			seat_reset_input_config(seat, seat_device);
 			break;
 		case WLR_INPUT_DEVICE_TABLET_PAD:
-			wmiiv_log(SWAY_DEBUG, "TODO: reset tablet pad");
+			wmiiv_log(WMIIV_DEBUG, "TODO: reset tablet pad");
 			break;
 		case WLR_INPUT_DEVICE_SWITCH:
-			wmiiv_log(SWAY_DEBUG, "TODO: reset switch device");
+			wmiiv_log(WMIIV_DEBUG, "TODO: reset switch device");
 			break;
 	}
 }
@@ -937,11 +937,11 @@ void seat_add_device(struct wmiiv_seat *seat,
 	struct wmiiv_seat_device *seat_device =
 		calloc(1, sizeof(struct wmiiv_seat_device));
 	if (!seat_device) {
-		wmiiv_log(SWAY_DEBUG, "could not allocate seat device");
+		wmiiv_log(WMIIV_DEBUG, "could not allocate seat device");
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "adding device %s to seat %s",
+	wmiiv_log(WMIIV_DEBUG, "adding device %s to seat %s",
 		input_device->identifier, seat->wlr_seat->name);
 
 	seat_device->wmiiv_seat = seat;
@@ -961,7 +961,7 @@ void seat_remove_device(struct wmiiv_seat *seat,
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "removing device %s from seat %s",
+	wmiiv_log(WMIIV_DEBUG, "removing device %s from seat %s",
 		input_device->identifier, seat->wlr_seat->name);
 
 	seat_device_destroy(seat_device);
@@ -1034,7 +1034,7 @@ void seat_configure_xcursor(struct wmiiv_seat *seat) {
 		seat->cursor->xcursor_manager =
 			wlr_xcursor_manager_create(cursor_theme, cursor_size);
 		if (!seat->cursor->xcursor_manager) {
-			wmiiv_log(SWAY_ERROR,
+			wmiiv_log(WMIIV_ERROR,
 				"Cannot create XCursor manager for theme '%s'", cursor_theme);
 		}
 	}
@@ -1046,7 +1046,7 @@ void seat_configure_xcursor(struct wmiiv_seat *seat) {
 			wlr_xcursor_manager_load(seat->cursor->xcursor_manager,
 				output->scale);
 		if (!result) {
-			wmiiv_log(SWAY_ERROR,
+			wmiiv_log(WMIIV_ERROR,
 				"Cannot load xcursor theme for output '%s' with scale %f",
 				output->name, output->scale);
 		}
@@ -1100,7 +1100,7 @@ static void set_workspace(struct wmiiv_seat *seat,
 		free(seat->prev_workspace_name);
 		seat->prev_workspace_name = strdup(seat->workspace->name);
 		if (!seat->prev_workspace_name) {
-			wmiiv_log(SWAY_ERROR, "Unable to allocate previous workspace name");
+			wmiiv_log(WMIIV_ERROR, "Unable to allocate previous workspace name");
 		}
 	}
 
@@ -1242,7 +1242,7 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 				wl_event_source_timer_update(view->urgent_timer,
 						config->urgent_timeout);
 			} else {
-				wmiiv_log_errno(SWAY_ERROR, "Unable to create urgency timer");
+				wmiiv_log_errno(WMIIV_ERROR, "Unable to create urgency timer");
 				handle_urgent_timeout(view);
 			}
 		} else {

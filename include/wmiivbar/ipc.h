@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_IPC_H
-#define _SWAYBAR_IPC_H
+#ifndef _WMIIVBAR_IPC_H
+#define _WMIIVBAR_IPC_H
 #include <stdbool.h>
 #include "wmiivbar/bar.h"
 

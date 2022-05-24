@@ -1,5 +1,5 @@
-#ifndef _SWAY_DESKTOP_IDLE_INHIBIT_V1_H
-#define _SWAY_DESKTOP_IDLE_INHIBIT_V1_H
+#ifndef _WMIIV_DESKTOP_IDLE_INHIBIT_V1_H
+#define _WMIIV_DESKTOP_IDLE_INHIBIT_V1_H
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_idle.h>
 #include "wmiiv/server.h"

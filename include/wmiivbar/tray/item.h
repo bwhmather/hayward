@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_TRAY_ITEM_H
-#define _SWAYBAR_TRAY_ITEM_H
+#ifndef _WMIIVBAR_TRAY_ITEM_H
+#define _WMIIVBAR_TRAY_ITEM_H
 
 #include <cairo.h>
 #include <stdbool.h>

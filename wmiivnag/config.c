@@ -172,7 +172,7 @@ int wmiivnag_parse_options(int argc, char **argv, struct wmiivnag *wmiivnag,
 					return EXIT_FAILURE;
 				}
 				button->text = strdup(optarg);
-				button->type = SWAYNAG_ACTION_COMMAND;
+				button->type = WMIIVNAG_ACTION_COMMAND;
 				button->action = strdup(argv[optind]);
 				button->terminal = c == 'b';
 				button->dismiss = c == 'z' || c == 'Z';
@@ -276,7 +276,7 @@ int wmiivnag_parse_options(int argc, char **argv, struct wmiivnag *wmiivnag,
 			}
 			break;
 		case 'v': // Version
-			printf("wmiivnag version " SWAY_VERSION "\n");
+			printf("wmiivnag version " WMIIV_VERSION "\n");
 			return -1;
 		case TO_COLOR_BACKGROUND: // Background color
 			if (type && !parse_color(optarg, &type->background)) {

@@ -106,7 +106,7 @@ void container_swap(struct wmiiv_container *win1, struct wmiiv_container *win2) 
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "Swapping containers %zu and %zu",
+	wmiiv_log(WMIIV_DEBUG, "Swapping containers %zu and %zu",
 			win1->node.id, win2->node.id);
 
 	enum wmiiv_fullscreen_mode fs1 = win1->pending.fullscreen_mode;
@@ -166,7 +166,7 @@ static bool test_con_id(struct wmiiv_container *container, void *data) {
 #if HAVE_XWAYLAND
 static bool test_id(struct wmiiv_container *container, void *data) {
 	xcb_window_t *wid = data;
-	return (container->view && container->view->type == SWAY_VIEW_XWAYLAND
+	return (container->view && container->view->type == WMIIV_VIEW_XWAYLAND
 			&& container->view->wlr_xwayland_surface->window_id == *wid);
 }
 #endif

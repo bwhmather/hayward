@@ -12,7 +12,7 @@ struct cmd_results *bar_cmd_icon_theme(int argc, char **argv) {
 		return error;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "[Bar %s] Setting icon theme to %s",
+	wmiiv_log(WMIIV_DEBUG, "[Bar %s] Setting icon theme to %s",
 			config->current_bar->id, argv[0]);
 	free(config->current_bar->icon_theme);
 	config->current_bar->icon_theme = strdup(argv[0]);

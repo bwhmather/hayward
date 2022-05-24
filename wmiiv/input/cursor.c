@@ -431,7 +431,7 @@ static void handle_pointer_button(struct wl_listener *listener, void *data) {
 		if (cursor->pressed_button_count > 0) {
 			cursor->pressed_button_count--;
 		} else {
-			wmiiv_log(SWAY_ERROR, "Pressed button count was wrong");
+			wmiiv_log(WMIIV_ERROR, "Pressed button count was wrong");
 		}
 	}
 
@@ -628,11 +628,11 @@ static void handle_tablet_tool_position(struct wmiiv_cursor *cursor,
 	}
 
 	switch (tool->mode) {
-	case SWAY_TABLET_TOOL_MODE_ABSOLUTE:
+	case WMIIV_TABLET_TOOL_MODE_ABSOLUTE:
 		wlr_cursor_warp_absolute(cursor->cursor, input_device->wlr_device,
 			change_x ? x : NAN, change_y ? y : NAN);
 		break;
-	case SWAY_TABLET_TOOL_MODE_RELATIVE:
+	case WMIIV_TABLET_TOOL_MODE_RELATIVE:
 		wlr_cursor_move(cursor->cursor, input_device->wlr_device, dx, dy);
 		break;
 	}
@@ -669,7 +669,7 @@ static void handle_tool_axis(struct wl_listener *listener, void *data) {
 
 	struct wmiiv_tablet_tool *wmiiv_tool = event->tool->data;
 	if (!wmiiv_tool) {
-		wmiiv_log(SWAY_DEBUG, "tool axis before proximity");
+		wmiiv_log(WMIIV_DEBUG, "tool axis before proximity");
 		return;
 	}
 
@@ -779,7 +779,7 @@ static void handle_tool_proximity(struct wl_listener *listener, void *data) {
 		struct wmiiv_tablet *tablet = get_tablet_for_device(cursor,
 			&event->tablet->base);
 		if (!tablet) {
-			wmiiv_log(SWAY_ERROR, "no tablet for tablet tool");
+			wmiiv_log(WMIIV_ERROR, "no tablet for tablet tool");
 			return;
 		}
 		wmiiv_tablet_tool_configure(tablet, tool);
@@ -787,7 +787,7 @@ static void handle_tool_proximity(struct wl_listener *listener, void *data) {
 
 	struct wmiiv_tablet_tool *wmiiv_tool = tool->data;
 	if (!wmiiv_tool) {
-		wmiiv_log(SWAY_ERROR, "tablet tool not initialized");
+		wmiiv_log(WMIIV_ERROR, "tablet tool not initialized");
 		return;
 	}
 
@@ -807,7 +807,7 @@ static void handle_tool_button(struct wl_listener *listener, void *data) {
 
 	struct wmiiv_tablet_tool *wmiiv_tool = event->tool->data;
 	if (!wmiiv_tool) {
-		wmiiv_log(SWAY_DEBUG, "tool button before proximity");
+		wmiiv_log(WMIIV_DEBUG, "tool button before proximity");
 		return;
 	}
 	struct wlr_tablet_v2_tablet *tablet_v2 = wmiiv_tool->tablet->tablet_v2;
@@ -920,7 +920,7 @@ static void handle_request_pointer_set_cursor(struct wl_listener *listener,
 	// TODO: check cursor mode
 	if (focused_client == NULL ||
 			event->seat_client->client != focused_client) {
-		wmiiv_log(SWAY_DEBUG, "denying request to set cursor from unfocused client");
+		wmiiv_log(WMIIV_DEBUG, "denying request to set cursor from unfocused client");
 		return;
 	}
 
@@ -1257,8 +1257,8 @@ uint32_t get_mouse_bindsym(const char *name, char **error) {
 			return 0;
 		}
 		static const uint32_t buttons[] = {BTN_LEFT, BTN_MIDDLE, BTN_RIGHT,
-			SWAY_SCROLL_UP, SWAY_SCROLL_DOWN, SWAY_SCROLL_LEFT,
-			SWAY_SCROLL_RIGHT, BTN_SIDE, BTN_EXTRA};
+			WMIIV_SCROLL_UP, WMIIV_SCROLL_DOWN, WMIIV_SCROLL_LEFT,
+			WMIIV_SCROLL_RIGHT, BTN_SIDE, BTN_EXTRA};
 		return buttons[number - 1];
 	} else if (strncmp(name, "BTN_", strlen("BTN_")) == 0) {
 		// Get event code from name
@@ -1313,14 +1313,14 @@ uint32_t get_mouse_button(const char *name, char **error) {
 const char *get_mouse_button_name(uint32_t button) {
 	const char *name = libevdev_event_code_get_name(EV_KEY, button);
 	if (!name) {
-		if (button == SWAY_SCROLL_UP) {
-			name = "SWAY_SCROLL_UP";
-		} else if (button == SWAY_SCROLL_DOWN) {
-			name = "SWAY_SCROLL_DOWN";
-		} else if (button == SWAY_SCROLL_LEFT) {
-			name = "SWAY_SCROLL_LEFT";
-		} else if (button == SWAY_SCROLL_RIGHT) {
-			name = "SWAY_SCROLL_RIGHT";
+		if (button == WMIIV_SCROLL_UP) {
+			name = "WMIIV_SCROLL_UP";
+		} else if (button == WMIIV_SCROLL_DOWN) {
+			name = "WMIIV_SCROLL_DOWN";
+		} else if (button == WMIIV_SCROLL_LEFT) {
+			name = "WMIIV_SCROLL_LEFT";
+		} else if (button == WMIIV_SCROLL_RIGHT) {
+			name = "WMIIV_SCROLL_RIGHT";
 		}
 	}
 	return name;

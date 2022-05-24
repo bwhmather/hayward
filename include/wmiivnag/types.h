@@ -1,5 +1,5 @@
-#ifndef _SWAYNAG_TYPES_H
-#define _SWAYNAG_TYPES_H
+#ifndef _WMIIVNAG_TYPES_H
+#define _WMIIVNAG_TYPES_H
 
 struct wmiivnag_type {
 	char *name;

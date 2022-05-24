@@ -23,7 +23,7 @@ static int handle_lost_service(sd_bus_message *msg,
 	char *service, *old_owner, *new_owner;
 	int ret = sd_bus_message_read(msg, "sss", &service, &old_owner, &new_owner);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
 		return ret;
 	}
 
@@ -34,7 +34,7 @@ static int handle_lost_service(sd_bus_message *msg,
 			int cmp_res = using_standard_protocol(watcher) ?
 				cmp_id(id, service) : strncmp(id, service, strlen(service));
 			if (cmp_res == 0) {
-				wmiiv_log(SWAY_DEBUG, "Unregistering Status Notifier Item '%s'", id);
+				wmiiv_log(WMIIV_DEBUG, "Unregistering Status Notifier Item '%s'", id);
 				list_del(watcher->items, idx--);
 				sd_bus_emit_signal(watcher->bus, obj_path, watcher->interface,
 						"StatusNotifierItemUnregistered", "s", id);
@@ -47,7 +47,7 @@ static int handle_lost_service(sd_bus_message *msg,
 
 		int idx = list_seq_find(watcher->hosts, cmp_id, service);
 		if (idx != -1) {
-			wmiiv_log(SWAY_DEBUG, "Unregistering Status Notifier Host '%s'", service);
+			wmiiv_log(WMIIV_DEBUG, "Unregistering Status Notifier Host '%s'", service);
 			free(watcher->hosts->items[idx]);
 			list_del(watcher->hosts, idx);
 		}
@@ -60,7 +60,7 @@ static int register_sni(sd_bus_message *msg, void *data, sd_bus_error *error) {
 	char *service_or_path, *id;
 	int ret = sd_bus_message_read(msg, "s", &service_or_path);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to parse register SNI message: %s", strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "Failed to parse register SNI message: %s", strerror(-ret));
 		return ret;
 	}
 
@@ -82,12 +82,12 @@ static int register_sni(sd_bus_message *msg, void *data, sd_bus_error *error) {
 	}
 
 	if (list_seq_find(watcher->items, cmp_id, id) == -1) {
-		wmiiv_log(SWAY_DEBUG, "Registering Status Notifier Item '%s'", id);
+		wmiiv_log(WMIIV_DEBUG, "Registering Status Notifier Item '%s'", id);
 		list_add(watcher->items, id);
 		sd_bus_emit_signal(watcher->bus, obj_path, watcher->interface,
 				"StatusNotifierItemRegistered", "s", id);
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Status Notifier Item '%s' already registered", id);
+		wmiiv_log(WMIIV_DEBUG, "Status Notifier Item '%s' already registered", id);
 		free(id);
 	}
 
@@ -98,18 +98,18 @@ static int register_host(sd_bus_message *msg, void *data, sd_bus_error *error) {
 	char *service;
 	int ret = sd_bus_message_read(msg, "s", &service);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to parse register host message: %s", strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "Failed to parse register host message: %s", strerror(-ret));
 		return ret;
 	}
 
 	struct wmiivbar_watcher *watcher = data;
 	if (list_seq_find(watcher->hosts, cmp_id, service) == -1) {
-		wmiiv_log(SWAY_DEBUG, "Registering Status Notifier Host '%s'", service);
+		wmiiv_log(WMIIV_DEBUG, "Registering Status Notifier Host '%s'", service);
 		list_add(watcher->hosts, strdup(service));
 		sd_bus_emit_signal(watcher->bus, obj_path, watcher->interface,
 				"StatusNotifierHostRegistered", "s", service);
 	} else {
-		wmiiv_log(SWAY_DEBUG, "Status Notifier Host '%s' already registered", service);
+		wmiiv_log(WMIIV_DEBUG, "Status Notifier Host '%s' already registered", service);
 	}
 
 	return sd_bus_reply_method_return(msg, "");
@@ -167,7 +167,7 @@ struct wmiivbar_watcher *create_watcher(char *protocol, sd_bus *bus) {
 	int ret = sd_bus_add_object_vtable(bus, &vtable_slot, obj_path,
 			watcher->interface, watcher_vtable, watcher);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to add object vtable: %s", strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "Failed to add object vtable: %s", strerror(-ret));
 		goto error;
 	}
 
@@ -175,7 +175,7 @@ struct wmiivbar_watcher *create_watcher(char *protocol, sd_bus *bus) {
 			"/org/freedesktop/DBus", "org.freedesktop.DBus",
 			"NameOwnerChanged", handle_lost_service, watcher);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to subscribe to unregistering events: %s",
+		wmiiv_log(WMIIV_ERROR, "Failed to subscribe to unregistering events: %s",
 				strerror(-ret));
 		goto error;
 	}
@@ -183,10 +183,10 @@ struct wmiivbar_watcher *create_watcher(char *protocol, sd_bus *bus) {
 	ret = sd_bus_request_name(bus, watcher->interface, 0);
 	if (ret < 0) {
 		if (-ret == EEXIST) {
-			wmiiv_log(SWAY_DEBUG, "Failed to acquire service name '%s':"
+			wmiiv_log(WMIIV_DEBUG, "Failed to acquire service name '%s':"
 					"another tray is already running", watcher->interface);
 		} else {
-			wmiiv_log(SWAY_ERROR, "Failed to acquire service name '%s': %s",
+			wmiiv_log(WMIIV_ERROR, "Failed to acquire service name '%s': %s",
 					watcher->interface, strerror(-ret));
 		}
 		goto error;
@@ -199,7 +199,7 @@ struct wmiivbar_watcher *create_watcher(char *protocol, sd_bus *bus) {
 	watcher->hosts = create_list();
 	watcher->items = create_list();
 	watcher->version = 0;
-	wmiiv_log(SWAY_DEBUG, "Registered %s", watcher->interface);
+	wmiiv_log(WMIIV_DEBUG, "Registered %s", watcher->interface);
 	return watcher;
 error:
 	sd_bus_slot_unref(signal_slot);

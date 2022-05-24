@@ -15,7 +15,7 @@ struct cmd_results *input_cmd_xkb_variant(int argc, char **argv) {
 
 	ic->xkb_variant = strdup(argv[0]);
 
-	wmiiv_log(SWAY_DEBUG, "set-xkb_variant for config: %s variant: %s",
+	wmiiv_log(WMIIV_DEBUG, "set-xkb_variant for config: %s variant: %s",
 			ic->identifier, ic->xkb_variant);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

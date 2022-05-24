@@ -4,7 +4,7 @@
 #include "util.h"
 
 struct cmd_results *cmd_force_focus_wrapping(int argc, char **argv) {
-	wmiiv_log(SWAY_INFO, "Warning: force_focus_wrapping is deprecated. "
+	wmiiv_log(WMIIV_INFO, "Warning: force_focus_wrapping is deprecated. "
 		"Use focus_wrapping instead.");
 	if (config->reading) {
 		config_add_wmiivnag_warning("force_focus_wrapping is deprecated. "

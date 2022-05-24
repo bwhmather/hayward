@@ -1,5 +1,5 @@
-#ifndef _SWAY_ROOT_H
-#define _SWAY_ROOT_H
+#ifndef _WMIIV_ROOT_H
+#define _WMIIV_ROOT_H
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_output_layout.h>

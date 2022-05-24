@@ -64,7 +64,7 @@ static void handle_new_surface(struct wl_listener *listener, void *data) {
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "new lock layer surface");
+	wmiiv_log(WMIIV_DEBUG, "new lock layer surface");
 
 	struct wmiiv_output *output = lock_surface->output->data;
 	wlr_session_lock_surface_v1_configure(lock_surface, output->width, output->height);
@@ -85,7 +85,7 @@ static void handle_new_surface(struct wl_listener *listener, void *data) {
 }
 
 static void handle_unlock(struct wl_listener *listener, void *data) {
-	wmiiv_log(SWAY_DEBUG, "session unlocked");
+	wmiiv_log(WMIIV_DEBUG, "session unlocked");
 	server.session_lock.locked = false;
 	server.session_lock.lock = NULL;
 
@@ -113,7 +113,7 @@ static void handle_unlock(struct wl_listener *listener, void *data) {
 }
 
 static void handle_abandon(struct wl_listener *listener, void *data) {
-	wmiiv_log(SWAY_INFO, "session lock abandoned");
+	wmiiv_log(WMIIV_INFO, "session lock abandoned");
 	server.session_lock.lock = NULL;
 
 	wl_list_remove(&server.session_lock.lock_new_surface.link);
@@ -141,7 +141,7 @@ static void handle_session_lock(struct wl_listener *listener, void *data) {
 		return;
 	}
 
-	wmiiv_log(SWAY_DEBUG, "session locked");
+	wmiiv_log(WMIIV_DEBUG, "session locked");
 	server.session_lock.locked = true;
 	server.session_lock.lock = lock;
 

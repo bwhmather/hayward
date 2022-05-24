@@ -113,8 +113,8 @@ static uint32_t render_detailed(cairo_t *cairo, struct wmiivnag *wmiivnag,
 	uint32_t ideal_height;
 	do {
 		ideal_height = wmiivnag->details.y + text_height + decor + padding * 2;
-		if (ideal_height > SWAYNAG_MAX_HEIGHT) {
-			ideal_height = SWAYNAG_MAX_HEIGHT;
+		if (ideal_height > WMIIVNAG_MAX_HEIGHT) {
+			ideal_height = WMIIVNAG_MAX_HEIGHT;
 
 			if (!show_buttons) {
 				show_buttons = true;
@@ -274,7 +274,7 @@ void render_frame(struct wmiivnag *wmiivnag) {
 				wmiivnag->width * wmiivnag->scale,
 				wmiivnag->height * wmiivnag->scale);
 		if (!wmiivnag->current_buffer) {
-			wmiiv_log(SWAY_DEBUG, "Failed to get buffer. Skipping frame.");
+			wmiiv_log(WMIIV_DEBUG, "Failed to get buffer. Skipping frame.");
 			goto cleanup;
 		}
 

@@ -175,9 +175,9 @@ json_object *ipc_json_get_version(void) {
 	int major = 0, minor = 0, patch = 0;
 	json_object *version = json_object_new_object();
 
-	sscanf(SWAY_VERSION, "%d.%d.%d", &major, &minor, &patch);
+	sscanf(WMIIV_VERSION, "%d.%d.%d", &major, &minor, &patch);
 
-	json_object_object_add(version, "human_readable", json_object_new_string(SWAY_VERSION));
+	json_object_object_add(version, "human_readable", json_object_new_string(WMIIV_VERSION));
 	json_object_object_add(version, "variant", json_object_new_string("wmiiv"));
 	json_object_object_add(version, "major", json_object_new_int(major));
 	json_object_object_add(version, "minor", json_object_new_int(minor));
@@ -520,7 +520,7 @@ static void ipc_json_describe_view(struct wmiiv_container *c, json_object *objec
 	json_object_object_add(object, "idle_inhibitors", idle_inhibitors);
 
 #if HAVE_XWAYLAND
-	if (c->view->type == SWAY_VIEW_XWAYLAND) {
+	if (c->view->type == WMIIV_VIEW_XWAYLAND) {
 		json_object_object_add(object, "window",
 				json_object_new_int(view_get_x11_window_id(c->view)));
 
@@ -1089,13 +1089,13 @@ static uint32_t event_to_x11_button(uint32_t event) {
 		return 2;
 	case BTN_RIGHT:
 		return 3;
-	case SWAY_SCROLL_UP:
+	case WMIIV_SCROLL_UP:
 		return 4;
-	case SWAY_SCROLL_DOWN:
+	case WMIIV_SCROLL_DOWN:
 		return 5;
-	case SWAY_SCROLL_LEFT:
+	case WMIIV_SCROLL_LEFT:
 		return 6;
-	case SWAY_SCROLL_RIGHT:
+	case WMIIV_SCROLL_RIGHT:
 		return 7;
 	case BTN_SIDE:
 		return 8;

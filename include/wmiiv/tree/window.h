@@ -1,5 +1,5 @@
-#ifndef _SWAY_WINDOW_H
-#define _SWAY_WINDOW_H
+#ifndef _WMIIV_WINDOW_H
+#define _WMIIV_WINDOW_H
 #include <stdint.h>
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>

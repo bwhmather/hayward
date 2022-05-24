@@ -1,5 +1,5 @@
-#ifndef _SWAY_ARRANGE_H
-#define _SWAY_ARRANGE_H
+#ifndef _WMIIV_ARRANGE_H
+#define _WMIIV_ARRANGE_H
 
 struct wmiiv_output;
 struct wmiiv_workspace;

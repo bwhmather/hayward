@@ -63,7 +63,7 @@ struct cmd_results *cmd_bar(int argc, char **argv) {
 		for (int i = 0; i < config->bars->length; ++i) {
 			struct bar_config *item = config->bars->items[i];
 			if (strcmp(item->id, argv[0]) == 0) {
-				wmiiv_log(SWAY_DEBUG, "Selecting bar: %s", argv[0]);
+				wmiiv_log(WMIIV_DEBUG, "Selecting bar: %s", argv[0]);
 				config->current_bar = item;
 				break;
 			}
@@ -90,7 +90,7 @@ struct cmd_results *cmd_bar(int argc, char **argv) {
 	}
 
 	if (id) {
-		wmiiv_log(SWAY_DEBUG, "Creating bar: %s", id);
+		wmiiv_log(WMIIV_DEBUG, "Creating bar: %s", id);
 		config->current_bar = default_bar_config();
 		if (!config->current_bar) {
 			free(id);

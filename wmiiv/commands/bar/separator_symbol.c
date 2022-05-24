@@ -10,7 +10,7 @@ struct cmd_results *bar_cmd_separator_symbol(int argc, char **argv) {
 	}
 	free(config->current_bar->separator_symbol);
 	config->current_bar->separator_symbol = strdup(argv[0]);
-	wmiiv_log(SWAY_DEBUG, "Settings separator_symbol '%s' for bar: %s",
+	wmiiv_log(WMIIV_DEBUG, "Settings separator_symbol '%s' for bar: %s",
 			config->current_bar->separator_symbol, config->current_bar->id);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

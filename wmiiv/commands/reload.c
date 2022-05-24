@@ -30,7 +30,7 @@ static void do_reload(void *data) {
 	}
 
 	if (!load_main_config(path, true, false)) {
-		wmiiv_log(SWAY_ERROR, "Error(s) reloading config");
+		wmiiv_log(WMIIV_ERROR, "Error(s) reloading config");
 		list_free_items_and_destroy(bar_ids);
 		return;
 	}

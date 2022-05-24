@@ -15,7 +15,7 @@ struct cmd_results *cmd_wmiivbg_command(int argc, char **argv) {
 	char *new_command = join_args(argv, argc);
 	if (strcmp(new_command, "-") != 0) {
 		config->wmiivbg_command = new_command;
-		wmiiv_log(SWAY_DEBUG, "Using custom wmiivbg command: %s",
+		wmiiv_log(WMIIV_DEBUG, "Using custom wmiivbg command: %s",
 				config->wmiivbg_command);
 	} else {
 		free(new_command);

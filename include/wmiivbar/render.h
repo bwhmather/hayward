@@ -1,5 +1,5 @@
-#ifndef _SWAYBAR_RENDER_H
-#define _SWAYBAR_RENDER_H
+#ifndef _WMIIVBAR_RENDER_H
+#define _WMIIVBAR_RENDER_H
 
 struct wmiivbar_output;
 

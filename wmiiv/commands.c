@@ -259,10 +259,10 @@ list_t *execute_command(char *_exec, struct wmiiv_seat *seat,
 		for (; isspace(*cmd); ++cmd) {}
 
 		if (strcmp(cmd, "") == 0) {
-			wmiiv_log(SWAY_INFO, "Ignoring empty command.");
+			wmiiv_log(WMIIV_INFO, "Ignoring empty command.");
 			continue;
 		}
-		wmiiv_log(SWAY_INFO, "Handling command '%s'", cmd);
+		wmiiv_log(WMIIV_INFO, "Handling command '%s'", cmd);
 		//TODO better handling of argv
 		int argc;
 		char **argv = split_args(cmd, &argc);
@@ -382,7 +382,7 @@ struct cmd_results *config_command(char *exec, char **new_block) {
 	}
 
 	// Determine the command handler
-	wmiiv_log(SWAY_INFO, "Config command: %s", exec);
+	wmiiv_log(WMIIV_INFO, "Config command: %s", exec);
 	const struct cmd_handler *handler = find_core_handler(argv[0]);
 	if (!handler || !handler->handle) {
 		const char *error = handler
@@ -402,7 +402,7 @@ struct cmd_results *config_command(char *exec, char **new_block) {
 		argv[1] = temp;
 	}
 	char *command = do_var_replacement(join_args(argv, argc));
-	wmiiv_log(SWAY_INFO, "After replacement: %s", command);
+	wmiiv_log(WMIIV_INFO, "After replacement: %s", command);
 	free_argv(argc, argv);
 	argv = split_args(command, &argc);
 	free(command);
@@ -433,7 +433,7 @@ cleanup:
 struct cmd_results *config_subcommand(char **argv, int argc,
 		const struct cmd_handler *handlers, size_t handlers_size) {
 	char *command = join_args(argv, argc);
-	wmiiv_log(SWAY_DEBUG, "Subcommand: %s", command);
+	wmiiv_log(WMIIV_DEBUG, "Subcommand: %s", command);
 	free(command);
 
 	const struct cmd_handler *handler = find_handler(argv[0], handlers,
@@ -484,7 +484,7 @@ struct cmd_results *cmd_results_new(enum cmd_status status,
 		const char *format, ...) {
 	struct cmd_results *results = malloc(sizeof(struct cmd_results));
 	if (!results) {
-		wmiiv_log(SWAY_ERROR, "Unable to allocate command results");
+		wmiiv_log(WMIIV_ERROR, "Unable to allocate command results");
 		return NULL;
 	}
 	results->status = status;

@@ -1,5 +1,5 @@
-#ifndef _SWAY_IPC_CLIENT_H
-#define _SWAY_IPC_CLIENT_H
+#ifndef _WMIIV_IPC_CLIENT_H
+#define _WMIIV_IPC_CLIENT_H
 
 // arbitrary number, it's probably sufficient, higher number = more memory usage
 #define JSON_MAX_DEPTH 512

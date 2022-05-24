@@ -17,7 +17,7 @@ static int handle_lost_watcher(sd_bus_message *msg,
 	char *service, *old_owner, *new_owner;
 	int ret = sd_bus_message_read(msg, "sss", &service, &old_owner, &new_owner);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
 		return ret;
 	}
 
@@ -34,12 +34,12 @@ static int handle_lost_watcher(sd_bus_message *msg,
 }
 
 struct wmiivbar_tray *create_tray(struct wmiivbar *bar) {
-	wmiiv_log(SWAY_DEBUG, "Initializing tray");
+	wmiiv_log(WMIIV_DEBUG, "Initializing tray");
 
 	sd_bus *bus;
 	int ret = sd_bus_open_user(&bus);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to connect to user bus: %s", strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "Failed to connect to user bus: %s", strerror(-ret));
 		return NULL;
 	}
 
@@ -58,7 +58,7 @@ struct wmiivbar_tray *create_tray(struct wmiivbar *bar) {
 			"/org/freedesktop/DBus", "org.freedesktop.DBus",
 			"NameOwnerChanged", handle_lost_watcher, tray);
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to subscribe to unregistering events: %s",
+		wmiiv_log(WMIIV_ERROR, "Failed to subscribe to unregistering events: %s",
 				strerror(-ret));
 	}
 
@@ -96,7 +96,7 @@ void tray_in(int fd, short mask, void *data) {
 		// This space intentionally left blank
 	}
 	if (ret < 0) {
-		wmiiv_log(SWAY_ERROR, "Failed to process bus: %s", strerror(-ret));
+		wmiiv_log(WMIIV_ERROR, "Failed to process bus: %s", strerror(-ret));
 	}
 }
 

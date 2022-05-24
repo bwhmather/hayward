@@ -16,7 +16,7 @@ static struct cmd_results *handle_action(struct seat_config *sc,
 					wmiiv_inhibitor->inhibitor);
 		}
 
-		wmiiv_log(SWAY_DEBUG, "Deactivated all keyboard shortcuts inhibitors");
+		wmiiv_log(WMIIV_DEBUG, "Deactivated all keyboard shortcuts inhibitors");
 	} else {
 		wmiiv_inhibitor = keyboard_shortcuts_inhibitor_get_for_focused_surface(seat);
 		if (!wmiiv_inhibitor) {
@@ -44,7 +44,7 @@ static struct cmd_results *handle_action(struct seat_config *sc,
 			wlr_keyboard_shortcuts_inhibitor_v1_deactivate(inhibitor);
 		}
 
-		wmiiv_log(SWAY_DEBUG, "%sctivated keyboard shortcuts inhibitor",
+		wmiiv_log(WMIIV_DEBUG, "%sctivated keyboard shortcuts inhibitor",
 				inhibit ? "A" : "Dea");
 	}
 

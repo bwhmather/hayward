@@ -71,7 +71,7 @@ struct cmd_results *cmd_mode(int argc, char **argv) {
 	config->current_mode = mode;
 	if (argc == 1) {
 		// trigger IPC mode event
-		wmiiv_log(SWAY_DEBUG, "Switching to mode `%s' (pango=%d)",
+		wmiiv_log(WMIIV_DEBUG, "Switching to mode `%s' (pango=%d)",
 				mode->name, mode->pango);
 		ipc_event_mode(config->current_mode->name,
 				config->current_mode->pango);
