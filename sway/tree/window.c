@@ -406,12 +406,14 @@ static void window_move_to_column_from_maybe_direction(
 		int index =
 			move_dir == WLR_DIRECTION_DOWN ?
 			0 : col->pending.children->length;
+		container_detach(win);
 		column_insert_child(col, win, index);
 		win->pending.width = win->pending.height = 0;
 		win->width_fraction = win->height_fraction = 0;
 	} else {
 		sway_log(SWAY_DEBUG, "Reparenting window (perpendicular)");
 		struct sway_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
+		container_detach(win);
 		if (target_sibling) {
 			column_add_sibling(target_sibling, win, 1);
 		} else {
