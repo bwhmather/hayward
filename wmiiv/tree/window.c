@@ -516,3 +516,64 @@ void window_move_to_workspace(struct wmiiv_container *win,
 		struct wmiiv_workspace *ws) {
 	window_move_to_workspace_from_maybe_direction(win, ws, false, WLR_DIRECTION_DOWN);
 }
+
+struct wlr_surface *window_surface_at(struct wmiiv_container *win, double lx, double ly, double *sx, double *sy) {
+	if (!wmiiv_assert(container_is_window(win), "Expected a view")) {
+		return NULL;
+	}
+	struct wmiiv_view *view = win->view;
+	double view_sx = lx - win->surface_x + view->geometry.x;
+	double view_sy = ly - win->surface_y + view->geometry.y;
+
+	double _sx, _sy;
+	struct wlr_surface *surface = NULL;
+	switch (view->type) {
+#if HAVE_XWAYLAND
+	case WMIIV_VIEW_XWAYLAND:
+		surface = wlr_surface_surface_at(view->surface,
+				view_sx, view_sy, &_sx, &_sy);
+		break;
+#endif
+	case WMIIV_VIEW_XDG_SHELL:
+		surface = wlr_xdg_surface_surface_at(
+				view->wlr_xdg_toplevel->base,
+				view_sx, view_sy, &_sx, &_sy);
+		break;
+	}
+	if (surface) {
+		*sx = _sx;
+		*sy = _sy;
+		return surface;
+	}
+	return NULL;
+}
+
+bool window_contents_contain_point(struct wmiiv_container *win, double lx, double ly) {
+	if (!wmiiv_assert(container_is_window(win), "Expected a window")) {
+		return false;
+	}
+
+	struct wlr_box box = {
+		.x = win->pending.content_x,
+		.y = win->pending.content_y,
+		.width = win->pending.content_width,
+		.height = win->pending.content_height,
+	};
+
+	return wlr_box_contains_point(&box, lx, ly);
+}
+
+bool window_contains_point(struct wmiiv_container *win, double lx, double ly) {
+	if (!wmiiv_assert(container_is_window(win), "Expected a windwo")) {
+		return false;
+	}
+
+	struct wlr_box box = {
+		.x = win->pending.x,
+		.y = win->pending.y,
+		.width = win->pending.width,
+		.height = win->pending.height,
+	};
+
+	return wlr_box_contains_point(&box, lx, ly);
+}

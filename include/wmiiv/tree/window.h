@@ -90,4 +90,10 @@ void window_move_to_workspace_from_direction(
 void window_move_to_workspace(struct wmiiv_container *win,
 		struct wmiiv_workspace *ws);
 
+struct wlr_surface *window_surface_at(struct wmiiv_container *win, double lx, double ly, double *sx, double *sy);
+
+bool window_contains_point(struct wmiiv_container *win, double lx, double ly);
+
+bool window_contents_contain_point(struct wmiiv_container *win, double lx, double ly);
+
 #endif

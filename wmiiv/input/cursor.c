@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_idle.h>
 #include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_touch.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_tablet_pad.h>
@@ -35,6 +36,189 @@ static uint32_t get_current_time_msec(void) {
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	return now.tv_sec * 1000 + now.tv_nsec / 1000000;
+}
+
+static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
+	struct wlr_box box;
+	container_get_box(col, &box);
+	if (lx < box.x || lx > box.x + box.width ||
+			ly < box.y || ly > box.y + box.height) {
+		return NULL;
+	}
+	list_t *children = col->pending.children;
+	if (!children->length) {
+		return NULL;
+	}
+
+	// Tab titles
+	int title_height = container_titlebar_height();
+	if (ly < box.y + title_height) {
+		int tab_width = box.width / children->length;
+		int child_index = (lx - box.x) / tab_width;
+		if (child_index >= children->length) {
+			child_index = children->length - 1;
+		}
+		struct wmiiv_container *child = children->items[child_index];
+		wmiiv_assert(container_is_window(child), "Returning column where window expected");
+		return child;
+	}
+
+	// Surfaces
+	struct wmiiv_container *current = seat_get_focus_inactive_view(seat, &col->node);
+	if (window_contains_point(current, lx, ly)) {
+		return current;
+	}
+
+	return NULL;
+}
+
+static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
+	struct wlr_box box;
+	node_get_box(&col->node, &box);
+	if (lx < box.x || lx > box.x + box.width ||
+			ly < box.y || ly > box.y + box.height) {
+		return NULL;
+	}
+	list_t *children = col->pending.children;
+
+	// Title bars
+	int title_height = container_titlebar_height();
+	if (title_height > 0) {
+		int child_index = (ly - box.y) / title_height;
+		if (child_index < children->length) {
+			struct wmiiv_container *child = children->items[child_index];
+			wmiiv_assert(container_is_window(child), "Returning column where window expected");
+			return child;
+		}
+	}
+
+	// Surfaces
+	struct wmiiv_container *current = seat_get_focus_inactive_view(seat, &col->node);
+	if (window_contains_point(current, lx, ly)) {
+		return current;
+	}
+
+	return NULL;
+}
+
+static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
+	list_t *children = col->pending.children;
+	for (int i = 0; i < children->length; ++i) {
+		struct wmiiv_container *win = children->items[i];
+		if (window_contains_point(win, lx, ly)) {
+			return win;
+		}
+	}
+	return NULL;
+}
+
+struct wmiiv_container *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
+	if (!wmiiv_assert(container_is_column(col), "expected column")) {
+		return NULL;
+	}
+
+	switch (node_get_layout(&col->node)) {
+	case L_HORIZ:
+	case L_VERT:
+		return seat_column_window_at_linear(seat, col, lx, ly);
+	case L_TABBED:
+		return seat_column_window_at_tabbed(seat, col, lx, ly);
+	case L_STACKED:
+		return seat_column_window_at_stacked(seat, col, lx, ly);
+	case L_NONE:
+		return NULL;
+	}
+	return NULL;
+}
+
+static struct wmiiv_container *seat_tiling_window_at(struct wmiiv_seat *seat, double lx, double ly) {
+	for (int i = 0; i < root->outputs->length; i++) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		struct wmiiv_workspace *ws = output_get_active_workspace(output);
+
+		struct wlr_box box;
+		workspace_get_box(ws, &box);
+		if (!wlr_box_contains_point(&box, lx, ly)) {
+			continue;
+		}
+
+		list_t *columns = ws->tiling;
+		for (int i = 0; i < columns->length; ++i) {
+			struct wmiiv_container *col = columns->items[i];
+			struct wmiiv_container *win = seat_column_window_at(seat, col, lx, ly);
+			if (win) {
+				return win;
+			}
+		}
+	}
+	return NULL;
+}
+
+static struct wmiiv_container *seat_floating_window_at(struct wmiiv_seat *seat, double lx, double ly) {
+	// For outputs with floating containers that overhang the output bounds,
+	// those at the end of the output list appear on top of floating
+	// containers from other outputs, so iterate the list in reverse.
+	for (int i = root->outputs->length - 1; i >= 0; --i) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		struct wmiiv_workspace *ws = output_get_active_workspace(output);
+
+		// Items at the end of the list are on top, so iterate the list in
+		// reverse.
+		for (int k = ws->floating->length - 1; k >= 0; --k) {
+			struct wmiiv_container *win = ws->floating->items[k];
+			if (window_contains_point(win, lx, ly)) {
+				return win;
+			}
+		}
+	}
+	return NULL;
+}
+
+static bool surface_is_popup(struct wlr_surface *surface) {
+	while (!wlr_surface_is_xdg_surface(surface)) {
+		if (!wlr_surface_is_subsurface(surface)) {
+			return false;
+		}
+		struct wlr_subsurface *subsurface =
+			wlr_subsurface_from_wlr_surface(surface);
+		surface = subsurface->parent;
+	}
+	struct wlr_xdg_surface *xdg_surface =
+		wlr_xdg_surface_from_wlr_surface(surface);
+	return xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP;
+}
+
+struct wmiiv_container *seat_window_at(struct wmiiv_seat *seat, double lx, double ly) {
+	struct wmiiv_container *win;
+	struct wmiiv_container *focus = seat_get_focused_container(seat);
+	bool is_floating = focus && window_is_floating(focus);
+
+	// Focused view's popups
+	if (focus) {
+		double sx, sy;
+		struct wlr_surface *surface = window_surface_at(focus, lx, ly, &sx, &sy);
+
+		if (surface && surface_is_popup(surface)) {
+			return focus;
+		}
+	}
+
+	// Floating
+	if ((win = seat_floating_window_at(seat, lx, ly))) {
+		return win;
+	}
+
+	// Tiling (focused)
+	if (focus && !is_floating && window_contains_point(focus, lx, ly)) {
+		return focus;
+	}
+
+	// Tiling (non-focused)
+	if ((win = seat_tiling_window_at(seat, lx, ly))) {
+		return win;
+	}
+
+	return NULL;
 }
 
 static struct wlr_surface *layer_surface_at(struct wmiiv_output *output,
@@ -125,10 +309,8 @@ struct wmiiv_node *node_at_coords(
 
 	if (root->fullscreen_global) {
 		// Try fullscreen container
-		struct wmiiv_container *con = tiling_container_at(
-				&root->fullscreen_global->node, lx, ly, surface, sx, sy);
-		if (con) {
-			return &con->node;
+		if ((*surface = window_surface_at(root->fullscreen_global, lx, ly, sx, sy))) {
+			return &root->fullscreen_global->node;
 		}
 		return NULL;
 	}
@@ -144,18 +326,14 @@ struct wmiiv_node *node_at_coords(
 		for (int i = 0; i < ws->floating->length; ++i) {
 			struct wmiiv_container *floater = ws->floating->items[i];
 			if (container_is_transient_for(floater, ws->fullscreen)) {
-				struct wmiiv_container *con = tiling_container_at(
-						&floater->node, lx, ly, surface, sx, sy);
-				if (con) {
-					return &con->node;
+				if ((*surface = window_surface_at(floater, lx, ly, sx, sy))) {
+					return &floater->node;
 				}
 			}
 		}
 		// Try fullscreen container
-		struct wmiiv_container *con =
-			tiling_container_at(&ws->fullscreen->node, lx, ly, surface, sx, sy);
-		if (con) {
-			return &con->node;
+		if ((*surface = window_surface_at(ws->fullscreen, lx, ly, sx, sy))) {
+			return &ws->fullscreen->node;
 		}
 		return NULL;
 	}
@@ -180,9 +358,10 @@ struct wmiiv_node *node_at_coords(
 		return NULL;
 	}
 
-	struct wmiiv_container *c;
-	if ((c = container_at(ws, lx, ly, surface, sx, sy))) {
-		return &c->node;
+	struct wmiiv_container *win;
+	if ((win = seat_window_at(seat, lx, ly))) {
+		*surface = window_surface_at(win, lx, ly, sx, sy);
+		return &win->node;
 	}
 
 	if ((*surface = layer_surface_at(output,

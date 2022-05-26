@@ -140,19 +140,6 @@ void container_destroy(struct wmiiv_container *con);
 
 void container_begin_destroy(struct wmiiv_container *con);
 
-/**
- * Find a container at the given coordinates. Returns the surface and
- * surface-local coordinates of the given layout coordinates if the container
- * is a view and the view contains a surface at those coordinates.
- */
-struct wmiiv_container *container_at(struct wmiiv_workspace *workspace,
-		double lx, double ly, struct wlr_surface **surface,
-		double *sx, double *sy);
-
-struct wmiiv_container *tiling_container_at(
-		struct wmiiv_node *parent, double lx, double ly,
-		struct wlr_surface **surface, double *sx, double *sy);
-
 void container_for_each_child(struct wmiiv_container *container,
 		void (*f)(struct wmiiv_container *container, void *data), void *data);
 
