@@ -81,10 +81,12 @@ struct wmiiv_cursor {
 	size_t pressed_button_count;
 };
 
-struct wmiiv_node;
+struct wmiiv_workspace;
+struct wmiiv_container;
 
-struct wmiiv_node *node_at_coords(
+void seat_get_target_at(
 		struct wmiiv_seat *seat, double lx, double ly,
+		struct wmiiv_workspace **wsp, struct wmiiv_container **winp,
 		struct wlr_surface **surface, double *sx, double *sy);
 
 void wmiiv_cursor_destroy(struct wmiiv_cursor *cursor);

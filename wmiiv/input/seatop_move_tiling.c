@@ -12,6 +12,8 @@
 #include "wmiiv/tree/node.h"
 #include "wmiiv/tree/view.h"
 #include "wmiiv/tree/workspace.h"
+#include "log.h"
+#include "util.h"
 
 // Thickness of the dropzone when dragging to the edge of a layout container
 #define DROP_LAYOUT_BORDER 30
@@ -98,198 +100,87 @@ static void resize_box(struct wlr_box *box, enum wlr_edges edge,
 	}
 }
 
-static void split_border(double pos, int offset, int len, int n_children,
-		int avoid, int *out_pos, bool *out_after) {
-	int region = 2 * n_children * (pos - offset) / len;
-	// If the cursor is over the right side of a left-adjacent titlebar, or the
-	// left side of a right-adjacent titlebar, it's position when dropped will
-	// be the same.  To avoid this, shift the region for adjacent containers.
-	if (avoid >= 0) {
-		if (region == 2 * avoid - 1 || region == 2 * avoid) {
-			region--;
-		} else if (region == 2 * avoid + 1 || region == 2 * avoid + 2) {
-			region++;
-		}
-	}
-
-	int child_index = (region + 1) / 2;
-	*out_after = region % 2;
-	// When dropping at the beginning or end of a container, show the drop
-	// region within the container boundary, otherwise show it on top of the
-	// border between two titlebars.
-	if (child_index == 0) {
-		*out_pos = offset;
-	} else if (child_index == n_children) {
-		*out_pos = offset + len - DROP_SPLIT_INDICATOR;
-	} else {
-		*out_pos = offset + child_index * len / n_children -
-			DROP_SPLIT_INDICATOR / 2;
-	}
-}
-
-static bool split_titlebar(struct wmiiv_node *node, struct wmiiv_container *avoid,
-		struct wlr_cursor *cursor, struct wlr_box *title_box, bool *after) {
-	struct wmiiv_container *con = node->wmiiv_container;
-	struct wmiiv_node *parent = &con->pending.parent->node;
-	int title_height = container_titlebar_height();
-	struct wlr_box box;
-	int n_children, avoid_index;
-	enum wmiiv_container_layout layout =
-		parent ? node_get_layout(parent) : L_NONE;
-	if (layout == L_TABBED || layout == L_STACKED) {
-		node_get_box(parent, &box);
-		n_children = node_get_children(parent)->length;
-		avoid_index = list_find(node_get_children(parent), avoid);
-	} else {
-		node_get_box(node, &box);
-		n_children = 1;
-		avoid_index = -1;
-	}
-	if (layout == L_STACKED && cursor->y < box.y + title_height * n_children) {
-		// Drop into stacked titlebars.
-		title_box->width = box.width;
-		title_box->height = DROP_SPLIT_INDICATOR;
-		title_box->x = box.x;
-		split_border(cursor->y, box.y, title_height * n_children,
-			n_children, avoid_index, &title_box->y, after);
-		return true;
-	} else if (layout != L_STACKED && cursor->y < box.y + title_height) {
-		// Drop into side-by-side titlebars.
-		title_box->width = DROP_SPLIT_INDICATOR;
-		title_box->height = title_height;
-		title_box->y = box.y;
-		split_border(cursor->x, box.x, box.width, n_children,
-			avoid_index, &title_box->x, after);
-		return true;
-	}
-	return false;
-}
-
 static void handle_motion_postthreshold(struct wmiiv_seat *seat) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	e->split_target = false;
+	struct wmiiv_workspace *target_ws = NULL;
+	struct wmiiv_container *target_win = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	struct wmiiv_cursor *cursor = seat->cursor;
-	struct wmiiv_node *node = node_at_coords(seat,
-			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
+	seat_get_target_at(
+		seat, cursor->cursor->x, cursor->cursor->y,
+		&target_ws, &target_win,
+		&surface, &sx, &sy
+	);
 	// Damage the old location
 	desktop_damage_box(&e->drop_box);
 
-	if (!node) {
+	if (!target_ws && !target_win) {
 		// Eg. hovered over a layer surface such as wmiivbar
 		e->target_node = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
-	if (node->type == N_WORKSPACE) {
+	if (target_ws && !target_win) {
 		// Empty workspace
-		e->target_node = node;
+		e->target_node = &target_ws->node;
 		e->target_edge = WLR_EDGE_NONE;
-		workspace_get_box(node->wmiiv_workspace, &e->drop_box);
+		workspace_get_box(target_ws, &e->drop_box);
 		desktop_damage_box(&e->drop_box);
 		return;
 	}
 
 	// Deny moving within own workspace if this is the only child
-	struct wmiiv_container *con = node->wmiiv_container;
 	if (workspace_num_tiling_views(e->con->pending.workspace) == 1 &&
-			con->pending.workspace == e->con->pending.workspace) {
+			target_win->pending.workspace == e->con->pending.workspace) {
 		e->target_node = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
-	// Check if the cursor is over a tilebar only if the destination
-	// container is not a descendant of the source container.
-	if (!surface && !container_has_ancestor(con, e->con) &&
-			split_titlebar(node, e->con, cursor->cursor,
-				&e->drop_box, &e->insert_after_target)) {
-		// Don't allow dropping over the source container's titlebar
-		// to give users a chance to cancel a drag operation.
-		if (con == e->con) {
-			e->target_node = NULL;
-		} else {
-			e->target_node = node;
-			e->split_target = true;
-		}
+	// TODO possible if window is global fullscreen.
+	if (!wmiiv_assert(target_ws && target_win, "Mouse over unowned workspace")) {
+		e->target_node = NULL;
 		e->target_edge = WLR_EDGE_NONE;
-		return;
 	}
 
-	// Traverse the ancestors, trying to find a layout container perpendicular
-	// to the edge. Eg. close to the top or bottom of a horiz layout.
-	int thresh_top = con->pending.content_y + DROP_LAYOUT_BORDER;
-	int thresh_bottom = con->pending.content_y +
-		con->pending.content_height - DROP_LAYOUT_BORDER;
-	int thresh_left = con->pending.content_x + DROP_LAYOUT_BORDER;
-	int thresh_right = con->pending.content_x +
-		con->pending.content_width - DROP_LAYOUT_BORDER;
-	while (con) {
-		enum wlr_edges edge = WLR_EDGE_NONE;
-		enum wmiiv_container_layout layout = container_parent_layout(con);
-		struct wlr_box box;
-		node_get_box(node_get_parent(&con->node), &box);
-		if (layout == L_HORIZ || layout == L_TABBED) {
-			if (cursor->cursor->y < thresh_top) {
-				edge = WLR_EDGE_TOP;
-				box.height = thresh_top - box.y;
-			} else if (cursor->cursor->y > thresh_bottom) {
-				edge = WLR_EDGE_BOTTOM;
-				box.height = box.y + box.height - thresh_bottom;
-				box.y = thresh_bottom;
-			}
-		} else if (layout == L_VERT || layout == L_STACKED) {
-			if (cursor->cursor->x < thresh_left) {
-				edge = WLR_EDGE_LEFT;
-				box.width = thresh_left - box.x;
-			} else if (cursor->cursor->x > thresh_right) {
-				edge = WLR_EDGE_RIGHT;
-				box.width = box.x + box.width - thresh_right;
-				box.x = thresh_right;
-			}
-		}
-		if (edge) {
-			e->target_node = node_get_parent(&con->node);
-			if (e->target_node == &e->con->node) {
-				e->target_node = node_get_parent(e->target_node);
-			}
-			e->target_edge = edge;
-			e->drop_box = box;
-			desktop_damage_box(&e->drop_box);
-			return;
-		}
-		con = con->pending.parent;
-	}
+	// TODO (wmiiv) everything after this point needs to be reworked to
+	// make sense with WMII model.
+	//   - If near top edge: insert into column above target window.
+	//   - If near bottom edge: insert into column below target window.
+	//   - If near left edge: insert into workspace in new column to left of window.
+	//   - If near right edge: insert into workspace in new column to right of window.
+	// Tabbed layout probably no longer makes sense, and drag and drop behaviour
+	// would be much more straightforward if we followed WMII's convention of
+	// stacking below as well as above.
 
 	// Use the hovered view - but we must be over the actual surface
-	con = node->wmiiv_container;
-	if (!con->view || !con->view->surface || node == &e->con->node
-			|| node_has_ancestor(node, &e->con->node)) {
+	if (!target_win->view->surface) {
 		e->target_node = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
 	// Find the closest edge
-	size_t thickness = fmin(con->pending.content_width, con->pending.content_height) * 0.3;
+	size_t thickness = fmin(target_win->pending.content_width, target_win->pending.content_height) * 0.3;
 	size_t closest_dist = INT_MAX;
 	size_t dist;
 	e->target_edge = WLR_EDGE_NONE;
-	if ((dist = cursor->cursor->y - con->pending.y) < closest_dist) {
+	if ((dist = cursor->cursor->y - target_win->pending.y) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_TOP;
 	}
-	if ((dist = cursor->cursor->x - con->pending.x) < closest_dist) {
+	if ((dist = cursor->cursor->x - target_win->pending.x) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_LEFT;
 	}
-	if ((dist = con->pending.x + con->pending.width - cursor->cursor->x) < closest_dist) {
+	if ((dist = target_win->pending.x + target_win->pending.width - cursor->cursor->x) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_RIGHT;
 	}
-	if ((dist = con->pending.y + con->pending.height - cursor->cursor->y) < closest_dist) {
+	if ((dist = target_win->pending.y + target_win->pending.height - cursor->cursor->y) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_BOTTOM;
 	}
@@ -298,11 +189,11 @@ static void handle_motion_postthreshold(struct wmiiv_seat *seat) {
 		e->target_edge = WLR_EDGE_NONE;
 	}
 
-	e->target_node = node;
-	e->drop_box.x = con->pending.content_x;
-	e->drop_box.y = con->pending.content_y;
-	e->drop_box.width = con->pending.content_width;
-	e->drop_box.height = con->pending.content_height;
+	e->target_node = &target_win->node;
+	e->drop_box.x = target_win->pending.content_x;
+	e->drop_box.y = target_win->pending.content_y;
+	e->drop_box.width = target_win->pending.content_width;
+	e->drop_box.height = target_win->pending.content_height;
 	resize_box(&e->drop_box, e->target_edge, thickness);
 	desktop_damage_box(&e->drop_box);
 }

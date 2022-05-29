@@ -618,14 +618,13 @@ void seat_execute_command(struct wmiiv_seat *seat, struct wmiiv_binding *binding
 	struct wmiiv_container *con = NULL;
 	if (binding->type == BINDING_MOUSESYM
 			|| binding->type == BINDING_MOUSECODE) {
+		struct wmiiv_workspace *ws;
 		struct wlr_surface *surface = NULL;
 		double sx, sy;
-		struct wmiiv_node *node = node_at_coords(seat,
-				seat->cursor->cursor->x, seat->cursor->cursor->y,
-				&surface, &sx, &sy);
-		if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
-			con = node->wmiiv_container;
-		}
+		seat_get_target_at(
+			seat, seat->cursor->cursor->x, seat->cursor->cursor->y,
+			&ws, &con,
+			&surface, &sx, &sy);
 	}
 
 	list_t *res_list = execute_command(binding->command, seat, con);

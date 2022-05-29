@@ -264,7 +264,7 @@ static struct wlr_surface *layer_surface_popup_at(struct wmiiv_output *output,
  * Returns the node at the cursor's position. If there is a surface at that
  * location, it is stored in **surface (it may not be a view).
  */
-struct wmiiv_node *node_at_coords(
+static struct wmiiv_node *node_at_coords(
 		struct wmiiv_seat *seat, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	// find the output the cursor is on
@@ -376,6 +376,34 @@ struct wmiiv_node *node_at_coords(
 	}
 
 	return &ws->node;
+}
+
+void seat_get_target_at(
+		struct wmiiv_seat *seat, double lx, double ly,
+		struct wmiiv_workspace **wsp, struct wmiiv_container **winp,
+		struct wlr_surface **surface, double *sx, double *sy) {
+	struct wmiiv_node *node = node_at_coords(seat, lx, ly, surface, sx, sy);
+
+	if (node == NULL) {
+		*winp = NULL;
+		*wsp = NULL;
+		return;
+	}
+
+	switch (node->type) {
+	case N_WINDOW:
+		*winp = node->wmiiv_container;
+		*wsp = node->wmiiv_container->pending.workspace;
+		break;
+	case N_WORKSPACE:
+		*winp = NULL;
+		*wsp = node->wmiiv_workspace;
+		break;
+	default:
+		wmiiv_assert(false, "node_at_coords returned unsupported node type");
+		break;
+	}
+
 }
 
 void cursor_rebase(struct wmiiv_cursor *cursor) {
