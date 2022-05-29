@@ -23,13 +23,13 @@
 #define DROP_SPLIT_INDICATOR 10
 
 struct seatop_move_tiling_event {
-	struct wmiiv_container *con;
-	struct wmiiv_node *target_node;
+	struct wmiiv_container *moving_window;
+	struct wmiiv_workspace *target_workspace;
+	struct wmiiv_container *target_window;
 	enum wlr_edges target_edge;
 	struct wlr_box drop_box;
 	double ref_lx, ref_ly; // cursor's x/y at start of op
 	bool threshold_reached;
-	bool split_target;
 	bool insert_after_target;
 };
 
@@ -39,16 +39,23 @@ static void handle_render(struct wmiiv_seat *seat,
 	if (!e->threshold_reached) {
 		return;
 	}
-	if (e->target_node && node_get_output(e->target_node) == output) {
-		float color[4];
-		memcpy(&color, config->border_colors.focused.indicator,
-				sizeof(float) * 4);
-		premultiply_alpha(color, 0.5);
-		struct wlr_box box;
-		memcpy(&box, &e->drop_box, sizeof(struct wlr_box));
-		scale_box(&box, output->wlr_output->scale);
-		render_rect(output, damage, &box, color);
+
+	if (!e->target_workspace) {
+	       return;
 	}
+
+	if (e->target_workspace->output != output) {
+		return;
+	}
+
+	float color[4];
+	memcpy(&color, config->border_colors.focused.indicator,
+			sizeof(float) * 4);
+	premultiply_alpha(color, 0.5);
+	struct wlr_box box;
+	memcpy(&box, &e->drop_box, sizeof(struct wlr_box));
+	scale_box(&box, output->wlr_output->scale);
+	render_rect(output, damage, &box, color);
 }
 
 static void handle_motion_prethreshold(struct wmiiv_seat *seat) {
@@ -102,48 +109,60 @@ static void resize_box(struct wlr_box *box, enum wlr_edges edge,
 
 static void handle_motion_postthreshold(struct wmiiv_seat *seat) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
-	e->split_target = false;
-	struct wmiiv_workspace *target_ws = NULL;
-	struct wmiiv_container *target_win = NULL;
+	struct wmiiv_workspace *target_workspace = NULL;
+	struct wmiiv_container *target_window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	struct wmiiv_cursor *cursor = seat->cursor;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&target_ws, &target_win,
+		&target_workspace, &target_window,
 		&surface, &sx, &sy
 	);
 	// Damage the old location
 	desktop_damage_box(&e->drop_box);
 
-	if (!target_ws && !target_win) {
+	if (!target_workspace && !target_window) {
 		// Eg. hovered over a layer surface such as wmiivbar
-		e->target_node = NULL;
+		e->target_workspace = NULL;
+		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
-	if (target_ws && !target_win) {
+	if (target_workspace && !target_window) {
 		// Empty workspace
-		e->target_node = &target_ws->node;
+		e->target_workspace = target_workspace;
+		e->target_window = target_window;
 		e->target_edge = WLR_EDGE_NONE;
-		workspace_get_box(target_ws, &e->drop_box);
+		workspace_get_box(target_workspace, &e->drop_box);
 		desktop_damage_box(&e->drop_box);
 		return;
 	}
 
 	// Deny moving within own workspace if this is the only child
-	if (workspace_num_tiling_views(e->con->pending.workspace) == 1 &&
-			target_win->pending.workspace == e->con->pending.workspace) {
-		e->target_node = NULL;
+	if (workspace_num_tiling_views(e->moving_window->pending.workspace) == 1 &&
+			target_window->pending.workspace == e->moving_window->pending.workspace) {
+		e->target_workspace = NULL;
+		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
 	// TODO possible if window is global fullscreen.
-	if (!wmiiv_assert(target_ws && target_win, "Mouse over unowned workspace")) {
-		e->target_node = NULL;
+	if (!wmiiv_assert(target_workspace && target_window, "Mouse over unowned workspace")) {
+		e->target_workspace = NULL;
+		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
+		return;
+	}
+
+	// Moving window to itself should be a no-op.
+	if (e->target_window == e->moving_window) {
+		e->target_workspace = NULL;
+		e->target_window = NULL;
+		e->target_edge = WLR_EDGE_NONE;
+		return;
 	}
 
 	// TODO (wmiiv) everything after this point needs to be reworked to
@@ -157,30 +176,31 @@ static void handle_motion_postthreshold(struct wmiiv_seat *seat) {
 	// stacking below as well as above.
 
 	// Use the hovered view - but we must be over the actual surface
-	if (!target_win->view->surface) {
-		e->target_node = NULL;
+	if (!target_window->view->surface) {
+		e->target_workspace = NULL;
+		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
 	// Find the closest edge
-	size_t thickness = fmin(target_win->pending.content_width, target_win->pending.content_height) * 0.3;
+	size_t thickness = fmin(target_window->pending.content_width, target_window->pending.content_height) * 0.3;
 	size_t closest_dist = INT_MAX;
 	size_t dist;
 	e->target_edge = WLR_EDGE_NONE;
-	if ((dist = cursor->cursor->y - target_win->pending.y) < closest_dist) {
+	if ((dist = cursor->cursor->y - target_window->pending.y) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_TOP;
 	}
-	if ((dist = cursor->cursor->x - target_win->pending.x) < closest_dist) {
+	if ((dist = cursor->cursor->x - target_window->pending.x) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_LEFT;
 	}
-	if ((dist = target_win->pending.x + target_win->pending.width - cursor->cursor->x) < closest_dist) {
+	if ((dist = target_window->pending.x + target_window->pending.width - cursor->cursor->x) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_RIGHT;
 	}
-	if ((dist = target_win->pending.y + target_win->pending.height - cursor->cursor->y) < closest_dist) {
+	if ((dist = target_window->pending.y + target_window->pending.height - cursor->cursor->y) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_BOTTOM;
 	}
@@ -189,11 +209,12 @@ static void handle_motion_postthreshold(struct wmiiv_seat *seat) {
 		e->target_edge = WLR_EDGE_NONE;
 	}
 
-	e->target_node = &target_win->node;
-	e->drop_box.x = target_win->pending.content_x;
-	e->drop_box.y = target_win->pending.content_y;
-	e->drop_box.width = target_win->pending.content_width;
-	e->drop_box.height = target_win->pending.content_height;
+	e->target_workspace = target_workspace;
+	e->target_window = target_window;
+	e->drop_box.x = target_window->pending.content_x;
+	e->drop_box.y = target_window->pending.content_y;
+	e->drop_box.width = target_window->pending.content_width;
+	e->drop_box.height = target_window->pending.content_height;
 	resize_box(&e->drop_box, e->target_edge, thickness);
 	desktop_damage_box(&e->drop_box);
 }
@@ -208,68 +229,50 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	transaction_commit_dirty();
 }
 
-static bool is_parallel(enum wmiiv_container_layout layout,
-		enum wlr_edges edge) {
-	bool layout_is_horiz = layout == L_HORIZ || layout == L_TABBED;
-	bool edge_is_horiz = edge == WLR_EDGE_LEFT || edge == WLR_EDGE_RIGHT;
-	return layout_is_horiz == edge_is_horiz;
-}
-
 static void finalize_move(struct wmiiv_seat *seat) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 
-	if (!e->target_node) {
+	struct wmiiv_container *moving_window = e->moving_window;
+	struct wmiiv_container *old_parent = moving_window->pending.parent;
+	struct wmiiv_workspace *old_workspace = moving_window->pending.workspace;
+
+	struct wmiiv_workspace *target_workspace = e->target_workspace;
+	struct wmiiv_container *target_window = e->target_window;
+	enum wlr_edges target_edge = e->target_edge;
+
+	// No move target.  Leave window where it is.
+	if (target_workspace == NULL) {
 		seatop_begin_default(seat);
 		return;
 	}
 
-	struct wmiiv_container *con = e->con;
-	struct wmiiv_container *old_parent = con->pending.parent;
-	struct wmiiv_workspace *old_ws = con->pending.workspace;
-	struct wmiiv_node *target_node = e->target_node;
-	struct wmiiv_workspace *new_ws = target_node->type == N_WORKSPACE ?
-		target_node->wmiiv_workspace : target_node->wmiiv_container->pending.workspace;
-	enum wlr_edges edge = e->target_edge;
-	int after = edge != WLR_EDGE_TOP && edge != WLR_EDGE_LEFT;
-	bool swap = edge == WLR_EDGE_NONE && (target_node->type == N_COLUMN || target_node->type == N_WINDOW) &&
-		!e->split_target;
-
-	if (!swap) {
-		container_detach(con);
-	}
-
-	// Moving container into empty workspace
-	if (target_node->type == N_WORKSPACE && edge == WLR_EDGE_NONE) {
-		window_move_to_workspace(con, new_ws);
-	} else if (e->split_target) {
-		struct wmiiv_container *target = target_node->wmiiv_container;
-		enum wmiiv_container_layout layout = container_parent_layout(target);
-		if (layout != L_TABBED && layout != L_STACKED) {
-			container_split(target, L_TABBED);
-		}
-		column_add_sibling(target, con, e->insert_after_target);
-		ipc_event_window(con, "move");
-	} else if (target_node->type == N_COLUMN || target_node->type == N_WINDOW) {
-		// Moving container before/after another
-		struct wmiiv_container *target = target_node->wmiiv_container;
-		if (swap) {
-			container_swap(target_node->wmiiv_container, con);
-		} else {
-			enum wmiiv_container_layout layout = container_parent_layout(target);
-			if (edge && !is_parallel(layout, edge)) {
-				enum wmiiv_container_layout new_layout = edge == WLR_EDGE_TOP ||
-					edge == WLR_EDGE_BOTTOM ? L_VERT : L_HORIZ;
-				container_split(target, new_layout);
-			}
-			column_add_sibling(target, con, after);
-			ipc_event_window(con, "move");
-		}
+	// Move container into empty workspace.
+	if (target_window == NULL) {
+		window_move_to_workspace(moving_window, target_workspace);
 	} else {
-		// Target is a workspace which requires splitting
-		enum wmiiv_container_layout new_layout = edge == WLR_EDGE_TOP ||
-			edge == WLR_EDGE_BOTTOM ? L_VERT : L_HORIZ;
-		workspace_split(new_ws, new_layout);
-		workspace_insert_tiling(new_ws, con, after);
+		if (target_edge == WLR_EDGE_LEFT || target_edge == WLR_EDGE_RIGHT) {
+			struct wmiiv_container *target_column = target_window->pending.parent;
+			int target_column_index = list_find(target_workspace->tiling, target_column);
+
+			struct wmiiv_container *new_column = column_create();
+			new_column->pending.height = new_column->pending.width = 0;
+			new_column->height_fraction = new_column->width_fraction = 0;
+			new_column->pending.layout = L_STACKED;
+
+			int new_column_index = target_edge == WLR_EDGE_LEFT ? target_column_index : target_column_index + 1;
+
+			workspace_insert_tiling_direct(target_workspace, new_column, new_column_index);
+
+			window_move_to_column(moving_window, new_column);
+		} else if (target_edge == WLR_EDGE_TOP || target_edge == WLR_EDGE_BOTTOM) {
+			// TODO (wmiiv) fix different level of abstraction.
+			container_detach(moving_window);
+			column_add_sibling(target_window, moving_window, target_edge != WLR_EDGE_TOP);
+			ipc_event_window(moving_window, "move");
+		} else {
+			// TODO not sure if I like this behaviour.  Should probably be the same as WLR_EDGE_BOTTOM.
+			container_swap(target_window, moving_window);
+		}
 	}
 
 	if (old_parent) {
@@ -279,20 +282,20 @@ static void finalize_move(struct wmiiv_seat *seat) {
 	// This is a bit dirty, but we'll set the dimensions to that of a sibling.
 	// I don't think there's any other way to make it consistent without
 	// changing how we auto-size containers.
-	list_t *siblings = container_get_siblings(con);
+	list_t *siblings = container_get_siblings(moving_window);
 	if (siblings->length > 1) {
-		int index = list_find(siblings, con);
+		int index = list_find(siblings, moving_window);
 		struct wmiiv_container *sibling = index == 0 ?
 			siblings->items[1] : siblings->items[index - 1];
-		con->pending.width = sibling->pending.width;
-		con->pending.height = sibling->pending.height;
-		con->width_fraction = sibling->width_fraction;
-		con->height_fraction = sibling->height_fraction;
+		moving_window->pending.width = sibling->pending.width;
+		moving_window->pending.height = sibling->pending.height;
+		moving_window->width_fraction = sibling->width_fraction;
+		moving_window->height_fraction = sibling->height_fraction;
 	}
 
-	arrange_workspace(old_ws);
-	if (new_ws != old_ws) {
-		arrange_workspace(new_ws);
+	arrange_workspace(old_workspace);
+	if (target_workspace != old_workspace) {
+		arrange_workspace(target_workspace);
 	}
 
 	transaction_commit_dirty();
@@ -317,10 +320,11 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 
 static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
-	if (e->target_node == &con->node) { // Drop target
-		e->target_node = NULL;
+	if (e->target_window == con) {
+		e->target_workspace = NULL;
+		e->target_window = NULL;
 	}
-	if (e->con == con) { // The container being moved
+	if (e->moving_window == con) {
 		seatop_begin_default(seat);
 	}
 }
@@ -334,7 +338,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
-		struct wmiiv_container *con) {
+		struct wmiiv_container *moving_window) {
 	seatop_end(seat);
 
 	struct seatop_move_tiling_event *e =
@@ -342,14 +346,14 @@ void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
 	if (!e) {
 		return;
 	}
-	e->con = con;
+	e->moving_window = moving_window;
 	e->ref_lx = seat->cursor->cursor->x;
 	e->ref_ly = seat->cursor->cursor->y;
 
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;
 
-	container_raise_floating(con);
+	container_raise_floating(moving_window);
 	transaction_commit_dirty();
 	wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }
