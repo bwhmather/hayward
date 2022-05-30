@@ -236,42 +236,42 @@ static bool gaps_to_edge(struct wmiiv_view *view) {
 }
 
 void view_autoconfigure(struct wmiiv_view *view) {
-	struct wmiiv_container *win = view->container;
-	struct wmiiv_workspace *ws = win->pending.workspace;
+	struct wmiiv_container *window = view->container;
+	struct wmiiv_workspace *ws = window->pending.workspace;
 
 	struct wmiiv_output *output = ws ? ws->output : NULL;
 
-	if (win->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-		win->pending.content_x = output->lx;
-		win->pending.content_y = output->ly;
-		win->pending.content_width = output->width;
-		win->pending.content_height = output->height;
+	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+		window->pending.content_x = output->lx;
+		window->pending.content_y = output->ly;
+		window->pending.content_width = output->width;
+		window->pending.content_height = output->height;
 		return;
-	} else if (win->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		win->pending.content_x = root->x;
-		win->pending.content_y = root->y;
-		win->pending.content_width = root->width;
-		win->pending.content_height = root->height;
+	} else if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+		window->pending.content_x = root->x;
+		window->pending.content_y = root->y;
+		window->pending.content_width = root->width;
+		window->pending.content_height = root->height;
 		return;
 	}
 
-	win->pending.border_top = win->pending.border_bottom = true;
-	win->pending.border_left = win->pending.border_right = true;
+	window->pending.border_top = window->pending.border_bottom = true;
+	window->pending.border_left = window->pending.border_right = true;
 	double y_offset = 0;
 
-	if (!window_is_floating(win) && ws) {
+	if (!window_is_floating(window) && ws) {
 		if (config->hide_edge_borders == E_BOTH
 				|| config->hide_edge_borders == E_VERTICAL) {
-			win->pending.border_left = win->pending.x != ws->x;
-			int right_x = win->pending.x + win->pending.width;
-			win->pending.border_right = right_x != ws->x + ws->width;
+			window->pending.border_left = window->pending.x != ws->x;
+			int right_x = window->pending.x + window->pending.width;
+			window->pending.border_right = right_x != ws->x + ws->width;
 		}
 
 		if (config->hide_edge_borders == E_BOTH
 				|| config->hide_edge_borders == E_HORIZONTAL) {
-			win->pending.border_top = win->pending.y != ws->y;
-			int bottom_y = win->pending.y + win->pending.height;
-			win->pending.border_bottom = bottom_y != ws->y + ws->height;
+			window->pending.border_top = window->pending.y != ws->y;
+			int bottom_y = window->pending.y + window->pending.height;
+			window->pending.border_bottom = bottom_y != ws->y + ws->height;
 		}
 
 		bool smart = config->hide_edge_borders_smart == ESMART_ON ||
@@ -279,74 +279,74 @@ void view_autoconfigure(struct wmiiv_view *view) {
 			!gaps_to_edge(view));
 		if (smart) {
 			bool show_border = !view_is_only_visible(view);
-			win->pending.border_left &= show_border;
-			win->pending.border_right &= show_border;
-			win->pending.border_top &= show_border;
-			win->pending.border_bottom &= show_border;
+			window->pending.border_left &= show_border;
+			window->pending.border_right &= show_border;
+			window->pending.border_top &= show_border;
+			window->pending.border_bottom &= show_border;
 		}
 	}
 
-	if (!window_is_floating(win)) {
+	if (!window_is_floating(window)) {
 		// In a tabbed or stacked container, the container's y is the top of the
 		// title area. We have to offset the surface y by the height of the title,
 		// bar, and disable any top border because we'll always have the title bar.
-		list_t *siblings = container_get_siblings(win);
+		list_t *siblings = container_get_siblings(window);
 		bool show_titlebar = (siblings && siblings->length > 1)
 			|| !config->hide_lone_tab;
 		if (show_titlebar) {
-			enum wmiiv_container_layout layout = container_parent_layout(win);
+			enum wmiiv_container_layout layout = container_parent_layout(window);
 			if (layout == L_TABBED) {
 				y_offset = container_titlebar_height();
-				win->pending.border_top = false;
+				window->pending.border_top = false;
 			} else if (layout == L_STACKED) {
 				y_offset = container_titlebar_height() * siblings->length;
-				win->pending.border_top = false;
+				window->pending.border_top = false;
 			}
 		}
 	}
 
 	double x, y, width, height;
-	switch (win->pending.border) {
+	switch (window->pending.border) {
 	default:
 	case B_CSD:
 	case B_NONE:
-		x = win->pending.x;
-		y = win->pending.y + y_offset;
-		width = win->pending.width;
-		height = win->pending.height - y_offset;
+		x = window->pending.x;
+		y = window->pending.y + y_offset;
+		width = window->pending.width;
+		height = window->pending.height - y_offset;
 		break;
 	case B_PIXEL:
-		x = win->pending.x + win->pending.border_thickness * win->pending.border_left;
-		y = win->pending.y + win->pending.border_thickness * win->pending.border_top + y_offset;
-		width = win->pending.width
-			- win->pending.border_thickness * win->pending.border_left
-			- win->pending.border_thickness * win->pending.border_right;
-		height = win->pending.height - y_offset
-			- win->pending.border_thickness * win->pending.border_top
-			- win->pending.border_thickness * win->pending.border_bottom;
+		x = window->pending.x + window->pending.border_thickness * window->pending.border_left;
+		y = window->pending.y + window->pending.border_thickness * window->pending.border_top + y_offset;
+		width = window->pending.width
+			- window->pending.border_thickness * window->pending.border_left
+			- window->pending.border_thickness * window->pending.border_right;
+		height = window->pending.height - y_offset
+			- window->pending.border_thickness * window->pending.border_top
+			- window->pending.border_thickness * window->pending.border_bottom;
 		break;
 	case B_NORMAL:
 		// Height is: 1px border + 3px pad + title height + 3px pad + 1px border
-		x = win->pending.x + win->pending.border_thickness * win->pending.border_left;
-		width = win->pending.width
-			- win->pending.border_thickness * win->pending.border_left
-			- win->pending.border_thickness * win->pending.border_right;
+		x = window->pending.x + window->pending.border_thickness * window->pending.border_left;
+		width = window->pending.width
+			- window->pending.border_thickness * window->pending.border_left
+			- window->pending.border_thickness * window->pending.border_right;
 		if (y_offset) {
-			y = win->pending.y + y_offset;
-			height = win->pending.height - y_offset
-				- win->pending.border_thickness * win->pending.border_bottom;
+			y = window->pending.y + y_offset;
+			height = window->pending.height - y_offset
+				- window->pending.border_thickness * window->pending.border_bottom;
 		} else {
-			y = win->pending.y + container_titlebar_height();
-			height = win->pending.height - container_titlebar_height()
-				- win->pending.border_thickness * win->pending.border_bottom;
+			y = window->pending.y + container_titlebar_height();
+			height = window->pending.height - container_titlebar_height()
+				- window->pending.border_thickness * window->pending.border_bottom;
 		}
 		break;
 	}
 
-	win->pending.content_x = x;
-	win->pending.content_y = y;
-	win->pending.content_width = width;
-	win->pending.content_height = height;
+	window->pending.content_x = x;
+	window->pending.content_y = y;
+	window->pending.content_width = width;
+	window->pending.content_height = height;
 }
 
 void view_set_activated(struct wmiiv_view *view, bool activated) {
@@ -396,14 +396,14 @@ void view_set_csd_from_server(struct wmiiv_view *view, bool enabled) {
 
 void view_update_csd_from_client(struct wmiiv_view *view, bool enabled) {
 	wmiiv_log(WMIIV_DEBUG, "View %p updated CSD to %i", view, enabled);
-	struct wmiiv_container *win = view->container;
-	if (enabled && win && win->pending.border != B_CSD) {
-		win->saved_border = win->pending.border;
-		if (window_is_floating(win)) {
-			win->pending.border = B_CSD;
+	struct wmiiv_container *window = view->container;
+	if (enabled && window && window->pending.border != B_CSD) {
+		window->saved_border = window->pending.border;
+		if (window_is_floating(window)) {
+			window->pending.border = B_CSD;
 		}
-	} else if (!enabled && win && win->pending.border == B_CSD) {
-		win->pending.border = win->saved_border;
+	} else if (!enabled && window && window->pending.border == B_CSD) {
+		window->pending.border = window->saved_border;
 	}
 	view->using_csd = enabled;
 }
@@ -1305,12 +1305,12 @@ bool view_is_visible(struct wmiiv_view *view) {
 	}
 	// Check view isn't in a tabbed or stacked container on an inactive tab
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_container *win = view->container;
-	struct wmiiv_container *col = win->pending.parent;
+	struct wmiiv_container *window = view->container;
+	struct wmiiv_container *col = window->pending.parent;
 	if (col != NULL) {
 		enum wmiiv_container_layout parent_layout = col->pending.layout;
 		if (parent_layout == L_TABBED || parent_layout == L_STACKED) {
-			if (seat_get_active_tiling_child(seat, &col->node) != &win->node) {
+			if (seat_get_active_tiling_child(seat, &col->node) != &window->node) {
 				return false;
 			}
 		}

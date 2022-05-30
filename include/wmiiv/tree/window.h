@@ -56,7 +56,7 @@ bool window_is_fullscreen(struct wmiiv_container *container);
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_column_from_direction(
-		struct wmiiv_container *win, struct wmiiv_container *col,
+		struct wmiiv_container *window, struct wmiiv_container *col,
 		enum wlr_direction move_dir);
 
 /**
@@ -71,7 +71,7 @@ void window_move_to_column_from_direction(
  *
  * The old workspace and old columns will not be automatically cleaned up.
  */
-void window_move_to_column(struct wmiiv_container *win,
+void window_move_to_column(struct wmiiv_container *window,
 		struct wmiiv_container *destination);
 
 /**
@@ -86,16 +86,16 @@ void window_move_to_column(struct wmiiv_container *win,
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_workspace_from_direction(
-		struct wmiiv_container *win, struct wmiiv_workspace *ws,
+		struct wmiiv_container *window, struct wmiiv_workspace *ws,
 		enum wlr_direction move_dir);
 
-void window_move_to_workspace(struct wmiiv_container *win,
+void window_move_to_workspace(struct wmiiv_container *window,
 		struct wmiiv_workspace *ws);
 
-struct wlr_surface *window_surface_at(struct wmiiv_container *win, double lx, double ly, double *sx, double *sy);
+struct wlr_surface *window_surface_at(struct wmiiv_container *window, double lx, double ly, double *sx, double *sy);
 
-bool window_contains_point(struct wmiiv_container *win, double lx, double ly);
+bool window_contains_point(struct wmiiv_container *window, double lx, double ly);
 
-bool window_contents_contain_point(struct wmiiv_container *win, double lx, double ly);
+bool window_contents_contain_point(struct wmiiv_container *window, double lx, double ly);
 
 #endif

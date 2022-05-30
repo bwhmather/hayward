@@ -75,7 +75,7 @@ void container_resize_tiled(struct wmiiv_container *con,
 		return;
 	}
 
-	// For HORIZONTAL or VERTICAL, we are growing in two directions so select
+	// For HORIZONTAL or VERTICAL, we are growindowg in two directions so select
 	// both adjacent siblings. For RIGHT or DOWN, just select the next sibling.
 	// For LEFT or UP, convert it to a RIGHT or DOWN resize and reassign con to
 	// the previous sibling.
@@ -325,9 +325,9 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_container *con,
 /**
  * Implement `resize set` for a floating container.
  */
-static struct cmd_results *resize_set_floating(struct wmiiv_container *win,
+static struct cmd_results *resize_set_floating(struct wmiiv_container *window,
 		struct movement_amount *width, struct movement_amount *height) {
-	if (!wmiiv_assert(container_is_window(win), "Not a window")) {
+	if (!wmiiv_assert(container_is_window(window), "Not a window")) {
 		return cmd_results_new(CMD_FAILURE, NULL);
 	}
 
@@ -339,15 +339,15 @@ static struct cmd_results *resize_set_floating(struct wmiiv_container *win,
 		switch (width->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			width->amount = win->pending.workspace->width * width->amount / 100;
+			width->amount = window->pending.workspace->width * width->amount / 100;
 			width->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
 		case MOVEMENT_UNIT_DEFAULT:
 			width->amount = fmax(min_width, fmin(width->amount, max_width));
-			grow_width = width->amount - win->pending.width;
-			win->pending.x -= grow_width / 2;
-			win->pending.width = width->amount;
+			grow_width = width->amount - window->pending.width;
+			window->pending.x -= grow_width / 2;
+			window->pending.width = width->amount;
 			break;
 		case MOVEMENT_UNIT_INVALID:
 			wmiiv_assert(false, "invalid width unit");
@@ -359,15 +359,15 @@ static struct cmd_results *resize_set_floating(struct wmiiv_container *win,
 		switch (height->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			height->amount = win->pending.workspace->height * height->amount / 100;
+			height->amount = window->pending.workspace->height * height->amount / 100;
 			height->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
 		case MOVEMENT_UNIT_DEFAULT:
 			height->amount = fmax(min_height, fmin(height->amount, max_height));
-			grow_height = height->amount - win->pending.height;
-			win->pending.y -= grow_height / 2;
-			win->pending.height = height->amount;
+			grow_height = height->amount - window->pending.height;
+			window->pending.y -= grow_height / 2;
+			window->pending.height = height->amount;
 			break;
 		case MOVEMENT_UNIT_INVALID:
 			wmiiv_assert(false, "invalid height unit");
@@ -375,12 +375,12 @@ static struct cmd_results *resize_set_floating(struct wmiiv_container *win,
 		}
 	}
 
-	win->pending.content_x -= grow_width / 2;
-	win->pending.content_y -= grow_height / 2;
-	win->pending.content_width += grow_width;
-	win->pending.content_height += grow_height;
+	window->pending.content_x -= grow_width / 2;
+	window->pending.content_y -= grow_height / 2;
+	window->pending.content_width += grow_width;
+	window->pending.content_height += grow_height;
 
-	arrange_window(win);
+	arrange_window(window);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -502,8 +502,8 @@ static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
 	first_amount.amount *= multiplier;
 	second_amount.amount *= multiplier;
 
-	struct wmiiv_container *win = config->handler_context.window;
-	if (win && window_is_floating(win)) {
+	struct wmiiv_container *window = config->handler_context.window;
+	if (window && window_is_floating(window)) {
 		// Floating containers can only resize in px. Choose an amount which
 		// uses px, with fallback to an amount that specified no unit.
 		if (first_amount.unit == MOVEMENT_UNIT_PX) {

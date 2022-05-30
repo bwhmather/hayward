@@ -20,17 +20,17 @@ struct cmd_results *cmd_floating(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *win = config->handler_context.window;
-	if (!win) {
+	struct wmiiv_container *window = config->handler_context.window;
+	if (!window) {
 		return cmd_results_new(CMD_INVALID, "Can only float windows");
 	}
 
 	bool wants_floating =
-		parse_boolean(argv[0], window_is_floating(win));
+		parse_boolean(argv[0], window_is_floating(window));
 
-	window_set_floating(win, wants_floating);
+	window_set_floating(window, wants_floating);
 
-	arrange_workspace(win->pending.workspace);
+	arrange_workspace(window->pending.workspace);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

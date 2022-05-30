@@ -117,24 +117,24 @@ void container_for_each_child(struct wmiiv_container *container,
 	}
 }
 
-struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_container *win)
+struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_container *window)
 {
-	if (!wmiiv_assert(container_is_window(win), "Only windows can be fullscreen")) {
+	if (!wmiiv_assert(container_is_window(window), "Only windows can be fullscreen")) {
 		return NULL;
 	}
 
-	struct wmiiv_workspace *workspace = win->pending.workspace;
+	struct wmiiv_workspace *workspace = window->pending.workspace;
 
-	if (workspace && workspace->fullscreen && !window_is_fullscreen(win)) {
-		if (container_is_transient_for(win, workspace->fullscreen)) {
+	if (workspace && workspace->fullscreen && !window_is_fullscreen(window)) {
+		if (container_is_transient_for(window, workspace->fullscreen)) {
 			return NULL;
 		}
 		return workspace->fullscreen;
 	}
 
 	struct wmiiv_container *fullscreen_global = root->fullscreen_global;
-	if (fullscreen_global && win != fullscreen_global) {
-		if (container_is_transient_for(win, fullscreen_global)) {
+	if (fullscreen_global && window != fullscreen_global) {
+		if (container_is_transient_for(window, fullscreen_global)) {
 			return NULL;
 		}
 		return fullscreen_global;
@@ -724,97 +724,97 @@ static void set_fullscreen(struct wmiiv_container *con, bool enable) {
 	wlr_drm_format_set_finish(&scanout_formats);
 }
 
-static void container_fullscreen_workspace(struct wmiiv_container *win) {
-	if (!wmiiv_assert(container_is_window(win), "Expected window")) {
+static void container_fullscreen_workspace(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return;
 	}
-	if (!wmiiv_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
+	if (!wmiiv_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
 	}
-	set_fullscreen(win, true);
-	win->pending.fullscreen_mode = FULLSCREEN_WORKSPACE;
+	set_fullscreen(window, true);
+	window->pending.fullscreen_mode = FULLSCREEN_WORKSPACE;
 
-	win->saved_x = win->pending.x;
-	win->saved_y = win->pending.y;
-	win->saved_width = win->pending.width;
-	win->saved_height = win->pending.height;
+	window->saved_x = window->pending.x;
+	window->saved_y = window->pending.y;
+	window->saved_width = window->pending.width;
+	window->saved_height = window->pending.height;
 
-	if (win->pending.workspace) {
-		win->pending.workspace->fullscreen = win;
+	if (window->pending.workspace) {
+		window->pending.workspace->fullscreen = window;
 		struct wmiiv_seat *seat;
 		struct wmiiv_workspace *focus_ws;
 		wl_list_for_each(seat, &server.input->seats, link) {
 			focus_ws = seat_get_focused_workspace(seat);
-			if (focus_ws == win->pending.workspace) {
-				seat_set_focus_window(seat, win);
+			if (focus_ws == window->pending.workspace) {
+				seat_set_focus_window(seat, window);
 			} else {
 				struct wmiiv_node *focus =
 					seat_get_focus_inactive(seat, &root->node);
-				seat_set_raw_focus(seat, &win->node);
+				seat_set_raw_focus(seat, &window->node);
 				seat_set_raw_focus(seat, focus);
 			}
 		}
 	}
 
-	container_end_mouse_operation(win);
-	ipc_event_window(win, "fullscreen_mode");
+	container_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
 }
 
-static void container_fullscreen_global(struct wmiiv_container *win) {
-	if (!wmiiv_assert(container_is_window(win), "Expected window")) {
+static void container_fullscreen_global(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return;
 	}
-	if (!wmiiv_assert(win->pending.fullscreen_mode == FULLSCREEN_NONE,
+	if (!wmiiv_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
 	}
-	set_fullscreen(win, true);
+	set_fullscreen(window, true);
 
-	root->fullscreen_global = win;
-	win->saved_x = win->pending.x;
-	win->saved_y = win->pending.y;
-	win->saved_width = win->pending.width;
-	win->saved_height = win->pending.height;
+	root->fullscreen_global = window;
+	window->saved_x = window->pending.x;
+	window->saved_y = window->pending.y;
+	window->saved_width = window->pending.width;
+	window->saved_height = window->pending.height;
 
 	struct wmiiv_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		struct wmiiv_container *focus = seat_get_focused_container(seat);
-		if (focus && focus != win) {
-			seat_set_focus_window(seat, win);
+		if (focus && focus != window) {
+			seat_set_focus_window(seat, window);
 		}
 	}
 
-	win->pending.fullscreen_mode = FULLSCREEN_GLOBAL;
-	container_end_mouse_operation(win);
-	ipc_event_window(win, "fullscreen_mode");
+	window->pending.fullscreen_mode = FULLSCREEN_GLOBAL;
+	container_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
 }
 
-void container_fullscreen_disable(struct wmiiv_container *win) {
-	if (!wmiiv_assert(container_is_window(win), "Expected window")) {
+void container_fullscreen_disable(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return;
 	}
-	if (!wmiiv_assert(win->pending.fullscreen_mode != FULLSCREEN_NONE,
+	if (!wmiiv_assert(window->pending.fullscreen_mode != FULLSCREEN_NONE,
 				"Expected a fullscreen container")) {
 		return;
 	}
-	set_fullscreen(win, false);
+	set_fullscreen(window, false);
 
-	if (window_is_floating(win)) {
-		win->pending.x = win->saved_x;
-		win->pending.y = win->saved_y;
-		win->pending.width = win->saved_width;
-		win->pending.height = win->saved_height;
+	if (window_is_floating(window)) {
+		window->pending.x = window->saved_x;
+		window->pending.y = window->saved_y;
+		window->pending.width = window->saved_width;
+		window->pending.height = window->saved_height;
 	}
 
-	if (win->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-		if (win->pending.workspace) {
-			win->pending.workspace->fullscreen = NULL;
-			if (window_is_floating(win)) {
+	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+		if (window->pending.workspace) {
+			window->pending.workspace->fullscreen = NULL;
+			if (window_is_floating(window)) {
 				struct wmiiv_output *output =
-					container_floating_find_output(win);
-				if (win->pending.workspace->output != output) {
-					container_floating_move_to_center(win);
+					container_floating_find_output(window);
+				if (window->pending.workspace->output != output) {
+					container_floating_move_to_center(window);
 				}
 			}
 		}
@@ -825,13 +825,13 @@ void container_fullscreen_disable(struct wmiiv_container *win) {
 	// If the container was mapped as fullscreen and set as floating by
 	// criteria, it needs to be reinitialized as floating to get the proper
 	// size and location
-	if (window_is_floating(win) && (win->pending.width == 0 || win->pending.height == 0)) {
-		container_floating_resize_and_center(win);
+	if (window_is_floating(window) && (window->pending.width == 0 || window->pending.height == 0)) {
+		container_floating_resize_and_center(window);
 	}
 
-	win->pending.fullscreen_mode = FULLSCREEN_NONE;
-	container_end_mouse_operation(win);
-	ipc_event_window(win, "fullscreen_mode");
+	window->pending.fullscreen_mode = FULLSCREEN_NONE;
+	container_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
 }
 
 void container_set_fullscreen(struct wmiiv_container *con,
@@ -1020,11 +1020,11 @@ bool container_is_transient_for(struct wmiiv_container *child,
 		view_is_transient_for(child->view, ancestor->view);
 }
 
-void container_raise_floating(struct wmiiv_container *win) {
+void container_raise_floating(struct wmiiv_container *window) {
 	// Bring container to front by putting it at the end of the floating list.
-	if (window_is_floating(win) && win->pending.workspace) {
-		list_move_to_end(win->pending.workspace->floating, win);
-		node_set_dirty(&win->pending.workspace->node);
+	if (window_is_floating(window) && window->pending.workspace) {
+		list_move_to_end(window->pending.workspace->floating, window);
+		node_set_dirty(&window->pending.workspace->node);
 	}
 }
 

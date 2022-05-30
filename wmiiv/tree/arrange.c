@@ -250,12 +250,12 @@ void arrange_column(struct wmiiv_container *col) {
 	node_set_dirty(&col->node);
 }
 
-void arrange_window(struct wmiiv_container *win) {
+void arrange_window(struct wmiiv_container *window) {
 	if (config->reloading) {
 		return;
 	}
-	view_autoconfigure(win->view);
-	node_set_dirty(&win->node);
+	view_autoconfigure(window->view);
+	node_set_dirty(&window->node);
 }
 
 void arrange_workspace(struct wmiiv_workspace *workspace) {

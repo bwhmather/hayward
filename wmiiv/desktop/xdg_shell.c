@@ -335,21 +335,21 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 		return;
 	}
 
-	struct wmiiv_container *win = view->container;
+	struct wmiiv_container *window = view->container;
 	struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 	if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
 		struct wmiiv_output *output = req->fullscreen_output->data;
 		struct wmiiv_workspace *ws = output_get_active_workspace(output);
-		if (ws && win->pending.workspace != ws) {
-			if (window_is_floating(win)) {
-				workspace_add_floating(ws, win);
+		if (ws && window->pending.workspace != ws) {
+			if (window_is_floating(window)) {
+				workspace_add_floating(ws, window);
 			} else {
-				workspace_add_tiling(ws, win);
+				workspace_add_tiling(ws, window);
 			}
 		}
 	}
 
-	container_set_fullscreen(win, req->fullscreen);
+	container_set_fullscreen(window, req->fullscreen);
 
 	arrange_root();
 	transaction_commit_dirty();

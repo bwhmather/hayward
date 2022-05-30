@@ -351,26 +351,26 @@ static void render_saved_view(struct wmiiv_view *view,
  * Render a view's surface and left/bottom/right borders.
  */
 static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
-		struct wmiiv_container *win, struct border_colors *colors) {
-	struct wmiiv_view *view = win->view;
+		struct wmiiv_container *window, struct border_colors *colors) {
+	struct wmiiv_view *view = window->view;
 	if (!wl_list_empty(&view->saved_buffers)) {
 		render_saved_view(view, output, damage, view->container->alpha);
 	} else if (view->surface) {
 		render_view_toplevels(view, output, damage, view->container->alpha);
 	}
 
-	if (win->current.border == B_NONE || win->current.border == B_CSD) {
+	if (window->current.border == B_NONE || window->current.border == B_CSD) {
 		return;
 	}
 
 	struct wlr_box box;
 	float output_scale = output->wlr_output->scale;
 	float color[4];
-	struct wmiiv_container_state *state = &win->current;
+	struct wmiiv_container_state *state = &window->current;
 
 	if (state->border_left) {
 		memcpy(&color, colors->child_border, sizeof(float) * 4);
-		premultiply_alpha(color, win->alpha);
+		premultiply_alpha(color, window->alpha);
 		box.x = floor(state->x);
 		box.y = floor(state->content_y);
 		box.width = state->border_thickness;
@@ -379,13 +379,13 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 		render_rect(output, damage, &box, color);
 	}
 
-	list_t *siblings = container_get_current_siblings(win);
+	list_t *siblings = container_get_current_siblings(window);
 	enum wmiiv_container_layout layout =
-		container_current_parent_layout(win);
+		container_current_parent_layout(window);
 
 	if (state->border_right) {
 		memcpy(&color, colors->child_border, sizeof(float) * 4);
-		premultiply_alpha(color, win->alpha);
+		premultiply_alpha(color, window->alpha);
 		box.x = floor(state->content_x + state->content_width);
 		box.y = floor(state->content_y);
 		box.width = state->border_thickness;
@@ -395,12 +395,12 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 	}
 
 	if (state->border_bottom) {
-		if (!window_is_current_floating(win) && siblings->length == 1 && layout == L_VERT) {
+		if (!window_is_current_floating(window) && siblings->length == 1 && layout == L_VERT) {
 			memcpy(&color, colors->indicator, sizeof(float) * 4);
 		} else {
 			memcpy(&color, colors->child_border, sizeof(float) * 4);
 		}
-		premultiply_alpha(color, win->alpha);
+		premultiply_alpha(color, window->alpha);
 		box.x = floor(state->x);
 		box.y = floor(state->content_y + state->content_height);
 		box.width = state->width;

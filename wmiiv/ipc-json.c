@@ -425,40 +425,40 @@ static void column_get_deco_rect(struct wmiiv_container *col, struct wlr_box *de
 	deco_rect->height = container_titlebar_height();
 }
 
-static void window_get_deco_rect(struct wmiiv_container *win, struct wlr_box *deco_rect) {
-	enum wmiiv_container_layout parent_layout = container_parent_layout(win);
+static void window_get_deco_rect(struct wmiiv_container *window, struct wlr_box *deco_rect) {
+	enum wmiiv_container_layout parent_layout = container_parent_layout(window);
 	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
 
-	if (((!tab_or_stack || window_is_floating(win)) &&
-				win->current.border != B_NORMAL) ||
-			win->pending.fullscreen_mode != FULLSCREEN_NONE ||
-			win->pending.workspace == NULL) {
+	if (((!tab_or_stack || window_is_floating(window)) &&
+				window->current.border != B_NORMAL) ||
+			window->pending.fullscreen_mode != FULLSCREEN_NONE ||
+			window->pending.workspace == NULL) {
 		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
 		return;
 	}
 
-	if (win->pending.parent) {
-		deco_rect->x = win->pending.x - win->pending.parent->pending.x;
-		deco_rect->y = win->pending.y - win->pending.parent->pending.y;
+	if (window->pending.parent) {
+		deco_rect->x = window->pending.x - window->pending.parent->pending.x;
+		deco_rect->y = window->pending.y - window->pending.parent->pending.y;
 	} else {
-		deco_rect->x = win->pending.x - win->pending.workspace->x;
-		deco_rect->y = win->pending.y - win->pending.workspace->y;
+		deco_rect->x = window->pending.x - window->pending.workspace->x;
+		deco_rect->y = window->pending.y - window->pending.workspace->y;
 	}
-	deco_rect->width = win->pending.width;
+	deco_rect->width = window->pending.width;
 	deco_rect->height = container_titlebar_height();
 
-	if (!window_is_floating(win)) {
+	if (!window_is_floating(window)) {
 		if (parent_layout == L_TABBED) {
-			deco_rect->width = win->pending.parent
-				? win->pending.parent->pending.width / win->pending.parent->pending.children->length
-				: win->pending.workspace->width / win->pending.workspace->tiling->length;
-			deco_rect->x += deco_rect->width * container_sibling_index(win);
+			deco_rect->width = window->pending.parent
+				? window->pending.parent->pending.width / window->pending.parent->pending.children->length
+				: window->pending.workspace->width / window->pending.workspace->tiling->length;
+			deco_rect->x += deco_rect->width * container_sibling_index(window);
 		} else if (parent_layout == L_STACKED) {
-			if (!win->view) {
-				size_t siblings = container_get_siblings(win)->length;
+			if (!window->view) {
+				size_t siblings = container_get_siblings(window)->length;
 				deco_rect->y -= deco_rect->height * siblings;
 			}
-			deco_rect->y += deco_rect->height * container_sibling_index(win);
+			deco_rect->y += deco_rect->height * container_sibling_index(window);
 		}
 	}
 }
@@ -604,30 +604,30 @@ static void ipc_json_describe_column(struct wmiiv_container *col, json_object *o
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 }
 
-static void ipc_json_describe_window(struct wmiiv_container *win, json_object *object) {
+static void ipc_json_describe_window(struct wmiiv_container *window, json_object *object) {
 	json_object_object_add(object, "name",
-			win->title ? json_object_new_string(win->title) : NULL);
-	if (window_is_floating(win)) {
+			window->title ? json_object_new_string(window->title) : NULL);
+	if (window_is_floating(window)) {
 		json_object_object_add(object, "type",
 				json_object_new_string("floating_con"));
 	}
 
 	json_object_object_add(object, "layout",
 			json_object_new_string(
-				ipc_json_layout_description(win->pending.layout)));
+				ipc_json_layout_description(window->pending.layout)));
 
 	json_object_object_add(object, "orientation",
 			json_object_new_string(
-				ipc_json_orientation_description(win->pending.layout)));
+				ipc_json_orientation_description(window->pending.layout)));
 
-	bool urgent = view_is_urgent(win->view);
+	bool urgent = view_is_urgent(window->view);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
-	json_object_object_add(object, "sticky", json_object_new_boolean(win->is_sticky));
+	json_object_object_add(object, "sticky", json_object_new_boolean(window->is_sticky));
 
 	json_object_object_add(object, "fullscreen_mode",
-			json_object_new_int(win->pending.fullscreen_mode));
+			json_object_new_int(window->pending.fullscreen_mode));
 
-	struct wmiiv_node *parent = node_get_parent(&win->node);
+	struct wmiiv_node *parent = node_get_parent(&window->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};
 
 	if (parent != NULL) {
@@ -635,31 +635,31 @@ static void ipc_json_describe_window(struct wmiiv_container *win, json_object *o
 	}
 
 	if (parent_box.width != 0 && parent_box.height != 0) {
-		double percent = ((double)win->pending.width / parent_box.width)
-				* ((double)win->pending.height / parent_box.height);
+		double percent = ((double)window->pending.width / parent_box.width)
+				* ((double)window->pending.height / parent_box.height);
 		json_object_object_add(object, "percent", json_object_new_double(percent));
 	}
 
 	json_object_object_add(object, "border",
 			json_object_new_string(
-				ipc_json_border_description(win->current.border)));
+				ipc_json_border_description(window->current.border)));
 	json_object_object_add(object, "current_border_width",
-			json_object_new_int(win->current.border_thickness));
+			json_object_new_int(window->current.border_thickness));
 	json_object_object_add(object, "floating_nodes", json_object_new_array());
 
 	struct wlr_box deco_box = {0, 0, 0, 0};
-	window_get_deco_rect(win, &deco_box);
+	window_get_deco_rect(window, &deco_box);
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 
 	json_object *marks = json_object_new_array();
-	list_t *con_marks = win->marks;
+	list_t *con_marks = window->marks;
 	for (int i = 0; i < con_marks->length; ++i) {
 		json_object_array_add(marks, json_object_new_string(con_marks->items[i]));
 	}
 
 	json_object_object_add(object, "marks", marks);
 
-	ipc_json_describe_view(win, object);
+	ipc_json_describe_view(window, object);
 }
 
 struct focus_inactive_data {

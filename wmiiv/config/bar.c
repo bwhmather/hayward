@@ -161,7 +161,7 @@ struct bar_config *default_bar_config(void) {
 	if (!(bar->colors.urgent_workspace_text = strndup("#ffffffff", 9))) {
 		goto cleanup;
 	}
-	// if the following colors stay undefined, they fall back to background,
+	// if the followindowg colors stay undefined, they fall back to background,
 	// statusline, separator and urgent_workspace_*.
 	bar->colors.focused_background = NULL;
 	bar->colors.focused_statusline = NULL;

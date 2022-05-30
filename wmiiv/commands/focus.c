@@ -92,35 +92,35 @@ static struct wmiiv_node *get_node_in_output_direction(
 		return &ws->fullscreen->node;
 	}
 	struct wmiiv_container *col = NULL;
-	struct wmiiv_container *win = NULL;
+	struct wmiiv_container *window = NULL;
 
 	if (ws->tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
 			// get most right child of new output
 			col = ws->tiling->items[ws->tiling->length-1];
-			win = seat_get_focus_inactive_view(seat, &col->node);
+			window = seat_get_focus_inactive_view(seat, &col->node);
 			break;
 		case WLR_DIRECTION_RIGHT:
 			// get most left child of new output
 			col = ws->tiling->items[0];
-			win = seat_get_focus_inactive_view(seat, &col->node);
+			window = seat_get_focus_inactive_view(seat, &col->node);
 			break;
 		case WLR_DIRECTION_UP:
-			win = seat_get_focus_inactive_tiling(seat, ws);
+			window = seat_get_focus_inactive_tiling(seat, ws);
 			break;
 		case WLR_DIRECTION_DOWN:
-			win = seat_get_focus_inactive_tiling(seat, ws);
+			window = seat_get_focus_inactive_tiling(seat, ws);
 			break;
 		}
 	}
 
-	if (win) {
+	if (window) {
 		// TODO (wmiir) remove this check once hierarchy is fixed.
-		if (container_is_column(win)) {
-			win = seat_get_focus_inactive_view(seat, &win->node);
+		if (container_is_column(window)) {
+			window = seat_get_focus_inactive_view(seat, &window->node);
 		}
-		return &win->node;
+		return &window->node;
 	}
 
 	return &ws->node;
@@ -328,7 +328,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	}
 	struct wmiiv_node *node = config->handler_context.node;
 	struct wmiiv_workspace *workspace = config->handler_context.workspace;
-	struct wmiiv_container *win = config->handler_context.window;
+	struct wmiiv_container *window = config->handler_context.window;
 	struct wmiiv_seat *seat = config->handler_context.seat;
 	if (node->type < N_WORKSPACE) {
 		return cmd_results_new(CMD_FAILURE,
@@ -336,20 +336,20 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	}
 
 	if (argc == 0) {
-		if (!win) {
+		if (!window) {
 			return cmd_results_new(CMD_INVALID, "No window to focus was specified.");
 		}
 
 		// if we are switching to a container under a fullscreen window, we first
 		// need to exit fullscreen so that the newly focused container becomes visible
-		struct wmiiv_container *obstructing = container_obstructing_fullscreen_container(win);
+		struct wmiiv_container *obstructing = container_obstructing_fullscreen_container(window);
 		if (obstructing) {
 			container_fullscreen_disable(obstructing);
 			arrange_root();
 		}
-		seat_set_focus_window(seat, win);
+		seat_set_focus_window(seat, window);
 		seat_consider_warp_to_focus(seat);
-		container_raise_floating(win);
+		container_raise_floating(window);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
@@ -358,7 +358,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	} else if (strcmp(argv[0], "tiling") == 0) {
 		return focus_mode(workspace, seat, false);
 	} else if (strcmp(argv[0], "mode_toggle") == 0) {
-		bool floating = win && window_is_floating(win);
+		bool floating = window && window_is_floating(window);
 		return focus_mode(workspace, seat, !floating);
 	}
 
@@ -369,7 +369,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 
 	enum wlr_direction direction = 0;
 	if (!parse_direction(argv[0], &direction)) {
-		if (!get_direction_from_next_prev(win, seat, argv[0], &direction)) {
+		if (!get_direction_from_next_prev(window, seat, argv[0], &direction)) {
 			return cmd_results_new(CMD_INVALID,
 				"Expected 'focus <direction|next|prev|mode_toggle|floating|tiling>' "
 				"or 'focus output <direction|name>'");
@@ -395,15 +395,15 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	if (!wmiiv_assert(win, "Expected container to be non null")) {
+	if (!wmiiv_assert(window, "Expected container to be non null")) {
 		return cmd_results_new(CMD_FAILURE, "");
 	}
 	struct wmiiv_node *next_focus = NULL;
-	if (window_is_floating(win) &&
-			win->pending.fullscreen_mode == FULLSCREEN_NONE) {
-		next_focus = node_get_in_direction_floating(win, seat, direction);
+	if (window_is_floating(window) &&
+			window->pending.fullscreen_mode == FULLSCREEN_NONE) {
+		next_focus = node_get_in_direction_floating(window, seat, direction);
 	} else {
-		next_focus = node_get_in_direction_tiling(win, seat, direction);
+		next_focus = node_get_in_direction_tiling(window, seat, direction);
 	}
 	if (next_focus) {
 		seat_set_focus(seat, next_focus);

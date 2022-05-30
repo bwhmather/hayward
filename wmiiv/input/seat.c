@@ -1270,12 +1270,12 @@ void seat_clear_focus(struct wmiiv_seat *seat) {
 	seat_set_focus(seat, NULL);
 }
 
-void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *win) {
-	if (!wmiiv_assert(win && container_is_window(win), "Cannot focus non-window")) {
+void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
+	if (!wmiiv_assert(window && container_is_window(window), "Cannot focus non-window")) {
 		return;
 	}
 
-	seat_set_focus(seat, &win->node);
+	seat_set_focus(seat, &window->node);
 }
 
 void seat_set_focus_container(struct wmiiv_seat *seat,

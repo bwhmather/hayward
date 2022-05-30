@@ -104,9 +104,9 @@ static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *
 static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
 	list_t *children = col->pending.children;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *win = children->items[i];
-		if (window_contains_point(win, lx, ly)) {
-			return win;
+		struct wmiiv_container *window = children->items[i];
+		if (window_contains_point(window, lx, ly)) {
+			return window;
 		}
 	}
 	return NULL;
@@ -145,9 +145,9 @@ static struct wmiiv_container *seat_tiling_window_at(struct wmiiv_seat *seat, do
 		list_t *columns = ws->tiling;
 		for (int i = 0; i < columns->length; ++i) {
 			struct wmiiv_container *col = columns->items[i];
-			struct wmiiv_container *win = seat_column_window_at(seat, col, lx, ly);
-			if (win) {
-				return win;
+			struct wmiiv_container *window = seat_column_window_at(seat, col, lx, ly);
+			if (window) {
+				return window;
 			}
 		}
 	}
@@ -165,9 +165,9 @@ static struct wmiiv_container *seat_floating_window_at(struct wmiiv_seat *seat, 
 		// Items at the end of the list are on top, so iterate the list in
 		// reverse.
 		for (int k = ws->floating->length - 1; k >= 0; --k) {
-			struct wmiiv_container *win = ws->floating->items[k];
-			if (window_contains_point(win, lx, ly)) {
-				return win;
+			struct wmiiv_container *window = ws->floating->items[k];
+			if (window_contains_point(window, lx, ly)) {
+				return window;
 			}
 		}
 	}
@@ -189,7 +189,7 @@ static bool surface_is_popup(struct wlr_surface *surface) {
 }
 
 struct wmiiv_container *seat_window_at(struct wmiiv_seat *seat, double lx, double ly) {
-	struct wmiiv_container *win;
+	struct wmiiv_container *window;
 	struct wmiiv_container *focus = seat_get_focused_container(seat);
 	bool is_floating = focus && window_is_floating(focus);
 
@@ -204,8 +204,8 @@ struct wmiiv_container *seat_window_at(struct wmiiv_seat *seat, double lx, doubl
 	}
 
 	// Floating
-	if ((win = seat_floating_window_at(seat, lx, ly))) {
-		return win;
+	if ((window = seat_floating_window_at(seat, lx, ly))) {
+		return window;
 	}
 
 	// Tiling (focused)
@@ -214,8 +214,8 @@ struct wmiiv_container *seat_window_at(struct wmiiv_seat *seat, double lx, doubl
 	}
 
 	// Tiling (non-focused)
-	if ((win = seat_tiling_window_at(seat, lx, ly))) {
-		return win;
+	if ((window = seat_tiling_window_at(seat, lx, ly))) {
+		return window;
 	}
 
 	return NULL;
@@ -358,10 +358,10 @@ static struct wmiiv_node *node_at_coords(
 		return NULL;
 	}
 
-	struct wmiiv_container *win;
-	if ((win = seat_window_at(seat, lx, ly))) {
-		*surface = window_surface_at(win, lx, ly, sx, sy);
-		return &win->node;
+	struct wmiiv_container *window;
+	if ((window = seat_window_at(seat, lx, ly))) {
+		*surface = window_surface_at(window, lx, ly, sx, sy);
+		return &window->node;
 	}
 
 	if ((*surface = layer_surface_at(output,
@@ -380,23 +380,23 @@ static struct wmiiv_node *node_at_coords(
 
 void seat_get_target_at(
 		struct wmiiv_seat *seat, double lx, double ly,
-		struct wmiiv_workspace **wsp, struct wmiiv_container **winp,
+		struct wmiiv_workspace **wsp, struct wmiiv_container **windowp,
 		struct wlr_surface **surface, double *sx, double *sy) {
 	struct wmiiv_node *node = node_at_coords(seat, lx, ly, surface, sx, sy);
 
 	if (node == NULL) {
-		*winp = NULL;
+		*windowp = NULL;
 		*wsp = NULL;
 		return;
 	}
 
 	switch (node->type) {
 	case N_WINDOW:
-		*winp = node->wmiiv_container;
+		*windowp = node->wmiiv_container;
 		*wsp = node->wmiiv_container->pending.workspace;
 		break;
 	case N_WORKSPACE:
-		*winp = NULL;
+		*windowp = NULL;
 		*wsp = node->wmiiv_workspace;
 		break;
 	default:
@@ -1081,7 +1081,7 @@ static void check_constraint_region(struct wmiiv_cursor *cursor) {
 		}
 	}
 
-	// A locked pointer will result in an empty region, thus disallowing all movement
+	// A locked pointer will result in an empty region, thus disallowindowg all movement
 	if (constraint->type == WLR_POINTER_CONSTRAINT_V1_CONFINED) {
 		pixman_region32_copy(&cursor->confine, region);
 	} else {

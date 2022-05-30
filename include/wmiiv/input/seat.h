@@ -154,7 +154,7 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node);
 
 void seat_clear_focus(struct wmiiv_seat *seat);
 
-void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *win);
+void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *window);
 
 // TODO (wmiiv) deprecated.
 void seat_set_focus_workspace(struct wmiiv_seat *seat,

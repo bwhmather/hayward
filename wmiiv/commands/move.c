@@ -100,34 +100,34 @@ static bool container_move_to_next_output(struct wmiiv_container *container,
 }
 
 // Returns true if moved
-static bool window_move_in_direction(struct wmiiv_container *win,
+static bool window_move_in_direction(struct wmiiv_container *window,
 		enum wlr_direction move_dir) {
-	if (!wmiiv_assert(container_is_window(win), "Expected window")) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return false;
 	}
 
 	// If moving a fullscreen view, only consider outputs
-	switch (win->pending.fullscreen_mode) {
+	switch (window->pending.fullscreen_mode) {
 	case FULLSCREEN_NONE:
 		break;
 	case FULLSCREEN_WORKSPACE:
-		return container_move_to_next_output(win,
-				win->pending.workspace->output, move_dir);
+		return container_move_to_next_output(window,
+				window->pending.workspace->output, move_dir);
 	case FULLSCREEN_GLOBAL:
 		return false;
 	}
 
-	if (window_is_floating(win)) {
+	if (window_is_floating(window)) {
 		return false;
 	}
 
 	// TODO (wmiiv) windows should always have a parent if not floating.
-	if (!win->pending.parent) {
+	if (!window->pending.parent) {
 		return false;
 	}
 
-	struct wmiiv_container *old_col = win->pending.parent;
-	int old_col_index = list_find(win->pending.workspace->tiling, old_col);
+	struct wmiiv_container *old_col = window->pending.parent;
+	int old_col_index = list_find(window->pending.workspace->tiling, old_col);
 
 	switch (move_dir) {
 	case WLR_DIRECTION_UP: {
@@ -151,8 +151,8 @@ static bool window_move_in_direction(struct wmiiv_container *win,
 					// No other windows.  Move to next
 					// workspace.
 
-					return container_move_to_next_output(win,
-						win->pending.workspace->output, move_dir);
+					return container_move_to_next_output(window,
+						window->pending.workspace->output, move_dir);
 				}
 
 				struct wmiiv_container *new_col = column_create();
@@ -160,17 +160,17 @@ static bool window_move_in_direction(struct wmiiv_container *win,
 				new_col->height_fraction = new_col->width_fraction = 0;
 				new_col->pending.layout = L_STACKED;
 
-				workspace_insert_tiling_direct(win->pending.workspace, new_col, 0);
+				workspace_insert_tiling_direct(window->pending.workspace, new_col, 0);
 				old_col_index += 1;
 			}
 
-			struct wmiiv_container *new_col = win->pending.workspace->tiling->items[old_col_index - 1];
-			window_move_to_column_from_direction(win, new_col, move_dir);
+			struct wmiiv_container *new_col = window->pending.workspace->tiling->items[old_col_index - 1];
+			window_move_to_column_from_direction(window, new_col, move_dir);
 
 			return true;
 		}
 	case WLR_DIRECTION_RIGHT: {
-			if (old_col_index == win->pending.workspace->tiling->length - 1) {
+			if (old_col_index == window->pending.workspace->tiling->length - 1) {
 				// Window is already in the right most column.
 				// If window is the only child of this column
 				// then attempt to move it to the next
@@ -178,8 +178,8 @@ static bool window_move_in_direction(struct wmiiv_container *win,
 				// the right and carry on as before.
 				if (old_col->pending.children->length == 1) {
 					// TODO find then move should be separate calls at this level of abstraction.
-					return container_move_to_next_output(win,
-						win->pending.workspace->output, move_dir);
+					return container_move_to_next_output(window,
+						window->pending.workspace->output, move_dir);
 				}
 
 				struct wmiiv_container *new_col = column_create();
@@ -187,11 +187,11 @@ static bool window_move_in_direction(struct wmiiv_container *win,
 				new_col->height_fraction = new_col->width_fraction = 0;
 				new_col->pending.layout = L_STACKED;
 
-				workspace_insert_tiling_direct(win->pending.workspace, new_col, old_col_index + 1);
+				workspace_insert_tiling_direct(window->pending.workspace, new_col, old_col_index + 1);
 			}
 
-			struct wmiiv_container *new_col = win->pending.workspace->tiling->items[old_col_index + 1];
-			window_move_to_column_from_direction(win, new_col, move_dir);
+			struct wmiiv_container *new_col = window->pending.workspace->tiling->items[old_col_index + 1];
+			window_move_to_column_from_direction(window, new_col, move_dir);
 
 			return true;
 		}
@@ -207,20 +207,20 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		return error;
 	}
 
-	struct wmiiv_container *win = config->handler_context.window;
+	struct wmiiv_container *window = config->handler_context.window;
 
-	if (!win) {
+	if (!window) {
 		return cmd_results_new(CMD_FAILURE, "Can only move windows");
 	}
 
-	if (win->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 		return cmd_results_new(CMD_FAILURE,
 				"Can't move fullscreen global container");
 	}
 
 	struct wmiiv_seat *seat = config->handler_context.seat;
-	struct wmiiv_container *old_parent = win->pending.parent;
-	struct wmiiv_workspace *old_ws = win->pending.workspace;
+	struct wmiiv_container *old_parent = window->pending.parent;
+	struct wmiiv_workspace *old_ws = window->pending.workspace;
 	struct wmiiv_output *old_output = old_ws ? old_ws->output : NULL;
 	struct wmiiv_node *destination = NULL;
 
@@ -277,7 +277,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 			// We have to create the workspace, but if the container is
 			// sticky and the workspace is going to be created on the same
 			// output, we'll bail out first.
-			if (container_is_sticky_or_child(win)) {
+			if (container_is_sticky_or_child(window)) {
 				struct wmiiv_output *new_output =
 					workspace_get_initial_output(ws_name);
 				if (old_output == new_output) {
@@ -292,9 +292,9 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		free(ws_name);
 
 		// Do the move.
-		window_move_to_workspace(win, ws);
+		window_move_to_workspace(window, ws);
 
-		ipc_event_window(win, "move");
+		ipc_event_window(window, "move");
 
 		// Restore focus to the original workspace.
 		struct wmiiv_container *focus = seat_get_focus_inactive_view(seat, &old_ws->node);
@@ -329,7 +329,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 
 	} else if (strcasecmp(argv[0], "output") == 0) {
 		struct wmiiv_output *new_output = output_in_direction(argv[1],
-				old_output, win->pending.x, win->pending.y);
+				old_output, window->pending.x, window->pending.y);
 		if (!new_output) {
 			return cmd_results_new(CMD_FAILURE,
 				"Can't find output with name/direction '%s'", argv[1]);
@@ -346,7 +346,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	if (container_is_sticky_or_child(win) && old_output &&
+	if (container_is_sticky_or_child(window) && old_output &&
 			node_has_ancestor(destination, &old_output->node)) {
 		return cmd_results_new(CMD_FAILURE, "Can't move sticky "
 				"container to another workspace on the same output");
@@ -363,7 +363,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 
 	switch (destination->type) {
 	case N_WORKSPACE:
-		window_move_to_workspace(win, destination->wmiiv_workspace);
+		window_move_to_workspace(window, destination->wmiiv_workspace);
 		break;
 	case N_OUTPUT: {
 			struct wmiiv_output *output = destination->wmiiv_output;
@@ -372,19 +372,19 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 				return cmd_results_new(CMD_FAILURE,
 						"Expected output to have a workspace");
 			}
-			window_move_to_workspace(win, ws);
+			window_move_to_workspace(window, ws);
 		}
 		break;
 	case N_WINDOW:
 		// TODO (wmiiv)
 	case N_COLUMN:
-		window_move_to_column(win, destination->wmiiv_container);
+		window_move_to_column(window, destination->wmiiv_container);
 		break;
 	case N_ROOT:
 		break;
 	}
 
-	ipc_event_window(win, "move");
+	ipc_event_window(window, "move");
 
 	// restore focus on destination output back to its last active workspace
 	struct wmiiv_workspace *new_workspace = new_output ?
@@ -402,7 +402,7 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 	}
 
 	// restore focus
-	if (focus == &win->node) {
+	if (focus == &window->node) {
 		focus = NULL;
 		if (old_parent) {
 			focus = seat_get_focus_inactive(seat, &old_parent->node);
@@ -516,18 +516,18 @@ static struct cmd_results *cmd_move_in_direction(
 		}
 	}
 
-	struct wmiiv_container *win = config->handler_context.window;
-	if (!win) {
+	struct wmiiv_container *window = config->handler_context.window;
+	if (!window) {
 		return cmd_results_new(CMD_FAILURE,
 				"Cannot move workspaces in a direction");
 	}
-	if (window_is_floating(win)) {
-		if (win->pending.fullscreen_mode) {
+	if (window_is_floating(window)) {
+		if (window->pending.fullscreen_mode) {
 			return cmd_results_new(CMD_FAILURE,
-					"Cannot move fullscreen floating win");
+					"Cannot move fullscreen floating window");
 		}
-		double lx = win->pending.x;
-		double ly = win->pending.y;
+		double lx = window->pending.x;
+		double ly = window->pending.y;
 		switch (direction) {
 		case WLR_DIRECTION_LEFT:
 			lx -= move_amt;
@@ -542,13 +542,13 @@ static struct cmd_results *cmd_move_in_direction(
 			ly += move_amt;
 			break;
 		}
-		container_floating_move_to(win, lx, ly);
+		container_floating_move_to(window, lx, ly);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
-	struct wmiiv_workspace *old_ws = win->pending.workspace;
-	struct wmiiv_container *old_parent = win->pending.parent;
+	struct wmiiv_workspace *old_ws = window->pending.workspace;
+	struct wmiiv_container *old_parent = window->pending.parent;
 
-	if (!window_move_in_direction(win, direction)) {
+	if (!window_move_in_direction(window, direction)) {
 		// Container didn't move
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
@@ -561,7 +561,7 @@ static struct cmd_results *cmd_move_in_direction(
 		workspace_consider_destroy(old_ws);
 	}
 
-	struct wmiiv_workspace *new_ws = win->pending.workspace;
+	struct wmiiv_workspace *new_ws = window->pending.workspace;
 
 	if (root->fullscreen_global) {
 		arrange_root();
@@ -572,18 +572,18 @@ static struct cmd_results *cmd_move_in_direction(
 		}
 	}
 
-	ipc_event_window(win, "move");
+	ipc_event_window(window, "move");
 
 	// Hack to re-focus container
 	seat_set_raw_focus(config->handler_context.seat, &new_ws->node);
-	seat_set_focus_window(config->handler_context.seat, win);
+	seat_set_focus_window(config->handler_context.seat, window);
 
 	if (old_ws != new_ws) {
 		ipc_event_workspace(old_ws, new_ws, "focus");
 		workspace_detect_urgent(old_ws);
 		workspace_detect_urgent(new_ws);
 	}
-	container_end_mouse_operation(win);
+	container_end_mouse_operation(window);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -626,8 +626,8 @@ static const char expected_position_syntax[] =
 	"'move position cursor|mouse|pointer'";
 
 static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
-	struct wmiiv_container *win = config->handler_context.window;
-	if (!win || !window_is_floating(win)) {
+	struct wmiiv_container *window = config->handler_context.window;
+	if (!window || !window_is_floating(window)) {
 		return cmd_results_new(CMD_FAILURE, "Only floating containers "
 				"can be moved to an absolute position");
 	}
@@ -657,22 +657,22 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		if (absolute) {
 			return cmd_results_new(CMD_INVALID, expected_position_syntax);
 		}
-		return cmd_move_to_position_pointer(win);
+		return cmd_move_to_position_pointer(window);
 	} else if (strcmp(argv[0], "center") == 0) {
 		double lx, ly;
 		if (absolute) {
-			lx = root->x + (root->width - win->pending.width) / 2;
-			ly = root->y + (root->height - win->pending.height) / 2;
+			lx = root->x + (root->width - window->pending.width) / 2;
+			ly = root->y + (root->height - window->pending.height) / 2;
 		} else {
-			struct wmiiv_workspace *ws = win->pending.workspace;
+			struct wmiiv_workspace *ws = window->pending.workspace;
 			if (!ws) {
 				struct wmiiv_seat *seat = config->handler_context.seat;
 				ws = seat_get_focused_workspace(seat);
 			}
-			lx = ws->x + (ws->width - win->pending.width) / 2;
-			ly = ws->y + (ws->height - win->pending.height) / 2;
+			lx = ws->x + (ws->width - window->pending.width) / 2;
+			ly = ws->y + (ws->height - window->pending.height) / 2;
 		}
-		container_floating_move_to(win, lx, ly);
+		container_floating_move_to(window, lx, ly);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
@@ -705,7 +705,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, "Invalid y position specified");
 	}
 
-	struct wmiiv_workspace *ws = win->pending.workspace;
+	struct wmiiv_workspace *ws = window->pending.workspace;
 	if (!ws) {
 		struct wmiiv_seat *seat = config->handler_context.seat;
 		ws = seat_get_focused_workspace(seat);
@@ -750,7 +750,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		lx.amount += ws->x;
 		ly.amount += ws->y;
 	}
-	container_floating_move_to(win, lx.amount, ly.amount);
+	container_floating_move_to(window, lx.amount, ly.amount);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 

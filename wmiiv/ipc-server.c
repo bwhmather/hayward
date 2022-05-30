@@ -51,7 +51,7 @@ struct ipc_client {
 	size_t write_buffer_len;
 	size_t write_buffer_size;
 	char *write_buffer;
-	// The following are for storing data between event_loop calls
+	// The followindowg are for storing data between event_loop calls
 	uint32_t pending_length;
 	enum ipc_command_type pending_type;
 };

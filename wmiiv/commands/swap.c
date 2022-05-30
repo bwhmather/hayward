@@ -13,75 +13,75 @@
 static const char expected_syntax[] =
 	"Expected 'swap container with id|con_id|mark <arg>'";
 
-static void swap_places(struct wmiiv_container *win1,
-		struct wmiiv_container *win2) {
+static void swap_places(struct wmiiv_container *window1,
+		struct wmiiv_container *window2) {
 	struct wmiiv_container *temp = malloc(sizeof(struct wmiiv_container));
-	temp->pending.x = win1->pending.x;
-	temp->pending.y = win1->pending.y;
-	temp->pending.width = win1->pending.width;
-	temp->pending.height = win1->pending.height;
-	temp->width_fraction = win1->width_fraction;
-	temp->height_fraction = win1->height_fraction;
-	temp->pending.parent = win1->pending.parent;
-	temp->pending.workspace = win1->pending.workspace;
-	bool temp_floating = window_is_floating(win1);
+	temp->pending.x = window1->pending.x;
+	temp->pending.y = window1->pending.y;
+	temp->pending.width = window1->pending.width;
+	temp->pending.height = window1->pending.height;
+	temp->width_fraction = window1->width_fraction;
+	temp->height_fraction = window1->height_fraction;
+	temp->pending.parent = window1->pending.parent;
+	temp->pending.workspace = window1->pending.workspace;
+	bool temp_floating = window_is_floating(window1);
 
-	win1->pending.x = win2->pending.x;
-	win1->pending.y = win2->pending.y;
-	win1->pending.width = win2->pending.width;
-	win1->pending.height = win2->pending.height;
-	win1->width_fraction = win2->width_fraction;
-	win1->height_fraction = win2->height_fraction;
+	window1->pending.x = window2->pending.x;
+	window1->pending.y = window2->pending.y;
+	window1->pending.width = window2->pending.width;
+	window1->pending.height = window2->pending.height;
+	window1->width_fraction = window2->width_fraction;
+	window1->height_fraction = window2->height_fraction;
 
-	win2->pending.x = temp->pending.x;
-	win2->pending.y = temp->pending.y;
-	win2->pending.width = temp->pending.width;
-	win2->pending.height = temp->pending.height;
-	win2->width_fraction = temp->width_fraction;
-	win2->height_fraction = temp->height_fraction;
+	window2->pending.x = temp->pending.x;
+	window2->pending.y = temp->pending.y;
+	window2->pending.width = temp->pending.width;
+	window2->pending.height = temp->pending.height;
+	window2->width_fraction = temp->width_fraction;
+	window2->height_fraction = temp->height_fraction;
 
-	int temp_index = container_sibling_index(win1);
-	if (win2->pending.parent) {
-		column_insert_child(win2->pending.parent, win1,
-				container_sibling_index(win2));
-	} else if (window_is_floating(win2)) {
-		workspace_add_floating(win2->pending.workspace, win1);
+	int temp_index = container_sibling_index(window1);
+	if (window2->pending.parent) {
+		column_insert_child(window2->pending.parent, window1,
+				container_sibling_index(window2));
+	} else if (window_is_floating(window2)) {
+		workspace_add_floating(window2->pending.workspace, window1);
 	} else {
-		workspace_insert_tiling(win2->pending.workspace, win1,
-				container_sibling_index(win2));
+		workspace_insert_tiling(window2->pending.workspace, window1,
+				container_sibling_index(window2));
 	}
 	if (temp->pending.parent) {
-		column_insert_child(temp->pending.parent, win2, temp_index);
+		column_insert_child(temp->pending.parent, window2, temp_index);
 	} else if (temp_floating) {
-		workspace_add_floating(temp->pending.workspace, win2);
+		workspace_add_floating(temp->pending.workspace, window2);
 	} else {
-		workspace_insert_tiling(temp->pending.workspace, win2, temp_index);
+		workspace_insert_tiling(temp->pending.workspace, window2, temp_index);
 	}
 
 	free(temp);
 }
 
-static void swap_focus(struct wmiiv_container *win1,
-		struct wmiiv_container *win2, struct wmiiv_seat *seat,
+static void swap_focus(struct wmiiv_container *window1,
+		struct wmiiv_container *window2, struct wmiiv_seat *seat,
 		struct wmiiv_container *focus) {
-	if (focus == win1 || focus == win2) {
-		struct wmiiv_workspace *ws1 = win1->pending.workspace;
-		struct wmiiv_workspace *ws2 = win2->pending.workspace;
-		enum wmiiv_container_layout layout1 = container_parent_layout(win1);
-		enum wmiiv_container_layout layout2 = container_parent_layout(win2);
-		if (focus == win1 && (layout2 == L_TABBED || layout2 == L_STACKED)) {
+	if (focus == window1 || focus == window2) {
+		struct wmiiv_workspace *ws1 = window1->pending.workspace;
+		struct wmiiv_workspace *ws2 = window2->pending.workspace;
+		enum wmiiv_container_layout layout1 = container_parent_layout(window1);
+		enum wmiiv_container_layout layout2 = container_parent_layout(window2);
+		if (focus == window1 && (layout2 == L_TABBED || layout2 == L_STACKED)) {
 			if (workspace_is_visible(ws2)) {
-				seat_set_raw_focus(seat, &win2->node);
+				seat_set_raw_focus(seat, &window2->node);
 			}
-			seat_set_focus_window(seat, ws1 != ws2 ? win2 : win1);
-		} else if (focus == win2 && (layout1 == L_TABBED
+			seat_set_focus_window(seat, ws1 != ws2 ? window2 : window1);
+		} else if (focus == window2 && (layout1 == L_TABBED
 					|| layout1 == L_STACKED)) {
 			if (workspace_is_visible(ws1)) {
-				seat_set_raw_focus(seat, &win1->node);
+				seat_set_raw_focus(seat, &window1->node);
 			}
-			seat_set_focus_window(seat, ws1 != ws2 ? win1 : win2);
+			seat_set_focus_window(seat, ws1 != ws2 ? window1 : window2);
 		} else if (ws1 != ws2) {
-			seat_set_focus_window(seat, focus == win1 ? win2 : win1);
+			seat_set_focus_window(seat, focus == window1 ? window2 : window1);
 		} else {
 			seat_set_focus_window(seat, focus);
 		}
@@ -95,36 +95,36 @@ static void swap_focus(struct wmiiv_container *win1,
 	}
 }
 
-void container_swap(struct wmiiv_container *win1, struct wmiiv_container *win2) {
-	if (!wmiiv_assert(win1 && win2, "Cannot swap with nothing")) {
+void container_swap(struct wmiiv_container *window1, struct wmiiv_container *window2) {
+	if (!wmiiv_assert(window1 && window2, "Cannot swap with nothing")) {
 		return;
 	}
-	if (!wmiiv_assert(container_is_window(win1), "Can only swap windows")) {
+	if (!wmiiv_assert(container_is_window(window1), "Can only swap windows")) {
 		return;
 	}
-	if (!wmiiv_assert(container_is_window(win1), "Can only swap windows")) {
+	if (!wmiiv_assert(container_is_window(window1), "Can only swap windows")) {
 		return;
 	}
 
 	wmiiv_log(WMIIV_DEBUG, "Swapping containers %zu and %zu",
-			win1->node.id, win2->node.id);
+			window1->node.id, window2->node.id);
 
-	enum wmiiv_fullscreen_mode fs1 = win1->pending.fullscreen_mode;
+	enum wmiiv_fullscreen_mode fs1 = window1->pending.fullscreen_mode;
 	if (fs1) {
-		container_fullscreen_disable(win1);
+		container_fullscreen_disable(window1);
 	}
-	enum wmiiv_fullscreen_mode fs2 = win2->pending.fullscreen_mode;
+	enum wmiiv_fullscreen_mode fs2 = window2->pending.fullscreen_mode;
 	if (fs2) {
-		container_fullscreen_disable(win2);
+		container_fullscreen_disable(window2);
 	}
 
 	struct wmiiv_seat *seat = config->handler_context.seat;
 	struct wmiiv_container *focus = seat_get_focused_container(seat);
 	struct wmiiv_workspace *vis1 =
-		output_get_active_workspace(win1->pending.workspace->output);
+		output_get_active_workspace(window1->pending.workspace->output);
 	struct wmiiv_workspace *vis2 =
-		output_get_active_workspace(win2->pending.workspace->output);
-	if (!wmiiv_assert(vis1 && vis2, "win1 or win2 are on an output without a"
+		output_get_active_workspace(window2->pending.workspace->output);
+	if (!wmiiv_assert(vis1 && vis2, "window1 or window2 are on an output without a"
 				"workspace. This should not happen")) {
 		return;
 	}
@@ -134,7 +134,7 @@ void container_swap(struct wmiiv_container *win1, struct wmiiv_container *win2) 
 		stored_prev_name = strdup(seat->prev_workspace_name);
 	}
 
-	swap_places(win1, win2);
+	swap_places(window1, window2);
 
 	if (!workspace_is_visible(vis1)) {
 		seat_set_focus(seat, seat_get_focus_inactive(seat, &vis1->node));
@@ -143,7 +143,7 @@ void container_swap(struct wmiiv_container *win1, struct wmiiv_container *win2) 
 		seat_set_focus(seat, seat_get_focus_inactive(seat, &vis2->node));
 	}
 
-	swap_focus(win1, win2, seat, focus);
+	swap_focus(window1, window2, seat, focus);
 
 	if (stored_prev_name) {
 		free(seat->prev_workspace_name);
@@ -151,10 +151,10 @@ void container_swap(struct wmiiv_container *win1, struct wmiiv_container *win2) 
 	}
 
 	if (fs1) {
-		container_set_fullscreen(win2, fs1);
+		container_set_fullscreen(window2, fs1);
 	}
 	if (fs2) {
-		container_set_fullscreen(win1, fs2);
+		container_set_fullscreen(window1, fs2);
 	}
 }
 

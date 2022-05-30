@@ -16,6 +16,6 @@ void arrange_workspace(struct wmiiv_workspace *workspace);
 
 void arrange_column(struct wmiiv_container *col);
 
-void arrange_window(struct wmiiv_container *win);
+void arrange_window(struct wmiiv_container *window);
 
 #endif
