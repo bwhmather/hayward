@@ -74,8 +74,6 @@ struct wmiiv_container {
 	char *title;           // The view's title (unformatted)
 	char *formatted_title; // The title displayed in the title bar
 
-	enum wmiiv_container_layout prev_split_layout;
-
 	// Whether stickiness has been enabled on this container. Use
 	// `container_is_sticky_[or_child]` rather than accessing this field
 	// directly; it'll also check that the container is floating.
