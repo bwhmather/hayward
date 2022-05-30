@@ -671,8 +671,8 @@ struct wmiiv_output *workspace_output_get_highest_available(
 	return NULL;
 }
 
-static bool find_urgent_iterator(struct wmiiv_container *con, void *data) {
-	return con->view && view_is_urgent(con->view);
+static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
+	return container->view && view_is_urgent(container->view);
 }
 
 void workspace_detect_urgent(struct wmiiv_workspace *workspace) {
@@ -687,7 +687,7 @@ void workspace_detect_urgent(struct wmiiv_workspace *workspace) {
 }
 
 void workspace_for_each_container(struct wmiiv_workspace *ws,
-		void (*f)(struct wmiiv_container *con, void *data), void *data) {
+		void (*f)(struct wmiiv_container *container, void *data), void *data) {
 	// Tiling
 	for (int i = 0; i < ws->tiling->length; ++i) {
 		struct wmiiv_container *container = ws->tiling->items[i];
@@ -703,7 +703,7 @@ void workspace_for_each_container(struct wmiiv_workspace *ws,
 }
 
 struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *ws,
-		bool (*test)(struct wmiiv_container *con, void *data), void *data) {
+		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
 	struct wmiiv_container *result = NULL;
 	// Tiling
 	for (int i = 0; i < ws->tiling->length; ++i) {
@@ -885,8 +885,8 @@ void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box) {
 	box->height = workspace->height;
 }
 
-static void count_tiling_views(struct wmiiv_container *con, void *data) {
-	if (container_is_window(con) && !window_is_floating(con)) {
+static void count_tiling_views(struct wmiiv_container *container, void *data) {
+	if (container_is_window(container) && !window_is_floating(container)) {
 		size_t *count = data;
 		*count += 1;
 	}
@@ -898,8 +898,8 @@ size_t workspace_num_tiling_views(struct wmiiv_workspace *ws) {
 	return count;
 }
 
-static void count_sticky_containers(struct wmiiv_container *con, void *data) {
-	if (container_is_sticky(con)) {
+static void count_sticky_containers(struct wmiiv_container *container, void *data) {
+	if (container_is_sticky(container)) {
 		size_t *count = data;
 		*count += 1;
 	}

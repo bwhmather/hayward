@@ -20,8 +20,8 @@ bool criteria_is_empty(struct criteria *criteria) {
 	return !criteria->title
 		&& !criteria->shell
 		&& !criteria->app_id
-		&& !criteria->con_mark
-		&& !criteria->con_id
+		&& !criteria->container_mark
+		&& !criteria->container_id
 #if HAVE_XWAYLAND
 		&& !criteria->class
 		&& !criteria->id
@@ -95,7 +95,7 @@ void criteria_destroy(struct criteria *criteria) {
 	pattern_destroy(criteria->instance);
 	pattern_destroy(criteria->window_role);
 #endif
-	pattern_destroy(criteria->con_mark);
+	pattern_destroy(criteria->container_mark);
 	free(criteria->workspace);
 	free(criteria->cmdlist);
 	free(criteria->raw);
@@ -143,25 +143,25 @@ static int cmp_urgent(const void *_a, const void *_b) {
 	return 0;
 }
 
-static void find_urgent_iterator(struct wmiiv_container *con, void *data) {
-	if (!con->view || !view_is_urgent(con->view)) {
+static void find_urgent_iterator(struct wmiiv_container *container, void *data) {
+	if (!container->view || !view_is_urgent(container->view)) {
 		return;
 	}
 	list_t *urgent_views = data;
-	list_add(urgent_views, con->view);
+	list_add(urgent_views, container->view);
 }
 
 static bool has_container_criteria(struct criteria *criteria) {
-	return criteria->con_mark || criteria->con_id;
+	return criteria->container_mark || criteria->container_id;
 }
 
 static bool criteria_matches_container(struct criteria *criteria,
 		struct wmiiv_container *container) {
-	if (criteria->con_mark) {
+	if (criteria->container_mark) {
 		bool exists = false;
-		struct wmiiv_container *con = container;
-		for (int i = 0; i < con->marks->length; ++i) {
-			if (regex_cmp(con->marks->items[i], criteria->con_mark->regex) >= 0) {
+		struct wmiiv_container *container = container;
+		for (int i = 0; i < container->marks->length; ++i) {
+			if (regex_cmp(container->marks->items[i], criteria->container_mark->regex) >= 0) {
 				exists = true;
 				break;
 			}
@@ -171,8 +171,8 @@ static bool criteria_matches_container(struct criteria *criteria,
 		}
 	}
 
-	if (criteria->con_id) { // Internal ID
-		if (container->node.id != criteria->con_id) {
+	if (criteria->container_id) { // Internal ID
+		if (container->node.id != criteria->container_id) {
 			return false;
 		}
 	}
@@ -479,9 +479,9 @@ enum criteria_token {
 static enum criteria_token token_from_name(char *name) {
 	if (strcmp(name, "app_id") == 0) {
 		return T_APP_ID;
-	} else if (strcmp(name, "con_id") == 0) {
+	} else if (strcmp(name, "container_id") == 0) {
 		return T_CON_ID;
-	} else if (strcmp(name, "con_mark") == 0) {
+	} else if (strcmp(name, "container_mark") == 0) {
 		return T_CON_MARK;
 #if HAVE_XWAYLAND
 	} else if (strcmp(name, "class") == 0) {
@@ -548,16 +548,16 @@ static bool parse_token(struct criteria *criteria, char *name, char *value) {
 			struct wmiiv_seat *seat = input_manager_current_seat();
 			struct wmiiv_container *focus = seat_get_focused_container(seat);
 			struct wmiiv_view *view = focus ? focus->view : NULL;
-			criteria->con_id = view ? view->container->node.id : 0;
+			criteria->container_id = view ? view->container->node.id : 0;
 		} else {
-			criteria->con_id = strtoul(value, &endptr, 10);
+			criteria->container_id = strtoul(value, &endptr, 10);
 			if (*endptr != 0) {
-				error = strdup("The value for 'con_id' should be '__focused__' or numeric");
+				error = strdup("The value for 'container_id' should be '__focused__' or numeric");
 			}
 		}
 		break;
 	case T_CON_MARK:
-		pattern_create(&criteria->con_mark, value);
+		pattern_create(&criteria->container_mark, value);
 		break;
 #if HAVE_XWAYLAND
 	case T_CLASS:

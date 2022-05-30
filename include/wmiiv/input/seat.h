@@ -25,7 +25,7 @@ struct wmiiv_seatop_impl {
 	void (*tablet_tool_tip)(struct wmiiv_seat *seat, struct wmiiv_tablet_tool *tool,
 			uint32_t time_msec, enum wlr_tablet_tool_tip_state state);
 	void (*end)(struct wmiiv_seat *seat);
-	void (*unref)(struct wmiiv_seat *seat, struct wmiiv_container *con);
+	void (*unref)(struct wmiiv_seat *seat, struct wmiiv_container *container);
 	void (*render)(struct wmiiv_seat *seat, struct wmiiv_output *output,
 			pixman_region32_t *damage);
 	bool allow_set_cursor;
@@ -246,26 +246,26 @@ enum wlr_edges find_resize_edge(struct wmiiv_container *cont,
 
 void seatop_begin_default(struct wmiiv_seat *seat);
 
-void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *con,
+void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *container,
 		uint32_t time_msec, double sx, double sy);
 
 void seatop_begin_down_on_surface(struct wmiiv_seat *seat,
 		struct wlr_surface *surface, uint32_t time_msec, double sx, double sy);
 
 void seatop_begin_move_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *con);
+		struct wmiiv_container *container);
 
 void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
-		struct wmiiv_container *con);
+		struct wmiiv_container *container);
 
 void seatop_begin_move_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *con);
+		struct wmiiv_container *container);
 
 void seatop_begin_resize_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *con, enum wlr_edges edge);
+		struct wmiiv_container *container, enum wlr_edges edge);
 
 void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *con, enum wlr_edges edge);
+		struct wmiiv_container *container, enum wlr_edges edge);
 
 struct wmiiv_container *seat_get_focus_inactive_floating(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace);
@@ -303,7 +303,7 @@ void seatop_end(struct wmiiv_seat *seat);
  * container (eg. because the container is destroying).
  * The seatop may choose to abort itself in response to this.
  */
-void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_container *con);
+void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_container *container);
 
 /**
  * Instructs a seatop to render anything that it needs to render

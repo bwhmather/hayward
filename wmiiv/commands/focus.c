@@ -182,9 +182,9 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 					}
 				}
 			} else {
-				struct wmiiv_container *desired_con = siblings->items[desired];
+				struct wmiiv_container *desired_container = siblings->items[desired];
 				struct wmiiv_container *c = seat_get_focus_inactive_view(
-						seat, &desired_con->node);
+						seat, &desired_container->node);
 				return &c->node;
 			}
 		}
@@ -211,20 +211,20 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 }
 
 static struct wmiiv_node *node_get_in_direction_floating(
-		struct wmiiv_container *con, struct wmiiv_seat *seat,
+		struct wmiiv_container *container, struct wmiiv_seat *seat,
 		enum wlr_direction dir) {
-	double ref_lx = con->pending.x + con->pending.width / 2;
-	double ref_ly = con->pending.y + con->pending.height / 2;
+	double ref_lx = container->pending.x + container->pending.width / 2;
+	double ref_ly = container->pending.y + container->pending.height / 2;
 	double closest_distance = DBL_MAX;
-	struct wmiiv_container *closest_con = NULL;
+	struct wmiiv_container *closest_container = NULL;
 
-	if (!con->pending.workspace) {
+	if (!container->pending.workspace) {
 		return NULL;
 	}
 
-	for (int i = 0; i < con->pending.workspace->floating->length; i++) {
-		struct wmiiv_container *floater = con->pending.workspace->floating->items[i];
-		if (floater == con) {
+	for (int i = 0; i < container->pending.workspace->floating->length; i++) {
+		struct wmiiv_container *floater = container->pending.workspace->floating->items[i];
+		if (floater == container) {
 			continue;
 		}
 		float distance = dir == WLR_DIRECTION_LEFT || dir == WLR_DIRECTION_RIGHT
@@ -238,11 +238,11 @@ static struct wmiiv_node *node_get_in_direction_floating(
 		}
 		if (distance < closest_distance) {
 			closest_distance = distance;
-			closest_con = floater;
+			closest_container = floater;
 		}
 	}
 
-	return closest_con ? &closest_con->node : NULL;
+	return closest_container ? &closest_container->node : NULL;
 }
 
 static struct cmd_results *focus_mode(struct wmiiv_workspace *ws,

@@ -42,55 +42,55 @@ static bool is_horizontal(uint32_t axis) {
 	return axis & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
 }
 
-struct wmiiv_container *container_find_resize_parent(struct wmiiv_container *con,
+struct wmiiv_container *container_find_resize_parent(struct wmiiv_container *container,
 		uint32_t axis) {
 	enum wmiiv_container_layout parallel_layout =
 		is_horizontal(axis) ? L_HORIZ : L_VERT;
 	bool allow_first = axis != WLR_EDGE_TOP && axis != WLR_EDGE_LEFT;
 	bool allow_last = axis != WLR_EDGE_RIGHT && axis != WLR_EDGE_BOTTOM;
 
-	while (con) {
-		list_t *siblings = container_get_siblings(con);
-		int index = container_sibling_index(con);
-		if (container_parent_layout(con) == parallel_layout &&
+	while (container) {
+		list_t *siblings = container_get_siblings(container);
+		int index = container_sibling_index(container);
+		if (container_parent_layout(container) == parallel_layout &&
 				siblings->length > 1 && (allow_first || index > 0) &&
 				(allow_last || index < siblings->length - 1)) {
-			return con;
+			return container;
 		}
-		con = con->pending.parent;
+		container = container->pending.parent;
 	}
 
 	return NULL;
 }
 
-void container_resize_tiled(struct wmiiv_container *con,
+void container_resize_tiled(struct wmiiv_container *container,
 		uint32_t axis, int amount) {
-	if (!con) {
+	if (!container) {
 		return;
 	}
 
-	con = container_find_resize_parent(con, axis);
-	if (!con) {
+	container = container_find_resize_parent(container, axis);
+	if (!container) {
 		// Can't resize in this direction
 		return;
 	}
 
 	// For HORIZONTAL or VERTICAL, we are growindowg in two directions so select
 	// both adjacent siblings. For RIGHT or DOWN, just select the next sibling.
-	// For LEFT or UP, convert it to a RIGHT or DOWN resize and reassign con to
+	// For LEFT or UP, convert it to a RIGHT or DOWN resize and reassign container to
 	// the previous sibling.
 	struct wmiiv_container *prev = NULL;
 	struct wmiiv_container *next = NULL;
-	list_t *siblings = container_get_siblings(con);
-	int index = container_sibling_index(con);
+	list_t *siblings = container_get_siblings(container);
+	int index = container_sibling_index(container);
 
 	if (axis == AXIS_HORIZONTAL || axis == AXIS_VERTICAL) {
 		if (index == 0) {
 			next = siblings->items[1];
 		} else if (index == siblings->length - 1) {
 			// Convert edge to top/left
-			next = con;
-			con = siblings->items[index - 1];
+			next = container;
+			container = siblings->items[index - 1];
 			amount = -amount;
 		} else {
 			prev = siblings->items[index - 1];
@@ -100,8 +100,8 @@ void container_resize_tiled(struct wmiiv_container *con,
 		if (!wmiiv_assert(index > 0, "Didn't expect first child")) {
 			return;
 		}
-		next = con;
-		con = siblings->items[index - 1];
+		next = container;
+		container = siblings->items[index - 1];
 		amount = -amount;
 	} else {
 		if (!wmiiv_assert(index < siblings->length - 1,
@@ -115,7 +115,7 @@ void container_resize_tiled(struct wmiiv_container *con,
 	int sibling_amount = prev ? ceil((double)amount / 2.0) : amount;
 
 	if (is_horizontal(axis)) {
-		if (con->pending.width + amount < MIN_SANE_W) {
+		if (container->pending.width + amount < MIN_SANE_W) {
 			return;
 		}
 		if (next->pending.width - sibling_amount < MIN_SANE_W) {
@@ -124,29 +124,29 @@ void container_resize_tiled(struct wmiiv_container *con,
 		if (prev && prev->pending.width - sibling_amount < MIN_SANE_W) {
 			return;
 		}
-		if (con->child_total_width <= 0) {
+		if (container->child_total_width <= 0) {
 			return;
 		}
 
 		// We're going to resize so snap all the width fractions to full pixels
 		// to avoid rounding issues
-		list_t *siblings = container_get_siblings(con);
+		list_t *siblings = container_get_siblings(container);
 		for (int i = 0; i < siblings->length; ++i) {
-			struct wmiiv_container *con = siblings->items[i];
-			con->width_fraction = con->pending.width / con->child_total_width;
+			struct wmiiv_container *container = siblings->items[i];
+			container->width_fraction = container->pending.width / container->child_total_width;
 		}
 
-		double amount_fraction = (double)amount / con->child_total_width;
+		double amount_fraction = (double)amount / container->child_total_width;
 		double sibling_amount_fraction =
 			prev ? amount_fraction / 2.0 : amount_fraction;
 
-		con->width_fraction += amount_fraction;
+		container->width_fraction += amount_fraction;
 		next->width_fraction -= sibling_amount_fraction;
 		if (prev) {
 			prev->width_fraction -= sibling_amount_fraction;
 		}
 	} else {
-		if (con->pending.height + amount < MIN_SANE_H) {
+		if (container->pending.height + amount < MIN_SANE_H) {
 			return;
 		}
 		if (next->pending.height - sibling_amount < MIN_SANE_H) {
@@ -155,33 +155,33 @@ void container_resize_tiled(struct wmiiv_container *con,
 		if (prev && prev->pending.height - sibling_amount < MIN_SANE_H) {
 			return;
 		}
-		if (con->child_total_height <= 0) {
+		if (container->child_total_height <= 0) {
 			return;
 		}
 
 		// We're going to resize so snap all the height fractions to full pixels
 		// to avoid rounding issues
-		list_t *siblings = container_get_siblings(con);
+		list_t *siblings = container_get_siblings(container);
 		for (int i = 0; i < siblings->length; ++i) {
-			struct wmiiv_container *con = siblings->items[i];
-			con->height_fraction = con->pending.height / con->child_total_height;
+			struct wmiiv_container *container = siblings->items[i];
+			container->height_fraction = container->pending.height / container->child_total_height;
 		}
 
-		double amount_fraction = (double)amount / con->child_total_height;
+		double amount_fraction = (double)amount / container->child_total_height;
 		double sibling_amount_fraction =
 			prev ? amount_fraction / 2.0 : amount_fraction;
 
-		con->height_fraction += amount_fraction;
+		container->height_fraction += amount_fraction;
 		next->height_fraction -= sibling_amount_fraction;
 		if (prev) {
 			prev->height_fraction -= sibling_amount_fraction;
 		}
 	}
 
-	if (con->pending.parent) {
-		arrange_column(con->pending.parent);
+	if (container->pending.parent) {
+		arrange_column(container->pending.parent);
 	} else {
-		arrange_workspace(con->pending.workspace);
+		arrange_workspace(container->pending.workspace);
 	}
 }
 
@@ -190,7 +190,7 @@ void container_resize_tiled(struct wmiiv_container *con,
  */
 static struct cmd_results *resize_adjust_floating(uint32_t axis,
 		struct movement_amount *amount) {
-	struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 	int grow_width = 0, grow_height = 0;
 
 	if (is_horizontal(axis)) {
@@ -203,15 +203,15 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
 	int min_width, max_width, min_height, max_height;
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);
-	if (con->pending.width + grow_width < min_width) {
-		grow_width = min_width - con->pending.width;
-	} else if (con->pending.width + grow_width > max_width) {
-		grow_width = max_width - con->pending.width;
+	if (container->pending.width + grow_width < min_width) {
+		grow_width = min_width - container->pending.width;
+	} else if (container->pending.width + grow_width > max_width) {
+		grow_width = max_width - container->pending.width;
 	}
-	if (con->pending.height + grow_height < min_height) {
-		grow_height = min_height - con->pending.height;
-	} else if (con->pending.height + grow_height > max_height) {
-		grow_height = max_height - con->pending.height;
+	if (container->pending.height + grow_height < min_height) {
+		grow_height = min_height - container->pending.height;
+	} else if (container->pending.height + grow_height > max_height) {
+		grow_height = max_height - container->pending.height;
 	}
 	int grow_x = 0, grow_y = 0;
 
@@ -227,17 +227,17 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
 	if (grow_width == 0 && grow_height == 0) {
 		return cmd_results_new(CMD_INVALID, "Cannot resize any further");
 	}
-	con->pending.x += grow_x;
-	con->pending.y += grow_y;
-	con->pending.width += grow_width;
-	con->pending.height += grow_height;
+	container->pending.x += grow_x;
+	container->pending.y += grow_y;
+	container->pending.width += grow_width;
+	container->pending.height += grow_height;
 
-	con->pending.content_x += grow_x;
-	con->pending.content_y += grow_y;
-	con->pending.content_width += grow_width;
-	con->pending.content_height += grow_height;
+	container->pending.content_x += grow_x;
+	container->pending.content_y += grow_y;
+	container->pending.content_width += grow_width;
+	container->pending.content_height += grow_height;
 
-	arrange_window(con);
+	arrange_window(container);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -275,26 +275,26 @@ static struct cmd_results *resize_adjust_tiled(uint32_t axis,
 /**
  * Implement `resize set` for a tiled container.
  */
-static struct cmd_results *resize_set_tiled(struct wmiiv_container *con,
+static struct cmd_results *resize_set_tiled(struct wmiiv_container *container,
 		struct movement_amount *width, struct movement_amount *height) {
 	if (width->amount) {
 		if (width->unit == MOVEMENT_UNIT_PPT ||
 				width->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
-			struct wmiiv_container *parent = con->pending.parent;
+			struct wmiiv_container *parent = container->pending.parent;
 			while (parent && parent->pending.layout != L_HORIZ) {
 				parent = parent->pending.parent;
 			}
 			if (parent) {
 				width->amount = parent->pending.width * width->amount / 100;
 			} else {
-				width->amount = con->pending.workspace->width * width->amount / 100;
+				width->amount = container->pending.workspace->width * width->amount / 100;
 			}
 			width->unit = MOVEMENT_UNIT_PX;
 		}
 		if (width->unit == MOVEMENT_UNIT_PX) {
-			container_resize_tiled(con, AXIS_HORIZONTAL,
-					width->amount - con->pending.width);
+			container_resize_tiled(container, AXIS_HORIZONTAL,
+					width->amount - container->pending.width);
 		}
 	}
 
@@ -302,20 +302,20 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_container *con,
 		if (height->unit == MOVEMENT_UNIT_PPT ||
 				height->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
-			struct wmiiv_container *parent = con->pending.parent;
+			struct wmiiv_container *parent = container->pending.parent;
 			while (parent && parent->pending.layout != L_VERT) {
 				parent = parent->pending.parent;
 			}
 			if (parent) {
 				height->amount = parent->pending.height * height->amount / 100;
 			} else {
-				height->amount = con->pending.workspace->height * height->amount / 100;
+				height->amount = container->pending.workspace->height * height->amount / 100;
 			}
 			height->unit = MOVEMENT_UNIT_PX;
 		}
 		if (height->unit == MOVEMENT_UNIT_PX) {
-			container_resize_tiled(con, AXIS_VERTICAL,
-					height->amount - con->pending.height);
+			container_resize_tiled(container, AXIS_VERTICAL,
+					height->amount - container->pending.height);
 		}
 	}
 
@@ -431,18 +431,18 @@ static struct cmd_results *cmd_resize_set(int argc, char **argv) {
 	}
 
 	// If 0, don't resize that dimension
-	struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 	if (width.amount <= 0) {
-		width.amount = con->pending.width;
+		width.amount = container->pending.width;
 	}
 	if (height.amount <= 0) {
-		height.amount = con->pending.height;
+		height.amount = container->pending.height;
 	}
 
-	if (container_is_window(con) && window_is_floating(con)) {
-		return resize_set_floating(con, &width, &height);
+	if (container_is_window(container) && window_is_floating(container)) {
+		return resize_set_floating(container, &width, &height);
 	}
-	return resize_set_tiled(con, &width, &height);
+	return resize_set_tiled(container, &width, &height);
 }
 
 /**

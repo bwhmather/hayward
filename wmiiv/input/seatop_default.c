@@ -744,8 +744,8 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 				desired = siblings->length - 1;
 			}
 
-			struct wmiiv_container *new_sibling_con = siblings->items[desired];
-			struct wmiiv_node *new_sibling = &new_sibling_con->node;
+			struct wmiiv_container *new_sibling_container = siblings->items[desired];
+			struct wmiiv_node *new_sibling = &new_sibling_container->node;
 			struct wmiiv_container *new_focus =
 				seat_get_focus_inactive_view(seat, new_sibling);
 			// Use the focused child of the tabbed/stacked container, not the

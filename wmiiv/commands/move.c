@@ -336,12 +336,12 @@ static struct cmd_results *cmd_move_container(bool no_auto_back_and_forth,
 		}
 		destination = seat_get_focus_inactive(seat, &new_output->node);
 	} else if (strcasecmp(argv[0], "mark") == 0) {
-		struct wmiiv_container *dest_con = window_find_mark(argv[1]);
-		if (dest_con == NULL) {
+		struct wmiiv_container *dest_container = window_find_mark(argv[1]);
+		if (dest_container == NULL) {
 			return cmd_results_new(CMD_FAILURE,
 					"Mark '%s' not found", argv[1]);
 		}
-		destination = &dest_con->node;
+		destination = &dest_container->node;
 	} else {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}

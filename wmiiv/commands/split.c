@@ -10,10 +10,10 @@
 #include "log.h"
 
 static struct cmd_results *do_split(int layout) {
-	struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 	struct wmiiv_workspace *ws = config->handler_context.workspace;
-	if (con) {
-		container_split(con, layout);
+	if (container) {
+		container_split(container, layout);
 	} else {
 		workspace_split(ws, layout);
 	}
@@ -29,12 +29,12 @@ static struct cmd_results *do_split(int layout) {
 
 static struct cmd_results *do_unsplit() {
 	// TODO (wmiiv)
-	// struct wmiiv_container *con = config->handler_context.container;
+	// struct wmiiv_container *container = config->handler_context.container;
 	struct wmiiv_workspace *ws = config->handler_context.workspace;
 
 	// TODO (wmiiv)
-	// if (con && con->pending.parent && con->pending.parent->pending.children->length == 1) {
-	// 	container_flatten(con->pending.parent);
+	// if (container && container->pending.parent && container->pending.parent->pending.children->length == 1) {
+	// 	container_flatten(container->pending.parent);
 	// } else {
 	// 	return cmd_results_new(CMD_FAILURE, "Can only flatten a child container with no siblings");
 	// }
@@ -102,9 +102,9 @@ struct cmd_results *cmd_splitt(int argc, char **argv) {
 		return error;
 	}
 
-	struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 
-	if (con && container_parent_layout(con) == L_VERT) {
+	if (container && container_parent_layout(container) == L_VERT) {
 		return do_split(L_HORIZ);
 	} else {
 		return do_split(L_VERT);

@@ -10,9 +10,9 @@
 #include "stringop.h"
 #include "util.h"
 
-static void rebuild_marks_iterator(struct wmiiv_container *con, void *data) {
-	if (container_is_window(con)) {
-		window_update_marks_textures(con);
+static void rebuild_marks_iterator(struct wmiiv_container *container, void *data) {
+	if (container_is_window(container)) {
+		window_update_marks_textures(container);
 	}
 }
 

@@ -11,7 +11,7 @@
 #include "stringop.h"
 
 static const char expected_syntax[] =
-	"Expected 'swap container with id|con_id|mark <arg>'";
+	"Expected 'swap container with id|container_id|mark <arg>'";
 
 static void swap_places(struct wmiiv_container *window1,
 		struct wmiiv_container *window2) {
@@ -158,9 +158,9 @@ void container_swap(struct wmiiv_container *window1, struct wmiiv_container *win
 	}
 }
 
-static bool test_con_id(struct wmiiv_container *container, void *data) {
-	size_t *con_id = data;
-	return container->node.id == *con_id;
+static bool test_container_id(struct wmiiv_container *container, void *data) {
+	size_t *container_id = data;
+	return container->node.id == *container_id;
 }
 
 #if HAVE_XWAYLAND
@@ -203,9 +203,9 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 		// TODO (wmiiv) should be root_find_window.
 		other = root_find_container(test_id, &id);
 #endif
-	} else if (strcasecmp(argv[2], "con_id") == 0) {
-		size_t con_id = atoi(value);
-		other = root_find_container(test_con_id, &con_id);
+	} else if (strcasecmp(argv[2], "container_id") == 0) {
+		size_t container_id = atoi(value);
+		other = root_find_container(test_container_id, &container_id);
 	} else if (strcasecmp(argv[2], "mark") == 0) {
 		other = root_find_container(test_mark, value);
 	} else {

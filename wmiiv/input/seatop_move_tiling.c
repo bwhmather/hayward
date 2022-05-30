@@ -318,13 +318,13 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 	}
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
-	if (e->target_window == con) {
+	if (e->target_window == container) {
 		e->target_workspace = NULL;
 		e->target_window = NULL;
 	}
-	if (e->moving_window == con) {
+	if (e->moving_window == container) {
 		seatop_begin_default(seat);
 	}
 }
@@ -359,8 +359,8 @@ void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
 }
 
 void seatop_begin_move_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *con) {
-	seatop_begin_move_tiling_threshold(seat, con);
+		struct wmiiv_container *container) {
+	seatop_begin_move_tiling_threshold(seat, container);
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (e) {
 		e->threshold_reached = true;

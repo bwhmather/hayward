@@ -237,11 +237,11 @@ void output_destroy(struct wmiiv_output *output) {
 	free(output);
 }
 
-static void untrack_output(struct wmiiv_container *con, void *data) {
+static void untrack_output(struct wmiiv_container *container, void *data) {
 	struct wmiiv_output *output = data;
-	int index = list_find(con->outputs, output);
+	int index = list_find(container->outputs, output);
 	if (index != -1) {
-		list_del(con->outputs, index);
+		list_del(container->outputs, index);
 	}
 }
 
@@ -326,7 +326,7 @@ void output_for_each_workspace(struct wmiiv_output *output,
 }
 
 void output_for_each_container(struct wmiiv_output *output,
-		void (*f)(struct wmiiv_container *con, void *data), void *data) {
+		void (*f)(struct wmiiv_container *container, void *data), void *data) {
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];
 		workspace_for_each_container(workspace, f, data);
@@ -345,7 +345,7 @@ struct wmiiv_workspace *output_find_workspace(struct wmiiv_output *output,
 }
 
 struct wmiiv_container *output_find_container(struct wmiiv_output *output,
-		bool (*test)(struct wmiiv_container *con, void *data), void *data) {
+		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
 	struct wmiiv_container *result = NULL;
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];

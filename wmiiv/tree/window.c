@@ -83,13 +83,13 @@ void window_detach(struct wmiiv_container *window) {
 }
 
 
-static bool find_by_mark_iterator(struct wmiiv_container *con, void *data) {
+static bool find_by_mark_iterator(struct wmiiv_container *container, void *data) {
 	char *mark = data;
-	if (!container_is_window(con)) {
+	if (!container_is_window(container)) {
 		return false;
 	}
 
-	if (!window_has_mark(con, mark)) {
+	if (!window_has_mark(container, mark)) {
 		return false;
 	}
 
@@ -101,44 +101,44 @@ struct wmiiv_container *window_find_mark(char *mark) {
 }
 
 bool window_find_and_unmark(char *mark) {
-	struct wmiiv_container *con = root_find_container(
+	struct wmiiv_container *container = root_find_container(
 		find_by_mark_iterator, mark);
-	if (!con) {
+	if (!container) {
 		return false;
 	}
 
-	for (int i = 0; i < con->marks->length; ++i) {
-		char *con_mark = con->marks->items[i];
-		if (strcmp(con_mark, mark) == 0) {
-			free(con_mark);
-			list_del(con->marks, i);
-			window_update_marks_textures(con);
-			ipc_event_window(con, "mark");
+	for (int i = 0; i < container->marks->length; ++i) {
+		char *container_mark = container->marks->items[i];
+		if (strcmp(container_mark, mark) == 0) {
+			free(container_mark);
+			list_del(container->marks, i);
+			window_update_marks_textures(container);
+			ipc_event_window(container, "mark");
 			return true;
 		}
 	}
 	return false;
 }
 
-void window_clear_marks(struct wmiiv_container *con) {
-	if (!wmiiv_assert(container_is_window(con), "Cannot only clear marks on windows")) {
+void window_clear_marks(struct wmiiv_container *container) {
+	if (!wmiiv_assert(container_is_window(container), "Cannot only clear marks on windows")) {
 		return;
 	}
 
-	for (int i = 0; i < con->marks->length; ++i) {
-		free(con->marks->items[i]);
+	for (int i = 0; i < container->marks->length; ++i) {
+		free(container->marks->items[i]);
 	}
-	con->marks->length = 0;
-	ipc_event_window(con, "mark");
+	container->marks->length = 0;
+	ipc_event_window(container, "mark");
 }
 
-bool window_has_mark(struct wmiiv_container *con, char *mark) {
-	if (!wmiiv_assert(container_is_window(con), "Cannot only check marks on windows")) {
+bool window_has_mark(struct wmiiv_container *container, char *mark) {
+	if (!wmiiv_assert(container_is_window(container), "Cannot only check marks on windows")) {
 		return false;
 	}
 
-	for (int i = 0; i < con->marks->length; ++i) {
-		char *item = con->marks->items[i];
+	for (int i = 0; i < container->marks->length; ++i) {
+		char *item = container->marks->items[i];
 		if (strcmp(item, mark) == 0) {
 			return true;
 		}
@@ -146,17 +146,17 @@ bool window_has_mark(struct wmiiv_container *con, char *mark) {
 	return false;
 }
 
-void window_add_mark(struct wmiiv_container *con, char *mark) {
-	if (!wmiiv_assert(container_is_window(con), "Cannot only mark windows")) {
+void window_add_mark(struct wmiiv_container *container, char *mark) {
+	if (!wmiiv_assert(container_is_window(container), "Cannot only mark windows")) {
 		return;
 	}
 
-	list_add(con->marks, strdup(mark));
-	ipc_event_window(con, "mark");
+	list_add(container->marks, strdup(mark));
+	ipc_event_window(container, "mark");
 }
 
 static void render_titlebar_text_texture(struct wmiiv_output *output,
-		struct wmiiv_container *con, struct wlr_texture **texture,
+		struct wmiiv_container *container, struct wlr_texture **texture,
 		struct border_colors *class, bool pango_markup, char *text) {
 	double scale = output->wlr_output->scale;
 	int width = 0;
@@ -226,9 +226,9 @@ static void render_titlebar_text_texture(struct wmiiv_output *output,
 	cairo_destroy(cairo);
 }
 
-static void update_marks_texture(struct wmiiv_container *con,
+static void update_marks_texture(struct wmiiv_container *container,
 		struct wlr_texture **texture, struct border_colors *class) {
-	struct wmiiv_output *output = container_get_effective_output(con);
+	struct wmiiv_output *output = container_get_effective_output(container);
 	if (!output) {
 		return;
 	}
@@ -236,13 +236,13 @@ static void update_marks_texture(struct wmiiv_container *con,
 		wlr_texture_destroy(*texture);
 		*texture = NULL;
 	}
-	if (!con->marks->length) {
+	if (!container->marks->length) {
 		return;
 	}
 
 	size_t len = 0;
-	for (int i = 0; i < con->marks->length; ++i) {
-		char *mark = con->marks->items[i];
+	for (int i = 0; i < container->marks->length; ++i) {
+		char *mark = container->marks->items[i];
 		if (mark[0] != '_') {
 			len += strlen(mark) + 2;
 		}
@@ -255,8 +255,8 @@ static void update_marks_texture(struct wmiiv_container *con,
 		return;
 	}
 
-	for (int i = 0; i < con->marks->length; ++i) {
-		char *mark = con->marks->items[i];
+	for (int i = 0; i < container->marks->length; ++i) {
+		char *mark = container->marks->items[i];
 		if (mark[0] != '_') {
 			snprintf(part, len + 1, "[%s]", mark);
 			strcat(buffer, part);
@@ -264,30 +264,30 @@ static void update_marks_texture(struct wmiiv_container *con,
 	}
 	free(part);
 
-	render_titlebar_text_texture(output, con, texture, class, false, buffer);
+	render_titlebar_text_texture(output, container, texture, class, false, buffer);
 
 	free(buffer);
 }
 
-void window_update_marks_textures(struct wmiiv_container *con) {
-	if (!wmiiv_assert(container_is_window(con), "Only windows have marks textures")) {
+void window_update_marks_textures(struct wmiiv_container *container) {
+	if (!wmiiv_assert(container_is_window(container), "Only windows have marks textures")) {
 		return;
 	}
 
 	if (!config->show_marks) {
 		return;
 	}
-	update_marks_texture(con, &con->marks_focused,
+	update_marks_texture(container, &container->marks_focused,
 			&config->border_colors.focused);
-	update_marks_texture(con, &con->marks_focused_inactive,
+	update_marks_texture(container, &container->marks_focused_inactive,
 			&config->border_colors.focused_inactive);
-	update_marks_texture(con, &con->marks_unfocused,
+	update_marks_texture(container, &container->marks_unfocused,
 			&config->border_colors.unfocused);
-	update_marks_texture(con, &con->marks_urgent,
+	update_marks_texture(container, &container->marks_urgent,
 			&config->border_colors.urgent);
-	update_marks_texture(con, &con->marks_focused_tab_title,
+	update_marks_texture(container, &container->marks_focused_tab_title,
 			&config->border_colors.focused_tab_title);
-	container_damage_whole(con);
+	container_damage_whole(container);
 }
 
 bool window_is_floating(struct wmiiv_container *window) {

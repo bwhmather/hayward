@@ -164,8 +164,8 @@ static void seat_tablet_pads_notify_enter(struct wmiiv_seat *seat,
 }
 
 /**
- * If con is a view, set it as active and enable keyboard input.
- * If con is a container, set all child views as active and don't enable
+ * If container is a view, set it as active and enable keyboard input.
+ * If container is a container, set all child views as active and don't enable
  * keyboard input on any.
  */
 static void seat_send_focus(struct wmiiv_node *node, struct wmiiv_seat *seat) {
@@ -271,9 +271,9 @@ static void handle_seat_node_destroy(struct wl_listener *listener, void *data) {
 	// Find new focus_inactive (ie. sibling, or workspace if no siblings left)
 	struct wmiiv_node *next_focus = NULL;
 	while (next_focus == NULL && parent != NULL) {
-		struct wmiiv_container *con =
+		struct wmiiv_container *container =
 			seat_get_focus_inactive_view(seat, parent);
-		next_focus = con ? &con->node : NULL;
+		next_focus = container ? &container->node : NULL;
 
 		if (next_focus == NULL && parent->type == N_WORKSPACE) {
 			next_focus = parent;
@@ -288,9 +288,9 @@ static void handle_seat_node_destroy(struct wl_listener *listener, void *data) {
 		if (!ws) {
 			return;
 		}
-		struct wmiiv_container *con =
+		struct wmiiv_container *container =
 			seat_get_focus_inactive_view(seat, &ws->node);
-		next_focus = con ? &(con->node) : &(ws->node);
+		next_focus = container ? &(container->node) : &(ws->node);
 	}
 
 	if (next_focus->type == N_WORKSPACE &&
@@ -1066,9 +1066,9 @@ bool seat_is_input_allowed(struct wmiiv_seat *seat,
 		(seat->exclusive_client == NULL && !server.session_lock.locked);
 }
 
-static void send_unfocus(struct wmiiv_container *con, void *data) {
-	if (con->view) {
-		view_set_activated(con->view, false);
+static void send_unfocus(struct wmiiv_container *container, void *data) {
+	if (container->view) {
+		view_set_activated(container->view, false);
 	}
 }
 
@@ -1279,8 +1279,8 @@ void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *wind
 }
 
 void seat_set_focus_container(struct wmiiv_seat *seat,
-		struct wmiiv_container *con) {
-	seat_set_focus(seat, con ? &con->node : NULL);
+		struct wmiiv_container *container) {
+	seat_set_focus(seat, container ? &container->node : NULL);
 }
 
 void seat_set_focus_workspace(struct wmiiv_seat *seat,
@@ -1581,9 +1581,9 @@ void seat_consider_warp_to_focus(struct wmiiv_seat *seat) {
 	}
 }
 
-void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
+void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
 	if (seat->seatop_impl->unref) {
-		seat->seatop_impl->unref(seat, con);
+		seat->seatop_impl->unref(seat, container);
 	}
 }
 

@@ -90,10 +90,10 @@ struct wmiiv_output *workspace_output_get_highest_available(
 void workspace_detect_urgent(struct wmiiv_workspace *workspace);
 
 void workspace_for_each_container(struct wmiiv_workspace *ws,
-		void (*f)(struct wmiiv_container *con, void *data), void *data);
+		void (*f)(struct wmiiv_container *container, void *data), void *data);
 
 struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *ws,
-		bool (*test)(struct wmiiv_container *con, void *data), void *data);
+		bool (*test)(struct wmiiv_container *container, void *data), void *data);
 
 /**
  * Wrap the workspace's tiling children in a new container.
@@ -103,20 +103,20 @@ struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *ws,
 void workspace_detach(struct wmiiv_workspace *workspace);
 
 struct wmiiv_container *workspace_add_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con);
+		struct wmiiv_container *container);
 
 void workspace_add_floating(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con);
+		struct wmiiv_container *container);
 
 /**
  * Adds a tiling container to the workspace without considering
- * the workspace_layout, so the con will not be split.
+ * the workspace_layout, so the container will not be split.
  */
 void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con, int index);
+		struct wmiiv_container *container, int index);
 
 struct wmiiv_container *workspace_insert_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con, int index);
+		struct wmiiv_container *container, int index);
 
 void workspace_remove_gaps(struct wmiiv_workspace *ws);
 

@@ -197,34 +197,34 @@ bool view_inhibit_idle(struct wmiiv_view *view) {
 
 bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
 	bool only_visible = true;
-	struct wmiiv_container *con = view->container;
-	while (con) {
-		enum wmiiv_container_layout layout = container_parent_layout(con);
+	struct wmiiv_container *container = view->container;
+	while (container) {
+		enum wmiiv_container_layout layout = container_parent_layout(container);
 		if (layout != L_TABBED && layout != L_STACKED) {
-			list_t *siblings = container_get_siblings(con);
+			list_t *siblings = container_get_siblings(container);
 			if (siblings && siblings->length > 1) {
 				only_visible = false;
 			}
 		} else {
 			only_visible = true;
 		}
-		con = con->pending.parent;
+		container = container->pending.parent;
 	}
 	return only_visible;
 }
 
 static bool view_is_only_visible(struct wmiiv_view *view) {
-	struct wmiiv_container *con = view->container;
-	while (con) {
-		enum wmiiv_container_layout layout = container_parent_layout(con);
+	struct wmiiv_container *container = view->container;
+	while (container) {
+		enum wmiiv_container_layout layout = container_parent_layout(container);
 		if (layout != L_TABBED && layout != L_STACKED) {
-			list_t *siblings = container_get_siblings(con);
+			list_t *siblings = container_get_siblings(container);
 			if (siblings && siblings->length > 1) {
 				return false;
 			}
 		}
 
-		con = con->pending.parent;
+		container = container->pending.parent;
 	}
 
 	return true;
@@ -588,7 +588,7 @@ static struct wmiiv_workspace *select_workspace(struct wmiiv_view *view) {
 
 static bool should_focus(struct wmiiv_view *view) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_container *prev_con = seat_get_focused_container(seat);
+	struct wmiiv_container *prev_container = seat_get_focused_container(seat);
 	struct wmiiv_workspace *prev_ws = seat_get_focused_workspace(seat);
 	struct wmiiv_workspace *map_ws = view->container->pending.workspace;
 
@@ -608,7 +608,7 @@ static bool should_focus(struct wmiiv_view *view) {
 
 	// If the view is the only one in the focused workspace, it'll get focus
 	// regardless of any no_focus criteria.
-	if (!view->container->pending.parent && !prev_con) {
+	if (!view->container->pending.parent && !prev_container) {
 		size_t num_children = view->container->pending.workspace->tiling->length +
 			view->container->pending.workspace->floating->length;
 		if (num_children == 1) {
@@ -869,20 +869,20 @@ void view_unmap(struct wmiiv_view *view) {
 }
 
 void view_update_size(struct wmiiv_view *view) {
-	struct wmiiv_container *con = view->container;
-	con->pending.content_width = view->geometry.width;
-	con->pending.content_height = view->geometry.height;
-	container_set_geometry_from_content(con);
+	struct wmiiv_container *container = view->container;
+	container->pending.content_width = view->geometry.width;
+	container->pending.content_height = view->geometry.height;
+	container_set_geometry_from_content(container);
 }
 
 void view_center_surface(struct wmiiv_view *view) {
-	struct wmiiv_container *con = view->container;
+	struct wmiiv_container *container = view->container;
 	// We always center the current coordinates rather than the next, as the
 	// geometry immediately affects the currently active rendering.
-	con->surface_x = fmax(con->current.content_x, con->current.content_x +
-			(con->current.content_width - view->geometry.width) / 2);
-	con->surface_y = fmax(con->current.content_y, con->current.content_y +
-			(con->current.content_height - view->geometry.height) / 2);
+	container->surface_x = fmax(container->current.content_x, container->current.content_x +
+			(container->current.content_width - view->geometry.width) / 2);
+	container->surface_y = fmax(container->current.content_y, container->current.content_y +
+			(container->current.content_height - view->geometry.height) / 2);
 }
 
 static const struct wmiiv_view_child_impl subsurface_impl;

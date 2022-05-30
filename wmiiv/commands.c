@@ -207,7 +207,7 @@ static void set_config_node(struct wmiiv_node *node, bool node_overridden) {
 }
 
 list_t *execute_command(char *_exec, struct wmiiv_seat *seat,
-		struct wmiiv_container *con) {
+		struct wmiiv_container *container) {
 	char *cmd;
 	char matched_delim = ';';
 	list_t *containers = NULL;
@@ -290,8 +290,8 @@ list_t *execute_command(char *_exec, struct wmiiv_seat *seat,
 
 
 		if (!using_criteria) {
-			if (con) {
-				set_config_node(&con->node, true);
+			if (container) {
+				set_config_node(&container->node, true);
 			} else {
 				set_config_node(seat_get_focus_inactive(seat, &root->node),
 						false);

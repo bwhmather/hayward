@@ -8,7 +8,7 @@
 
 struct wmiiv_container *column_create(void);
 
-void column_consider_destroy(struct wmiiv_container *con);
+void column_consider_destroy(struct wmiiv_container *container);
 
 /**
  * Search a container's descendants a container based on test criteria. Returns

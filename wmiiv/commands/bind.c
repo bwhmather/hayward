@@ -615,7 +615,7 @@ void seat_execute_command(struct wmiiv_seat *seat, struct wmiiv_binding *binding
 	}
 
 	wmiiv_log(WMIIV_DEBUG, "running command for binding: %s", binding->command);
-	struct wmiiv_container *con = NULL;
+	struct wmiiv_container *container = NULL;
 	if (binding->type == BINDING_MOUSESYM
 			|| binding->type == BINDING_MOUSECODE) {
 		struct wmiiv_workspace *ws;
@@ -623,11 +623,11 @@ void seat_execute_command(struct wmiiv_seat *seat, struct wmiiv_binding *binding
 		double sx, sy;
 		seat_get_target_at(
 			seat, seat->cursor->cursor->x, seat->cursor->cursor->y,
-			&ws, &con,
+			&ws, &container,
 			&surface, &sx, &sy);
 	}
 
-	list_t *res_list = execute_command(binding->command, seat, con);
+	list_t *res_list = execute_command(binding->command, seat, container);
 	bool success = true;
 	for (int i = 0; i < res_list->length; ++i) {
 		struct cmd_results *results = res_list->items[i];

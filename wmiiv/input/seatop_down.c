@@ -9,12 +9,12 @@
 #include "log.h"
 
 struct seatop_down_event {
-	struct wmiiv_container *con;
+	struct wmiiv_container *container;
 	struct wmiiv_seat *seat;
 	struct wl_listener surface_destroy;
 	struct wlr_surface *surface;
 	double ref_lx, ref_ly;         // cursor's x/y at start of op
-	double ref_con_lx, ref_con_ly; // container's x/y at start of op
+	double ref_container_lx, ref_container_ly; // container's x/y at start of op
 };
 
 static void handle_pointer_axis(struct wmiiv_seat *seat,
@@ -46,8 +46,8 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	if (seat_is_input_allowed(seat, e->surface)) {
 		double moved_x = seat->cursor->cursor->x - e->ref_lx;
 		double moved_y = seat->cursor->cursor->y - e->ref_ly;
-		double sx = e->ref_con_lx + moved_x;
-		double sy = e->ref_con_ly + moved_y;
+		double sx = e->ref_container_lx + moved_x;
+		double sy = e->ref_container_ly + moved_y;
 		wlr_seat_pointer_notify_motion(seat->wlr_seat, time_msec, sx, sy);
 	}
 }
@@ -67,8 +67,8 @@ static void handle_tablet_tool_motion(struct wmiiv_seat *seat,
 	if (seat_is_input_allowed(seat, e->surface)) {
 		double moved_x = seat->cursor->cursor->x - e->ref_lx;
 		double moved_y = seat->cursor->cursor->y - e->ref_ly;
-		double sx = e->ref_con_lx + moved_x;
-		double sy = e->ref_con_ly + moved_y;
+		double sx = e->ref_container_lx + moved_x;
+		double sy = e->ref_container_ly + moved_y;
 		wlr_tablet_v2_tablet_tool_notify_motion(tool->tablet_v2_tool, sx, sy);
 	}
 }
@@ -81,9 +81,9 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
 	}
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
 	struct seatop_down_event *e = seat->seatop_data;
-	if (e->con == con) {
+	if (e->container == container) {
 		seatop_begin_default(seat);
 	}
 }
@@ -104,13 +104,13 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 	.allow_set_cursor = true,
 };
 
-void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *con,
+void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *container,
 		uint32_t time_msec, double sx, double sy) {
-	seatop_begin_down_on_surface(seat, con->view->surface, time_msec, sx, sy);
+	seatop_begin_down_on_surface(seat, container->view->surface, time_msec, sx, sy);
 	struct seatop_down_event *e = seat->seatop_data;
-	e->con = con;
+	e->container = container;
 
-	container_raise_floating(con);
+	container_raise_floating(container);
 	transaction_commit_dirty();
 }
 
@@ -123,15 +123,15 @@ void seatop_begin_down_on_surface(struct wmiiv_seat *seat,
 	if (!e) {
 		return;
 	}
-	e->con = NULL;
+	e->container = NULL;
 	e->seat = seat;
 	e->surface = surface;
 	wl_signal_add(&e->surface->events.destroy, &e->surface_destroy);
 	e->surface_destroy.notify = handle_destroy;
 	e->ref_lx = seat->cursor->cursor->x;
 	e->ref_ly = seat->cursor->cursor->y;
-	e->ref_con_lx = sx;
-	e->ref_con_ly = sy;
+	e->ref_container_lx = sx;
+	e->ref_container_ly = sy;
 
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;

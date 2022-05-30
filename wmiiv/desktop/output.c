@@ -262,14 +262,14 @@ void output_drag_icons_for_each_surface(struct wmiiv_output *output,
 	}
 }
 
-static void for_each_surface_container_iterator(struct wmiiv_container *con,
+static void for_each_surface_container_iterator(struct wmiiv_container *container,
 		void *_data) {
-	if (!con->view || !view_is_visible(con->view)) {
+	if (!container->view || !view_is_visible(container->view)) {
 		return;
 	}
 
 	struct surface_iterator_data *data = _data;
-	output_view_for_each_surface(data->output, con->view,
+	output_view_for_each_surface(data->output, container->view,
 		data->user_iterator, data->user_data);
 }
 
@@ -306,24 +306,24 @@ static void output_for_each_surface(struct wmiiv_output *output,
 	};
 
 	struct wmiiv_workspace *workspace = output_get_active_workspace(output);
-	struct wmiiv_container *fullscreen_con = root->fullscreen_global;
-	if (!fullscreen_con) {
+	struct wmiiv_container *fullscreen_container = root->fullscreen_global;
+	if (!fullscreen_container) {
 		if (!workspace) {
 			return;
 		}
-		fullscreen_con = workspace->current.fullscreen;
+		fullscreen_container = workspace->current.fullscreen;
 	}
-	if (fullscreen_con) {
-		for_each_surface_container_iterator(fullscreen_con, &data);
-		container_for_each_child(fullscreen_con,
+	if (fullscreen_container) {
+		for_each_surface_container_iterator(fullscreen_container, &data);
+		container_for_each_child(fullscreen_container,
 			for_each_surface_container_iterator, &data);
 
 		// TODO: Show transient containers for fullscreen global
-		if (fullscreen_con == workspace->current.fullscreen) {
+		if (fullscreen_container == workspace->current.fullscreen) {
 			for (int i = 0; i < workspace->current.floating->length; ++i) {
 				struct wmiiv_container *floater =
 					workspace->current.floating->items[i];
-				if (container_is_transient_for(floater, fullscreen_con)) {
+				if (container_is_transient_for(floater, fullscreen_container)) {
 					for_each_surface_container_iterator(floater, &data);
 				}
 			}
@@ -522,16 +522,16 @@ static int output_repaint_timer_handler(void *data) {
 		return 0;
 	}
 
-	struct wmiiv_container *fullscreen_con = root->fullscreen_global;
-	if (!fullscreen_con) {
-		fullscreen_con = workspace->current.fullscreen;
+	struct wmiiv_container *fullscreen_container = root->fullscreen_global;
+	if (!fullscreen_container) {
+		fullscreen_container = workspace->current.fullscreen;
 	}
 
-	if (fullscreen_con && fullscreen_con->view && !debug.noscanout) {
+	if (fullscreen_container && fullscreen_container->view && !debug.noscanout) {
 		// Try to scan-out the fullscreen view
 		static bool last_scanned_out = false;
 		bool scanned_out =
-			scan_out_fullscreen_view(output, fullscreen_con->view);
+			scan_out_fullscreen_view(output, fullscreen_container->view);
 
 		if (scanned_out && !last_scanned_out) {
 			wmiiv_log(WMIIV_DEBUG, "Scanning out fullscreen view on %s",
@@ -701,33 +701,33 @@ void output_damage_box(struct wmiiv_output *output, struct wlr_box *_box) {
 	wlr_output_damage_add_box(output->damage, &box);
 }
 
-static void damage_child_views_iterator(struct wmiiv_container *con,
+static void damage_child_views_iterator(struct wmiiv_container *container,
 		void *data) {
-	if (!con->view || !view_is_visible(con->view)) {
+	if (!container->view || !view_is_visible(container->view)) {
 		return;
 	}
 	struct wmiiv_output *output = data;
 	bool whole = true;
-	output_view_for_each_surface(output, con->view, damage_surface_iterator,
+	output_view_for_each_surface(output, container->view, damage_surface_iterator,
 			&whole);
 }
 
 void output_damage_whole_container(struct wmiiv_output *output,
-		struct wmiiv_container *con) {
+		struct wmiiv_container *container) {
 	// Pad the box by 1px, because the width is a double and might be a fraction
 	struct wlr_box box = {
-		.x = con->current.x - output->lx - 1,
-		.y = con->current.y - output->ly - 1,
-		.width = con->current.width + 2,
-		.height = con->current.height + 2,
+		.x = container->current.x - output->lx - 1,
+		.y = container->current.y - output->ly - 1,
+		.width = container->current.width + 2,
+		.height = container->current.height + 2,
 	};
 	scale_box(&box, output->wlr_output->scale);
 	wlr_output_damage_add_box(output->damage, &box);
 	// Damage subsurfaces as well, which may extend outside the box
-	if (con->view) {
-		damage_child_views_iterator(con, output);
+	if (container->view) {
+		damage_child_views_iterator(container, output);
 	} else {
-		container_for_each_child(con, damage_child_views_iterator, output);
+		container_for_each_child(container, damage_child_views_iterator, output);
 	}
 }
 
@@ -820,10 +820,10 @@ static void handle_mode(struct wl_listener *listener, void *data) {
 	update_output_manager_config(output->server);
 }
 
-static void update_textures(struct wmiiv_container *con, void *data) {
-	container_update_title_textures(con);
-	if (container_is_window(con)) {
-		window_update_marks_textures(con);
+static void update_textures(struct wmiiv_container *container, void *data) {
+	container_update_title_textures(container);
+	if (container_is_window(container)) {
+		window_update_marks_textures(container);
 	}
 }
 

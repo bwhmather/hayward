@@ -6,9 +6,9 @@
 #include "wmiiv/tree/workspace.h"
 #include "wmiiv/commands.h"
 
-static void close_container_iterator(struct wmiiv_container *con, void *data) {
-	if (con->view) {
-		view_close(con->view);
+static void close_container_iterator(struct wmiiv_container *container, void *data) {
+	if (container->view) {
+		view_close(container->view);
 	}
 }
 
@@ -17,12 +17,12 @@ struct cmd_results *cmd_kill(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *con = config->handler_context.container;
+	struct wmiiv_container *container = config->handler_context.container;
 	struct wmiiv_workspace *ws = config->handler_context.workspace;
 
-	if (con) {
-		close_container_iterator(con, NULL);
-		container_for_each_child(con, close_container_iterator, NULL);
+	if (container) {
+		close_container_iterator(container, NULL);
+		container_for_each_child(container, close_container_iterator, NULL);
 	} else {
 		workspace_for_each_container(ws, close_container_iterator, NULL);
 	}

@@ -133,12 +133,12 @@ struct wmiiv_container {
 #include "wmiiv/tree/window.h"
 
 
-bool container_is_column(struct wmiiv_container *con);
-bool container_is_window(struct wmiiv_container *con);
+bool container_is_column(struct wmiiv_container *container);
+bool container_is_window(struct wmiiv_container *container);
 
-void container_destroy(struct wmiiv_container *con);
+void container_destroy(struct wmiiv_container *container);
 
-void container_begin_destroy(struct wmiiv_container *con);
+void container_begin_destroy(struct wmiiv_container *container);
 
 void container_for_each_child(struct wmiiv_container *container,
 		void (*f)(struct wmiiv_container *container, void *data), void *data);
@@ -154,7 +154,7 @@ struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_
 bool container_has_ancestor(struct wmiiv_container *container,
 		struct wmiiv_container *ancestor);
 
-void container_update_textures_recursive(struct wmiiv_container *con);
+void container_update_textures_recursive(struct wmiiv_container *container);
 
 void container_damage_whole(struct wmiiv_container *container);
 
@@ -173,13 +173,13 @@ size_t container_titlebar_height(void);
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height);
 
-void container_floating_resize_and_center(struct wmiiv_container *con);
+void container_floating_resize_and_center(struct wmiiv_container *container);
 
-void container_floating_set_default_size(struct wmiiv_container *con);
+void container_floating_set_default_size(struct wmiiv_container *container);
 
-void container_set_resizing(struct wmiiv_container *con, bool resizing);
+void container_set_resizing(struct wmiiv_container *container, bool resizing);
 
-void container_set_geometry_from_content(struct wmiiv_container *con);
+void container_set_geometry_from_content(struct wmiiv_container *container);
 
 /**
  * Get a container's box in layout coordinates.
@@ -189,24 +189,24 @@ void container_get_box(struct wmiiv_container *container, struct wlr_box *box);
 /**
  * Move a floating container by the specified amount.
  */
-void container_floating_translate(struct wmiiv_container *con,
+void container_floating_translate(struct wmiiv_container *container,
 		double x_amount, double y_amount);
 
 /**
  * Choose an output for the floating container's new position.
  */
-struct wmiiv_output *container_floating_find_output(struct wmiiv_container *con);
+struct wmiiv_output *container_floating_find_output(struct wmiiv_container *container);
 
 /**
  * Move a floating container to a new layout-local position.
  */
-void container_floating_move_to(struct wmiiv_container *con,
+void container_floating_move_to(struct wmiiv_container *container,
 		double lx, double ly);
 
 /**
  * Move a floating container to the center of the workspace.
  */
-void container_floating_move_to_center(struct wmiiv_container *con);
+void container_floating_move_to_center(struct wmiiv_container *container);
 
 bool container_has_urgent_child(struct wmiiv_container *container);
 
@@ -216,13 +216,13 @@ bool container_has_urgent_child(struct wmiiv_container *container);
  */
 void container_end_mouse_operation(struct wmiiv_container *container);
 
-void container_set_fullscreen(struct wmiiv_container *con,
+void container_set_fullscreen(struct wmiiv_container *container,
 		enum wmiiv_fullscreen_mode mode);
 
 /**
  * Convenience function.
  */
-void container_fullscreen_disable(struct wmiiv_container *con);
+void container_fullscreen_disable(struct wmiiv_container *container);
 
 /**
  * Walk up the container tree branch starting at the given container, and return
@@ -236,14 +236,14 @@ struct wmiiv_container *container_toplevel_ancestor(
  * This is the most recently entered output.
  * If the container is not on any output, return NULL.
  */
-struct wmiiv_output *container_get_effective_output(struct wmiiv_container *con);
+struct wmiiv_output *container_get_effective_output(struct wmiiv_container *container);
 
-void container_discover_outputs(struct wmiiv_container *con);
+void container_discover_outputs(struct wmiiv_container *container);
 
-enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *con);
+enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *container);
 
 enum wmiiv_container_layout container_current_parent_layout(
-		struct wmiiv_container *con);
+		struct wmiiv_container *container);
 
 list_t *container_get_siblings(struct wmiiv_container *container);
 
@@ -251,9 +251,9 @@ int container_sibling_index(struct wmiiv_container *child);
 
 list_t *container_get_current_siblings(struct wmiiv_container *container);
 
-void container_handle_fullscreen_reparent(struct wmiiv_container *con);
+void container_handle_fullscreen_reparent(struct wmiiv_container *container);
 
-void container_swap(struct wmiiv_container *con1, struct wmiiv_container *con2);
+void container_swap(struct wmiiv_container *container1, struct wmiiv_container *container2);
 
 struct wmiiv_container *container_split(struct wmiiv_container *child,
 		enum wmiiv_container_layout layout);
@@ -261,10 +261,10 @@ struct wmiiv_container *container_split(struct wmiiv_container *child,
 bool container_is_transient_for(struct wmiiv_container *child,
 		struct wmiiv_container *ancestor);
 
-void container_raise_floating(struct wmiiv_container *con);
+void container_raise_floating(struct wmiiv_container *container);
 
-bool container_is_sticky(struct wmiiv_container *con);
+bool container_is_sticky(struct wmiiv_container *container);
 
-bool container_is_sticky_or_child(struct wmiiv_container *con);
+bool container_is_sticky_or_child(struct wmiiv_container *container);
 
 #endif

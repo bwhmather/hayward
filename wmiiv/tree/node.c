@@ -130,22 +130,22 @@ struct wmiiv_node *node_get_parent(struct wmiiv_node *node) {
 		}
 		return NULL;
 	case N_COLUMN: {
-			struct wmiiv_container *con = node->wmiiv_container;
-			if (con->pending.parent) {
-				return &con->pending.parent->node;
+			struct wmiiv_container *container = node->wmiiv_container;
+			if (container->pending.parent) {
+				return &container->pending.parent->node;
 			}
-			if (con->pending.workspace) {
-				return &con->pending.workspace->node;
+			if (container->pending.workspace) {
+				return &container->pending.workspace->node;
 			}
 		}
 		return NULL;
 	case N_WINDOW: {
-			struct wmiiv_container *con = node->wmiiv_container;
-			if (con->pending.parent) {
-				return &con->pending.parent->node;
+			struct wmiiv_container *container = node->wmiiv_container;
+			if (container->pending.parent) {
+				return &container->pending.parent->node;
 			}
-			if (con->pending.workspace) {
-				return &con->pending.workspace->node;
+			if (container->pending.workspace) {
+				return &container->pending.workspace->node;
 			}
 		}
 		return NULL;

@@ -1059,10 +1059,10 @@ static void check_constraint_region(struct wmiiv_cursor *cursor) {
 	if (cursor->active_confine_requires_warp && view) {
 		cursor->active_confine_requires_warp = false;
 
-		struct wmiiv_container *con = view->container;
+		struct wmiiv_container *container = view->container;
 
-		double sx = cursor->cursor->x - con->pending.content_x + view->geometry.x;
-		double sy = cursor->cursor->y - con->pending.content_y + view->geometry.y;
+		double sx = cursor->cursor->x - container->pending.content_x + view->geometry.x;
+		double sy = cursor->cursor->y - container->pending.content_y + view->geometry.y;
 
 		if (!pixman_region32_contains_point(region,
 				floor(sx), floor(sy), NULL)) {
@@ -1073,8 +1073,8 @@ static void check_constraint_region(struct wmiiv_cursor *cursor) {
 				double sy = (boxes[0].y1 + boxes[0].y2) / 2.;
 
 				wlr_cursor_warp_closest(cursor->cursor, NULL,
-					sx + con->pending.content_x - view->geometry.x,
-					sy + con->pending.content_y - view->geometry.y);
+					sx + container->pending.content_x - view->geometry.x,
+					sy + container->pending.content_y - view->geometry.y);
 
 				cursor_rebase(cursor);
 			}
@@ -1542,10 +1542,10 @@ static void warp_to_constraint_cursor_hint(struct wmiiv_cursor *cursor) {
 		double sy = constraint->current.cursor_hint.y;
 
 		struct wmiiv_view *view = view_from_wlr_surface(constraint->surface);
-		struct wmiiv_container *con = view->container;
+		struct wmiiv_container *container = view->container;
 
-		double lx = sx + con->pending.content_x - view->geometry.x;
-		double ly = sy + con->pending.content_y - view->geometry.y;
+		double lx = sx + container->pending.content_x - view->geometry.x;
+		double ly = sy + container->pending.content_y - view->geometry.y;
 
 		wlr_cursor_warp(cursor->cursor, NULL, lx, ly);
 

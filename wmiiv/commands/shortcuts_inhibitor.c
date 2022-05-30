@@ -12,13 +12,13 @@ struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {
 		return error;
 	}
 
-	struct wmiiv_container *con = config->handler_context.container;
-	if (!con || !con->view) {
+	struct wmiiv_container *container = config->handler_context.container;
+	if (!container || !container->view) {
 		return cmd_results_new(CMD_INVALID,
 				"Only views can have shortcuts inhibitors");
 	}
 
-	struct wmiiv_view *view = con->view;
+	struct wmiiv_view *view = container->view;
 	if (strcmp(argv[0], "enable") == 0) {
 		view->shortcuts_inhibit = SHORTCUTS_INHIBIT_ENABLE;
 	} else if (strcmp(argv[0], "disable") == 0) {

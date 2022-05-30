@@ -6,7 +6,7 @@
 #include "wmiiv/input/seat.h"
 
 struct seatop_move_floating_event {
-	struct wmiiv_container *con;
+	struct wmiiv_container *container;
 	double dx, dy; // cursor offset in container
 };
 
@@ -15,7 +15,7 @@ static void finalize_move(struct wmiiv_seat *seat) {
 
 	// We "move" the container to its own location
 	// so it discovers its output again.
-	container_floating_move_to(e->con, e->con->pending.x, e->con->pending.y);
+	container_floating_move_to(e->container, e->container->pending.x, e->container->pending.y);
 	transaction_commit_dirty();
 
 	seatop_begin_default(seat);
@@ -39,15 +39,15 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_move_floating_event *e = seat->seatop_data;
 	struct wlr_cursor *cursor = seat->cursor->cursor;
-	desktop_damage_whole_container(e->con);
-	container_floating_move_to(e->con, cursor->x - e->dx, cursor->y - e->dy);
-	desktop_damage_whole_container(e->con);
+	desktop_damage_whole_container(e->container);
+	container_floating_move_to(e->container, cursor->x - e->dx, cursor->y - e->dy);
+	desktop_damage_whole_container(e->container);
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
 	struct seatop_move_floating_event *e = seat->seatop_data;
-	if (e->con == con) {
+	if (e->container == container) {
 		seatop_begin_default(seat);
 	}
 }
@@ -60,7 +60,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_move_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *con) {
+		struct wmiiv_container *container) {
 	seatop_end(seat);
 
 	struct wmiiv_cursor *cursor = seat->cursor;
@@ -69,14 +69,14 @@ void seatop_begin_move_floating(struct wmiiv_seat *seat,
 	if (!e) {
 		return;
 	}
-	e->con = con;
-	e->dx = cursor->cursor->x - con->pending.x;
-	e->dy = cursor->cursor->y - con->pending.y;
+	e->container = container;
+	e->dx = cursor->cursor->x - container->pending.x;
+	e->dy = cursor->cursor->y - container->pending.y;
 
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;
 
-	container_raise_floating(con);
+	container_raise_floating(container);
 	transaction_commit_dirty();
 
 	cursor_set_image(cursor, "grab", NULL);

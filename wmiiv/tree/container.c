@@ -30,77 +30,77 @@
 #include "log.h"
 #include "stringop.h"
 
-bool container_is_column(struct wmiiv_container* con) {
-	return con->view == NULL;
+bool container_is_column(struct wmiiv_container* container) {
+	return container->view == NULL;
 }
 
-bool container_is_window(struct wmiiv_container* con) {
-	return con->view != NULL;
+bool container_is_window(struct wmiiv_container* container) {
+	return container->view != NULL;
 }
 
-void container_destroy(struct wmiiv_container *con) {
-	if (!wmiiv_assert(con->node.destroying,
+void container_destroy(struct wmiiv_container *container) {
+	if (!wmiiv_assert(container->node.destroying,
 				"Tried to free container which wasn't marked as destroying")) {
 		return;
 	}
-	if (!wmiiv_assert(con->node.ntxnrefs == 0, "Tried to free container "
+	if (!wmiiv_assert(container->node.ntxnrefs == 0, "Tried to free container "
 				"which is still referenced by transactions")) {
 		return;
 	}
-	free(con->title);
-	free(con->formatted_title);
-	wlr_texture_destroy(con->title_focused);
-	wlr_texture_destroy(con->title_focused_inactive);
-	wlr_texture_destroy(con->title_unfocused);
-	wlr_texture_destroy(con->title_urgent);
-	wlr_texture_destroy(con->title_focused_tab_title);
-	list_free(con->pending.children);
-	list_free(con->current.children);
-	list_free(con->outputs);
+	free(container->title);
+	free(container->formatted_title);
+	wlr_texture_destroy(container->title_focused);
+	wlr_texture_destroy(container->title_focused_inactive);
+	wlr_texture_destroy(container->title_unfocused);
+	wlr_texture_destroy(container->title_urgent);
+	wlr_texture_destroy(container->title_focused_tab_title);
+	list_free(container->pending.children);
+	list_free(container->current.children);
+	list_free(container->outputs);
 
-	list_free_items_and_destroy(con->marks);
-	wlr_texture_destroy(con->marks_focused);
-	wlr_texture_destroy(con->marks_focused_inactive);
-	wlr_texture_destroy(con->marks_unfocused);
-	wlr_texture_destroy(con->marks_urgent);
-	wlr_texture_destroy(con->marks_focused_tab_title);
+	list_free_items_and_destroy(container->marks);
+	wlr_texture_destroy(container->marks_focused);
+	wlr_texture_destroy(container->marks_focused_inactive);
+	wlr_texture_destroy(container->marks_unfocused);
+	wlr_texture_destroy(container->marks_urgent);
+	wlr_texture_destroy(container->marks_focused_tab_title);
 
-	if (con->view && con->view->container == con) {
-		con->view->container = NULL;
-		if (con->view->destroying) {
-			view_destroy(con->view);
+	if (container->view && container->view->container == container) {
+		container->view->container = NULL;
+		if (container->view->destroying) {
+			view_destroy(container->view);
 		}
 	}
 
-	free(con);
+	free(container);
 }
 
-void container_begin_destroy(struct wmiiv_container *con) {
-	if (con->view) {
-		ipc_event_window(con, "close");
+void container_begin_destroy(struct wmiiv_container *container) {
+	if (container->view) {
+		ipc_event_window(container, "close");
 	}
 	// The workspace must have the fullscreen pointer cleared so that the
 	// seat code can find an appropriate new focus.
-	if (con->pending.fullscreen_mode == FULLSCREEN_WORKSPACE && con->pending.workspace) {
-		con->pending.workspace->fullscreen = NULL;
+	if (container->pending.fullscreen_mode == FULLSCREEN_WORKSPACE && container->pending.workspace) {
+		container->pending.workspace->fullscreen = NULL;
 	}
 
-	wl_signal_emit(&con->node.events.destroy, &con->node);
+	wl_signal_emit(&container->node.events.destroy, &container->node);
 
-	container_end_mouse_operation(con);
+	container_end_mouse_operation(container);
 
-	con->node.destroying = true;
-	node_set_dirty(&con->node);
+	container->node.destroying = true;
+	node_set_dirty(&container->node);
 
-	if (con->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		container_fullscreen_disable(con);
+	if (container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+		container_fullscreen_disable(container);
 	}
 
-	if (con->pending.parent || con->pending.workspace) {
-		if (container_is_window(con)) {
-			window_detach(con);
+	if (container->pending.parent || container->pending.workspace) {
+		if (container_is_window(container)) {
+			window_detach(container);
 		} else {
-			column_detach(con);
+			column_detach(container);
 		}
 	}
 }
@@ -165,15 +165,15 @@ void container_damage_whole(struct wmiiv_container *container) {
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
  */
-struct wmiiv_output *container_get_effective_output(struct wmiiv_container *con) {
-	if (con->outputs->length == 0) {
+struct wmiiv_output *container_get_effective_output(struct wmiiv_container *container) {
+	if (container->outputs->length == 0) {
 		return NULL;
 	}
-	return con->outputs->items[con->outputs->length - 1];
+	return container->outputs->items[container->outputs->length - 1];
 }
 
 static void render_titlebar_text_texture(struct wmiiv_output *output,
-		struct wmiiv_container *con, struct wlr_texture **texture,
+		struct wmiiv_container *container, struct wlr_texture **texture,
 		struct border_colors *class, bool pango_markup, char *text) {
 	// TODO (wmiiv) duplicated in in window. remove once columns stop rendering titles.
 	double scale = output->wlr_output->scale;
@@ -244,9 +244,9 @@ static void render_titlebar_text_texture(struct wmiiv_output *output,
 	cairo_destroy(cairo);
 }
 
-static void update_title_texture(struct wmiiv_container *con,
+static void update_title_texture(struct wmiiv_container *container,
 		struct wlr_texture **texture, struct border_colors *class) {
-	struct wmiiv_output *output = container_get_effective_output(con);
+	struct wmiiv_output *output = container_get_effective_output(container);
 	if (!output) {
 		return;
 	}
@@ -254,12 +254,12 @@ static void update_title_texture(struct wmiiv_container *con,
 		wlr_texture_destroy(*texture);
 		*texture = NULL;
 	}
-	if (!con->formatted_title) {
+	if (!container->formatted_title) {
 		return;
 	}
 
-	render_titlebar_text_texture(output, con, texture, class,
-		config->pango_markup, con->formatted_title);
+	render_titlebar_text_texture(output, container, texture, class,
+		config->pango_markup, container->formatted_title);
 }
 
 void container_update_title_textures(struct wmiiv_container *container) {
@@ -329,24 +329,24 @@ size_t container_build_representation(enum wmiiv_container_layout layout,
 	return len;
 }
 
-void container_update_representation(struct wmiiv_container *con) {
-	if (!con->view) {
-		size_t len = container_build_representation(con->pending.layout,
-				con->pending.children, NULL);
-		free(con->formatted_title);
-		con->formatted_title = calloc(len + 1, sizeof(char));
-		if (!wmiiv_assert(con->formatted_title,
+void container_update_representation(struct wmiiv_container *container) {
+	if (!container->view) {
+		size_t len = container_build_representation(container->pending.layout,
+				container->pending.children, NULL);
+		free(container->formatted_title);
+		container->formatted_title = calloc(len + 1, sizeof(char));
+		if (!wmiiv_assert(container->formatted_title,
 					"Unable to allocate title string")) {
 			return;
 		}
-		container_build_representation(con->pending.layout, con->pending.children,
-				con->formatted_title);
-		container_update_title_textures(con);
+		container_build_representation(container->pending.layout, container->pending.children,
+				container->formatted_title);
+		container_update_title_textures(container);
 	}
-	if (con->pending.parent) {
-		container_update_representation(con->pending.parent);
-	} else if (con->pending.workspace) {
-		workspace_update_representation(con->pending.workspace);
+	if (container->pending.parent) {
+		container_update_representation(container->pending.parent);
+	} else if (container->pending.workspace) {
+		workspace_update_representation(container->pending.workspace);
 	}
 }
 
@@ -393,66 +393,66 @@ void floating_calculate_constraints(int *min_width, int *max_width,
 
 }
 
-static void floating_natural_resize(struct wmiiv_container *con) {
+static void floating_natural_resize(struct wmiiv_container *container) {
 	int min_width, max_width, min_height, max_height;
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);
-	if (!con->view) {
-		con->pending.width = fmax(min_width, fmin(con->pending.width, max_width));
-		con->pending.height = fmax(min_height, fmin(con->pending.height, max_height));
+	if (!container->view) {
+		container->pending.width = fmax(min_width, fmin(container->pending.width, max_width));
+		container->pending.height = fmax(min_height, fmin(container->pending.height, max_height));
 	} else {
-		struct wmiiv_view *view = con->view;
-		con->pending.content_width =
+		struct wmiiv_view *view = container->view;
+		container->pending.content_width =
 			fmax(min_width, fmin(view->natural_width, max_width));
-		con->pending.content_height =
+		container->pending.content_height =
 			fmax(min_height, fmin(view->natural_height, max_height));
-		container_set_geometry_from_content(con);
+		container_set_geometry_from_content(container);
 	}
 }
 
-void container_floating_resize_and_center(struct wmiiv_container *con) {
-	struct wmiiv_workspace *ws = con->pending.workspace;
+void container_floating_resize_and_center(struct wmiiv_container *container) {
+	struct wmiiv_workspace *ws = container->pending.workspace;
 
 	struct wlr_box ob;
 	wlr_output_layout_get_box(root->output_layout, ws->output->wlr_output, &ob);
 	if (wlr_box_empty(&ob)) {
 		// On NOOP output. Will be called again when moved to an output
-		con->pending.x = 0;
-		con->pending.y = 0;
-		con->pending.width = 0;
-		con->pending.height = 0;
+		container->pending.x = 0;
+		container->pending.y = 0;
+		container->pending.width = 0;
+		container->pending.height = 0;
 		return;
 	}
 
-	floating_natural_resize(con);
-	if (!con->view) {
-		if (con->pending.width > ws->width || con->pending.height > ws->height) {
-			con->pending.x = ob.x + (ob.width - con->pending.width) / 2;
-			con->pending.y = ob.y + (ob.height - con->pending.height) / 2;
+	floating_natural_resize(container);
+	if (!container->view) {
+		if (container->pending.width > ws->width || container->pending.height > ws->height) {
+			container->pending.x = ob.x + (ob.width - container->pending.width) / 2;
+			container->pending.y = ob.y + (ob.height - container->pending.height) / 2;
 		} else {
-			con->pending.x = ws->x + (ws->width - con->pending.width) / 2;
-			con->pending.y = ws->y + (ws->height - con->pending.height) / 2;
+			container->pending.x = ws->x + (ws->width - container->pending.width) / 2;
+			container->pending.y = ws->y + (ws->height - container->pending.height) / 2;
 		}
 	} else {
-		if (con->pending.content_width > ws->width
-				|| con->pending.content_height > ws->height) {
-			con->pending.content_x = ob.x + (ob.width - con->pending.content_width) / 2;
-			con->pending.content_y = ob.y + (ob.height - con->pending.content_height) / 2;
+		if (container->pending.content_width > ws->width
+				|| container->pending.content_height > ws->height) {
+			container->pending.content_x = ob.x + (ob.width - container->pending.content_width) / 2;
+			container->pending.content_y = ob.y + (ob.height - container->pending.content_height) / 2;
 		} else {
-			con->pending.content_x = ws->x + (ws->width - con->pending.content_width) / 2;
-			con->pending.content_y = ws->y + (ws->height - con->pending.content_height) / 2;
+			container->pending.content_x = ws->x + (ws->width - container->pending.content_width) / 2;
+			container->pending.content_y = ws->y + (ws->height - container->pending.content_height) / 2;
 		}
 
 		// If the view's border is B_NONE then these properties are ignored.
-		con->pending.border_top = con->pending.border_bottom = true;
-		con->pending.border_left = con->pending.border_right = true;
+		container->pending.border_top = container->pending.border_bottom = true;
+		container->pending.border_left = container->pending.border_right = true;
 
-		container_set_geometry_from_content(con);
+		container_set_geometry_from_content(container);
 	}
 }
 
-void container_floating_set_default_size(struct wmiiv_container *con) {
-	if (!wmiiv_assert(con->pending.workspace, "Expected a container on a workspace")) {
+void container_floating_set_default_size(struct wmiiv_container *container) {
+	if (!wmiiv_assert(container->pending.workspace, "Expected a container on a workspace")) {
 		return;
 	}
 
@@ -460,17 +460,17 @@ void container_floating_set_default_size(struct wmiiv_container *con) {
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);
 	struct wlr_box *box = calloc(1, sizeof(struct wlr_box));
-	workspace_get_box(con->pending.workspace, box);
+	workspace_get_box(container->pending.workspace, box);
 
 	double width = fmax(min_width, fmin(box->width * 0.5, max_width));
 	double height = fmax(min_height, fmin(box->height * 0.75, max_height));
-	if (!con->view) {
-		con->pending.width = width;
-		con->pending.height = height;
+	if (!container->view) {
+		container->pending.width = width;
+		container->pending.height = height;
 	} else {
-		con->pending.content_width = width;
-		con->pending.content_height = height;
-		container_set_geometry_from_content(con);
+		container->pending.content_width = width;
+		container->pending.content_height = height;
+		container_set_geometry_from_content(container);
 	}
 
 	free(box);
@@ -481,44 +481,44 @@ void container_floating_set_default_size(struct wmiiv_container *con) {
  * Indicate to clients in this container that they are participating in (or
  * have just finished) an interactive resize
  */
-void container_set_resizing(struct wmiiv_container *con, bool resizing) {
-	if (!con) {
+void container_set_resizing(struct wmiiv_container *container, bool resizing) {
+	if (!container) {
 		return;
 	}
 
-	if (con->view) {
-		if (con->view->impl->set_resizing) {
-			con->view->impl->set_resizing(con->view, resizing);
+	if (container->view) {
+		if (container->view->impl->set_resizing) {
+			container->view->impl->set_resizing(container->view, resizing);
 		}
 	} else {
-		for (int i = 0; i < con->pending.children->length; ++i ) {
-			struct wmiiv_container *child = con->pending.children->items[i];
+		for (int i = 0; i < container->pending.children->length; ++i ) {
+			struct wmiiv_container *child = container->pending.children->items[i];
 			container_set_resizing(child, resizing);
 		}
 	}
 }
 
-void container_set_geometry_from_content(struct wmiiv_container *con) {
-	if (!wmiiv_assert(con->view, "Expected a view")) {
+void container_set_geometry_from_content(struct wmiiv_container *container) {
+	if (!wmiiv_assert(container->view, "Expected a view")) {
 		return;
 	}
-	if (!wmiiv_assert(window_is_floating(con), "Expected a floating view")) {
+	if (!wmiiv_assert(window_is_floating(container), "Expected a floating view")) {
 		return;
 	}
 	size_t border_width = 0;
 	size_t top = 0;
 
-	if (con->pending.border != B_CSD && !con->pending.fullscreen_mode) {
-		border_width = con->pending.border_thickness * (con->pending.border != B_NONE);
-		top = con->pending.border == B_NORMAL ?
+	if (container->pending.border != B_CSD && !container->pending.fullscreen_mode) {
+		border_width = container->pending.border_thickness * (container->pending.border != B_NONE);
+		top = container->pending.border == B_NORMAL ?
 			container_titlebar_height() : border_width;
 	}
 
-	con->pending.x = con->pending.content_x - border_width;
-	con->pending.y = con->pending.content_y - top;
-	con->pending.width = con->pending.content_width + border_width * 2;
-	con->pending.height = top + con->pending.content_height + border_width;
-	node_set_dirty(&con->node);
+	container->pending.x = container->pending.content_x - border_width;
+	container->pending.y = container->pending.content_y - top;
+	container->pending.width = container->pending.content_width + border_width * 2;
+	container->pending.height = top + container->pending.content_height + border_width;
+	node_set_dirty(&container->node);
 }
 
 void container_get_box(struct wmiiv_container *container, struct wlr_box *box) {
@@ -531,21 +531,21 @@ void container_get_box(struct wmiiv_container *container, struct wlr_box *box) {
 /**
  * Translate the container's position as well as all children.
  */
-void container_floating_translate(struct wmiiv_container *con,
+void container_floating_translate(struct wmiiv_container *container,
 		double x_amount, double y_amount) {
-	con->pending.x += x_amount;
-	con->pending.y += y_amount;
-	con->pending.content_x += x_amount;
-	con->pending.content_y += y_amount;
+	container->pending.x += x_amount;
+	container->pending.y += y_amount;
+	container->pending.content_x += x_amount;
+	container->pending.content_y += y_amount;
 
-	if (con->pending.children) {
-		for (int i = 0; i < con->pending.children->length; ++i) {
-			struct wmiiv_container *child = con->pending.children->items[i];
+	if (container->pending.children) {
+		for (int i = 0; i < container->pending.children->length; ++i) {
+			struct wmiiv_container *child = container->pending.children->items[i];
 			container_floating_translate(child, x_amount, y_amount);
 		}
 	}
 
-	node_set_dirty(&con->node);
+	node_set_dirty(&container->node);
 }
 
 /**
@@ -555,9 +555,9 @@ void container_floating_translate(struct wmiiv_container *con,
  * one, otherwise we'll choose whichever output is closest to the container's
  * center.
  */
-struct wmiiv_output *container_floating_find_output(struct wmiiv_container *con) {
-	double center_x = con->pending.x + con->pending.width / 2;
-	double center_y = con->pending.y + con->pending.height / 2;
+struct wmiiv_output *container_floating_find_output(struct wmiiv_container *container) {
+	double center_x = container->pending.x + container->pending.width / 2;
+	double center_y = container->pending.y + container->pending.height / 2;
 	struct wmiiv_output *closest_output = NULL;
 	double closest_distance = DBL_MAX;
 	for (int i = 0; i < root->outputs->length; ++i) {
@@ -606,19 +606,19 @@ void container_floating_move_to(struct wmiiv_container *window,
 	}
 }
 
-void container_floating_move_to_center(struct wmiiv_container *con) {
-	if (!wmiiv_assert(window_is_floating(con),
+void container_floating_move_to_center(struct wmiiv_container *container) {
+	if (!wmiiv_assert(window_is_floating(container),
 			"Expected a floating container")) {
 		return;
 	}
-	struct wmiiv_workspace *ws = con->pending.workspace;
-	double new_lx = ws->x + (ws->width - con->pending.width) / 2;
-	double new_ly = ws->y + (ws->height - con->pending.height) / 2;
-	container_floating_translate(con, new_lx - con->pending.x, new_ly - con->pending.y);
+	struct wmiiv_workspace *ws = container->pending.workspace;
+	double new_lx = ws->x + (ws->width - container->pending.width) / 2;
+	double new_ly = ws->y + (ws->height - container->pending.height) / 2;
+	container_floating_translate(container, new_lx - container->pending.x, new_ly - container->pending.y);
 }
 
-static bool find_urgent_iterator(struct wmiiv_container *con, void *data) {
-	return con->view && view_is_urgent(con->view);
+static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
+	return container->view && view_is_urgent(container->view);
 }
 
 bool container_has_urgent_child(struct wmiiv_container *container) {
@@ -642,32 +642,32 @@ static bool devid_from_fd(int fd, dev_t *devid) {
 	return true;
 }
 
-static void set_fullscreen(struct wmiiv_container *con, bool enable) {
-	if (!con->view) {
+static void set_fullscreen(struct wmiiv_container *container, bool enable) {
+	if (!container->view) {
 		return;
 	}
-	if (con->view->impl->set_fullscreen) {
-		con->view->impl->set_fullscreen(con->view, enable);
-		if (con->view->foreign_toplevel) {
+	if (container->view->impl->set_fullscreen) {
+		container->view->impl->set_fullscreen(container->view, enable);
+		if (container->view->foreign_toplevel) {
 			wlr_foreign_toplevel_handle_v1_set_fullscreen(
-				con->view->foreign_toplevel, enable);
+				container->view->foreign_toplevel, enable);
 		}
 	}
 
-	if (!server.linux_dmabuf_v1 || !con->view->surface) {
+	if (!server.linux_dmabuf_v1 || !container->view->surface) {
 		return;
 	}
 	if (!enable) {
 		wlr_linux_dmabuf_v1_set_surface_feedback(server.linux_dmabuf_v1,
-			con->view->surface, NULL);
+			container->view->surface, NULL);
 		return;
 	}
 
-	if (!con->pending.workspace || !con->pending.workspace->output) {
+	if (!container->pending.workspace || !container->pending.workspace->output) {
 		return;
 	}
 
-	struct wmiiv_output *output = con->pending.workspace->output;
+	struct wmiiv_output *output = container->pending.workspace->output;
 	struct wlr_output *wlr_output = output->wlr_output;
 
 	// TODO: add wlroots helpers for all of this stuff
@@ -719,7 +719,7 @@ static void set_fullscreen(struct wmiiv_container *con, bool enable) {
 		.tranches_len = sizeof(tranches) / sizeof(tranches[0]),
 	};
 	wlr_linux_dmabuf_v1_set_surface_feedback(server.linux_dmabuf_v1,
-		con->view->surface, &feedback);
+		container->view->surface, &feedback);
 
 	wlr_drm_format_set_finish(&scanout_formats);
 }
@@ -834,15 +834,15 @@ void container_fullscreen_disable(struct wmiiv_container *window) {
 	ipc_event_window(window, "fullscreen_mode");
 }
 
-void container_set_fullscreen(struct wmiiv_container *con,
+void container_set_fullscreen(struct wmiiv_container *container,
 		enum wmiiv_fullscreen_mode mode) {
-	if (con->pending.fullscreen_mode == mode) {
+	if (container->pending.fullscreen_mode == mode) {
 		return;
 	}
 
 	switch (mode) {
 	case FULLSCREEN_NONE:
-		container_fullscreen_disable(con);
+		container_fullscreen_disable(container);
 		break;
 	case FULLSCREEN_WORKSPACE:
 		// TODO (wmiiv) if disabling previous fullscreen window is
@@ -851,19 +851,19 @@ void container_set_fullscreen(struct wmiiv_container *con,
 		if (root->fullscreen_global) {
 			container_fullscreen_disable(root->fullscreen_global);
 		}
-		if (con->pending.workspace && con->pending.workspace->fullscreen) {
-			container_fullscreen_disable(con->pending.workspace->fullscreen);
+		if (container->pending.workspace && container->pending.workspace->fullscreen) {
+			container_fullscreen_disable(container->pending.workspace->fullscreen);
 		}
-		container_fullscreen_workspace(con);
+		container_fullscreen_workspace(container);
 		break;
 	case FULLSCREEN_GLOBAL:
 		if (root->fullscreen_global) {
 			container_fullscreen_disable(root->fullscreen_global);
 		}
-		if (con->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-			container_fullscreen_disable(con);
+		if (container->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+			container_fullscreen_disable(container);
 		}
-		container_fullscreen_global(con);
+		container_fullscreen_global(container);
 		break;
 	}
 }
@@ -889,14 +889,14 @@ static void surface_send_leave_iterator(struct wlr_surface *surface,
 	wlr_surface_send_leave(surface, wlr_output);
 }
 
-void container_discover_outputs(struct wmiiv_container *con) {
-	struct wlr_box con_box = {
-		.x = con->current.x,
-		.y = con->current.y,
-		.width = con->current.width,
-		.height = con->current.height,
+void container_discover_outputs(struct wmiiv_container *container) {
+	struct wlr_box container_box = {
+		.x = container->current.x,
+		.y = container->current.y,
+		.width = container->current.width,
+		.height = container->current.height,
 	};
-	struct wmiiv_output *old_output = container_get_effective_output(con);
+	struct wmiiv_output *old_output = container_get_effective_output(container);
 
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
@@ -904,60 +904,60 @@ void container_discover_outputs(struct wmiiv_container *con) {
 		output_get_box(output, &output_box);
 		struct wlr_box intersection;
 		bool intersects =
-			wlr_box_intersection(&intersection, &con_box, &output_box);
-		int index = list_find(con->outputs, output);
+			wlr_box_intersection(&intersection, &container_box, &output_box);
+		int index = list_find(container->outputs, output);
 
 		if (intersects && index == -1) {
 			// Send enter
-			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", con, output);
-			if (con->view) {
-				view_for_each_surface(con->view,
+			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", container, output);
+			if (container->view) {
+				view_for_each_surface(container->view,
 						surface_send_enter_iterator, output->wlr_output);
-				if (con->view->foreign_toplevel) {
+				if (container->view->foreign_toplevel) {
 					wlr_foreign_toplevel_handle_v1_output_enter(
-							con->view->foreign_toplevel, output->wlr_output);
+							container->view->foreign_toplevel, output->wlr_output);
 				}
 			}
-			list_add(con->outputs, output);
+			list_add(container->outputs, output);
 		} else if (!intersects && index != -1) {
 			// Send leave
-			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", con, output);
-			if (con->view) {
-				view_for_each_surface(con->view,
+			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", container, output);
+			if (container->view) {
+				view_for_each_surface(container->view,
 					surface_send_leave_iterator, output->wlr_output);
-				if (con->view->foreign_toplevel) {
+				if (container->view->foreign_toplevel) {
 					wlr_foreign_toplevel_handle_v1_output_leave(
-							con->view->foreign_toplevel, output->wlr_output);
+							container->view->foreign_toplevel, output->wlr_output);
 				}
 			}
-			list_del(con->outputs, index);
+			list_del(container->outputs, index);
 		}
 	}
-	struct wmiiv_output *new_output = container_get_effective_output(con);
+	struct wmiiv_output *new_output = container_get_effective_output(container);
 	double old_scale = old_output && old_output->enabled ?
 		old_output->wlr_output->scale : -1;
 	double new_scale = new_output ? new_output->wlr_output->scale : -1;
 	if (old_scale != new_scale) {
-		container_update_title_textures(con);
-		if (container_is_window(con)) {
-			window_update_marks_textures(con);
+		container_update_title_textures(container);
+		if (container_is_window(container)) {
+			window_update_marks_textures(container);
 		}
 	}
 }
 
-enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *con) {
-	if (container_is_window(con)) {
-		if (con->pending.parent) {
-			return con->pending.parent->pending.layout;
+enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *container) {
+	if (container_is_window(container)) {
+		if (container->pending.parent) {
+			return container->pending.parent->pending.layout;
 		}
 		return L_NONE;
 	} else {
 		// TODO (wmiiv) There should be no need for this branch.  Can
 		// probably all be moved to window module.
-		if (con->pending.parent) {
-			return con->pending.parent->pending.layout;
+		if (container->pending.parent) {
+			return container->pending.parent->pending.layout;
 		}
-		if (con->pending.workspace) {
+		if (container->pending.workspace) {
 			return L_HORIZ;
 		}
 		return L_NONE;
@@ -965,9 +965,9 @@ enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *con)
 }
 
 enum wmiiv_container_layout container_current_parent_layout(
-		struct wmiiv_container *con) {
-	if (con->current.parent) {
-		return con->current.parent->current.layout;
+		struct wmiiv_container *container) {
+	if (container->current.parent) {
+		return container->current.parent->current.layout;
 	}
 	// TODO (wmiiv) workspace default layout.
 	return L_HORIZ;
@@ -994,17 +994,17 @@ list_t *container_get_current_siblings(struct wmiiv_container *container) {
 	return container->current.workspace->current.tiling;
 }
 
-void container_handle_fullscreen_reparent(struct wmiiv_container *con) {
-	if (con->pending.fullscreen_mode != FULLSCREEN_WORKSPACE || !con->pending.workspace ||
-			con->pending.workspace->fullscreen == con) {
+void container_handle_fullscreen_reparent(struct wmiiv_container *container) {
+	if (container->pending.fullscreen_mode != FULLSCREEN_WORKSPACE || !container->pending.workspace ||
+			container->pending.workspace->fullscreen == container) {
 		return;
 	}
-	if (con->pending.workspace->fullscreen) {
-		container_fullscreen_disable(con->pending.workspace->fullscreen);
+	if (container->pending.workspace->fullscreen) {
+		container_fullscreen_disable(container->pending.workspace->fullscreen);
 	}
-	con->pending.workspace->fullscreen = con;
+	container->pending.workspace->fullscreen = container;
 
-	arrange_workspace(con->pending.workspace);
+	arrange_workspace(container->pending.workspace);
 }
 
 struct wmiiv_container *container_split(struct wmiiv_container *child,
@@ -1028,10 +1028,10 @@ void container_raise_floating(struct wmiiv_container *window) {
 	}
 }
 
-bool container_is_sticky(struct wmiiv_container *con) {
-	return container_is_window(con) && con->is_sticky && window_is_floating(con);
+bool container_is_sticky(struct wmiiv_container *container) {
+	return container_is_window(container) && container->is_sticky && window_is_floating(container);
 }
 
-bool container_is_sticky_or_child(struct wmiiv_container *con) {
-	return container_is_sticky(container_toplevel_ancestor(con));
+bool container_is_sticky_or_child(struct wmiiv_container *container) {
+	return container_is_sticky(container_toplevel_ancestor(container));
 }

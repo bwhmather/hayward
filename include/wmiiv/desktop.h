@@ -6,7 +6,7 @@ struct wmiiv_view;
 void desktop_damage_surface(struct wlr_surface *surface, double lx, double ly,
 	bool whole);
 
-void desktop_damage_whole_container(struct wmiiv_container *con);
+void desktop_damage_whole_container(struct wmiiv_container *container);
 
 void desktop_damage_box(struct wlr_box *box);
 

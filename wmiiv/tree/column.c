@@ -95,7 +95,7 @@ void column_detach(struct wmiiv_container *column) {
 }
 
 struct wmiiv_container *column_find_child(struct wmiiv_container *col,
-		bool (*test)(struct wmiiv_container *con, void *data), void *data) {
+		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
 	if (!wmiiv_assert(container_is_column(col), "Cannot find children in non-column containers")) {
 		return NULL;
 	}

@@ -226,7 +226,7 @@ void root_for_each_workspace(void (*f)(struct wmiiv_workspace *ws, void *data),
 	}
 }
 
-void root_for_each_container(void (*f)(struct wmiiv_container *con, void *data),
+void root_for_each_container(void (*f)(struct wmiiv_container *container, void *data),
 		void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
@@ -264,7 +264,7 @@ struct wmiiv_workspace *root_find_workspace(
 }
 
 struct wmiiv_container *root_find_container(
-		bool (*test)(struct wmiiv_container *con, void *data), void *data) {
+		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
 	struct wmiiv_container *result = NULL;
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];

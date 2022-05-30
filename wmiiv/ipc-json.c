@@ -30,10 +30,10 @@ static const char *ipc_json_node_type_description(enum wmiiv_node_type node_type
 		return "workspace";
 	case N_COLUMN:
 		// TODO (wmiiv) Should be "column".
-		return "con";
+		return "container";
 	case N_WINDOW:
 		// TODO (wmiiv) Should be "window",
-		return "con";
+		return "container";
 	}
 	return "none";
 }
@@ -609,7 +609,7 @@ static void ipc_json_describe_window(struct wmiiv_container *window, json_object
 			window->title ? json_object_new_string(window->title) : NULL);
 	if (window_is_floating(window)) {
 		json_object_object_add(object, "type",
-				json_object_new_string("floating_con"));
+				json_object_new_string("floating_container"));
 	}
 
 	json_object_object_add(object, "layout",
@@ -652,9 +652,9 @@ static void ipc_json_describe_window(struct wmiiv_container *window, json_object
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 
 	json_object *marks = json_object_new_array();
-	list_t *con_marks = window->marks;
-	for (int i = 0; i < con_marks->length; ++i) {
-		json_object_array_add(marks, json_object_new_string(con_marks->items[i]));
+	list_t *container_marks = window->marks;
+	for (int i = 0; i < container_marks->length; ++i) {
+		json_object_array_add(marks, json_object_new_string(container_marks->items[i]));
 	}
 
 	json_object_object_add(object, "marks", marks);
@@ -768,9 +768,9 @@ json_object *ipc_json_describe_node_recursive(struct wmiiv_node *node) {
 		break;
 	case N_WORKSPACE:
 		for (i = 0; i < node->wmiiv_workspace->tiling->length; ++i) {
-			struct wmiiv_container *con = node->wmiiv_workspace->tiling->items[i];
+			struct wmiiv_container *container = node->wmiiv_workspace->tiling->items[i];
 			json_object_array_add(children,
-					ipc_json_describe_node_recursive(&con->node));
+					ipc_json_describe_node_recursive(&container->node));
 		}
 		break;
 	case N_COLUMN:

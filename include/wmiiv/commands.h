@@ -53,11 +53,11 @@ const struct cmd_handler *find_handler(char *line,
  * Parse and executes a command.
  *
  * If the command string contains criteria then the command will be executed on
- * all matching containers. Otherwise, it'll run on the `con` container. If
- * `con` is NULL then it'll run on the currently focused container.
+ * all matching containers. Otherwise, it'll run on the `container` container. If
+ * `container` is NULL then it'll run on the currently focused container.
  */
 list_t *execute_command(char *command,  struct wmiiv_seat *seat,
-		struct wmiiv_container *con);
+		struct wmiiv_container *container);
 /**
  * Parse and handles a command during config file loading.
  *
@@ -94,7 +94,7 @@ char *cmd_results_to_json(list_t *res_list);
 void container_resize_tiled(struct wmiiv_container *parent, uint32_t axis,
 		int amount);
 
-struct wmiiv_container *container_find_resize_parent(struct wmiiv_container *con,
+struct wmiiv_container *container_find_resize_parent(struct wmiiv_container *container,
 		uint32_t edge);
 
 /**

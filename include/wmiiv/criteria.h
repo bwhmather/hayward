@@ -34,8 +34,8 @@ struct criteria {
 	struct pattern *title;
 	struct pattern *shell;
 	struct pattern *app_id;
-	struct pattern *con_mark;
-	uint32_t con_id; // internal ID
+	struct pattern *container_mark;
+	uint32_t container_id; // internal ID
 #if HAVE_XWAYLAND
 	struct pattern *class;
 	uint32_t id; // X11 window ID

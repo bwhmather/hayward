@@ -10,31 +10,31 @@
 #include "wmiiv/tree/view.h"
 
 struct seatop_resize_tiling_event {
-	struct wmiiv_container *con;    // leaf container
+	struct wmiiv_container *container;    // leaf container
 
-	// con, or ancestor of con which will be resized horizontally/vertically
-	struct wmiiv_container *h_con;
-	struct wmiiv_container *v_con;
+	// container, or ancestor of container which will be resized horizontally/vertically
+	struct wmiiv_container *h_container;
+	struct wmiiv_container *v_container;
 
-	// sibling con(s) that will be resized to accommodate
+	// sibling container(s) that will be resized to accommodate
 	struct wmiiv_container *h_sib;
 	struct wmiiv_container *v_sib;
 
 	enum wlr_edges edge;
 	enum wlr_edges edge_x, edge_y;
 	double ref_lx, ref_ly;         // cursor's x/y at start of op
-	double h_con_orig_width;       // width of the horizontal ancestor at start
-	double v_con_orig_height;      // height of the vertical ancestor at start
+	double h_container_orig_width;       // width of the horizontal ancestor at start
+	double v_container_orig_height;      // height of the vertical ancestor at start
 };
 
 static struct wmiiv_container *container_get_resize_sibling(
-		struct wmiiv_container *con, uint32_t edge) {
-	if (!con) {
+		struct wmiiv_container *container, uint32_t edge) {
+	if (!container) {
 		return NULL;
 	}
 
-	list_t *siblings = container_get_siblings(con);
-	int index = container_sibling_index(con);
+	list_t *siblings = container_get_siblings(container);
+	int index = container_sibling_index(container);
 	int offset = edge & (WLR_EDGE_TOP | WLR_EDGE_LEFT) ? -1 : 1;
 
 	if (siblings->length == 1) {
@@ -50,22 +50,22 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 	struct seatop_resize_tiling_event *e = seat->seatop_data;
 
 	if (seat->cursor->pressed_button_count == 0) {
-		if (e->h_con) {
-			container_set_resizing(e->h_con, false);
+		if (e->h_container) {
+			container_set_resizing(e->h_container, false);
 			container_set_resizing(e->h_sib, false);
-			if (e->h_con->pending.parent) {
-				arrange_column(e->h_con->pending.parent);
+			if (e->h_container->pending.parent) {
+				arrange_column(e->h_container->pending.parent);
 			} else {
-				arrange_workspace(e->h_con->pending.workspace);
+				arrange_workspace(e->h_container->pending.workspace);
 			}
 		}
-		if (e->v_con) {
-			container_set_resizing(e->v_con, false);
+		if (e->v_container) {
+			container_set_resizing(e->v_container, false);
 			container_set_resizing(e->v_sib, false);
-			if (e->v_con->pending.parent) {
-				arrange_column(e->v_con->pending.parent);
+			if (e->v_container->pending.parent) {
+				arrange_column(e->v_container->pending.parent);
 			} else {
-				arrange_workspace(e->v_con->pending.workspace);
+				arrange_workspace(e->v_container->pending.workspace);
 			}
 		}
 		transaction_commit_dirty();
@@ -80,36 +80,36 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	int moved_x = seat->cursor->cursor->x - e->ref_lx;
 	int moved_y = seat->cursor->cursor->y - e->ref_ly;
 
-	if (e->h_con) {
+	if (e->h_container) {
 		if (e->edge & WLR_EDGE_LEFT) {
-			amount_x = (e->h_con_orig_width - moved_x) - e->h_con->pending.width;
+			amount_x = (e->h_container_orig_width - moved_x) - e->h_container->pending.width;
 		} else if (e->edge & WLR_EDGE_RIGHT) {
-			amount_x = (e->h_con_orig_width + moved_x) - e->h_con->pending.width;
+			amount_x = (e->h_container_orig_width + moved_x) - e->h_container->pending.width;
 		}
 	}
-	if (e->v_con) {
+	if (e->v_container) {
 		if (e->edge & WLR_EDGE_TOP) {
-			amount_y = (e->v_con_orig_height - moved_y) - e->v_con->pending.height;
+			amount_y = (e->v_container_orig_height - moved_y) - e->v_container->pending.height;
 		} else if (e->edge & WLR_EDGE_BOTTOM) {
-			amount_y = (e->v_con_orig_height + moved_y) - e->v_con->pending.height;
+			amount_y = (e->v_container_orig_height + moved_y) - e->v_container->pending.height;
 		}
 	}
 
 	if (amount_x != 0) {
-		container_resize_tiled(e->h_con, e->edge_x, amount_x);
+		container_resize_tiled(e->h_container, e->edge_x, amount_x);
 	}
 	if (amount_y != 0) {
-		container_resize_tiled(e->v_con, e->edge_y, amount_y);
+		container_resize_tiled(e->v_container, e->edge_y, amount_y);
 	}
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *con) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
 	struct seatop_resize_tiling_event *e = seat->seatop_data;
-	if (e->con == con) {
+	if (e->container == container) {
 		seatop_begin_default(seat);
 	}
-	if (e->h_sib == con || e->v_sib == con) {
+	if (e->h_sib == container || e->v_sib == container) {
 		seatop_begin_default(seat);
 	}
 }
@@ -121,7 +121,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *con, enum wlr_edges edge) {
+		struct wmiiv_container *container, enum wlr_edges edge) {
 	seatop_end(seat);
 
 	struct seatop_resize_tiling_event *e =
@@ -129,7 +129,7 @@ void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
 	if (!e) {
 		return;
 	}
-	e->con = con;
+	e->container = container;
 	e->edge = edge;
 
 	e->ref_lx = seat->cursor->cursor->x;
@@ -137,24 +137,24 @@ void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
 
 	if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
 		e->edge_x = edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
-		e->h_con = container_find_resize_parent(e->con, e->edge_x);
-		e->h_sib = container_get_resize_sibling(e->h_con, e->edge_x);
+		e->h_container = container_find_resize_parent(e->container, e->edge_x);
+		e->h_sib = container_get_resize_sibling(e->h_container, e->edge_x);
 
-		if (e->h_con) {
-			container_set_resizing(e->h_con, true);
+		if (e->h_container) {
+			container_set_resizing(e->h_container, true);
 			container_set_resizing(e->h_sib, true);
-			e->h_con_orig_width = e->h_con->pending.width;
+			e->h_container_orig_width = e->h_container->pending.width;
 		}
 	}
 	if (edge & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)) {
 		e->edge_y = edge & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM);
-		e->v_con = container_find_resize_parent(e->con, e->edge_y);
-		e->v_sib = container_get_resize_sibling(e->v_con, e->edge_y);
+		e->v_container = container_find_resize_parent(e->container, e->edge_y);
+		e->v_sib = container_get_resize_sibling(e->v_container, e->edge_y);
 
-		if (e->v_con) {
-			container_set_resizing(e->v_con, true);
+		if (e->v_container) {
+			container_set_resizing(e->v_container, true);
 			container_set_resizing(e->v_sib, true);
-			e->v_con_orig_height = e->v_con->pending.height;
+			e->v_container_orig_height = e->v_container->pending.height;
 		}
 	}
 

@@ -11,8 +11,8 @@ struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {
 		return error;
 	}
 
-	struct wmiiv_container *con = config->handler_context.container;
-	if (!con || !con->view) {
+	struct wmiiv_container *container = config->handler_context.container;
+	if (!container || !container->view) {
 		return cmd_results_new(CMD_INVALID,
 				"Only views can have idle inhibitors");
 	}
@@ -35,7 +35,7 @@ struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {
 	}
 
 	struct wmiiv_idle_inhibitor_v1 *inhibitor =
-		wmiiv_idle_inhibit_v1_user_inhibitor_for_view(con->view);
+		wmiiv_idle_inhibit_v1_user_inhibitor_for_view(container->view);
 	if (inhibitor) {
 		if (clear) {
 			wmiiv_idle_inhibit_v1_user_inhibitor_destroy(inhibitor);
@@ -44,7 +44,7 @@ struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {
 			wmiiv_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
 		}
 	} else if (!clear) {
-		wmiiv_idle_inhibit_v1_user_inhibitor_register(con->view, mode);
+		wmiiv_idle_inhibit_v1_user_inhibitor_register(container->view, mode);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

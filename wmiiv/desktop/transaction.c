@@ -250,7 +250,7 @@ static void apply_column_state(struct wmiiv_container *container,
 
 	// There are separate children lists for each instruction state, the
 	// container's current state and the container's pending state
-	// (ie. con->children). The list itself needs to be freed here.
+	// (ie. container->children). The list itself needs to be freed here.
 	// Any child containers which are being deleted will be cleaned up in
 	// transaction_destroy().
 	list_free(container->current.children);
@@ -286,7 +286,7 @@ static void apply_window_state(struct wmiiv_container *container,
 
 	// There are separate children lists for each instruction state, the
 	// container's current state and the container's pending state
-	// (ie. con->children). The list itself needs to be freed here.
+	// (ie. container->children). The list itself needs to be freed here.
 	// Any child containers which are being deleted will be cleaned up in
 	// transaction_destroy().
 	list_free(container->current.children);

@@ -8,10 +8,10 @@
 #include "log.h"
 #include "stringop.h"
 
-static void remove_all_marks_iterator(struct wmiiv_container *con, void *data) {
-	if (container_is_window(con)) {
-		window_clear_marks(con);
-		window_update_marks_textures(con);
+static void remove_all_marks_iterator(struct wmiiv_container *container, void *data) {
+	if (container_is_window(container)) {
+		window_clear_marks(container);
+		window_update_marks_textures(container);
 	}
 }
 
@@ -22,12 +22,12 @@ static void remove_all_marks_iterator(struct wmiiv_container *con, void *data) {
 
 struct cmd_results *cmd_unmark(int argc, char **argv) {
 	// Determine the container
-	struct wmiiv_container *con = NULL;
+	struct wmiiv_container *container = NULL;
 	if (config->handler_context.node_overridden) {
-		con = config->handler_context.container;
+		container = config->handler_context.container;
 	}
 
-	if (con && !container_is_window(con)) {
+	if (container && !container_is_window(container)) {
 		return cmd_results_new(CMD_INVALID, "Only windows can have marks");
 	}
 
@@ -37,16 +37,16 @@ struct cmd_results *cmd_unmark(int argc, char **argv) {
 		mark = join_args(argv, argc);
 	}
 
-	if (con && mark) {
+	if (container && mark) {
 		// Remove the mark from the given container
-		if (window_has_mark(con, mark)) {
+		if (window_has_mark(container, mark)) {
 			window_find_and_unmark(mark);
 		}
-	} else if (con && !mark) {
+	} else if (container && !mark) {
 		// Clear all marks from the given container
-		window_clear_marks(con);
-		window_update_marks_textures(con);
-	} else if (!con && mark) {
+		window_clear_marks(container);
+		window_update_marks_textures(container);
+	} else if (!container && mark) {
 		// Remove mark from whichever container has it
 		window_find_and_unmark(mark);
 	} else {

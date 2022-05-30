@@ -596,10 +596,10 @@ static void ipc_get_workspaces_callback(struct wmiiv_workspace *workspace,
 			json_object_new_boolean(visible));
 }
 
-static void ipc_get_marks_callback(struct wmiiv_container *con, void *data) {
+static void ipc_get_marks_callback(struct wmiiv_container *container, void *data) {
 	json_object *marks = (json_object *)data;
-	for (int i = 0; i < con->marks->length; ++i) {
-		char *mark = (char *)con->marks->items[i];
+	for (int i = 0; i < container->marks->length; ++i) {
+		char *mark = (char *)container->marks->items[i];
 		json_object_array_add(marks, json_object_new_string(mark));
 	}
 }
