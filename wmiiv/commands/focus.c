@@ -91,20 +91,20 @@ static struct wmiiv_node *get_node_in_output_direction(
 	if (ws->fullscreen) {
 		return &ws->fullscreen->node;
 	}
-	struct wmiiv_container *col = NULL;
+	struct wmiiv_container *column = NULL;
 	struct wmiiv_container *window = NULL;
 
 	if (ws->tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
 			// get most right child of new output
-			col = ws->tiling->items[ws->tiling->length-1];
-			window = seat_get_focus_inactive_view(seat, &col->node);
+			column = ws->tiling->items[ws->tiling->length-1];
+			window = seat_get_focus_inactive_view(seat, &column->node);
 			break;
 		case WLR_DIRECTION_RIGHT:
 			// get most left child of new output
-			col = ws->tiling->items[0];
-			window = seat_get_focus_inactive_view(seat, &col->node);
+			column = ws->tiling->items[0];
+			window = seat_get_focus_inactive_view(seat, &column->node);
 			break;
 		case WLR_DIRECTION_UP:
 			window = seat_get_focus_inactive_tiling(seat, ws);

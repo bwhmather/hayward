@@ -38,14 +38,14 @@ static uint32_t get_current_time_msec(void) {
 	return now.tv_sec * 1000 + now.tv_nsec / 1000000;
 }
 
-static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
+static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
 	struct wlr_box box;
-	container_get_box(col, &box);
+	container_get_box(column, &box);
 	if (lx < box.x || lx > box.x + box.width ||
 			ly < box.y || ly > box.y + box.height) {
 		return NULL;
 	}
-	list_t *children = col->pending.children;
+	list_t *children = column->pending.children;
 	if (!children->length) {
 		return NULL;
 	}
@@ -64,7 +64,7 @@ static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *s
 	}
 
 	// Surfaces
-	struct wmiiv_container *current = seat_get_focus_inactive_view(seat, &col->node);
+	struct wmiiv_container *current = seat_get_focus_inactive_view(seat, &column->node);
 	if (window_contains_point(current, lx, ly)) {
 		return current;
 	}
@@ -72,14 +72,14 @@ static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *s
 	return NULL;
 }
 
-static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
+static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
 	struct wlr_box box;
-	node_get_box(&col->node, &box);
+	node_get_box(&column->node, &box);
 	if (lx < box.x || lx > box.x + box.width ||
 			ly < box.y || ly > box.y + box.height) {
 		return NULL;
 	}
-	list_t *children = col->pending.children;
+	list_t *children = column->pending.children;
 
 	// Title bars
 	int title_height = container_titlebar_height();
@@ -93,7 +93,7 @@ static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *
 	}
 
 	// Surfaces
-	struct wmiiv_container *current = seat_get_focus_inactive_view(seat, &col->node);
+	struct wmiiv_container *current = seat_get_focus_inactive_view(seat, &column->node);
 	if (window_contains_point(current, lx, ly)) {
 		return current;
 	}
@@ -101,8 +101,8 @@ static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *
 	return NULL;
 }
 
-static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
-	list_t *children = col->pending.children;
+static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
+	list_t *children = column->pending.children;
 	for (int i = 0; i < children->length; ++i) {
 		struct wmiiv_container *window = children->items[i];
 		if (window_contains_point(window, lx, ly)) {
@@ -112,19 +112,19 @@ static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *s
 	return NULL;
 }
 
-struct wmiiv_container *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_container *col, double lx, double ly) {
-	if (!wmiiv_assert(container_is_column(col), "expected column")) {
+struct wmiiv_container *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
+	if (!wmiiv_assert(container_is_column(column), "expected column")) {
 		return NULL;
 	}
 
-	switch (node_get_layout(&col->node)) {
+	switch (node_get_layout(&column->node)) {
 	case L_HORIZ:
 	case L_VERT:
-		return seat_column_window_at_linear(seat, col, lx, ly);
+		return seat_column_window_at_linear(seat, column, lx, ly);
 	case L_TABBED:
-		return seat_column_window_at_tabbed(seat, col, lx, ly);
+		return seat_column_window_at_tabbed(seat, column, lx, ly);
 	case L_STACKED:
-		return seat_column_window_at_stacked(seat, col, lx, ly);
+		return seat_column_window_at_stacked(seat, column, lx, ly);
 	case L_NONE:
 		return NULL;
 	}
@@ -144,8 +144,8 @@ static struct wmiiv_container *seat_tiling_window_at(struct wmiiv_seat *seat, do
 
 		list_t *columns = ws->tiling;
 		for (int i = 0; i < columns->length; ++i) {
-			struct wmiiv_container *col = columns->items[i];
-			struct wmiiv_container *window = seat_column_window_at(seat, col, lx, ly);
+			struct wmiiv_container *column = columns->items[i];
+			struct wmiiv_container *window = seat_column_window_at(seat, column, lx, ly);
 			if (window) {
 				return window;
 			}
@@ -433,7 +433,7 @@ void cursor_update_image(struct wmiiv_cursor *cursor,
 			cursor_set_image(cursor, wlr_xcursor_get_resize_name(edge), NULL);
 		} else {
 			if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
-				cursor_set_image(cursor, "col-resize", NULL);
+				cursor_set_image(cursor, "column-resize", NULL);
 			} else {
 				cursor_set_image(cursor, "row-resize", NULL);
 			}

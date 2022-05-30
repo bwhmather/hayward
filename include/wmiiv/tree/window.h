@@ -56,7 +56,7 @@ bool window_is_fullscreen(struct wmiiv_container *container);
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_column_from_direction(
-		struct wmiiv_container *window, struct wmiiv_container *col,
+		struct wmiiv_container *window, struct wmiiv_container *column,
 		enum wlr_direction move_dir);
 
 /**

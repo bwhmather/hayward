@@ -411,17 +411,17 @@ static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 }
 
 
-static void column_get_deco_rect(struct wmiiv_container *col, struct wlr_box *deco_rect) {
+static void column_get_deco_rect(struct wmiiv_container *column, struct wlr_box *deco_rect) {
 	// TODO it's unclear whether columns should actually ever have a decoration rectangle.
-	if (col->pending.workspace == NULL) {
+	if (column->pending.workspace == NULL) {
 		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
 		return;
 	}
 
-	deco_rect->x = col->pending.x - col->pending.workspace->x;
-	deco_rect->y = col->pending.y - col->pending.workspace->y;
+	deco_rect->x = column->pending.x - column->pending.workspace->x;
+	deco_rect->y = column->pending.y - column->pending.workspace->y;
 
-	deco_rect->width = col->pending.width;
+	deco_rect->width = column->pending.width;
 	deco_rect->height = container_titlebar_height();
 }
 
@@ -560,26 +560,26 @@ static void ipc_json_describe_view(struct wmiiv_container *c, json_object *objec
 #endif
 }
 
-static void ipc_json_describe_column(struct wmiiv_container *col, json_object *object) {
+static void ipc_json_describe_column(struct wmiiv_container *column, json_object *object) {
 	json_object_object_add(object, "name",
-			col->title ? json_object_new_string(col->title) : NULL);
+			column->title ? json_object_new_string(column->title) : NULL);
 
 	json_object_object_add(object, "layout",
 			json_object_new_string(
-				ipc_json_layout_description(col->pending.layout)));
+				ipc_json_layout_description(column->pending.layout)));
 
 	json_object_object_add(object, "orientation",
 			json_object_new_string(
-				ipc_json_orientation_description(col->pending.layout)));
+				ipc_json_orientation_description(column->pending.layout)));
 
-	bool urgent = container_has_urgent_child(col);
+	bool urgent = container_has_urgent_child(column);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
-	json_object_object_add(object, "sticky", json_object_new_boolean(col->is_sticky));
+	json_object_object_add(object, "sticky", json_object_new_boolean(column->is_sticky));
 
 	json_object_object_add(object, "fullscreen_mode",
-			json_object_new_int(col->pending.fullscreen_mode));
+			json_object_new_int(column->pending.fullscreen_mode));
 
-	struct wmiiv_node *parent = node_get_parent(&col->node);
+	struct wmiiv_node *parent = node_get_parent(&column->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};
 
 	if (parent != NULL) {
@@ -587,20 +587,20 @@ static void ipc_json_describe_column(struct wmiiv_container *col, json_object *o
 	}
 
 	if (parent_box.width != 0 && parent_box.height != 0) {
-		double percent = ((double)col->pending.width / parent_box.width)
-				* ((double)col->pending.height / parent_box.height);
+		double percent = ((double)column->pending.width / parent_box.width)
+				* ((double)column->pending.height / parent_box.height);
 		json_object_object_add(object, "percent", json_object_new_double(percent));
 	}
 
 	json_object_object_add(object, "border",
 			json_object_new_string(
-				ipc_json_border_description(col->current.border)));
+				ipc_json_border_description(column->current.border)));
 	json_object_object_add(object, "current_border_width",
-			json_object_new_int(col->current.border_thickness));
+			json_object_new_int(column->current.border_thickness));
 	json_object_object_add(object, "floating_nodes", json_object_new_array());
 
 	struct wlr_box deco_box = {0, 0, 0, 0};
-	column_get_deco_rect(col, &deco_box);
+	column_get_deco_rect(column, &deco_box);
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 }
 

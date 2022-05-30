@@ -418,16 +418,16 @@ static void workspace_focus_fullscreen(struct wmiiv_workspace *workspace) {
 }
 
 static void window_move_to_column_from_maybe_direction(
-		struct wmiiv_container *window, struct wmiiv_container *col,
+		struct wmiiv_container *window, struct wmiiv_container *column,
 		bool has_move_dir, enum wlr_direction move_dir) {
 	if (!wmiiv_assert(container_is_window(window), "Can only move windows to columns")) {
 		return;
 	}
-	if (!wmiiv_assert(container_is_column(col), "Can only move windows to columns")) {
+	if (!wmiiv_assert(container_is_column(column), "Can only move windows to columns")) {
 		return;
 	}
 
-	if (window->pending.parent == col) {
+	if (window->pending.parent == column) {
 		return;
 	}
 
@@ -438,43 +438,43 @@ static void window_move_to_column_from_maybe_direction(
 		wmiiv_log(WMIIV_DEBUG, "Reparenting window (parallel)");
 		int index =
 			move_dir == WLR_DIRECTION_DOWN ?
-			0 : col->pending.children->length;
+			0 : column->pending.children->length;
 		window_detach(window);
-		column_insert_child(col, window, index);
+		column_insert_child(column, window, index);
 		window->pending.width = window->pending.height = 0;
 		window->width_fraction = window->height_fraction = 0;
 	} else {
 		wmiiv_log(WMIIV_DEBUG, "Reparenting window (perpendicular)");
-		struct wmiiv_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
+		struct wmiiv_container *target_sibling = seat_get_focus_inactive_view(seat, &column->node);
 		window_detach(window);
 		if (target_sibling) {
 			column_add_sibling(target_sibling, window, 1);
 		} else {
-			column_add_child(col, window);
+			column_add_child(column, window);
 		}
 	}
 
 	ipc_event_window(window, "move");
 
-	if (col->pending.workspace) {
-		workspace_focus_fullscreen(col->pending.workspace);
-		workspace_detect_urgent(col->pending.workspace);
+	if (column->pending.workspace) {
+		workspace_focus_fullscreen(column->pending.workspace);
+		workspace_detect_urgent(column->pending.workspace);
 	}
 
-	if (old_workspace && old_workspace != col->pending.workspace) {
+	if (old_workspace && old_workspace != column->pending.workspace) {
 		workspace_detect_urgent(old_workspace);
 	}
 }
 
 void window_move_to_column_from_direction(
-		struct wmiiv_container *window, struct wmiiv_container *col,
+		struct wmiiv_container *window, struct wmiiv_container *column,
 		enum wlr_direction move_dir) {
-	window_move_to_column_from_maybe_direction(window, col, true, move_dir);
+	window_move_to_column_from_maybe_direction(window, column, true, move_dir);
 }
 
 void window_move_to_column(struct wmiiv_container *window,
-		struct wmiiv_container *col) {
-	window_move_to_column_from_maybe_direction(window, col, false, WLR_DIRECTION_DOWN);
+		struct wmiiv_container *column) {
+	window_move_to_column_from_maybe_direction(window, column, false, WLR_DIRECTION_DOWN);
 }
 
 static void window_move_to_workspace_from_maybe_direction(
@@ -509,8 +509,8 @@ static void window_move_to_workspace_from_maybe_direction(
 	window->width_fraction = window->height_fraction = 0;
 
 	if (!ws->tiling->length) {
-		struct wmiiv_container *col = column_create();
-		workspace_insert_tiling_direct(ws, col, 0);
+		struct wmiiv_container *column = column_create();
+		workspace_insert_tiling_direct(ws, column, 0);
 	}
 
 	if (has_move_dir && (move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_RIGHT)) {
@@ -520,22 +520,22 @@ static void window_move_to_workspace_from_maybe_direction(
 		int index =
 			move_dir == WLR_DIRECTION_RIGHT ?
 			0 : ws->tiling->length;
-		struct wmiiv_container *col = ws->tiling->items[index];
-		window_move_to_column_from_maybe_direction(window, col, has_move_dir, move_dir);
+		struct wmiiv_container *column = ws->tiling->items[index];
+		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
 	} else {
 		wmiiv_log(WMIIV_DEBUG, "Reparenting container (perpendicular)");
 		// Move to the most recently focused column in the workspace.
-		struct wmiiv_container *col = NULL;
+		struct wmiiv_container *column = NULL;
 
 		struct wmiiv_container *focus_inactive = seat_get_focus_inactive_tiling(seat, ws);
 		// TODO (wmiiv) only windows should be focusable.
 		focus_inactive = seat_get_focus_inactive_view(seat, &focus_inactive->node);
 		if (focus_inactive) {
-			col = focus_inactive->pending.parent;
+			column = focus_inactive->pending.parent;
 		} else {
-			col = ws->tiling->items[0];
+			column = ws->tiling->items[0];
 		}
-		window_move_to_column_from_maybe_direction(window, col, has_move_dir, move_dir);
+		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
 	}
 }
 

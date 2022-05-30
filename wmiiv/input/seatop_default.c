@@ -732,9 +732,9 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 
 	// Scrolling on a tabbed or stacked title bar (handled as press event)
 	if (!handled && (on_titlebar || on_titlebar_border)) {
-		struct wmiiv_container *col = window->pending.parent;
-		if (col->pending.layout == L_TABBED || col->pending.layout == L_STACKED) {
-			struct wmiiv_node *active = seat_get_active_tiling_child(seat, &col->node);
+		struct wmiiv_container *column = window->pending.parent;
+		if (column->pending.layout == L_TABBED || column->pending.layout == L_STACKED) {
+			struct wmiiv_node *active = seat_get_active_tiling_child(seat, &column->node);
 			list_t *siblings = container_get_siblings(window);
 			int desired = list_find(siblings, active->wmiiv_container) +
 				round(scroll_factor * event->delta_discrete);

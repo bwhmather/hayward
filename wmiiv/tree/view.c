@@ -743,9 +743,9 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	if (target_sibling) {
 		column_add_sibling(target_sibling, view->container, 1);
 	} else if (ws) {
-		struct wmiiv_container *col = column_create();
-		column_add_child(col, view->container);
-		workspace_insert_tiling_direct(ws, col, 0);
+		struct wmiiv_container *column = column_create();
+		column_add_child(column, view->container);
+		workspace_insert_tiling_direct(ws, column, 0);
 	}
 	ipc_event_window(view->container, "new");
 
@@ -1306,11 +1306,11 @@ bool view_is_visible(struct wmiiv_view *view) {
 	// Check view isn't in a tabbed or stacked container on an inactive tab
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_container *window = view->container;
-	struct wmiiv_container *col = window->pending.parent;
-	if (col != NULL) {
-		enum wmiiv_container_layout parent_layout = col->pending.layout;
+	struct wmiiv_container *column = window->pending.parent;
+	if (column != NULL) {
+		enum wmiiv_container_layout parent_layout = column->pending.layout;
 		if (parent_layout == L_TABBED || parent_layout == L_STACKED) {
-			if (seat_get_active_tiling_child(seat, &col->node) != &window->node) {
+			if (seat_get_active_tiling_child(seat, &column->node) != &window->node) {
 				return false;
 			}
 		}

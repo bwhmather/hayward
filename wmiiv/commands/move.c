@@ -126,8 +126,8 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 		return false;
 	}
 
-	struct wmiiv_container *old_col = window->pending.parent;
-	int old_col_index = list_find(window->pending.workspace->tiling, old_col);
+	struct wmiiv_container *old_column = window->pending.parent;
+	int old_column_index = list_find(window->pending.workspace->tiling, old_column);
 
 	switch (move_dir) {
 	case WLR_DIRECTION_UP: {
@@ -141,13 +141,13 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 			return false;
 		}
 	case WLR_DIRECTION_LEFT: {
-			if (old_col_index == 0) {
+			if (old_column_index == 0) {
 				// Window is already in the left most column.
 				// If window is the only child of this column
 				// then attempt to move it to the next
 				// workspace, otherwise insert a new column to
 				// the left and carry on as before.
-				if (old_col->pending.children->length == 1) {
+				if (old_column->pending.children->length == 1) {
 					// No other windows.  Move to next
 					// workspace.
 
@@ -155,43 +155,43 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 						window->pending.workspace->output, move_dir);
 				}
 
-				struct wmiiv_container *new_col = column_create();
-				new_col->pending.height = new_col->pending.width = 0;
-				new_col->height_fraction = new_col->width_fraction = 0;
-				new_col->pending.layout = L_STACKED;
+				struct wmiiv_container *new_column = column_create();
+				new_column->pending.height = new_column->pending.width = 0;
+				new_column->height_fraction = new_column->width_fraction = 0;
+				new_column->pending.layout = L_STACKED;
 
-				workspace_insert_tiling_direct(window->pending.workspace, new_col, 0);
-				old_col_index += 1;
+				workspace_insert_tiling_direct(window->pending.workspace, new_column, 0);
+				old_column_index += 1;
 			}
 
-			struct wmiiv_container *new_col = window->pending.workspace->tiling->items[old_col_index - 1];
-			window_move_to_column_from_direction(window, new_col, move_dir);
+			struct wmiiv_container *new_column = window->pending.workspace->tiling->items[old_column_index - 1];
+			window_move_to_column_from_direction(window, new_column, move_dir);
 
 			return true;
 		}
 	case WLR_DIRECTION_RIGHT: {
-			if (old_col_index == window->pending.workspace->tiling->length - 1) {
+			if (old_column_index == window->pending.workspace->tiling->length - 1) {
 				// Window is already in the right most column.
 				// If window is the only child of this column
 				// then attempt to move it to the next
 				// workspace, otherwise insert a new column to
 				// the right and carry on as before.
-				if (old_col->pending.children->length == 1) {
+				if (old_column->pending.children->length == 1) {
 					// TODO find then move should be separate calls at this level of abstraction.
 					return container_move_to_next_output(window,
 						window->pending.workspace->output, move_dir);
 				}
 
-				struct wmiiv_container *new_col = column_create();
-				new_col->pending.height = new_col->pending.width = 0;
-				new_col->height_fraction = new_col->width_fraction = 0;
-				new_col->pending.layout = L_STACKED;
+				struct wmiiv_container *new_column = column_create();
+				new_column->pending.height = new_column->pending.width = 0;
+				new_column->height_fraction = new_column->width_fraction = 0;
+				new_column->pending.layout = L_STACKED;
 
-				workspace_insert_tiling_direct(window->pending.workspace, new_col, old_col_index + 1);
+				workspace_insert_tiling_direct(window->pending.workspace, new_column, old_column_index + 1);
 			}
 
-			struct wmiiv_container *new_col = window->pending.workspace->tiling->items[old_col_index + 1];
-			window_move_to_column_from_direction(window, new_col, move_dir);
+			struct wmiiv_container *new_column = window->pending.workspace->tiling->items[old_column_index + 1];
+			window_move_to_column_from_direction(window, new_column, move_dir);
 
 			return true;
 		}

@@ -53,16 +53,16 @@ struct wmiiv_container *column_create(void) {
 	return c;
 }
 
-void column_consider_destroy(struct wmiiv_container *col) {
-	if (!wmiiv_assert(container_is_column(col), "Cannot reap a non-column container")) {
+void column_consider_destroy(struct wmiiv_container *column) {
+	if (!wmiiv_assert(container_is_column(column), "Cannot reap a non-column container")) {
 		return;
 	}
-	struct wmiiv_workspace *ws = col->pending.workspace;
+	struct wmiiv_workspace *ws = column->pending.workspace;
 
-	if (col->pending.children->length) {
+	if (column->pending.children->length) {
 		return;
 	}
-	container_begin_destroy(col);
+	container_begin_destroy(column);
 
 	if (ws) {
 		workspace_consider_destroy(ws);
@@ -94,16 +94,16 @@ void column_detach(struct wmiiv_container *column) {
 	node_set_dirty(&column->node);
 }
 
-struct wmiiv_container *column_find_child(struct wmiiv_container *col,
+struct wmiiv_container *column_find_child(struct wmiiv_container *column,
 		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
-	if (!wmiiv_assert(container_is_column(col), "Cannot find children in non-column containers")) {
+	if (!wmiiv_assert(container_is_column(column), "Cannot find children in non-column containers")) {
 		return NULL;
 	}
-	if (!col->pending.children) {
+	if (!column->pending.children) {
 		return NULL;
 	}
-	for (int i = 0; i < col->pending.children->length; ++i) {
-		struct wmiiv_container *child = col->pending.children->items[i];
+	for (int i = 0; i < column->pending.children->length; ++i) {
+		struct wmiiv_container *child = column->pending.children->items[i];
 		if (test(child, data)) {
 			return child;
 		}

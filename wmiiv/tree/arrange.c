@@ -240,14 +240,14 @@ static void arrange_children(list_t *children,
 	}
 }
 
-void arrange_column(struct wmiiv_container *col) {
+void arrange_column(struct wmiiv_container *column) {
 	if (config->reloading) {
 		return;
 	}
 	struct wlr_box box;
-	container_get_box(col, &box);
-	arrange_children(col->pending.children, col->pending.layout, &box);
-	node_set_dirty(&col->node);
+	container_get_box(column, &box);
+	arrange_children(column->pending.children, column->pending.layout, &box);
+	node_set_dirty(&column->node);
 }
 
 void arrange_window(struct wmiiv_container *window) {
