@@ -1007,12 +1007,6 @@ void container_handle_fullscreen_reparent(struct wmiiv_container *container) {
 	arrange_workspace(container->pending.workspace);
 }
 
-struct wmiiv_container *container_split(struct wmiiv_container *child,
-		enum wmiiv_container_layout layout) {
-	wmiiv_assert(false, "container_split is deprecated");
-	return child;
-}
-
 bool container_is_transient_for(struct wmiiv_container *child,
 		struct wmiiv_container *ancestor) {
 	return config->popup_during_fullscreen == POPUP_SMART &&
