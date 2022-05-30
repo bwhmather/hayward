@@ -101,7 +101,6 @@ wmiiv_sources = files(
 	'commands/shortcuts_inhibitor.c',
 	'commands/smart_borders.c',
 	'commands/smart_gaps.c',
-	'commands/split.c',
 	'commands/sticky.c',
 	'commands/wmiivbg_command.c',
 	'commands/wmiivnag_command.c',
