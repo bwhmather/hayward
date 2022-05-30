@@ -65,22 +65,22 @@ static void swap_focus(struct wmiiv_container *window1,
 		struct wmiiv_container *window2, struct wmiiv_seat *seat,
 		struct wmiiv_container *focus) {
 	if (focus == window1 || focus == window2) {
-		struct wmiiv_workspace *ws1 = window1->pending.workspace;
-		struct wmiiv_workspace *ws2 = window2->pending.workspace;
+		struct wmiiv_workspace *workspace1 = window1->pending.workspace;
+		struct wmiiv_workspace *workspace2 = window2->pending.workspace;
 		enum wmiiv_container_layout layout1 = container_parent_layout(window1);
 		enum wmiiv_container_layout layout2 = container_parent_layout(window2);
 		if (focus == window1 && (layout2 == L_TABBED || layout2 == L_STACKED)) {
-			if (workspace_is_visible(ws2)) {
+			if (workspace_is_visible(workspace2)) {
 				seat_set_raw_focus(seat, &window2->node);
 			}
-			seat_set_focus_window(seat, ws1 != ws2 ? window2 : window1);
+			seat_set_focus_window(seat, workspace1 != workspace2 ? window2 : window1);
 		} else if (focus == window2 && (layout1 == L_TABBED
 					|| layout1 == L_STACKED)) {
-			if (workspace_is_visible(ws1)) {
+			if (workspace_is_visible(workspace1)) {
 				seat_set_raw_focus(seat, &window1->node);
 			}
-			seat_set_focus_window(seat, ws1 != ws2 ? window1 : window2);
-		} else if (ws1 != ws2) {
+			seat_set_focus_window(seat, workspace1 != workspace2 ? window1 : window2);
+		} else if (workspace1 != workspace2) {
 			seat_set_focus_window(seat, focus == window1 ? window2 : window1);
 		} else {
 			seat_set_focus_window(seat, focus);

@@ -357,20 +357,20 @@ static bool criteria_matches_view(struct criteria *criteria,
 	}
 
 	if (criteria->workspace) {
-		struct wmiiv_workspace *ws = view->container->pending.workspace;
-		if (!ws) {
+		struct wmiiv_workspace *workspace = view->container->pending.workspace;
+		if (!workspace) {
 			return false;
 		}
 
 		switch (criteria->workspace->match_type) {
 		case PATTERN_FOCUSED:
 			if (focused &&
-					strcmp(ws->name, focused->container->pending.workspace->name)) {
+					strcmp(workspace->name, focused->container->pending.workspace->name)) {
 				return false;
 			}
 			break;
 		case PATTERN_PCRE2:
-			if (regex_cmp(ws->name, criteria->workspace->regex) < 0) {
+			if (regex_cmp(workspace->name, criteria->workspace->regex) < 0) {
 				return false;
 			}
 			break;

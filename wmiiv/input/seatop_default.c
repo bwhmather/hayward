@@ -213,13 +213,13 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 	}
 
 	struct wmiiv_cursor *cursor = seat->cursor;
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	struct wmiiv_container *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&ws, &window,
+		&workspace, &window,
 		&surface, &sx, &sy
 	);
 
@@ -329,13 +329,13 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 	struct wmiiv_cursor *cursor = seat->cursor;
 
 	// Determine what's under the cursor.
-	struct wmiiv_workspace *ws;
+	struct wmiiv_workspace *workspace;
 	struct wmiiv_container *window;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&ws, &window,
+		&workspace, &window,
 		&surface, &sx, &sy
 	);
 
@@ -346,7 +346,7 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		find_resize_edge(window, surface, cursor) : WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;
 	bool on_contents = window && !on_border && surface;
-	bool on_workspace = ws && !window;
+	bool on_workspace = workspace && !window;
 	bool on_titlebar = window && !on_border && !surface;
 
 	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
@@ -359,7 +359,7 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 	}
 
 	// Handle clicking an empty workspace
-	if (ws && !window) {
+	if (workspace && !window) {
 		if (state == WLR_BUTTON_PRESSED) {
 			seat_clear_focus(seat);
 			transaction_commit_dirty();
@@ -538,8 +538,8 @@ static void check_focus_follows_mouse(struct wmiiv_seat *seat,
 		}
 		struct wmiiv_output *hovered_output = wlr_output->data;
 		if (focus && hovered_output != node_get_output(focus)) {
-			struct wmiiv_workspace *ws = output_get_active_workspace(hovered_output);
-			seat_set_focus(seat, &ws->node);
+			struct wmiiv_workspace *workspace = output_get_active_workspace(hovered_output);
+			seat_set_focus(seat, &workspace->node);
 			transaction_commit_dirty();
 		}
 		return;
@@ -577,21 +577,21 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct wmiiv_cursor *cursor = seat->cursor;
 
-	struct wmiiv_workspace *ws;
+	struct wmiiv_workspace *workspace;
 	struct wmiiv_container *window;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&ws, &window,
+		&workspace, &window,
 		&surface, &sx, &sy
 	);
 
 	struct wmiiv_node *node = NULL;
 	if (window != NULL) {
 		node = &window->node;
-	} else if (ws != NULL) {
-		node = &ws->node;
+	} else if (workspace != NULL) {
+		node = &workspace->node;
 	}
 
 	if (config->focus_follows_mouse != FOLLOWS_NO) {
@@ -622,21 +622,21 @@ static void handle_tablet_tool_motion(struct wmiiv_seat *seat,
 		struct wmiiv_tablet_tool *tool, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct wmiiv_cursor *cursor = seat->cursor;
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	struct wmiiv_container *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&ws, &window,
+		&workspace, &window,
 		&surface, &sx, &sy
 	);
 
 	struct wmiiv_node *node = NULL;
 	if (window != NULL) {
 		node = &window->node;
-	} else if (ws != NULL) {
-		node = &ws->node;
+	} else if (workspace != NULL) {
+		node = &workspace->node;
 	}
 
 	if (config->focus_follows_mouse != FOLLOWS_NO) {
@@ -690,13 +690,13 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 	struct seatop_default_event *e = seat->seatop_data;
 
 	// Determine what's under the cursor
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	struct wmiiv_container *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&ws, &window,
+		&workspace, &window,
 		&surface, &sx, &sy
 	);
 	enum wlr_edges edge = window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
@@ -705,7 +705,7 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 	bool on_titlebar_border = window && on_border &&
 		cursor->cursor->y < window->pending.content_y;
 	bool on_contents = window && !on_border && surface;
-	bool on_workspace = ws && !window;
+	bool on_workspace = workspace && !window;
 	float scroll_factor =
 		(ic == NULL || ic->scroll_factor == FLT_MIN) ? 1.0f : ic->scroll_factor;
 
@@ -781,21 +781,21 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 static void handle_rebase(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct wmiiv_cursor *cursor = seat->cursor;
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	struct wmiiv_container *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx = 0.0, sy = 0.0;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&ws, &window,
+		&workspace, &window,
 		&surface, &sx, &sy
 	);
 
 	e->previous_node = NULL;
 	if (window != NULL) {
 		e->previous_node = &window->node;
-	} else if (ws != NULL) {
-		e->previous_node = &ws->node;
+	} else if (workspace != NULL) {
+		e->previous_node = &workspace->node;
 	}
 
 	if (surface) {

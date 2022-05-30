@@ -101,17 +101,17 @@ static void copy_output_state(struct wmiiv_output *output,
 	state->active_workspace = output_get_active_workspace(output);
 }
 
-static void copy_workspace_state(struct wmiiv_workspace *ws,
+static void copy_workspace_state(struct wmiiv_workspace *workspace,
 		struct wmiiv_transaction_instruction *instruction) {
 	struct wmiiv_workspace_state *state = &instruction->workspace_state;
 
-	state->fullscreen = ws->fullscreen;
-	state->x = ws->x;
-	state->y = ws->y;
-	state->width = ws->width;
-	state->height = ws->height;
+	state->fullscreen = workspace->fullscreen;
+	state->x = workspace->x;
+	state->y = workspace->y;
+	state->width = workspace->width;
+	state->height = workspace->height;
 
-	state->output = ws->output;
+	state->output = workspace->output;
 	if (state->floating) {
 		state->floating->length = 0;
 	} else {
@@ -122,14 +122,14 @@ static void copy_workspace_state(struct wmiiv_workspace *ws,
 	} else {
 		state->tiling = create_list();
 	}
-	list_cat(state->floating, ws->floating);
-	list_cat(state->tiling, ws->tiling);
+	list_cat(state->floating, workspace->floating);
+	list_cat(state->tiling, workspace->tiling);
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	state->focused = seat_get_focus(seat) == &ws->node;
+	state->focused = seat_get_focus(seat) == &workspace->node;
 
 	// Set focused_inactive_child to the direct tiling child
-	struct wmiiv_container *focus = seat_get_focus_inactive_tiling(seat, ws);
+	struct wmiiv_container *focus = seat_get_focus_inactive_tiling(seat, workspace);
 	if (focus) {
 		while (focus->pending.parent) {
 			focus = focus->pending.parent;
@@ -234,13 +234,13 @@ static void apply_output_state(struct wmiiv_output *output,
 	output_damage_whole(output);
 }
 
-static void apply_workspace_state(struct wmiiv_workspace *ws,
+static void apply_workspace_state(struct wmiiv_workspace *workspace,
 		struct wmiiv_workspace_state *state) {
-	output_damage_whole(ws->current.output);
-	list_free(ws->current.floating);
-	list_free(ws->current.tiling);
-	memcpy(&ws->current, state, sizeof(struct wmiiv_workspace_state));
-	output_damage_whole(ws->current.output);
+	output_damage_whole(workspace->current.output);
+	list_free(workspace->current.floating);
+	list_free(workspace->current.tiling);
+	memcpy(&workspace->current, state, sizeof(struct wmiiv_workspace_state));
+	output_damage_whole(workspace->current.output);
 }
 
 static void apply_column_state(struct wmiiv_container *container,

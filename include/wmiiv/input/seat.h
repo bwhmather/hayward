@@ -158,7 +158,7 @@ void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *wind
 
 // TODO (wmiiv) deprecated.
 void seat_set_focus_workspace(struct wmiiv_seat *seat,
-		struct wmiiv_workspace *ws);
+		struct wmiiv_workspace *workspace);
 
 /**
  * Manipulate the focus stack without triggering any other behaviour.

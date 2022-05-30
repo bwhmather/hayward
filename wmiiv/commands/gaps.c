@@ -109,31 +109,31 @@ static void apply_gaps_op(int *prop, enum gaps_op op, int amount) {
 	}
 }
 
-static void configure_gaps(struct wmiiv_workspace *ws, void *_data) {
+static void configure_gaps(struct wmiiv_workspace *workspace, void *_data) {
 	// Apply operation to gaps
 	struct gaps_data *data = _data;
 	if (data->inner) {
-		apply_gaps_op(&ws->gaps_inner, data->operation, data->amount);
+		apply_gaps_op(&workspace->gaps_inner, data->operation, data->amount);
 	}
 	if (data->outer.top) {
-		apply_gaps_op(&(ws->gaps_outer.top), data->operation, data->amount);
+		apply_gaps_op(&(workspace->gaps_outer.top), data->operation, data->amount);
 	}
 	if (data->outer.right) {
-		apply_gaps_op(&(ws->gaps_outer.right), data->operation, data->amount);
+		apply_gaps_op(&(workspace->gaps_outer.right), data->operation, data->amount);
 	}
 	if (data->outer.bottom) {
-		apply_gaps_op(&(ws->gaps_outer.bottom), data->operation, data->amount);
+		apply_gaps_op(&(workspace->gaps_outer.bottom), data->operation, data->amount);
 	}
 	if (data->outer.left) {
-		apply_gaps_op(&(ws->gaps_outer.left), data->operation, data->amount);
+		apply_gaps_op(&(workspace->gaps_outer.left), data->operation, data->amount);
 	}
 
 	// Prevent invalid gaps configurations.
-	if (ws->gaps_inner < 0) {
-		ws->gaps_inner = 0;
+	if (workspace->gaps_inner < 0) {
+		workspace->gaps_inner = 0;
 	}
 	prevent_invalid_outer_gaps();
-	arrange_workspace(ws);
+	arrange_workspace(workspace);
 }
 
 // gaps inner|outer|horizontal|vertical|top|right|bottom|left current|all

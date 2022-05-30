@@ -583,15 +583,15 @@ static void ipc_get_workspaces_callback(struct wmiiv_workspace *workspace,
 	// override the default focused indicator because
 	// it's set differently for the get_workspaces reply
 	struct wmiiv_seat *seat = input_manager_get_default_seat();
-	struct wmiiv_workspace *focused_ws = seat_get_focused_workspace(seat);
-	bool focused = workspace == focused_ws;
+	struct wmiiv_workspace *focused_workspace = seat_get_focused_workspace(seat);
+	bool focused = workspace == focused_workspace;
 	json_object_object_del(workspace_json, "focused");
 	json_object_object_add(workspace_json, "focused",
 			json_object_new_boolean(focused));
 	json_object_array_add((json_object *)data, workspace_json);
 
-	focused_ws = output_get_active_workspace(workspace->output);
-	bool visible = workspace == focused_ws;
+	focused_workspace = output_get_active_workspace(workspace->output);
+	bool visible = workspace == focused_workspace;
 	json_object_object_add(workspace_json, "visible",
 			json_object_new_boolean(visible));
 }
@@ -674,9 +674,9 @@ void ipc_client_handle_command(struct ipc_client *client, uint32_t payload_lengt
 			// override the default focused indicator because it's set
 			// differently for the get_outputs reply
 			struct wmiiv_seat *seat = input_manager_get_default_seat();
-			struct wmiiv_workspace *focused_ws =
+			struct wmiiv_workspace *focused_workspace =
 				seat_get_focused_workspace(seat);
-			bool focused = focused_ws && output == focused_ws->output;
+			bool focused = focused_workspace && output == focused_workspace->output;
 			json_object_object_del(output_json, "focused");
 			json_object_object_add(output_json, "focused",
 				json_object_new_boolean(focused));

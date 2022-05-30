@@ -194,7 +194,7 @@ wmiiv_cmd cmd_unmark;
 wmiiv_cmd cmd_urgent;
 wmiiv_cmd cmd_workspace;
 wmiiv_cmd cmd_workspace_layout;
-wmiiv_cmd cmd_ws_auto_back_and_forth;
+wmiiv_cmd cmd_workspace_auto_back_and_forth;
 wmiiv_cmd cmd_xwayland;
 
 wmiiv_cmd bar_cmd_bindcode;

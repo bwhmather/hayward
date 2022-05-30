@@ -84,33 +84,33 @@ static bool parse_direction(const char *name,
 static struct wmiiv_node *get_node_in_output_direction(
 		struct wmiiv_output *output, enum wlr_direction dir) {
 	struct wmiiv_seat *seat = config->handler_context.seat;
-	struct wmiiv_workspace *ws = output_get_active_workspace(output);
-	if (!wmiiv_assert(ws, "Expected output to have a workspace")) {
+	struct wmiiv_workspace *workspace = output_get_active_workspace(output);
+	if (!wmiiv_assert(workspace, "Expected output to have a workspace")) {
 		return NULL;
 	}
-	if (ws->fullscreen) {
-		return &ws->fullscreen->node;
+	if (workspace->fullscreen) {
+		return &workspace->fullscreen->node;
 	}
 	struct wmiiv_container *column = NULL;
 	struct wmiiv_container *window = NULL;
 
-	if (ws->tiling->length > 0) {
+	if (workspace->tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
 			// get most right child of new output
-			column = ws->tiling->items[ws->tiling->length-1];
+			column = workspace->tiling->items[workspace->tiling->length-1];
 			window = seat_get_focus_inactive_view(seat, &column->node);
 			break;
 		case WLR_DIRECTION_RIGHT:
 			// get most left child of new output
-			column = ws->tiling->items[0];
+			column = workspace->tiling->items[0];
 			window = seat_get_focus_inactive_view(seat, &column->node);
 			break;
 		case WLR_DIRECTION_UP:
-			window = seat_get_focus_inactive_tiling(seat, ws);
+			window = seat_get_focus_inactive_tiling(seat, workspace);
 			break;
 		case WLR_DIRECTION_DOWN:
-			window = seat_get_focus_inactive_tiling(seat, ws);
+			window = seat_get_focus_inactive_tiling(seat, workspace);
 			break;
 		}
 	}
@@ -123,7 +123,7 @@ static struct wmiiv_node *get_node_in_output_direction(
 		return &window->node;
 	}
 
-	return &ws->node;
+	return &workspace->node;
 }
 
 static struct wmiiv_node *node_get_in_direction_tiling(
@@ -245,13 +245,13 @@ static struct wmiiv_node *node_get_in_direction_floating(
 	return closest_container ? &closest_container->node : NULL;
 }
 
-static struct cmd_results *focus_mode(struct wmiiv_workspace *ws,
+static struct cmd_results *focus_mode(struct wmiiv_workspace *workspace,
 		struct wmiiv_seat *seat, bool floating) {
 	struct wmiiv_container *new_focus = NULL;
 	if (floating) {
-		new_focus = seat_get_focus_inactive_floating(seat, ws);
+		new_focus = seat_get_focus_inactive_floating(seat, workspace);
 	} else {
-		new_focus = seat_get_focus_inactive_tiling(seat, ws);
+		new_focus = seat_get_focus_inactive_tiling(seat, workspace);
 	}
 	if (new_focus) {
 		seat_set_focus_window(seat, new_focus);
@@ -289,20 +289,20 @@ static struct cmd_results *focus_output(struct wmiiv_seat *seat,
 			return cmd_results_new(CMD_INVALID,
 				"There is no output with that name.");
 		}
-		struct wmiiv_workspace *ws = seat_get_focused_workspace(seat);
-		if (!ws) {
+		struct wmiiv_workspace *workspace = seat_get_focused_workspace(seat);
+		if (!workspace) {
 			free(identifier);
 			return cmd_results_new(CMD_FAILURE,
 				"No focused workspace to base directions off of.");
 		}
-		output = output_get_in_direction(ws->output, direction);
+		output = output_get_in_direction(workspace->output, direction);
 
 		if (!output) {
-			int center_lx = ws->output->lx + ws->output->width / 2;
-			int center_ly = ws->output->ly + ws->output->height / 2;
+			int center_lx = workspace->output->lx + workspace->output->width / 2;
+			int center_ly = workspace->output->ly + workspace->output->height / 2;
 			struct wlr_output *target = wlr_output_layout_farthest_output(
 					root->output_layout, opposite_direction(direction),
-					ws->output->wlr_output, center_lx, center_ly);
+					workspace->output->wlr_output, center_lx, center_ly);
 			if (target) {
 				output = output_from_wlr_output(target);
 			}

@@ -284,13 +284,13 @@ static void handle_seat_node_destroy(struct wl_listener *listener, void *data) {
 	}
 
 	if (!next_focus) {
-		struct wmiiv_workspace *ws = seat_get_last_known_workspace(seat);
-		if (!ws) {
+		struct wmiiv_workspace *workspace = seat_get_last_known_workspace(seat);
+		if (!workspace) {
 			return;
 		}
 		struct wmiiv_container *container =
-			seat_get_focus_inactive_view(seat, &ws->node);
-		next_focus = container ? &(container->node) : &(ws->node);
+			seat_get_focus_inactive_view(seat, &workspace->node);
+		next_focus = container ? &(container->node) : &(workspace->node);
 	}
 
 	if (next_focus->type == N_WORKSPACE &&
@@ -1091,8 +1091,8 @@ static int handle_urgent_timeout(void *data) {
 }
 
 static void set_workspace(struct wmiiv_seat *seat,
-		struct wmiiv_workspace *new_ws) {
-	if (seat->workspace == new_ws) {
+		struct wmiiv_workspace *new_workspace) {
+	if (seat->workspace == new_workspace) {
 		return;
 	}
 
@@ -1104,8 +1104,8 @@ static void set_workspace(struct wmiiv_seat *seat,
 		}
 	}
 
-	ipc_event_workspace(seat->workspace, new_ws, "focus");
-	seat->workspace = new_ws;
+	ipc_event_workspace(seat->workspace, new_workspace, "focus");
+	seat->workspace = new_workspace;
 }
 
 void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
@@ -1175,7 +1175,7 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	}
 
 	// find new output's old workspace, which might have to be removed if empty
-	struct wmiiv_workspace *new_output_last_ws =
+	struct wmiiv_workspace *new_output_last_workspace =
 		new_output ? output_get_active_workspace(new_output) : NULL;
 
 	// Unfocus the previous focus
@@ -1212,11 +1212,11 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	}
 
 	// Move sticky containers to new workspace
-	if (new_workspace && new_output_last_ws
-			&& new_workspace != new_output_last_ws) {
-		for (int i = 0; i < new_output_last_ws->floating->length; ++i) {
+	if (new_workspace && new_output_last_workspace
+			&& new_workspace != new_output_last_workspace) {
+		for (int i = 0; i < new_output_last_workspace->floating->length; ++i) {
 			struct wmiiv_container *floater =
-				new_output_last_ws->floating->items[i];
+				new_output_last_workspace->floating->items[i];
 			if (container_is_sticky(floater)) {
 				window_detach(floater);
 				workspace_add_floating(new_workspace, floater);
@@ -1250,10 +1250,10 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 		}
 	}
 
-	if (new_output_last_ws) {
-		workspace_consider_destroy(new_output_last_ws);
+	if (new_output_last_workspace) {
+		workspace_consider_destroy(new_output_last_workspace);
 	}
-	if (last_workspace && last_workspace != new_output_last_ws) {
+	if (last_workspace && last_workspace != new_output_last_workspace) {
 		workspace_consider_destroy(last_workspace);
 	}
 
@@ -1284,8 +1284,8 @@ void seat_set_focus_container(struct wmiiv_seat *seat,
 }
 
 void seat_set_focus_workspace(struct wmiiv_seat *seat,
-		struct wmiiv_workspace *ws) {
-	seat_set_focus(seat, ws ? &ws->node : NULL);
+		struct wmiiv_workspace *workspace) {
+	seat_set_focus(seat, workspace ? &workspace->node : NULL);
 }
 
 void seat_set_focus_surface(struct wmiiv_seat *seat,
@@ -1448,8 +1448,8 @@ struct wmiiv_node *seat_get_active_tiling_child(struct wmiiv_seat *seat,
 		}
 		if (parent->type == N_WORKSPACE) {
 			// Only consider tiling children
-			struct wmiiv_workspace *ws = parent->wmiiv_workspace;
-			if (list_find(ws->tiling, node->wmiiv_container) == -1) {
+			struct wmiiv_workspace *workspace = parent->wmiiv_workspace;
+			if (list_find(workspace->tiling, node->wmiiv_container) == -1) {
 				continue;
 			}
 		}

@@ -55,9 +55,9 @@ static void apply_horiz_layout(list_t *children, struct wlr_box *parent) {
 	// Calculate gap size
 	double inner_gap = 0;
 	struct wmiiv_container *child = children->items[0];
-	struct wmiiv_workspace *ws = child->pending.workspace;
-	if (ws) {
-		inner_gap = ws->gaps_inner;
+	struct wmiiv_workspace *workspace = child->pending.workspace;
+	if (workspace) {
+		inner_gap = workspace->gaps_inner;
 	}
 	// Descendants of tabbed/stacked containers don't have gaps
 	struct wmiiv_container *temp = child;
@@ -134,9 +134,9 @@ static void apply_vert_layout(list_t *children, struct wlr_box *parent) {
 	// Calculate gap size
 	double inner_gap = 0;
 	struct wmiiv_container *child = children->items[0];
-	struct wmiiv_workspace *ws = child->pending.workspace;
-	if (ws) {
-		inner_gap = ws->gaps_inner;
+	struct wmiiv_workspace *workspace = child->pending.workspace;
+	if (workspace) {
+		inner_gap = workspace->gaps_inner;
 	}
 	// Descendants of tabbed/stacked containers don't have gaps
 	struct wmiiv_container *temp = child;
@@ -268,7 +268,7 @@ void arrange_workspace(struct wmiiv_workspace *workspace) {
 	}
 	struct wmiiv_output *output = workspace->output;
 	struct wlr_box *area = &output->usable_area;
-	wmiiv_log(WMIIV_DEBUG, "Usable area for ws: %dx%d@%d,%d",
+	wmiiv_log(WMIIV_DEBUG, "Usable area for workspace: %dx%d@%d,%d",
 			area->width, area->height, area->x, area->y);
 
 	bool first_arrange = workspace->width == 0 && workspace->height == 0;

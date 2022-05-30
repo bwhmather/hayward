@@ -36,30 +36,30 @@ static void restore_workspaces(struct wmiiv_output *output) {
 		}
 
 		for (int j = 0; j < other->workspaces->length; j++) {
-			struct wmiiv_workspace *ws = other->workspaces->items[j];
+			struct wmiiv_workspace *workspace = other->workspaces->items[j];
 			struct wmiiv_output *highest =
-				workspace_output_get_highest_available(ws, NULL);
+				workspace_output_get_highest_available(workspace, NULL);
 			if (highest == output) {
-				workspace_detach(ws);
-				output_add_workspace(output, ws);
-				ipc_event_workspace(NULL, ws, "move");
+				workspace_detach(workspace);
+				output_add_workspace(output, workspace);
+				ipc_event_workspace(NULL, workspace, "move");
 				j--;
 			}
 		}
 
 		if (other->workspaces->length == 0) {
 			char *next = workspace_next_name(other->wlr_output->name);
-			struct wmiiv_workspace *ws = workspace_create(other, next);
+			struct wmiiv_workspace *workspace = workspace_create(other, next);
 			free(next);
-			ipc_event_workspace(NULL, ws, "init");
+			ipc_event_workspace(NULL, workspace, "init");
 		}
 	}
 
 	// Saved workspaces
 	while (root->fallback_output->workspaces->length) {
-		struct wmiiv_workspace *ws = root->fallback_output->workspaces->items[0];
-		workspace_detach(ws);
-		output_add_workspace(output, ws);
+		struct wmiiv_workspace *workspace = root->fallback_output->workspaces->items[0];
+		workspace_detach(workspace);
+		output_add_workspace(output, workspace);
 
 		// If the floater was made floating while on the NOOP output, its width
 		// and height will be zero and it should be reinitialized as a floating
@@ -68,8 +68,8 @@ static void restore_workspaces(struct wmiiv_output *output) {
 		// outside of the output's bounds, do the same as the output layout has
 		// likely changed and the maximum size needs to be checked and the
 		// floater re-centered
-		for (int i = 0; i < ws->floating->length; i++) {
-			struct wmiiv_container *floater = ws->floating->items[i];
+		for (int i = 0; i < workspace->floating->length; i++) {
+			struct wmiiv_container *floater = workspace->floating->items[i];
 			if (floater->pending.width == 0 || floater->pending.height == 0 ||
 					floater->pending.width > output->width ||
 					floater->pending.height > output->height ||
@@ -81,7 +81,7 @@ static void restore_workspaces(struct wmiiv_output *output) {
 			}
 		}
 
-		ipc_event_workspace(NULL, ws, "move");
+		ipc_event_workspace(NULL, workspace, "move");
 	}
 
 	output_sort_workspaces(output);
@@ -120,21 +120,21 @@ void output_enable(struct wmiiv_output *output) {
 
 	restore_workspaces(output);
 
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	if (!output->workspaces->length) {
 		// Create workspace
-		char *ws_name = workspace_next_name(wlr_output->name);
-		wmiiv_log(WMIIV_DEBUG, "Creating default workspace %s", ws_name);
-		ws = workspace_create(output, ws_name);
+		char *workspace_name = workspace_next_name(wlr_output->name);
+		wmiiv_log(WMIIV_DEBUG, "Creating default workspace %s", workspace_name);
+		workspace = workspace_create(output, workspace_name);
 		// Set each seat's focus if not already set
 		struct wmiiv_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {
 			if (!seat->has_focus) {
-				seat_set_focus_workspace(seat, ws);
+				seat_set_focus_workspace(seat, workspace);
 			}
 		}
-		free(ws_name);
-		ipc_event_workspace(NULL, ws, "init");
+		free(workspace_name);
+		ipc_event_workspace(NULL, workspace, "init");
 	}
 
 	input_manager_configure_xcursor();
@@ -145,21 +145,21 @@ void output_enable(struct wmiiv_output *output) {
 	arrange_root();
 }
 
-static void evacuate_sticky(struct wmiiv_workspace *old_ws,
+static void evacuate_sticky(struct wmiiv_workspace *old_workspace,
 		struct wmiiv_output *new_output) {
-	struct wmiiv_workspace *new_ws = output_get_active_workspace(new_output);
-	if (!wmiiv_assert(new_ws, "New output does not have a workspace")) {
+	struct wmiiv_workspace *new_workspace = output_get_active_workspace(new_output);
+	if (!wmiiv_assert(new_workspace, "New output does not have a workspace")) {
 		return;
 	}
-	while(old_ws->floating->length) {
-		struct wmiiv_container *sticky = old_ws->floating->items[0];
+	while(old_workspace->floating->length) {
+		struct wmiiv_container *sticky = old_workspace->floating->items[0];
 		window_detach(sticky);
-		workspace_add_floating(new_ws, sticky);
+		workspace_add_floating(new_workspace, sticky);
 		container_handle_fullscreen_reparent(sticky);
 		container_floating_move_to_center(sticky);
 		ipc_event_window(sticky, "move");
 	}
-	workspace_detect_urgent(new_ws);
+	workspace_detect_urgent(new_workspace);
 }
 
 static void output_evacuate(struct wmiiv_output *output) {
@@ -188,13 +188,13 @@ static void output_evacuate(struct wmiiv_output *output) {
 			new_output = root->fallback_output;
 		}
 
-		struct wmiiv_workspace *new_output_ws =
+		struct wmiiv_workspace *new_output_workspace =
 			output_get_active_workspace(new_output);
 
 		if (workspace_is_empty(workspace)) {
 			// If the new output has an active workspace (the noop output may
 			// not have one), move all sticky containers to it
-			if (new_output_ws &&
+			if (new_output_workspace &&
 					workspace_num_sticky_containers(workspace) > 0) {
 				evacuate_sticky(workspace, new_output);
 			}
@@ -212,8 +212,8 @@ static void output_evacuate(struct wmiiv_output *output) {
 
 		// If there is an old workspace (the noop output may not have one),
 		// check to see if it is empty and should be destroyed.
-		if (new_output_ws) {
-			workspace_consider_destroy(new_output_ws);
+		if (new_output_workspace) {
+			workspace_consider_destroy(new_output_workspace);
 		}
 	}
 }
@@ -318,7 +318,7 @@ void output_add_workspace(struct wmiiv_output *output,
 }
 
 void output_for_each_workspace(struct wmiiv_output *output,
-		void (*f)(struct wmiiv_workspace *ws, void *data), void *data) {
+		void (*f)(struct wmiiv_workspace *workspace, void *data), void *data) {
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];
 		f(workspace, data);
@@ -334,7 +334,7 @@ void output_for_each_container(struct wmiiv_output *output,
 }
 
 struct wmiiv_workspace *output_find_workspace(struct wmiiv_output *output,
-		bool (*test)(struct wmiiv_workspace *ws, void *data), void *data) {
+		bool (*test)(struct wmiiv_workspace *workspace, void *data), void *data) {
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];
 		if (test(workspace, data)) {

@@ -941,18 +941,18 @@ static void render_container(struct wmiiv_output *output,
 }
 
 static void render_workspace(struct wmiiv_output *output,
-		pixman_region32_t *damage, struct wmiiv_workspace *ws, bool focused) {
+		pixman_region32_t *damage, struct wmiiv_workspace *workspace, bool focused) {
 	struct parent_data data = {
 		.layout = L_HORIZ,
 		.box = {
-			.x = floor(ws->current.x),
-			.y = floor(ws->current.y),
-			.width = ws->current.width,
-			.height = ws->current.height,
+			.x = floor(workspace->current.x),
+			.y = floor(workspace->current.y),
+			.width = workspace->current.width,
+			.height = workspace->current.height,
 		},
-		.children = ws->current.tiling,
+		.children = workspace->current.tiling,
 		.focused = focused,
-		.active_child = ws->current.focused_inactive_child,
+		.active_child = workspace->current.focused_inactive_child,
 	};
 	render_containers(output, damage, &data);
 }
@@ -997,12 +997,12 @@ static void render_floating(struct wmiiv_output *soutput,
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
 		for (int j = 0; j < output->current.workspaces->length; ++j) {
-			struct wmiiv_workspace *ws = output->current.workspaces->items[j];
-			if (!workspace_is_visible(ws)) {
+			struct wmiiv_workspace *workspace = output->current.workspaces->items[j];
+			if (!workspace_is_visible(workspace)) {
 				continue;
 			}
-			for (int k = 0; k < ws->current.floating->length; ++k) {
-				struct wmiiv_container *floater = ws->current.floating->items[k];
+			for (int k = 0; k < workspace->current.floating->length; ++k) {
+				struct wmiiv_container *floater = workspace->current.floating->items[k];
 				if (floater->current.fullscreen_mode != FULLSCREEN_NONE) {
 					continue;
 				}

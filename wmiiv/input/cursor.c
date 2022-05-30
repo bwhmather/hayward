@@ -134,15 +134,15 @@ struct wmiiv_container *seat_column_window_at(struct wmiiv_seat *seat, struct wm
 static struct wmiiv_container *seat_tiling_window_at(struct wmiiv_seat *seat, double lx, double ly) {
 	for (int i = 0; i < root->outputs->length; i++) {
 		struct wmiiv_output *output = root->outputs->items[i];
-		struct wmiiv_workspace *ws = output_get_active_workspace(output);
+		struct wmiiv_workspace *workspace = output_get_active_workspace(output);
 
 		struct wlr_box box;
-		workspace_get_box(ws, &box);
+		workspace_get_box(workspace, &box);
 		if (!wlr_box_contains_point(&box, lx, ly)) {
 			continue;
 		}
 
-		list_t *columns = ws->tiling;
+		list_t *columns = workspace->tiling;
 		for (int i = 0; i < columns->length; ++i) {
 			struct wmiiv_container *column = columns->items[i];
 			struct wmiiv_container *window = seat_column_window_at(seat, column, lx, ly);
@@ -160,12 +160,12 @@ static struct wmiiv_container *seat_floating_window_at(struct wmiiv_seat *seat, 
 	// containers from other outputs, so iterate the list in reverse.
 	for (int i = root->outputs->length - 1; i >= 0; --i) {
 		struct wmiiv_output *output = root->outputs->items[i];
-		struct wmiiv_workspace *ws = output_get_active_workspace(output);
+		struct wmiiv_workspace *workspace = output_get_active_workspace(output);
 
 		// Items at the end of the list are on top, so iterate the list in
 		// reverse.
-		for (int k = ws->floating->length - 1; k >= 0; --k) {
-			struct wmiiv_container *window = ws->floating->items[k];
+		for (int k = workspace->floating->length - 1; k >= 0; --k) {
+			struct wmiiv_container *window = workspace->floating->items[k];
 			if (window_contains_point(window, lx, ly)) {
 				return window;
 			}
@@ -316,24 +316,24 @@ static struct wmiiv_node *node_at_coords(
 	}
 
 	// find the focused workspace on the output for this seat
-	struct wmiiv_workspace *ws = output_get_active_workspace(output);
-	if (!ws) {
+	struct wmiiv_workspace *workspace = output_get_active_workspace(output);
+	if (!workspace) {
 		return NULL;
 	}
 
-	if (ws->fullscreen) {
+	if (workspace->fullscreen) {
 		// Try transient containers
-		for (int i = 0; i < ws->floating->length; ++i) {
-			struct wmiiv_container *floater = ws->floating->items[i];
-			if (container_is_transient_for(floater, ws->fullscreen)) {
+		for (int i = 0; i < workspace->floating->length; ++i) {
+			struct wmiiv_container *floater = workspace->floating->items[i];
+			if (container_is_transient_for(floater, workspace->fullscreen)) {
 				if ((*surface = window_surface_at(floater, lx, ly, sx, sy))) {
 					return &floater->node;
 				}
 			}
 		}
 		// Try fullscreen container
-		if ((*surface = window_surface_at(ws->fullscreen, lx, ly, sx, sy))) {
-			return &ws->fullscreen->node;
+		if ((*surface = window_surface_at(workspace->fullscreen, lx, ly, sx, sy))) {
+			return &workspace->fullscreen->node;
 		}
 		return NULL;
 	}
@@ -375,7 +375,7 @@ static struct wmiiv_node *node_at_coords(
 		return NULL;
 	}
 
-	return &ws->node;
+	return &workspace->node;
 }
 
 void seat_get_target_at(

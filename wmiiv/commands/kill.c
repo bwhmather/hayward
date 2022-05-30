@@ -18,13 +18,13 @@ struct cmd_results *cmd_kill(int argc, char **argv) {
 				"Can't run this command while there's no outputs connected.");
 	}
 	struct wmiiv_container *container = config->handler_context.container;
-	struct wmiiv_workspace *ws = config->handler_context.workspace;
+	struct wmiiv_workspace *workspace = config->handler_context.workspace;
 
 	if (container) {
 		close_container_iterator(container, NULL);
 		container_for_each_child(container, close_container_iterator, NULL);
 	} else {
-		workspace_for_each_container(ws, close_container_iterator, NULL);
+		workspace_for_each_container(workspace, close_container_iterator, NULL);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

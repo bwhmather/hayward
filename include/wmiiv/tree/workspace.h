@@ -42,7 +42,7 @@ struct wmiiv_workspace {
 	struct wmiiv_workspace_state current;
 };
 
-struct workspace_config *workspace_find_config(const char *ws_name);
+struct workspace_config *workspace_find_config(const char *workspace_name);
 
 struct wmiiv_output *workspace_get_initial_output(const char *name);
 
@@ -53,7 +53,7 @@ void workspace_destroy(struct wmiiv_workspace *workspace);
 
 void workspace_begin_destroy(struct wmiiv_workspace *workspace);
 
-void workspace_consider_destroy(struct wmiiv_workspace *ws);
+void workspace_consider_destroy(struct wmiiv_workspace *workspace);
 
 char *workspace_next_name(const char *output_name);
 
@@ -74,9 +74,9 @@ struct wmiiv_workspace *workspace_output_prev(struct wmiiv_workspace *current);
 
 struct wmiiv_workspace *workspace_prev(struct wmiiv_workspace *current);
 
-bool workspace_is_visible(struct wmiiv_workspace *ws);
+bool workspace_is_visible(struct wmiiv_workspace *workspace);
 
-bool workspace_is_empty(struct wmiiv_workspace *ws);
+bool workspace_is_empty(struct wmiiv_workspace *workspace);
 
 void workspace_output_raise_priority(struct wmiiv_workspace *workspace,
 		struct wmiiv_output *old_output, struct wmiiv_output *new_output);
@@ -85,14 +85,14 @@ void workspace_output_add_priority(struct wmiiv_workspace *workspace,
 		struct wmiiv_output *output);
 
 struct wmiiv_output *workspace_output_get_highest_available(
-		struct wmiiv_workspace *ws, struct wmiiv_output *exclude);
+		struct wmiiv_workspace *workspace, struct wmiiv_output *exclude);
 
 void workspace_detect_urgent(struct wmiiv_workspace *workspace);
 
-void workspace_for_each_container(struct wmiiv_workspace *ws,
+void workspace_for_each_container(struct wmiiv_workspace *workspace,
 		void (*f)(struct wmiiv_container *container, void *data), void *data);
 
-struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *ws,
+struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *workspace,
 		bool (*test)(struct wmiiv_container *container, void *data), void *data);
 
 /**
@@ -118,19 +118,19 @@ void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
 struct wmiiv_container *workspace_insert_tiling(struct wmiiv_workspace *workspace,
 		struct wmiiv_container *container, int index);
 
-void workspace_remove_gaps(struct wmiiv_workspace *ws);
+void workspace_remove_gaps(struct wmiiv_workspace *workspace);
 
-void workspace_add_gaps(struct wmiiv_workspace *ws);
+void workspace_add_gaps(struct wmiiv_workspace *workspace);
 
 struct wmiiv_container *workspace_split(struct wmiiv_workspace *workspace,
 		enum wmiiv_container_layout layout);
 
-void workspace_update_representation(struct wmiiv_workspace *ws);
+void workspace_update_representation(struct wmiiv_workspace *workspace);
 
 void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box);
 
-size_t workspace_num_tiling_views(struct wmiiv_workspace *ws);
+size_t workspace_num_tiling_views(struct wmiiv_workspace *workspace);
 
-size_t workspace_num_sticky_containers(struct wmiiv_workspace *ws);
+size_t workspace_num_sticky_containers(struct wmiiv_workspace *workspace);
 
 #endif

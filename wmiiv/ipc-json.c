@@ -274,12 +274,12 @@ static void ipc_json_describe_output(struct wmiiv_output *output,
 	json_object_object_add(object, "adaptive_sync_status",
 		json_object_new_string(adaptive_sync_status));
 
-	struct wmiiv_workspace *ws = output_get_active_workspace(output);
-	if (!wmiiv_assert(ws, "Expected output to have a workspace")) {
+	struct wmiiv_workspace *workspace = output_get_active_workspace(output);
+	if (!wmiiv_assert(workspace, "Expected output to have a workspace")) {
 		return;
 	}
 	json_object_object_add(object, "current_workspace",
-			json_object_new_string(ws->name));
+			json_object_new_string(workspace->name));
 
 	json_object *modes_array = json_object_new_array();
 	struct wlr_output_mode *mode;
@@ -761,9 +761,9 @@ json_object *ipc_json_describe_node_recursive(struct wmiiv_node *node) {
 		break;
 	case N_OUTPUT:
 		for (i = 0; i < node->wmiiv_output->workspaces->length; ++i) {
-			struct wmiiv_workspace *ws = node->wmiiv_output->workspaces->items[i];
+			struct wmiiv_workspace *workspace = node->wmiiv_output->workspaces->items[i];
 			json_object_array_add(children,
-					ipc_json_describe_node_recursive(&ws->node));
+					ipc_json_describe_node_recursive(&workspace->node));
 		}
 		break;
 	case N_WORKSPACE:

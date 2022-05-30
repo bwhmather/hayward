@@ -20,10 +20,10 @@
 #include "log.h"
 #include "util.h"
 
-struct workspace_config *workspace_find_config(const char *ws_name) {
+struct workspace_config *workspace_find_config(const char *workspace_name) {
 	for (int i = 0; i < config->workspace_configs->length; ++i) {
 		struct workspace_config *wsc = config->workspace_configs->items[i];
-		if (strcmp(wsc->workspace, ws_name) == 0) {
+		if (strcmp(wsc->workspace, workspace_name) == 0) {
 			return wsc;
 		}
 	}
@@ -63,58 +63,58 @@ struct wmiiv_workspace *workspace_create(struct wmiiv_output *output,
 	wmiiv_log(WMIIV_DEBUG, "Adding workspace %s for output %s", name,
 			output->wlr_output->name);
 
-	struct wmiiv_workspace *ws = calloc(1, sizeof(struct wmiiv_workspace));
-	if (!ws) {
+	struct wmiiv_workspace *workspace = calloc(1, sizeof(struct wmiiv_workspace));
+	if (!workspace) {
 		wmiiv_log(WMIIV_ERROR, "Unable to allocate wmiiv_workspace");
 		return NULL;
 	}
-	node_init(&ws->node, N_WORKSPACE, ws);
-	ws->name = name ? strdup(name) : NULL;
-	ws->floating = create_list();
-	ws->tiling = create_list();
-	ws->output_priority = create_list();
+	node_init(&workspace->node, N_WORKSPACE, workspace);
+	workspace->name = name ? strdup(name) : NULL;
+	workspace->floating = create_list();
+	workspace->tiling = create_list();
+	workspace->output_priority = create_list();
 
-	ws->gaps_outer = config->gaps_outer;
-	ws->gaps_inner = config->gaps_inner;
+	workspace->gaps_outer = config->gaps_outer;
+	workspace->gaps_inner = config->gaps_inner;
 	if (name) {
 		struct workspace_config *wsc = workspace_find_config(name);
 		if (wsc) {
 			if (wsc->gaps_outer.top != INT_MIN) {
-				ws->gaps_outer.top = wsc->gaps_outer.top;
+				workspace->gaps_outer.top = wsc->gaps_outer.top;
 			}
 			if (wsc->gaps_outer.right != INT_MIN) {
-				ws->gaps_outer.right = wsc->gaps_outer.right;
+				workspace->gaps_outer.right = wsc->gaps_outer.right;
 			}
 			if (wsc->gaps_outer.bottom != INT_MIN) {
-				ws->gaps_outer.bottom = wsc->gaps_outer.bottom;
+				workspace->gaps_outer.bottom = wsc->gaps_outer.bottom;
 			}
 			if (wsc->gaps_outer.left != INT_MIN) {
-				ws->gaps_outer.left = wsc->gaps_outer.left;
+				workspace->gaps_outer.left = wsc->gaps_outer.left;
 			}
 			if (wsc->gaps_inner != INT_MIN) {
-				ws->gaps_inner = wsc->gaps_inner;
+				workspace->gaps_inner = wsc->gaps_inner;
 			}
 
 			// Add output priorities
 			for (int i = 0; i < wsc->outputs->length; ++i) {
 				char *name = wsc->outputs->items[i];
 				if (strcmp(name, "*") != 0) {
-					list_add(ws->output_priority, strdup(name));
+					list_add(workspace->output_priority, strdup(name));
 				}
 			}
 		}
 	}
 
 	// If not already added, add the output to the lowest priority
-	workspace_output_add_priority(ws, output);
+	workspace_output_add_priority(workspace, output);
 
-	output_add_workspace(output, ws);
+	output_add_workspace(output, workspace);
 	output_sort_workspaces(output);
 
-	ipc_event_workspace(NULL, ws, "init");
-	wl_signal_emit(&root->events.new_node, &ws->node);
+	ipc_event_workspace(NULL, workspace, "init");
+	wl_signal_emit(&root->events.new_node, &workspace->node);
 
-	return ws;
+	return workspace;
 }
 
 void workspace_destroy(struct wmiiv_workspace *workspace) {
@@ -149,29 +149,29 @@ void workspace_begin_destroy(struct wmiiv_workspace *workspace) {
 	node_set_dirty(&workspace->node);
 }
 
-void workspace_consider_destroy(struct wmiiv_workspace *ws) {
-	if (ws->tiling->length || ws->floating->length) {
+void workspace_consider_destroy(struct wmiiv_workspace *workspace) {
+	if (workspace->tiling->length || workspace->floating->length) {
 		return;
 	}
 
-	if (ws->output && output_get_active_workspace(ws->output) == ws) {
+	if (workspace->output && output_get_active_workspace(workspace->output) == workspace) {
 		return;
 	}
 
 	struct wmiiv_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		struct wmiiv_node *node = seat_get_focus_inactive(seat, &root->node);
-		if (node == &ws->node) {
+		if (node == &workspace->node) {
 			return;
 		}
 	}
 
-	workspace_begin_destroy(ws);
+	workspace_begin_destroy(workspace);
 }
 
 static bool workspace_valid_on_output(const char *output_name,
-		const char *ws_name) {
-	struct workspace_config *wsc = workspace_find_config(ws_name);
+		const char *workspace_name) {
+	struct workspace_config *wsc = workspace_find_config(workspace_name);
 	char identifier[128];
 	struct wmiiv_output *output = output_by_name_or_id(output_name);
 	if (!output) {
@@ -326,30 +326,30 @@ char *workspace_next_name(const char *output_name) {
 	}
 	// As a fall back, use the next available number
 	char name[12] = "";
-	unsigned int ws_num = 1;
+	unsigned int workspace_num = 1;
 	do {
-		snprintf(name, sizeof(name), "%u", ws_num++);
+		snprintf(name, sizeof(name), "%u", workspace_num++);
 	} while (workspace_by_number(name));
 	return strdup(name);
 }
 
-static bool _workspace_by_number(struct wmiiv_workspace *ws, void *data) {
+static bool _workspace_by_number(struct wmiiv_workspace *workspace, void *data) {
 	char *name = data;
-	char *ws_name = ws->name;
+	char *workspace_name = workspace->name;
 	while (isdigit(*name)) {
-		if (*name++ != *ws_name++) {
+		if (*name++ != *workspace_name++) {
 			return false;
 		}
 	}
-	return !isdigit(*ws_name);
+	return !isdigit(*workspace_name);
 }
 
 struct wmiiv_workspace *workspace_by_number(const char* name) {
 	return root_find_workspace(_workspace_by_number, (void *) name);
 }
 
-static bool _workspace_by_name(struct wmiiv_workspace *ws, void *data) {
-	return strcasecmp(ws->name, data) == 0;
+static bool _workspace_by_name(struct wmiiv_workspace *workspace, void *data) {
+	return strcasecmp(workspace->name, data) == 0;
 }
 
 struct wmiiv_workspace *workspace_by_name(const char *name) {
@@ -398,22 +398,22 @@ struct wmiiv_workspace *workspace_prev(struct wmiiv_workspace *workspace) {
 		for (int i = root->outputs->length - 1; i >= 0; i--) {
 			struct wmiiv_output *output = root->outputs->items[i];
 			for (int j = output->workspaces->length - 1; j >= 0; j--) {
-				struct wmiiv_workspace *ws = output->workspaces->items[j];
-				int wsn = workspace_get_number(ws);
+				struct wmiiv_workspace *candidate = output->workspaces->items[j];
+				int wsn = workspace_get_number(candidate);
 				if (!last) {
 					// The first workspace in reverse order
-					last = ws;
+					last = candidate;
 				}
 				if (!other || (wsn >= 0 && wsn > othern)) {
 					// The last (greatest) numbered workspace.
-					other = ws;
+					other = candidate;
 					othern = workspace_get_number(other);
 				}
-				if (ws == workspace) {
+				if (candidate== workspace) {
 					found = true;
 				} else if (wsn < 0 && found) {
 					// Found a non-numbered workspace before current
-					return ws;
+					return candidate;
 				}
 			}
 		}
@@ -423,16 +423,16 @@ struct wmiiv_workspace *workspace_prev(struct wmiiv_workspace *workspace) {
 		for (int i = root->outputs->length - 1; i >= 0; i--) {
 			struct wmiiv_output *output = root->outputs->items[i];
 			for (int j = output->workspaces->length - 1; j >= 0; j--) {
-				struct wmiiv_workspace *ws = output->workspaces->items[j];
-				int wsn = workspace_get_number(ws);
+				struct wmiiv_workspace *candidate = output->workspaces->items[j];
+				int wsn = workspace_get_number(candidate);
 				if (!last || (wsn >= 0 && wsn > lastn)) {
 					// The greatest numbered (or last) workspace
-					last = ws;
+					last = candidate;
 					lastn = workspace_get_number(last);
 				}
 				if (!other && wsn < 0) {
 					// The last named workspace
-					other = ws;
+					other = candidate;
 				}
 				if (wsn < 0) {
 					// Haven't reached the numbered workspaces
@@ -440,7 +440,7 @@ struct wmiiv_workspace *workspace_prev(struct wmiiv_workspace *workspace) {
 				}
 				if (wsn < n && (!prev || wsn > prevn)) {
 					// The closest workspace before the current
-					prev = ws;
+					prev = candidate;
 					prevn = workspace_get_number(prev);
 				}
 			}
@@ -463,22 +463,22 @@ struct wmiiv_workspace *workspace_next(struct wmiiv_workspace *workspace) {
 		for (int i = 0; i < root->outputs->length; i++) {
 			struct wmiiv_output *output = root->outputs->items[i];
 			for (int j = 0; j < output->workspaces->length; j++) {
-				struct wmiiv_workspace *ws = output->workspaces->items[j];
-				int wsn = workspace_get_number(ws);
+				struct wmiiv_workspace *candidate = output->workspaces->items[j];
+				int wsn = workspace_get_number(candidate);
 				if (!first) {
 					// The first named workspace
-					first = ws;
+					first = candidate;
 				}
 				if (!other || (wsn >= 0 && wsn < othern)) {
 					// The first (least) numbered workspace
-					other = ws;
+					other = candidate;
 					othern = workspace_get_number(other);
 				}
-				if (ws == workspace) {
+				if (candidate == workspace) {
 					found = true;
 				} else if (wsn < 0 && found) {
 					// The first non-numbered workspace after the current
-					return ws;
+					return candidate;
 				}
 			}
 		}
@@ -488,16 +488,16 @@ struct wmiiv_workspace *workspace_next(struct wmiiv_workspace *workspace) {
 		for (int i = 0; i < root->outputs->length; i++) {
 			struct wmiiv_output *output = root->outputs->items[i];
 			for (int j = 0; j < output->workspaces->length; j++) {
-				struct wmiiv_workspace *ws = output->workspaces->items[j];
-				int wsn = workspace_get_number(ws);
+				struct wmiiv_workspace *candidate = output->workspaces->items[j];
+				int wsn = workspace_get_number(candidate);
 				if (!first || (wsn >= 0 && wsn < firstn)) {
 					// The first (or least numbered) workspace
-					first = ws;
+					first = candidate;
 					firstn = workspace_get_number(first);
 				}
 				if (!other && wsn < 0) {
 					// The first non-numbered workspace
-					other = ws;
+					other = candidate;
 				}
 				if (wsn < 0) {
 					// Checked all the numbered workspaces
@@ -505,7 +505,7 @@ struct wmiiv_workspace *workspace_next(struct wmiiv_workspace *workspace) {
 				}
 				if (n < wsn && (!next || wsn < nextn)) {
 					// The first workspace numerically after the current
-					next = ws;
+					next = candidate;
 					nextn = workspace_get_number(next);
 				}
 			}
@@ -552,20 +552,20 @@ struct wmiiv_workspace *workspace_output_prev(struct wmiiv_workspace *current) {
 struct wmiiv_workspace *workspace_auto_back_and_forth(
 		struct wmiiv_workspace *workspace) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_workspace *active_ws = NULL;
+	struct wmiiv_workspace *active_workspace = NULL;
 	struct wmiiv_node *focus = seat_get_focus_inactive(seat, &root->node);
 	if (focus && focus->type == N_WORKSPACE) {
-		active_ws = focus->wmiiv_workspace;
+		active_workspace = focus->wmiiv_workspace;
 	} else if (focus && (focus->type == N_COLUMN || focus->type == N_WINDOW)) {
-		active_ws = focus->wmiiv_container->pending.workspace;
+		active_workspace = focus->wmiiv_container->pending.workspace;
 	}
 
-	if (config->auto_back_and_forth && active_ws && active_ws == workspace &&
+	if (config->auto_back_and_forth && active_workspace && active_workspace == workspace &&
 			seat->prev_workspace_name) {
-		struct wmiiv_workspace *new_ws =
+		struct wmiiv_workspace *new_workspace =
 			workspace_by_name(seat->prev_workspace_name);
-		workspace = new_ws ?
-			new_ws :
+		workspace = new_workspace ?
+			new_workspace :
 			workspace_create(NULL, seat->prev_workspace_name);
 	}
 	return workspace;
@@ -585,20 +585,20 @@ bool workspace_switch(struct wmiiv_workspace *workspace) {
 	return true;
 }
 
-bool workspace_is_visible(struct wmiiv_workspace *ws) {
-	if (ws->node.destroying) {
+bool workspace_is_visible(struct wmiiv_workspace *workspace) {
+	if (workspace->node.destroying) {
 		return false;
 	}
-	return output_get_active_workspace(ws->output) == ws;
+	return output_get_active_workspace(workspace->output) == workspace;
 }
 
-bool workspace_is_empty(struct wmiiv_workspace *ws) {
-	if (ws->tiling->length) {
+bool workspace_is_empty(struct wmiiv_workspace *workspace) {
+	if (workspace->tiling->length) {
 		return false;
 	}
 	// Sticky views are not considered to be part of this workspace
-	for (int i = 0; i < ws->floating->length; ++i) {
-		struct wmiiv_container *floater = ws->floating->items[i];
+	for (int i = 0; i < workspace->floating->length; ++i) {
+		struct wmiiv_container *floater = workspace->floating->items[i];
 		if (!container_is_sticky(floater)) {
 			return false;
 		}
@@ -610,32 +610,32 @@ static int find_output(const void *id1, const void *id2) {
 	return strcmp(id1, id2);
 }
 
-static int workspace_output_get_priority(struct wmiiv_workspace *ws,
+static int workspace_output_get_priority(struct wmiiv_workspace *workspace,
 		struct wmiiv_output *output) {
 	char identifier[128];
 	output_get_identifier(identifier, sizeof(identifier), output);
-	int index_id = list_seq_find(ws->output_priority, find_output, identifier);
-	int index_name = list_seq_find(ws->output_priority, find_output,
+	int index_id = list_seq_find(workspace->output_priority, find_output, identifier);
+	int index_name = list_seq_find(workspace->output_priority, find_output,
 			output->wlr_output->name);
 	return index_name < 0 || index_id < index_name ? index_id : index_name;
 }
 
-void workspace_output_raise_priority(struct wmiiv_workspace *ws,
+void workspace_output_raise_priority(struct wmiiv_workspace *workspace,
 		struct wmiiv_output *old_output, struct wmiiv_output *output) {
-	int old_index = workspace_output_get_priority(ws, old_output);
+	int old_index = workspace_output_get_priority(workspace, old_output);
 	if (old_index < 0) {
 		return;
 	}
 
-	int new_index = workspace_output_get_priority(ws, output);
+	int new_index = workspace_output_get_priority(workspace, output);
 	if (new_index < 0) {
 		char identifier[128];
 		output_get_identifier(identifier, sizeof(identifier), output);
-		list_insert(ws->output_priority, old_index, strdup(identifier));
+		list_insert(workspace->output_priority, old_index, strdup(identifier));
 	} else if (new_index > old_index) {
-		char *name = ws->output_priority->items[new_index];
-		list_del(ws->output_priority, new_index);
-		list_insert(ws->output_priority, old_index, name);
+		char *name = workspace->output_priority->items[new_index];
+		list_del(workspace->output_priority, new_index);
+		list_insert(workspace->output_priority, old_index, name);
 	}
 }
 
@@ -649,14 +649,14 @@ void workspace_output_add_priority(struct wmiiv_workspace *workspace,
 }
 
 struct wmiiv_output *workspace_output_get_highest_available(
-		struct wmiiv_workspace *ws, struct wmiiv_output *exclude) {
+		struct wmiiv_workspace *workspace, struct wmiiv_output *exclude) {
 	char exclude_id[128] = {'\0'};
 	if (exclude) {
 		output_get_identifier(exclude_id, sizeof(exclude_id), exclude);
 	}
 
-	for (int i = 0; i < ws->output_priority->length; i++) {
-		char *name = ws->output_priority->items[i];
+	for (int i = 0; i < workspace->output_priority->length; i++) {
+		char *name = workspace->output_priority->items[i];
 		if (exclude && (strcmp(name, exclude->wlr_output->name) == 0
 					|| strcmp(name, exclude_id) == 0)) {
 			continue;
@@ -686,28 +686,28 @@ void workspace_detect_urgent(struct wmiiv_workspace *workspace) {
 	}
 }
 
-void workspace_for_each_container(struct wmiiv_workspace *ws,
+void workspace_for_each_container(struct wmiiv_workspace *workspace,
 		void (*f)(struct wmiiv_container *container, void *data), void *data) {
 	// Tiling
-	for (int i = 0; i < ws->tiling->length; ++i) {
-		struct wmiiv_container *container = ws->tiling->items[i];
+	for (int i = 0; i < workspace->tiling->length; ++i) {
+		struct wmiiv_container *container = workspace->tiling->items[i];
 		f(container, data);
 		container_for_each_child(container, f, data);
 	}
 	// Floating
-	for (int i = 0; i < ws->floating->length; ++i) {
-		struct wmiiv_container *container = ws->floating->items[i];
+	for (int i = 0; i < workspace->floating->length; ++i) {
+		struct wmiiv_container *container = workspace->floating->items[i];
 		f(container, data);
 		container_for_each_child(container, f, data);
 	}
 }
 
-struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *ws,
+struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *workspace,
 		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
 	struct wmiiv_container *result = NULL;
 	// Tiling
-	for (int i = 0; i < ws->tiling->length; ++i) {
-		struct wmiiv_container *child = ws->tiling->items[i];
+	for (int i = 0; i < workspace->tiling->length; ++i) {
+		struct wmiiv_container *child = workspace->tiling->items[i];
 		if (test(child, data)) {
 			return child;
 		}
@@ -718,8 +718,8 @@ struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *ws,
 		}
 	}
 	// Floating
-	for (int i = 0; i < ws->floating->length; ++i) {
-		struct wmiiv_container *child = ws->floating->items[i];
+	for (int i = 0; i < workspace->floating->length; ++i) {
+		struct wmiiv_container *child = workspace->floating->items[i];
 		if (test(child, data)) {
 			return child;
 		}
@@ -799,65 +799,65 @@ struct wmiiv_container *workspace_insert_tiling(struct wmiiv_workspace *workspac
 	return column;
 }
 
-bool workspace_has_single_visible_container(struct wmiiv_workspace *ws) {
+bool workspace_has_single_visible_container(struct wmiiv_workspace *workspace) {
 	struct wmiiv_seat *seat = input_manager_get_default_seat();
 	struct wmiiv_container *focus =
-		seat_get_focus_inactive_tiling(seat, ws);
+		seat_get_focus_inactive_tiling(seat, workspace);
 	if (focus && !focus->view) {
 		focus = seat_get_focus_inactive_view(seat, &focus->node);
 	}
 	return (focus && focus->view && view_ancestor_is_only_visible(focus->view));
 }
 
-void workspace_add_gaps(struct wmiiv_workspace *ws) {
+void workspace_add_gaps(struct wmiiv_workspace *workspace) {
 	if (config->smart_gaps == SMART_GAPS_ON
-			&& workspace_has_single_visible_container(ws)) {
-		ws->current_gaps.top = 0;
-		ws->current_gaps.right = 0;
-		ws->current_gaps.bottom = 0;
-		ws->current_gaps.left = 0;
+			&& workspace_has_single_visible_container(workspace)) {
+		workspace->current_gaps.top = 0;
+		workspace->current_gaps.right = 0;
+		workspace->current_gaps.bottom = 0;
+		workspace->current_gaps.left = 0;
 		return;
 	}
 
 	if (config->smart_gaps == SMART_GAPS_INVERSE_OUTER
-			&& !workspace_has_single_visible_container(ws)) {
-		ws->current_gaps.top = 0;
-		ws->current_gaps.right = 0;
-		ws->current_gaps.bottom = 0;
-		ws->current_gaps.left = 0;
+			&& !workspace_has_single_visible_container(workspace)) {
+		workspace->current_gaps.top = 0;
+		workspace->current_gaps.right = 0;
+		workspace->current_gaps.bottom = 0;
+		workspace->current_gaps.left = 0;
 	} else {
-		ws->current_gaps = ws->gaps_outer;
+		workspace->current_gaps = workspace->gaps_outer;
 	}
 
 	// Add inner gaps and make sure we don't turn out negative
-	ws->current_gaps.top = fmax(0, ws->current_gaps.top + ws->gaps_inner);
-	ws->current_gaps.right = fmax(0, ws->current_gaps.right + ws->gaps_inner);
-	ws->current_gaps.bottom = fmax(0, ws->current_gaps.bottom + ws->gaps_inner);
-	ws->current_gaps.left = fmax(0, ws->current_gaps.left + ws->gaps_inner);
+	workspace->current_gaps.top = fmax(0, workspace->current_gaps.top + workspace->gaps_inner);
+	workspace->current_gaps.right = fmax(0, workspace->current_gaps.right + workspace->gaps_inner);
+	workspace->current_gaps.bottom = fmax(0, workspace->current_gaps.bottom + workspace->gaps_inner);
+	workspace->current_gaps.left = fmax(0, workspace->current_gaps.left + workspace->gaps_inner);
 
 	// Now that we have the total gaps calculated we may need to clamp them in
 	// case they've made the available area too small
-	if (ws->width - ws->current_gaps.left - ws->current_gaps.right < MIN_SANE_W
-			&& ws->current_gaps.left + ws->current_gaps.right > 0) {
-		int total_gap = fmax(0, ws->width - MIN_SANE_W);
-		double left_gap_frac = ((double)ws->current_gaps.left /
-			((double)ws->current_gaps.left + (double)ws->current_gaps.right));
-		ws->current_gaps.left = left_gap_frac * total_gap;
-		ws->current_gaps.right = total_gap - ws->current_gaps.left;
+	if (workspace->width - workspace->current_gaps.left - workspace->current_gaps.right < MIN_SANE_W
+			&& workspace->current_gaps.left + workspace->current_gaps.right > 0) {
+		int total_gap = fmax(0, workspace->width - MIN_SANE_W);
+		double left_gap_frac = ((double)workspace->current_gaps.left /
+			((double)workspace->current_gaps.left + (double)workspace->current_gaps.right));
+		workspace->current_gaps.left = left_gap_frac * total_gap;
+		workspace->current_gaps.right = total_gap - workspace->current_gaps.left;
 	}
-	if (ws->height - ws->current_gaps.top - ws->current_gaps.bottom < MIN_SANE_H
-			&& ws->current_gaps.top + ws->current_gaps.bottom > 0) {
-		int total_gap = fmax(0, ws->height - MIN_SANE_H);
-		double top_gap_frac = ((double) ws->current_gaps.top /
-			((double)ws->current_gaps.top + (double)ws->current_gaps.bottom));
-		ws->current_gaps.top = top_gap_frac * total_gap;
-		ws->current_gaps.bottom = total_gap - ws->current_gaps.top;
+	if (workspace->height - workspace->current_gaps.top - workspace->current_gaps.bottom < MIN_SANE_H
+			&& workspace->current_gaps.top + workspace->current_gaps.bottom > 0) {
+		int total_gap = fmax(0, workspace->height - MIN_SANE_H);
+		double top_gap_frac = ((double) workspace->current_gaps.top /
+			((double)workspace->current_gaps.top + (double)workspace->current_gaps.bottom));
+		workspace->current_gaps.top = top_gap_frac * total_gap;
+		workspace->current_gaps.bottom = total_gap - workspace->current_gaps.top;
 	}
 
-	ws->x += ws->current_gaps.left;
-	ws->y += ws->current_gaps.top;
-	ws->width -= ws->current_gaps.left + ws->current_gaps.right;
-	ws->height -= ws->current_gaps.top + ws->current_gaps.bottom;
+	workspace->x += workspace->current_gaps.left;
+	workspace->y += workspace->current_gaps.top;
+	workspace->width -= workspace->current_gaps.left + workspace->current_gaps.right;
+	workspace->height -= workspace->current_gaps.top + workspace->current_gaps.bottom;
 }
 
 struct wmiiv_container *workspace_split(struct wmiiv_workspace *workspace,
@@ -867,15 +867,15 @@ struct wmiiv_container *workspace_split(struct wmiiv_workspace *workspace,
 	return NULL;
 }
 
-void workspace_update_representation(struct wmiiv_workspace *ws) {
+void workspace_update_representation(struct wmiiv_workspace *workspace) {
 	// TODO (wmiiv) we can probably inline the L_HORIZ part of this function.
-	size_t len = container_build_representation(L_HORIZ, ws->tiling, NULL);
-	free(ws->representation);
-	ws->representation = calloc(len + 1, sizeof(char));
-	if (!wmiiv_assert(ws->representation, "Unable to allocate title string")) {
+	size_t len = container_build_representation(L_HORIZ, workspace->tiling, NULL);
+	free(workspace->representation);
+	workspace->representation = calloc(len + 1, sizeof(char));
+	if (!wmiiv_assert(workspace->representation, "Unable to allocate title string")) {
 		return;
 	}
-	container_build_representation(L_HORIZ, ws->tiling, ws->representation);
+	container_build_representation(L_HORIZ, workspace->tiling, workspace->representation);
 }
 
 void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box) {
@@ -892,9 +892,9 @@ static void count_tiling_views(struct wmiiv_container *container, void *data) {
 	}
 }
 
-size_t workspace_num_tiling_views(struct wmiiv_workspace *ws) {
+size_t workspace_num_tiling_views(struct wmiiv_workspace *workspace) {
 	size_t count = 0;
-	workspace_for_each_container(ws, count_tiling_views, &count);
+	workspace_for_each_container(workspace, count_tiling_views, &count);
 	return count;
 }
 
@@ -905,8 +905,8 @@ static void count_sticky_containers(struct wmiiv_container *container, void *dat
 	}
 }
 
-size_t workspace_num_sticky_containers(struct wmiiv_workspace *ws) {
+size_t workspace_num_sticky_containers(struct wmiiv_workspace *workspace) {
 	size_t count = 0;
-	workspace_for_each_container(ws, count_sticky_containers, &count);
+	workspace_for_each_container(workspace, count_sticky_containers, &count);
 	return count;
 }

@@ -57,15 +57,15 @@ void column_consider_destroy(struct wmiiv_container *column) {
 	if (!wmiiv_assert(container_is_column(column), "Cannot reap a non-column container")) {
 		return;
 	}
-	struct wmiiv_workspace *ws = column->pending.workspace;
+	struct wmiiv_workspace *workspace = column->pending.workspace;
 
 	if (column->pending.children->length) {
 		return;
 	}
 	container_begin_destroy(column);
 
-	if (ws) {
-		workspace_consider_destroy(ws);
+	if (workspace) {
+		workspace_consider_destroy(workspace);
 	}
 }
 

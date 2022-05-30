@@ -618,12 +618,12 @@ void seat_execute_command(struct wmiiv_seat *seat, struct wmiiv_binding *binding
 	struct wmiiv_container *container = NULL;
 	if (binding->type == BINDING_MOUSESYM
 			|| binding->type == BINDING_MOUSECODE) {
-		struct wmiiv_workspace *ws;
+		struct wmiiv_workspace *workspace;
 		struct wlr_surface *surface = NULL;
 		double sx, sy;
 		seat_get_target_at(
 			seat, seat->cursor->cursor->x, seat->cursor->cursor->y,
-			&ws, &container,
+			&workspace, &container,
 			&surface, &sx, &sy);
 	}
 

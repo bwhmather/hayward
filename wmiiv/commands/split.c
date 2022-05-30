@@ -11,17 +11,17 @@
 
 static struct cmd_results *do_split(int layout) {
 	struct wmiiv_container *container = config->handler_context.container;
-	struct wmiiv_workspace *ws = config->handler_context.workspace;
+	struct wmiiv_workspace *workspace = config->handler_context.workspace;
 	if (container) {
 		container_split(container, layout);
 	} else {
-		workspace_split(ws, layout);
+		workspace_split(workspace, layout);
 	}
 
 	if (root->fullscreen_global) {
 		arrange_root();
 	} else {
-		arrange_workspace(ws);
+		arrange_workspace(workspace);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
@@ -30,7 +30,7 @@ static struct cmd_results *do_split(int layout) {
 static struct cmd_results *do_unsplit() {
 	// TODO (wmiiv)
 	// struct wmiiv_container *container = config->handler_context.container;
-	struct wmiiv_workspace *ws = config->handler_context.workspace;
+	struct wmiiv_workspace *workspace = config->handler_context.workspace;
 
 	// TODO (wmiiv)
 	// if (container && container->pending.parent && container->pending.parent->pending.children->length == 1) {
@@ -42,7 +42,7 @@ static struct cmd_results *do_unsplit() {
 	if (root->fullscreen_global) {
 		arrange_root();
 	} else {
-		arrange_workspace(ws);
+		arrange_workspace(workspace);
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

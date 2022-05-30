@@ -411,10 +411,10 @@ static void floating_natural_resize(struct wmiiv_container *container) {
 }
 
 void container_floating_resize_and_center(struct wmiiv_container *container) {
-	struct wmiiv_workspace *ws = container->pending.workspace;
+	struct wmiiv_workspace *workspace = container->pending.workspace;
 
 	struct wlr_box ob;
-	wlr_output_layout_get_box(root->output_layout, ws->output->wlr_output, &ob);
+	wlr_output_layout_get_box(root->output_layout, workspace->output->wlr_output, &ob);
 	if (wlr_box_empty(&ob)) {
 		// On NOOP output. Will be called again when moved to an output
 		container->pending.x = 0;
@@ -426,21 +426,21 @@ void container_floating_resize_and_center(struct wmiiv_container *container) {
 
 	floating_natural_resize(container);
 	if (!container->view) {
-		if (container->pending.width > ws->width || container->pending.height > ws->height) {
+		if (container->pending.width > workspace->width || container->pending.height > workspace->height) {
 			container->pending.x = ob.x + (ob.width - container->pending.width) / 2;
 			container->pending.y = ob.y + (ob.height - container->pending.height) / 2;
 		} else {
-			container->pending.x = ws->x + (ws->width - container->pending.width) / 2;
-			container->pending.y = ws->y + (ws->height - container->pending.height) / 2;
+			container->pending.x = workspace->x + (workspace->width - container->pending.width) / 2;
+			container->pending.y = workspace->y + (workspace->height - container->pending.height) / 2;
 		}
 	} else {
-		if (container->pending.content_width > ws->width
-				|| container->pending.content_height > ws->height) {
+		if (container->pending.content_width > workspace->width
+				|| container->pending.content_height > workspace->height) {
 			container->pending.content_x = ob.x + (ob.width - container->pending.content_width) / 2;
 			container->pending.content_y = ob.y + (ob.height - container->pending.content_height) / 2;
 		} else {
-			container->pending.content_x = ws->x + (ws->width - container->pending.content_width) / 2;
-			container->pending.content_y = ws->y + (ws->height - container->pending.content_height) / 2;
+			container->pending.content_x = workspace->x + (workspace->width - container->pending.content_width) / 2;
+			container->pending.content_y = workspace->y + (workspace->height - container->pending.content_height) / 2;
 		}
 
 		// If the view's border is B_NONE then these properties are ignored.
@@ -611,9 +611,9 @@ void container_floating_move_to_center(struct wmiiv_container *container) {
 			"Expected a floating container")) {
 		return;
 	}
-	struct wmiiv_workspace *ws = container->pending.workspace;
-	double new_lx = ws->x + (ws->width - container->pending.width) / 2;
-	double new_ly = ws->y + (ws->height - container->pending.height) / 2;
+	struct wmiiv_workspace *workspace = container->pending.workspace;
+	double new_lx = workspace->x + (workspace->width - container->pending.width) / 2;
+	double new_ly = workspace->y + (workspace->height - container->pending.height) / 2;
 	container_floating_translate(container, new_lx - container->pending.x, new_ly - container->pending.y);
 }
 
@@ -743,10 +743,10 @@ static void container_fullscreen_workspace(struct wmiiv_container *window) {
 	if (window->pending.workspace) {
 		window->pending.workspace->fullscreen = window;
 		struct wmiiv_seat *seat;
-		struct wmiiv_workspace *focus_ws;
+		struct wmiiv_workspace *focus_workspace;
 		wl_list_for_each(seat, &server.input->seats, link) {
-			focus_ws = seat_get_focused_workspace(seat);
-			if (focus_ws == window->pending.workspace) {
+			focus_workspace = seat_get_focused_workspace(seat);
+			if (focus_workspace == window->pending.workspace) {
 				seat_set_focus_window(seat, window);
 			} else {
 				struct wmiiv_node *focus =

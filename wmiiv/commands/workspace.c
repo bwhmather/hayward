@@ -11,8 +11,8 @@
 #include "log.h"
 #include "stringop.h"
 
-static struct workspace_config *workspace_config_find_or_create(char *ws_name) {
-	struct workspace_config *wsc = workspace_find_config(ws_name);
+static struct workspace_config *workspace_config_find_or_create(char *workspace_name) {
+	struct workspace_config *wsc = workspace_find_config(workspace_name);
 	if (wsc) {
 		return wsc;
 	}
@@ -20,7 +20,7 @@ static struct workspace_config *workspace_config_find_or_create(char *ws_name) {
 	if (!wsc) {
 		return NULL;
 	}
-	wsc->workspace = strdup(ws_name);
+	wsc->workspace = strdup(workspace_name);
 	wsc->outputs = create_list();
 	wsc->gaps_inner = INT_MIN;
 	wsc->gaps_outer.top = INT_MIN;
@@ -68,9 +68,9 @@ static struct cmd_results *cmd_workspace_gaps(int argc, char **argv,
 					gaps_location + 3))) {
 		return error;
 	}
-	char *ws_name = join_args(argv, argc - 3);
-	struct workspace_config *wsc = workspace_config_find_or_create(ws_name);
-	free(ws_name);
+	char *workspace_name = join_args(argv, argc - 3);
+	struct workspace_config *wsc = workspace_config_find_or_create(workspace_name);
+	free(workspace_name);
 	if (!wsc) {
 		return cmd_results_new(CMD_FAILURE,
 				"Unable to allocate workspace output");
@@ -151,9 +151,9 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 						output_location + 2))) {
 			return error;
 		}
-		char *ws_name = join_args(argv, output_location);
-		struct workspace_config *wsc = workspace_config_find_or_create(ws_name);
-		free(ws_name);
+		char *workspace_name = join_args(argv, output_location);
+		struct workspace_config *wsc = workspace_config_find_or_create(workspace_name);
+		free(workspace_name);
 		if (!wsc) {
 			return cmd_results_new(CMD_FAILURE,
 					"Unable to allocate workspace output");
@@ -189,7 +189,7 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 
 		struct wmiiv_seat *seat = config->handler_context.seat;
 
-		struct wmiiv_workspace *ws = NULL;
+		struct wmiiv_workspace *workspace = NULL;
 		if (strcasecmp(argv[0], "number") == 0) {
 			if (argc < 2) {
 				return cmd_results_new(CMD_INVALID,
@@ -199,42 +199,42 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 				return cmd_results_new(CMD_INVALID,
 						"Invalid workspace number '%s'", argv[1]);
 			}
-			if (!(ws = workspace_by_number(argv[1]))) {
+			if (!(workspace = workspace_by_number(argv[1]))) {
 				char *name = join_args(argv + 1, argc - 1);
-				ws = workspace_create(NULL, name);
+				workspace = workspace_create(NULL, name);
 				free(name);
 			}
-			if (ws && auto_back_and_forth) {
-				ws = workspace_auto_back_and_forth(ws);
+			if (workspace && auto_back_and_forth) {
+				workspace = workspace_auto_back_and_forth(workspace);
 			}
 		} else if (strcasecmp(argv[0], "next") == 0 ||
 				strcasecmp(argv[0], "prev") == 0 ||
 				strcasecmp(argv[0], "next_on_output") == 0 ||
 				strcasecmp(argv[0], "prev_on_output") == 0 ||
 				strcasecmp(argv[0], "current") == 0) {
-			ws = workspace_by_name(argv[0]);
+			workspace = workspace_by_name(argv[0]);
 		} else if (strcasecmp(argv[0], "back_and_forth") == 0) {
 			if (!seat->prev_workspace_name) {
 				return cmd_results_new(CMD_INVALID,
 						"There is no previous workspace");
 			}
-			if (!(ws = workspace_by_name(argv[0]))) {
-				ws = workspace_create(NULL, seat->prev_workspace_name);
+			if (!(workspace = workspace_by_name(argv[0]))) {
+				workspace = workspace_create(NULL, seat->prev_workspace_name);
 			}
 		} else {
 			char *name = join_args(argv, argc);
-			if (!(ws = workspace_by_name(name))) {
-				ws = workspace_create(NULL, name);
+			if (!(workspace = workspace_by_name(name))) {
+				workspace = workspace_create(NULL, name);
 			}
 			free(name);
-			if (ws && auto_back_and_forth) {
-				ws = workspace_auto_back_and_forth(ws);
+			if (workspace && auto_back_and_forth) {
+				workspace = workspace_auto_back_and_forth(workspace);
 			}
 		}
-		if (!ws) {
+		if (!workspace) {
 			return cmd_results_new(CMD_FAILURE, "No workspace to switch to");
 		}
-		workspace_switch(ws);
+		workspace_switch(workspace);
 		seat_consider_warp_to_focus(seat);
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);

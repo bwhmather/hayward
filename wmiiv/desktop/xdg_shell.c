@@ -339,12 +339,12 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 	struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 	if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
 		struct wmiiv_output *output = req->fullscreen_output->data;
-		struct wmiiv_workspace *ws = output_get_active_workspace(output);
-		if (ws && window->pending.workspace != ws) {
+		struct wmiiv_workspace *workspace = output_get_active_workspace(output);
+		if (workspace && window->pending.workspace != workspace) {
 			if (window_is_floating(window)) {
-				workspace_add_floating(ws, window);
+				workspace_add_floating(workspace, window);
 			} else {
-				workspace_add_tiling(ws, window);
+				workspace_add_tiling(workspace, window);
 			}
 		}
 	}

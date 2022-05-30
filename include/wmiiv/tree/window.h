@@ -86,11 +86,11 @@ void window_move_to_column(struct wmiiv_container *window,
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_workspace_from_direction(
-		struct wmiiv_container *window, struct wmiiv_workspace *ws,
+		struct wmiiv_container *window, struct wmiiv_workspace *workspace,
 		enum wlr_direction move_dir);
 
 void window_move_to_workspace(struct wmiiv_container *window,
-		struct wmiiv_workspace *ws);
+		struct wmiiv_workspace *workspace);
 
 struct wlr_surface *window_surface_at(struct wmiiv_container *window, double lx, double ly, double *sx, double *sy);
 

@@ -237,9 +237,9 @@ static bool gaps_to_edge(struct wmiiv_view *view) {
 
 void view_autoconfigure(struct wmiiv_view *view) {
 	struct wmiiv_container *window = view->container;
-	struct wmiiv_workspace *ws = window->pending.workspace;
+	struct wmiiv_workspace *workspace = window->pending.workspace;
 
-	struct wmiiv_output *output = ws ? ws->output : NULL;
+	struct wmiiv_output *output = workspace ? workspace->output : NULL;
 
 	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
 		window->pending.content_x = output->lx;
@@ -259,19 +259,19 @@ void view_autoconfigure(struct wmiiv_view *view) {
 	window->pending.border_left = window->pending.border_right = true;
 	double y_offset = 0;
 
-	if (!window_is_floating(window) && ws) {
+	if (!window_is_floating(window) && workspace) {
 		if (config->hide_edge_borders == E_BOTH
 				|| config->hide_edge_borders == E_VERTICAL) {
-			window->pending.border_left = window->pending.x != ws->x;
+			window->pending.border_left = window->pending.x != workspace->x;
 			int right_x = window->pending.x + window->pending.width;
-			window->pending.border_right = right_x != ws->x + ws->width;
+			window->pending.border_right = right_x != workspace->x + workspace->width;
 		}
 
 		if (config->hide_edge_borders == E_BOTH
 				|| config->hide_edge_borders == E_HORIZONTAL) {
-			window->pending.border_top = window->pending.y != ws->y;
+			window->pending.border_top = window->pending.y != workspace->y;
 			int bottom_y = window->pending.y + window->pending.height;
-			window->pending.border_bottom = bottom_y != ws->y + ws->height;
+			window->pending.border_bottom = bottom_y != workspace->y + workspace->height;
 		}
 
 		bool smart = config->hide_edge_borders_smart == ESMART_ON ||
@@ -360,12 +360,12 @@ void view_set_activated(struct wmiiv_view *view, bool activated) {
 }
 
 void view_request_activate(struct wmiiv_view *view) {
-	struct wmiiv_workspace *ws = view->container->pending.workspace;
+	struct wmiiv_workspace *workspace = view->container->pending.workspace;
 	struct wmiiv_seat *seat = input_manager_current_seat();
 
 	switch (config->focus_on_window_activation) {
 	case FOWA_SMART:
-		if (workspace_is_visible(ws)) {
+		if (workspace_is_visible(workspace)) {
 			seat_set_focus_window(seat, view->container);
 		} else {
 			view_set_urgent(view, true);
@@ -532,43 +532,43 @@ static struct wmiiv_workspace *select_workspace(struct wmiiv_view *view) {
 	// Check if there's any `assign` criteria for the view
 	list_t *criterias = criteria_for_view(view,
 			CT_ASSIGN_WORKSPACE | CT_ASSIGN_WORKSPACE_NUMBER | CT_ASSIGN_OUTPUT);
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	for (int i = 0; i < criterias->length; ++i) {
 		struct criteria *criteria = criterias->items[i];
 		if (criteria->type == CT_ASSIGN_OUTPUT) {
 			struct wmiiv_output *output = output_by_name_or_id(criteria->target);
 			if (output) {
-				ws = output_get_active_workspace(output);
+				workspace = output_get_active_workspace(output);
 				break;
 			}
 		} else {
 			// CT_ASSIGN_WORKSPACE(_NUMBER)
-			ws = criteria->type == CT_ASSIGN_WORKSPACE_NUMBER ?
+			workspace = criteria->type == CT_ASSIGN_WORKSPACE_NUMBER ?
 				workspace_by_number(criteria->target) :
 				workspace_by_name(criteria->target);
 
-			if (!ws) {
+			if (!workspace) {
 				if (strcasecmp(criteria->target, "back_and_forth") == 0) {
 					if (seat->prev_workspace_name) {
-						ws = workspace_create(NULL, seat->prev_workspace_name);
+						workspace = workspace_create(NULL, seat->prev_workspace_name);
 					}
 				} else {
-					ws = workspace_create(NULL, criteria->target);
+					workspace = workspace_create(NULL, criteria->target);
 				}
 			}
 			break;
 		}
 	}
 	list_free(criterias);
-	if (ws) {
+	if (workspace) {
 		root_remove_workspace_pid(view->pid);
-		return ws;
+		return workspace;
 	}
 
 	// Check if there's a PID mapping
-	ws = root_workspace_for_pid(view->pid);
-	if (ws) {
-		return ws;
+	workspace = root_workspace_for_pid(view->pid);
+	if (workspace) {
+		return workspace;
 	}
 
 	// Use the focused workspace
@@ -589,20 +589,20 @@ static struct wmiiv_workspace *select_workspace(struct wmiiv_view *view) {
 static bool should_focus(struct wmiiv_view *view) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_container *prev_container = seat_get_focused_container(seat);
-	struct wmiiv_workspace *prev_ws = seat_get_focused_workspace(seat);
-	struct wmiiv_workspace *map_ws = view->container->pending.workspace;
+	struct wmiiv_workspace *prev_workspace = seat_get_focused_workspace(seat);
+	struct wmiiv_workspace *map_workspace = view->container->pending.workspace;
 
 	if (view->container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 		return true;
 	}
 
 	// View opened "under" fullscreen view should not be given focus.
-	if (root->fullscreen_global || !map_ws || map_ws->fullscreen) {
+	if (root->fullscreen_global || !map_workspace || map_workspace->fullscreen) {
 		return false;
 	}
 
 	// Views can only take focus if they are mapped into the active workspace
-	if (prev_ws != map_ws) {
+	if (prev_workspace != map_workspace) {
 		return false;
 	}
 
@@ -650,12 +650,12 @@ static void handle_foreign_fullscreen_request(
 
 	if (event->fullscreen && event->output && event->output->data) {
 		struct wmiiv_output *output = event->output->data;
-		struct wmiiv_workspace *ws = output_get_active_workspace(output);
-		if (ws) {
+		struct wmiiv_workspace *workspace = output_get_active_workspace(output);
+		if (workspace) {
 			if (window_is_floating(view->container)) {
-				workspace_add_floating(ws, view->container);
+				workspace_add_floating(workspace, view->container);
 			} else {
-				workspace_add_tiling(ws, view->container);
+				workspace_add_tiling(workspace, view->container);
 			}
 		}
 	}
@@ -705,21 +705,21 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	// If there is a request to be opened fullscreen on a specific output, try
 	// to honor that request. Otherwise, fallback to assigns, pid mappings,
 	// focused workspace, etc
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	if (fullscreen_output && fullscreen_output->data) {
 		struct wmiiv_output *output = fullscreen_output->data;
-		ws = output_get_active_workspace(output);
+		workspace = output_get_active_workspace(output);
 	}
-	if (!ws) {
-		ws = select_workspace(view);
+	if (!workspace) {
+		workspace = select_workspace(view);
 	}
-	if (!wmiiv_assert(ws, "Could not find workspace to map view to")) {
+	if (!wmiiv_assert(workspace, "Could not find workspace to map view to")) {
 		return;
 	}
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
 
-	struct wmiiv_container *target_sibling = seat_get_focus_inactive_tiling(seat, ws);
+	struct wmiiv_container *target_sibling = seat_get_focus_inactive_tiling(seat, workspace);
 	if (target_sibling && container_is_column(target_sibling)) {
 		// TODO (wmiiv) Shouldn't be possible once columns are no longer focusable.
 		target_sibling = seat_get_focus_inactive_view(seat, &target_sibling->node);
@@ -742,10 +742,10 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 
 	if (target_sibling) {
 		column_add_sibling(target_sibling, view->container, 1);
-	} else if (ws) {
+	} else if (workspace) {
 		struct wmiiv_container *column = column_create();
 		column_add_child(column, view->container);
-		workspace_insert_tiling_direct(ws, column, 0);
+		workspace_insert_tiling_direct(workspace, column, 0);
 	}
 	ipc_event_window(view->container, "new");
 
@@ -834,21 +834,21 @@ void view_unmap(struct wmiiv_view *view) {
 	}
 
 	struct wmiiv_container *parent = view->container->pending.parent;
-	struct wmiiv_workspace *ws = view->container->pending.workspace;
+	struct wmiiv_workspace *workspace = view->container->pending.workspace;
 	container_begin_destroy(view->container);
 	if (parent) {
 		column_consider_destroy(parent);
-	} else if (ws) {
+	} else if (workspace) {
 		// TODO (wmiiv) shouldn't be possible.
-		workspace_consider_destroy(ws);
+		workspace_consider_destroy(workspace);
 	}
 
 	if (root->fullscreen_global) {
 		// Container may have been a child of the root fullscreen container
 		arrange_root();
-	} else if (ws && !ws->node.destroying) {
-		arrange_workspace(ws);
-		workspace_detect_urgent(ws);
+	} else if (workspace && !workspace->node.destroying) {
+		arrange_workspace(workspace);
+		workspace_detect_urgent(workspace);
 	}
 
 	struct wmiiv_seat *seat;

@@ -112,7 +112,7 @@ struct wmiiv_workspace *root_workspace_for_pid(pid_t pid) {
 		return NULL;
 	}
 
-	struct wmiiv_workspace *ws = NULL;
+	struct wmiiv_workspace *workspace = NULL;
 	struct pid_workspace *pw = NULL;
 
 	wmiiv_log(WMIIV_DEBUG, "Looking up workspace for pid %d", pid);
@@ -133,9 +133,9 @@ struct wmiiv_workspace *root_workspace_for_pid(pid_t pid) {
 found:
 
 	if (pw && pw->workspace) {
-		ws = workspace_by_name(pw->workspace);
+		workspace = workspace_by_name(pw->workspace);
 
-		if (!ws) {
+		if (!workspace) {
 			wmiiv_log(WMIIV_DEBUG,
 					"Creating workspace %s for pid %d because it disappeared",
 					pw->workspace, pid);
@@ -148,13 +148,13 @@ found:
 				output = NULL;
 			}
 
-			ws = workspace_create(output, pw->workspace);
+			workspace = workspace_create(output, pw->workspace);
 		}
 
 		pid_workspace_destroy(pw);
 	}
 
-	return ws;
+	return workspace;
 }
 
 static void pw_handle_output_destroy(struct wl_listener *listener, void *data) {
@@ -171,12 +171,12 @@ void root_record_workspace_pid(pid_t pid) {
 	}
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_workspace *ws = seat_get_focused_workspace(seat);
-	if (!ws) {
+	struct wmiiv_workspace *workspace = seat_get_focused_workspace(seat);
+	if (!workspace) {
 		wmiiv_log(WMIIV_DEBUG, "Bailing out, no workspace");
 		return;
 	}
-	struct wmiiv_output *output = ws->output;
+	struct wmiiv_output *output = workspace->output;
 	if (!output) {
 		wmiiv_log(WMIIV_DEBUG, "Bailing out, no output");
 		return;
@@ -195,7 +195,7 @@ void root_record_workspace_pid(pid_t pid) {
 	}
 
 	struct pid_workspace *pw = calloc(1, sizeof(struct pid_workspace));
-	pw->workspace = strdup(ws->name);
+	pw->workspace = strdup(workspace->name);
 	pw->output = output;
 	pw->pid = pid;
 	memcpy(&pw->time_added, &now, sizeof(struct timespec));
@@ -218,7 +218,7 @@ void root_remove_workspace_pid(pid_t pid) {
 	}
 }
 
-void root_for_each_workspace(void (*f)(struct wmiiv_workspace *ws, void *data),
+void root_for_each_workspace(void (*f)(struct wmiiv_workspace *workspace, void *data),
 		void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
@@ -235,8 +235,8 @@ void root_for_each_container(void (*f)(struct wmiiv_container *container, void *
 
 	// Saved workspaces
 	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
-		struct wmiiv_workspace *ws = root->fallback_output->workspaces->items[i];
-		workspace_for_each_container(ws, f, data);
+		struct wmiiv_workspace *workspace = root->fallback_output->workspaces->items[i];
+		workspace_for_each_container(workspace, f, data);
 	}
 }
 
@@ -252,7 +252,7 @@ struct wmiiv_output *root_find_output(
 }
 
 struct wmiiv_workspace *root_find_workspace(
-		bool (*test)(struct wmiiv_workspace *ws, void *data), void *data) {
+		bool (*test)(struct wmiiv_workspace *workspace, void *data), void *data) {
 	struct wmiiv_workspace *result = NULL;
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
@@ -275,8 +275,8 @@ struct wmiiv_container *root_find_container(
 
 	// Saved workspaces
 	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
-		struct wmiiv_workspace *ws = root->fallback_output->workspaces->items[i];
-		if ((result = workspace_find_container(ws, test, data))) {
+		struct wmiiv_workspace *workspace = root->fallback_output->workspaces->items[i];
+		if ((result = workspace_find_container(workspace, test, data))) {
 			return result;
 		}
 	}

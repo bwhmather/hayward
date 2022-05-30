@@ -89,12 +89,12 @@ struct wmiiv_output *node_get_output(struct wmiiv_node *node) {
 	case N_ROOT:
 		return NULL;
 	case N_COLUMN: {
-			struct wmiiv_workspace *ws = node->wmiiv_container->pending.workspace;
-			return ws ? ws->output : NULL;
+			struct wmiiv_workspace *workspace = node->wmiiv_container->pending.workspace;
+			return workspace ? workspace->output : NULL;
 		}
 	case N_WINDOW: {
-			struct wmiiv_workspace *ws = node->wmiiv_container->pending.workspace;
-			return ws ? ws->output : NULL;
+			struct wmiiv_workspace *workspace = node->wmiiv_container->pending.workspace;
+			return workspace ? workspace->output : NULL;
 		}	
 	}
 	return NULL;
@@ -123,9 +123,9 @@ struct wmiiv_node *node_get_parent(struct wmiiv_node *node) {
 	case N_OUTPUT:
 		return &root->node;
 	case N_WORKSPACE: {
-			struct wmiiv_workspace *ws = node->wmiiv_workspace;
-			if (ws->output) {
-				return &ws->output->node;
+			struct wmiiv_workspace *workspace = node->wmiiv_workspace;
+			if (workspace->output) {
+				return &workspace->output->node;
 			}
 		}
 		return NULL;

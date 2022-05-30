@@ -406,10 +406,10 @@ static void workspace_focus_fullscreen(struct wmiiv_workspace *workspace) {
 		return;
 	}
 	struct wmiiv_seat *seat;
-	struct wmiiv_workspace *focus_ws;
+	struct wmiiv_workspace *focus_workspace;
 	wl_list_for_each(seat, &server.input->seats, link) {
-		focus_ws = seat_get_focused_workspace(seat);
-		if (focus_ws == workspace) {
+		focus_workspace = seat_get_focused_workspace(seat);
+		if (focus_workspace == workspace) {
 			struct wmiiv_node *new_focus =
 				seat_get_focus_inactive(seat, &workspace->fullscreen->node);
 			seat_set_raw_focus(seat, new_focus);
@@ -478,13 +478,13 @@ void window_move_to_column(struct wmiiv_container *window,
 }
 
 static void window_move_to_workspace_from_maybe_direction(
-		struct wmiiv_container *window, struct wmiiv_workspace *ws,
+		struct wmiiv_container *window, struct wmiiv_workspace *workspace,
 		bool has_move_dir, enum wlr_direction move_dir) {
 	if (!wmiiv_assert(container_is_window(window), "Can only move windows between workspaces")) {
 		return;
 	}
 
-	if (ws == window->pending.workspace) {
+	if (workspace == window->pending.workspace) {
 		return;
 	}
 
@@ -495,10 +495,10 @@ static void window_move_to_workspace_from_maybe_direction(
 	if (window_is_floating(window)) {
 		struct wmiiv_output *old_output = window->pending.workspace->output;
 		window_detach(window);
-		workspace_add_floating(ws, window);
+		workspace_add_floating(workspace, window);
 		container_handle_fullscreen_reparent(window);
 		// If changing output, center it within the workspace
-		if (old_output != ws->output && !window->pending.fullscreen_mode) {
+		if (old_output != workspace->output && !window->pending.fullscreen_mode) {
 			container_floating_move_to_center(window);
 		}
 
@@ -508,9 +508,9 @@ static void window_move_to_workspace_from_maybe_direction(
 	window->pending.width = window->pending.height = 0;
 	window->width_fraction = window->height_fraction = 0;
 
-	if (!ws->tiling->length) {
+	if (!workspace->tiling->length) {
 		struct wmiiv_container *column = column_create();
-		workspace_insert_tiling_direct(ws, column, 0);
+		workspace_insert_tiling_direct(workspace, column, 0);
 	}
 
 	if (has_move_dir && (move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_RIGHT)) {
@@ -519,35 +519,35 @@ static void window_move_to_workspace_from_maybe_direction(
 		// direction.
 		int index =
 			move_dir == WLR_DIRECTION_RIGHT ?
-			0 : ws->tiling->length;
-		struct wmiiv_container *column = ws->tiling->items[index];
+			0 : workspace->tiling->length;
+		struct wmiiv_container *column = workspace->tiling->items[index];
 		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
 	} else {
 		wmiiv_log(WMIIV_DEBUG, "Reparenting container (perpendicular)");
 		// Move to the most recently focused column in the workspace.
 		struct wmiiv_container *column = NULL;
 
-		struct wmiiv_container *focus_inactive = seat_get_focus_inactive_tiling(seat, ws);
+		struct wmiiv_container *focus_inactive = seat_get_focus_inactive_tiling(seat, workspace);
 		// TODO (wmiiv) only windows should be focusable.
 		focus_inactive = seat_get_focus_inactive_view(seat, &focus_inactive->node);
 		if (focus_inactive) {
 			column = focus_inactive->pending.parent;
 		} else {
-			column = ws->tiling->items[0];
+			column = workspace->tiling->items[0];
 		}
 		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
 	}
 }
 
 void window_move_to_workspace_from_direction(
-		struct wmiiv_container *window, struct wmiiv_workspace *ws,
+		struct wmiiv_container *window, struct wmiiv_workspace *workspace,
 		enum wlr_direction move_dir) {
-	window_move_to_workspace_from_maybe_direction(window, ws, true, move_dir);
+	window_move_to_workspace_from_maybe_direction(window, workspace, true, move_dir);
 }
 
 void window_move_to_workspace(struct wmiiv_container *window,
-		struct wmiiv_workspace *ws) {
-	window_move_to_workspace_from_maybe_direction(window, ws, false, WLR_DIRECTION_DOWN);
+		struct wmiiv_workspace *workspace) {
+	window_move_to_workspace_from_maybe_direction(window, workspace, false, WLR_DIRECTION_DOWN);
 }
 
 struct wlr_surface *window_surface_at(struct wmiiv_container *window, double lx, double ly, double *sx, double *sy) {
