@@ -1218,7 +1218,7 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 			struct wmiiv_container *floater =
 				new_output_last_ws->floating->items[i];
 			if (container_is_sticky(floater)) {
-				container_detach(floater);
+				window_detach(floater);
 				workspace_add_floating(new_workspace, floater);
 				--i;
 			}

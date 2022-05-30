@@ -69,6 +69,31 @@ void column_consider_destroy(struct wmiiv_container *col) {
 	}
 }
 
+static void set_workspace(struct wmiiv_container *container, void *data) {
+	container->pending.workspace = container->pending.parent->pending.workspace;
+}
+
+void column_detach(struct wmiiv_container *column) {
+	struct wmiiv_workspace *old_workspace = column->pending.workspace;
+
+	list_t *siblings = container_get_siblings(column);
+	if (siblings) {
+		int index = list_find(siblings, column);
+		if (index != -1) {
+			list_del(siblings, index);
+		}
+	}
+	column->pending.parent = NULL;
+	column->pending.workspace = NULL;
+	container_for_each_child(column, set_workspace, NULL);
+
+	if (old_workspace) {
+		workspace_update_representation(old_workspace);
+		node_set_dirty(&old_workspace->node);
+	}
+	node_set_dirty(&column->node);
+}
+
 struct wmiiv_container *column_find_child(struct wmiiv_container *col,
 		bool (*test)(struct wmiiv_container *con, void *data), void *data) {
 	if (!wmiiv_assert(container_is_column(col), "Cannot find children in non-column containers")) {
@@ -86,10 +111,6 @@ struct wmiiv_container *column_find_child(struct wmiiv_container *col,
 	return NULL;
 }
 
-static void set_workspace(struct wmiiv_container *container, void *data) {
-	container->pending.workspace = container->pending.parent->pending.workspace;
-}
-
 void column_insert_child(struct wmiiv_container *parent,
 		struct wmiiv_container *child, int i) {
 	wmiiv_assert(container_is_column(parent), "Target is not a column");
@@ -97,7 +118,7 @@ void column_insert_child(struct wmiiv_container *parent,
 
 	if (!wmiiv_assert(!child->pending.workspace && !child->pending.parent,
 			"Windows must be detatched before they can be added to a column")) {
-		container_detach(child);
+		window_detach(child);
 	}
 	list_insert(parent->pending.children, i, child);
 	child->pending.parent = parent;
@@ -114,7 +135,7 @@ void column_add_sibling(struct wmiiv_container *fixed,
 
 	if (!wmiiv_assert(!active->pending.workspace && !active->pending.parent,
 			"Windows must be detatched before they can be added to a column")) {
-		container_detach(active);
+		window_detach(active);
 	}
 
 	list_t *siblings = container_get_siblings(fixed);
@@ -134,7 +155,7 @@ void column_add_child(struct wmiiv_container *parent,
 
 	if (!wmiiv_assert(!child->pending.workspace && !child->pending.workspace,
 			"Windows must be detatched before they can be added to a column")) {
-		container_detach(child);
+		window_detach(child);
 	}
 	list_add(parent->pending.children, child);
 	child->pending.parent = parent;

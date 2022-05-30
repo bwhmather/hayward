@@ -97,7 +97,11 @@ void container_begin_destroy(struct wmiiv_container *con) {
 	}
 
 	if (con->pending.parent || con->pending.workspace) {
-		container_detach(con);
+		if (container_is_window(con)) {
+			window_detach(con);
+		} else {
+			column_detach(con);
+		}
 	}
 }
 
@@ -578,23 +582,23 @@ struct wmiiv_output *container_floating_find_output(struct wmiiv_container *con)
 	return closest_output;
 }
 
-void container_floating_move_to(struct wmiiv_container *con,
+void container_floating_move_to(struct wmiiv_container *window,
 		double lx, double ly) {
-	if (!wmiiv_assert(window_is_floating(con),
+	if (!wmiiv_assert(window_is_floating(window),
 			"Expected a floating container")) {
 		return;
 	}
-	container_floating_translate(con, lx - con->pending.x, ly - con->pending.y);
-	struct wmiiv_workspace *old_workspace = con->pending.workspace;
-	struct wmiiv_output *new_output = container_floating_find_output(con);
+	container_floating_translate(window, lx - window->pending.x, ly - window->pending.y);
+	struct wmiiv_workspace *old_workspace = window->pending.workspace;
+	struct wmiiv_output *new_output = container_floating_find_output(window);
 	if (!wmiiv_assert(new_output, "Unable to find any output")) {
 		return;
 	}
 	struct wmiiv_workspace *new_workspace =
 		output_get_active_workspace(new_output);
 	if (new_workspace && old_workspace != new_workspace) {
-		container_detach(con);
-		workspace_add_floating(new_workspace, con);
+		window_detach(window);
+		workspace_add_floating(new_workspace, window);
 		arrange_workspace(old_workspace);
 		arrange_workspace(new_workspace);
 		workspace_detect_urgent(old_workspace);
@@ -1001,42 +1005,6 @@ void container_handle_fullscreen_reparent(struct wmiiv_container *con) {
 	con->pending.workspace->fullscreen = con;
 
 	arrange_workspace(con->pending.workspace);
-}
-
-static void set_workspace(struct wmiiv_container *container, void *data) {
-	container->pending.workspace = container->pending.parent->pending.workspace;
-}
-
-void container_detach(struct wmiiv_container *child) {
-	// TODO (wmiiv) move to workspace.
-	if (child->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-		child->pending.workspace->fullscreen = NULL;
-	}
-	if (child->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		root->fullscreen_global = NULL;
-	}
-
-	struct wmiiv_container *old_parent = child->pending.parent;
-	struct wmiiv_workspace *old_workspace = child->pending.workspace;
-	list_t *siblings = container_get_siblings(child);
-	if (siblings) {
-		int index = list_find(siblings, child);
-		if (index != -1) {
-			list_del(siblings, index);
-		}
-	}
-	child->pending.parent = NULL;
-	child->pending.workspace = NULL;
-	container_for_each_child(child, set_workspace, NULL);
-
-	if (old_parent) {
-		container_update_representation(old_parent);
-		node_set_dirty(&old_parent->node);
-	} else if (old_workspace) {
-		workspace_update_representation(old_workspace);
-		node_set_dirty(&old_workspace->node);
-	}
-	node_set_dirty(&child->node);
 }
 
 struct wmiiv_container *container_split(struct wmiiv_container *child,

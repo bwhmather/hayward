@@ -50,6 +50,39 @@ struct wmiiv_container *window_create(struct wmiiv_view *view) {
 	return c;
 }
 
+void window_detach(struct wmiiv_container *window) {
+	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+		window->pending.workspace->fullscreen = NULL;
+	}
+	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+		root->fullscreen_global = NULL;
+	}
+
+	struct wmiiv_container *old_parent = window->pending.parent;
+	struct wmiiv_workspace *old_workspace = window->pending.workspace;
+
+	list_t *siblings = container_get_siblings(window);
+	if (siblings) {
+		int index = list_find(siblings, window);
+		if (index != -1) {
+			list_del(siblings, index);
+		}
+	}
+
+	window->pending.parent = NULL;
+	window->pending.workspace = NULL;
+
+	if (old_parent) {
+		container_update_representation(old_parent);
+		node_set_dirty(&old_parent->node);
+	} else if (old_workspace) {
+		workspace_update_representation(old_workspace);
+		node_set_dirty(&old_workspace->node);
+	}
+	node_set_dirty(&window->node);
+}
+
+
 static bool find_by_mark_iterator(struct wmiiv_container *con, void *data) {
 	char *mark = data;
 	if (!container_is_window(con)) {
@@ -296,7 +329,7 @@ void window_set_floating(struct wmiiv_container *win, bool enable) {
 
 	if (enable) {
 		struct wmiiv_container *old_parent = win->pending.parent;
-		container_detach(win);
+		window_detach(win);
 		workspace_add_floating(workspace, win);
 		view_set_tiled(win->view, false);
 		if (win->view->using_csd) {
@@ -319,7 +352,7 @@ void window_set_floating(struct wmiiv_container *win, bool enable) {
 		}
 	} else {
 		// Returning to tiled
-		container_detach(win);
+		window_detach(win);
 		struct wmiiv_container *reference =
 			seat_get_focus_inactive_tiling(seat, workspace);
 		if (reference) {
@@ -406,14 +439,14 @@ static void window_move_to_column_from_maybe_direction(
 		int index =
 			move_dir == WLR_DIRECTION_DOWN ?
 			0 : col->pending.children->length;
-		container_detach(win);
+		window_detach(win);
 		column_insert_child(col, win, index);
 		win->pending.width = win->pending.height = 0;
 		win->width_fraction = win->height_fraction = 0;
 	} else {
 		wmiiv_log(WMIIV_DEBUG, "Reparenting window (perpendicular)");
 		struct wmiiv_container *target_sibling = seat_get_focus_inactive_view(seat, &col->node);
-		container_detach(win);
+		window_detach(win);
 		if (target_sibling) {
 			column_add_sibling(target_sibling, win, 1);
 		} else {
@@ -461,7 +494,7 @@ static void window_move_to_workspace_from_maybe_direction(
 
 	if (window_is_floating(win)) {
 		struct wmiiv_output *old_output = win->pending.workspace->output;
-		container_detach(win);
+		window_detach(win);
 		workspace_add_floating(ws, win);
 		container_handle_fullscreen_reparent(win);
 		// If changing output, center it within the workspace

@@ -266,7 +266,7 @@ static void finalize_move(struct wmiiv_seat *seat) {
 			window_move_to_column(moving_window, new_column);
 		} else if (target_edge == WLR_EDGE_TOP || target_edge == WLR_EDGE_BOTTOM) {
 			// TODO (wmiiv) fix different level of abstraction.
-			container_detach(moving_window);
+			window_detach(moving_window);
 			column_add_sibling(target_window, moving_window, target_edge != WLR_EDGE_TOP);
 			ipc_event_window(moving_window, "move");
 		} else {

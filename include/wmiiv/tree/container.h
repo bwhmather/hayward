@@ -253,8 +253,6 @@ list_t *container_get_current_siblings(struct wmiiv_container *container);
 
 void container_handle_fullscreen_reparent(struct wmiiv_container *con);
 
-void container_detach(struct wmiiv_container *child);
-
 void container_swap(struct wmiiv_container *con1, struct wmiiv_container *con2);
 
 struct wmiiv_container *container_split(struct wmiiv_container *child,

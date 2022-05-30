@@ -153,7 +153,7 @@ static void evacuate_sticky(struct wmiiv_workspace *old_ws,
 	}
 	while(old_ws->floating->length) {
 		struct wmiiv_container *sticky = old_ws->floating->items[0];
-		container_detach(sticky);
+		window_detach(sticky);
 		workspace_add_floating(new_ws, sticky);
 		container_handle_fullscreen_reparent(sticky);
 		container_floating_move_to_center(sticky);

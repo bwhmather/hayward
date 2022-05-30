@@ -17,28 +17,28 @@ struct cmd_results *cmd_sticky(int argc, char **argv) {
 	if ((error = checkarg(argc, "sticky", EXPECTED_EQUAL_TO, 1))) {
 		return error;
 	}
-	struct wmiiv_container *container = config->handler_context.container;
+	struct wmiiv_container *window = config->handler_context.window;
 
-	if (container == NULL) {
-		return cmd_results_new(CMD_FAILURE, "No current container");
+	if (window == NULL) {
+		return cmd_results_new(CMD_FAILURE, "No current window");
 	};
 
-	container->is_sticky = parse_boolean(argv[0], container->is_sticky);
+	window->is_sticky = parse_boolean(argv[0], window->is_sticky);
 
-	if (container_is_sticky_or_child(container)) {
-		// move container to active workspace
+	if (container_is_sticky_or_child(window)) {
+		// move window to active workspace
 		struct wmiiv_workspace *active_workspace =
-			output_get_active_workspace(container->pending.workspace->output);
+			output_get_active_workspace(window->pending.workspace->output);
 		if (!wmiiv_assert(active_workspace,
 					"Expected output to have a workspace")) {
 			return cmd_results_new(CMD_FAILURE,
 					"Expected output to have a workspace");
 		}
-		if (container->pending.workspace != active_workspace) {
-			struct wmiiv_workspace *old_workspace = container->pending.workspace;
-			container_detach(container);
-			workspace_add_floating(active_workspace, container);
-			container_handle_fullscreen_reparent(container);
+		if (window->pending.workspace != active_workspace) {
+			struct wmiiv_workspace *old_workspace = window->pending.workspace;
+			window_detach(window);
+			workspace_add_floating(active_workspace, window);
+			container_handle_fullscreen_reparent(window);
 			arrange_workspace(active_workspace);
 			workspace_consider_destroy(old_workspace);
 		}

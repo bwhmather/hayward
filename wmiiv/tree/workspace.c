@@ -744,61 +744,59 @@ void workspace_detach(struct wmiiv_workspace *workspace) {
 }
 
 struct wmiiv_container *workspace_add_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con) {
-	if (con->pending.workspace) {
-		struct wmiiv_container *old_parent = con->pending.parent;
-		container_detach(con);
-		if (old_parent) {
-			column_consider_destroy(old_parent);
-		}
+		struct wmiiv_container *column) {
+	wmiiv_assert(container_is_column(column), "Can only add columns to workspace");
+	if (column->pending.workspace) {
+		column_detach(column);
 	}
-	if (config->default_layout != L_NONE) {
-		con = container_split(con, config->default_layout);
-	}
-	list_add(workspace->tiling, con);
-	con->pending.workspace = workspace;
-	container_for_each_child(con, set_workspace, NULL);
-	container_handle_fullscreen_reparent(con);
+
+	list_add(workspace->tiling, column);
+	column->pending.workspace = workspace;
+
+	container_for_each_child(column, set_workspace, NULL);
 	workspace_update_representation(workspace);
 	node_set_dirty(&workspace->node);
-	node_set_dirty(&con->node);
-	return con;
+	node_set_dirty(&column->node);
+	return column;
 }
 
 void workspace_add_floating(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con) {
-	if (con->pending.workspace) {
-		container_detach(con);
+		struct wmiiv_container *window) {
+	wmiiv_assert(container_is_window(window), "Can only float windows");
+
+	if (window->pending.workspace) {
+		window_detach(window);
 	}
-	list_add(workspace->floating, con);
-	con->pending.workspace = workspace;
-	container_for_each_child(con, set_workspace, NULL);
-	container_handle_fullscreen_reparent(con);
+
+	list_add(workspace->floating, window);
+	window->pending.workspace = workspace;
+
+	container_handle_fullscreen_reparent(window);
+
 	node_set_dirty(&workspace->node);
-	node_set_dirty(&con->node);
+	node_set_dirty(&window->node);
 }
 
 void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con, int index) {
-	list_insert(workspace->tiling, index, con);
-	con->pending.workspace = workspace;
-	container_for_each_child(con, set_workspace, NULL);
-	container_handle_fullscreen_reparent(con);
+		struct wmiiv_container *column, int index) {
+	wmiiv_assert(container_is_column(column), "Can only insert columns into workspace");
+	list_insert(workspace->tiling, index, column);
+	column->pending.workspace = workspace;
+	container_for_each_child(column, set_workspace, NULL);
 	workspace_update_representation(workspace);
 	node_set_dirty(&workspace->node);
-	node_set_dirty(&con->node);
+	node_set_dirty(&column->node);
 }
 
 struct wmiiv_container *workspace_insert_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *con, int index) {
-	if (con->pending.workspace) {
-		container_detach(con);
+		struct wmiiv_container *column, int index) {
+	wmiiv_assert(container_is_column(column), "Can only insert columns into workspace");
+	if (column->pending.workspace) {
+		column_detach(column);
 	}
-	if (config->default_layout != L_NONE) {
-		con = container_split(con, config->default_layout);
-	}
-	workspace_insert_tiling_direct(workspace, con, index);
-	return con;
+
+	workspace_insert_tiling_direct(workspace, column, index);
+	return column;
 }
 
 bool workspace_has_single_visible_container(struct wmiiv_workspace *ws) {

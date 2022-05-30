@@ -29,5 +29,6 @@ void column_insert_child(struct wmiiv_container *parent,
 void column_add_sibling(struct wmiiv_container *parent,
 		struct wmiiv_container *child, bool after);
 
+void column_detach(struct wmiiv_container *column);
 
 #endif
