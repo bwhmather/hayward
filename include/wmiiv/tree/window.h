@@ -43,6 +43,8 @@ void window_set_floating(struct wmiiv_container *container, bool enable);
 
 bool window_is_fullscreen(struct wmiiv_container *container);
 
+bool window_is_tiling(struct wmiiv_container *container);
+
 /**
  * Detaches a window from its current column, and by extension workspace, and
  * attaches it to a new column, possibly in a different workspace.  Where in

@@ -397,6 +397,14 @@ bool window_is_fullscreen(struct wmiiv_container* window) {
 	return window->pending.fullscreen_mode;
 }
 
+bool window_is_tiling(struct wmiiv_container* window) {
+	if (!wmiiv_assert(container_is_window(window), "Only windows can be tiling")) {
+		return false;
+	}
+
+	return window->pending.parent != NULL;
+}
+
 /**
  * Ensures all seats focus the fullscreen container if needed.
  */
