@@ -43,7 +43,7 @@ struct wmiiv_seat_device {
 
 struct wmiiv_seat_node {
 	struct wmiiv_seat *seat;
-	struct wmiiv_node *node;
+	struct wmiiv_container *window;
 
 	struct wl_list link; // wmiiv_seat::focus_stack
 
@@ -100,8 +100,8 @@ struct wmiiv_seat {
 
 	struct wmiiv_input_method_relay im_relay;
 
-	struct wl_listener focus_destroy;
 	struct wl_listener new_node;
+	struct wl_listener workspace_destroy;
 	struct wl_listener request_start_drag;
 	struct wl_listener start_drag;
 	struct wl_listener request_set_selection;
@@ -227,6 +227,9 @@ struct wmiiv_node *seat_get_active_tiling_child(struct wmiiv_seat *seat,
  */
 void seat_for_each_node(struct wmiiv_seat *seat,
 		void (*f)(struct wmiiv_node *node, void *data), void *data);
+
+void seat_for_each_window(struct wmiiv_seat *seat,
+		void (*f)(struct wmiiv_container *window, void *data), void *data);
 
 void seat_apply_config(struct wmiiv_seat *seat, struct seat_config *seat_config);
 
