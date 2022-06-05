@@ -1360,11 +1360,6 @@ void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *wind
 	seat_set_focus(seat, &window->node);
 }
 
-void seat_set_focus_container(struct wmiiv_seat *seat,
-		struct wmiiv_container *container) {
-	seat_set_focus(seat, container ? &container->node : NULL);
-}
-
 void seat_set_focus_workspace(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace) {
 	seat_set_focus(seat, workspace ? &workspace->node : NULL);
