@@ -35,6 +35,9 @@
 #include "wmiiv/tree/view.h"
 #include "wmiiv/tree/workspace.h"
 
+
+static void seat_set_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+
 static void seat_device_destroy(struct wmiiv_seat_device *seat_device) {
 	if (!seat_device) {
 		return;
@@ -260,8 +263,7 @@ static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	if (node) {
 		seat_set_focus(seat, window_node);
 	} else {
-		// TODO (wmiiv) Need to clear workspace (and unregister handlers) manually.
-		// Alternatively this should be done by seat_set_focus(seat, NULL)
+		seat_set_workspace(seat, NULL);
 	}
 }
 
@@ -1169,16 +1171,21 @@ static int handle_urgent_timeout(void *data) {
 	return 0;
 }
 
-static void set_workspace(struct wmiiv_seat *seat,
+/**
+ * Sets all seat state that is directly linked to the seat workspace.
+ *
+ * Does not touch any other seat and so does not, as such, _focus_ the
+ * workspace.  This function is intended as a building block for other
+ * functions which do manipulate the focus.
+ */
+static void seat_set_workspace(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *new_workspace) {
 	if (seat->workspace == new_workspace) {
 		return;
 	}
 
-	wl_list_remove(&seat->workspace_destroy.link);
-	wl_signal_add(&new_workspace->node.events.destroy, &seat->workspace_destroy);
-
-	if (seat->workspace) {
+	if (seat->workspace != NULL) {
+		wl_list_remove(&seat->workspace_destroy.link);
 		free(seat->prev_workspace_name);
 		seat->prev_workspace_name = strdup(seat->workspace->name);
 		if (!seat->prev_workspace_name) {
@@ -1186,20 +1193,39 @@ static void set_workspace(struct wmiiv_seat *seat,
 		}
 	}
 
-	ipc_event_workspace(seat->workspace, new_workspace, "focus");
+	if (new_workspace != NULL) {
+		wl_signal_add(&new_workspace->node.events.destroy, &seat->workspace_destroy);
+	}
+
 	seat->workspace = new_workspace;
 }
 
-void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
-	struct wmiiv_seat_node *seat_node = seat_node_from_node(seat, node);
+/**
+ * Moves a window to the top of the focus stack.
+ *
+ * Does not touch any other seat and so does not, as such, _focus_ the
+ * window.  This function is intended as a building block for other functions
+ * which do manipulate the focus.
+ */
+static void seat_set_top_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
+	wmiiv_assert(container_is_window(window), "Expected window");
+
+	struct wmiiv_seat_node *seat_node = seat_node_from_node(seat, &window->node);
 	wl_list_remove(&seat_node->link);
 	wl_list_insert(&seat->focus_stack, &seat_node->link);
-	node_set_dirty(node);
+	node_set_dirty(&window->node);
 
-	struct wmiiv_node *parent = node_get_parent(node);
+	struct wmiiv_node *parent = node_get_parent(&window->node);
 	if (parent) {
 		node_set_dirty(parent);
 	}
+}
+
+void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
+	if (!wmiiv_assert(node->type == N_WINDOW, "Expected window")) {
+		return;
+	}
+	seat_set_top_window(seat, node->wmiiv_container);
 }
 
 void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
@@ -1288,9 +1314,11 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	}
 
 	// emit ipc events
-	set_workspace(seat, new_workspace);
+	seat_set_workspace(seat, new_workspace);
 	if (container && container->view) {
 		ipc_event_window(container, "focus");
+	} else {
+		ipc_event_workspace(last_workspace, new_workspace, "focus");
 	}
 
 	// Move sticky containers to new workspace
