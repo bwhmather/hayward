@@ -41,7 +41,7 @@ struct wmiiv_seat_device {
 	struct wl_list link; // wmiiv_seat::devices
 };
 
-struct wmiiv_seat_node {
+struct wmiiv_seat_window {
 	struct wmiiv_seat *seat;
 	struct wmiiv_container *window;
 
