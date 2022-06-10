@@ -73,8 +73,13 @@ struct wmiiv_seat {
 	struct wlr_seat *wlr_seat;
 	struct wmiiv_cursor *cursor;
 
+	// True if a window, in particular the window at the top of the active
+	// window stack, has focus.
 	bool has_focus;
-	struct wl_list focus_stack; // list of containers in focus order
+
+	// List of windows in focus order.
+	struct wl_list active_window_stack;
+
 	struct wmiiv_workspace *workspace;
 	char *prev_workspace_name; // for workspace back_and_forth
 
