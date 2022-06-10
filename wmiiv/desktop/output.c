@@ -372,15 +372,11 @@ void scale_box(struct wlr_box *box, float scale) {
 }
 
 struct wmiiv_workspace *output_get_active_workspace(struct wmiiv_output *output) {
-	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_node *focus = seat_get_active_tiling_child(seat, &output->node);
-	if (!focus) {
-		if (!output->workspaces->length) {
-			return NULL;
-		}
+	// TODO
+	if (output->workspaces->length) {
 		return output->workspaces->items[0];
 	}
-	return focus->wmiiv_workspace;
+	return NULL;
 }
 
 bool output_has_opaque_overlay_layer_surface(struct wmiiv_output *output) {

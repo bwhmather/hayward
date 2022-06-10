@@ -572,12 +572,9 @@ static struct wmiiv_workspace *select_workspace(struct wmiiv_view *view) {
 	}
 
 	// Use the focused workspace
-	struct wmiiv_node *node = seat_get_focus_inactive(seat, &root->node);
-	if (node && node->type == N_WORKSPACE) {
-		return node->wmiiv_workspace;
-	// TODO (wmiiv) only windows can be focused.
-	} else if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
-		return node->wmiiv_container->pending.workspace;
+	workspace = seat_get_focused_workspace(seat);
+	if (workspace) {
+		return workspace;
 	}
 
 	// When there's no outputs connected, the above should match a workspace on

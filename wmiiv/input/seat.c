@@ -1229,22 +1229,54 @@ void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 }
 
 void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
+	if (node == NULL) {
+		seat_set_focus_window(seat, NULL);
+		return;
+	}
+
+	if (node->type == N_WINDOW) {
+		seat_set_focus_window(seat, node->wmiiv_container);
+		return;
+	}
+
+	if (node->type == N_WORKSPACE) {
+		seat_set_focus_workspace(seat, node->wmiiv_workspace);
+		return;
+	}
+
+	wmiiv_abort("Can't focus unknown node type");
+}
+
+void seat_clear_focus(struct wmiiv_seat *seat) {
+	seat_set_focus(seat, NULL);
+}
+
+/**
+ * Set's focus to window.
+ * If window is NULL, clears the window but leaves the workspace.
+ * If workspace does not match, sets the workspace.
+ */
+void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
+	if (!wmiiv_assert(!window || container_is_window(window), "Cannot focus non-window")) {
+		return;
+	}
+
 	if (seat->focused_layer) {
 		struct wlr_layer_surface_v1 *layer = seat->focused_layer;
 		seat_set_focus_layer(seat, NULL);
-		seat_set_focus(seat, node);
+		seat_set_focus_window(seat, window);
 		seat_set_focus_layer(seat, layer);
 		return;
 	}
 
 	struct wmiiv_node *last_focus = seat_get_focus(seat);
-	if (last_focus == node) {
+	if (last_focus == &window->node) {
 		return;
 	}
 
 	struct wmiiv_workspace *last_workspace = seat_get_focused_workspace(seat);
 
-	if (node == NULL) {
+	if (window == NULL) {
 		// Close any popups on the old focus
 		if (node_is_view(last_focus)) {
 			view_close_popups(last_focus->wmiiv_container->view);
@@ -1255,23 +1287,15 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 		return;
 	}
 
-	struct wmiiv_workspace *new_workspace = node->type == N_WORKSPACE ?
-		node->wmiiv_workspace : node->wmiiv_container->pending.workspace;
-	struct wmiiv_container *container = (node->type == N_COLUMN || node->type == N_WINDOW) ?
-		node->wmiiv_container : NULL;
+	struct wmiiv_workspace *new_workspace = window->pending.workspace;
 
 	// Deny setting focus to a view which is hidden by a fullscreen container or global
-	if (container && container_obstructing_fullscreen_container(container)) {
-		return;
-	}
-
-	// Deny setting focus to a workspace node when using fullscreen global
-	if (root->fullscreen_global && !container && new_workspace) {
+	if (window && container_obstructing_fullscreen_container(window)) {
 		return;
 	}
 
 	// Deny setting focus when an input grab or lockscreen is active
-	if (container && container->view && !seat_is_input_allowed(seat, container->view->surface)) {
+	if (window && !seat_is_input_allowed(seat, window->view->surface)) {
 		return;
 	}
 
@@ -1298,28 +1322,13 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 
 	// Put the container parents on the focus stack, then the workspace, then
 	// the focused container.
-	if (container) {
-		struct wmiiv_container *parent = container->pending.parent;
-		while (parent) {
-			seat_set_raw_focus(seat, &parent->node);
-			parent = parent->pending.parent;
-		}
-	}
-	if (new_workspace) {
-		seat_set_raw_focus(seat, &new_workspace->node);
-	}
-	if (container) {
-		seat_set_raw_focus(seat, &container->node);
-		seat_send_focus(&container->node, seat);
-	}
-
-	// emit ipc events
 	seat_set_workspace(seat, new_workspace);
-	if (container && container->view) {
-		ipc_event_window(container, "focus");
-	} else {
-		ipc_event_workspace(last_workspace, new_workspace, "focus");
-	}
+	seat_set_top_window(seat, window);
+
+	seat_send_focus(&window->node, seat);
+
+	// Emit ipc events
+	ipc_event_window(window, "focus");
 
 	// Move sticky containers to new workspace
 	if (new_workspace && new_output_last_workspace
@@ -1341,9 +1350,9 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	}
 
 	// If urgent, either unset the urgency or start a timer to unset it
-	if (container && container->view && view_is_urgent(container->view) &&
-			!container->view->urgent_timer) {
-		struct wmiiv_view *view = container->view;
+	if (view_is_urgent(window->view) &&
+			!window->view->urgent_timer) {
+		struct wmiiv_view *view = window->view;
 		if (last_workspace && last_workspace != new_workspace &&
 				config->urgent_timeout > 0) {
 			view->urgent_timer = wl_event_loop_add_timer(server.wl_event_loop,
@@ -1376,21 +1385,24 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	}
 }
 
-void seat_clear_focus(struct wmiiv_seat *seat) {
-	seat_set_focus(seat, NULL);
-}
-
-void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
-	if (!wmiiv_assert(window && container_is_window(window), "Cannot focus non-window")) {
-		return;
-	}
-
-	seat_set_focus(seat, &window->node);
-}
-
+/**
+ * Clears the window.
+ */
 void seat_set_focus_workspace(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace) {
-	seat_set_focus(seat, workspace ? &workspace->node : NULL);
+	struct wmiiv_workspace *last_workspace = seat_get_focused_workspace(seat);
+	struct wmiiv_node *last_focus = seat_get_focus(seat);
+
+	if (last_focus && node_is_view(last_focus)) {
+		view_close_popups(last_focus->wmiiv_container->view);
+		seat_send_unfocus(last_focus, seat);
+	}
+	wmiiv_input_method_relay_set_focus(&seat->im_relay, NULL);
+	seat->has_focus = false;
+
+	seat_set_workspace(seat, workspace);
+
+	ipc_event_workspace(last_workspace, workspace, "focus");
 }
 
 void seat_set_focus_surface(struct wmiiv_seat *seat,
@@ -1471,6 +1483,31 @@ void seat_set_exclusive_client(struct wmiiv_seat *seat,
 		}
 	}
 	seat->exclusive_client = client;
+}
+
+struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *seat, struct wmiiv_output *output) {
+	struct wmiiv_seat_node *current;
+	wl_list_for_each(current, &seat->focus_stack, link) {
+		struct wmiiv_container *window = current->window;
+
+		if (window->pending.workspace == NULL) {
+			continue;
+		}
+
+		if (window->pending.workspace->output != output) {
+			continue;
+		}
+
+		// TODO inherited from output_get_active_workspace.  Unclear if a result of
+		// implementation shortcut.
+		if (!window_is_tiling(window)) {
+			continue;
+		}
+
+		return window->pending.workspace;
+	}
+
+	return NULL;
 }
 
 struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_container *column) {
@@ -1607,7 +1644,7 @@ struct wmiiv_node *seat_get_active_tiling_child(struct wmiiv_seat *seat,
 		break;
 
 	default:
-		wmiiv_abort("Unexpected node type");
+		wmiiv_assert(false, "Unexpected node type");
 	}
 	return window != NULL ? &window->node : NULL;
 }
