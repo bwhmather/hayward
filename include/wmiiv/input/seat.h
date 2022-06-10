@@ -45,7 +45,7 @@ struct wmiiv_seat_window {
 	struct wmiiv_seat *seat;
 	struct wmiiv_container *window;
 
-	struct wl_list link; // wmiiv_seat::focus_stack
+	struct wl_list link; // wmiiv_seat::active_window_stack
 
 	struct wl_listener destroy;
 };
