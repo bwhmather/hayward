@@ -93,7 +93,6 @@ struct wmiiv_seat {
 	// top of the stack will match the workspace for that window.
 	struct wl_list active_workspace_stack;
 
-	struct wmiiv_workspace *workspace;
 	char *prev_workspace_name; // for workspace back_and_forth
 
 	// If the focused layer is set, views cannot receive keyboard focus
