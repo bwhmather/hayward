@@ -36,7 +36,7 @@
 #include "wmiiv/tree/workspace.h"
 
 
-static void seat_set_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+static void seat_set_active_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
 
 static void seat_device_destroy(struct wmiiv_seat_device *seat_device) {
 	if (!seat_device) {
@@ -69,6 +69,13 @@ static void seat_window_destroy(struct wmiiv_seat_window *seat_window) {
 	free(seat_window);
 }
 
+static void seat_workspace_destroy(struct wmiiv_seat_workspace *seat_workspace) {
+	wl_list_remove(&seat_workspace->destroy.link);
+	wl_list_remove(&seat_workspace->link);
+
+	free(seat_workspace);
+}
+
 void seat_destroy(struct wmiiv_seat *seat) {
 	if (seat == config->handler_context.seat) {
 		config->handler_context.seat = input_manager_get_default_seat();
@@ -82,10 +89,14 @@ void seat_destroy(struct wmiiv_seat *seat) {
 			link) {
 		seat_window_destroy(seat_window);
 	}
+	struct wmiiv_seat_workspace *seat_workspace, *next_seat_workspace;
+	wl_list_for_each_safe(seat_workspace, next_seat_workspace, &seat->active_workspace_stack, link) {
+		seat_workspace_destroy(seat_workspace);
+	}
+
 	wmiiv_input_method_relay_finish(&seat->im_relay);
 	wmiiv_cursor_destroy(seat->cursor);
 	wl_list_remove(&seat->new_node.link);
-	wl_list_remove(&seat->workspace_destroy.link);
 	wl_list_remove(&seat->request_start_drag.link);
 	wl_list_remove(&seat->start_drag.link);
 	wl_list_remove(&seat->request_set_selection.link);
@@ -242,7 +253,8 @@ struct wmiiv_container *seat_get_focus_inactive_view(struct wmiiv_seat *seat,
 }
 
 static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
-	struct wmiiv_seat *seat = wl_container_of(listener, seat, workspace_destroy);
+	struct wmiiv_seat_workspace *seat_workspace = wl_container_of(listener, seat_workspace, destroy);
+	struct wmiiv_seat *seat = seat_workspace->seat;
 	struct wmiiv_node *node = data;
 
 	if (!wmiiv_assert(node->type == N_WORKSPACE, "Expected workspace")) {
@@ -250,9 +262,11 @@ static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	}
 	struct wmiiv_workspace *workspace = node->wmiiv_workspace;
 
-	if (!wmiiv_assert(seat->workspace == workspace, "Notified about destruction of wrong workspace")) {
+	if (!wmiiv_assert(workspace == seat_workspace->workspace, "Destroy handler registered for different workspace")) {
 		return;
 	}
+
+	seat_workspace_destroy(seat_workspace);
 
 	// If an unmanaged or layer surface is focused when an output gets
 	// disabled and an empty workspace on the output was focused by the
@@ -262,12 +276,10 @@ static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	seat_set_focus(seat, NULL);
 	if (node) {
 		seat_set_focus(seat, window_node);
-	} else {
-		seat_set_workspace(seat, NULL);
 	}
 }
 
-static void handle_seat_window_destroy(struct wl_listener *listener, void *data) {
+static void handle_window_destroy(struct wl_listener *listener, void *data) {
 	struct wmiiv_seat_window *seat_window =
 		wl_container_of(listener, seat_window, destroy);
 	struct wmiiv_seat *seat = seat_window->seat;
@@ -391,18 +403,41 @@ static void handle_seat_window_destroy(struct wl_listener *listener, void *data)
 
 	// If we found a new window to focus on then this will do the obvious
 	// thing and bring it to the head of the stack.  If `new_focus` is NULL
-	// it will unset `seat->has_focus`, but leave `seat->workspace` set, so
-	// focus will remain, where we want it, on the same workspace.
+	// it will unset `seat->has_focus`, but leave the old workspace at the
+	// top of the active workspace set so focus will remain, where we want
+	// it, on the same workspace.
 	seat_set_focus(seat, &new_focus->node);
 }
 
-static struct wmiiv_seat_window *seat_window_from_node(
-		struct wmiiv_seat *seat, struct wmiiv_node *node) {
-	if (node->type != N_WINDOW) {
+static struct wmiiv_seat_workspace *seat_workspace_from_workspace(
+	struct wmiiv_seat *seat, struct wmiiv_workspace *workspace) {
+	struct wmiiv_seat_workspace *seat_workspace= NULL;
+	wl_list_for_each(seat_workspace, &seat->active_workspace_stack, link) {
+		if (seat_workspace->workspace == workspace) {
+			return seat_workspace;
+		}
+	}
+
+	seat_workspace = calloc(1, sizeof(struct wmiiv_seat_workspace));
+	if (seat_workspace == NULL) {
+		wmiiv_log(WMIIV_ERROR, "could not allocate seat workspace");
 		return NULL;
 	}
 
-	struct wmiiv_container *window = node->wmiiv_container;
+	seat_workspace->workspace = workspace;
+	seat_workspace->seat = seat;
+	wl_list_insert(seat->active_workspace_stack.prev, &seat_workspace->link);
+	wl_signal_add(&workspace->node.events.destroy, &seat_workspace->destroy);
+	seat_workspace->destroy.notify = handle_workspace_destroy;
+
+	return seat_workspace;
+}
+
+static struct wmiiv_seat_window *seat_window_from_window(
+	struct wmiiv_seat *seat, struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return NULL;
+	}
 
 	struct wmiiv_seat_window *seat_window = NULL;
 	wl_list_for_each(seat_window, &seat->active_window_stack, link) {
@@ -420,16 +455,37 @@ static struct wmiiv_seat_window *seat_window_from_node(
 	seat_window->window = window;
 	seat_window->seat = seat;
 	wl_list_insert(seat->active_window_stack.prev, &seat_window->link);
-	wl_signal_add(&node->events.destroy, &seat_window->destroy);
-	seat_window->destroy.notify = handle_seat_window_destroy;
+	wl_signal_add(&window->node.events.destroy, &seat_window->destroy);
+	seat_window->destroy.notify = handle_window_destroy;
 
 	return seat_window;
+}
+
+static struct wmiiv_seat_window *seat_window_from_node(
+		struct wmiiv_seat *seat, struct wmiiv_node *node) {
+	if (node->type != N_WINDOW) {
+		return NULL;
+	}
+	return seat_window_from_window(seat, node->wmiiv_container);
 }
 
 static void handle_new_node(struct wl_listener *listener, void *data) {
 	struct wmiiv_seat *seat = wl_container_of(listener, seat, new_node);
 	struct wmiiv_node *node = data;
-	seat_window_from_node(seat, node);
+	switch (node->type) {
+	case N_ROOT:
+		break;
+	case N_OUTPUT:
+		break;
+	case N_WORKSPACE:
+		seat_workspace_from_workspace(seat, node->wmiiv_workspace);
+		break;
+	case N_COLUMN:
+		break;
+	case N_WINDOW:
+		seat_window_from_window(seat, node->wmiiv_container);
+		break;
+	}
 }
 
 static void drag_icon_damage_whole(struct wmiiv_drag_icon *icon) {
@@ -651,8 +707,8 @@ struct wmiiv_seat *seat_create(const char *seat_name) {
 		IDLE_SOURCE_TABLET_TOOL |
 		IDLE_SOURCE_SWITCH;
 
-	// init the focus stack
 	wl_list_init(&seat->active_window_stack);
+	wl_list_init(&seat->active_workspace_stack);
 
 	wl_list_init(&seat->devices);
 
@@ -663,8 +719,6 @@ struct wmiiv_seat *seat_create(const char *seat_name) {
 
 	wl_signal_add(&root->events.new_node, &seat->new_node);
 	seat->new_node.notify = handle_new_node;
-
-	seat->workspace_destroy.notify = handle_workspace_destroy;
 
 	wl_signal_add(&seat->wlr_seat->events.request_start_drag,
 		&seat->request_start_drag);
@@ -1178,26 +1232,18 @@ static int handle_urgent_timeout(void *data) {
  * workspace.  This function is intended as a building block for other
  * functions which do manipulate the focus.
  */
-static void seat_set_workspace(struct wmiiv_seat *seat,
-		struct wmiiv_workspace *new_workspace) {
-	if (seat->workspace == new_workspace) {
-		return;
-	}
+static void seat_set_active_workspace(struct wmiiv_seat *seat,
+		struct wmiiv_workspace *workspace) {
+	struct wmiiv_seat_workspace *seat_workspace = seat_workspace_from_workspace(seat, workspace);
 
-	if (seat->workspace != NULL) {
-		wl_list_remove(&seat->workspace_destroy.link);
-		free(seat->prev_workspace_name);
-		seat->prev_workspace_name = strdup(seat->workspace->name);
-		if (!seat->prev_workspace_name) {
-			wmiiv_log(WMIIV_ERROR, "Unable to allocate previous workspace name");
-		}
-	}
+	wl_list_remove(&seat_workspace->link);
+	wl_list_insert(&seat->active_workspace_stack, &seat_workspace->link);
 
-	if (new_workspace != NULL) {
-		wl_signal_add(&new_workspace->node.events.destroy, &seat->workspace_destroy);
+	node_set_dirty(&workspace->node);
+	struct wmiiv_node *parent = node_get_parent(&workspace->node);
+	if (parent) {
+		node_set_dirty(parent);
 	}
-
-	seat->workspace = new_workspace;
 }
 
 /**
@@ -1207,14 +1253,15 @@ static void seat_set_workspace(struct wmiiv_seat *seat,
  * window.  This function is intended as a building block for other functions
  * which do manipulate the focus.
  */
-static void seat_set_top_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
+static void seat_set_active_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
 	wmiiv_assert(container_is_window(window), "Expected window");
 
-	struct wmiiv_seat_window *seat_window = seat_window_from_node(seat, &window->node);
+	struct wmiiv_seat_window *seat_window = seat_window_from_window(seat, window);
+
 	wl_list_remove(&seat_window->link);
 	wl_list_insert(&seat->active_window_stack, &seat_window->link);
-	node_set_dirty(&window->node);
 
+	node_set_dirty(&window->node);
 	struct wmiiv_node *parent = node_get_parent(&window->node);
 	if (parent) {
 		node_set_dirty(parent);
@@ -1225,7 +1272,7 @@ void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	if (!wmiiv_assert(node->type == N_WINDOW, "Expected window")) {
 		return;
 	}
-	seat_set_top_window(seat, node->wmiiv_container);
+	seat_set_active_window(seat, node->wmiiv_container);
 }
 
 void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
@@ -1322,8 +1369,8 @@ void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *wind
 
 	// Put the container parents on the focus stack, then the workspace, then
 	// the focused container.
-	seat_set_workspace(seat, new_workspace);
-	seat_set_top_window(seat, window);
+	seat_set_active_workspace(seat, new_workspace);
+	seat_set_active_window(seat, window);
 
 	seat_send_focus(&window->node, seat);
 
@@ -1400,7 +1447,7 @@ void seat_set_focus_workspace(struct wmiiv_seat *seat,
 	wmiiv_input_method_relay_set_focus(&seat->im_relay, NULL);
 	seat->has_focus = false;
 
-	seat_set_workspace(seat, workspace);
+	seat_set_active_workspace(seat, workspace);
 
 	ipc_event_workspace(last_workspace, workspace, "focus");
 }
@@ -1486,25 +1533,19 @@ void seat_set_exclusive_client(struct wmiiv_seat *seat,
 }
 
 struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *seat, struct wmiiv_output *output) {
-	struct wmiiv_seat_window *current;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct wmiiv_container *window = current->window;
+	struct wmiiv_seat_workspace *current;
+	wl_list_for_each(current, &seat->active_workspace_stack, link) {
+		struct wmiiv_workspace *workspace = current->workspace;
 
-		if (window->pending.workspace == NULL) {
+		if (workspace->output == NULL) {
 			continue;
 		}
 
-		if (window->pending.workspace->output != output) {
+		if (workspace->output != output) {
 			continue;
 		}
 
-		// TODO inherited from output_get_active_workspace.  Unclear if a result of
-		// implementation shortcut.
-		if (!window_is_tiling(window)) {
-			continue;
-		}
-
-		return window->pending.workspace;
+		return workspace;
 	}
 
 	return NULL;

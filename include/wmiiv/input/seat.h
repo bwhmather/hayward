@@ -50,6 +50,15 @@ struct wmiiv_seat_window {
 	struct wl_listener destroy;
 };
 
+struct wmiiv_seat_workspace {
+	struct wmiiv_seat *seat;
+	struct wmiiv_workspace *workspace;
+
+	struct wl_list link;  // wmiiv_seat::active_workspace_stack
+
+	struct wl_listener destroy;
+};
+
 struct wmiiv_drag_icon {
 	struct wmiiv_seat *seat;
 	struct wlr_drag_icon *wlr_drag_icon;
@@ -80,6 +89,10 @@ struct wmiiv_seat {
 	// List of windows in focus order.
 	struct wl_list active_window_stack;
 
+	// List of workspaces in focus order.  If the seat has a focused window, the
+	// top of the stack will match the workspace for that window.
+	struct wl_list active_workspace_stack;
+
 	struct wmiiv_workspace *workspace;
 	char *prev_workspace_name; // for workspace back_and_forth
 
@@ -106,7 +119,6 @@ struct wmiiv_seat {
 	struct wmiiv_input_method_relay im_relay;
 
 	struct wl_listener new_node;
-	struct wl_listener workspace_destroy;
 	struct wl_listener request_start_drag;
 	struct wl_listener start_drag;
 	struct wl_listener request_set_selection;
