@@ -536,8 +536,6 @@ static void window_move_to_workspace_from_maybe_direction(
 		struct wmiiv_container *column = NULL;
 
 		struct wmiiv_container *focus_inactive = seat_get_focus_inactive_tiling(seat, workspace);
-		// TODO (wmiiv) only windows should be focusable.
-		focus_inactive = seat_get_focus_inactive_view(seat, &focus_inactive->node);
 		if (focus_inactive) {
 			column = focus_inactive->pending.parent;
 		} else {
