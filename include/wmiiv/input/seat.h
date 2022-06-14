@@ -209,6 +209,8 @@ struct wmiiv_container *seat_get_focused_container(struct wmiiv_seat *seat);
 // hierarchy (used for lockscreen)
 void wmiiv_force_focus(struct wlr_surface *surface);
 
+struct wmiiv_workspace *seat_get_active_workspace(struct wmiiv_seat *seat);
+
 struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *seat, struct wmiiv_output *output);
 
 struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_container *column);

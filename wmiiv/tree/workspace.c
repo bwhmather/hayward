@@ -160,8 +160,8 @@ void workspace_consider_destroy(struct wmiiv_workspace *workspace) {
 
 	struct wmiiv_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
-		struct wmiiv_node *node = seat_get_focus_inactive(seat, &root->node);
-		if (node == &workspace->node) {
+		struct wmiiv_workspace *active_workspace = seat_get_focused_workspace(seat);
+		if (workspace == active_workspace) {
 			return;
 		}
 	}
@@ -576,12 +576,13 @@ bool workspace_switch(struct wmiiv_workspace *workspace) {
 
 	wmiiv_log(WMIIV_DEBUG, "Switching to workspace %p:%s",
 		workspace, workspace->name);
-	struct wmiiv_node *next = seat_get_focus_inactive(seat, &workspace->node);
-	if (next == NULL) {
-		next = &workspace->node;
+
+	struct wmiiv_container *active_window = seat_get_active_window_for_workspace(seat, workspace);
+	if (active_window) {
+		seat_set_focus_window(seat, active_window);
+	} else {
+		seat_set_focus_workspace(seat, workspace);
 	}
-	seat_set_focus(seat, next);
-	arrange_workspace(workspace);
 	return true;
 }
 
