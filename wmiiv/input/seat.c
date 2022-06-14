@@ -289,6 +289,10 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 	}
 	struct wmiiv_node *focus = seat_get_focus(seat);
 
+	if (&window->node == focus) {
+		seat_set_focus_window(seat, NULL);
+	}
+
 	seat_window_destroy(seat_window);
 
 	if (!window->pending.workspace) {
