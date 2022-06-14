@@ -209,6 +209,16 @@ struct wmiiv_container *seat_get_focused_container(struct wmiiv_seat *seat);
 // hierarchy (used for lockscreen)
 void wmiiv_force_focus(struct wlr_surface *surface);
 
+struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *seat, struct wmiiv_output *output);
+
+struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_container *column);
+
+struct wmiiv_container *seat_get_active_tiling_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+
+struct wmiiv_container *seat_get_active_floating_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+
+struct wmiiv_container *seat_get_active_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+
 /**
  * Return the last container to be focused for the seat (or the most recently
  * opened if no container has received focused) that is a child of the given
