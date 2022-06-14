@@ -575,7 +575,6 @@ static struct cmd_results *cmd_move_in_direction(
 	ipc_event_window(window, "move");
 
 	// Hack to re-focus container
-	seat_set_raw_focus(config->handler_context.seat, &new_workspace->node);
 	seat_set_focus_window(config->handler_context.seat, window);
 
 	if (old_workspace != new_workspace) {
