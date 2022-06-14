@@ -372,11 +372,8 @@ void scale_box(struct wlr_box *box, float scale) {
 }
 
 struct wmiiv_workspace *output_get_active_workspace(struct wmiiv_output *output) {
-	// TODO
-	if (output->workspaces->length) {
-		return output->workspaces->items[0];
-	}
-	return NULL;
+	struct wmiiv_seat *seat = input_manager_current_seat();
+	return seat_get_active_workspace_for_output(seat, output);
 }
 
 bool output_has_opaque_overlay_layer_surface(struct wmiiv_output *output) {
