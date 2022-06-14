@@ -1234,6 +1234,7 @@ static int handle_urgent_timeout(void *data) {
  */
 static void seat_set_active_workspace(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace) {
+	wmiiv_assert(workspace != NULL, "Expected non-null pointer");
 	struct wmiiv_seat_workspace *seat_workspace = seat_workspace_from_workspace(seat, workspace);
 
 	wl_list_remove(&seat_workspace->link);
@@ -1254,6 +1255,7 @@ static void seat_set_active_workspace(struct wmiiv_seat *seat,
  * which do manipulate the focus.
  */
 static void seat_set_active_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
+	wmiiv_assert(window != NULL, "Expected non-null pointer");
 	wmiiv_assert(container_is_window(window), "Expected window");
 
 	struct wmiiv_seat_window *seat_window = seat_window_from_window(seat, window);
@@ -1299,122 +1301,122 @@ void seat_clear_focus(struct wmiiv_seat *seat) {
 }
 
 /**
- * Set's focus to window.
- * If window is NULL, clears the window but leaves the workspace.
- * If workspace does not match, sets the workspace.
+ * Sets focus to a particular window.
+ * If window is NULL, clears the window focus but leaves the current workspace
+ * unchanged.
+ *
+ * If the focused window has been moved between workspaces, this function
+ * should be called to patch up the workspace focus stack.
  */
-void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
-	if (!wmiiv_assert(!window || container_is_window(window), "Cannot focus non-window")) {
+void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *new_window) {
+	if (!wmiiv_assert(!new_window || container_is_window(new_window), "Cannot focus non-window")) {
 		return;
 	}
 
 	if (seat->focused_layer) {
 		struct wlr_layer_surface_v1 *layer = seat->focused_layer;
 		seat_set_focus_layer(seat, NULL);
-		seat_set_focus_window(seat, window);
+		seat_set_focus_window(seat, new_window);
 		seat_set_focus_layer(seat, layer);
 		return;
 	}
 
-	struct wmiiv_node *last_focus = seat_get_focus(seat);
-	if (last_focus == &window->node) {
-		return;
-	}
-
+	struct wmiiv_container *last_window = seat_get_focused_container(seat);
 	struct wmiiv_workspace *last_workspace = seat_get_focused_workspace(seat);
 
-	if (window == NULL) {
-		// Close any popups on the old focus
-		if (node_is_view(last_focus)) {
-			view_close_popups(last_focus->wmiiv_container->view);
+	if (new_window == NULL) {
+		if (last_window != NULL) {
+			// Close any popups on the old focus
+			view_close_popups(last_window->view);
+			seat_send_unfocus(&last_window->node, seat);
 		}
-		seat_send_unfocus(last_focus, seat);
 		wmiiv_input_method_relay_set_focus(&seat->im_relay, NULL);
 		seat->has_focus = false;
 		return;
 	}
 
-	struct wmiiv_workspace *new_workspace = window->pending.workspace;
-
 	// Deny setting focus to a view which is hidden by a fullscreen container or global
-	if (window && container_obstructing_fullscreen_container(window)) {
+	if (new_window && container_obstructing_fullscreen_container(new_window)) {
 		return;
 	}
 
 	// Deny setting focus when an input grab or lockscreen is active
-	if (window && !seat_is_input_allowed(seat, window->view->surface)) {
+	if (new_window && !seat_is_input_allowed(seat, new_window->view->surface)) {
 		return;
 	}
 
+	struct wmiiv_workspace *new_workspace = new_window->pending.workspace;
 	struct wmiiv_output *new_output =
 		new_workspace ? new_workspace->output : NULL;
-
-	if (last_workspace != new_workspace && new_output) {
-		node_set_dirty(&new_output->node);
-	}
-
 	// find new output's old workspace, which might have to be removed if empty
 	struct wmiiv_workspace *new_output_last_workspace =
-		new_output ? output_get_active_workspace(new_output) : NULL;
+		new_output ? seat_get_active_workspace_for_output(seat, new_output) : NULL;
 
-	// Unfocus the previous focus
-	if (last_focus) {
-		seat_send_unfocus(last_focus, seat);
-		node_set_dirty(last_focus);
-		struct wmiiv_node *parent = node_get_parent(last_focus);
-		if (parent) {
-			node_set_dirty(parent);
+	if (new_workspace != last_workspace) {
+		if (new_output) {
+			node_set_dirty(&new_output->node);
 		}
-	}
+		// Put the container parents on the focus stack, then the workspace, then
+		// the focused container.
+		seat_set_active_workspace(seat, new_workspace);
 
-	// Put the container parents on the focus stack, then the workspace, then
-	// the focused container.
-	seat_set_active_workspace(seat, new_workspace);
-	seat_set_active_window(seat, window);
-
-	seat_send_focus(&window->node, seat);
-
-	// Emit ipc events
-	ipc_event_window(window, "focus");
-
-	// Move sticky containers to new workspace
-	if (new_workspace && new_output_last_workspace
-			&& new_workspace != new_output_last_workspace) {
-		for (int i = 0; i < new_output_last_workspace->floating->length; ++i) {
-			struct wmiiv_container *floater =
-				new_output_last_workspace->floating->items[i];
-			if (container_is_sticky(floater)) {
-				window_detach(floater);
-				workspace_add_floating(new_workspace, floater);
-				--i;
+		// Move sticky containers to new workspace
+		if (new_workspace && new_output_last_workspace
+				&& new_workspace != new_output_last_workspace) {
+			for (int i = 0; i < new_output_last_workspace->floating->length; ++i) {
+				struct wmiiv_container *floater =
+					new_output_last_workspace->floating->items[i];
+				if (container_is_sticky(floater)) {
+					window_detach(floater);
+					workspace_add_floating(new_workspace, floater);
+					--i;
+				}
 			}
 		}
 	}
 
-	// Close any popups on the old focus
-	if (last_focus && node_is_view(last_focus)) {
-		view_close_popups(last_focus->wmiiv_container->view);
-	}
+	if (new_window != last_window) {
+		// Unfocus the previous focus
+		if (last_window) {
+			seat_send_unfocus(&last_window->node, seat);
+			node_set_dirty(&last_window->node);
+			struct wmiiv_node *parent = node_get_parent(&last_window->node);
+			if (parent) {
+				node_set_dirty(parent);
+			}
 
-	// If urgent, either unset the urgency or start a timer to unset it
-	if (view_is_urgent(window->view) &&
-			!window->view->urgent_timer) {
-		struct wmiiv_view *view = window->view;
-		if (last_workspace && last_workspace != new_workspace &&
-				config->urgent_timeout > 0) {
-			view->urgent_timer = wl_event_loop_add_timer(server.wl_event_loop,
-					handle_urgent_timeout, view);
-			if (view->urgent_timer) {
-				wl_event_source_timer_update(view->urgent_timer,
-						config->urgent_timeout);
+			view_close_popups(last_window->view);
+		}
+
+		seat_set_active_window(seat, new_window);
+
+		seat_send_focus(&new_window->node, seat);
+
+		// Emit ipc events
+		ipc_event_window(new_window, "focus");
+
+		// If urgent, either unset the urgency or start a timer to unset it
+		if (view_is_urgent(new_window->view) &&
+				!new_window->view->urgent_timer) {
+			struct wmiiv_view *view = new_window->view;
+			if (last_workspace && last_workspace != new_workspace &&
+					config->urgent_timeout > 0) {
+				view->urgent_timer = wl_event_loop_add_timer(server.wl_event_loop,
+						handle_urgent_timeout, view);
+				if (view->urgent_timer) {
+					wl_event_source_timer_update(view->urgent_timer,
+							config->urgent_timeout);
+				} else {
+					wmiiv_log_errno(WMIIV_ERROR, "Unable to create urgency timer");
+					handle_urgent_timeout(view);
+				}
 			} else {
-				wmiiv_log_errno(WMIIV_ERROR, "Unable to create urgency timer");
-				handle_urgent_timeout(view);
+				view_set_urgent(view, false);
 			}
-		} else {
-			view_set_urgent(view, false);
 		}
 	}
+
+	seat->has_focus = true;
 
 	if (new_output_last_workspace) {
 		workspace_consider_destroy(new_output_last_workspace);
@@ -1422,8 +1424,6 @@ void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *wind
 	if (last_workspace && last_workspace != new_output_last_workspace) {
 		workspace_consider_destroy(last_workspace);
 	}
-
-	seat->has_focus = true;
 
 	if (config->smart_gaps && new_workspace) {
 		// When smart gaps is on, gaps may change when the focus changes so
@@ -1433,7 +1433,7 @@ void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *wind
 }
 
 /**
- * Clears the window.
+ * Sets focus to a workspace, clearing the focused window.
  */
 void seat_set_focus_workspace(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace) {
@@ -1703,21 +1703,14 @@ struct wmiiv_node *seat_get_focus(struct wmiiv_seat *seat) {
 }
 
 struct wmiiv_workspace *seat_get_focused_workspace(struct wmiiv_seat *seat) {
-	struct wmiiv_node *focus = seat_get_focus_inactive(seat, &root->node);
-	if (!focus) {
+	if (wl_list_empty(&seat->active_window_stack)) {
 		return NULL;
 	}
-	if (focus->type == N_WORKSPACE) {
-		return focus->wmiiv_workspace;
-	}
-	if (focus->type == N_COLUMN) {
-		return focus->wmiiv_container->pending.workspace;
-	}
 
-	if (focus->type == N_WINDOW) {
-		return focus->wmiiv_container->pending.workspace;
-	}
-	return NULL; // output doesn't have a workspace yet
+	struct wmiiv_seat_workspace *seat_workspace =
+		wl_container_of(seat->active_workspace_stack.next, seat_workspace, link);
+
+	return seat_workspace->workspace;
 }
 
 struct wmiiv_container *seat_get_focused_container(struct wmiiv_seat *seat) {
