@@ -324,8 +324,6 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_workspace *workspace = window->pending.workspace;
-	struct wmiiv_container *focus = seat_get_focused_container(seat);
-	bool set_focus = focus == window;
 
 	if (enable) {
 		struct wmiiv_container *old_parent = window->pending.parent;
@@ -344,10 +342,6 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 		container_floating_set_default_size(window);
 		container_floating_resize_and_center(window);
 		if (old_parent) {
-			if (set_focus) {
-				seat_set_raw_focus(seat, &old_parent->node);
-				seat_set_raw_focus(seat, &window->node);
-			}
 			column_consider_destroy(old_parent);
 		}
 	} else {
