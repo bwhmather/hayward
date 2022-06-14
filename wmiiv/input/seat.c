@@ -1360,8 +1360,7 @@ void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *new_
 		if (new_output) {
 			node_set_dirty(&new_output->node);
 		}
-		// Put the container parents on the focus stack, then the workspace, then
-		// the focused container.
+
 		seat_set_active_workspace(seat, new_workspace);
 
 		// Move sticky containers to new workspace
