@@ -69,10 +69,6 @@ void column_consider_destroy(struct wmiiv_container *column) {
 	}
 }
 
-static void set_workspace(struct wmiiv_container *container, void *data) {
-	container->pending.workspace = container->pending.parent->pending.workspace;
-}
-
 void column_detach(struct wmiiv_container *column) {
 	struct wmiiv_workspace *old_workspace = column->pending.workspace;
 
@@ -85,7 +81,6 @@ void column_detach(struct wmiiv_container *column) {
 	}
 	column->pending.parent = NULL;
 	column->pending.workspace = NULL;
-	container_for_each_child(column, set_workspace, NULL);
 
 	if (old_workspace) {
 		workspace_update_representation(old_workspace);
@@ -123,7 +118,6 @@ void column_insert_child(struct wmiiv_container *parent,
 	list_insert(parent->pending.children, i, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
-	container_for_each_child(child, set_workspace, NULL);
 	container_handle_fullscreen_reparent(child);
 	container_update_representation(parent);
 }
@@ -143,7 +137,6 @@ void column_add_sibling(struct wmiiv_container *fixed,
 	list_insert(siblings, index + after, active);
 	active->pending.parent = fixed->pending.parent;
 	active->pending.workspace = fixed->pending.workspace;
-	container_for_each_child(active, set_workspace, NULL);
 	container_handle_fullscreen_reparent(active);
 	container_update_representation(active);
 }
@@ -160,9 +153,21 @@ void column_add_child(struct wmiiv_container *parent,
 	list_add(parent->pending.children, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
-	container_for_each_child(child, set_workspace, NULL);
 	container_handle_fullscreen_reparent(child);
 	container_update_representation(parent);
 	node_set_dirty(&child->node);
 	node_set_dirty(&parent->node);
+}
+
+void column_for_each_child(struct wmiiv_container *column,
+		void (*f)(struct wmiiv_container *window, void *data),
+		void *data) {
+	wmiiv_assert(container_is_column(column), "Expected column");
+
+	if (column->pending.children)  {
+		for (int i = 0; i < column->pending.children->length; ++i) {
+			struct wmiiv_container *child = column->pending.children->items[i];
+			f(child, data);
+		}
+	}
 }

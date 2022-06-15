@@ -687,19 +687,19 @@ void workspace_detect_urgent(struct wmiiv_workspace *workspace) {
 	}
 }
 
+// TODO (wmiiv) deprecated.
 void workspace_for_each_container(struct wmiiv_workspace *workspace,
 		void (*f)(struct wmiiv_container *container, void *data), void *data) {
 	// Tiling
 	for (int i = 0; i < workspace->tiling->length; ++i) {
 		struct wmiiv_container *container = workspace->tiling->items[i];
 		f(container, data);
-		container_for_each_child(container, f, data);
+		column_for_each_child(container, f, data);
 	}
 	// Floating
 	for (int i = 0; i < workspace->floating->length; ++i) {
 		struct wmiiv_container *container = workspace->floating->items[i];
 		f(container, data);
-		container_for_each_child(container, f, data);
 	}
 }
 
@@ -754,7 +754,7 @@ struct wmiiv_container *workspace_add_tiling(struct wmiiv_workspace *workspace,
 	list_add(workspace->tiling, column);
 	column->pending.workspace = workspace;
 
-	container_for_each_child(column, set_workspace, NULL);
+	column_for_each_child(column, set_workspace, NULL);
 	workspace_update_representation(workspace);
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&column->node);
@@ -783,7 +783,7 @@ void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
 	wmiiv_assert(container_is_column(column), "Can only insert columns into workspace");
 	list_insert(workspace->tiling, index, column);
 	column->pending.workspace = workspace;
-	container_for_each_child(column, set_workspace, NULL);
+	column_for_each_child(column, set_workspace, NULL);
 	workspace_update_representation(workspace);
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&column->node);

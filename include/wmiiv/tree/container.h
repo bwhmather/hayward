@@ -138,9 +138,6 @@ void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
 
-void container_for_each_child(struct wmiiv_container *container,
-		void (*f)(struct wmiiv_container *container, void *data), void *data);
-
 /**
  * Returns the fullscreen container obstructing this container if it exists.
  */

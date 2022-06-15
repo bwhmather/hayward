@@ -306,24 +306,22 @@ static void output_for_each_surface(struct wmiiv_output *output,
 	};
 
 	struct wmiiv_workspace *workspace = output_get_active_workspace(output);
-	struct wmiiv_container *fullscreen_container = root->fullscreen_global;
-	if (!fullscreen_container) {
+	struct wmiiv_container *fullscreen_window = root->fullscreen_global;
+	if (!fullscreen_window) {
 		if (!workspace) {
 			return;
 		}
-		fullscreen_container = workspace->current.fullscreen;
+		fullscreen_window = workspace->current.fullscreen;
 	}
-	if (fullscreen_container) {
-		for_each_surface_container_iterator(fullscreen_container, &data);
-		container_for_each_child(fullscreen_container,
-			for_each_surface_container_iterator, &data);
+	if (fullscreen_window) {
+		for_each_surface_container_iterator(fullscreen_window, &data);
 
 		// TODO: Show transient containers for fullscreen global
-		if (fullscreen_container == workspace->current.fullscreen) {
+		if (fullscreen_window == workspace->current.fullscreen) {
 			for (int i = 0; i < workspace->current.floating->length; ++i) {
 				struct wmiiv_container *floater =
 					workspace->current.floating->items[i];
-				if (container_is_transient_for(floater, fullscreen_container)) {
+				if (container_is_transient_for(floater, fullscreen_window)) {
 					for_each_surface_container_iterator(floater, &data);
 				}
 			}
@@ -515,16 +513,16 @@ static int output_repaint_timer_handler(void *data) {
 		return 0;
 	}
 
-	struct wmiiv_container *fullscreen_container = root->fullscreen_global;
-	if (!fullscreen_container) {
-		fullscreen_container = workspace->current.fullscreen;
+	struct wmiiv_container *fullscreen_window = root->fullscreen_global;
+	if (!fullscreen_window) {
+		fullscreen_window = workspace->current.fullscreen;
 	}
 
-	if (fullscreen_container && fullscreen_container->view && !debug.noscanout) {
+	if (fullscreen_window && !debug.noscanout) {
 		// Try to scan-out the fullscreen view
 		static bool last_scanned_out = false;
 		bool scanned_out =
-			scan_out_fullscreen_view(output, fullscreen_container->view);
+			scan_out_fullscreen_view(output, fullscreen_window->view);
 
 		if (scanned_out && !last_scanned_out) {
 			wmiiv_log(WMIIV_DEBUG, "Scanning out fullscreen view on %s",
@@ -705,6 +703,7 @@ static void damage_child_views_iterator(struct wmiiv_container *container,
 			&whole);
 }
 
+// TODO (wmiiv) deprecated
 void output_damage_whole_container(struct wmiiv_output *output,
 		struct wmiiv_container *container) {
 	// Pad the box by 1px, because the width is a double and might be a fraction
@@ -720,7 +719,7 @@ void output_damage_whole_container(struct wmiiv_output *output,
 	if (container->view) {
 		damage_child_views_iterator(container, output);
 	} else {
-		container_for_each_child(container, damage_child_views_iterator, output);
+		column_for_each_child(container, damage_child_views_iterator, output);
 	}
 }
 

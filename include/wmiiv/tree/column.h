@@ -31,4 +31,7 @@ void column_add_sibling(struct wmiiv_container *parent,
 
 void column_detach(struct wmiiv_container *column);
 
+void column_for_each_child(struct wmiiv_container *column,
+		void (*f)(struct wmiiv_container *window, void *data), void *data);
+
 #endif

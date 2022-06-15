@@ -1202,6 +1202,7 @@ static void send_unfocus(struct wmiiv_container *container, void *data) {
 	}
 }
 
+// TODO (wmiiv) deprecated.  Replace with `send_unfocus`.
 // Unfocus the container and any children (eg. when leaving `focus parent`)
 static void seat_send_unfocus(struct wmiiv_node *node, struct wmiiv_seat *seat) {
 	wmiiv_cursor_constrain(seat->cursor, NULL);
@@ -1210,7 +1211,6 @@ static void seat_send_unfocus(struct wmiiv_node *node, struct wmiiv_seat *seat) 
 		workspace_for_each_container(node->wmiiv_workspace, send_unfocus, seat);
 	} else {
 		send_unfocus(node->wmiiv_container, seat);
-		container_for_each_child(node->wmiiv_container, send_unfocus, seat);
 	}
 }
 

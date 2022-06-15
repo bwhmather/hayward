@@ -105,18 +105,6 @@ void container_begin_destroy(struct wmiiv_container *container) {
 	}
 }
 
-void container_for_each_child(struct wmiiv_container *container,
-		void (*f)(struct wmiiv_container *container, void *data),
-		void *data) {
-	if (container->pending.children)  {
-		for (int i = 0; i < container->pending.children->length; ++i) {
-			struct wmiiv_container *child = container->pending.children->items[i];
-			f(child, data);
-			container_for_each_child(child, f, data);
-		}
-	}
-}
-
 struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_container *window)
 {
 	if (!wmiiv_assert(container_is_window(window), "Only windows can be fullscreen")) {
