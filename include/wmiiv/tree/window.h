@@ -100,4 +100,9 @@ bool window_contains_point(struct wmiiv_container *window, double lx, double ly)
 
 bool window_contents_contain_point(struct wmiiv_container *window, double lx, double ly);
 
+/**
+ * Returns the fullscreen window obstructing this window if it exists.
+ */
+struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_container *window);
+
 #endif

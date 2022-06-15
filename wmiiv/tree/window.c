@@ -610,3 +610,31 @@ bool window_contains_point(struct wmiiv_container *window, double lx, double ly)
 
 	return wlr_box_contains_point(&box, lx, ly);
 }
+
+struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_container *window)
+{
+	if (!wmiiv_assert(container_is_window(window), "Only windows can be fullscreen")) {
+		return NULL;
+	}
+
+	struct wmiiv_workspace *workspace = window->pending.workspace;
+
+	if (workspace && workspace->fullscreen && !window_is_fullscreen(window)) {
+		if (container_is_transient_for(window, workspace->fullscreen)) {
+			return NULL;
+		}
+		return workspace->fullscreen;
+	}
+
+	struct wmiiv_container *fullscreen_global = root->fullscreen_global;
+	if (fullscreen_global && window != fullscreen_global) {
+		if (container_is_transient_for(window, fullscreen_global)) {
+			return NULL;
+		}
+		return fullscreen_global;
+	}
+
+	return NULL;
+}
+
+

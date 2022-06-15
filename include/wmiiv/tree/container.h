@@ -139,11 +139,6 @@ void container_destroy(struct wmiiv_container *container);
 void container_begin_destroy(struct wmiiv_container *container);
 
 /**
- * Returns the fullscreen container obstructing this container if it exists.
- */
-struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_container *container);
-
-/**
  * Returns true if the given container is an ancestor of this container.
  */
 bool container_has_ancestor(struct wmiiv_container *container,

@@ -105,32 +105,6 @@ void container_begin_destroy(struct wmiiv_container *container) {
 	}
 }
 
-struct wmiiv_container *container_obstructing_fullscreen_container(struct wmiiv_container *window)
-{
-	if (!wmiiv_assert(container_is_window(window), "Only windows can be fullscreen")) {
-		return NULL;
-	}
-
-	struct wmiiv_workspace *workspace = window->pending.workspace;
-
-	if (workspace && workspace->fullscreen && !window_is_fullscreen(window)) {
-		if (container_is_transient_for(window, workspace->fullscreen)) {
-			return NULL;
-		}
-		return workspace->fullscreen;
-	}
-
-	struct wmiiv_container *fullscreen_global = root->fullscreen_global;
-	if (fullscreen_global && window != fullscreen_global) {
-		if (container_is_transient_for(window, fullscreen_global)) {
-			return NULL;
-		}
-		return fullscreen_global;
-	}
-
-	return NULL;
-}
-
 bool container_has_ancestor(struct wmiiv_container *descendant,
 		struct wmiiv_container *ancestor) {
 	while (descendant) {

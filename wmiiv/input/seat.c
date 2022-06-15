@@ -1281,7 +1281,7 @@ static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_worksp
 	struct wmiiv_workspace *last_workspace = seat_get_focused_workspace(seat);
 
 	// Deny setting focus to a view which is hidden by a fullscreen container or global
-	if (new_window && container_obstructing_fullscreen_container(new_window)) {
+	if (new_window && window_obstructing_fullscreen_window(new_window)) {
 		return;
 	}
 
