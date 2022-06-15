@@ -41,6 +41,7 @@ static void swap_places(struct wmiiv_container *window1,
 	window2->height_fraction = temp->height_fraction;
 
 	int temp_index = container_sibling_index(window1);
+	window_detach(window1);
 	if (window2->pending.parent) {
 		column_insert_child(window2->pending.parent, window1,
 				container_sibling_index(window2));
@@ -50,6 +51,8 @@ static void swap_places(struct wmiiv_container *window1,
 		workspace_insert_tiling(window2->pending.workspace, window1,
 				container_sibling_index(window2));
 	}
+
+	window_detach(window2);
 	if (temp->pending.parent) {
 		column_insert_child(temp->pending.parent, window2, temp_index);
 	} else if (temp_floating) {
