@@ -138,12 +138,6 @@ void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
 
-/**
- * Returns true if the given container is an ancestor of this container.
- */
-bool container_has_ancestor(struct wmiiv_container *container,
-		struct wmiiv_container *ancestor);
-
 void container_update_textures_recursive(struct wmiiv_container *container);
 
 void container_damage_whole(struct wmiiv_container *container);

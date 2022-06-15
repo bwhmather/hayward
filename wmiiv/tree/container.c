@@ -105,17 +105,6 @@ void container_begin_destroy(struct wmiiv_container *container) {
 	}
 }
 
-bool container_has_ancestor(struct wmiiv_container *descendant,
-		struct wmiiv_container *ancestor) {
-	while (descendant) {
-		descendant = descendant->pending.parent;
-		if (descendant == ancestor) {
-			return true;
-		}
-	}
-	return false;
-}
-
 void container_damage_whole(struct wmiiv_container *container) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];

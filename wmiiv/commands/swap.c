@@ -219,16 +219,12 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 	if (!other || !container_is_window(other)) {
 		error = cmd_results_new(CMD_FAILURE,
 				"Failed to find %s '%s'", argv[2], value);
-	} else if (!current) {
+	} else if (!current || !container_is_window(current)) {
 		error = cmd_results_new(CMD_FAILURE,
-				"Can only swap with containers and views");
+				"Can only swap with windows");
 	} else if (current == other) {
 		error = cmd_results_new(CMD_FAILURE,
 				"Cannot swap a container with itself");
-	} else if (container_has_ancestor(current, other)
-			|| container_has_ancestor(other, current)) {
-		error = cmd_results_new(CMD_FAILURE,
-				"Cannot swap ancestor and descendant");
 	}
 
 	free(value);
