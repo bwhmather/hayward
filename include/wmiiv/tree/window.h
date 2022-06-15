@@ -105,4 +105,6 @@ bool window_contents_contain_point(struct wmiiv_container *window, double lx, do
  */
 struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_container *window);
 
+void window_damage_whole(struct wmiiv_container *window);
+
 #endif

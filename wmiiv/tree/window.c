@@ -269,25 +269,25 @@ static void update_marks_texture(struct wmiiv_container *container,
 	free(buffer);
 }
 
-void window_update_marks_textures(struct wmiiv_container *container) {
-	if (!wmiiv_assert(container_is_window(container), "Only windows have marks textures")) {
+void window_update_marks_textures(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Only windows have marks textures")) {
 		return;
 	}
 
 	if (!config->show_marks) {
 		return;
 	}
-	update_marks_texture(container, &container->marks_focused,
+	update_marks_texture(window, &window->marks_focused,
 			&config->border_colors.focused);
-	update_marks_texture(container, &container->marks_focused_inactive,
+	update_marks_texture(window, &window->marks_focused_inactive,
 			&config->border_colors.focused_inactive);
-	update_marks_texture(container, &container->marks_unfocused,
+	update_marks_texture(window, &window->marks_unfocused,
 			&config->border_colors.unfocused);
-	update_marks_texture(container, &container->marks_urgent,
+	update_marks_texture(window, &window->marks_urgent,
 			&config->border_colors.urgent);
-	update_marks_texture(container, &container->marks_focused_tab_title,
+	update_marks_texture(window, &window->marks_focused_tab_title,
 			&config->border_colors.focused_tab_title);
-	container_damage_whole(container);
+	window_damage_whole(window);
 }
 
 bool window_is_floating(struct wmiiv_container *window) {
@@ -637,4 +637,10 @@ struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_contai
 	return NULL;
 }
 
+void window_damage_whole(struct wmiiv_container *window) {
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		output_damage_whole_container(output, window);
+	}
+}
 

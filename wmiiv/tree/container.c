@@ -105,13 +105,6 @@ void container_begin_destroy(struct wmiiv_container *container) {
 	}
 }
 
-void container_damage_whole(struct wmiiv_container *container) {
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct wmiiv_output *output = root->outputs->items[i];
-		output_damage_whole_container(output, container);
-	}
-}
-
 /**
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
@@ -224,7 +217,11 @@ void container_update_title_textures(struct wmiiv_container *container) {
 			&config->border_colors.urgent);
 	update_title_texture(container, &container->title_focused_tab_title,
 			&config->border_colors.focused_tab_title);
-	container_damage_whole(container);
+	if (container_is_window(container)) {
+		window_damage_whole(container);
+	} else {
+		column_damage_whole(container);
+	}
 }
 
 /**

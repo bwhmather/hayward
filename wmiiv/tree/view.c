@@ -1340,7 +1340,7 @@ void view_set_urgent(struct wmiiv_view *view, bool enable) {
 			view->urgent_timer = NULL;
 		}
 	}
-	container_damage_whole(view->container);
+	window_damage_whole(view->container);
 
 	ipc_event_window(view->container, "urgent");
 

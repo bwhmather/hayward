@@ -171,3 +171,11 @@ void column_for_each_child(struct wmiiv_container *column,
 		}
 	}
 }
+
+void column_damage_whole(struct wmiiv_container *column) {
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		output_damage_whole_container(output, column);
+	}
+}
+
