@@ -138,8 +138,6 @@ void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
 
-void container_update_textures_recursive(struct wmiiv_container *container);
-
 void container_damage_whole(struct wmiiv_container *container);
 
 void container_update_title_textures(struct wmiiv_container *container);
