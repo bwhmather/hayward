@@ -121,6 +121,28 @@ void window_floating_resize_and_center(struct wmiiv_container *window);
 
 void window_floating_set_default_size(struct wmiiv_container *window);
 
+/**
+ * Move a floating window by the specified amount.
+ */
+void window_floating_translate(struct wmiiv_container *window,
+		double x_amount, double y_amount);
+
+/**
+ * Choose an output for the floating window's new position.
+ */
+struct wmiiv_output *window_floating_find_output(struct wmiiv_container *window);
+
+/**
+ * Move a floating window to a new layout-local position.
+ */
+void window_floating_move_to(struct wmiiv_container *window,
+		double lx, double ly);
+
+/**
+ * Move a floating window to the center of the workspace.
+ */
+void window_floating_move_to_center(struct wmiiv_container *window);
+
 void window_set_resizing(struct wmiiv_container *window, bool resizing);
 
 void window_set_geometry_from_content(struct wmiiv_container *window);

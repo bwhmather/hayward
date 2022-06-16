@@ -143,28 +143,6 @@ void container_begin_destroy(struct wmiiv_container *container);
  */
 void container_get_box(struct wmiiv_container *container, struct wlr_box *box);
 
-/**
- * Move a floating container by the specified amount.
- */
-void container_floating_translate(struct wmiiv_container *container,
-		double x_amount, double y_amount);
-
-/**
- * Choose an output for the floating container's new position.
- */
-struct wmiiv_output *container_floating_find_output(struct wmiiv_container *container);
-
-/**
- * Move a floating container to a new layout-local position.
- */
-void container_floating_move_to(struct wmiiv_container *container,
-		double lx, double ly);
-
-/**
- * Move a floating container to the center of the workspace.
- */
-void container_floating_move_to_center(struct wmiiv_container *container);
-
 bool container_has_urgent_child(struct wmiiv_container *container);
 
 /**

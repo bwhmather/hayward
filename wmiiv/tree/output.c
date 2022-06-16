@@ -156,7 +156,7 @@ static void evacuate_sticky(struct wmiiv_workspace *old_workspace,
 		window_detach(sticky);
 		workspace_add_floating(new_workspace, sticky);
 		container_handle_fullscreen_reparent(sticky);
-		container_floating_move_to_center(sticky);
+		window_floating_move_to_center(sticky);
 		ipc_event_window(sticky, "move");
 	}
 	workspace_detect_urgent(new_workspace);

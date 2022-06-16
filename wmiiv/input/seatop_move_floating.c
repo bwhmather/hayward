@@ -6,16 +6,16 @@
 #include "wmiiv/input/seat.h"
 
 struct seatop_move_floating_event {
-	struct wmiiv_container *container;
-	double dx, dy; // cursor offset in container
+	struct wmiiv_container *window;
+	double dx, dy; // cursor offset in window
 };
 
 static void finalize_move(struct wmiiv_seat *seat) {
 	struct seatop_move_floating_event *e = seat->seatop_data;
 
-	// We "move" the container to its own location
+	// We "move" the window to its own location
 	// so it discovers its output again.
-	container_floating_move_to(e->container, e->container->pending.x, e->container->pending.y);
+	window_floating_move_to(e->window, e->window->pending.x, e->window->pending.y);
 	transaction_commit_dirty();
 
 	seatop_begin_default(seat);
@@ -39,15 +39,15 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_move_floating_event *e = seat->seatop_data;
 	struct wlr_cursor *cursor = seat->cursor->cursor;
-	desktop_damage_whole_container(e->container);
-	container_floating_move_to(e->container, cursor->x - e->dx, cursor->y - e->dy);
-	desktop_damage_whole_container(e->container);
+	desktop_damage_whole_container(e->window);
+	window_floating_move_to(e->window, cursor->x - e->dx, cursor->y - e->dy);
+	desktop_damage_whole_container(e->window);
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *window) {
 	struct seatop_move_floating_event *e = seat->seatop_data;
-	if (e->container == container) {
+	if (e->window == window) {
 		seatop_begin_default(seat);
 	}
 }
@@ -60,7 +60,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_move_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *container) {
+		struct wmiiv_container *window) {
 	seatop_end(seat);
 
 	struct wmiiv_cursor *cursor = seat->cursor;
@@ -69,14 +69,14 @@ void seatop_begin_move_floating(struct wmiiv_seat *seat,
 	if (!e) {
 		return;
 	}
-	e->container = container;
-	e->dx = cursor->cursor->x - container->pending.x;
-	e->dy = cursor->cursor->y - container->pending.y;
+	e->window = window;
+	e->dx = cursor->cursor->x - window->pending.x;
+	e->dy = cursor->cursor->y - window->pending.y;
 
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;
 
-	container_raise_floating(container);
+	container_raise_floating(window);
 	transaction_commit_dirty();
 
 	cursor_set_image(cursor, "grab", NULL);

@@ -533,7 +533,7 @@ static void window_move_to_workspace_from_maybe_direction(
 		container_handle_fullscreen_reparent(window);
 		// If changing output, center it within the workspace
 		if (old_output != workspace->output && !window->pending.fullscreen_mode) {
-			container_floating_move_to_center(window);
+			window_floating_move_to_center(window);
 		}
 
 		return;
@@ -798,6 +798,89 @@ void window_floating_set_default_size(struct wmiiv_container *window) {
 	window_set_geometry_from_content(window);
 
 	free(box);
+}
+
+void window_floating_translate(struct wmiiv_container *window,
+		double x_amount, double y_amount) {
+	if (!wmiiv_assert(window_is_floating(window), "Expected a floating window")) {
+		return;
+	}
+	window->pending.x += x_amount;
+	window->pending.y += y_amount;
+	window->pending.content_x += x_amount;
+	window->pending.content_y += y_amount;
+
+	node_set_dirty(&window->node);
+}
+
+/**
+ * Choose an output for the floating window's new position.
+ *
+ * If the center of the window intersects an output then we'll choose that
+ * one, otherwise we'll choose whichever output is closest to the window's
+ * center.
+ */
+struct wmiiv_output *window_floating_find_output(struct wmiiv_container *window) {
+	if (!wmiiv_assert(window_is_floating(window), "Expected a floating window")) {
+		return NULL;
+	}
+	double center_x = window->pending.x + window->pending.width / 2;
+	double center_y = window->pending.y + window->pending.height / 2;
+	struct wmiiv_output *closest_output = NULL;
+	double closest_distance = DBL_MAX;
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		struct wlr_box output_box;
+		double closest_x, closest_y;
+		output_get_box(output, &output_box);
+		wlr_box_closest_point(&output_box, center_x, center_y,
+				&closest_x, &closest_y);
+		if (center_x == closest_x && center_y == closest_y) {
+			// The center of the floating window is on this output
+			return output;
+		}
+		double x_dist = closest_x - center_x;
+		double y_dist = closest_y - center_y;
+		double distance = x_dist * x_dist + y_dist * y_dist;
+		if (distance < closest_distance) {
+			closest_output = output;
+			closest_distance = distance;
+		}
+	}
+	return closest_output;
+}
+
+void window_floating_move_to(struct wmiiv_container *window,
+		double lx, double ly) {
+	if (!wmiiv_assert(window_is_floating(window), "Expected a floating window")) {
+		return;
+	}
+	window_floating_translate(window, lx - window->pending.x, ly - window->pending.y);
+	struct wmiiv_workspace *old_workspace = window->pending.workspace;
+	struct wmiiv_output *new_output = window_floating_find_output(window);
+	if (!wmiiv_assert(new_output, "Unable to find any output")) {
+		return;
+	}
+	struct wmiiv_workspace *new_workspace =
+		output_get_active_workspace(new_output);
+	if (new_workspace && old_workspace != new_workspace) {
+		window_detach(window);
+		workspace_add_floating(new_workspace, window);
+		arrange_workspace(old_workspace);
+		arrange_workspace(new_workspace);
+		workspace_detect_urgent(old_workspace);
+		workspace_detect_urgent(new_workspace);
+	}
+}
+
+void window_floating_move_to_center(struct wmiiv_container *window) {
+	if (!wmiiv_assert(window_is_floating(window), "Expected a floating window")) {
+		return;
+	}
+	struct wmiiv_workspace *workspace = window->pending.workspace;
+	double new_lx = workspace->x + (workspace->width - window->pending.width) / 2;
+	double new_ly = workspace->y + (workspace->height - window->pending.height) / 2;
+	window_floating_translate(window, new_lx - window->pending.x, new_ly - window->pending.y);
 }
 
 /**

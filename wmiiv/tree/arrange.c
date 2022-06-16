@@ -285,13 +285,13 @@ void arrange_workspace(struct wmiiv_workspace *workspace) {
 	if (!first_arrange && (diff_x != 0 || diff_y != 0)) {
 		for (int i = 0; i < workspace->floating->length; ++i) {
 			struct wmiiv_container *floater = workspace->floating->items[i];
-			container_floating_translate(floater, diff_x, diff_y);
+			window_floating_translate(floater, diff_x, diff_y);
 			double center_x = floater->pending.x + floater->pending.width / 2;
 			double center_y = floater->pending.y + floater->pending.height / 2;
 			struct wlr_box workspace_box;
 			workspace_get_box(workspace, &workspace_box);
 			if (!wlr_box_contains_point(&workspace_box, center_x, center_y)) {
-				container_floating_move_to_center(floater);
+				window_floating_move_to_center(floater);
 			}
 		}
 	}

@@ -123,95 +123,6 @@ void container_get_box(struct wmiiv_container *container, struct wlr_box *box) {
 	box->height = container->pending.height;
 }
 
-/**
- * Translate the container's position as well as all children.
- */
-void container_floating_translate(struct wmiiv_container *container,
-		double x_amount, double y_amount) {
-	container->pending.x += x_amount;
-	container->pending.y += y_amount;
-	container->pending.content_x += x_amount;
-	container->pending.content_y += y_amount;
-
-	if (container->pending.children) {
-		for (int i = 0; i < container->pending.children->length; ++i) {
-			struct wmiiv_container *child = container->pending.children->items[i];
-			container_floating_translate(child, x_amount, y_amount);
-		}
-	}
-
-	node_set_dirty(&container->node);
-}
-
-/**
- * Choose an output for the floating container's new position.
- *
- * If the center of the container intersects an output then we'll choose that
- * one, otherwise we'll choose whichever output is closest to the container's
- * center.
- */
-struct wmiiv_output *container_floating_find_output(struct wmiiv_container *container) {
-	double center_x = container->pending.x + container->pending.width / 2;
-	double center_y = container->pending.y + container->pending.height / 2;
-	struct wmiiv_output *closest_output = NULL;
-	double closest_distance = DBL_MAX;
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct wmiiv_output *output = root->outputs->items[i];
-		struct wlr_box output_box;
-		double closest_x, closest_y;
-		output_get_box(output, &output_box);
-		wlr_box_closest_point(&output_box, center_x, center_y,
-				&closest_x, &closest_y);
-		if (center_x == closest_x && center_y == closest_y) {
-			// The center of the floating container is on this output
-			return output;
-		}
-		double x_dist = closest_x - center_x;
-		double y_dist = closest_y - center_y;
-		double distance = x_dist * x_dist + y_dist * y_dist;
-		if (distance < closest_distance) {
-			closest_output = output;
-			closest_distance = distance;
-		}
-	}
-	return closest_output;
-}
-
-void container_floating_move_to(struct wmiiv_container *window,
-		double lx, double ly) {
-	if (!wmiiv_assert(window_is_floating(window),
-			"Expected a floating container")) {
-		return;
-	}
-	container_floating_translate(window, lx - window->pending.x, ly - window->pending.y);
-	struct wmiiv_workspace *old_workspace = window->pending.workspace;
-	struct wmiiv_output *new_output = container_floating_find_output(window);
-	if (!wmiiv_assert(new_output, "Unable to find any output")) {
-		return;
-	}
-	struct wmiiv_workspace *new_workspace =
-		output_get_active_workspace(new_output);
-	if (new_workspace && old_workspace != new_workspace) {
-		window_detach(window);
-		workspace_add_floating(new_workspace, window);
-		arrange_workspace(old_workspace);
-		arrange_workspace(new_workspace);
-		workspace_detect_urgent(old_workspace);
-		workspace_detect_urgent(new_workspace);
-	}
-}
-
-void container_floating_move_to_center(struct wmiiv_container *container) {
-	if (!wmiiv_assert(window_is_floating(container),
-			"Expected a floating container")) {
-		return;
-	}
-	struct wmiiv_workspace *workspace = container->pending.workspace;
-	double new_lx = workspace->x + (workspace->width - container->pending.width) / 2;
-	double new_ly = workspace->y + (workspace->height - container->pending.height) / 2;
-	container_floating_translate(container, new_lx - container->pending.x, new_ly - container->pending.y);
-}
-
 static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
 	return container->view && view_is_urgent(container->view);
 }
@@ -407,9 +318,9 @@ void container_fullscreen_disable(struct wmiiv_container *window) {
 			window->pending.workspace->fullscreen = NULL;
 			if (window_is_floating(window)) {
 				struct wmiiv_output *output =
-					container_floating_find_output(window);
+					window_floating_find_output(window);
 				if (window->pending.workspace->output != output) {
-					container_floating_move_to_center(window);
+					window_floating_move_to_center(window);
 				}
 			}
 		}
