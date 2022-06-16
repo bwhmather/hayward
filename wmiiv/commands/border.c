@@ -89,7 +89,7 @@ struct cmd_results *cmd_border(int argc, char **argv) {
 	}
 
 	if (window_is_floating(window)) {
-		container_set_geometry_from_content(window);
+		window_set_geometry_from_content(window);
 	}
 
 	arrange_window(window);

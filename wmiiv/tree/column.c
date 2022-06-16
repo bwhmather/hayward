@@ -250,3 +250,20 @@ void column_update_representation(struct wmiiv_container *column) {
 		workspace_update_representation(column->pending.workspace);
 	}
 }
+
+/**
+ * Indicate to clients in this container that they are participating in (or
+ * have just finished) an interactive resize
+ */
+void column_set_resizing(struct wmiiv_container *column, bool resizing) {
+	if (!column) {
+		return;
+	}
+
+	wmiiv_assert(container_is_column(column), "Expected column");
+
+	for (int i = 0; i < column->pending.children->length; ++i ) {
+		struct wmiiv_container *child = column->pending.children->items[i];
+		window_set_resizing(child, resizing);
+	}
+}

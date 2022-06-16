@@ -77,7 +77,7 @@ static void restore_workspaces(struct wmiiv_output *output) {
 					floater->pending.y > output->ly + output->height ||
 					floater->pending.x + floater->pending.width < output->lx ||
 					floater->pending.y + floater->pending.height < output->ly) {
-				container_floating_resize_and_center(floater);
+				window_floating_resize_and_center(floater);
 			}
 		}
 

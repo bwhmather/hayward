@@ -371,8 +371,8 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 						WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE);
 			}
 		}
-		container_floating_set_default_size(window);
-		container_floating_resize_and_center(window);
+		window_floating_set_default_size(window);
+		window_floating_resize_and_center(window);
 		if (old_parent) {
 			column_consider_destroy(old_parent);
 		}
@@ -678,4 +678,163 @@ void window_damage_whole(struct wmiiv_container *window) {
 
 size_t window_titlebar_height(void) {
 	return config->font_height + config->titlebar_v_padding * 2;
+}
+
+void floating_calculate_constraints(int *min_width, int *max_width,
+		int *min_height, int *max_height) {
+	if (config->floating_minimum_width == -1) { // no minimum
+		*min_width = 0;
+	} else if (config->floating_minimum_width == 0) { // automatic
+		*min_width = 75;
+	} else {
+		*min_width = config->floating_minimum_width;
+	}
+
+	if (config->floating_minimum_height == -1) { // no minimum
+		*min_height = 0;
+	} else if (config->floating_minimum_height == 0) { // automatic
+		*min_height = 50;
+	} else {
+		*min_height = config->floating_minimum_height;
+	}
+
+	struct wlr_box box;
+	wlr_output_layout_get_box(root->output_layout, NULL, &box);
+
+	if (config->floating_maximum_width == -1) { // no maximum
+		*max_width = INT_MAX;
+	} else if (config->floating_maximum_width == 0) { // automatic
+		*max_width = box.width;
+	} else {
+		*max_width = config->floating_maximum_width;
+	}
+
+	if (config->floating_maximum_height == -1) { // no maximum
+		*max_height = INT_MAX;
+	} else if (config->floating_maximum_height == 0) { // automatic
+		*max_height = box.height;
+	} else {
+		*max_height = config->floating_maximum_height;
+	}
+
+}
+
+static void floating_natural_resize(struct wmiiv_container *window) {
+	int min_width, max_width, min_height, max_height;
+	floating_calculate_constraints(&min_width, &max_width,
+			&min_height, &max_height);
+	if (!window->view) {
+		window->pending.width = fmax(min_width, fmin(window->pending.width, max_width));
+		window->pending.height = fmax(min_height, fmin(window->pending.height, max_height));
+	} else {
+		struct wmiiv_view *view = window->view;
+		window->pending.content_width =
+			fmax(min_width, fmin(view->natural_width, max_width));
+		window->pending.content_height =
+			fmax(min_height, fmin(view->natural_height, max_height));
+		window_set_geometry_from_content(window);
+	}
+}
+
+void window_floating_resize_and_center(struct wmiiv_container *window) {
+	struct wmiiv_workspace *workspace = window->pending.workspace;
+
+	struct wlr_box ob;
+	wlr_output_layout_get_box(root->output_layout, workspace->output->wlr_output, &ob);
+	if (wlr_box_empty(&ob)) {
+		// On NOOP output. Will be called again when moved to an output
+		window->pending.x = 0;
+		window->pending.y = 0;
+		window->pending.width = 0;
+		window->pending.height = 0;
+		return;
+	}
+
+	floating_natural_resize(window);
+	if (!window->view) {
+		if (window->pending.width > workspace->width || window->pending.height > workspace->height) {
+			window->pending.x = ob.x + (ob.width - window->pending.width) / 2;
+			window->pending.y = ob.y + (ob.height - window->pending.height) / 2;
+		} else {
+			window->pending.x = workspace->x + (workspace->width - window->pending.width) / 2;
+			window->pending.y = workspace->y + (workspace->height - window->pending.height) / 2;
+		}
+	} else {
+		if (window->pending.content_width > workspace->width
+				|| window->pending.content_height > workspace->height) {
+			window->pending.content_x = ob.x + (ob.width - window->pending.content_width) / 2;
+			window->pending.content_y = ob.y + (ob.height - window->pending.content_height) / 2;
+		} else {
+			window->pending.content_x = workspace->x + (workspace->width - window->pending.content_width) / 2;
+			window->pending.content_y = workspace->y + (workspace->height - window->pending.content_height) / 2;
+		}
+
+		// If the view's border is B_NONE then these properties are ignored.
+		window->pending.border_top = window->pending.border_bottom = true;
+		window->pending.border_left = window->pending.border_right = true;
+
+		window_set_geometry_from_content(window);
+	}
+}
+
+void window_floating_set_default_size(struct wmiiv_container *window) {
+	if (!wmiiv_assert(window->pending.workspace, "Expected a window on a workspace")) {
+		return;
+	}
+
+	wmiiv_assert(container_is_window(window), "Expected window");
+
+	int min_width, max_width, min_height, max_height;
+	floating_calculate_constraints(&min_width, &max_width,
+			&min_height, &max_height);
+	struct wlr_box *box = calloc(1, sizeof(struct wlr_box));
+	workspace_get_box(window->pending.workspace, box);
+
+	double width = fmax(min_width, fmin(box->width * 0.5, max_width));
+	double height = fmax(min_height, fmin(box->height * 0.75, max_height));
+
+	window->pending.content_width = width;
+	window->pending.content_height = height;
+	window_set_geometry_from_content(window);
+
+	free(box);
+}
+
+/**
+ * Indicate to clients in this window that they are participating in (or
+ * have just finished) an interactive resize
+ */
+void window_set_resizing(struct wmiiv_container *window, bool resizing) {
+	if (!window) {
+		return;
+	}
+
+	wmiiv_assert(container_is_window(window), "Expected window");
+
+	if (window->view->impl->set_resizing) {
+		window->view->impl->set_resizing(window->view, resizing);
+	}
+}
+
+void window_set_geometry_from_content(struct wmiiv_container *window) {
+	if (!wmiiv_assert(window->view, "Expected a view")) {
+		return;
+	}
+	if (!wmiiv_assert(window_is_floating(window), "Expected a floating view")) {
+		return;
+	}
+	size_t border_width = 0;
+	size_t top = 0;
+
+	if (window->pending.border != B_CSD && !window->pending.fullscreen_mode) {
+		border_width = window->pending.border_thickness * (window->pending.border != B_NONE);
+		top = window->pending.border == B_NORMAL ?
+			window_titlebar_height() : border_width;
+	}
+
+	window->pending.x = window->pending.content_x - border_width;
+	window->pending.y = window->pending.content_y - top;
+	window->pending.width = window->pending.content_width + border_width * 2;
+	window->pending.height = top + window->pending.content_height + border_width;
+	node_set_dirty(&window->node);
 }

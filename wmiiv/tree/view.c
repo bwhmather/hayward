@@ -873,7 +873,7 @@ void view_update_size(struct wmiiv_view *view) {
 	struct wmiiv_container *container = view->container;
 	container->pending.content_width = view->geometry.width;
 	container->pending.content_height = view->geometry.height;
-	container_set_geometry_from_content(container);
+	window_set_geometry_from_content(container);
 }
 
 void view_center_surface(struct wmiiv_view *view) {

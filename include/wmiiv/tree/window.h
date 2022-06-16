@@ -114,4 +114,15 @@ void window_update_title_textures(struct wmiiv_container *window);
  */
 size_t window_titlebar_height(void);
 
+void floating_calculate_constraints(int *min_width, int *max_width,
+		int *min_height, int *max_height);
+
+void window_floating_resize_and_center(struct wmiiv_container *window);
+
+void window_floating_set_default_size(struct wmiiv_container *window);
+
+void window_set_resizing(struct wmiiv_container *window, bool resizing);
+
+void window_set_geometry_from_content(struct wmiiv_container *window);
+
 #endif

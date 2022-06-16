@@ -41,4 +41,6 @@ size_t column_build_representation(enum wmiiv_container_layout layout,
 
 void column_update_representation(struct wmiiv_container *column);
 
+void column_set_resizing(struct wmiiv_container *column, bool resizing);
+
 #endif

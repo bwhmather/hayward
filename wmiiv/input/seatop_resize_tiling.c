@@ -12,11 +12,14 @@
 struct seatop_resize_tiling_event {
 	struct wmiiv_container *container;    // leaf container
 
-	// container, or ancestor of container which will be resized horizontally/vertically
+	// Container, or ancestor of container which will be resized horizontally/vertically.
+	// TODO v_container will always be the selected window.  h_container
+	// will always be the containing column.  
 	struct wmiiv_container *h_container;
 	struct wmiiv_container *v_container;
 
-	// sibling container(s) that will be resized to accommodate
+	// Sibling container(s) that will be resized to accommodate.  h_sib is
+	// always a column.  v_sib is always a window.
 	struct wmiiv_container *h_sib;
 	struct wmiiv_container *v_sib;
 
@@ -51,8 +54,8 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 
 	if (seat->cursor->pressed_button_count == 0) {
 		if (e->h_container) {
-			container_set_resizing(e->h_container, false);
-			container_set_resizing(e->h_sib, false);
+			column_set_resizing(e->h_container, false);
+			column_set_resizing(e->h_sib, false);
 			if (e->h_container->pending.parent) {
 				arrange_column(e->h_container->pending.parent);
 			} else {
@@ -60,8 +63,8 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 			}
 		}
 		if (e->v_container) {
-			container_set_resizing(e->v_container, false);
-			container_set_resizing(e->v_sib, false);
+			window_set_resizing(e->v_container, false);
+			window_set_resizing(e->v_sib, false);
 			if (e->v_container->pending.parent) {
 				arrange_column(e->v_container->pending.parent);
 			} else {
@@ -141,8 +144,8 @@ void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
 		e->h_sib = container_get_resize_sibling(e->h_container, e->edge_x);
 
 		if (e->h_container) {
-			container_set_resizing(e->h_container, true);
-			container_set_resizing(e->h_sib, true);
+			column_set_resizing(e->h_container, true);
+			column_set_resizing(e->h_sib, true);
 			e->h_container_orig_width = e->h_container->pending.width;
 		}
 	}
@@ -152,8 +155,8 @@ void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
 		e->v_sib = container_get_resize_sibling(e->v_container, e->edge_y);
 
 		if (e->v_container) {
-			container_set_resizing(e->v_container, true);
-			container_set_resizing(e->v_sib, true);
+			window_set_resizing(e->v_container, true);
+			window_set_resizing(e->v_sib, true);
 			e->v_container_orig_height = e->v_container->pending.height;
 		}
 	}

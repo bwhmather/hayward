@@ -9,29 +9,26 @@
 #include "wmiiv/tree/view.h"
 #include "wmiiv/tree/workspace.h"
 #include "wmiiv/tree/container.h"
+#include "log.h"
 
 struct seatop_resize_floating_event {
-	struct wmiiv_container *container;
+	struct wmiiv_container *window;
 	enum wlr_edges edge;
 	bool preserve_ratio;
 	double ref_lx, ref_ly;         // cursor's x/y at start of op
-	double ref_width, ref_height;  // container's size at start of op
-	double ref_container_lx, ref_container_ly; // container's x/y at start of op
+	double ref_width, ref_height;  // window's size at start of op
+	double ref_window_lx, ref_window_ly; // window's x/y at start of op
 };
 
 static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state) {
 	struct seatop_resize_floating_event *e = seat->seatop_data;
-	struct wmiiv_container *container = e->container;
+	struct wmiiv_container *window = e->window;
 
 	if (seat->cursor->pressed_button_count == 0) {
-		container_set_resizing(container, false);
-		if (container_is_window(container)) {
-			arrange_window(container); // Send configure w/o resizing hint
-		} else {
-			arrange_column(container);
-		}
+		window_set_resizing(window, false);
+		arrange_window(window); // Send configure w/o resizing hint
 		transaction_commit_dirty();
 		seatop_begin_default(seat);
 	}
@@ -39,7 +36,7 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 
 static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_resize_floating_event *e = seat->seatop_data;
-	struct wmiiv_container *container = e->container;
+	struct wmiiv_container *window = e->window;
 	enum wlr_edges edge = e->edge;
 	struct wmiiv_cursor *cursor = seat->cursor;
 
@@ -66,16 +63,16 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 		grow_height = e->ref_height * max_multiplier;
 	}
 
-	struct wmiiv_container_state *state = &container->current;
+	struct wmiiv_container_state *state = &window->current;
 	double border_width = 0.0;
-	if (container->current.border == B_NORMAL || container->current.border == B_PIXEL) {
+	if (window->current.border == B_NORMAL || window->current.border == B_PIXEL) {
 		border_width = state->border_thickness * 2;
 	}
 	double border_height = 0.0;
-	if (container->current.border == B_NORMAL) {
+	if (window->current.border == B_NORMAL) {
 		border_height += window_titlebar_height();
 		border_height += state->border_thickness;
-	} else if (container->current.border == B_PIXEL) {
+	} else if (window->current.border == B_PIXEL) {
 		border_height += state->border_thickness * 2;
 	}
 
@@ -93,9 +90,9 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	height = fmax(height, 1);
 
 	// Apply the view's min/max size
-	if (container->view) {
+	if (window->view) {
 		double view_min_width, view_max_width, view_min_height, view_max_height;
-		view_get_constraints(container->view, &view_min_width, &view_max_width,
+		view_get_constraints(window->view, &view_min_width, &view_max_width,
 				&view_min_height, &view_max_height);
 		width = fmin(width, view_max_width - border_width);
 		width = fmax(width, view_min_width + border_width);
@@ -110,7 +107,7 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	grow_width = width - e->ref_width;
 	grow_height = height - e->ref_height;
 
-	// Determine grow x/y values - these are relative to the container's x/y at
+	// Determine grow x/y values - these are relative to the window's x/y at
 	// the start of the resize operation.
 	double grow_x = 0, grow_y = 0;
 	if (edge & WLR_EDGE_LEFT) {
@@ -130,33 +127,29 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 
 	// Determine the amounts we need to bump everything relative to the current
 	// size.
-	int relative_grow_width = width - container->pending.width;
-	int relative_grow_height = height - container->pending.height;
-	int relative_grow_x = (e->ref_container_lx + grow_x) - container->pending.x;
-	int relative_grow_y = (e->ref_container_ly + grow_y) - container->pending.y;
+	int relative_grow_width = width - window->pending.width;
+	int relative_grow_height = height - window->pending.height;
+	int relative_grow_x = (e->ref_window_lx + grow_x) - window->pending.x;
+	int relative_grow_y = (e->ref_window_ly + grow_y) - window->pending.y;
 
 	// Actually resize stuff
-	container->pending.x += relative_grow_x;
-	container->pending.y += relative_grow_y;
-	container->pending.width += relative_grow_width;
-	container->pending.height += relative_grow_height;
+	window->pending.x += relative_grow_x;
+	window->pending.y += relative_grow_y;
+	window->pending.width += relative_grow_width;
+	window->pending.height += relative_grow_height;
 
-	container->pending.content_x += relative_grow_x;
-	container->pending.content_y += relative_grow_y;
-	container->pending.content_width += relative_grow_width;
-	container->pending.content_height += relative_grow_height;
+	window->pending.content_x += relative_grow_x;
+	window->pending.content_y += relative_grow_y;
+	window->pending.content_width += relative_grow_width;
+	window->pending.content_height += relative_grow_height;
 
-	if (container_is_window(container)) {
-		arrange_window(container);
-	} else {
-		arrange_column(container);
-	}
+	arrange_window(window);
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *window) {
 	struct seatop_resize_floating_event *e = seat->seatop_data;
-	if (e->container == container) {
+	if (e->window == window) {
 		seatop_begin_default(seat);
 	}
 }
@@ -168,7 +161,10 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_resize_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *container, enum wlr_edges edge) {
+		struct wmiiv_container *window, enum wlr_edges edge) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return;
+	}
 	seatop_end(seat);
 
 	struct seatop_resize_floating_event *e =
@@ -176,7 +172,7 @@ void seatop_begin_resize_floating(struct wmiiv_seat *seat,
 	if (!e) {
 		return;
 	}
-	e->container = container;
+	e->window = window;
 
 	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
 	e->preserve_ratio = keyboard &&
@@ -185,16 +181,16 @@ void seatop_begin_resize_floating(struct wmiiv_seat *seat,
 	e->edge = edge == WLR_EDGE_NONE ? WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT : edge;
 	e->ref_lx = seat->cursor->cursor->x;
 	e->ref_ly = seat->cursor->cursor->y;
-	e->ref_container_lx = container->pending.x;
-	e->ref_container_ly = container->pending.y;
-	e->ref_width = container->pending.width;
-	e->ref_height = container->pending.height;
+	e->ref_window_lx = window->pending.x;
+	e->ref_window_ly = window->pending.y;
+	e->ref_width = window->pending.width;
+	e->ref_height = window->pending.height;
 
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;
 
-	container_set_resizing(container, true);
-	container_raise_floating(container);
+	window_set_resizing(window, true);
+	container_raise_floating(window);
 	transaction_commit_dirty();
 
 	const char *image = edge == WLR_EDGE_NONE ?

@@ -543,7 +543,7 @@ static void handle_request_configure(struct wl_listener *listener, void *data) {
 		// Respect minimum and maximum sizes
 		view->natural_width = ev->width;
 		view->natural_height = ev->height;
-		container_floating_resize_and_center(view->container);
+		window_floating_resize_and_center(view->container);
 
 		configure(view, view->container->pending.content_x,
 				view->container->pending.content_y,

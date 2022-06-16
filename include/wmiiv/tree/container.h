@@ -138,17 +138,6 @@ void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
 
-void floating_calculate_constraints(int *min_width, int *max_width,
-		int *min_height, int *max_height);
-
-void container_floating_resize_and_center(struct wmiiv_container *container);
-
-void container_floating_set_default_size(struct wmiiv_container *container);
-
-void container_set_resizing(struct wmiiv_container *container, bool resizing);
-
-void container_set_geometry_from_content(struct wmiiv_container *container);
-
 /**
  * Get a container's box in layout coordinates.
  */
