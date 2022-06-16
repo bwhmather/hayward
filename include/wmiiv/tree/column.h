@@ -36,4 +36,9 @@ void column_for_each_child(struct wmiiv_container *column,
 
 void column_damage_whole(struct wmiiv_container *column);
 
+size_t column_build_representation(enum wmiiv_container_layout layout,
+		list_t *children, char *buffer);
+
+void column_update_representation(struct wmiiv_container *column);
+
 #endif

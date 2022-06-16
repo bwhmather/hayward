@@ -870,13 +870,13 @@ struct wmiiv_container *workspace_split(struct wmiiv_workspace *workspace,
 
 void workspace_update_representation(struct wmiiv_workspace *workspace) {
 	// TODO (wmiiv) we can probably inline the L_HORIZ part of this function.
-	size_t len = container_build_representation(L_HORIZ, workspace->tiling, NULL);
+	size_t len = column_build_representation(L_HORIZ, workspace->tiling, NULL);
 	free(workspace->representation);
 	workspace->representation = calloc(len + 1, sizeof(char));
 	if (!wmiiv_assert(workspace->representation, "Unable to allocate title string")) {
 		return;
 	}
-	container_build_representation(L_HORIZ, workspace->tiling, workspace->representation);
+	column_build_representation(L_HORIZ, workspace->tiling, workspace->representation);
 }
 
 void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box) {

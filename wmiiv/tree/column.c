@@ -119,7 +119,7 @@ void column_insert_child(struct wmiiv_container *parent,
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
 	container_handle_fullscreen_reparent(child);
-	container_update_representation(parent);
+	column_update_representation(parent);
 }
 
 void column_add_sibling(struct wmiiv_container *fixed,
@@ -138,7 +138,7 @@ void column_add_sibling(struct wmiiv_container *fixed,
 	active->pending.parent = fixed->pending.parent;
 	active->pending.workspace = fixed->pending.workspace;
 	container_handle_fullscreen_reparent(active);
-	container_update_representation(active);
+	column_update_representation(fixed->pending.parent);
 }
 
 void column_add_child(struct wmiiv_container *parent,
@@ -154,7 +154,7 @@ void column_add_child(struct wmiiv_container *parent,
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
 	container_handle_fullscreen_reparent(child);
-	container_update_representation(parent);
+	column_update_representation(parent);
 	node_set_dirty(&child->node);
 	node_set_dirty(&parent->node);
 }
@@ -179,3 +179,74 @@ void column_damage_whole(struct wmiiv_container *column) {
 	}
 }
 
+/**
+ * Calculate and return the length of the tree representation.
+ * An example tree representation is: V[Terminal, Firefox]
+ * If buffer is not NULL, also populate the buffer with the representation.
+ */
+size_t column_build_representation(enum wmiiv_container_layout layout,
+		list_t *children, char *buffer) {
+	size_t len = 2;
+	switch (layout) {
+	case L_VERT:
+		lenient_strcat(buffer, "V[");
+		break;
+	case L_HORIZ:
+		lenient_strcat(buffer, "H[");
+		break;
+	case L_TABBED:
+		lenient_strcat(buffer, "T[");
+		break;
+	case L_STACKED:
+		lenient_strcat(buffer, "S[");
+		break;
+	case L_NONE:
+		lenient_strcat(buffer, "D[");
+		break;
+	}
+	for (int i = 0; i < children->length; ++i) {
+		if (i != 0) {
+			++len;
+			lenient_strcat(buffer, " ");
+		}
+		struct wmiiv_container *child = children->items[i];
+		const char *identifier = NULL;
+		if (child->view) {
+			identifier = view_get_class(child->view);
+			if (!identifier) {
+				identifier = view_get_app_id(child->view);
+			}
+		} else {
+			identifier = child->formatted_title;
+		}
+		if (identifier) {
+			len += strlen(identifier);
+			lenient_strcat(buffer, identifier);
+		} else {
+			len += 6;
+			lenient_strcat(buffer, "(null)");
+		}
+	}
+	++len;
+	lenient_strcat(buffer, "]");
+	return len;
+}
+
+void column_update_representation(struct wmiiv_container *column) {
+	wmiiv_assert(container_is_column(column), "Expected column");
+
+	size_t len = column_build_representation(column->pending.layout,
+			column->pending.children, NULL);
+	free(column->formatted_title);
+	column->formatted_title = calloc(len + 1, sizeof(char));
+	if (!wmiiv_assert(column->formatted_title,
+				"Unable to allocate title string")) {
+		return;
+	}
+	column_build_representation(column->pending.layout, column->pending.children,
+			column->formatted_title);
+
+	if (column->pending.workspace) {
+		workspace_update_representation(column->pending.workspace);
+	}
+}

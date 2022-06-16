@@ -64,7 +64,7 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 
 	if (new_layout != old_layout) {
 		column->pending.layout = new_layout;
-		container_update_representation(column);
+		column_update_representation(column);
 		if (root->fullscreen_global) {
 			arrange_root();
 		} else {

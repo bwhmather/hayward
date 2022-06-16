@@ -776,7 +776,11 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	}
 
 	view_update_title(view, false);
-	container_update_representation(view->container);
+	if (view->container->pending.parent) {
+		column_update_representation(view->container->pending.parent);
+	} else {
+		workspace_update_representation(view->container->pending.workspace);
+	}
 
 	if (fullscreen) {
 		container_set_fullscreen(view->container, true);
