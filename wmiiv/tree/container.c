@@ -116,114 +116,6 @@ struct wmiiv_output *container_get_effective_output(struct wmiiv_container *cont
 	return container->outputs->items[container->outputs->length - 1];
 }
 
-static void render_titlebar_text_texture(struct wmiiv_output *output,
-		struct wmiiv_container *container, struct wlr_texture **texture,
-		struct border_colors *class, bool pango_markup, char *text) {
-	// TODO (wmiiv) duplicated in in window. remove once columns stop rendering titles.
-	double scale = output->wlr_output->scale;
-	int width = 0;
-	int height = config->font_height * scale;
-	int baseline;
-
-	// We must use a non-nil cairo_t for cairo_set_font_options to work.
-	// Therefore, we cannot use cairo_create(NULL).
-	cairo_surface_t *dummy_surface = cairo_image_surface_create(
-			CAIRO_FORMAT_ARGB32, 0, 0);
-	cairo_t *c = cairo_create(dummy_surface);
-	cairo_set_antialias(c, CAIRO_ANTIALIAS_BEST);
-	cairo_font_options_t *fo = cairo_font_options_create();
-	cairo_font_options_set_hint_style(fo, CAIRO_HINT_STYLE_FULL);
-	if (output->wlr_output->subpixel == WL_OUTPUT_SUBPIXEL_NONE) {
-		cairo_font_options_set_antialias(fo, CAIRO_ANTIALIAS_GRAY);
-	} else {
-		cairo_font_options_set_antialias(fo, CAIRO_ANTIALIAS_SUBPIXEL);
-		cairo_font_options_set_subpixel_order(fo,
-			to_cairo_subpixel_order(output->wlr_output->subpixel));
-	}
-	cairo_set_font_options(c, fo);
-	get_text_size(c, config->font, &width, NULL, &baseline, scale,
-			config->pango_markup, "%s", text);
-	cairo_surface_destroy(dummy_surface);
-	cairo_destroy(c);
-
-	if (width == 0 || height == 0) {
-		return;
-	}
-
-	if (height > config->font_height * scale) {
-		height = config->font_height * scale;
-	}
-
-	cairo_surface_t *surface = cairo_image_surface_create(
-			CAIRO_FORMAT_ARGB32, width, height);
-	cairo_status_t status = cairo_surface_status(surface);
-	if (status != CAIRO_STATUS_SUCCESS) {
-		wmiiv_log(WMIIV_ERROR, "cairo_image_surface_create failed: %s",
-			cairo_status_to_string(status));
-		return;
-	}
-
-	cairo_t *cairo = cairo_create(surface);
-	cairo_set_antialias(cairo, CAIRO_ANTIALIAS_BEST);
-	cairo_set_font_options(cairo, fo);
-	cairo_font_options_destroy(fo);
-	cairo_set_source_rgba(cairo, class->background[0], class->background[1],
-			class->background[2], class->background[3]);
-	cairo_paint(cairo);
-	PangoContext *pango = pango_cairo_create_context(cairo);
-	cairo_set_source_rgba(cairo, class->text[0], class->text[1],
-			class->text[2], class->text[3]);
-	cairo_move_to(cairo, 0, config->font_baseline * scale - baseline);
-
-	render_text(cairo, config->font, scale, pango_markup, "%s", text);
-
-	cairo_surface_flush(surface);
-	unsigned char *data = cairo_image_surface_get_data(surface);
-	int stride = cairo_image_surface_get_stride(surface);
-	struct wlr_renderer *renderer = output->wlr_output->renderer;
-	*texture = wlr_texture_from_pixels(
-			renderer, DRM_FORMAT_ARGB8888, stride, width, height, data);
-	cairo_surface_destroy(surface);
-	g_object_unref(pango);
-	cairo_destroy(cairo);
-}
-
-static void update_title_texture(struct wmiiv_container *container,
-		struct wlr_texture **texture, struct border_colors *class) {
-	struct wmiiv_output *output = container_get_effective_output(container);
-	if (!output) {
-		return;
-	}
-	if (*texture) {
-		wlr_texture_destroy(*texture);
-		*texture = NULL;
-	}
-	if (!container->formatted_title) {
-		return;
-	}
-
-	render_titlebar_text_texture(output, container, texture, class,
-		config->pango_markup, container->formatted_title);
-}
-
-void container_update_title_textures(struct wmiiv_container *container) {
-	update_title_texture(container, &container->title_focused,
-			&config->border_colors.focused);
-	update_title_texture(container, &container->title_focused_inactive,
-			&config->border_colors.focused_inactive);
-	update_title_texture(container, &container->title_unfocused,
-			&config->border_colors.unfocused);
-	update_title_texture(container, &container->title_urgent,
-			&config->border_colors.urgent);
-	update_title_texture(container, &container->title_focused_tab_title,
-			&config->border_colors.focused_tab_title);
-	if (container_is_window(container)) {
-		window_damage_whole(container);
-	} else {
-		column_damage_whole(container);
-	}
-}
-
 /**
  * Calculate and return the length of the tree representation.
  * An example tree representation is: V[Terminal, Firefox]
@@ -289,7 +181,6 @@ void container_update_representation(struct wmiiv_container *container) {
 		}
 		container_build_representation(container->pending.layout, container->pending.children,
 				container->formatted_title);
-		container_update_title_textures(container);
 	}
 	if (container->pending.parent) {
 		container_update_representation(container->pending.parent);
@@ -886,8 +777,8 @@ void container_discover_outputs(struct wmiiv_container *container) {
 		old_output->wlr_output->scale : -1;
 	double new_scale = new_output ? new_output->wlr_output->scale : -1;
 	if (old_scale != new_scale) {
-		container_update_title_textures(container);
 		if (container_is_window(container)) {
+			window_update_title_textures(container);
 			window_update_marks_textures(container);
 		}
 	}

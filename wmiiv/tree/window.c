@@ -290,6 +290,38 @@ void window_update_marks_textures(struct wmiiv_container *window) {
 	window_damage_whole(window);
 }
 
+static void update_title_texture(struct wmiiv_container *window,
+		struct wlr_texture **texture, struct border_colors *class) {
+	struct wmiiv_output *output = container_get_effective_output(window);
+	if (!output) {
+		return;
+	}
+	if (*texture) {
+		wlr_texture_destroy(*texture);
+		*texture = NULL;
+	}
+	if (!window->formatted_title) {
+		return;
+	}
+
+	render_titlebar_text_texture(output, window, texture, class,
+		config->pango_markup, window->formatted_title);
+}
+
+void window_update_title_textures(struct wmiiv_container *window) {
+	update_title_texture(window, &window->title_focused,
+			&config->border_colors.focused);
+	update_title_texture(window, &window->title_focused_inactive,
+			&config->border_colors.focused_inactive);
+	update_title_texture(window, &window->title_unfocused,
+			&config->border_colors.unfocused);
+	update_title_texture(window, &window->title_urgent,
+			&config->border_colors.urgent);
+	update_title_texture(window, &window->title_focused_tab_title,
+			&config->border_colors.focused_tab_title);
+	window_damage_whole(window);
+}
+
 bool window_is_floating(struct wmiiv_container *window) {
 	if (!wmiiv_assert(container_is_window(window), "Only windows can float")) {
 		return false;

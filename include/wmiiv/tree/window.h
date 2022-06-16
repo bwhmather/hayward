@@ -107,4 +107,6 @@ struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_contai
 
 void window_damage_whole(struct wmiiv_container *window);
 
+void window_update_title_textures(struct wmiiv_container *window);
+
 #endif

@@ -813,8 +813,8 @@ static void handle_mode(struct wl_listener *listener, void *data) {
 }
 
 static void update_textures(struct wmiiv_container *container, void *data) {
-	container_update_title_textures(container);
 	if (container_is_window(container)) {
+		window_update_title_textures(container);
 		window_update_marks_textures(container);
 	}
 }

@@ -1268,7 +1268,7 @@ void view_update_title(struct wmiiv_view *view, bool force) {
 	}
 
 	// Update title after the global font height is updated
-	container_update_title_textures(view->container);
+	window_update_title_textures(view->container);
 
 	ipc_event_window(view->container, "title");
 

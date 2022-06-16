@@ -138,7 +138,6 @@ void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
 
-void container_update_title_textures(struct wmiiv_container *container);
 
 size_t container_build_representation(enum wmiiv_container_layout layout,
 		list_t *children, char *buffer);
