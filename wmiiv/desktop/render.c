@@ -446,7 +446,7 @@ static void render_titlebar(struct wmiiv_output *output,
 
 	// Single pixel bar below title
 	box.x = x;
-	box.y = y + container_titlebar_height() - titlebar_border_thickness;
+	box.y = y + window_titlebar_height() - titlebar_border_thickness;
 	box.width = width;
 	box.height = titlebar_border_thickness;
 	scale_box(&box, output_scale);
@@ -456,7 +456,7 @@ static void render_titlebar(struct wmiiv_output *output,
 	box.x = x;
 	box.y = y + titlebar_border_thickness;
 	box.width = titlebar_border_thickness;
-	box.height = container_titlebar_height() - titlebar_border_thickness * 2;
+	box.height = window_titlebar_height() - titlebar_border_thickness * 2;
 	scale_box(&box, output_scale);
 	render_rect(output, output_damage, &box, color);
 
@@ -464,7 +464,7 @@ static void render_titlebar(struct wmiiv_output *output,
 	box.x = x + width - titlebar_border_thickness;
 	box.y = y + titlebar_border_thickness;
 	box.width = titlebar_border_thickness;
-	box.height = container_titlebar_height() - titlebar_border_thickness * 2;
+	box.height = window_titlebar_height() - titlebar_border_thickness * 2;
 	scale_box(&box, output_scale);
 	render_rect(output, output_damage, &box, color);
 
@@ -845,7 +845,7 @@ static void render_containers_stacked(struct wmiiv_output *output,
 	}
 	struct wmiiv_container *current = parent->active_child;
 	struct border_colors *current_colors = &config->border_colors.unfocused;
-	size_t titlebar_height = container_titlebar_height();
+	size_t titlebar_height = window_titlebar_height();
 
 	// Render titles
 	for (int i = 0; i < parent->children->length; ++i) {

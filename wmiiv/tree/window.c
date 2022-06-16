@@ -676,3 +676,6 @@ void window_damage_whole(struct wmiiv_container *window) {
 	}
 }
 
+size_t window_titlebar_height(void) {
+	return config->font_height + config->titlebar_v_padding * 2;
+}

@@ -109,4 +109,9 @@ void window_damage_whole(struct wmiiv_container *window);
 
 void window_update_title_textures(struct wmiiv_container *window);
 
+/**
+ * Return the height of a regular title bar.
+ */
+size_t window_titlebar_height(void);
+
 #endif

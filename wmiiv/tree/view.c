@@ -296,10 +296,10 @@ void view_autoconfigure(struct wmiiv_view *view) {
 		if (show_titlebar) {
 			enum wmiiv_container_layout layout = container_parent_layout(window);
 			if (layout == L_TABBED) {
-				y_offset = container_titlebar_height();
+				y_offset = window_titlebar_height();
 				window->pending.border_top = false;
 			} else if (layout == L_STACKED) {
-				y_offset = container_titlebar_height() * siblings->length;
+				y_offset = window_titlebar_height() * siblings->length;
 				window->pending.border_top = false;
 			}
 		}
@@ -336,8 +336,8 @@ void view_autoconfigure(struct wmiiv_view *view) {
 			height = window->pending.height - y_offset
 				- window->pending.border_thickness * window->pending.border_bottom;
 		} else {
-			y = window->pending.y + container_titlebar_height();
-			height = window->pending.height - container_titlebar_height()
+			y = window->pending.y + window_titlebar_height();
+			height = window->pending.height - window_titlebar_height()
 				- window->pending.border_thickness * window->pending.border_bottom;
 		}
 		break;

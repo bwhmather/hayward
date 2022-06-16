@@ -422,7 +422,7 @@ static void column_get_deco_rect(struct wmiiv_container *column, struct wlr_box 
 	deco_rect->y = column->pending.y - column->pending.workspace->y;
 
 	deco_rect->width = column->pending.width;
-	deco_rect->height = container_titlebar_height();
+	deco_rect->height = window_titlebar_height();
 }
 
 static void window_get_deco_rect(struct wmiiv_container *window, struct wlr_box *deco_rect) {
@@ -445,7 +445,7 @@ static void window_get_deco_rect(struct wmiiv_container *window, struct wlr_box 
 		deco_rect->y = window->pending.y - window->pending.workspace->y;
 	}
 	deco_rect->width = window->pending.width;
-	deco_rect->height = container_titlebar_height();
+	deco_rect->height = window_titlebar_height();
 
 	if (!window_is_floating(window)) {
 		if (parent_layout == L_TABBED) {

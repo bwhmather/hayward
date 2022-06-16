@@ -73,7 +73,7 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	}
 	double border_height = 0.0;
 	if (container->current.border == B_NORMAL) {
-		border_height += container_titlebar_height();
+		border_height += window_titlebar_height();
 		border_height += state->border_thickness;
 	} else if (container->current.border == B_PIXEL) {
 		border_height += state->border_thickness * 2;

@@ -138,11 +138,6 @@ void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
 
-/**
- * Return the height of a regular title bar.
- */
-size_t container_titlebar_height(void);
-
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height);
 

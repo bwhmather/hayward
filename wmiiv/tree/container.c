@@ -116,10 +116,6 @@ struct wmiiv_output *container_get_effective_output(struct wmiiv_container *cont
 	return container->outputs->items[container->outputs->length - 1];
 }
 
-size_t container_titlebar_height(void) {
-	return config->font_height + config->titlebar_v_padding * 2;
-}
-
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height) {
 	if (config->floating_minimum_width == -1) { // no minimum
@@ -277,7 +273,7 @@ void container_set_geometry_from_content(struct wmiiv_container *container) {
 	if (container->pending.border != B_CSD && !container->pending.fullscreen_mode) {
 		border_width = container->pending.border_thickness * (container->pending.border != B_NONE);
 		top = container->pending.border == B_NORMAL ?
-			container_titlebar_height() : border_width;
+			window_titlebar_height() : border_width;
 	}
 
 	container->pending.x = container->pending.content_x - border_width;

@@ -51,7 +51,7 @@ static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *s
 	}
 
 	// Tab titles
-	int title_height = container_titlebar_height();
+	int title_height = window_titlebar_height();
 	if (ly < box.y + title_height) {
 		int tab_width = box.width / children->length;
 		int child_index = (lx - box.x) / tab_width;
@@ -82,7 +82,7 @@ static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *
 	list_t *children = column->pending.children;
 
 	// Title bars
-	int title_height = container_titlebar_height();
+	int title_height = window_titlebar_height();
 	if (title_height > 0) {
 		int child_index = (ly - box.y) / title_height;
 		if (child_index < children->length) {
