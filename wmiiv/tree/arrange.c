@@ -245,7 +245,7 @@ void arrange_column(struct wmiiv_container *column) {
 		return;
 	}
 	struct wlr_box box;
-	container_get_box(column, &box);
+	column_get_box(column, &box);
 	arrange_children(column->pending.children, column->pending.layout, &box);
 	node_set_dirty(&column->node);
 }

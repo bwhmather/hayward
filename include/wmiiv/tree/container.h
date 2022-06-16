@@ -137,12 +137,6 @@ bool container_is_window(struct wmiiv_container *container);
 void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
-
-/**
- * Get a container's box in layout coordinates.
- */
-void container_get_box(struct wmiiv_container *container, struct wlr_box *box);
-
 bool container_has_urgent_child(struct wmiiv_container *container);
 
 /**

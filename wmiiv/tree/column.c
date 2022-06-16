@@ -251,6 +251,13 @@ void column_update_representation(struct wmiiv_container *column) {
 	}
 }
 
+void column_get_box(struct wmiiv_container *column, struct wlr_box *box) {
+	box->x = column->pending.x;
+	box->y = column->pending.y;
+	box->width = column->pending.width;
+	box->height = column->pending.height;
+}
+
 /**
  * Indicate to clients in this container that they are participating in (or
  * have just finished) an interactive resize

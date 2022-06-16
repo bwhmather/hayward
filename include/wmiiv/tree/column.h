@@ -41,6 +41,11 @@ size_t column_build_representation(enum wmiiv_container_layout layout,
 
 void column_update_representation(struct wmiiv_container *column);
 
+/**
+ * Get a column's box in layout coordinates.
+ */
+void column_get_box(struct wmiiv_container *column, struct wlr_box *box);
+
 void column_set_resizing(struct wmiiv_container *column, bool resizing);
 
 #endif

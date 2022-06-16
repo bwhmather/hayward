@@ -883,6 +883,13 @@ void window_floating_move_to_center(struct wmiiv_container *window) {
 	window_floating_translate(window, new_lx - window->pending.x, new_ly - window->pending.y);
 }
 
+void window_get_box(struct wmiiv_container *window, struct wlr_box *box) {
+	box->x = window->pending.x;
+	box->y = window->pending.y;
+	box->width = window->pending.width;
+	box->height = window->pending.height;
+}
+
 /**
  * Indicate to clients in this window that they are participating in (or
  * have just finished) an interactive resize

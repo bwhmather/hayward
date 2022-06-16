@@ -40,7 +40,7 @@ static uint32_t get_current_time_msec(void) {
 
 static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
 	struct wlr_box box;
-	container_get_box(column, &box);
+	column_get_box(column, &box);
 	if (lx < box.x || lx > box.x + box.width ||
 			ly < box.y || ly > box.y + box.height) {
 		return NULL;
@@ -1417,6 +1417,7 @@ struct wmiiv_cursor *wmiiv_cursor_create(struct wmiiv_seat *seat) {
  * Does nothing if the cursor is already inside the container and `force` is
  * false. If container is NULL, returns without doing anything.
  */
+// TODO (wmiiv) window
 void cursor_warp_to_container(struct wmiiv_cursor *cursor,
 		struct wmiiv_container *container, bool force) {
 	if (!container) {
@@ -1424,7 +1425,11 @@ void cursor_warp_to_container(struct wmiiv_cursor *cursor,
 	}
 
 	struct wlr_box box;
-	container_get_box(container, &box);
+	if (container_is_window(container)) {
+		window_get_box(container, &box);
+	} else {
+		column_get_box(container, &box);
+	}
 	if (!force && wlr_box_contains_point(&box, cursor->cursor->x,
 			cursor->cursor->y)) {
 		return;

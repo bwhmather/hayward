@@ -72,10 +72,10 @@ void node_get_box(struct wmiiv_node *node, struct wlr_box *box) {
 		workspace_get_box(node->wmiiv_workspace, box);
 		break;
 	case N_COLUMN:
-		container_get_box(node->wmiiv_container, box);
+		column_get_box(node->wmiiv_container, box);
 		break;
 	case N_WINDOW:
-		container_get_box(node->wmiiv_container, box);
+		window_get_box(node->wmiiv_container, box);
 		break;
 	}
 }

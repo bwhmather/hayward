@@ -116,13 +116,6 @@ struct wmiiv_output *container_get_effective_output(struct wmiiv_container *cont
 	return container->outputs->items[container->outputs->length - 1];
 }
 
-void container_get_box(struct wmiiv_container *container, struct wlr_box *box) {
-	box->x = container->pending.x;
-	box->y = container->pending.y;
-	box->width = container->pending.width;
-	box->height = container->pending.height;
-}
-
 static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
 	return container->view && view_is_urgent(container->view);
 }

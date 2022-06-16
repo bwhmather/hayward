@@ -143,6 +143,11 @@ void window_floating_move_to(struct wmiiv_container *window,
  */
 void window_floating_move_to_center(struct wmiiv_container *window);
 
+/**
+ * Get a window's box in layout coordinates.
+ */
+void window_get_box(struct wmiiv_container *window, struct wlr_box *box);
+
 void window_set_resizing(struct wmiiv_container *window, bool resizing);
 
 void window_set_geometry_from_content(struct wmiiv_container *window);
