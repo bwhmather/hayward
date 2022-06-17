@@ -349,7 +349,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		}
 		seat_set_focus_window(seat, window);
 		seat_consider_warp_to_focus(seat);
-		container_raise_floating(window);
+		window_raise_floating(window);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
@@ -408,10 +408,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	if (next_focus) {
 		seat_set_focus(seat, next_focus);
 		seat_consider_warp_to_focus(seat);
-
-		if (next_focus->type == N_COLUMN || next_focus->type == N_WINDOW) {
-			container_raise_floating(next_focus->wmiiv_container);
-		}
+		window_raise_floating(next_focus->wmiiv_container);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

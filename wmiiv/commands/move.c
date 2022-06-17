@@ -277,7 +277,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 			// We have to create the workspace, but if the window is
 			// sticky and the workspace is going to be created on the same
 			// output, we'll bail out first.
-			if (container_is_sticky_or_child(window)) {
+			if (window_is_sticky(window)) {
 				struct wmiiv_output *new_output =
 					workspace_get_initial_output(workspace_name);
 				if (old_output == new_output) {
@@ -346,7 +346,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	if (container_is_sticky_or_child(window) && old_output &&
+	if (window_is_sticky(window) && old_output &&
 			node_has_ancestor(destination, &old_output->node)) {
 		return cmd_results_new(CMD_FAILURE, "Can't move sticky "
 				"window to another workspace on the same output");

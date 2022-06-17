@@ -321,7 +321,7 @@ static void output_for_each_surface(struct wmiiv_output *output,
 			for (int i = 0; i < workspace->current.floating->length; ++i) {
 				struct wmiiv_container *floater =
 					workspace->current.floating->items[i];
-				if (container_is_transient_for(floater, fullscreen_window)) {
+				if (window_is_transient_for(floater, fullscreen_window)) {
 					for_each_surface_container_iterator(floater, &data);
 				}
 			}
@@ -451,7 +451,7 @@ static bool scan_out_fullscreen_view(struct wmiiv_output *output,
 	for (int i = 0; i < workspace->current.floating->length; ++i) {
 		struct wmiiv_container *floater =
 			workspace->current.floating->items[i];
-		if (container_is_transient_for(floater, view->container)) {
+		if (window_is_transient_for(floater, view->container)) {
 			return false;
 		}
 	}

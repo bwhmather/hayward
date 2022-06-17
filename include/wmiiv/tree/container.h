@@ -184,13 +184,4 @@ void container_handle_fullscreen_reparent(struct wmiiv_container *container);
 
 void container_swap(struct wmiiv_container *container1, struct wmiiv_container *container2);
 
-bool container_is_transient_for(struct wmiiv_container *child,
-		struct wmiiv_container *ancestor);
-
-void container_raise_floating(struct wmiiv_container *container);
-
-bool container_is_sticky(struct wmiiv_container *container);
-
-bool container_is_sticky_or_child(struct wmiiv_container *container);
-
 #endif

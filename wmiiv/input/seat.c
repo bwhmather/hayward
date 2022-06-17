@@ -1304,7 +1304,7 @@ static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_worksp
 			for (int i = 0; i < new_output_last_workspace->floating->length; ++i) {
 				struct wmiiv_container *floater =
 					new_output_last_workspace->floating->items[i];
-				if (container_is_sticky(floater)) {
+				if (window_is_sticky(floater)) {
 					window_detach(floater);
 					workspace_add_floating(new_workspace, floater);
 					--i;

@@ -25,7 +25,7 @@ struct cmd_results *cmd_sticky(int argc, char **argv) {
 
 	window->is_sticky = parse_boolean(argv[0], window->is_sticky);
 
-	if (container_is_sticky_or_child(window)) {
+	if (window_is_sticky(window)) {
 		// move window to active workspace
 		struct wmiiv_workspace *active_workspace =
 			output_get_active_workspace(window->pending.workspace->output);

@@ -325,7 +325,7 @@ static struct wmiiv_node *node_at_coords(
 		// Try transient containers
 		for (int i = 0; i < workspace->floating->length; ++i) {
 			struct wmiiv_container *floater = workspace->floating->items[i];
-			if (container_is_transient_for(floater, workspace->fullscreen)) {
+			if (window_is_transient_for(floater, workspace->fullscreen)) {
 				if ((*surface = window_surface_at(floater, lx, ly, sx, sy))) {
 					return &floater->node;
 				}

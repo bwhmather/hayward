@@ -1116,7 +1116,7 @@ void output_render(struct wmiiv_output *output, struct timespec *when,
 		for (int i = 0; i < workspace->current.floating->length; ++i) {
 			struct wmiiv_container *floater =
 				workspace->current.floating->items[i];
-			if (container_is_transient_for(floater, fullscreen_container)) {
+			if (window_is_transient_for(floater, fullscreen_container)) {
 				render_floating_container(output, damage, floater);
 			}
 		}

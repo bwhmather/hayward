@@ -652,7 +652,7 @@ struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_contai
 	struct wmiiv_workspace *workspace = window->pending.workspace;
 
 	if (workspace && workspace->fullscreen && !window_is_fullscreen(window)) {
-		if (container_is_transient_for(window, workspace->fullscreen)) {
+		if (window_is_transient_for(window, workspace->fullscreen)) {
 			return NULL;
 		}
 		return workspace->fullscreen;
@@ -660,7 +660,7 @@ struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_contai
 
 	struct wmiiv_container *fullscreen_global = root->fullscreen_global;
 	if (fullscreen_global && window != fullscreen_global) {
-		if (container_is_transient_for(window, fullscreen_global)) {
+		if (window_is_transient_for(window, fullscreen_global)) {
 			return NULL;
 		}
 		return fullscreen_global;
@@ -927,4 +927,23 @@ void window_set_geometry_from_content(struct wmiiv_container *window) {
 	window->pending.width = window->pending.content_width + border_width * 2;
 	window->pending.height = top + window->pending.content_height + border_width;
 	node_set_dirty(&window->node);
+}
+
+bool window_is_transient_for(struct wmiiv_container *child,
+		struct wmiiv_container *ancestor) {
+	return config->popup_during_fullscreen == POPUP_SMART &&
+		child->view && ancestor->view &&
+		view_is_transient_for(child->view, ancestor->view);
+}
+
+void window_raise_floating(struct wmiiv_container *window) {
+	// Bring window to front by putting it at the end of the floating list.
+	if (window_is_floating(window) && window->pending.workspace) {
+		list_move_to_end(window->pending.workspace->floating, window);
+		node_set_dirty(&window->pending.workspace->node);
+	}
+}
+
+bool window_is_sticky(struct wmiiv_container *window) {
+	return container_is_window(window) && window->is_sticky && window_is_floating(window);
 }

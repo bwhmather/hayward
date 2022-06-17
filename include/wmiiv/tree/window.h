@@ -152,4 +152,11 @@ void window_set_resizing(struct wmiiv_container *window, bool resizing);
 
 void window_set_geometry_from_content(struct wmiiv_container *window);
 
+bool window_is_transient_for(struct wmiiv_container *child,
+		struct wmiiv_container *ancestor);
+
+void window_raise_floating(struct wmiiv_container *window);
+
+bool window_is_sticky(struct wmiiv_container *window);
+
 #endif

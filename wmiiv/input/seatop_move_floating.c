@@ -76,7 +76,7 @@ void seatop_begin_move_floating(struct wmiiv_seat *seat,
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;
 
-	container_raise_floating(window);
+	window_raise_floating(window);
 	transaction_commit_dirty();
 
 	cursor_set_image(cursor, "grab", NULL);

@@ -630,7 +630,7 @@ static void handle_foreign_activate_request(
 		if (seat->wlr_seat == event->seat) {
 			seat_set_focus_window(seat, view->container);
 			seat_consider_warp_to_focus(seat);
-			container_raise_floating(view->container);
+			window_raise_floating(view->container);
 			break;
 		}
 	}
@@ -1300,7 +1300,7 @@ bool view_is_visible(struct wmiiv_view *view) {
 		}
 	}
 
-	if (!container_is_sticky_or_child(view->container) && workspace &&
+	if (!window_is_sticky(view->container) && workspace &&
 			!workspace_is_visible(workspace)) {
 		return false;
 	}
@@ -1321,7 +1321,7 @@ bool view_is_visible(struct wmiiv_view *view) {
 	struct wmiiv_container *fs = root->fullscreen_global ?
 		root->fullscreen_global : workspace->fullscreen;
 	if (fs && !window_is_fullscreen(view->container) &&
-			!container_is_transient_for(view->container, fs)) {
+			!window_is_transient_for(view->container, fs)) {
 		return false;
 	}
 	return true;

@@ -190,7 +190,7 @@ void seatop_begin_resize_floating(struct wmiiv_seat *seat,
 	seat->seatop_data = e;
 
 	window_set_resizing(window, true);
-	container_raise_floating(window);
+	window_raise_floating(window);
 	transaction_commit_dirty();
 
 	const char *image = edge == WLR_EDGE_NONE ?

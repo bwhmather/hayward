@@ -600,7 +600,7 @@ bool workspace_is_empty(struct wmiiv_workspace *workspace) {
 	// Sticky views are not considered to be part of this workspace
 	for (int i = 0; i < workspace->floating->length; ++i) {
 		struct wmiiv_container *floater = workspace->floating->items[i];
-		if (!container_is_sticky(floater)) {
+		if (!window_is_sticky(floater)) {
 			return false;
 		}
 	}
@@ -900,14 +900,20 @@ size_t workspace_num_tiling_views(struct wmiiv_workspace *workspace) {
 }
 
 static void count_sticky_containers(struct wmiiv_container *container, void *data) {
-	if (container_is_sticky(container)) {
-		size_t *count = data;
-		*count += 1;
+	if (!container_is_window(container)) {
+		return;
 	}
+	if (!window_is_sticky(container)) {
+		return;
+	}
+
+	size_t *count = data;
+	*count += 1;
 }
 
 size_t workspace_num_sticky_containers(struct wmiiv_workspace *workspace) {
 	size_t count = 0;
+	// TODO should be for each window
 	workspace_for_each_container(workspace, count_sticky_containers, &count);
 	return count;
 }

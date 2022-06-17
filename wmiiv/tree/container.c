@@ -506,25 +506,3 @@ void container_handle_fullscreen_reparent(struct wmiiv_container *container) {
 	arrange_workspace(container->pending.workspace);
 }
 
-bool container_is_transient_for(struct wmiiv_container *child,
-		struct wmiiv_container *ancestor) {
-	return config->popup_during_fullscreen == POPUP_SMART &&
-		child->view && ancestor->view &&
-		view_is_transient_for(child->view, ancestor->view);
-}
-
-void container_raise_floating(struct wmiiv_container *window) {
-	// Bring container to front by putting it at the end of the floating list.
-	if (window_is_floating(window) && window->pending.workspace) {
-		list_move_to_end(window->pending.workspace->floating, window);
-		node_set_dirty(&window->pending.workspace->node);
-	}
-}
-
-bool container_is_sticky(struct wmiiv_container *container) {
-	return container_is_window(container) && container->is_sticky && window_is_floating(container);
-}
-
-bool container_is_sticky_or_child(struct wmiiv_container *container) {
-	return container_is_sticky(container_toplevel_ancestor(container));
-}

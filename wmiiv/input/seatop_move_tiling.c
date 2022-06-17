@@ -353,7 +353,7 @@ void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
 	seat->seatop_impl = &seatop_impl;
 	seat->seatop_data = e;
 
-	container_raise_floating(moving_window);
+	window_raise_floating(moving_window);
 	transaction_commit_dirty();
 	wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }
