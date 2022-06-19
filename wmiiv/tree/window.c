@@ -530,7 +530,7 @@ static void window_move_to_workspace_from_maybe_direction(
 		struct wmiiv_output *old_output = window->pending.workspace->output;
 		window_detach(window);
 		workspace_add_floating(workspace, window);
-		container_handle_fullscreen_reparent(window);
+		window_handle_fullscreen_reparent(window);
 		// If changing output, center it within the workspace
 		if (old_output != workspace->output && !window->pending.fullscreen_mode) {
 			window_floating_move_to_center(window);
@@ -917,8 +917,18 @@ void window_fullscreen_disable(struct wmiiv_container *window) {
 	ipc_event_window(window, "fullscreen_mode");
 }
 
+void window_handle_fullscreen_reparent(struct wmiiv_container *window) {
+	if (window->pending.fullscreen_mode != FULLSCREEN_WORKSPACE || !window->pending.workspace ||
+			window->pending.workspace->fullscreen == window) {
+		return;
+	}
+	if (window->pending.workspace->fullscreen) {
+		window_fullscreen_disable(window->pending.workspace->fullscreen);
+	}
+	window->pending.workspace->fullscreen = window;
 
-
+	arrange_workspace(window->pending.workspace);
+}
 
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height) {

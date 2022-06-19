@@ -38,7 +38,7 @@ struct cmd_results *cmd_sticky(int argc, char **argv) {
 			struct wmiiv_workspace *old_workspace = window->pending.workspace;
 			window_detach(window);
 			workspace_add_floating(active_workspace, window);
-			container_handle_fullscreen_reparent(window);
+			window_handle_fullscreen_reparent(window);
 			arrange_workspace(active_workspace);
 			workspace_consider_destroy(old_workspace);
 		}

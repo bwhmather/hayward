@@ -118,7 +118,7 @@ void column_insert_child(struct wmiiv_container *parent,
 	list_insert(parent->pending.children, i, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
-	container_handle_fullscreen_reparent(child);
+	window_handle_fullscreen_reparent(child);
 	column_update_representation(parent);
 }
 
@@ -137,7 +137,7 @@ void column_add_sibling(struct wmiiv_container *fixed,
 	list_insert(siblings, index + after, active);
 	active->pending.parent = fixed->pending.parent;
 	active->pending.workspace = fixed->pending.workspace;
-	container_handle_fullscreen_reparent(active);
+	window_handle_fullscreen_reparent(active);
 	column_update_representation(fixed->pending.parent);
 }
 
@@ -153,7 +153,7 @@ void column_add_child(struct wmiiv_container *parent,
 	list_add(parent->pending.children, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
-	container_handle_fullscreen_reparent(child);
+	window_handle_fullscreen_reparent(child);
 	column_update_representation(parent);
 	node_set_dirty(&child->node);
 	node_set_dirty(&parent->node);

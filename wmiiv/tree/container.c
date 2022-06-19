@@ -257,16 +257,3 @@ list_t *container_get_current_siblings(struct wmiiv_container *container) {
 	return container->current.workspace->current.tiling;
 }
 
-void container_handle_fullscreen_reparent(struct wmiiv_container *container) {
-	if (container->pending.fullscreen_mode != FULLSCREEN_WORKSPACE || !container->pending.workspace ||
-			container->pending.workspace->fullscreen == container) {
-		return;
-	}
-	if (container->pending.workspace->fullscreen) {
-		window_fullscreen_disable(container->pending.workspace->fullscreen);
-	}
-	container->pending.workspace->fullscreen = container;
-
-	arrange_workspace(container->pending.workspace);
-}
-

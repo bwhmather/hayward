@@ -172,8 +172,6 @@ int container_sibling_index(struct wmiiv_container *child);
 
 list_t *container_get_current_siblings(struct wmiiv_container *container);
 
-void container_handle_fullscreen_reparent(struct wmiiv_container *container);
-
 void container_swap(struct wmiiv_container *container1, struct wmiiv_container *container2);
 
 #endif

@@ -119,6 +119,8 @@ void window_set_fullscreen(struct wmiiv_container *window,
 
 void window_fullscreen_disable(struct wmiiv_container *window);
 
+void window_handle_fullscreen_reparent(struct wmiiv_container *window);
+
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height);
 

@@ -772,7 +772,7 @@ void workspace_add_floating(struct wmiiv_workspace *workspace,
 	list_add(workspace->floating, window);
 	window->pending.workspace = workspace;
 
-	container_handle_fullscreen_reparent(window);
+	window_handle_fullscreen_reparent(window);
 
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&window->node);
