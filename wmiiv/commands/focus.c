@@ -344,7 +344,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		// need to exit fullscreen so that the newly focused container becomes visible
 		struct wmiiv_container *obstructing = window_obstructing_fullscreen_window(window);
 		if (obstructing) {
-			container_fullscreen_disable(obstructing);
+			window_fullscreen_disable(obstructing);
 			arrange_root();
 		}
 		seat_set_focus_window(seat, window);

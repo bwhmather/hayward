@@ -114,11 +114,11 @@ void container_swap(struct wmiiv_container *window1, struct wmiiv_container *win
 
 	enum wmiiv_fullscreen_mode fs1 = window1->pending.fullscreen_mode;
 	if (fs1) {
-		container_fullscreen_disable(window1);
+		window_fullscreen_disable(window1);
 	}
 	enum wmiiv_fullscreen_mode fs2 = window2->pending.fullscreen_mode;
 	if (fs2) {
-		container_fullscreen_disable(window2);
+		window_fullscreen_disable(window2);
 	}
 
 	struct wmiiv_seat *seat = config->handler_context.seat;
@@ -154,10 +154,10 @@ void container_swap(struct wmiiv_container *window1, struct wmiiv_container *win
 	}
 
 	if (fs1) {
-		container_set_fullscreen(window2, fs1);
+		window_set_fullscreen(window2, fs1);
 	}
 	if (fs2) {
-		container_set_fullscreen(window1, fs2);
+		window_set_fullscreen(window1, fs2);
 	}
 }
 

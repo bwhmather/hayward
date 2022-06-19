@@ -114,6 +114,11 @@ void window_update_title_textures(struct wmiiv_container *window);
  */
 size_t window_titlebar_height(void);
 
+void window_set_fullscreen(struct wmiiv_container *window,
+		enum wmiiv_fullscreen_mode mode);
+
+void window_fullscreen_disable(struct wmiiv_container *window);
+
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height);
 

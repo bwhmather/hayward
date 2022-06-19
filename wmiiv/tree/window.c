@@ -680,6 +680,246 @@ size_t window_titlebar_height(void) {
 	return config->font_height + config->titlebar_v_padding * 2;
 }
 
+static bool devid_from_fd(int fd, dev_t *devid) {
+	struct stat stat;
+	if (fstat(fd, &stat) != 0) {
+		wmiiv_log_errno(WMIIV_ERROR, "fstat failed");
+		return false;
+	}
+	*devid = stat.st_rdev;
+	return true;
+}
+
+static void set_fullscreen(struct wmiiv_container *window, bool enable) {
+	if (!window->view) {
+		return;
+	}
+	if (window->view->impl->set_fullscreen) {
+		window->view->impl->set_fullscreen(window->view, enable);
+		if (window->view->foreign_toplevel) {
+			wlr_foreign_toplevel_handle_v1_set_fullscreen(
+				window->view->foreign_toplevel, enable);
+		}
+	}
+
+	if (!server.linux_dmabuf_v1 || !window->view->surface) {
+		return;
+	}
+	if (!enable) {
+		wlr_linux_dmabuf_v1_set_surface_feedback(server.linux_dmabuf_v1,
+			window->view->surface, NULL);
+		return;
+	}
+
+	if (!window->pending.workspace || !window->pending.workspace->output) {
+		return;
+	}
+
+	struct wmiiv_output *output = window->pending.workspace->output;
+	struct wlr_output *wlr_output = output->wlr_output;
+
+	// TODO: add wlroots helpers for all of this stuff
+
+	const struct wlr_drm_format_set *renderer_formats =
+		wlr_renderer_get_dmabuf_texture_formats(server.renderer);
+	assert(renderer_formats);
+
+	int renderer_drm_fd = wlr_renderer_get_drm_fd(server.renderer);
+	int backend_drm_fd = wlr_backend_get_drm_fd(wlr_output->backend);
+	if (renderer_drm_fd < 0 || backend_drm_fd < 0) {
+		return;
+	}
+
+	dev_t render_dev, scanout_dev;
+	if (!devid_from_fd(renderer_drm_fd, &render_dev) ||
+			!devid_from_fd(backend_drm_fd, &scanout_dev)) {
+		return;
+	}
+
+	const struct wlr_drm_format_set *output_formats =
+		wlr_output_get_primary_formats(output->wlr_output,
+		WLR_BUFFER_CAP_DMABUF);
+	if (!output_formats) {
+		return;
+	}
+
+	struct wlr_drm_format_set scanout_formats = {0};
+	if (!wlr_drm_format_set_intersect(&scanout_formats,
+			output_formats, renderer_formats)) {
+		return;
+	}
+
+	struct wlr_linux_dmabuf_feedback_v1_tranche tranches[] = {
+		{
+			.target_device = scanout_dev,
+			.flags = ZWP_LINUX_DMABUF_FEEDBACK_V1_TRANCHE_FLAGS_SCANOUT,
+			.formats = &scanout_formats,
+		},
+		{
+			.target_device = render_dev,
+			.formats = renderer_formats,
+		},
+	};
+
+	const struct wlr_linux_dmabuf_feedback_v1 feedback = {
+		.main_device = render_dev,
+		.tranches = tranches,
+		.tranches_len = sizeof(tranches) / sizeof(tranches[0]),
+	};
+	wlr_linux_dmabuf_v1_set_surface_feedback(server.linux_dmabuf_v1,
+		window->view->surface, &feedback);
+
+	wlr_drm_format_set_finish(&scanout_formats);
+}
+
+static void window_fullscreen_workspace(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return;
+	}
+	if (!wmiiv_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
+				"Expected a non-fullscreen container")) {
+		return;
+	}
+	set_fullscreen(window, true);
+	window->pending.fullscreen_mode = FULLSCREEN_WORKSPACE;
+
+	window->saved_x = window->pending.x;
+	window->saved_y = window->pending.y;
+	window->saved_width = window->pending.width;
+	window->saved_height = window->pending.height;
+
+	if (window->pending.workspace) {
+		window->pending.workspace->fullscreen = window;
+		struct wmiiv_seat *seat;
+		struct wmiiv_workspace *focus_workspace;
+		wl_list_for_each(seat, &server.input->seats, link) {
+			focus_workspace = seat_get_focused_workspace(seat);
+			if (focus_workspace == window->pending.workspace) {
+				seat_set_focus_window(seat, window);
+			} else {
+				struct wmiiv_node *focus =
+					seat_get_focus_inactive(seat, &root->node);
+				seat_set_raw_focus(seat, &window->node);
+				seat_set_raw_focus(seat, focus);
+			}
+		}
+	}
+
+	container_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
+}
+
+static void window_fullscreen_global(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return;
+	}
+	if (!wmiiv_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
+				"Expected a non-fullscreen container")) {
+		return;
+	}
+	set_fullscreen(window, true);
+
+	root->fullscreen_global = window;
+	window->saved_x = window->pending.x;
+	window->saved_y = window->pending.y;
+	window->saved_width = window->pending.width;
+	window->saved_height = window->pending.height;
+
+	struct wmiiv_seat *seat;
+	wl_list_for_each(seat, &server.input->seats, link) {
+		struct wmiiv_container *focus = seat_get_focused_container(seat);
+		if (focus && focus != window) {
+			seat_set_focus_window(seat, window);
+		}
+	}
+
+	window->pending.fullscreen_mode = FULLSCREEN_GLOBAL;
+	container_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
+}
+
+
+void window_set_fullscreen(struct wmiiv_container *window,
+		enum wmiiv_fullscreen_mode mode) {
+	if (window->pending.fullscreen_mode == mode) {
+		return;
+	}
+
+	switch (mode) {
+	case FULLSCREEN_NONE:
+		window_fullscreen_disable(window);
+		break;
+	case FULLSCREEN_WORKSPACE:
+		// TODO (wmiiv) if disabling previous fullscreen window is
+		// neccessary, why are these disable/enable functions public
+		// and non-static.
+		if (root->fullscreen_global) {
+			window_fullscreen_disable(root->fullscreen_global);
+		}
+		if (window->pending.workspace && window->pending.workspace->fullscreen) {
+			window_fullscreen_disable(window->pending.workspace->fullscreen);
+		}
+		window_fullscreen_workspace(window);
+		break;
+	case FULLSCREEN_GLOBAL:
+		if (root->fullscreen_global) {
+			window_fullscreen_disable(root->fullscreen_global);
+		}
+		if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+			window_fullscreen_disable(window);
+		}
+		window_fullscreen_global(window);
+		break;
+	}
+}
+
+void window_fullscreen_disable(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return;
+	}
+	if (!wmiiv_assert(window->pending.fullscreen_mode != FULLSCREEN_NONE,
+				"Expected a fullscreen container")) {
+		return;
+	}
+	set_fullscreen(window, false);
+
+	if (window_is_floating(window)) {
+		window->pending.x = window->saved_x;
+		window->pending.y = window->saved_y;
+		window->pending.width = window->saved_width;
+		window->pending.height = window->saved_height;
+	}
+
+	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+		if (window->pending.workspace) {
+			window->pending.workspace->fullscreen = NULL;
+			if (window_is_floating(window)) {
+				struct wmiiv_output *output =
+					window_floating_find_output(window);
+				if (window->pending.workspace->output != output) {
+					window_floating_move_to_center(window);
+				}
+			}
+		}
+	} else {
+		root->fullscreen_global = NULL;
+	}
+
+	// If the container was mapped as fullscreen and set as floating by
+	// criteria, it needs to be reinitialized as floating to get the proper
+	// size and location
+	if (window_is_floating(window) && (window->pending.width == 0 || window->pending.height == 0)) {
+		window_floating_resize_and_center(window);
+	}
+
+	window->pending.fullscreen_mode = FULLSCREEN_NONE;
+	container_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
+}
+
+
+
+
 void floating_calculate_constraints(int *min_width, int *max_width,
 		int *min_height, int *max_height) {
 	if (config->floating_minimum_width == -1) { // no minimum

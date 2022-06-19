@@ -145,14 +145,6 @@ bool container_has_urgent_child(struct wmiiv_container *container);
  */
 void container_end_mouse_operation(struct wmiiv_container *container);
 
-void container_set_fullscreen(struct wmiiv_container *container,
-		enum wmiiv_fullscreen_mode mode);
-
-/**
- * Convenience function.
- */
-void container_fullscreen_disable(struct wmiiv_container *container);
-
 /**
  * Walk up the container tree branch starting at the given container, and return
  * its earliest ancestor.

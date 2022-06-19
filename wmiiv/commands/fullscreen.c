@@ -18,14 +18,14 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *container = config->handler_context.container;
+	struct wmiiv_container *window = config->handler_context.window;
 
-	if (!container) {
-		// If the focus is not a container, do nothing successfully
+	if (!window) {
+		// If the focus is not a window, do nothing successfully
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	bool is_fullscreen = container->pending.fullscreen_mode != FULLSCREEN_NONE;
+	bool is_fullscreen = window->pending.fullscreen_mode != FULLSCREEN_NONE;
 	bool global = false;
 	bool enable = !is_fullscreen;
 
@@ -46,7 +46,7 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 		mode = global ? FULLSCREEN_GLOBAL : FULLSCREEN_WORKSPACE;
 	}
 
-	container_set_fullscreen(container, mode);
+	window_set_fullscreen(window, mode);
 	arrange_root();
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

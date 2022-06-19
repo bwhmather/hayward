@@ -643,29 +643,29 @@ static void handle_foreign_fullscreen_request(
 			listener, view, foreign_fullscreen_request);
 	struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
-	struct wmiiv_container *container = view->container;
+	struct wmiiv_container *window = view->container;
 
 	if (event->fullscreen && event->output && event->output->data) {
 		struct wmiiv_output *output = event->output->data;
 		struct wmiiv_workspace *workspace = output_get_active_workspace(output);
 		if (workspace) {
-			if (window_is_floating(view->container)) {
-				workspace_add_floating(workspace, view->container);
+			if (window_is_floating(window)) {
+				workspace_add_floating(workspace, window);
 			} else {
-				workspace_add_tiling(workspace, view->container);
+				workspace_add_tiling(workspace, window);
 			}
 		}
 	}
 
-	container_set_fullscreen(container,
+	window_set_fullscreen(window,
 		event->fullscreen ? FULLSCREEN_WORKSPACE : FULLSCREEN_NONE);
 	if (event->fullscreen) {
 		arrange_root();
 	} else {
-		if (container->pending.parent) {
-			arrange_column(container->pending.parent);
-		} else if (container->pending.workspace) {
-			arrange_workspace(container->pending.workspace);
+		if (window->pending.parent) {
+			arrange_column(window->pending.parent);
+		} else if (window->pending.workspace) {
+			arrange_workspace(window->pending.workspace);
 		}
 	}
 	transaction_commit_dirty();
@@ -771,7 +771,7 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 			view->container->pending.workspace->fullscreen->view) {
 		struct wmiiv_container *fs = view->container->pending.workspace->fullscreen;
 		if (view_is_transient_for(view, fs->view)) {
-			container_set_fullscreen(fs, false);
+			window_set_fullscreen(fs, false);
 		}
 	}
 
@@ -783,7 +783,7 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	}
 
 	if (fullscreen) {
-		container_set_fullscreen(view->container, true);
+		window_set_fullscreen(view->container, true);
 		arrange_workspace(view->container->pending.workspace);
 	} else {
 		if (target_sibling) {

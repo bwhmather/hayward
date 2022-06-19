@@ -349,7 +349,7 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 		}
 	}
 
-	container_set_fullscreen(window, req->fullscreen);
+	window_set_fullscreen(window, req->fullscreen);
 
 	arrange_root();
 	transaction_commit_dirty();
