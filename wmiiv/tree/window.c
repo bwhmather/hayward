@@ -61,7 +61,7 @@ void window_detach(struct wmiiv_container *window) {
 	struct wmiiv_container *old_parent = window->pending.parent;
 	struct wmiiv_workspace *old_workspace = window->pending.workspace;
 
-	list_t *siblings = container_get_siblings(window);
+	list_t *siblings = window_get_siblings(window);
 	if (siblings) {
 		int index = list_find(siblings, window);
 		if (index != -1) {
@@ -354,7 +354,6 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 		return;
 	}
 
-	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_workspace *workspace = window->pending.workspace;
 
 	if (enable) {
@@ -379,22 +378,6 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 	} else {
 		// Returning to tiled
 		window_detach(window);
-		struct wmiiv_container *reference =
-			seat_get_focus_inactive_tiling(seat, workspace);
-		if (reference) {
-			if (reference->view) {
-				column_add_sibling(reference, window, 1);
-			} else {
-				column_add_child(reference, window);
-			}
-			window->pending.width = reference->pending.width;
-			window->pending.height = reference->pending.height;
-		} else {
-			struct wmiiv_container *other =
-				workspace_add_tiling(workspace, window);
-			other->pending.width = workspace->width;
-			other->pending.height = workspace->height;
-		}
 		if (window->view) {
 			view_set_tiled(window->view, true);
 			if (window->view->using_csd) {
@@ -408,6 +391,7 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 		}
 		window->width_fraction = 0;
 		window->height_fraction = 0;
+		window_move_to_workspace(window, workspace);
 	}
 
 	container_end_mouse_operation(window);
@@ -1197,3 +1181,14 @@ void window_raise_floating(struct wmiiv_container *window) {
 bool window_is_sticky(struct wmiiv_container *window) {
 	return container_is_window(window) && window->is_sticky && window_is_floating(window);
 }
+
+list_t *window_get_siblings(struct wmiiv_container *window) {
+	if (window_is_tiling(window)) {
+		return window->pending.parent->pending.children;
+	}
+	if (window_is_floating(window)) {
+		return window->pending.workspace->floating;
+	}
+	return NULL;
+}
+

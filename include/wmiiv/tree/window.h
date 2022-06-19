@@ -166,4 +166,6 @@ void window_raise_floating(struct wmiiv_container *window);
 
 bool window_is_sticky(struct wmiiv_container *window);
 
+list_t *window_get_siblings(struct wmiiv_container *window);
+
 #endif
