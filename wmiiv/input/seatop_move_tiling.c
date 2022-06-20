@@ -271,7 +271,7 @@ static void finalize_move(struct wmiiv_seat *seat) {
 			ipc_event_window(moving_window, "move");
 		} else {
 			// TODO not sure if I like this behaviour.  Should probably be the same as WLR_EDGE_BOTTOM.
-			container_swap(target_window, moving_window);
+			window_swap(target_window, moving_window);
 		}
 	}
 

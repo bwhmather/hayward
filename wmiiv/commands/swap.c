@@ -98,7 +98,7 @@ static void swap_focus(struct wmiiv_container *window1,
 	}
 }
 
-void container_swap(struct wmiiv_container *window1, struct wmiiv_container *window2) {
+void window_swap(struct wmiiv_container *window1, struct wmiiv_container *window2) {
 	if (!wmiiv_assert(window1 && window2, "Cannot swap with nothing")) {
 		return;
 	}
@@ -233,7 +233,7 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 		return error;
 	}
 
-	container_swap(current, other);
+	window_swap(current, other);
 
 	if (root->fullscreen_global) {
 		arrange_root();

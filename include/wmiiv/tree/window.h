@@ -179,4 +179,6 @@ enum wmiiv_container_layout window_parent_layout(struct wmiiv_container *window)
 
 enum wmiiv_container_layout window_current_parent_layout(struct wmiiv_container *window);
 
+void window_swap(struct wmiiv_container *window1, struct wmiiv_container *window2);
+
 #endif
