@@ -196,35 +196,32 @@ bool view_inhibit_idle(struct wmiiv_view *view) {
 }
 
 bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
-	bool only_visible = true;
-	struct wmiiv_container *container = view->container;
-	while (container) {
-		enum wmiiv_container_layout layout = container_parent_layout(container);
-		if (layout != L_TABBED && layout != L_STACKED) {
-			list_t *siblings = container_get_siblings(container);
-			if (siblings && siblings->length > 1) {
-				only_visible = false;
-			}
-		} else {
-			only_visible = true;
-		}
-		container = container->pending.parent;
+	struct wmiiv_container *window = view->container;
+	struct wmiiv_container *column = window->pending.parent;
+
+	list_t *siblings = column_get_siblings(column);
+	if (siblings && siblings->length > 1) {
+		return false;
 	}
-	return only_visible;
+
+	return true;
 }
 
 static bool view_is_only_visible(struct wmiiv_view *view) {
-	struct wmiiv_container *container = view->container;
-	while (container) {
-		enum wmiiv_container_layout layout = container_parent_layout(container);
-		if (layout != L_TABBED && layout != L_STACKED) {
-			list_t *siblings = container_get_siblings(container);
-			if (siblings && siblings->length > 1) {
-				return false;
-			}
-		}
+	struct wmiiv_container *window = view->container;
 
-		container = container->pending.parent;
+	enum wmiiv_container_layout layout = container_parent_layout(window);
+	if (layout != L_TABBED && layout != L_STACKED) {
+		list_t *siblings = window_get_siblings(window);
+		if (siblings && siblings->length > 1) {
+			return false;
+		}
+	}
+
+	struct wmiiv_container *column = window->pending.parent;
+	list_t *siblings = column_get_siblings(column);
+	if (siblings && siblings->length > 1) {
+		return false;
 	}
 
 	return true;
@@ -290,7 +287,7 @@ void view_autoconfigure(struct wmiiv_view *view) {
 		// In a tabbed or stacked container, the container's y is the top of the
 		// title area. We have to offset the surface y by the height of the title,
 		// bar, and disable any top border because we'll always have the title bar.
-		list_t *siblings = container_get_siblings(window);
+		list_t *siblings = window_get_siblings(window);
 		bool show_titlebar = (siblings && siblings->length > 1)
 			|| !config->hide_lone_tab;
 		if (show_titlebar) {

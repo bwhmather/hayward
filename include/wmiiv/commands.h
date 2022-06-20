@@ -88,14 +88,7 @@ void free_cmd_results(struct cmd_results *results);
  */
 char *cmd_results_to_json(list_t *res_list);
 
-/**
- * TODO: Move this function and its dependent functions to container.c.
- */
-void container_resize_tiled(struct wmiiv_container *parent, uint32_t axis,
-		int amount);
-
-struct wmiiv_container *container_find_resize_parent(struct wmiiv_container *container,
-		uint32_t edge);
+void window_resize_tiled(struct wmiiv_container *window, uint32_t axis, int amount);
 
 /**
  * Handlers shared by exec and exec_always.

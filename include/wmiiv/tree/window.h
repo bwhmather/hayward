@@ -168,4 +168,11 @@ bool window_is_sticky(struct wmiiv_container *window);
 
 list_t *window_get_siblings(struct wmiiv_container *window);
 
+int window_sibling_index(struct wmiiv_container *child);
+
+list_t *window_get_current_siblings(struct wmiiv_container *window);
+
+struct wmiiv_container *window_get_previous_sibling(struct wmiiv_container *window);
+struct wmiiv_container *window_get_next_sibling(struct wmiiv_container *window);
+
 #endif

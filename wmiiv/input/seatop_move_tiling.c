@@ -282,7 +282,7 @@ static void finalize_move(struct wmiiv_seat *seat) {
 	// This is a bit dirty, but we'll set the dimensions to that of a sibling.
 	// I don't think there's any other way to make it consistent without
 	// changing how we auto-size containers.
-	list_t *siblings = container_get_siblings(moving_window);
+	list_t *siblings = window_get_siblings(moving_window);
 	if (siblings->length > 1) {
 		int index = list_find(siblings, moving_window);
 		struct wmiiv_container *sibling = index == 0 ?

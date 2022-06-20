@@ -1192,3 +1192,58 @@ list_t *window_get_siblings(struct wmiiv_container *window) {
 	return NULL;
 }
 
+int window_sibling_index(struct wmiiv_container *child) {
+	return list_find(window_get_siblings(child), child);
+}
+
+list_t *window_get_current_siblings(struct wmiiv_container *window) {
+	if (window->current.parent) {
+		return window->current.parent->current.children;
+	}
+	if (window->current.workspace) {
+		return window->current.workspace->current.floating;
+	}
+	return NULL;
+}
+
+struct wmiiv_container *window_get_previous_sibling(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return NULL;
+	}
+
+	if (!window->pending.parent) {
+		return NULL;
+	}
+
+	list_t *siblings = window->pending.parent->pending.children;
+	int index = list_find(siblings, window);
+
+	if (index <= 0) {
+		return NULL;
+	}
+
+	return siblings->items[index - 1];
+}
+
+struct wmiiv_container *window_get_next_sibling(struct wmiiv_container *window) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return NULL;
+	}
+
+	if (!window->pending.parent) {
+		return NULL;
+	}
+
+	list_t *siblings = window->pending.parent->pending.children;
+	int index = list_find(siblings, window);
+
+	if (index < 0) {
+		return NULL;
+	}
+
+	if (index >= siblings->length - 1) {
+		return NULL;
+	}
+
+	return siblings->items[index + 1];
+}

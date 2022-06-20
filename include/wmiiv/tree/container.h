@@ -166,12 +166,6 @@ enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *cont
 enum wmiiv_container_layout container_current_parent_layout(
 		struct wmiiv_container *container);
 
-list_t *container_get_siblings(struct wmiiv_container *container);
-
-int container_sibling_index(struct wmiiv_container *child);
-
-list_t *container_get_current_siblings(struct wmiiv_container *container);
-
 void container_swap(struct wmiiv_container *container1, struct wmiiv_container *container2);
 
 #endif

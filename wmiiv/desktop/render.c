@@ -379,7 +379,7 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 		render_rect(output, damage, &box, color);
 	}
 
-	list_t *siblings = container_get_current_siblings(window);
+	list_t *siblings = window_get_current_siblings(window);
 	enum wmiiv_container_layout layout =
 		container_current_parent_layout(window);
 

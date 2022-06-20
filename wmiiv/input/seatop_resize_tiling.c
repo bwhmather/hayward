@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
+#include "log.h"
 #include "wmiiv/commands.h"
 #include "wmiiv/desktop/transaction.h"
 #include "wmiiv/input/cursor.h"
@@ -30,21 +31,44 @@ struct seatop_resize_tiling_event {
 	double v_container_orig_height;      // height of the vertical ancestor at start
 };
 
-static struct wmiiv_container *container_get_resize_sibling(
-		struct wmiiv_container *container, uint32_t edge) {
-	if (!container) {
+static struct wmiiv_container *column_get_resize_sibling(struct wmiiv_container *column, uint32_t edge) {
+	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
 		return NULL;
 	}
 
-	list_t *siblings = container_get_siblings(container);
-	int index = container_sibling_index(container);
-	int offset = edge & (WLR_EDGE_TOP | WLR_EDGE_LEFT) ? -1 : 1;
+	list_t *siblings = column_get_siblings(column);
+	int offset = (edge & WLR_EDGE_LEFT) ? -1 : 1;
+	int index = column_sibling_index(column) + offset;
 
-	if (siblings->length == 1) {
+	if (index < 0) {
 		return NULL;
-	} else {
-		return siblings->items[index + offset];
 	}
+
+	if (index > siblings->length) {
+		return NULL;
+	}
+
+	return siblings->items[offset];
+}
+
+static struct wmiiv_container *window_get_resize_sibling(struct wmiiv_container *window, uint32_t edge) {
+	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
+		return NULL;
+	}
+
+	list_t *siblings = window_get_siblings(window);
+	int offset = (edge & WLR_EDGE_TOP) ? -1 : 1;
+	int index = window_sibling_index(window) + offset;
+
+	if (index < 0) {
+		return NULL;
+	}
+
+	if (index > siblings->length) {
+		return NULL;
+	}
+
+	return siblings->items[offset];
 }
 
 static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
@@ -99,10 +123,10 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	}
 
 	if (amount_x != 0) {
-		container_resize_tiled(e->h_container, e->edge_x, amount_x);
+		window_resize_tiled(e->h_container, e->edge_x, amount_x);
 	}
 	if (amount_y != 0) {
-		container_resize_tiled(e->v_container, e->edge_y, amount_y);
+		window_resize_tiled(e->v_container, e->edge_y, amount_y);
 	}
 	transaction_commit_dirty();
 }
@@ -140,8 +164,8 @@ void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
 
 	if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
 		e->edge_x = edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
-		e->h_container = container_find_resize_parent(e->container, e->edge_x);
-		e->h_sib = container_get_resize_sibling(e->h_container, e->edge_x);
+		e->h_container = e->container->pending.parent;
+		e->h_sib = column_get_resize_sibling(e->h_container, e->edge_x);
 
 		if (e->h_container) {
 			column_set_resizing(e->h_container, true);
@@ -151,8 +175,8 @@ void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
 	}
 	if (edge & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)) {
 		e->edge_y = edge & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM);
-		e->v_container = container_find_resize_parent(e->container, e->edge_y);
-		e->v_sib = container_get_resize_sibling(e->v_container, e->edge_y);
+		e->v_container = e->container;
+		e->v_sib = window_get_resize_sibling(e->v_container, e->edge_y);
 
 		if (e->v_container) {
 			window_set_resizing(e->v_container, true);

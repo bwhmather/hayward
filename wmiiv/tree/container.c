@@ -236,24 +236,4 @@ enum wmiiv_container_layout container_current_parent_layout(
 	return L_HORIZ;
 }
 
-list_t *container_get_siblings(struct wmiiv_container *container) {
-	if (container->pending.parent) {
-		return container->pending.parent->pending.children;
-	}
-	if (list_find(container->pending.workspace->tiling, container) != -1) {
-		return container->pending.workspace->tiling;
-	}
-	return container->pending.workspace->floating;
-}
-
-int container_sibling_index(struct wmiiv_container *child) {
-	return list_find(container_get_siblings(child), child);
-}
-
-list_t *container_get_current_siblings(struct wmiiv_container *container) {
-	if (container->current.parent) {
-		return container->current.parent->current.children;
-	}
-	return container->current.workspace->current.tiling;
-}
 

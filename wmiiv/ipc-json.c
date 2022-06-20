@@ -452,13 +452,13 @@ static void window_get_deco_rect(struct wmiiv_container *window, struct wlr_box 
 			deco_rect->width = window->pending.parent
 				? window->pending.parent->pending.width / window->pending.parent->pending.children->length
 				: window->pending.workspace->width / window->pending.workspace->tiling->length;
-			deco_rect->x += deco_rect->width * container_sibling_index(window);
+			deco_rect->x += deco_rect->width * window_sibling_index(window);
 		} else if (parent_layout == L_STACKED) {
 			if (!window->view) {
-				size_t siblings = container_get_siblings(window)->length;
+				size_t siblings = window_get_siblings(window)->length;
 				deco_rect->y -= deco_rect->height * siblings;
 			}
-			deco_rect->y += deco_rect->height * container_sibling_index(window);
+			deco_rect->y += deco_rect->height * window_sibling_index(window);
 		}
 	}
 }
@@ -710,7 +710,7 @@ json_object *ipc_json_describe_node(struct wmiiv_node *node) {
 		window_get_deco_rect(node->wmiiv_container, &deco_rect);
 		size_t count = 1;
 		if (container_parent_layout(node->wmiiv_container) == L_STACKED) {
-			count = container_get_siblings(node->wmiiv_container)->length;
+			count = window_get_siblings(node->wmiiv_container)->length;
 		}
 		box.y += deco_rect.height * count;
 		box.height -= deco_rect.height * count;

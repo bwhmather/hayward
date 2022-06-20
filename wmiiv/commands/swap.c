@@ -40,16 +40,16 @@ static void swap_places(struct wmiiv_container *window1,
 	window2->width_fraction = temp->width_fraction;
 	window2->height_fraction = temp->height_fraction;
 
-	int temp_index = container_sibling_index(window1);
+	int temp_index = window_sibling_index(window1);
 	window_detach(window1);
 	if (window2->pending.parent) {
 		column_insert_child(window2->pending.parent, window1,
-				container_sibling_index(window2));
+				window_sibling_index(window2));
 	} else if (window_is_floating(window2)) {
 		workspace_add_floating(window2->pending.workspace, window1);
 	} else {
 		workspace_insert_tiling(window2->pending.workspace, window1,
-				container_sibling_index(window2));
+				window_sibling_index(window2));
 	}
 
 	window_detach(window2);

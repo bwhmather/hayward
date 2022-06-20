@@ -127,76 +127,79 @@ static struct wmiiv_node *get_node_in_output_direction(
 }
 
 static struct wmiiv_node *node_get_in_direction_tiling(
-		struct wmiiv_container *container, struct wmiiv_seat *seat,
+		struct wmiiv_container *window, struct wmiiv_seat *seat,
 		enum wlr_direction dir) {
 	struct wmiiv_container *wrap_candidate = NULL;
-	struct wmiiv_container *current = container;
-	while (current) {
-		if (current->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-			// Fullscreen container with a direction - go straight to outputs
-			struct wmiiv_output *output = current->pending.workspace->output;
-			struct wmiiv_output *new_output =
-				output_get_in_direction(output, dir);
-			if (!new_output) {
-				return NULL;
-			}
-			return get_node_in_output_direction(new_output, dir);
-		}
-		if (current->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+
+	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+		// Fullscreen container with a direction - go straight to outputs
+		struct wmiiv_output *output = window->pending.workspace->output;
+		struct wmiiv_output *new_output =
+			output_get_in_direction(output, dir);
+		if (!new_output) {
 			return NULL;
 		}
+		return get_node_in_output_direction(new_output, dir);
+	}
+	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+		return NULL;
+	}
 
-		bool can_move = false;
-		int desired;
-		int idx = container_sibling_index(current);
-		enum wmiiv_container_layout parent_layout =
-			container_parent_layout(current);
-		list_t *siblings = container_get_siblings(current);
+	// TODO (wmiiv) this is a manually unrolled recursion over container.  Make it nice.
+	// Window iteration.
+	if (dir == WLR_DIRECTION_UP || dir == WLR_DIRECTION_DOWN) {
+		// Try to move up and down within the current column.
+		int current_idx = window_sibling_index(window);
+		int desired_idx = current_idx + (dir == WLR_DIRECTION_LEFT ? -1 : 1);
 
-		if (dir == WLR_DIRECTION_LEFT || dir == WLR_DIRECTION_RIGHT) {
-			if (parent_layout == L_HORIZ || parent_layout == L_TABBED) {
-				can_move = true;
-				desired = idx + (dir == WLR_DIRECTION_LEFT ? -1 : 1);
-			}
-		} else {
-			if (parent_layout == L_VERT || parent_layout == L_STACKED) {
-				can_move = true;
-				desired = idx + (dir == WLR_DIRECTION_UP ? -1 : 1);
-			}
+		list_t *siblings = window_get_siblings(window);
+
+		if (desired_idx >= 0 && desired_idx < siblings->length) {
+			return siblings->items[desired_idx];
 		}
 
-		if (can_move) {
-			if (desired < 0 || desired >= siblings->length) {
-				int len = siblings->length;
-				if (config->focus_wrapping != WRAP_NO && !wrap_candidate
-						&& len > 1) {
-					if (desired < 0) {
-						wrap_candidate = siblings->items[len-1];
-					} else {
-						wrap_candidate = siblings->items[0];
-					}
-					if (config->focus_wrapping == WRAP_FORCE) {
-						struct wmiiv_container *c = seat_get_focus_inactive_view(
-								seat, &wrap_candidate->node);
-						return &c->node;
-					}
-				}
+		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
+			if (desired_idx < 0) {
+				wrap_candidate = siblings->items[siblings->length - 1];
 			} else {
-				struct wmiiv_container *desired_container = siblings->items[desired];
-				struct wmiiv_container *c = seat_get_focus_inactive_view(
-						seat, &desired_container->node);
-				return &c->node;
+				wrap_candidate = siblings->items[0];
+			}
+			if (config->focus_wrapping == WRAP_FORCE) {
+				return &wrap_candidate->node;
 			}
 		}
+	} else {
+		// Try to move to the next column to the left of right within
+		// the current workspace.
+		struct wmiiv_container *column = window->pending.parent;
 
-		current = current->pending.parent;
+		int current_idx = column_sibling_index(column);
+		int desired_idx = current_idx + (dir == WLR_DIRECTION_LEFT ? -1 : 1);
+
+		list_t *siblings = column_get_siblings(column);
+
+		if (desired_idx >= 0 && desired_idx < siblings->length) {
+			return siblings->items[desired_idx];
+		}
+
+		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
+			struct wmiiv_container *wrap_candidate_column;
+			if (desired_idx < 0) {
+				wrap_candidate_column = siblings->items[siblings->length - 1];
+			} else {
+				wrap_candidate_column = siblings->items[0];
+			}
+			wrap_candidate = seat_get_focus_inactive_view(seat, &wrap_candidate_column->node);
+			if (config->focus_wrapping == WRAP_FORCE) {
+				return &wrap_candidate->node;
+			}
+		}
 	}
 
 	// Check a different output
-	struct wmiiv_output *output = container->pending.workspace->output;
+	struct wmiiv_output *output = window->pending.workspace->output;
 	struct wmiiv_output *new_output = output_get_in_direction(output, dir);
-	if ((config->focus_wrapping != WRAP_WORKSPACE ||
-				container->node.type == N_WORKSPACE) && new_output) {
+	if (config->focus_wrapping != WRAP_WORKSPACE && new_output) {
 		return get_node_in_output_direction(new_output, dir);
 	}
 

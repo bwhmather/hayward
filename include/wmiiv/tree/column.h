@@ -48,4 +48,13 @@ void column_get_box(struct wmiiv_container *column, struct wlr_box *box);
 
 void column_set_resizing(struct wmiiv_container *column, bool resizing);
 
+list_t *column_get_siblings(struct wmiiv_container *column);
+
+int column_sibling_index(struct wmiiv_container *child);
+
+list_t *column_get_current_siblings(struct wmiiv_container *column);
+
+struct wmiiv_container *column_get_previous_sibling(struct wmiiv_container *column);
+struct wmiiv_container *column_get_next_sibling(struct wmiiv_container *column);
+
 #endif

@@ -26,43 +26,69 @@ struct seatop_default_event {
  * Functions shared by multiple callbacks  /
  *---------------------------------------*/
 
+static bool column_edge_is_external(struct wmiiv_container *column, enum wlr_edges edge) {
+	if (edge == WLR_EDGE_TOP) {
+		return true;
+	}
+
+	if (edge == WLR_EDGE_BOTTOM) {
+		return true;
+	}
+
+	wmiiv_assert(column->pending.workspace, "Column is not attached to a workspace");
+	list_t *columns = column->pending.workspace->tiling;
+	int index = list_find(columns, column);
+	wmiiv_assert(index >= 0, "Column not found");
+
+	if (edge == WLR_EDGE_LEFT && index == 0) {
+		return true;
+	}
+
+	if (edge == WLR_EDGE_RIGHT && index == columns->length - 1) {
+		return true;
+	}
+
+	return false;
+}
+
+static bool window_edge_is_external(struct wmiiv_container *window, enum wlr_edges edge) {
+	wmiiv_assert(window_is_tiling(window), "Expected tiling window");
+
+	if (edge == WLR_EDGE_LEFT || edge == WLR_EDGE_RIGHT) {
+		return column_edge_is_external(window->pending.parent, edge);
+	}
+
+	enum wmiiv_container_layout layout = window->pending.parent->pending.layout;
+
+	if (layout == L_STACKED || layout == L_TABBED) {
+		return true;
+       	}
+	
+	list_t *siblings = window_get_siblings(window);
+	int index = list_find(siblings, window);
+	wmiiv_assert(index >= 0, "Window not found");
+	
+	if (edge == WLR_EDGE_TOP && index == 0) {
+		return true;
+	}
+
+	if (edge == WLR_EDGE_BOTTOM && index == siblings->length - 1) {
+		return true;
+	}
+
+	return false;
+}
+
 /**
  * Determine if the edge of the given container is on the edge of the
  * workspace/output.
  */
 static bool edge_is_external(struct wmiiv_container *cont, enum wlr_edges edge) {
-	enum wmiiv_container_layout layout = L_NONE;
-	switch (edge) {
-	case WLR_EDGE_TOP:
-	case WLR_EDGE_BOTTOM:
-		layout = L_VERT;
-		break;
-	case WLR_EDGE_LEFT:
-	case WLR_EDGE_RIGHT:
-		layout = L_HORIZ;
-		break;
-	case WLR_EDGE_NONE:
-		wmiiv_assert(false, "Never reached");
-		return false;
+	if (container_is_window(cont)) {
+		return window_edge_is_external(cont, edge);
+	} else {
+		return column_edge_is_external(cont, edge);
 	}
-
-	// Iterate the parents until we find one with the layout we want,
-	// then check if the child has siblings between it and the edge.
-	while (cont) {
-		if (container_parent_layout(cont) == layout) {
-			list_t *siblings = container_get_siblings(cont);
-			int index = list_find(siblings, cont);
-			if (index > 0 && (edge == WLR_EDGE_LEFT || edge == WLR_EDGE_TOP)) {
-				return false;
-			}
-			if (index < siblings->length - 1 &&
-					(edge == WLR_EDGE_RIGHT || edge == WLR_EDGE_BOTTOM)) {
-				return false;
-			}
-		}
-		cont = cont->pending.parent;
-	}
-	return true;
 }
 
 static enum wlr_edges find_edge(struct wmiiv_container *cont,
@@ -735,7 +761,7 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 		struct wmiiv_container *column = window->pending.parent;
 		if (column->pending.layout == L_TABBED || column->pending.layout == L_STACKED) {
 			struct wmiiv_node *active = seat_get_active_tiling_child(seat, &column->node);
-			list_t *siblings = container_get_siblings(window);
+			list_t *siblings = window_get_siblings(window);
 			int desired = list_find(siblings, active->wmiiv_container) +
 				round(scroll_factor * event->delta_discrete);
 			if (desired < 0) {

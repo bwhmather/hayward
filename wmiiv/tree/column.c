@@ -72,7 +72,7 @@ void column_consider_destroy(struct wmiiv_container *column) {
 void column_detach(struct wmiiv_container *column) {
 	struct wmiiv_workspace *old_workspace = column->pending.workspace;
 
-	list_t *siblings = container_get_siblings(column);
+	list_t *siblings = column_get_siblings(column);
 	if (siblings) {
 		int index = list_find(siblings, column);
 		if (index != -1) {
@@ -132,7 +132,7 @@ void column_add_sibling(struct wmiiv_container *fixed,
 		window_detach(active);
 	}
 
-	list_t *siblings = container_get_siblings(fixed);
+	list_t *siblings = window_get_siblings(fixed);
 	int index = list_find(siblings, fixed);
 	list_insert(siblings, index + after, active);
 	active->pending.parent = fixed->pending.parent;
@@ -273,4 +273,64 @@ void column_set_resizing(struct wmiiv_container *column, bool resizing) {
 		struct wmiiv_container *child = column->pending.children->items[i];
 		window_set_resizing(child, resizing);
 	}
+}
+
+list_t *column_get_siblings(struct wmiiv_container *column) {
+	if (column->pending.workspace) {
+		return column->pending.workspace->tiling;
+	}
+	return NULL;
+}
+
+int column_sibling_index(struct wmiiv_container *child) {
+	return list_find(column_get_siblings(child), child);
+}
+
+list_t *column_get_current_siblings(struct wmiiv_container *column) {
+	if (column->current.workspace) {
+		return column->current.workspace->tiling;
+	}
+	return NULL;
+}
+
+struct wmiiv_container *column_get_previous_sibling(struct wmiiv_container *column) {
+	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
+		return NULL;
+	}
+
+	if (!wmiiv_assert(column->pending.workspace, "Column is not attached to a workspace")) {
+		return NULL;
+	}
+
+	list_t *siblings = column->pending.workspace->tiling;
+	int index = list_find(siblings, column);
+
+	if (index <= 0) {
+		return NULL;
+	}
+
+	return siblings->items[index - 1];
+}
+
+struct wmiiv_container *column_get_next_sibling(struct wmiiv_container *column) {
+	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
+		return NULL;
+	}
+
+	if (!wmiiv_assert(column->pending.workspace, "Column is not attached to a workspace")) {
+		return NULL;
+	}
+
+	list_t *siblings = column->pending.workspace->tiling;
+	int index = list_find(siblings, column);
+
+	if (index < 0) {
+		return NULL;
+	}
+
+	if (index >= siblings->length - 1) {
+		return NULL;
+	}
+
+	return siblings->items[index + 1];
 }
