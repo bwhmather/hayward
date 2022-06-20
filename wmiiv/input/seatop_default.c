@@ -417,7 +417,7 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		// the user clicked on the title of a hidden tab, we'd change the active tab
 		// when the user probably just wanted to resize.
 		struct wmiiv_container *window_to_focus = window;
-		enum wmiiv_container_layout layout = container_parent_layout(window);
+		enum wmiiv_container_layout layout = window_parent_layout(window);
 		if (layout == L_TABBED || layout == L_STACKED) {
 			window_to_focus = seat_get_focus_inactive_view(seat, &window->pending.parent->node);
 		}

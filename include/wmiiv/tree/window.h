@@ -175,4 +175,8 @@ list_t *window_get_current_siblings(struct wmiiv_container *window);
 struct wmiiv_container *window_get_previous_sibling(struct wmiiv_container *window);
 struct wmiiv_container *window_get_next_sibling(struct wmiiv_container *window);
 
+enum wmiiv_container_layout window_parent_layout(struct wmiiv_container *window);
+
+enum wmiiv_container_layout window_current_parent_layout(struct wmiiv_container *window);
+
 #endif

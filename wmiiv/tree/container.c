@@ -208,32 +208,3 @@ void container_discover_outputs(struct wmiiv_container *container) {
 	}
 }
 
-enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *container) {
-	if (container_is_window(container)) {
-		if (container->pending.parent) {
-			return container->pending.parent->pending.layout;
-		}
-		return L_NONE;
-	} else {
-		// TODO (wmiiv) There should be no need for this branch.  Can
-		// probably all be moved to window module.
-		if (container->pending.parent) {
-			return container->pending.parent->pending.layout;
-		}
-		if (container->pending.workspace) {
-			return L_HORIZ;
-		}
-		return L_NONE;
-	}
-}
-
-enum wmiiv_container_layout container_current_parent_layout(
-		struct wmiiv_container *container) {
-	if (container->current.parent) {
-		return container->current.parent->current.layout;
-	}
-	// TODO (wmiiv) workspace default layout.
-	return L_HORIZ;
-}
-
-

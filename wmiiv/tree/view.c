@@ -210,7 +210,7 @@ bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
 static bool view_is_only_visible(struct wmiiv_view *view) {
 	struct wmiiv_container *window = view->container;
 
-	enum wmiiv_container_layout layout = container_parent_layout(window);
+	enum wmiiv_container_layout layout = window_parent_layout(window);
 	if (layout != L_TABBED && layout != L_STACKED) {
 		list_t *siblings = window_get_siblings(window);
 		if (siblings && siblings->length > 1) {
@@ -291,7 +291,7 @@ void view_autoconfigure(struct wmiiv_view *view) {
 		bool show_titlebar = (siblings && siblings->length > 1)
 			|| !config->hide_lone_tab;
 		if (show_titlebar) {
-			enum wmiiv_container_layout layout = container_parent_layout(window);
+			enum wmiiv_container_layout layout = window_parent_layout(window);
 			if (layout == L_TABBED) {
 				y_offset = window_titlebar_height();
 				window->pending.border_top = false;

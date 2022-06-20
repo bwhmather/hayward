@@ -70,8 +70,8 @@ static void swap_focus(struct wmiiv_container *window1,
 	if (focus == window1 || focus == window2) {
 		struct wmiiv_workspace *workspace1 = window1->pending.workspace;
 		struct wmiiv_workspace *workspace2 = window2->pending.workspace;
-		enum wmiiv_container_layout layout1 = container_parent_layout(window1);
-		enum wmiiv_container_layout layout2 = container_parent_layout(window2);
+		enum wmiiv_container_layout layout1 = window_parent_layout(window1);
+		enum wmiiv_container_layout layout2 = window_parent_layout(window2);
 		if (focus == window1 && (layout2 == L_TABBED || layout2 == L_STACKED)) {
 			if (workspace_is_visible(workspace2)) {
 				seat_set_raw_focus(seat, &window2->node);

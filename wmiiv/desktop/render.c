@@ -380,8 +380,7 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 	}
 
 	list_t *siblings = window_get_current_siblings(window);
-	enum wmiiv_container_layout layout =
-		container_current_parent_layout(window);
+	enum wmiiv_container_layout layout = window_current_parent_layout(window);
 
 	if (state->border_right) {
 		memcpy(&color, colors->child_border, sizeof(float) * 4);

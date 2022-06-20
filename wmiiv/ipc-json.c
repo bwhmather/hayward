@@ -426,7 +426,7 @@ static void column_get_deco_rect(struct wmiiv_container *column, struct wlr_box 
 }
 
 static void window_get_deco_rect(struct wmiiv_container *window, struct wlr_box *deco_rect) {
-	enum wmiiv_container_layout parent_layout = container_parent_layout(window);
+	enum wmiiv_container_layout parent_layout = window_parent_layout(window);
 	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
 
 	if (((!tab_or_stack || window_is_floating(window)) &&
@@ -709,7 +709,7 @@ json_object *ipc_json_describe_node(struct wmiiv_node *node) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
 		window_get_deco_rect(node->wmiiv_container, &deco_rect);
 		size_t count = 1;
-		if (container_parent_layout(node->wmiiv_container) == L_STACKED) {
+		if (window_parent_layout(node->wmiiv_container) == L_STACKED) {
 			count = window_get_siblings(node->wmiiv_container)->length;
 		}
 		box.y += deco_rect.height * count;

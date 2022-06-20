@@ -1247,3 +1247,19 @@ struct wmiiv_container *window_get_next_sibling(struct wmiiv_container *window) 
 
 	return siblings->items[index + 1];
 }
+
+enum wmiiv_container_layout window_parent_layout(struct wmiiv_container *window) {
+	if (window->pending.parent) {
+		return window->pending.parent->pending.layout;
+	}
+	return L_NONE;
+}
+
+enum wmiiv_container_layout window_current_parent_layout(struct wmiiv_container *window) {
+	if (window->current.parent) {
+		return window->current.parent->current.layout;
+	}
+	return L_NONE;
+}
+
+

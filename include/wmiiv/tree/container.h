@@ -161,11 +161,6 @@ struct wmiiv_output *container_get_effective_output(struct wmiiv_container *cont
 
 void container_discover_outputs(struct wmiiv_container *container);
 
-enum wmiiv_container_layout container_parent_layout(struct wmiiv_container *container);
-
-enum wmiiv_container_layout container_current_parent_layout(
-		struct wmiiv_container *container);
-
 void container_swap(struct wmiiv_container *container1, struct wmiiv_container *container2);
 
 #endif

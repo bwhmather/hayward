@@ -14,11 +14,11 @@
 #include "stringop.h"
 #include "util.h"
 
-static bool get_direction_from_next_prev(struct wmiiv_container *container,
+static bool get_direction_from_next_prev(struct wmiiv_container *window,
 		struct wmiiv_seat *seat, const char *name, enum wlr_direction *out) {
 	enum wmiiv_container_layout parent_layout = L_NONE;
-	if (container) {
-		parent_layout = container_parent_layout(container);
+	if (window) {
+		parent_layout = window_parent_layout(window);
 	}
 
 	if (strcasecmp(name, "prev") == 0) {
