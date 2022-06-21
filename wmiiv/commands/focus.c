@@ -411,7 +411,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	if (next_focus) {
 		seat_set_focus(seat, next_focus);
 		seat_consider_warp_to_focus(seat);
-		window_raise_floating(next_focus->wmiiv_container);
+		window_raise_floating(next_focus->wmiiv_window);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

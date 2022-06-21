@@ -586,7 +586,7 @@ static void check_focus_follows_mouse(struct wmiiv_seat *seat,
 	// This is where we handle the common case. We don't want to focus inactive
 	// tabs, hence the view_is_visible check.
 	if (node_is_view(hovered_node) &&
-			view_is_visible(hovered_node->wmiiv_container->view)) {
+			view_is_visible(hovered_node->wmiiv_window->view)) {
 		// e->previous_node is the node which the cursor was over previously.
 		// If focus_follows_mouse is yes and the cursor got over the view due
 		// to, say, a workspace switch, we don't want to set the focus.
@@ -762,7 +762,7 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 		if (column->pending.layout == L_TABBED || column->pending.layout == L_STACKED) {
 			struct wmiiv_node *active = seat_get_active_tiling_child(seat, &column->node);
 			list_t *siblings = window_get_siblings(window);
-			int desired = list_find(siblings, active->wmiiv_container) +
+			int desired = list_find(siblings, active->wmiiv_window) +
 				round(scroll_factor * event->delta_discrete);
 			if (desired < 0) {
 				desired = 0;

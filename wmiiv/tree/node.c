@@ -53,9 +53,9 @@ char *node_get_name(struct wmiiv_node *node) {
 	case N_WORKSPACE:
 		return node->wmiiv_workspace->name;
 	case N_COLUMN:
-		return node->wmiiv_container->title;
+		return node->wmiiv_column->title;
 	case N_WINDOW:
-		return node->wmiiv_container->title;
+		return node->wmiiv_window->title;
 	}
 	return NULL;
 }
@@ -72,10 +72,10 @@ void node_get_box(struct wmiiv_node *node, struct wlr_box *box) {
 		workspace_get_box(node->wmiiv_workspace, box);
 		break;
 	case N_COLUMN:
-		column_get_box(node->wmiiv_container, box);
+		column_get_box(node->wmiiv_column, box);
 		break;
 	case N_WINDOW:
-		window_get_box(node->wmiiv_container, box);
+		window_get_box(node->wmiiv_window, box);
 		break;
 	}
 }
@@ -89,11 +89,11 @@ struct wmiiv_output *node_get_output(struct wmiiv_node *node) {
 	case N_ROOT:
 		return NULL;
 	case N_COLUMN: {
-			struct wmiiv_workspace *workspace = node->wmiiv_container->pending.workspace;
+			struct wmiiv_workspace *workspace = node->wmiiv_column->pending.workspace;
 			return workspace ? workspace->output : NULL;
 		}
 	case N_WINDOW: {
-			struct wmiiv_workspace *workspace = node->wmiiv_container->pending.workspace;
+			struct wmiiv_workspace *workspace = node->wmiiv_window->pending.workspace;
 			return workspace ? workspace->output : NULL;
 		}	
 	}
@@ -109,7 +109,7 @@ enum wmiiv_container_layout node_get_layout(struct wmiiv_node *node) {
 	case N_WORKSPACE:
 		return L_HORIZ;
 	case N_COLUMN:
-		return node->wmiiv_container->pending.layout;
+		return node->wmiiv_column->pending.layout;
 	case N_WINDOW:
 		return L_NONE;
 	}
@@ -130,7 +130,7 @@ struct wmiiv_node *node_get_parent(struct wmiiv_node *node) {
 		}
 		return NULL;
 	case N_COLUMN: {
-			struct wmiiv_container *container = node->wmiiv_container;
+			struct wmiiv_container *container = node->wmiiv_column;
 			if (container->pending.parent) {
 				return &container->pending.parent->node;
 			}
@@ -140,7 +140,7 @@ struct wmiiv_node *node_get_parent(struct wmiiv_node *node) {
 		}
 		return NULL;
 	case N_WINDOW: {
-			struct wmiiv_container *container = node->wmiiv_container;
+			struct wmiiv_container *container = node->wmiiv_window;
 			if (container->pending.parent) {
 				return &container->pending.parent->node;
 			}
@@ -162,7 +162,7 @@ list_t *node_get_children(struct wmiiv_node *node) {
 	case N_WORKSPACE:
 		return node->wmiiv_workspace->tiling;
 	case N_COLUMN:
-		return node->wmiiv_container->pending.children;
+		return node->wmiiv_column->pending.children;
 	case N_WINDOW:
 		return NULL;
 	}
@@ -170,17 +170,13 @@ list_t *node_get_children(struct wmiiv_node *node) {
 }
 
 bool node_has_ancestor(struct wmiiv_node *node, struct wmiiv_node *ancestor) {
-	if (ancestor->type == N_ROOT && (node->type == N_COLUMN || node->type == N_WINDOW) &&
-			node->wmiiv_container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+	if (ancestor->type == N_ROOT && node->type == N_WINDOW &&
+			node->wmiiv_window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 		return true;
 	}
 	struct wmiiv_node *parent = node_get_parent(node);
 	while (parent) {
 		if (parent == ancestor) {
-			return true;
-		}
-		if (ancestor->type == N_ROOT && parent->type == N_COLUMN &&
-				parent->wmiiv_container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 			return true;
 		}
 		parent = node_get_parent(parent);

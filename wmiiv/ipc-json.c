@@ -700,17 +700,17 @@ json_object *ipc_json_describe_node(struct wmiiv_node *node) {
 
 	if (node->type == N_COLUMN) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
-		column_get_deco_rect(node->wmiiv_container, &deco_rect);
+		column_get_deco_rect(node->wmiiv_column, &deco_rect);
 		box.y += deco_rect.height;
 		box.height -= deco_rect.height;
 	}
 
 	if (node->type == N_WINDOW) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
-		window_get_deco_rect(node->wmiiv_container, &deco_rect);
+		window_get_deco_rect(node->wmiiv_window, &deco_rect);
 		size_t count = 1;
-		if (window_parent_layout(node->wmiiv_container) == L_STACKED) {
-			count = window_get_siblings(node->wmiiv_container)->length;
+		if (window_parent_layout(node->wmiiv_window) == L_STACKED) {
+			count = window_get_siblings(node->wmiiv_window)->length;
 		}
 		box.y += deco_rect.height * count;
 		box.height -= deco_rect.height * count;
@@ -736,10 +736,10 @@ json_object *ipc_json_describe_node(struct wmiiv_node *node) {
 		ipc_json_describe_workspace(node->wmiiv_workspace, object);
 		break;
 	case N_COLUMN:
-		ipc_json_describe_column(node->wmiiv_container, object);
+		ipc_json_describe_column(node->wmiiv_column, object);
 		break;
 	case N_WINDOW:
-		ipc_json_describe_window(node->wmiiv_container, object);
+		ipc_json_describe_window(node->wmiiv_window, object);
 		break;
 	}
 
@@ -774,10 +774,10 @@ json_object *ipc_json_describe_node_recursive(struct wmiiv_node *node) {
 		}
 		break;
 	case N_COLUMN:
-		if (node->wmiiv_container->pending.children) {
-			for (i = 0; i < node->wmiiv_container->pending.children->length; ++i) {
+		if (node->wmiiv_column->pending.children) {
+			for (i = 0; i < node->wmiiv_column->pending.children->length; ++i) {
 				struct wmiiv_container *child =
-					node->wmiiv_container->pending.children->items[i];
+					node->wmiiv_column->pending.children->items[i];
 				json_object_array_add(children,
 						ipc_json_describe_node_recursive(&child->node));
 			}

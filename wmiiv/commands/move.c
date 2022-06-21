@@ -378,7 +378,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	case N_WINDOW:
 		// TODO (wmiiv)
 	case N_COLUMN:
-		window_move_to_column(window, destination->wmiiv_container);
+		window_move_to_column(window, destination->wmiiv_column);
 		break;
 	case N_ROOT:
 		break;

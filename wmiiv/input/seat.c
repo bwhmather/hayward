@@ -185,13 +185,13 @@ static void seat_send_focus(struct wmiiv_node *node, struct wmiiv_seat *seat) {
 		return;
 	}
 
-	if (!seat_is_input_allowed(seat, node->wmiiv_container->view->surface)) {
+	if (!seat_is_input_allowed(seat, node->wmiiv_window->view->surface)) {
 		wmiiv_log(WMIIV_DEBUG, "Refusing to set focus, input is inhibited");
 		return;
 	}
 
-	view_set_activated(node->wmiiv_container->view, true);
-	struct wmiiv_view *view = node->wmiiv_container->view;
+	view_set_activated(node->wmiiv_window->view, true);
+	struct wmiiv_view *view = node->wmiiv_window->view;
 #if HAVE_XWAYLAND
 	if (view->type == WMIIV_VIEW_XWAYLAND) {
 		struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
@@ -237,7 +237,7 @@ void seat_for_each_window(struct wmiiv_seat *seat,
 struct wmiiv_container *seat_get_focus_inactive_view(struct wmiiv_seat *seat,
 		struct wmiiv_node *ancestor) {
 	if (node_is_view(ancestor)) {
-		return ancestor->wmiiv_container;
+		return ancestor->wmiiv_window;
 	}
 	struct wmiiv_seat_window *current;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
@@ -461,7 +461,7 @@ static struct wmiiv_seat_window *seat_window_from_node(
 	if (node->type != N_WINDOW) {
 		return NULL;
 	}
-	return seat_window_from_window(seat, node->wmiiv_container);
+	return seat_window_from_window(seat, node->wmiiv_window);
 }
 
 static void handle_new_node(struct wl_listener *listener, void *data) {
@@ -478,7 +478,7 @@ static void handle_new_node(struct wl_listener *listener, void *data) {
 	case N_COLUMN:
 		break;
 	case N_WINDOW:
-		seat_window_from_window(seat, node->wmiiv_container);
+		seat_window_from_window(seat, node->wmiiv_window);
 		break;
 	}
 }
@@ -1209,8 +1209,8 @@ static void seat_send_unfocus(struct wmiiv_node *node, struct wmiiv_seat *seat) 
 	wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 	if (node->type == N_WORKSPACE) {
 		workspace_for_each_container(node->wmiiv_workspace, send_unfocus, seat);
-	} else {
-		send_unfocus(node->wmiiv_container, seat);
+	} else if (node->type == N_WINDOW) {
+		send_unfocus(node->wmiiv_window, seat);
 	}
 }
 
@@ -1247,7 +1247,7 @@ void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	if (!wmiiv_assert(node->type == N_WINDOW, "Expected window")) {
 		return;
 	}
-	seat_set_active_window(seat, node->wmiiv_container);
+	seat_set_active_window(seat, node->wmiiv_window);
 }
 
 static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_workspace *new_workspace, struct wmiiv_container *new_window) {
@@ -1405,7 +1405,7 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	}
 
 	if (node->type == N_WINDOW) {
-		seat_set_focus_window(seat, node->wmiiv_container);
+		seat_set_focus_window(seat, node->wmiiv_window);
 		return;
 	}
 
@@ -1508,7 +1508,7 @@ void seat_set_exclusive_client(struct wmiiv_seat *seat,
 	if (seat->has_focus) {
 		struct wmiiv_node *focus = seat_get_focus(seat);
 		if (node_is_view(focus) && wl_resource_get_client(
-					focus->wmiiv_container->view->surface->resource) != client) {
+					focus->wmiiv_window->view->surface->resource) != client) {
 			seat_set_focus(seat, NULL);
 		}
 	}
@@ -1674,11 +1674,11 @@ struct wmiiv_node *seat_get_active_tiling_child(struct wmiiv_seat *seat,
 		break;
 
 	case N_COLUMN:
-		window = seat_get_active_window_for_column(seat, parent->wmiiv_container);
+		window = seat_get_active_window_for_column(seat, parent->wmiiv_column);
 		break;
 
 	case N_WINDOW:
-		window = parent->wmiiv_container;
+		window = parent->wmiiv_window;
 		break;
 
 	default:
@@ -1712,8 +1712,8 @@ struct wmiiv_workspace *seat_get_focused_workspace(struct wmiiv_seat *seat) {
 
 struct wmiiv_container *seat_get_focused_container(struct wmiiv_seat *seat) {
 	struct wmiiv_node *focus = seat_get_focus(seat);
-	if (focus && (focus->type == N_COLUMN || focus->type == N_WINDOW)) {
-		return focus->wmiiv_container;
+	if (focus && (focus->type == N_WINDOW)) {
+		return focus->wmiiv_window;
 	}
 	return NULL;
 }
@@ -1783,8 +1783,8 @@ void seat_consider_warp_to_focus(struct wmiiv_seat *seat) {
 		}
 	}
 
-	if (focus->type == N_COLUMN || focus->type == N_WINDOW) {
-		cursor_warp_to_container(seat->cursor, focus->wmiiv_container, false);
+	if (focus->type == N_WINDOW) {
+		cursor_warp_to_container(seat->cursor, focus->wmiiv_window, false);
 	} else {
 		cursor_warp_to_workspace(seat->cursor, focus->wmiiv_workspace);
 	}

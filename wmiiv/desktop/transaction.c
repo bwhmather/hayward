@@ -71,10 +71,10 @@ static void transaction_destroy(struct wmiiv_transaction *transaction) {
 				workspace_destroy(node->wmiiv_workspace);
 				break;
 			case N_COLUMN:
-				column_destroy(node->wmiiv_container);
+				column_destroy(node->wmiiv_column);
 				break;
 			case N_WINDOW:
-				window_destroy(node->wmiiv_container);
+				window_destroy(node->wmiiv_window);
 				break;
 			}
 		}
@@ -162,7 +162,7 @@ static void copy_column_state(struct wmiiv_container *container,
 
 	struct wmiiv_node *focus =
 		seat_get_active_tiling_child(seat, &container->node);
-	state->focused_inactive_child = focus ? focus->wmiiv_container : NULL;
+	state->focused_inactive_child = focus ? focus->wmiiv_window : NULL;
 }
 
 static void copy_window_state(struct wmiiv_container *container,
@@ -218,10 +218,10 @@ static void transaction_add_node(struct wmiiv_transaction *transaction,
 		copy_workspace_state(node->wmiiv_workspace, instruction);
 		break;
 	case N_COLUMN:
-		copy_column_state(node->wmiiv_container, instruction);
+		copy_column_state(node->wmiiv_column, instruction);
 		break;
 	case N_WINDOW:
-		copy_window_state(node->wmiiv_container, instruction);
+		copy_window_state(node->wmiiv_window, instruction);
 		break;
 	}
 }
@@ -356,11 +356,11 @@ static void transaction_apply(struct wmiiv_transaction *transaction) {
 					&instruction->workspace_state);
 			break;
 		case N_COLUMN:
-			apply_column_state(node->wmiiv_container,
+			apply_column_state(node->wmiiv_column,
 					&instruction->container_state);
 			break;
 		case N_WINDOW:
-			apply_window_state(node->wmiiv_container,
+			apply_window_state(node->wmiiv_window,
 					&instruction->container_state);
 		}
 
@@ -411,12 +411,12 @@ static bool should_configure(struct wmiiv_node *node,
 	if (!instruction->server_request) {
 		return false;
 	}
-	struct wmiiv_container_state *cstate = &node->wmiiv_container->current;
+	struct wmiiv_container_state *cstate = &node->wmiiv_window->current;
 	struct wmiiv_container_state *istate = &instruction->container_state;
 #if HAVE_XWAYLAND
 	// Xwayland views are position-aware and need to be reconfigured
 	// when their position changes.
-	if (node->wmiiv_container->view->type == WMIIV_VIEW_XWAYLAND) {
+	if (node->wmiiv_window->view->type == WMIIV_VIEW_XWAYLAND) {
 		// WMiiv logical coordinates are doubles, but they get truncated to
 		// integers when sent to Xwayland through `xcb_configure_window`.
 		// X11 apps will not respond to duplicate configure requests (from their
@@ -443,9 +443,9 @@ static void transaction_commit(struct wmiiv_transaction *transaction) {
 			transaction->instructions->items[i];
 		struct wmiiv_node *node = instruction->node;
 		bool hidden = node_is_view(node) && !node->destroying &&
-			!view_is_visible(node->wmiiv_container->view);
+			!view_is_visible(node->wmiiv_window->view);
 		if (should_configure(node, instruction)) {
-			instruction->serial = view_configure(node->wmiiv_container->view,
+			instruction->serial = view_configure(node->wmiiv_window->view,
 					instruction->container_state.content_x,
 					instruction->container_state.content_y,
 					instruction->container_state.content_width,
@@ -462,13 +462,13 @@ static void transaction_commit(struct wmiiv_transaction *transaction) {
 			struct timespec now;
 			clock_gettime(CLOCK_MONOTONIC, &now);
 			wlr_surface_send_frame_done(
-					node->wmiiv_container->view->surface, &now);
+					node->wmiiv_window->view->surface, &now);
 		}
 		if (!hidden && node_is_view(node) &&
-				wl_list_empty(&node->wmiiv_container->view->saved_buffers)) {
-			view_save_buffer(node->wmiiv_container->view);
-			memcpy(&node->wmiiv_container->view->saved_geometry,
-					&node->wmiiv_container->view->geometry,
+				wl_list_empty(&node->wmiiv_window->view->saved_buffers)) {
+			view_save_buffer(node->wmiiv_window->view);
+			memcpy(&node->wmiiv_window->view->saved_geometry,
+					&node->wmiiv_window->view->geometry,
 					sizeof(struct wlr_box));
 		}
 		node->instruction = instruction;
@@ -514,6 +514,7 @@ static void transaction_commit_pending(void) {
 static void set_instruction_ready(
 		struct wmiiv_transaction_instruction *instruction) {
 	struct wmiiv_transaction *transaction = instruction->transaction;
+	wmiiv_assert(node_is_view(instruction->node), "Expected view");
 
 	if (debug.txn_timings) {
 		struct timespec now;
@@ -525,7 +526,7 @@ static void set_instruction_ready(
 				transaction,
 				transaction->num_configures - transaction->num_waiting + 1,
 				transaction->num_configures, ms,
-				instruction->node->wmiiv_container->title);
+				instruction->node->wmiiv_window->title);
 	}
 
 	// If the transaction has timed out then its num_waiting will be 0 already.

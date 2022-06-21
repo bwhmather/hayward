@@ -47,8 +47,8 @@ struct wmiiv_output *workspace_get_initial_output(const char *name) {
 	struct wmiiv_node *focus = seat_get_focus_inactive(seat, &root->node);
 	if (focus && focus->type == N_WORKSPACE) {
 		return focus->wmiiv_workspace->output;
-	} else if (focus && (focus->type == N_COLUMN || focus->type == N_WINDOW)) {
-		return focus->wmiiv_container->pending.workspace->output;
+	} else if (focus && focus->type == N_WINDOW) {
+		return focus->wmiiv_window->pending.workspace->output;
 	}
 	// Fallback to the first output or the headless output
 	return root->outputs->length ? root->outputs->items[0] : root->fallback_output;
@@ -556,8 +556,8 @@ struct wmiiv_workspace *workspace_auto_back_and_forth(
 	struct wmiiv_node *focus = seat_get_focus_inactive(seat, &root->node);
 	if (focus && focus->type == N_WORKSPACE) {
 		active_workspace = focus->wmiiv_workspace;
-	} else if (focus && (focus->type == N_COLUMN || focus->type == N_WINDOW)) {
-		active_workspace = focus->wmiiv_container->pending.workspace;
+	} else if (focus && (focus->type == N_WINDOW)) {
+		active_workspace = focus->wmiiv_window->pending.workspace;
 	}
 
 	if (config->auto_back_and_forth && active_workspace && active_workspace == workspace &&

@@ -363,10 +363,10 @@ void arrange_node(struct wmiiv_node *node) {
 		arrange_workspace(node->wmiiv_workspace);
 		break;
 	case N_COLUMN:
-		arrange_column(node->wmiiv_container);
+		arrange_column(node->wmiiv_column);
 		break;
 	case N_WINDOW:
-		arrange_window(node->wmiiv_container);
+		arrange_window(node->wmiiv_window);
 		break;
 	}
 }

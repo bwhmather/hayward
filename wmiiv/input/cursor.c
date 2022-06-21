@@ -392,8 +392,8 @@ void seat_get_target_at(
 
 	switch (node->type) {
 	case N_WINDOW:
-		*windowp = node->wmiiv_container;
-		*wsp = node->wmiiv_container->pending.workspace;
+		*windowp = node->wmiiv_window;
+		*wsp = node->wmiiv_window->pending.workspace;
 		break;
 	case N_WORKSPACE:
 		*windowp = NULL;
@@ -424,12 +424,12 @@ void cursor_rebase_all(void) {
 
 void cursor_update_image(struct wmiiv_cursor *cursor,
 		struct wmiiv_node *node) {
-	if (node && (node->type == N_COLUMN || node->type == N_WINDOW)) {
+	if (node && node->type == N_WINDOW) {
 		// Try a node's resize edge
-		enum wlr_edges edge = find_resize_edge(node->wmiiv_container, NULL, cursor);
+		enum wlr_edges edge = find_resize_edge(node->wmiiv_window, NULL, cursor);
 		if (edge == WLR_EDGE_NONE) {
 			cursor_set_image(cursor, "left_ptr", NULL);
-		} else if (node->type == N_WINDOW && window_is_floating(node->wmiiv_container)) {
+		} else if (window_is_floating(node->wmiiv_window)) {
 			cursor_set_image(cursor, wlr_xcursor_get_resize_name(edge), NULL);
 		} else {
 			if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
@@ -1599,7 +1599,7 @@ void handle_pointer_constraint(struct wl_listener *listener, void *data) {
 
 	struct wmiiv_node *focus = seat_get_focus(seat);
 	if (focus && node_is_view(focus)) {
-		struct wlr_surface *surface = focus->wmiiv_container->view->surface;
+		struct wlr_surface *surface = focus->wmiiv_window->view->surface;
 		if (surface == constraint->surface) {
 			wmiiv_cursor_constrain(seat->cursor, constraint);
 		}

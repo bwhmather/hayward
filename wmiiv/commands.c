@@ -190,14 +190,14 @@ static void set_config_node(struct wmiiv_node *node, bool node_overridden) {
 		config->handler_context.workspace = node->wmiiv_workspace;
 		break;
 	case N_COLUMN:
-		config->handler_context.workspace = node->wmiiv_container->pending.workspace;
-		config->handler_context.container = node->wmiiv_container;
-		config->handler_context.column = node->wmiiv_container;
+		config->handler_context.workspace = node->wmiiv_column->pending.workspace;
+		config->handler_context.container = node->wmiiv_column;
+		config->handler_context.column = node->wmiiv_column;
 		break;
 	case N_WINDOW:
-		config->handler_context.workspace = node->wmiiv_container->pending.workspace;
-		config->handler_context.container = node->wmiiv_container;
-		config->handler_context.window = node->wmiiv_container;
+		config->handler_context.workspace = node->wmiiv_window->pending.workspace;
+		config->handler_context.container = node->wmiiv_window;
+		config->handler_context.window = node->wmiiv_column;
 		break;
 	}
 }
