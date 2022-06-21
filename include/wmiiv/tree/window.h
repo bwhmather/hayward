@@ -11,6 +11,12 @@ struct wmiiv_container *window_create(struct wmiiv_view *view);
 void window_detach(struct wmiiv_container *window);
 
 /**
+ * If the window is involved in a drag or resize operation via a mouse, this
+ * ends the operation.
+ */
+void window_end_mouse_operation(struct wmiiv_container *window);
+
+/**
  * Find any container that has the given mark and return it.
  */
 struct wmiiv_container *window_find_mark(char *mark);

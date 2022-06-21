@@ -140,12 +140,6 @@ void container_begin_destroy(struct wmiiv_container *container);
 bool container_has_urgent_child(struct wmiiv_container *container);
 
 /**
- * If the container is involved in a drag or resize operation via a mouse, this
- * ends the operation.
- */
-void container_end_mouse_operation(struct wmiiv_container *container);
-
-/**
  * Walk up the container tree branch starting at the given container, and return
  * its earliest ancestor.
  */

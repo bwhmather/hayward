@@ -582,7 +582,7 @@ static struct cmd_results *cmd_move_in_direction(
 		workspace_detect_urgent(old_workspace);
 		workspace_detect_urgent(new_workspace);
 	}
-	container_end_mouse_operation(window);
+	window_end_mouse_operation(window);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

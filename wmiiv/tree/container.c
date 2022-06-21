@@ -87,7 +87,9 @@ void container_begin_destroy(struct wmiiv_container *container) {
 
 	wl_signal_emit(&container->node.events.destroy, &container->node);
 
-	container_end_mouse_operation(container);
+	if (container_is_window(container)) {
+		window_end_mouse_operation(container);
+	}
 
 	container->node.destroying = true;
 	node_set_dirty(&container->node);
@@ -111,13 +113,6 @@ static bool find_urgent_iterator(struct wmiiv_container *container, void *data) 
 
 bool container_has_urgent_child(struct wmiiv_container *container) {
 	return column_find_child(container, find_urgent_iterator, NULL);
-}
-
-void container_end_mouse_operation(struct wmiiv_container *container) {
-	struct wmiiv_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		seatop_unref(seat, container);
-	}
 }
 
 struct wmiiv_container *container_toplevel_ancestor(

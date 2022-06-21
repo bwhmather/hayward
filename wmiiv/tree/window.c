@@ -82,6 +82,12 @@ void window_detach(struct wmiiv_container *window) {
 	node_set_dirty(&window->node);
 }
 
+void window_end_mouse_operation(struct wmiiv_container *window) {
+	struct wmiiv_seat *seat;
+	wl_list_for_each(seat, &server.input->seats, link) {
+		seatop_unref(seat, window);
+	}
+}
 
 static bool find_by_mark_iterator(struct wmiiv_container *container, void *data) {
 	char *mark = data;
@@ -394,7 +400,7 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 		window_move_to_workspace(window, workspace);
 	}
 
-	container_end_mouse_operation(window);
+	window_end_mouse_operation(window);
 
 	ipc_event_window(window, "floating");
 }
@@ -789,7 +795,7 @@ static void window_fullscreen_workspace(struct wmiiv_container *window) {
 		}
 	}
 
-	container_end_mouse_operation(window);
+	window_end_mouse_operation(window);
 	ipc_event_window(window, "fullscreen_mode");
 }
 
@@ -818,7 +824,7 @@ static void window_fullscreen_global(struct wmiiv_container *window) {
 	}
 
 	window->pending.fullscreen_mode = FULLSCREEN_GLOBAL;
-	container_end_mouse_operation(window);
+	window_end_mouse_operation(window);
 	ipc_event_window(window, "fullscreen_mode");
 }
 
@@ -897,7 +903,7 @@ void window_fullscreen_disable(struct wmiiv_container *window) {
 	}
 
 	window->pending.fullscreen_mode = FULLSCREEN_NONE;
-	container_end_mouse_operation(window);
+	window_end_mouse_operation(window);
 	ipc_event_window(window, "fullscreen_mode");
 }
 
