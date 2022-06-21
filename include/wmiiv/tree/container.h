@@ -139,11 +139,4 @@ void container_destroy(struct wmiiv_container *container);
 void container_begin_destroy(struct wmiiv_container *container);
 bool container_has_urgent_child(struct wmiiv_container *container);
 
-/**
- * Walk up the container tree branch starting at the given container, and return
- * its earliest ancestor.
- */
-struct wmiiv_container *container_toplevel_ancestor(
-		struct wmiiv_container *container);
-
 #endif

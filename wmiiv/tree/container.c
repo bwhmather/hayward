@@ -115,12 +115,3 @@ bool container_has_urgent_child(struct wmiiv_container *container) {
 	return column_find_child(container, find_urgent_iterator, NULL);
 }
 
-struct wmiiv_container *container_toplevel_ancestor(
-		struct wmiiv_container *container) {
-	while (container->pending.parent) {
-		container = container->pending.parent;
-	}
-
-	return container;
-}
-

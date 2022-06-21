@@ -272,7 +272,7 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 		// Handle beginning floating move.
 		if (is_floating_or_child && !is_fullscreen_or_child && mod_pressed) {
 			seat_set_focus_window(seat, window);
-			seatop_begin_move_floating(seat, container_toplevel_ancestor(window));
+			seatop_begin_move_floating(seat, window);
 			return;
 		}
 
