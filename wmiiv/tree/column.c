@@ -53,6 +53,47 @@ struct wmiiv_container *column_create(void) {
 	return c;
 }
 
+void column_destroy(struct wmiiv_container *column) {
+	if (!wmiiv_assert(column->node.destroying,
+				"Tried to free column which wasn't marked as destroying")) {
+		return;
+	}
+	if (!wmiiv_assert(column->node.ntxnrefs == 0, "Tried to free column "
+				"which is still referenced by transactions")) {
+		return;
+	}
+	free(column->title);
+	free(column->formatted_title);
+	wlr_texture_destroy(column->title_focused);
+	wlr_texture_destroy(column->title_focused_inactive);
+	wlr_texture_destroy(column->title_unfocused);
+	wlr_texture_destroy(column->title_urgent);
+	wlr_texture_destroy(column->title_focused_tab_title);
+	list_free(column->pending.children);
+	list_free(column->current.children);
+	list_free(column->outputs);
+
+	list_free_items_and_destroy(column->marks);
+	wlr_texture_destroy(column->marks_focused);
+	wlr_texture_destroy(column->marks_focused_inactive);
+	wlr_texture_destroy(column->marks_unfocused);
+	wlr_texture_destroy(column->marks_urgent);
+	wlr_texture_destroy(column->marks_focused_tab_title);
+
+	free(column);
+}
+
+void column_begin_destroy(struct wmiiv_container *column) {
+	wl_signal_emit(&column->node.events.destroy, &column->node);
+
+	column->node.destroying = true;
+	node_set_dirty(&column->node);
+
+	if (column->pending.workspace) {
+		column_detach(column);
+	}
+}
+
 void column_consider_destroy(struct wmiiv_container *column) {
 	if (!wmiiv_assert(container_is_column(column), "Cannot reap a non-column container")) {
 		return;
@@ -62,7 +103,7 @@ void column_consider_destroy(struct wmiiv_container *column) {
 	if (column->pending.children->length) {
 		return;
 	}
-	container_begin_destroy(column);
+	column_begin_destroy(column);
 
 	if (workspace) {
 		workspace_consider_destroy(workspace);

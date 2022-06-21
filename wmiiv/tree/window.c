@@ -50,6 +50,68 @@ struct wmiiv_container *window_create(struct wmiiv_view *view) {
 	return c;
 }
 
+void window_destroy(struct wmiiv_container *window) {
+	if (!wmiiv_assert(window->node.destroying,
+				"Tried to free window which wasn't marked as destroying")) {
+		return;
+	}
+	if (!wmiiv_assert(window->node.ntxnrefs == 0, "Tried to free window "
+				"which is still referenced by transactions")) {
+		return;
+	}
+	free(window->title);
+	free(window->formatted_title);
+	wlr_texture_destroy(window->title_focused);
+	wlr_texture_destroy(window->title_focused_inactive);
+	wlr_texture_destroy(window->title_unfocused);
+	wlr_texture_destroy(window->title_urgent);
+	wlr_texture_destroy(window->title_focused_tab_title);
+	list_free(window->pending.children);
+	list_free(window->current.children);
+	list_free(window->outputs);
+
+	list_free_items_and_destroy(window->marks);
+	wlr_texture_destroy(window->marks_focused);
+	wlr_texture_destroy(window->marks_focused_inactive);
+	wlr_texture_destroy(window->marks_unfocused);
+	wlr_texture_destroy(window->marks_urgent);
+	wlr_texture_destroy(window->marks_focused_tab_title);
+
+	if (window->view->container == window) {
+		window->view->container = NULL;
+		if (window->view->destroying) {
+			view_destroy(window->view);
+		}
+	}
+
+	free(window);
+}
+
+void window_begin_destroy(struct wmiiv_container *window) {
+	ipc_event_window(window, "close");
+
+	// The workspace must have the fullscreen pointer cleared so that the
+	// seat code can find an appropriate new focus.
+	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE && window->pending.workspace) {
+		window->pending.workspace->fullscreen = NULL;
+	}
+
+	wl_signal_emit(&window->node.events.destroy, &window->node);
+
+	window_end_mouse_operation(window);
+
+	window->node.destroying = true;
+	node_set_dirty(&window->node);
+
+	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+		window_fullscreen_disable(window);
+	}
+
+	if (window->pending.parent || window->pending.workspace) {
+		window_detach(window);
+	}
+}
+
 void window_detach(struct wmiiv_container *window) {
 	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
 		window->pending.workspace->fullscreen = NULL;

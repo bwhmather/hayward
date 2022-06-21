@@ -71,10 +71,10 @@ static void transaction_destroy(struct wmiiv_transaction *transaction) {
 				workspace_destroy(node->wmiiv_workspace);
 				break;
 			case N_COLUMN:
-				container_destroy(node->wmiiv_container);
+				column_destroy(node->wmiiv_container);
 				break;
 			case N_WINDOW:
-				container_destroy(node->wmiiv_container);
+				window_destroy(node->wmiiv_container);
 				break;
 			}
 		}

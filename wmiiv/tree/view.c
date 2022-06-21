@@ -833,7 +833,7 @@ void view_unmap(struct wmiiv_view *view) {
 
 	struct wmiiv_container *parent = view->container->pending.parent;
 	struct wmiiv_workspace *workspace = view->container->pending.workspace;
-	container_begin_destroy(view->container);
+	window_begin_destroy(view->container);
 	if (parent) {
 		column_consider_destroy(parent);
 	} else if (workspace) {

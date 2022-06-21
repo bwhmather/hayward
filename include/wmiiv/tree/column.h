@@ -8,6 +8,10 @@
 
 struct wmiiv_container *column_create(void);
 
+void column_destroy(struct wmiiv_container *column);
+
+void column_begin_destroy(struct wmiiv_container *column);
+
 void column_consider_destroy(struct wmiiv_container *container);
 
 /**

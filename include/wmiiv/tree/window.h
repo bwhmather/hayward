@@ -8,6 +8,10 @@
 
 struct wmiiv_container *window_create(struct wmiiv_view *view);
 
+void window_destroy(struct wmiiv_container *window);
+
+void window_begin_destroy(struct wmiiv_container *window);
+
 void window_detach(struct wmiiv_container *window);
 
 /**
