@@ -334,3 +334,44 @@ struct wmiiv_container *column_get_next_sibling(struct wmiiv_container *column) 
 
 	return siblings->items[index + 1];
 }
+
+/**
+ * Return the output which will be used for scale purposes.
+ * This is the most recently entered output.
+ */
+struct wmiiv_output *column_get_effective_output(struct wmiiv_container *column) {
+	if (column->outputs->length == 0) {
+		return NULL;
+	}
+	return column->outputs->items[column->outputs->length - 1];
+}
+
+void column_discover_outputs(struct wmiiv_container *column) {
+	struct wlr_box column_box = {
+		.x = column->current.x,
+		.y = column->current.y,
+		.width = column->current.width,
+		.height = column->current.height,
+	};
+
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		struct wlr_box output_box;
+		output_get_box(output, &output_box);
+		struct wlr_box intersection;
+		bool intersects =
+			wlr_box_intersection(&intersection, &column_box, &output_box);
+		int index = list_find(column->outputs, output);
+
+		if (intersects && index == -1) {
+			// Send enter
+			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", column, output);
+			list_add(column->outputs, output);
+		} else if (!intersects && index != -1) {
+			// Send leave
+			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", column, output);
+			list_del(column->outputs, index);
+		}
+	}
+}
+

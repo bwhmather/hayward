@@ -226,9 +226,9 @@ static void render_titlebar_text_texture(struct wmiiv_output *output,
 	cairo_destroy(cairo);
 }
 
-static void update_marks_texture(struct wmiiv_container *container,
+static void update_marks_texture(struct wmiiv_container *window,
 		struct wlr_texture **texture, struct border_colors *class) {
-	struct wmiiv_output *output = container_get_effective_output(container);
+	struct wmiiv_output *output = window_get_effective_output(window);
 	if (!output) {
 		return;
 	}
@@ -236,13 +236,13 @@ static void update_marks_texture(struct wmiiv_container *container,
 		wlr_texture_destroy(*texture);
 		*texture = NULL;
 	}
-	if (!container->marks->length) {
+	if (!window->marks->length) {
 		return;
 	}
 
 	size_t len = 0;
-	for (int i = 0; i < container->marks->length; ++i) {
-		char *mark = container->marks->items[i];
+	for (int i = 0; i < window->marks->length; ++i) {
+		char *mark = window->marks->items[i];
 		if (mark[0] != '_') {
 			len += strlen(mark) + 2;
 		}
@@ -255,8 +255,8 @@ static void update_marks_texture(struct wmiiv_container *container,
 		return;
 	}
 
-	for (int i = 0; i < container->marks->length; ++i) {
-		char *mark = container->marks->items[i];
+	for (int i = 0; i < window->marks->length; ++i) {
+		char *mark = window->marks->items[i];
 		if (mark[0] != '_') {
 			snprintf(part, len + 1, "[%s]", mark);
 			strcat(buffer, part);
@@ -264,7 +264,7 @@ static void update_marks_texture(struct wmiiv_container *container,
 	}
 	free(part);
 
-	render_titlebar_text_texture(output, container, texture, class, false, buffer);
+	render_titlebar_text_texture(output, window, texture, class, false, buffer);
 
 	free(buffer);
 }
@@ -292,7 +292,7 @@ void window_update_marks_textures(struct wmiiv_container *window) {
 
 static void update_title_texture(struct wmiiv_container *window,
 		struct wlr_texture **texture, struct border_colors *class) {
-	struct wmiiv_output *output = container_get_effective_output(window);
+	struct wmiiv_output *output = window_get_effective_output(window);
 	if (!output) {
 		return;
 	}
@@ -1262,4 +1262,76 @@ enum wmiiv_container_layout window_current_parent_layout(struct wmiiv_container 
 	return L_NONE;
 }
 
+/**
+ * Return the output which will be used for scale purposes.
+ * This is the most recently entered output.
+ */
+struct wmiiv_output *window_get_effective_output(struct wmiiv_container *window) {
+	if (window->outputs->length == 0) {
+		return NULL;
+	}
+	return window->outputs->items[window->outputs->length - 1];
+}
+
+static void surface_send_enter_iterator(struct wlr_surface *surface,
+		int x, int y, void *data) {
+	struct wlr_output *wlr_output = data;
+	wlr_surface_send_enter(surface, wlr_output);
+}
+
+static void surface_send_leave_iterator(struct wlr_surface *surface,
+		int x, int y, void *data) {
+	struct wlr_output *wlr_output = data;
+	wlr_surface_send_leave(surface, wlr_output);
+}
+
+void window_discover_outputs(struct wmiiv_container *window) {
+	struct wlr_box window_box = {
+		.x = window->current.x,
+		.y = window->current.y,
+		.width = window->current.width,
+		.height = window->current.height,
+	};
+	struct wmiiv_output *old_output = window_get_effective_output(window);
+
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		struct wlr_box output_box;
+		output_get_box(output, &output_box);
+		struct wlr_box intersection;
+		bool intersects =
+			wlr_box_intersection(&intersection, &window_box, &output_box);
+		int index = list_find(window->outputs, output);
+
+		if (intersects && index == -1) {
+			// Send enter
+			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", window, output);
+			view_for_each_surface(window->view,
+					surface_send_enter_iterator, output->wlr_output);
+			if (window->view->foreign_toplevel) {
+				wlr_foreign_toplevel_handle_v1_output_enter(
+						window->view->foreign_toplevel, output->wlr_output);
+			}
+			list_add(window->outputs, output);
+		} else if (!intersects && index != -1) {
+			// Send leave
+			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", window, output);
+			view_for_each_surface(window->view,
+				surface_send_leave_iterator, output->wlr_output);
+			if (window->view->foreign_toplevel) {
+				wlr_foreign_toplevel_handle_v1_output_leave(
+						window->view->foreign_toplevel, output->wlr_output);
+			}
+			list_del(window->outputs, index);
+		}
+	}
+	struct wmiiv_output *new_output = window_get_effective_output(window);
+	double old_scale = old_output && old_output->enabled ?
+		old_output->wlr_output->scale : -1;
+	double new_scale = new_output ? new_output->wlr_output->scale : -1;
+	if (old_scale != new_scale) {
+		window_update_title_textures(window);
+		window_update_marks_textures(window);
+	}
+}
 

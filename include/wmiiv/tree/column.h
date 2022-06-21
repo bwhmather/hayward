@@ -57,4 +57,13 @@ list_t *column_get_current_siblings(struct wmiiv_container *column);
 struct wmiiv_container *column_get_previous_sibling(struct wmiiv_container *column);
 struct wmiiv_container *column_get_next_sibling(struct wmiiv_container *column);
 
+/**
+ * Return the output which will be used for scale purposes.
+ * This is the most recently entered output.
+ * If the container is not on any output, return NULL.
+ */
+struct wmiiv_output *column_get_effective_output(struct wmiiv_container *column);
+
+void column_discover_outputs(struct wmiiv_container *column);
+
 #endif

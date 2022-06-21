@@ -152,13 +152,4 @@ void container_end_mouse_operation(struct wmiiv_container *container);
 struct wmiiv_container *container_toplevel_ancestor(
 		struct wmiiv_container *container);
 
-/**
- * Return the output which will be used for scale purposes.
- * This is the most recently entered output.
- * If the container is not on any output, return NULL.
- */
-struct wmiiv_output *container_get_effective_output(struct wmiiv_container *container);
-
-void container_discover_outputs(struct wmiiv_container *container);
-
 #endif

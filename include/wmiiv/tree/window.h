@@ -181,4 +181,13 @@ enum wmiiv_container_layout window_current_parent_layout(struct wmiiv_container 
 
 void window_swap(struct wmiiv_container *window1, struct wmiiv_container *window2);
 
+/**
+ * Return the output which will be used for scale purposes.
+ * This is the most recently entered output.
+ * If the container is not on any output, return NULL.
+ */
+struct wmiiv_output *window_get_effective_output(struct wmiiv_container *window);
+
+void window_discover_outputs(struct wmiiv_container *window);
+
 #endif

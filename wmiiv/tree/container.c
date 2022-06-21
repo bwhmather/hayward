@@ -105,17 +105,6 @@ void container_begin_destroy(struct wmiiv_container *container) {
 	}
 }
 
-/**
- * Return the output which will be used for scale purposes.
- * This is the most recently entered output.
- */
-struct wmiiv_output *container_get_effective_output(struct wmiiv_container *container) {
-	if (container->outputs->length == 0) {
-		return NULL;
-	}
-	return container->outputs->items[container->outputs->length - 1];
-}
-
 static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
 	return container->view && view_is_urgent(container->view);
 }
@@ -138,73 +127,5 @@ struct wmiiv_container *container_toplevel_ancestor(
 	}
 
 	return container;
-}
-
-static void surface_send_enter_iterator(struct wlr_surface *surface,
-		int x, int y, void *data) {
-	struct wlr_output *wlr_output = data;
-	wlr_surface_send_enter(surface, wlr_output);
-}
-
-static void surface_send_leave_iterator(struct wlr_surface *surface,
-		int x, int y, void *data) {
-	struct wlr_output *wlr_output = data;
-	wlr_surface_send_leave(surface, wlr_output);
-}
-
-void container_discover_outputs(struct wmiiv_container *container) {
-	struct wlr_box container_box = {
-		.x = container->current.x,
-		.y = container->current.y,
-		.width = container->current.width,
-		.height = container->current.height,
-	};
-	struct wmiiv_output *old_output = container_get_effective_output(container);
-
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct wmiiv_output *output = root->outputs->items[i];
-		struct wlr_box output_box;
-		output_get_box(output, &output_box);
-		struct wlr_box intersection;
-		bool intersects =
-			wlr_box_intersection(&intersection, &container_box, &output_box);
-		int index = list_find(container->outputs, output);
-
-		if (intersects && index == -1) {
-			// Send enter
-			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", container, output);
-			if (container->view) {
-				view_for_each_surface(container->view,
-						surface_send_enter_iterator, output->wlr_output);
-				if (container->view->foreign_toplevel) {
-					wlr_foreign_toplevel_handle_v1_output_enter(
-							container->view->foreign_toplevel, output->wlr_output);
-				}
-			}
-			list_add(container->outputs, output);
-		} else if (!intersects && index != -1) {
-			// Send leave
-			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", container, output);
-			if (container->view) {
-				view_for_each_surface(container->view,
-					surface_send_leave_iterator, output->wlr_output);
-				if (container->view->foreign_toplevel) {
-					wlr_foreign_toplevel_handle_v1_output_leave(
-							container->view->foreign_toplevel, output->wlr_output);
-				}
-			}
-			list_del(container->outputs, index);
-		}
-	}
-	struct wmiiv_output *new_output = container_get_effective_output(container);
-	double old_scale = old_output && old_output->enabled ?
-		old_output->wlr_output->scale : -1;
-	double new_scale = new_output ? new_output->wlr_output->scale : -1;
-	if (old_scale != new_scale) {
-		if (container_is_window(container)) {
-			window_update_title_textures(container);
-			window_update_marks_textures(container);
-		}
-	}
 }
 

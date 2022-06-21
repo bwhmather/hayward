@@ -419,10 +419,12 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
  * The left side is: 1px border, 2px padding, title
  */
 static void render_titlebar(struct wmiiv_output *output,
-		pixman_region32_t *output_damage, struct wmiiv_container *container,
+		pixman_region32_t *output_damage, struct wmiiv_container *window,
 		int x, int y, int width,
 		struct border_colors *colors, struct wlr_texture *title_texture,
 		struct wlr_texture *marks_texture) {
+	wmiiv_assert(container_is_window(window), "Expected window");
+
 	struct wlr_box box;
 	float color[4];
 	float output_scale = output->wlr_output->scale;
@@ -435,7 +437,7 @@ static void render_titlebar(struct wmiiv_output *output,
 
 	// Single pixel bar above title
 	memcpy(&color, colors->border, sizeof(float) * 4);
-	premultiply_alpha(color, container->alpha);
+	premultiply_alpha(color, window->alpha);
 	box.x = x;
 	box.y = y;
 	box.width = width;
@@ -515,11 +517,11 @@ static void render_titlebar(struct wmiiv_output *output,
 			texture_box.width = ob_inner_width;
 		}
 		render_texture(output->wlr_output, output_damage, marks_texture,
-			NULL, &texture_box, matrix, container->alpha);
+			NULL, &texture_box, matrix, window->alpha);
 
 		// Padding above
 		memcpy(&color, colors->background, sizeof(float) * 4);
-		premultiply_alpha(color, container->alpha);
+		premultiply_alpha(color, window->alpha);
 		box.x = texture_box.x + round(output_x * output_scale);
 		box.y = round((y + titlebar_border_thickness) * output_scale);
 		box.width = texture_box.width;
@@ -541,10 +543,10 @@ static void render_titlebar(struct wmiiv_output *output,
 			.height = title_texture->height,
 		};
 
-		// The effective output may be NULL when container is not on any output.
-		// This can happen because we render all children of containers,
+		// The effective output may be NULL when window is not on any output.
+		// This can happen because we render all children of windows,
 		// even those that are out of the bounds of any output.
-		struct wmiiv_output *effective = container_get_effective_output(container);
+		struct wmiiv_output *effective = window_get_effective_output(window);
 		float title_scale = effective ? effective->wlr_output->scale : output_scale;
 		texture_box.width = texture_box.width * output_scale / title_scale;
 		texture_box.height = texture_box.height * output_scale / title_scale;
@@ -591,11 +593,11 @@ static void render_titlebar(struct wmiiv_output *output,
 		}
 
 		render_texture(output->wlr_output, output_damage, title_texture,
-			NULL, &texture_box, matrix, container->alpha);
+			NULL, &texture_box, matrix, window->alpha);
 
 		// Padding above
 		memcpy(&color, colors->background, sizeof(float) * 4);
-		premultiply_alpha(color, container->alpha);
+		premultiply_alpha(color, window->alpha);
 		box.x = texture_box.x + round(output_x * output_scale);
 		box.y = round((y + titlebar_border_thickness) * output_scale);
 		box.width = texture_box.width;

@@ -261,7 +261,7 @@ static void apply_column_state(struct wmiiv_container *container,
 	desktop_damage_whole_container(container);
 
 	if (!container->node.destroying) {
-		container_discover_outputs(container);
+		column_discover_outputs(container);
 	}
 }
 
@@ -320,7 +320,7 @@ static void apply_window_state(struct wmiiv_container *container,
 	}
 
 	if (!container->node.destroying) {
-		container_discover_outputs(container);
+		window_discover_outputs(container);
 	}
 }
 
