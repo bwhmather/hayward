@@ -572,7 +572,7 @@ static void ipc_json_describe_column(struct wmiiv_container *column, json_object
 			json_object_new_string(
 				ipc_json_orientation_description(column->pending.layout)));
 
-	bool urgent = container_has_urgent_child(column);
+	bool urgent = column_has_urgent_child(column);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
 	json_object_object_add(object, "sticky", json_object_new_boolean(column->is_sticky));
 

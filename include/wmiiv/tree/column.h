@@ -66,4 +66,6 @@ struct wmiiv_output *column_get_effective_output(struct wmiiv_container *column)
 
 void column_discover_outputs(struct wmiiv_container *column);
 
+bool column_has_urgent_child(struct wmiiv_container *column);
+
 #endif

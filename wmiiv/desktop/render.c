@@ -787,10 +787,8 @@ static void render_containers_tabbed(struct wmiiv_output *output,
 		struct border_colors *colors;
 		struct wlr_texture *title_texture;
 		struct wlr_texture *marks_texture;
-		bool urgent = view ?
-			view_is_urgent(view) : container_has_urgent_child(child);
 
-		if (urgent) {
+		if (view_is_urgent(view)) {
 			colors = &config->border_colors.urgent;
 			title_texture = child->title_urgent;
 			marks_texture = child->marks_urgent;
@@ -828,12 +826,7 @@ static void render_containers_tabbed(struct wmiiv_output *output,
 	}
 
 	// Render surface and left/right/bottom borders
-	if (current->view) {
-		render_view(output, damage, current, current_colors);
-	} else {
-		render_container(output, damage, current,
-				parent->focused || current->current.focused);
-	}
+	render_view(output, damage, current, current_colors);
 }
 
 /**
@@ -856,10 +849,8 @@ static void render_containers_stacked(struct wmiiv_output *output,
 		struct border_colors *colors;
 		struct wlr_texture *title_texture;
 		struct wlr_texture *marks_texture;
-		bool urgent = view ?
-			view_is_urgent(view) : container_has_urgent_child(child);
 
-		if (urgent) {
+		if (view_is_urgent(view)) {
 			colors = &config->border_colors.urgent;
 			title_texture = child->title_urgent;
 			marks_texture = child->marks_urgent;

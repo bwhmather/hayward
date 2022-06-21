@@ -137,6 +137,5 @@ bool container_is_window(struct wmiiv_container *container);
 void container_destroy(struct wmiiv_container *container);
 
 void container_begin_destroy(struct wmiiv_container *container);
-bool container_has_urgent_child(struct wmiiv_container *container);
 
 #endif

@@ -107,11 +107,3 @@ void container_begin_destroy(struct wmiiv_container *container) {
 	}
 }
 
-static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
-	return container->view && view_is_urgent(container->view);
-}
-
-bool container_has_urgent_child(struct wmiiv_container *container) {
-	return column_find_child(container, find_urgent_iterator, NULL);
-}
-

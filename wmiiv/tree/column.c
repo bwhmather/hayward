@@ -375,3 +375,11 @@ void column_discover_outputs(struct wmiiv_container *column) {
 	}
 }
 
+static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
+	return container->view && view_is_urgent(container->view);
+}
+
+bool column_has_urgent_child(struct wmiiv_container *column) {
+	return column_find_child(column, find_urgent_iterator, NULL);
+}
+
