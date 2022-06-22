@@ -9,7 +9,7 @@
 struct wmiiv_root;
 struct wmiiv_output;
 struct wmiiv_workspace;
-struct wmiiv_container;
+struct wmiiv_window;
 struct wmiiv_transaction_instruction;
 struct wlr_box;
 
@@ -28,7 +28,7 @@ struct wmiiv_node {
 		struct wmiiv_output *wmiiv_output;
 		struct wmiiv_workspace *wmiiv_workspace;
 		struct wmiiv_column *wmiiv_column;
-		struct wmiiv_container *wmiiv_window;
+		struct wmiiv_window *wmiiv_window;
 	};
 
 	/**
@@ -68,7 +68,7 @@ void node_get_box(struct wmiiv_node *node, struct wlr_box *box);
 
 struct wmiiv_output *node_get_output(struct wmiiv_node *node);
 
-enum wmiiv_container_layout node_get_layout(struct wmiiv_node *node);
+enum wmiiv_window_layout node_get_layout(struct wmiiv_node *node);
 
 struct wmiiv_node *node_get_parent(struct wmiiv_node *node);
 

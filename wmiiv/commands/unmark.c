@@ -8,7 +8,7 @@
 #include "log.h"
 #include "stringop.h"
 
-static void remove_all_marks_iterator(struct wmiiv_container *container, void *data) {
+static void remove_all_marks_iterator(struct wmiiv_window *container, void *data) {
 	if (container_is_window(container)) {
 		window_clear_marks(container);
 		window_update_marks_textures(container);
@@ -22,7 +22,7 @@ static void remove_all_marks_iterator(struct wmiiv_container *container, void *d
 
 struct cmd_results *cmd_unmark(int argc, char **argv) {
 	// Determine the window
-	struct wmiiv_container *window = NULL;
+	struct wmiiv_window *window = NULL;
 	if (config->handler_context.node_overridden) {
 		window = config->handler_context.window;
 	}

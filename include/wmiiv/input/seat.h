@@ -25,7 +25,7 @@ struct wmiiv_seatop_impl {
 	void (*tablet_tool_tip)(struct wmiiv_seat *seat, struct wmiiv_tablet_tool *tool,
 			uint32_t time_msec, enum wlr_tablet_tool_tip_state state);
 	void (*end)(struct wmiiv_seat *seat);
-	void (*unref)(struct wmiiv_seat *seat, struct wmiiv_container *container);
+	void (*unref)(struct wmiiv_seat *seat, struct wmiiv_window *container);
 	void (*render)(struct wmiiv_seat *seat, struct wmiiv_output *output,
 			pixman_region32_t *damage);
 	bool allow_set_cursor;
@@ -43,7 +43,7 @@ struct wmiiv_seat_device {
 
 struct wmiiv_seat_window {
 	struct wmiiv_seat *seat;
-	struct wmiiv_container *window;
+	struct wmiiv_window *window;
 
 	struct wl_list link; // wmiiv_seat::active_window_stack
 
@@ -170,7 +170,7 @@ void seat_set_focus(struct wmiiv_seat *seat, struct wmiiv_node *node);
 
 void seat_clear_focus(struct wmiiv_seat *seat);
 
-void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *window);
+void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_window *window);
 
 // TODO (wmiiv) deprecated.
 void seat_set_focus_workspace(struct wmiiv_seat *seat,
@@ -203,7 +203,7 @@ struct wmiiv_workspace *seat_get_focused_workspace(struct wmiiv_seat *seat);
 // results as seat_get_focused_workspace.
 struct wmiiv_workspace *seat_get_last_known_workspace(struct wmiiv_seat *seat);
 
-struct wmiiv_container *seat_get_focused_container(struct wmiiv_seat *seat);
+struct wmiiv_window *seat_get_focused_container(struct wmiiv_seat *seat);
 
 // Force focus to a particular surface that is not part of the workspace
 // hierarchy (used for lockscreen)
@@ -213,13 +213,13 @@ struct wmiiv_workspace *seat_get_active_workspace(struct wmiiv_seat *seat);
 
 struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *seat, struct wmiiv_output *output);
 
-struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_column *column);
+struct wmiiv_window *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_column *column);
 
-struct wmiiv_container *seat_get_active_tiling_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+struct wmiiv_window *seat_get_active_tiling_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
 
-struct wmiiv_container *seat_get_active_floating_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+struct wmiiv_window *seat_get_active_floating_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
 
-struct wmiiv_container *seat_get_active_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
+struct wmiiv_window *seat_get_active_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
 
 /**
  * Return the last container to be focused for the seat (or the most recently
@@ -233,14 +233,14 @@ struct wmiiv_container *seat_get_active_window_for_workspace(struct wmiiv_seat *
 struct wmiiv_node *seat_get_focus_inactive(struct wmiiv_seat *seat,
 		struct wmiiv_node *node);
 
-struct wmiiv_container *seat_get_focus_inactive_tiling(struct wmiiv_seat *seat,
+struct wmiiv_window *seat_get_focus_inactive_tiling(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace);
 
 /**
  * Descend into the focus stack to find the focus-inactive view. Useful for
  * container placement when they change position in the tree.
  */
-struct wmiiv_container *seat_get_focus_inactive_view(struct wmiiv_seat *seat,
+struct wmiiv_window *seat_get_focus_inactive_view(struct wmiiv_seat *seat,
 		struct wmiiv_node *ancestor);
 
 /**
@@ -257,7 +257,7 @@ void seat_for_each_node(struct wmiiv_seat *seat,
 		void (*f)(struct wmiiv_node *node, void *data), void *data);
 
 void seat_for_each_window(struct wmiiv_seat *seat,
-		void (*f)(struct wmiiv_container *window, void *data), void *data);
+		void (*f)(struct wmiiv_window *window, void *data), void *data);
 
 void seat_apply_config(struct wmiiv_seat *seat, struct seat_config *seat_config);
 
@@ -272,33 +272,33 @@ bool seat_is_input_allowed(struct wmiiv_seat *seat, struct wlr_surface *surface)
 
 void drag_icon_update_position(struct wmiiv_drag_icon *icon);
 
-enum wlr_edges find_resize_edge(struct wmiiv_container *cont,
+enum wlr_edges find_resize_edge(struct wmiiv_window *cont,
 		struct wlr_surface *surface, struct wmiiv_cursor *cursor);
 
 void seatop_begin_default(struct wmiiv_seat *seat);
 
-void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *container,
+void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_window *container,
 		uint32_t time_msec, double sx, double sy);
 
 void seatop_begin_down_on_surface(struct wmiiv_seat *seat,
 		struct wlr_surface *surface, uint32_t time_msec, double sx, double sy);
 
 void seatop_begin_move_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *container);
+		struct wmiiv_window *container);
 
 void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
-		struct wmiiv_container *container);
+		struct wmiiv_window *container);
 
 void seatop_begin_move_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *container);
+		struct wmiiv_window *container);
 
 void seatop_begin_resize_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *container, enum wlr_edges edge);
+		struct wmiiv_window *container, enum wlr_edges edge);
 
 void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *container, enum wlr_edges edge);
+		struct wmiiv_window *container, enum wlr_edges edge);
 
-struct wmiiv_container *seat_get_focus_inactive_floating(struct wmiiv_seat *seat,
+struct wmiiv_window *seat_get_focus_inactive_floating(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace);
 
 void seat_pointer_notify_button(struct wmiiv_seat *seat, uint32_t time_msec,
@@ -334,7 +334,7 @@ void seatop_end(struct wmiiv_seat *seat);
  * container (eg. because the container is destroying).
  * The seatop may choose to abort itself in response to this.
  */
-void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_container *container);
+void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_window *container);
 
 /**
  * Instructs a seatop to render anything that it needs to render

@@ -335,7 +335,7 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 		return;
 	}
 
-	struct wmiiv_container *window = view->container;
+	struct wmiiv_window *window = view->container;
 	struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 	if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
 		struct wmiiv_output *output = req->fullscreen_output->data;

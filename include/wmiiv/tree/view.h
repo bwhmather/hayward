@@ -9,7 +9,7 @@
 #include "wmiiv/input/input-manager.h"
 #include "wmiiv/input/seat.h"
 
-struct wmiiv_container;
+struct wmiiv_window;
 struct wmiiv_xdg_decoration;
 
 enum wmiiv_view_type {
@@ -69,7 +69,7 @@ struct wmiiv_view {
 	enum wmiiv_view_type type;
 	const struct wmiiv_view_impl *impl;
 
-	struct wmiiv_container *container; // NULL if unmapped and transactions finished
+	struct wmiiv_window *container; // NULL if unmapped and transactions finished
 	struct wlr_surface *surface; // NULL for unmapped views
 	struct wmiiv_xdg_decoration *xdg_decoration;
 

@@ -18,7 +18,7 @@ struct cmd_results *cmd_mark(int argc, char **argv) {
 	if ((error = checkarg(argc, "mark", EXPECTED_AT_LEAST, 1))) {
 		return error;
 	}
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (!window) {
 		return cmd_results_new(CMD_INVALID, "Only windows can have marks");
 	}

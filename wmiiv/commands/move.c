@@ -76,7 +76,7 @@ static struct wmiiv_output *output_in_direction(const char *direction_string,
 	return output_by_name_or_id(direction_string);
 }
 
-static bool window_move_to_next_output(struct wmiiv_container *window,
+static bool window_move_to_next_output(struct wmiiv_window *window,
 		struct wmiiv_output *output, enum wlr_direction move_dir) {
 	struct wmiiv_output *next_output =
 		output_get_in_direction(output, move_dir);
@@ -100,7 +100,7 @@ static bool window_move_to_next_output(struct wmiiv_container *window,
 }
 
 // Returns true if moved
-static bool window_move_in_direction(struct wmiiv_container *window,
+static bool window_move_in_direction(struct wmiiv_window *window,
 		enum wlr_direction move_dir) {
 	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return false;
@@ -207,7 +207,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		return error;
 	}
 
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 
 	if (!window) {
 		return cmd_results_new(CMD_FAILURE, "Can only move windows");
@@ -297,7 +297,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		ipc_event_window(window, "move");
 
 		// Restore focus to the original workspace.
-		struct wmiiv_container *focus = seat_get_focus_inactive_view(seat, &old_workspace->node);
+		struct wmiiv_window *focus = seat_get_focus_inactive_view(seat, &old_workspace->node);
 		if (focus) {
 			seat_set_focus_window(seat, focus);
 		} else {
@@ -336,7 +336,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		}
 		destination = seat_get_focus_inactive(seat, &new_output->node);
 	} else if (strcasecmp(argv[0], "mark") == 0) {
-		struct wmiiv_container *dest_container = window_find_mark(argv[1]);
+		struct wmiiv_window *dest_container = window_find_mark(argv[1]);
 		if (dest_container == NULL) {
 			return cmd_results_new(CMD_FAILURE,
 					"Mark '%s' not found", argv[1]);
@@ -516,7 +516,7 @@ static struct cmd_results *cmd_move_in_direction(
 		}
 	}
 
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (!window) {
 		return cmd_results_new(CMD_FAILURE,
 				"Cannot move workspaces in a direction");
@@ -588,7 +588,7 @@ static struct cmd_results *cmd_move_in_direction(
 }
 
 static struct cmd_results *cmd_move_to_position_pointer(
-		struct wmiiv_container *window) {
+		struct wmiiv_window *window) {
 	struct wmiiv_seat *seat = config->handler_context.seat;
 	if (!seat->cursor) {
 		return cmd_results_new(CMD_FAILURE, "No cursor device");
@@ -625,7 +625,7 @@ static const char expected_position_syntax[] =
 	"'move position cursor|mouse|pointer'";
 
 static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (!window || !window_is_floating(window)) {
 		return cmd_results_new(CMD_FAILURE, "Only floating windows "
 				"can be moved to an absolute position");

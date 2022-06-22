@@ -351,7 +351,7 @@ static void render_saved_view(struct wmiiv_view *view,
  * Render a view's surface and left/bottom/right borders.
  */
 static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
-		struct wmiiv_container *window, struct border_colors *colors) {
+		struct wmiiv_window *window, struct border_colors *colors) {
 	struct wmiiv_view *view = window->view;
 	if (!wl_list_empty(&view->saved_buffers)) {
 		render_saved_view(view, output, damage, view->container->alpha);
@@ -366,7 +366,7 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 	struct wlr_box box;
 	float output_scale = output->wlr_output->scale;
 	float color[4];
-	struct wmiiv_container_state *state = &window->current;
+	struct wmiiv_window_state *state = &window->current;
 
 	if (state->border_left) {
 		memcpy(&color, colors->child_border, sizeof(float) * 4);
@@ -380,7 +380,7 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 	}
 
 	list_t *siblings = window_get_current_siblings(window);
-	enum wmiiv_container_layout layout = window_current_parent_layout(window);
+	enum wmiiv_window_layout layout = window_current_parent_layout(window);
 
 	if (state->border_right) {
 		memcpy(&color, colors->child_border, sizeof(float) * 4);
@@ -419,7 +419,7 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
  * The left side is: 1px border, 2px padding, title
  */
 static void render_titlebar(struct wmiiv_output *output,
-		pixman_region32_t *output_damage, struct wmiiv_container *window,
+		pixman_region32_t *output_damage, struct wmiiv_window *window,
 		int x, int y, int width,
 		struct border_colors *colors, struct wlr_texture *title_texture,
 		struct wlr_texture *marks_texture) {
@@ -676,9 +676,9 @@ static void render_titlebar(struct wmiiv_output *output,
  * Render the top border line for a view using "border pixel".
  */
 static void render_top_border(struct wmiiv_output *output,
-		pixman_region32_t *output_damage, struct wmiiv_container *container,
+		pixman_region32_t *output_damage, struct wmiiv_window *container,
 		struct border_colors *colors) {
-	struct wmiiv_container_state *state = &container->current;
+	struct wmiiv_window_state *state = &container->current;
 	if (!state->border_top) {
 		return;
 	}
@@ -704,16 +704,16 @@ static void render_top_border(struct wmiiv_output *output,
  * they'll apply their own borders to their children.
  */
 static void render_column_linear(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
-	struct wmiiv_container *current = column->current.focused_inactive_child;
+	struct wmiiv_window *current = column->current.focused_inactive_child;
 
 	for (int i = 0; i < column->current.children->length; ++i) {
-		struct wmiiv_container *child = column->current.children->items[i];
+		struct wmiiv_window *child = column->current.children->items[i];
 
 		struct wmiiv_view *view = child->view;
 		struct border_colors *colors;
 		struct wlr_texture *title_texture;
 		struct wlr_texture *marks_texture;
-		struct wmiiv_container_state *state = &child->current;
+		struct wmiiv_window_state *state = &child->current;
 
 		if (view_is_urgent(view)) {
 			colors = &config->border_colors.urgent;
@@ -751,15 +751,15 @@ static void render_column_tabbed(struct wmiiv_output *output, pixman_region32_t 
 	if (!column->current.children->length) {
 		return;
 	}
-	struct wmiiv_container *current = column->current.focused_inactive_child;
+	struct wmiiv_window *current = column->current.focused_inactive_child;
 	struct border_colors *current_colors = &config->border_colors.unfocused;
 	int tab_width = column->current.width / column->current.children->length;
 
 	// Render titles
 	for (int i = 0; i < column->current.children->length; ++i) {
-		struct wmiiv_container *child = column->current.children->items[i];
+		struct wmiiv_window *child = column->current.children->items[i];
 		struct wmiiv_view *view = child->view;
-		struct wmiiv_container_state *cstate = &child->current;
+		struct wmiiv_window_state *cstate = &child->current;
 		struct border_colors *colors;
 		struct wlr_texture *title_texture;
 		struct wlr_texture *marks_texture;
@@ -808,15 +808,15 @@ static void render_column_stacked(struct wmiiv_output *output, pixman_region32_t
 	if (!column->current.children->length) {
 		return;
 	}
-	struct wmiiv_container *current = column->current.focused_inactive_child;
+	struct wmiiv_window *current = column->current.focused_inactive_child;
 	struct border_colors *current_colors = &config->border_colors.unfocused;
 	size_t titlebar_height = window_titlebar_height();
 
 	// Render titles
 	for (int i = 0; i < column->current.children->length; ++i) {
-		struct wmiiv_container *child = column->current.children->items[i];
+		struct wmiiv_window *child = column->current.children->items[i];
 		struct wmiiv_view *view = child->view;
-		struct wmiiv_container_state *cstate = &child->current;
+		struct wmiiv_window_state *cstate = &child->current;
 		struct border_colors *colors;
 		struct wlr_texture *title_texture;
 		struct wlr_texture *marks_texture;
@@ -880,7 +880,7 @@ static void render_workspace(struct wmiiv_output *output,
 	}
 }
 
-static void render_floating_window(struct wmiiv_output *soutput, pixman_region32_t *damage, struct wmiiv_container *window) {
+static void render_floating_window(struct wmiiv_output *soutput, pixman_region32_t *damage, struct wmiiv_window *window) {
 	struct wmiiv_view *view = window->view;
 	struct border_colors *colors;
 	struct wlr_texture *title_texture;
@@ -920,7 +920,7 @@ static void render_floating(struct wmiiv_output *soutput,
 				continue;
 			}
 			for (int k = 0; k < workspace->current.floating->length; ++k) {
-				struct wmiiv_container *floater = workspace->current.floating->items[k];
+				struct wmiiv_window *floater = workspace->current.floating->items[k];
 				if (floater->current.fullscreen_mode != FULLSCREEN_NONE) {
 					continue;
 				}
@@ -948,7 +948,7 @@ void output_render(struct wmiiv_output *output, struct timespec *when,
 		return;
 	}
 
-	struct wmiiv_container *fullscreen_container = root->fullscreen_global;
+	struct wmiiv_window *fullscreen_container = root->fullscreen_global;
 	if (!fullscreen_container) {
 		fullscreen_container = workspace->current.fullscreen;
 	}
@@ -1031,7 +1031,7 @@ void output_render(struct wmiiv_output *output, struct timespec *when,
 		}
 
 		for (int i = 0; i < workspace->current.floating->length; ++i) {
-			struct wmiiv_container *floater =
+			struct wmiiv_window *floater =
 				workspace->current.floating->items[i];
 			if (window_is_transient_for(floater, fullscreen_container)) {
 				render_floating_window(output, damage, floater);
@@ -1074,7 +1074,7 @@ void output_render(struct wmiiv_output *output, struct timespec *when,
 	render_seatops(output, damage);
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_window *focus = seat_get_focused_container(seat);
 	if (focus && focus->view) {
 		render_view_popups(focus->view, output, damage, focus->alpha);
 	}

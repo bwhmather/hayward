@@ -262,7 +262,7 @@ void output_drag_icons_for_each_surface(struct wmiiv_output *output,
 	}
 }
 
-static void for_each_surface_container_iterator(struct wmiiv_container *container,
+static void for_each_surface_container_iterator(struct wmiiv_window *container,
 		void *_data) {
 	if (!container->view || !view_is_visible(container->view)) {
 		return;
@@ -306,7 +306,7 @@ static void output_for_each_surface(struct wmiiv_output *output,
 	};
 
 	struct wmiiv_workspace *workspace = output_get_active_workspace(output);
-	struct wmiiv_container *fullscreen_window = root->fullscreen_global;
+	struct wmiiv_window *fullscreen_window = root->fullscreen_global;
 	if (!fullscreen_window) {
 		if (!workspace) {
 			return;
@@ -319,7 +319,7 @@ static void output_for_each_surface(struct wmiiv_output *output,
 		// TODO: Show transient containers for fullscreen global
 		if (fullscreen_window == workspace->current.fullscreen) {
 			for (int i = 0; i < workspace->current.floating->length; ++i) {
-				struct wmiiv_container *floater =
+				struct wmiiv_window *floater =
 					workspace->current.floating->items[i];
 				if (window_is_transient_for(floater, fullscreen_window)) {
 					for_each_surface_container_iterator(floater, &data);
@@ -449,7 +449,7 @@ static bool scan_out_fullscreen_view(struct wmiiv_output *output,
 	}
 
 	for (int i = 0; i < workspace->current.floating->length; ++i) {
-		struct wmiiv_container *floater =
+		struct wmiiv_window *floater =
 			workspace->current.floating->items[i];
 		if (window_is_transient_for(floater, view->container)) {
 			return false;
@@ -513,7 +513,7 @@ static int output_repaint_timer_handler(void *data) {
 		return 0;
 	}
 
-	struct wmiiv_container *fullscreen_window = root->fullscreen_global;
+	struct wmiiv_window *fullscreen_window = root->fullscreen_global;
 	if (!fullscreen_window) {
 		fullscreen_window = workspace->current.fullscreen;
 	}
@@ -692,7 +692,7 @@ void output_damage_box(struct wmiiv_output *output, struct wlr_box *_box) {
 	wlr_output_damage_add_box(output->damage, &box);
 }
 
-void output_damage_window(struct wmiiv_output *output, struct wmiiv_container *window) {
+void output_damage_window(struct wmiiv_output *output, struct wmiiv_window *window) {
 	// Pad the box by 1px, because the width is a double and might be a fraction
 	struct wlr_box box = {
 		.x = window->current.x - output->lx - 1,
@@ -708,7 +708,7 @@ void output_damage_window(struct wmiiv_output *output, struct wmiiv_container *w
 	output_view_for_each_surface(output, window->view, damage_surface_iterator, &whole);
 }
 
-static void damage_child_views_iterator(struct wmiiv_container *window, void *data) {
+static void damage_child_views_iterator(struct wmiiv_window *window, void *data) {
 	struct wmiiv_output *output = data;
 	output_damage_window(output, window);
 }
@@ -817,7 +817,7 @@ static void handle_mode(struct wl_listener *listener, void *data) {
 	update_output_manager_config(output->server);
 }
 
-static void update_textures(struct wmiiv_container *container, void *data) {
+static void update_textures(struct wmiiv_window *container, void *data) {
 	if (container_is_window(container)) {
 		window_update_title_textures(container);
 		window_update_marks_textures(container);

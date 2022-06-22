@@ -8,7 +8,7 @@
 
 struct wmiiv_column_state {
 	// Container properties
-	enum wmiiv_container_layout layout;
+	enum wmiiv_window_layout layout;
 	double x, y;
 	double width, height;
 
@@ -16,12 +16,12 @@ struct wmiiv_column_state {
 
 	struct wmiiv_workspace *workspace;
 	struct wmiiv_column *parent;    // NULL if container in root of workspace
-	list_t *children;                 // struct wmiiv_container
+	list_t *children;                 // struct wmiiv_window
 
-	struct wmiiv_container *focused_inactive_child;
+	struct wmiiv_window *focused_inactive_child;
 	bool focused;
 
-	enum wmiiv_container_border border;
+	enum wmiiv_window_border border;
 	int border_thickness;
 	bool border_top;
 	bool border_bottom;
@@ -56,7 +56,7 @@ struct wmiiv_column {
 
 	// Used when the view changes to CSD unexpectedly. This will be a non-B_CSD
 	// border which we use to restore when the view returns to SSD.
-	enum wmiiv_container_border saved_border;
+	enum wmiiv_window_border saved_border;
 
 	// The share of the space of parent container this container occupies
 	double width_fraction;
@@ -108,27 +108,27 @@ void column_consider_destroy(struct wmiiv_column *container);
  * Search a container's descendants a container based on test criteria. Returns
  * the first container that passes the test.
  */
-struct wmiiv_container *column_find_child(struct wmiiv_column *container,
-		bool (*test)(struct wmiiv_container *view, void *data), void *data);
+struct wmiiv_window *column_find_child(struct wmiiv_column *container,
+		bool (*test)(struct wmiiv_window *view, void *data), void *data);
 
 void column_add_child(struct wmiiv_column *parent,
-		struct wmiiv_container *child);
+		struct wmiiv_window *child);
 
 void column_insert_child(struct wmiiv_column *parent,
-		struct wmiiv_container *child, int i);
+		struct wmiiv_window *child, int i);
 
 /**
  * Side should be 0 to add before, or 1 to add after.
  */
-void column_add_sibling(struct wmiiv_container *parent,
-		struct wmiiv_container *child, bool after);
+void column_add_sibling(struct wmiiv_window *parent,
+		struct wmiiv_window *child, bool after);
 
 void column_detach(struct wmiiv_column *column);
 
 void column_for_each_child(struct wmiiv_column *column,
-		void (*f)(struct wmiiv_container *window, void *data), void *data);
+		void (*f)(struct wmiiv_window *window, void *data), void *data);
 
-size_t column_build_representation(enum wmiiv_container_layout layout,
+size_t column_build_representation(enum wmiiv_window_layout layout,
 		list_t *children, char *buffer);
 
 void column_update_representation(struct wmiiv_column *column);

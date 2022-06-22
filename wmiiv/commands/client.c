@@ -5,7 +5,7 @@
 #include "wmiiv/tree/container.h"
 #include "util.h"
 
-static void rebuild_textures_iterator(struct wmiiv_container *container, void *data) {
+static void rebuild_textures_iterator(struct wmiiv_window *container, void *data) {
 	if (container_is_window(container)) {
 		window_update_title_textures(container);
 		window_update_marks_textures(container);

@@ -325,7 +325,7 @@ void ipc_event_workspace(struct wmiiv_workspace *old,
 	json_object_put(obj);
 }
 
-void ipc_event_window(struct wmiiv_container *window, const char *change) {
+void ipc_event_window(struct wmiiv_window *window, const char *change) {
 	if (!ipc_has_event_listeners(IPC_EVENT_WINDOW)) {
 		return;
 	}
@@ -596,7 +596,7 @@ static void ipc_get_workspaces_callback(struct wmiiv_workspace *workspace,
 			json_object_new_boolean(visible));
 }
 
-static void ipc_get_marks_callback(struct wmiiv_container *container, void *data) {
+static void ipc_get_marks_callback(struct wmiiv_window *container, void *data) {
 	json_object *marks = (json_object *)data;
 	for (int i = 0; i < container->marks->length; ++i) {
 		char *mark = (char *)container->marks->items[i];

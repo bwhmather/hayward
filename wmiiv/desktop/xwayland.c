@@ -128,7 +128,7 @@ static void unmanaged_handle_request_activate(struct wl_listener *listener, void
 		return;
 	}
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_window *focus = seat_get_focused_container(seat);
 	if (focus && focus->view && focus->view->pid != xsurface->pid) {
 		return;
 	}

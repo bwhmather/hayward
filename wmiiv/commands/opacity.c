@@ -12,7 +12,7 @@ struct cmd_results *cmd_opacity(int argc, char **argv) {
 		return error;
 	}
 
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 
 	if (window == NULL) {
 		return cmd_results_new(CMD_FAILURE, "No current window");

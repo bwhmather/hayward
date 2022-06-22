@@ -11,18 +11,18 @@
 #include "wmiiv/tree/view.h"
 
 struct seatop_resize_tiling_event {
-	struct wmiiv_container *container;    // leaf container
+	struct wmiiv_window *container;    // leaf container
 
 	// Container, or ancestor of container which will be resized horizontally/vertically.
 	// TODO v_container will always be the selected window.  h_container
 	// will always be the containing column.  
 	struct wmiiv_column *h_container;
-	struct wmiiv_container *v_container;
+	struct wmiiv_window *v_container;
 
 	// Sibling container(s) that will be resized to accommodate.  h_sib is
 	// always a column.  v_sib is always a window.
 	struct wmiiv_column *h_sib;
-	struct wmiiv_container *v_sib;
+	struct wmiiv_window *v_sib;
 
 	enum wlr_edges edge;
 	enum wlr_edges edge_x, edge_y;
@@ -51,7 +51,7 @@ static struct wmiiv_column *column_get_resize_sibling(struct wmiiv_column *colum
 	return siblings->items[offset];
 }
 
-static struct wmiiv_container *window_get_resize_sibling(struct wmiiv_container *window, uint32_t edge) {
+static struct wmiiv_window *window_get_resize_sibling(struct wmiiv_window *window, uint32_t edge) {
 	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return NULL;
 	}
@@ -123,7 +123,7 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_window *container) {
 	struct seatop_resize_tiling_event *e = seat->seatop_data;
 	if (e->container == container) {
 		seatop_begin_default(seat);
@@ -140,7 +140,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_resize_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *container, enum wlr_edges edge) {
+		struct wmiiv_window *container, enum wlr_edges edge) {
 	seatop_end(seat);
 
 	struct seatop_resize_tiling_event *e =

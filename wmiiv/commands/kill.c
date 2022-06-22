@@ -6,7 +6,7 @@
 #include "wmiiv/tree/workspace.h"
 #include "wmiiv/commands.h"
 
-static void close_window_iterator(struct wmiiv_container *window, void *data) {
+static void close_window_iterator(struct wmiiv_window *window, void *data) {
 	view_close(window->view);
 }
 
@@ -15,7 +15,7 @@ struct cmd_results *cmd_kill(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	struct wmiiv_workspace *workspace = config->handler_context.workspace;
 
 	if (window) {

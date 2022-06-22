@@ -4,7 +4,7 @@
 struct wmiiv_output;
 struct wmiiv_workspace;
 struct wmiiv_column;
-struct wmiiv_container;
+struct wmiiv_window;
 struct wmiiv_node;
 
 void arrange_root(void);
@@ -17,6 +17,6 @@ void arrange_workspace(struct wmiiv_workspace *workspace);
 
 void arrange_column(struct wmiiv_column *column);
 
-void arrange_window(struct wmiiv_container *window);
+void arrange_window(struct wmiiv_window *window);
 
 #endif

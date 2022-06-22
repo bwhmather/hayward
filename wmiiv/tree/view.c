@@ -196,7 +196,7 @@ bool view_inhibit_idle(struct wmiiv_view *view) {
 }
 
 bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
-	struct wmiiv_container *window = view->container;
+	struct wmiiv_window *window = view->container;
 	struct wmiiv_column *column = window->pending.parent;
 
 	list_t *siblings = column_get_siblings(column);
@@ -208,9 +208,9 @@ bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
 }
 
 static bool view_is_only_visible(struct wmiiv_view *view) {
-	struct wmiiv_container *window = view->container;
+	struct wmiiv_window *window = view->container;
 
-	enum wmiiv_container_layout layout = window_parent_layout(window);
+	enum wmiiv_window_layout layout = window_parent_layout(window);
 	if (layout != L_TABBED && layout != L_STACKED) {
 		list_t *siblings = window_get_siblings(window);
 		if (siblings && siblings->length > 1) {
@@ -233,7 +233,7 @@ static bool gaps_to_edge(struct wmiiv_view *view) {
 }
 
 void view_autoconfigure(struct wmiiv_view *view) {
-	struct wmiiv_container *window = view->container;
+	struct wmiiv_window *window = view->container;
 	struct wmiiv_workspace *workspace = window->pending.workspace;
 
 	struct wmiiv_output *output = workspace ? workspace->output : NULL;
@@ -291,7 +291,7 @@ void view_autoconfigure(struct wmiiv_view *view) {
 		bool show_titlebar = (siblings && siblings->length > 1)
 			|| !config->hide_lone_tab;
 		if (show_titlebar) {
-			enum wmiiv_container_layout layout = window_parent_layout(window);
+			enum wmiiv_window_layout layout = window_parent_layout(window);
 			if (layout == L_TABBED) {
 				y_offset = window_titlebar_height();
 				window->pending.border_top = false;
@@ -393,7 +393,7 @@ void view_set_csd_from_server(struct wmiiv_view *view, bool enabled) {
 
 void view_update_csd_from_client(struct wmiiv_view *view, bool enabled) {
 	wmiiv_log(WMIIV_DEBUG, "View %p updated CSD to %i", view, enabled);
-	struct wmiiv_container *window = view->container;
+	struct wmiiv_window *window = view->container;
 	if (enabled && window && window->pending.border != B_CSD) {
 		window->saved_border = window->pending.border;
 		if (window_is_floating(window)) {
@@ -582,7 +582,7 @@ static struct wmiiv_workspace *select_workspace(struct wmiiv_view *view) {
 
 static bool should_focus(struct wmiiv_view *view) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_container *prev_container = seat_get_focused_container(seat);
+	struct wmiiv_window *prev_container = seat_get_focused_container(seat);
 	struct wmiiv_workspace *prev_workspace = seat_get_focused_workspace(seat);
 	struct wmiiv_workspace *map_workspace = view->container->pending.workspace;
 
@@ -640,7 +640,7 @@ static void handle_foreign_fullscreen_request(
 			listener, view, foreign_fullscreen_request);
 	struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
-	struct wmiiv_container *window = view->container;
+	struct wmiiv_window *window = view->container;
 
 	if (event->fullscreen && event->output && event->output->data) {
 		struct wmiiv_output *output = event->output->data;
@@ -709,7 +709,7 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
 
-	struct wmiiv_container *target_sibling = seat_get_focus_inactive_tiling(seat, workspace);
+	struct wmiiv_window *target_sibling = seat_get_focus_inactive_tiling(seat, workspace);
 
 	view->foreign_toplevel =
 		wlr_foreign_toplevel_handle_v1_create(server.foreign_toplevel_manager);
@@ -758,7 +758,7 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 			view->container->pending.workspace &&
 			view->container->pending.workspace->fullscreen &&
 			view->container->pending.workspace->fullscreen->view) {
-		struct wmiiv_container *fs = view->container->pending.workspace->fullscreen;
+		struct wmiiv_window *fs = view->container->pending.workspace->fullscreen;
 		if (view_is_transient_for(view, fs->view)) {
 			window_set_fullscreen(fs, false);
 		}
@@ -859,14 +859,14 @@ void view_unmap(struct wmiiv_view *view) {
 }
 
 void view_update_size(struct wmiiv_view *view) {
-	struct wmiiv_container *container = view->container;
+	struct wmiiv_window *container = view->container;
 	container->pending.content_width = view->geometry.width;
 	container->pending.content_height = view->geometry.height;
 	window_set_geometry_from_content(container);
 }
 
 void view_center_surface(struct wmiiv_view *view) {
-	struct wmiiv_container *container = view->container;
+	struct wmiiv_window *container = view->container;
 	// We always center the current coordinates rather than the next, as the
 	// geometry immediately affects the currently active rendering.
 	container->surface_x = fmax(container->current.content_x, container->current.content_x +
@@ -1078,7 +1078,7 @@ void view_child_init(struct wmiiv_view_child *child,
 	wl_signal_add(&view->events.unmap, &child->view_unmap);
 	child->view_unmap.notify = view_child_handle_view_unmap;
 
-	struct wmiiv_container *container = child->view->container;
+	struct wmiiv_window *container = child->view->container;
 	if (container != NULL) {
 		struct wmiiv_workspace *workspace = container->pending.workspace;
 		if (workspace) {
@@ -1285,10 +1285,10 @@ bool view_is_visible(struct wmiiv_view *view) {
 	}
 	// Check view isn't in a tabbed or stacked container on an inactive tab
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_container *window = view->container;
+	struct wmiiv_window *window = view->container;
 	struct wmiiv_column *column = window->pending.parent;
 	if (column != NULL) {
-		enum wmiiv_container_layout parent_layout = column->pending.layout;
+		enum wmiiv_window_layout parent_layout = column->pending.layout;
 		if (parent_layout == L_TABBED || parent_layout == L_STACKED) {
 			if (seat_get_active_tiling_child(seat, &column->node) != &window->node) {
 				return false;
@@ -1297,7 +1297,7 @@ bool view_is_visible(struct wmiiv_view *view) {
 	}
 
 	// Check view isn't hidden by another fullscreen view
-	struct wmiiv_container *fs = root->fullscreen_global ?
+	struct wmiiv_window *fs = root->fullscreen_global ?
 		root->fullscreen_global : workspace->fullscreen;
 	if (fs && !window_is_fullscreen(view->container) &&
 			!window_is_transient_for(view->container, fs)) {

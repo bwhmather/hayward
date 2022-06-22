@@ -9,7 +9,7 @@
 #include "wmiiv/tree/view.h"
 
 struct wmiiv_server;
-struct wmiiv_container;
+struct wmiiv_window;
 
 struct wmiiv_output_state {
 	list_t *workspaces;
@@ -85,7 +85,7 @@ void output_damage_from_view(struct wmiiv_output *output,
 
 void output_damage_box(struct wmiiv_output *output, struct wlr_box *box);
 
-void output_damage_window(struct wmiiv_output *output, struct wmiiv_container *window);
+void output_damage_window(struct wmiiv_output *output, struct wmiiv_window *window);
 void output_damage_column(struct wmiiv_output *output, struct wmiiv_column *column);
 
 // this ONLY includes the enabled outputs
@@ -145,17 +145,17 @@ void output_for_each_workspace(struct wmiiv_output *output,
 		void (*f)(struct wmiiv_workspace *workspace, void *data), void *data);
 
 void output_for_each_window(struct wmiiv_output *output,
-		void (*f)(struct wmiiv_container *window, void *data), void *data);
+		void (*f)(struct wmiiv_window *window, void *data), void *data);
 
 struct wmiiv_workspace *output_find_workspace(struct wmiiv_output *output,
 		bool (*test)(struct wmiiv_workspace *workspace, void *data), void *data);
 
-struct wmiiv_container *output_find_window(struct wmiiv_output *output,
-		bool (*test)(struct wmiiv_container *window, void *data), void *data);
+struct wmiiv_window *output_find_window(struct wmiiv_output *output,
+		bool (*test)(struct wmiiv_window *window, void *data), void *data);
 
 void output_get_box(struct wmiiv_output *output, struct wlr_box *box);
 
-enum wmiiv_container_layout output_get_default_layout(
+enum wmiiv_window_layout output_get_default_layout(
 		struct wmiiv_output *output);
 
 void render_rect(struct wmiiv_output *output,

@@ -4,7 +4,7 @@
 #include <wlr/util/edges.h>
 #include "config.h"
 
-struct wmiiv_container;
+struct wmiiv_window;
 
 typedef struct cmd_results *wmiiv_cmd(int argc, char **argv);
 
@@ -57,7 +57,7 @@ const struct cmd_handler *find_handler(char *line,
  * `container` is NULL then it'll run on the currently focused container.
  */
 list_t *execute_command(char *command,  struct wmiiv_seat *seat,
-		struct wmiiv_container *container);
+		struct wmiiv_window *container);
 /**
  * Parse and handles a command during config file loading.
  *
@@ -88,7 +88,7 @@ void free_cmd_results(struct cmd_results *results);
  */
 char *cmd_results_to_json(list_t *res_list);
 
-void window_resize_tiled(struct wmiiv_container *window, uint32_t axis, int amount);
+void window_resize_tiled(struct wmiiv_window *window, uint32_t axis, int amount);
 
 /**
  * Handlers shared by exec and exec_always.

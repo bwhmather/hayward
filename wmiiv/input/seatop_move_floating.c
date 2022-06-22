@@ -6,7 +6,7 @@
 #include "wmiiv/input/seat.h"
 
 struct seatop_move_floating_event {
-	struct wmiiv_container *window;
+	struct wmiiv_window *window;
 	double dx, dy; // cursor offset in window
 };
 
@@ -45,7 +45,7 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	transaction_commit_dirty();
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *window) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_window *window) {
 	struct seatop_move_floating_event *e = seat->seatop_data;
 	if (e->window == window) {
 		seatop_begin_default(seat);
@@ -60,7 +60,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_move_floating(struct wmiiv_seat *seat,
-		struct wmiiv_container *window) {
+		struct wmiiv_window *window) {
 	seatop_end(seat);
 
 	struct wmiiv_cursor *cursor = seat->cursor;

@@ -111,7 +111,7 @@ bool wmiiv_idle_inhibit_v1_is_active(struct wmiiv_idle_inhibitor_v1 *inhibitor) 
 	case INHIBIT_IDLE_FOCUS:;
 		struct wmiiv_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {
-			struct wmiiv_container *container = seat_get_focused_container(seat);
+			struct wmiiv_window *container = seat_get_focused_container(seat);
 			if (container && container->view && container->view == inhibitor->view) {
 				return true;
 			}

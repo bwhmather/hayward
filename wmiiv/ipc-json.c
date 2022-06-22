@@ -38,7 +38,7 @@ static const char *ipc_json_node_type_description(enum wmiiv_node_type node_type
 	return "none";
 }
 
-static const char *ipc_json_layout_description(enum wmiiv_container_layout l) {
+static const char *ipc_json_layout_description(enum wmiiv_window_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "splitv";
@@ -54,7 +54,7 @@ static const char *ipc_json_layout_description(enum wmiiv_container_layout l) {
 	return "none";
 }
 
-static const char *ipc_json_orientation_description(enum wmiiv_container_layout l) {
+static const char *ipc_json_orientation_description(enum wmiiv_window_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "vertical";
@@ -65,7 +65,7 @@ static const char *ipc_json_orientation_description(enum wmiiv_container_layout 
 	}
 }
 
-static const char *ipc_json_border_description(enum wmiiv_container_border border) {
+static const char *ipc_json_border_description(enum wmiiv_window_border border) {
 	switch (border) {
 	case B_NONE:
 		return "none";
@@ -403,7 +403,7 @@ static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 	// Floating
 	json_object *floating_array = json_object_new_array();
 	for (int i = 0; i < workspace->floating->length; ++i) {
-		struct wmiiv_container *floater = workspace->floating->items[i];
+		struct wmiiv_window *floater = workspace->floating->items[i];
 		json_object_array_add(floating_array,
 				ipc_json_describe_node_recursive(&floater->node));
 	}
@@ -425,8 +425,8 @@ static void column_get_deco_rect(struct wmiiv_column *column, struct wlr_box *de
 	deco_rect->height = window_titlebar_height();
 }
 
-static void window_get_deco_rect(struct wmiiv_container *window, struct wlr_box *deco_rect) {
-	enum wmiiv_container_layout parent_layout = window_parent_layout(window);
+static void window_get_deco_rect(struct wmiiv_window *window, struct wlr_box *deco_rect) {
+	enum wmiiv_window_layout parent_layout = window_parent_layout(window);
 	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
 
 	if (((!tab_or_stack || window_is_floating(window)) &&
@@ -463,7 +463,7 @@ static void window_get_deco_rect(struct wmiiv_container *window, struct wlr_box 
 	}
 }
 
-static void ipc_json_describe_view(struct wmiiv_container *c, json_object *object) {
+static void ipc_json_describe_view(struct wmiiv_window *c, json_object *object) {
 	json_object_object_add(object, "pid", json_object_new_int(c->view->pid));
 
 	const char *app_id = view_get_app_id(c->view);
@@ -604,7 +604,7 @@ static void ipc_json_describe_column(struct wmiiv_column *column, json_object *o
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 }
 
-static void ipc_json_describe_window(struct wmiiv_container *window, json_object *object) {
+static void ipc_json_describe_window(struct wmiiv_window *window, json_object *object) {
 	json_object_object_add(object, "name",
 			window->title ? json_object_new_string(window->title) : NULL);
 	if (window_is_floating(window)) {
@@ -768,7 +768,7 @@ json_object *ipc_json_describe_node_recursive(struct wmiiv_node *node) {
 		break;
 	case N_WORKSPACE:
 		for (i = 0; i < node->wmiiv_workspace->tiling->length; ++i) {
-			struct wmiiv_container *container = node->wmiiv_workspace->tiling->items[i];
+			struct wmiiv_window *container = node->wmiiv_workspace->tiling->items[i];
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&container->node));
 		}
@@ -776,7 +776,7 @@ json_object *ipc_json_describe_node_recursive(struct wmiiv_node *node) {
 	case N_COLUMN:
 		if (node->wmiiv_column->pending.children) {
 			for (i = 0; i < node->wmiiv_column->pending.children->length; ++i) {
-				struct wmiiv_container *child =
+				struct wmiiv_window *child =
 					node->wmiiv_column->pending.children->items[i];
 				json_object_array_add(children,
 						ipc_json_describe_node_recursive(&child->node));

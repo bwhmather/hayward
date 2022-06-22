@@ -12,8 +12,8 @@
 //   in use (we set using_csd instead and render a wmiiv border).
 // - view->saved_border should be the last applied border when switching to CSD.
 // - view->using_csd should always reflect whether CSD is applied or not.
-static void set_border(struct wmiiv_container *window,
-		enum wmiiv_container_border new_border) {
+static void set_border(struct wmiiv_window *window,
+		enum wmiiv_window_border new_border) {
 	if (window->view->using_csd && new_border != B_CSD) {
 		view_set_csd_from_server(window->view, false);
 	} else if (!window->view->using_csd && new_border == B_CSD) {
@@ -27,7 +27,7 @@ static void set_border(struct wmiiv_container *window,
 	window->view->using_csd = new_border == B_CSD;
 }
 
-static void border_toggle(struct wmiiv_container *window) {
+static void border_toggle(struct wmiiv_window *window) {
 	if (window->view->using_csd) {
 		set_border(window, B_NONE);
 		return;
@@ -59,7 +59,7 @@ struct cmd_results *cmd_border(int argc, char **argv) {
 		return error;
 	}
 
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (!window) {
 		return cmd_results_new(CMD_INVALID, "Only windows can have borders");
 	}

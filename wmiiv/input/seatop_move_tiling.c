@@ -23,9 +23,9 @@
 #define DROP_SPLIT_INDICATOR 10
 
 struct seatop_move_tiling_event {
-	struct wmiiv_container *moving_window;
+	struct wmiiv_window *moving_window;
 	struct wmiiv_workspace *target_workspace;
-	struct wmiiv_container *target_window;
+	struct wmiiv_window *target_window;
 	enum wlr_edges target_edge;
 	struct wlr_box drop_box;
 	double ref_lx, ref_ly; // cursor's x/y at start of op
@@ -110,7 +110,7 @@ static void resize_box(struct wlr_box *box, enum wlr_edges edge,
 static void handle_motion_postthreshold(struct wmiiv_seat *seat) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	struct wmiiv_workspace *target_workspace = NULL;
-	struct wmiiv_container *target_window = NULL;
+	struct wmiiv_window *target_window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	struct wmiiv_cursor *cursor = seat->cursor;
@@ -232,12 +232,12 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 static void finalize_move(struct wmiiv_seat *seat) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 
-	struct wmiiv_container *moving_window = e->moving_window;
+	struct wmiiv_window *moving_window = e->moving_window;
 	struct wmiiv_column *old_parent = moving_window->pending.parent;
 	struct wmiiv_workspace *old_workspace = moving_window->pending.workspace;
 
 	struct wmiiv_workspace *target_workspace = e->target_workspace;
-	struct wmiiv_container *target_window = e->target_window;
+	struct wmiiv_window *target_window = e->target_window;
 	enum wlr_edges target_edge = e->target_edge;
 
 	// No move target.  Leave window where it is.
@@ -285,7 +285,7 @@ static void finalize_move(struct wmiiv_seat *seat) {
 	list_t *siblings = window_get_siblings(moving_window);
 	if (siblings->length > 1) {
 		int index = list_find(siblings, moving_window);
-		struct wmiiv_container *sibling = index == 0 ?
+		struct wmiiv_window *sibling = index == 0 ?
 			siblings->items[1] : siblings->items[index - 1];
 		moving_window->pending.width = sibling->pending.width;
 		moving_window->pending.height = sibling->pending.height;
@@ -318,7 +318,7 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 	}
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_window *container) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (e->target_window == container) {
 		e->target_workspace = NULL;
@@ -338,7 +338,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 };
 
 void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
-		struct wmiiv_container *moving_window) {
+		struct wmiiv_window *moving_window) {
 	seatop_end(seat);
 
 	struct seatop_move_tiling_event *e =
@@ -359,7 +359,7 @@ void seatop_begin_move_tiling_threshold(struct wmiiv_seat *seat,
 }
 
 void seatop_begin_move_tiling(struct wmiiv_seat *seat,
-		struct wmiiv_container *container) {
+		struct wmiiv_window *container) {
 	seatop_begin_move_tiling_threshold(seat, container);
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (e) {

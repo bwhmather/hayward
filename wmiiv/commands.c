@@ -200,7 +200,7 @@ static void set_config_node(struct wmiiv_node *node, bool node_overridden) {
 }
 
 list_t *execute_command(char *_exec, struct wmiiv_seat *seat,
-		struct wmiiv_container *container) {
+		struct wmiiv_window *container) {
 	char *cmd;
 	char matched_delim = ';';
 	list_t *containers = NULL;
@@ -301,7 +301,7 @@ list_t *execute_command(char *_exec, struct wmiiv_seat *seat,
 		} else {
 			struct cmd_results *fail_res = NULL;
 			for (int i = 0; i < containers->length; ++i) {
-				struct wmiiv_container *container = containers->items[i];
+				struct wmiiv_window *container = containers->items[i];
 				set_config_node(&container->node, true);
 				struct cmd_results *res = handler->handle(argc-1, argv+1);
 				if (res->status == CMD_SUCCESS) {

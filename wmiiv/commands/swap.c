@@ -13,9 +13,9 @@
 static const char expected_syntax[] =
 	"Expected 'swap container with id|container_id|mark <arg>'";
 
-static void swap_places(struct wmiiv_container *window1,
-		struct wmiiv_container *window2) {
-	struct wmiiv_container *temp = malloc(sizeof(struct wmiiv_container));
+static void swap_places(struct wmiiv_window *window1,
+		struct wmiiv_window *window2) {
+	struct wmiiv_window *temp = malloc(sizeof(struct wmiiv_window));
 	temp->pending.x = window1->pending.x;
 	temp->pending.y = window1->pending.y;
 	temp->pending.width = window1->pending.width;
@@ -63,14 +63,14 @@ static void swap_places(struct wmiiv_container *window1,
 	free(temp);
 }
 
-static void swap_focus(struct wmiiv_container *window1,
-		struct wmiiv_container *window2, struct wmiiv_seat *seat,
-		struct wmiiv_container *focus) {
+static void swap_focus(struct wmiiv_window *window1,
+		struct wmiiv_window *window2, struct wmiiv_seat *seat,
+		struct wmiiv_window *focus) {
 	if (focus == window1 || focus == window2) {
 		struct wmiiv_workspace *workspace1 = window1->pending.workspace;
 		struct wmiiv_workspace *workspace2 = window2->pending.workspace;
-		enum wmiiv_container_layout layout1 = window_parent_layout(window1);
-		enum wmiiv_container_layout layout2 = window_parent_layout(window2);
+		enum wmiiv_window_layout layout1 = window_parent_layout(window1);
+		enum wmiiv_window_layout layout2 = window_parent_layout(window2);
 		if (focus == window1 && (layout2 == L_TABBED || layout2 == L_STACKED)) {
 			if (workspace_is_visible(workspace2)) {
 				seat_set_raw_focus(seat, &window2->node);
@@ -97,7 +97,7 @@ static void swap_focus(struct wmiiv_container *window1,
 	}
 }
 
-void window_swap(struct wmiiv_container *window1, struct wmiiv_container *window2) {
+void window_swap(struct wmiiv_window *window1, struct wmiiv_window *window2) {
 	if (!wmiiv_assert(window1 && window2, "Cannot swap with nothing")) {
 		return;
 	}
@@ -121,7 +121,7 @@ void window_swap(struct wmiiv_container *window1, struct wmiiv_container *window
 	}
 
 	struct wmiiv_seat *seat = config->handler_context.seat;
-	struct wmiiv_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_window *focus = seat_get_focused_container(seat);
 	struct wmiiv_workspace *vis1 =
 		output_get_active_workspace(window1->pending.workspace->output);
 	struct wmiiv_workspace *vis2 =
@@ -160,20 +160,20 @@ void window_swap(struct wmiiv_container *window1, struct wmiiv_container *window
 	}
 }
 
-static bool test_container_id(struct wmiiv_container *container, void *data) {
+static bool test_container_id(struct wmiiv_window *container, void *data) {
 	size_t *container_id = data;
 	return container->node.id == *container_id;
 }
 
 #if HAVE_XWAYLAND
-static bool test_id(struct wmiiv_container *container, void *data) {
+static bool test_id(struct wmiiv_window *container, void *data) {
 	xcb_window_t *wid = data;
 	return (container->view && container->view->type == WMIIV_VIEW_XWAYLAND
 			&& container->view->wlr_xwayland_surface->window_id == *wid);
 }
 #endif
 
-static bool test_mark(struct wmiiv_container *container, void *mark) {
+static bool test_mark(struct wmiiv_window *container, void *mark) {
 	if (container->marks->length) {
 		return list_seq_find(container->marks,
 				(int (*)(const void *, const void *))strcmp, mark) != -1;
@@ -195,8 +195,8 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	struct wmiiv_container *current = config->handler_context.window;
-	struct wmiiv_container *other = NULL;
+	struct wmiiv_window *current = config->handler_context.window;
+	struct wmiiv_window *other = NULL;
 
 	char *value = join_args(argv + 3, argc - 3);
 	if (strcasecmp(argv[2], "id") == 0) {

@@ -11,7 +11,7 @@ struct cmd_results *cmd_urgent(int argc, char **argv) {
 	if ((error = checkarg(argc, "urgent", EXPECTED_EQUAL_TO, 1))) {
 		return error;
 	}
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (!window) {
 		return cmd_results_new(CMD_FAILURE, "No current window");
 	}

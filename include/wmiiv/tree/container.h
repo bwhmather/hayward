@@ -9,7 +9,7 @@
 struct wmiiv_view;
 struct wmiiv_seat;
 
-enum wmiiv_container_layout {
+enum wmiiv_window_layout {
 	L_NONE,
 	L_HORIZ,
 	L_VERT,
@@ -17,7 +17,7 @@ enum wmiiv_container_layout {
 	L_TABBED,
 };
 
-enum wmiiv_container_border {
+enum wmiiv_window_border {
 	B_NONE,
 	B_PIXEL,
 	B_NORMAL,
@@ -37,9 +37,9 @@ struct wmiiv_view;
 
 enum wlr_direction;
 
-struct wmiiv_container_state {
+struct wmiiv_window_state {
 	// Container properties
-	enum wmiiv_container_layout layout;
+	enum wmiiv_window_layout layout;
 	double x, y;
 	double width, height;
 
@@ -47,12 +47,12 @@ struct wmiiv_container_state {
 
 	struct wmiiv_workspace *workspace;
 	struct wmiiv_column *parent;    // NULL if container in root of workspace
-	list_t *children;                 // struct wmiiv_container
+	list_t *children;                 // struct wmiiv_window
 
-	struct wmiiv_container *focused_inactive_child;
+	struct wmiiv_window *focused_inactive_child;
 	bool focused;
 
-	enum wmiiv_container_border border;
+	enum wmiiv_window_border border;
 	int border_thickness;
 	bool border_top;
 	bool border_bottom;
@@ -64,12 +64,12 @@ struct wmiiv_container_state {
 	double content_width, content_height;
 };
 
-struct wmiiv_container {
+struct wmiiv_window {
 	struct wmiiv_node node;
 	struct wmiiv_view *view;
 
-	struct wmiiv_container_state current;
-	struct wmiiv_container_state pending;
+	struct wmiiv_window_state current;
+	struct wmiiv_window_state pending;
 
 	char *title;           // The view's title (unformatted)
 	char *formatted_title; // The title displayed in the title bar
@@ -87,7 +87,7 @@ struct wmiiv_container {
 
 	// Used when the view changes to CSD unexpectedly. This will be a non-B_CSD
 	// border which we use to restore when the view returns to SSD.
-	enum wmiiv_container_border saved_border;
+	enum wmiiv_window_border saved_border;
 
 	// The share of the space of parent container this container occupies
 	double width_fraction;
@@ -132,6 +132,6 @@ struct wmiiv_container {
 
 
 bool container_is_column(struct wmiiv_column *container);
-bool container_is_window(struct wmiiv_container *container);
+bool container_is_window(struct wmiiv_window *container);
 
 #endif

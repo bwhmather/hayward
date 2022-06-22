@@ -9,7 +9,7 @@
 #include "log.h"
 
 struct seatop_down_event {
-	struct wmiiv_container *container;
+	struct wmiiv_window *container;
 	struct wmiiv_seat *seat;
 	struct wl_listener surface_destroy;
 	struct wlr_surface *surface;
@@ -81,7 +81,7 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
 	}
 }
 
-static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
+static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_window *container) {
 	struct seatop_down_event *e = seat->seatop_data;
 	if (e->container == container) {
 		seatop_begin_default(seat);
@@ -104,7 +104,7 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 	.allow_set_cursor = true,
 };
 
-void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_container *container,
+void seatop_begin_down(struct wmiiv_seat *seat, struct wmiiv_window *container,
 		uint32_t time_msec, double sx, double sy) {
 	seatop_begin_down_on_surface(seat, container->view->surface, time_msec, sx, sy);
 	struct seatop_down_event *e = seat->seatop_data;

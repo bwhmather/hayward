@@ -42,7 +42,7 @@ static bool is_horizontal(uint32_t axis) {
 	return axis & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
 }
 
-static void window_resize_tiled_horizontal(struct wmiiv_container *window, uint32_t axis, int amount) {
+static void window_resize_tiled_horizontal(struct wmiiv_window *window, uint32_t axis, int amount) {
 	if (!window) {
 		return;
 	}
@@ -83,7 +83,7 @@ static void window_resize_tiled_horizontal(struct wmiiv_container *window, uint3
 	// to avoid rounding issues
 	list_t *siblings = column_get_siblings(column);
 	for (int i = 0; i < siblings->length; ++i) {
-		struct wmiiv_container *sibling = siblings->items[i];
+		struct wmiiv_window *sibling = siblings->items[i];
 		sibling->width_fraction = sibling->pending.width / sibling->child_total_width;
 	}
 
@@ -98,7 +98,7 @@ static void window_resize_tiled_horizontal(struct wmiiv_container *window, uint3
 	arrange_workspace(column->pending.workspace);
 }
 
-static void window_resize_tiled_vertical(struct wmiiv_container *window, uint32_t axis, int amount) {
+static void window_resize_tiled_vertical(struct wmiiv_window *window, uint32_t axis, int amount) {
 	if (!window) {
 		return;
 	}
@@ -108,8 +108,8 @@ static void window_resize_tiled_vertical(struct wmiiv_container *window, uint32_
 		return;
 	}
 
-	struct wmiiv_container *prev_sibling = NULL;
-	struct wmiiv_container *next_sibling = NULL;
+	struct wmiiv_window *prev_sibling = NULL;
+	struct wmiiv_window *next_sibling = NULL;
 	if (axis & WLR_EDGE_TOP) {
        		prev_sibling = window_get_previous_sibling(window);
 	}
@@ -142,7 +142,7 @@ static void window_resize_tiled_vertical(struct wmiiv_container *window, uint32_
 	// to avoid rounding issues
 	list_t *siblings = window_get_siblings(window);
 	for (int i = 0; i < siblings->length; ++i) {
-		struct wmiiv_container *sibling = siblings->items[i];
+		struct wmiiv_window *sibling = siblings->items[i];
 		sibling->height_fraction = sibling->pending.height / sibling->child_total_height;
 	}
 
@@ -157,7 +157,7 @@ static void window_resize_tiled_vertical(struct wmiiv_container *window, uint32_
 	arrange_column(column);
 }
 
-void window_resize_tiled(struct wmiiv_container *window, uint32_t axis, int amount) {
+void window_resize_tiled(struct wmiiv_window *window, uint32_t axis, int amount) {
 	if (!window) {
 		return;
 	}
@@ -176,7 +176,7 @@ void window_resize_tiled(struct wmiiv_container *window, uint32_t axis, int amou
  */
 static struct cmd_results *resize_adjust_floating(uint32_t axis,
 		struct movement_amount *amount) {
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	int grow_width = 0, grow_height = 0;
 
 	if (is_horizontal(axis)) {
@@ -233,7 +233,7 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
  */
 static struct cmd_results *resize_adjust_tiled(uint32_t axis,
 		struct movement_amount *amount) {
-	struct wmiiv_container *current = config->handler_context.window;
+	struct wmiiv_window *current = config->handler_context.window;
 
 	if (amount->unit == MOVEMENT_UNIT_DEFAULT) {
 		amount->unit = MOVEMENT_UNIT_PPT;
@@ -261,7 +261,7 @@ static struct cmd_results *resize_adjust_tiled(uint32_t axis,
 /**
  * Implement `resize set` for a tiled container.
  */
-static struct cmd_results *resize_set_tiled(struct wmiiv_container *window,
+static struct cmd_results *resize_set_tiled(struct wmiiv_window *window,
 		struct movement_amount *width, struct movement_amount *height) {
 	if (width->amount) {
 		if (width->unit == MOVEMENT_UNIT_PPT ||
@@ -311,7 +311,7 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_container *window,
 /**
  * Implement `resize set` for a floating container.
  */
-static struct cmd_results *resize_set_floating(struct wmiiv_container *window,
+static struct cmd_results *resize_set_floating(struct wmiiv_window *window,
 		struct movement_amount *width, struct movement_amount *height) {
 	if (!wmiiv_assert(container_is_window(window), "Not a window")) {
 		return cmd_results_new(CMD_FAILURE, NULL);
@@ -417,7 +417,7 @@ static struct cmd_results *cmd_resize_set(int argc, char **argv) {
 	}
 
 	// If 0, don't resize that dimension
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (width.amount <= 0) {
 		width.amount = window->pending.width;
 	}
@@ -489,7 +489,7 @@ static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
 	first_amount.amount *= multiplier;
 	second_amount.amount *= multiplier;
 
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (window && window_is_floating(window)) {
 		// Floating containers can only resize in px. Choose an amount which
 		// uses px, with fallback to an amount that specified no unit.
@@ -526,7 +526,7 @@ struct cmd_results *cmd_resize(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *current = config->handler_context.window;
+	struct wmiiv_window *current = config->handler_context.window;
 	if (!current) {
 		return cmd_results_new(CMD_INVALID, "Cannot resize nothing");
 	}

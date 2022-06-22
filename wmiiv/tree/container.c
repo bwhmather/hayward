@@ -34,7 +34,7 @@ bool container_is_column(struct wmiiv_column* container) {
 	return container->view == NULL;
 }
 
-bool container_is_window(struct wmiiv_container* container) {
+bool container_is_window(struct wmiiv_window* container) {
 	return container->view != NULL;
 }
 

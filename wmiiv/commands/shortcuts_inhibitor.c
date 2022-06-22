@@ -12,7 +12,7 @@ struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {
 		return error;
 	}
 
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	if (!window) {
 		return cmd_results_new(CMD_INVALID,
 				"Only views can have shortcuts inhibitors");

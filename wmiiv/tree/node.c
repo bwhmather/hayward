@@ -100,7 +100,7 @@ struct wmiiv_output *node_get_output(struct wmiiv_node *node) {
 	return NULL;
 }
 
-enum wmiiv_container_layout node_get_layout(struct wmiiv_node *node) {
+enum wmiiv_window_layout node_get_layout(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		return L_NONE;
@@ -140,7 +140,7 @@ struct wmiiv_node *node_get_parent(struct wmiiv_node *node) {
 		}
 		return NULL;
 	case N_WINDOW: {
-			struct wmiiv_container *window = node->wmiiv_window;
+			struct wmiiv_window *window = node->wmiiv_window;
 			if (window->pending.parent) {
 				return &window->pending.parent->node;
 			}

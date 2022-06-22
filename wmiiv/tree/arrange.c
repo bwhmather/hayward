@@ -13,7 +13,7 @@
 #include "list.h"
 #include "log.h"
 
-void arrange_window(struct wmiiv_container *window) {
+void arrange_window(struct wmiiv_window *window) {
 	if (config->reloading) {
 		return;
 	}
@@ -41,7 +41,7 @@ static void arrange_column_vert(struct wmiiv_column *column) {
 	int new_children = 0;
 	double current_height_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		current_height_fraction += child->height_fraction;
 		if (child->height_fraction <= 0) {
 			new_children += 1;
@@ -51,7 +51,7 @@ static void arrange_column_vert(struct wmiiv_column *column) {
 	// Calculate each height fraction
 	double total_height_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		if (child->height_fraction <= 0) {
 			if (current_height_fraction <= 0) {
 				child->height_fraction = 1.0;
@@ -66,7 +66,7 @@ static void arrange_column_vert(struct wmiiv_column *column) {
 	}
 	// Normalize height fractions so the sum is 1.0
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		child->height_fraction /= total_height_fraction;
 	}
 
@@ -80,7 +80,7 @@ static void arrange_column_vert(struct wmiiv_column *column) {
 	// Resize windows
 	double child_y = box.y;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		child->child_total_height = child_total_height;
 		child->pending.x = box.x;
 		child->pending.y = child_y;
@@ -108,7 +108,7 @@ static void arrange_column_tabbed(struct wmiiv_column *column) {
 		return;
 	}
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		int parent_offset = child->view ? 0 : window_titlebar_height();
 		child->pending.x = box.x;
 		child->pending.y = box.y + parent_offset;
@@ -130,7 +130,7 @@ static void arrange_column_stacked(struct wmiiv_column *column) {
 		return;
 	}
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		int parent_offset = child->view ?  0 :
 			window_titlebar_height() * children->length;
 		child->pending.x = box.x;
@@ -163,7 +163,7 @@ void arrange_column(struct wmiiv_column *column) {
 
 	list_t *children = column->pending.children;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		arrange_window(child);
 	}
 	node_set_dirty(&column->node);
@@ -172,7 +172,7 @@ void arrange_column(struct wmiiv_column *column) {
 static void arrange_floating(struct wmiiv_workspace *workspace) {
 	list_t *floating = workspace->floating;
 	for (int i = 0; i < floating->length; ++i) {
-		struct wmiiv_container *floater = floating->items[i];
+		struct wmiiv_window *floater = floating->items[i];
 		arrange_window(floater);
 	}
 }
@@ -192,7 +192,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	int new_children = 0;
 	double current_width_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		current_width_fraction += child->width_fraction;
 		if (child->width_fraction <= 0) {
 			new_children += 1;
@@ -202,7 +202,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	// Calculate each height fraction.
 	double total_width_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		if (child->width_fraction <= 0) {
 			if (current_width_fraction <= 0) {
 				child->width_fraction = 1.0;
@@ -217,7 +217,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	}
 	// Normalize width fractions so the sum is 1.0.
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		child->width_fraction /= total_width_fraction;
 	}
 
@@ -231,7 +231,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	// Resize windows.
 	double child_x = box.x;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		child->child_total_width = child_total_width;
 		child->pending.x = child_x;
 		child->pending.y = box.y;
@@ -278,7 +278,7 @@ void arrange_workspace(struct wmiiv_workspace *workspace) {
 	double diff_y = workspace->y - prev_y;
 	if (!first_arrange && (diff_x != 0 || diff_y != 0)) {
 		for (int i = 0; i < workspace->floating->length; ++i) {
-			struct wmiiv_container *floater = workspace->floating->items[i];
+			struct wmiiv_window *floater = workspace->floating->items[i];
 			window_floating_translate(floater, diff_x, diff_y);
 			double center_x = floater->pending.x + floater->pending.width / 2;
 			double center_y = floater->pending.y + floater->pending.height / 2;
@@ -295,7 +295,7 @@ void arrange_workspace(struct wmiiv_workspace *workspace) {
 	wmiiv_log(WMIIV_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
 			workspace->x, workspace->y);
 	if (workspace->fullscreen) {
-		struct wmiiv_container *fs = workspace->fullscreen;
+		struct wmiiv_window *fs = workspace->fullscreen;
 		fs->pending.x = output->lx;
 		fs->pending.y = output->ly;
 		fs->pending.width = output->width;
@@ -337,7 +337,7 @@ void arrange_root(void) {
 	root->height = layout_box.height;
 
 	if (root->fullscreen_global) {
-		struct wmiiv_container *fs = root->fullscreen_global;
+		struct wmiiv_window *fs = root->fullscreen_global;
 		fs->pending.x = root->x;
 		fs->pending.y = root->y;
 		fs->pending.width = root->width;

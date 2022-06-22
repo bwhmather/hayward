@@ -130,8 +130,8 @@ void column_detach(struct wmiiv_column *column) {
 	node_set_dirty(&column->node);
 }
 
-struct wmiiv_container *column_find_child(struct wmiiv_column *column,
-		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
+struct wmiiv_window *column_find_child(struct wmiiv_column *column,
+		bool (*test)(struct wmiiv_window *container, void *data), void *data) {
 	if (!wmiiv_assert(container_is_column(column), "Cannot find children in non-column containers")) {
 		return NULL;
 	}
@@ -139,7 +139,7 @@ struct wmiiv_container *column_find_child(struct wmiiv_column *column,
 		return NULL;
 	}
 	for (int i = 0; i < column->pending.children->length; ++i) {
-		struct wmiiv_container *child = column->pending.children->items[i];
+		struct wmiiv_window *child = column->pending.children->items[i];
 		if (test(child, data)) {
 			return child;
 		}
@@ -148,7 +148,7 @@ struct wmiiv_container *column_find_child(struct wmiiv_column *column,
 }
 
 void column_insert_child(struct wmiiv_column *parent,
-		struct wmiiv_container *child, int i) {
+		struct wmiiv_window *child, int i) {
 	wmiiv_assert(container_is_column(parent), "Target is not a column");
 	wmiiv_assert(container_is_window(child), "Not a window");
 
@@ -163,8 +163,8 @@ void column_insert_child(struct wmiiv_column *parent,
 	column_update_representation(parent);
 }
 
-void column_add_sibling(struct wmiiv_container *fixed,
-		struct wmiiv_container *active, bool after) {
+void column_add_sibling(struct wmiiv_window *fixed,
+		struct wmiiv_window *active, bool after) {
 	wmiiv_assert(container_is_window(fixed), "Target sibling is not a window");
 	wmiiv_assert(container_is_window(active), "Not a window");
 
@@ -183,7 +183,7 @@ void column_add_sibling(struct wmiiv_container *fixed,
 }
 
 void column_add_child(struct wmiiv_column *parent,
-		struct wmiiv_container *child) {
+		struct wmiiv_window *child) {
 	wmiiv_assert(container_is_column(parent), "Target is not a column");
 	wmiiv_assert(container_is_window(child), "Not a window");
 
@@ -201,13 +201,13 @@ void column_add_child(struct wmiiv_column *parent,
 }
 
 void column_for_each_child(struct wmiiv_column *column,
-		void (*f)(struct wmiiv_container *window, void *data),
+		void (*f)(struct wmiiv_window *window, void *data),
 		void *data) {
 	wmiiv_assert(container_is_column(column), "Expected column");
 
 	if (column->pending.children)  {
 		for (int i = 0; i < column->pending.children->length; ++i) {
-			struct wmiiv_container *child = column->pending.children->items[i];
+			struct wmiiv_window *child = column->pending.children->items[i];
 			f(child, data);
 		}
 	}
@@ -218,7 +218,7 @@ void column_for_each_child(struct wmiiv_column *column,
  * An example tree representation is: V[Terminal, Firefox]
  * If buffer is not NULL, also populate the buffer with the representation.
  */
-size_t column_build_representation(enum wmiiv_container_layout layout,
+size_t column_build_representation(enum wmiiv_window_layout layout,
 		list_t *children, char *buffer) {
 	size_t len = 2;
 	switch (layout) {
@@ -243,7 +243,7 @@ size_t column_build_representation(enum wmiiv_container_layout layout,
 			++len;
 			lenient_strcat(buffer, " ");
 		}
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_window *child = children->items[i];
 		const char *identifier = NULL;
 		if (child->view) {
 			identifier = view_get_class(child->view);
@@ -304,7 +304,7 @@ void column_set_resizing(struct wmiiv_column *column, bool resizing) {
 	wmiiv_assert(container_is_column(column), "Expected column");
 
 	for (int i = 0; i < column->pending.children->length; ++i ) {
-		struct wmiiv_container *child = column->pending.children->items[i];
+		struct wmiiv_window *child = column->pending.children->items[i];
 		window_set_resizing(child, resizing);
 	}
 }
@@ -409,7 +409,7 @@ void column_discover_outputs(struct wmiiv_column *column) {
 	}
 }
 
-static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
+static bool find_urgent_iterator(struct wmiiv_window *container, void *data) {
 	return container->view && view_is_urgent(container->view);
 }
 

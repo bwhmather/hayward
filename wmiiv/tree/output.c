@@ -69,7 +69,7 @@ static void restore_workspaces(struct wmiiv_output *output) {
 		// likely changed and the maximum size needs to be checked and the
 		// floater re-centered
 		for (int i = 0; i < workspace->floating->length; i++) {
-			struct wmiiv_container *floater = workspace->floating->items[i];
+			struct wmiiv_window *floater = workspace->floating->items[i];
 			if (floater->pending.width == 0 || floater->pending.height == 0 ||
 					floater->pending.width > output->width ||
 					floater->pending.height > output->height ||
@@ -152,7 +152,7 @@ static void evacuate_sticky(struct wmiiv_workspace *old_workspace,
 		return;
 	}
 	while(old_workspace->floating->length) {
-		struct wmiiv_container *sticky = old_workspace->floating->items[0];
+		struct wmiiv_window *sticky = old_workspace->floating->items[0];
 		window_detach(sticky);
 		workspace_add_floating(new_workspace, sticky);
 		window_handle_fullscreen_reparent(sticky);
@@ -237,7 +237,7 @@ void output_destroy(struct wmiiv_output *output) {
 	free(output);
 }
 
-static void untrack_output(struct wmiiv_container *container, void *data) {
+static void untrack_output(struct wmiiv_window *container, void *data) {
 	struct wmiiv_output *output = data;
 	int index = list_find(container->outputs, output);
 	if (index != -1) {
@@ -326,7 +326,7 @@ void output_for_each_workspace(struct wmiiv_output *output,
 }
 
 void output_for_each_window(struct wmiiv_output *output,
-		void (*f)(struct wmiiv_container *window, void *data), void *data) {
+		void (*f)(struct wmiiv_window *window, void *data), void *data) {
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];
 		workspace_for_each_window(workspace, f, data);
@@ -344,9 +344,9 @@ struct wmiiv_workspace *output_find_workspace(struct wmiiv_output *output,
 	return NULL;
 }
 
-struct wmiiv_container *output_find_window(struct wmiiv_output *output,
-		bool (*test)(struct wmiiv_container *window, void *data), void *data) {
-	struct wmiiv_container *result = NULL;
+struct wmiiv_window *output_find_window(struct wmiiv_output *output,
+		bool (*test)(struct wmiiv_window *window, void *data), void *data) {
+	struct wmiiv_window *result = NULL;
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];
 		if ((result = workspace_find_window(workspace, test, data))) {
@@ -383,7 +383,7 @@ void output_get_box(struct wmiiv_output *output, struct wlr_box *box) {
 	box->height = output->height;
 }
 
-enum wmiiv_container_layout output_get_default_layout(
+enum wmiiv_window_layout output_get_default_layout(
 		struct wmiiv_output *output) {
 	return L_VERT;
 }

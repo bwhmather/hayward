@@ -227,21 +227,21 @@ void seat_for_each_node(struct wmiiv_seat *seat,
 }
 
 void seat_for_each_window(struct wmiiv_seat *seat,
-		void (*f)(struct wmiiv_container *window, void *data), void *data) {
+		void (*f)(struct wmiiv_window *window, void *data), void *data) {
 	struct wmiiv_seat_window *current = NULL;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
 		f(current->window, data);
 	}
 }
 
-struct wmiiv_container *seat_get_focus_inactive_view(struct wmiiv_seat *seat,
+struct wmiiv_window *seat_get_focus_inactive_view(struct wmiiv_seat *seat,
 		struct wmiiv_node *ancestor) {
 	if (node_is_view(ancestor)) {
 		return ancestor->wmiiv_window;
 	}
 	struct wmiiv_seat_window *current;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct wmiiv_container *window = current->window;
+		struct wmiiv_window *window = current->window;
 		if (node_has_ancestor(&window->node, ancestor)) {
 			return window;
 		}
@@ -277,7 +277,7 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 	struct wmiiv_seat_window *seat_window =
 		wl_container_of(listener, seat_window, destroy);
 	struct wmiiv_seat *seat = seat_window->seat;
-	struct wmiiv_container *window = seat_window->window;
+	struct wmiiv_window *window = seat_window->window;
 	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return;
 	}
@@ -306,7 +306,7 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 	// for windows in the same column, the same workspace, and then in other
 	// visible workspaces.  We do not switch between floating and tiling, and we
 	// do not change the visible workspace for an output.
-	struct wmiiv_container *new_focus = NULL;
+	struct wmiiv_window *new_focus = NULL;
 
 	if (window_is_fullscreen(window)) {
 		struct wmiiv_seat_window *candidate_seat_window;
@@ -314,7 +314,7 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 		// Search for first floating, tiling or fullscreen container on a visible
 		// workspace.
 		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct wmiiv_container *candidate = candidate_seat_window->window;
+			struct wmiiv_window *candidate = candidate_seat_window->window;
 
 			if (!workspace_is_visible(candidate->pending.workspace)) {
 				continue;
@@ -329,7 +329,7 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 
 		// Search other floating containers in all visible workspaces.
 		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct wmiiv_container *candidate = candidate_seat_window->window;
+			struct wmiiv_window *candidate = candidate_seat_window->window;
 
 			if (!window_is_floating(candidate)) {
 				continue;
@@ -348,7 +348,7 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 
 		// Search for next tiling container in same column.
 		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct wmiiv_container *candidate = candidate_seat_window->window;
+			struct wmiiv_window *candidate = candidate_seat_window->window;
 
 			if (candidate->pending.parent != window->pending.parent) {
 				continue;
@@ -360,7 +360,7 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 
 		// Search for next tiling container in same workspace.
 		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct wmiiv_container *candidate = candidate_seat_window->window;
+			struct wmiiv_window *candidate = candidate_seat_window->window;
 
 			if (candidate->pending.workspace != window->pending.workspace) {
 				continue;
@@ -380,7 +380,7 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 
 		// Search for next tiling container in all visible workspaces.
 		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct wmiiv_container *candidate = candidate_seat_window->window;
+			struct wmiiv_window *candidate = candidate_seat_window->window;
 
 			if (window_is_floating(candidate)) {
 				continue;
@@ -429,7 +429,7 @@ static struct wmiiv_seat_workspace *seat_workspace_from_workspace(
 }
 
 static struct wmiiv_seat_window *seat_window_from_window(
-	struct wmiiv_seat *seat, struct wmiiv_container *window) {
+	struct wmiiv_seat *seat, struct wmiiv_window *window) {
 	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
 		return NULL;
 	}
@@ -669,7 +669,7 @@ static void collect_focus_workspace_iter(struct wmiiv_workspace *workspace,
 	collect_focus_iter(&workspace->node, data);
 }
 
-static void collect_focus_container_iter(struct wmiiv_container *container,
+static void collect_focus_container_iter(struct wmiiv_window *container,
 		void *data) {
 	collect_focus_iter(&container->node, data);
 }
@@ -1196,7 +1196,7 @@ bool seat_is_input_allowed(struct wmiiv_seat *seat,
 		(seat->exclusive_client == NULL && !server.session_lock.locked);
 }
 
-static void send_unfocus(struct wmiiv_container *container, void *data) {
+static void send_unfocus(struct wmiiv_window *container, void *data) {
 	if (container->view) {
 		view_set_activated(container->view, false);
 	}
@@ -1227,7 +1227,7 @@ static int handle_urgent_timeout(void *data) {
  * window.  This function is intended as a building block for other functions
  * which do manipulate the focus.
  */
-static void seat_set_active_window(struct wmiiv_seat *seat, struct wmiiv_container *window) {
+static void seat_set_active_window(struct wmiiv_seat *seat, struct wmiiv_window *window) {
 	wmiiv_assert(window != NULL, "Expected non-null pointer");
 	wmiiv_assert(container_is_window(window), "Expected window");
 
@@ -1250,7 +1250,7 @@ void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 	seat_set_active_window(seat, node->wmiiv_window);
 }
 
-static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_workspace *new_workspace, struct wmiiv_container *new_window) {
+static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_workspace *new_workspace, struct wmiiv_window *new_window) {
 	if (!wmiiv_assert(!new_window || container_is_window(new_window), "Cannot focus non-window")) {
 		return;
 	}
@@ -1277,7 +1277,7 @@ static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_worksp
 		return;
 	}
 
-	struct wmiiv_container *last_window = seat_get_focused_container(seat);
+	struct wmiiv_window *last_window = seat_get_focused_container(seat);
 	struct wmiiv_workspace *last_workspace = seat_get_focused_workspace(seat);
 
 	// Deny setting focus to a view which is hidden by a fullscreen container or global
@@ -1302,7 +1302,7 @@ static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_worksp
 
 		if (new_output_last_workspace && new_workspace != new_output_last_workspace) {
 			for (int i = 0; i < new_output_last_workspace->floating->length; ++i) {
-				struct wmiiv_container *floater =
+				struct wmiiv_window *floater =
 					new_output_last_workspace->floating->items[i];
 				if (window_is_sticky(floater)) {
 					window_detach(floater);
@@ -1429,7 +1429,7 @@ void seat_clear_focus(struct wmiiv_seat *seat) {
  * If the focused window has been moved between workspaces, this function
  * should be called to patch up the workspace focus stack.
  */
-void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_container *new_window) {
+void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_window *new_window) {
 	if (!wmiiv_assert(!new_window || container_is_window(new_window), "Cannot focus non-window")) {
 		return;
 	}
@@ -1548,14 +1548,14 @@ struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *
 	return NULL;
 }
 
-struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_column *column) {
+struct wmiiv_window *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_column *column) {
 	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
 		return NULL;
 	}
 
 	struct wmiiv_seat_window *current;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct wmiiv_container *window = current->window;
+		struct wmiiv_window *window = current->window;
 
 		if (window->pending.parent != column) {
 			continue;
@@ -1567,14 +1567,14 @@ struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *sea
 	return NULL;
 }
 
-struct wmiiv_container *seat_get_active_tiling_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace) {
+struct wmiiv_window *seat_get_active_tiling_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace) {
 	if (!workspace->tiling->length) {
 		return NULL;
 	}
 
 	struct wmiiv_seat_window *current;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct wmiiv_container *window = current->window;
+		struct wmiiv_window *window = current->window;
 
 		if (window->pending.workspace != workspace) {
 			continue;
@@ -1590,14 +1590,14 @@ struct wmiiv_container *seat_get_active_tiling_window_for_workspace(struct wmiiv
 	return NULL;
 }
 
-struct wmiiv_container *seat_get_active_floating_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace) {
+struct wmiiv_window *seat_get_active_floating_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace) {
 	if (!workspace->floating->length) {
 		return NULL;
 	}
 
 	struct wmiiv_seat_window *current;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct wmiiv_container *window = current->window;
+		struct wmiiv_window *window = current->window;
 
 		if (window->pending.workspace != workspace) {
 			continue;
@@ -1614,14 +1614,14 @@ struct wmiiv_container *seat_get_active_floating_window_for_workspace(struct wmi
 
 }
 
-struct wmiiv_container *seat_get_active_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace) {
+struct wmiiv_window *seat_get_active_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace) {
 	if (!workspace->tiling->length) {
 		return NULL;
 	}
 
 	struct wmiiv_seat_window *current;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct wmiiv_container *window = current->window;
+		struct wmiiv_window *window = current->window;
 
 		if (window->pending.workspace != workspace) {
 			continue;
@@ -1652,13 +1652,13 @@ struct wmiiv_node *seat_get_focus_inactive(struct wmiiv_seat *seat,
 }
 
 // TODO (wmiiv) deprecated.
-struct wmiiv_container *seat_get_focus_inactive_tiling(struct wmiiv_seat *seat,
+struct wmiiv_window *seat_get_focus_inactive_tiling(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace) {
 	return seat_get_active_tiling_window_for_workspace(seat, workspace);
 }
 
 // TODO (wmiiv) deprecated.
-struct wmiiv_container *seat_get_focus_inactive_floating(struct wmiiv_seat *seat,
+struct wmiiv_window *seat_get_focus_inactive_floating(struct wmiiv_seat *seat,
 		struct wmiiv_workspace *workspace) {
 	return seat_get_active_floating_window_for_workspace(seat, workspace);
 }
@@ -1666,7 +1666,7 @@ struct wmiiv_container *seat_get_focus_inactive_floating(struct wmiiv_seat *seat
 // TODO (wmiiv) deprecated.
 struct wmiiv_node *seat_get_active_tiling_child(struct wmiiv_seat *seat,
 		struct wmiiv_node *parent) {
-	struct wmiiv_container *window = NULL;
+	struct wmiiv_window *window = NULL;
 
 	switch (parent->type) {
 	case N_WORKSPACE:
@@ -1710,7 +1710,7 @@ struct wmiiv_workspace *seat_get_focused_workspace(struct wmiiv_seat *seat) {
 	return seat_workspace->workspace;
 }
 
-struct wmiiv_container *seat_get_focused_container(struct wmiiv_seat *seat) {
+struct wmiiv_window *seat_get_focused_container(struct wmiiv_seat *seat) {
 	struct wmiiv_node *focus = seat_get_focus(seat);
 	if (focus && (focus->type == N_WINDOW)) {
 		return focus->wmiiv_window;
@@ -1790,7 +1790,7 @@ void seat_consider_warp_to_focus(struct wmiiv_seat *seat) {
 	}
 }
 
-void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_container *container) {
+void seatop_unref(struct wmiiv_seat *seat, struct wmiiv_window *container) {
 	if (seat->seatop_impl->unref) {
 		seat->seatop_impl->unref(seat, container);
 	}

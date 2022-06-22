@@ -14,9 +14,9 @@
 #include "stringop.h"
 #include "util.h"
 
-static bool get_direction_from_next_prev(struct wmiiv_container *window,
+static bool get_direction_from_next_prev(struct wmiiv_window *window,
 		struct wmiiv_seat *seat, const char *name, enum wlr_direction *out) {
-	enum wmiiv_container_layout parent_layout = L_NONE;
+	enum wmiiv_window_layout parent_layout = L_NONE;
 	if (window) {
 		parent_layout = window_parent_layout(window);
 	}
@@ -91,8 +91,8 @@ static struct wmiiv_node *get_node_in_output_direction(
 	if (workspace->fullscreen) {
 		return &workspace->fullscreen->node;
 	}
-	struct wmiiv_container *column = NULL;
-	struct wmiiv_container *window = NULL;
+	struct wmiiv_window *column = NULL;
+	struct wmiiv_window *window = NULL;
 
 	if (workspace->tiling->length > 0) {
 		switch (dir) {
@@ -123,9 +123,9 @@ static struct wmiiv_node *get_node_in_output_direction(
 }
 
 static struct wmiiv_node *node_get_in_direction_tiling(
-		struct wmiiv_container *window, struct wmiiv_seat *seat,
+		struct wmiiv_window *window, struct wmiiv_seat *seat,
 		enum wlr_direction dir) {
-	struct wmiiv_container *wrap_candidate = NULL;
+	struct wmiiv_window *wrap_candidate = NULL;
 
 	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
 		// Fullscreen container with a direction - go straight to outputs
@@ -179,7 +179,7 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 		}
 
 		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
-			struct wmiiv_container *wrap_candidate_column;
+			struct wmiiv_window *wrap_candidate_column;
 			if (desired_idx < 0) {
 				wrap_candidate_column = siblings->items[siblings->length - 1];
 			} else {
@@ -201,7 +201,7 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 
 	// If there is a wrap candidate, return its focus inactive view
 	if (wrap_candidate) {
-		struct wmiiv_container *wrap_inactive = seat_get_focus_inactive_view(
+		struct wmiiv_window *wrap_inactive = seat_get_focus_inactive_view(
 				seat, &wrap_candidate->node);
 		return &wrap_inactive->node;
 	}
@@ -210,19 +210,19 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 }
 
 static struct wmiiv_node *node_get_in_direction_floating(
-		struct wmiiv_container *container, struct wmiiv_seat *seat,
+		struct wmiiv_window *container, struct wmiiv_seat *seat,
 		enum wlr_direction dir) {
 	double ref_lx = container->pending.x + container->pending.width / 2;
 	double ref_ly = container->pending.y + container->pending.height / 2;
 	double closest_distance = DBL_MAX;
-	struct wmiiv_container *closest_container = NULL;
+	struct wmiiv_window *closest_container = NULL;
 
 	if (!container->pending.workspace) {
 		return NULL;
 	}
 
 	for (int i = 0; i < container->pending.workspace->floating->length; i++) {
-		struct wmiiv_container *floater = container->pending.workspace->floating->items[i];
+		struct wmiiv_window *floater = container->pending.workspace->floating->items[i];
 		if (floater == container) {
 			continue;
 		}
@@ -246,7 +246,7 @@ static struct wmiiv_node *node_get_in_direction_floating(
 
 static struct cmd_results *focus_mode(struct wmiiv_workspace *workspace,
 		struct wmiiv_seat *seat, bool floating) {
-	struct wmiiv_container *new_focus = NULL;
+	struct wmiiv_window *new_focus = NULL;
 	if (floating) {
 		new_focus = seat_get_focus_inactive_floating(seat, workspace);
 	} else {
@@ -327,7 +327,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	}
 	struct wmiiv_node *node = config->handler_context.node;
 	struct wmiiv_workspace *workspace = config->handler_context.workspace;
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 	struct wmiiv_seat *seat = config->handler_context.seat;
 	if (node->type < N_WORKSPACE) {
 		return cmd_results_new(CMD_FAILURE,
@@ -341,7 +341,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 
 		// if we are switching to a container under a fullscreen window, we first
 		// need to exit fullscreen so that the newly focused container becomes visible
-		struct wmiiv_container *obstructing = window_obstructing_fullscreen_window(window);
+		struct wmiiv_window *obstructing = window_obstructing_fullscreen_window(window);
 		if (obstructing) {
 			window_fullscreen_disable(obstructing);
 			arrange_root();

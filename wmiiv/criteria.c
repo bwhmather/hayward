@@ -143,7 +143,7 @@ static int cmp_urgent(const void *_a, const void *_b) {
 	return 0;
 }
 
-static void find_urgent_iterator(struct wmiiv_container *container, void *data) {
+static void find_urgent_iterator(struct wmiiv_window *container, void *data) {
 	if (!container->view || !view_is_urgent(container->view)) {
 		return;
 	}
@@ -156,10 +156,10 @@ static bool has_container_criteria(struct criteria *criteria) {
 }
 
 static bool criteria_matches_container(struct criteria *criteria,
-		struct wmiiv_container *container) {
+		struct wmiiv_window *container) {
 	if (criteria->container_mark) {
 		bool exists = false;
-		struct wmiiv_container *container = container;
+		struct wmiiv_window *container = container;
 		for (int i = 0; i < container->marks->length; ++i) {
 			if (regex_cmp(container->marks->items[i], criteria->container_mark->regex) >= 0) {
 				exists = true;
@@ -183,7 +183,7 @@ static bool criteria_matches_container(struct criteria *criteria,
 static bool criteria_matches_view(struct criteria *criteria,
 		struct wmiiv_view *view) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_container *focus = seat_get_focused_container(seat);
+	struct wmiiv_window *focus = seat_get_focused_container(seat);
 	struct wmiiv_view *focused = focus ? focus->view : NULL;
 
 	if (criteria->title) {
@@ -403,7 +403,7 @@ struct match_data {
 	list_t *matches;
 };
 
-static void criteria_get_windows_iterator(struct wmiiv_container *container,
+static void criteria_get_windows_iterator(struct wmiiv_window *container,
 		void *data) {
 	struct match_data *match_data = data;
 	if (container->view) {
@@ -546,7 +546,7 @@ static bool parse_token(struct criteria *criteria, char *name, char *value) {
 	case T_CON_ID:
 		if (strcmp(value, "__focused__") == 0) {
 			struct wmiiv_seat *seat = input_manager_current_seat();
-			struct wmiiv_container *focus = seat_get_focused_container(seat);
+			struct wmiiv_window *focus = seat_get_focused_container(seat);
 			struct wmiiv_view *view = focus ? focus->view : NULL;
 			criteria->container_id = view ? view->container->node.id : 0;
 		} else {

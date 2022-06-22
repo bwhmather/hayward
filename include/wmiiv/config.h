@@ -488,7 +488,7 @@ struct wmiiv_config {
 	char *floating_scroll_down_cmd;
 	char *floating_scroll_left_cmd;
 	char *floating_scroll_right_cmd;
-	enum wmiiv_container_layout default_layout;
+	enum wmiiv_window_layout default_layout;
 	char *font;
 	int font_height;
 	int font_baseline;
@@ -533,8 +533,8 @@ struct wmiiv_config {
 	int current_config_line_number;
 	char *current_config_line;
 
-	enum wmiiv_container_border border;
-	enum wmiiv_container_border floating_border;
+	enum wmiiv_window_border border;
+	enum wmiiv_window_border floating_border;
 	int border_thickness;
 	int floating_border_thickness;
 	enum edge_border_types hide_edge_borders;
@@ -572,7 +572,7 @@ struct wmiiv_config {
 		struct wmiiv_node *node;
 		struct wmiiv_workspace *workspace;
 		struct wmiiv_column *column;
-		struct wmiiv_container *window;
+		struct wmiiv_window *window;
 		bool node_overridden; // True if the node is selected by means other than focus
 		struct {
 			int argc;

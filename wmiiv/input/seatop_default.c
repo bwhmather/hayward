@@ -51,14 +51,14 @@ static bool column_edge_is_external(struct wmiiv_column *column, enum wlr_edges 
 	return false;
 }
 
-static bool window_edge_is_external(struct wmiiv_container *window, enum wlr_edges edge) {
+static bool window_edge_is_external(struct wmiiv_window *window, enum wlr_edges edge) {
 	wmiiv_assert(window_is_tiling(window), "Expected tiling window");
 
 	if (edge == WLR_EDGE_LEFT || edge == WLR_EDGE_RIGHT) {
 		return column_edge_is_external(window->pending.parent, edge);
 	}
 
-	enum wmiiv_container_layout layout = window->pending.parent->pending.layout;
+	enum wmiiv_window_layout layout = window->pending.parent->pending.layout;
 
 	if (layout == L_STACKED || layout == L_TABBED) {
 		return true;
@@ -79,7 +79,7 @@ static bool window_edge_is_external(struct wmiiv_container *window, enum wlr_edg
 	return false;
 }
 
-static enum wlr_edges find_edge(struct wmiiv_container *cont,
+static enum wlr_edges find_edge(struct wmiiv_window *cont,
 		struct wlr_surface *surface, struct wmiiv_cursor *cursor) {
 	if (!cont->view || (surface && cont->view->surface != surface)) {
 		return WLR_EDGE_NONE;
@@ -113,7 +113,7 @@ static enum wlr_edges find_edge(struct wmiiv_container *cont,
  * If the cursor is over a _resizable_ edge, return the edge.
  * Edges that can't be resized are edges of the workspace.
  */
-enum wlr_edges find_resize_edge(struct wmiiv_container *cont,
+enum wlr_edges find_resize_edge(struct wmiiv_window *cont,
 		struct wlr_surface *surface, struct wmiiv_cursor *cursor) {
 	enum wlr_edges edge = find_edge(cont, surface, cursor);
 	if (edge && (!container_is_window(cont) || !window_is_floating(cont)) && window_edge_is_external(cont, edge)) {
@@ -228,7 +228,7 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 
 	struct wmiiv_cursor *cursor = seat->cursor;
 	struct wmiiv_workspace *workspace = NULL;
-	struct wmiiv_container *window = NULL;
+	struct wmiiv_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
@@ -344,7 +344,7 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 
 	// Determine what's under the cursor.
 	struct wmiiv_workspace *workspace;
-	struct wmiiv_container *window;
+	struct wmiiv_window *window;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
@@ -404,8 +404,8 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		// change focus to the tab which already had inactive focus -- otherwise, if
 		// the user clicked on the title of a hidden tab, we'd change the active tab
 		// when the user probably just wanted to resize.
-		struct wmiiv_container *window_to_focus = window;
-		enum wmiiv_container_layout layout = window_parent_layout(window);
+		struct wmiiv_window *window_to_focus = window;
+		enum wmiiv_window_layout layout = window_parent_layout(window);
 		if (layout == L_TABBED || layout == L_STACKED) {
 			window_to_focus = seat_get_focus_inactive_view(seat, &window->pending.parent->node);
 		}
@@ -484,7 +484,7 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 			window && window->pending.fullscreen_mode == FULLSCREEN_NONE) {
 		// TODO with focus follows mouse, is there ever a situation where this will
 		// actually be triggered.
-		struct wmiiv_container *focus = seat_get_focused_container(seat);
+		struct wmiiv_window *focus = seat_get_focused_container(seat);
 		if (on_titlebar && focus != window) {
 			seat_set_focus_window(seat, window);
 		}
@@ -592,7 +592,7 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct wmiiv_cursor *cursor = seat->cursor;
 
 	struct wmiiv_workspace *workspace;
-	struct wmiiv_container *window;
+	struct wmiiv_window *window;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
@@ -637,7 +637,7 @@ static void handle_tablet_tool_motion(struct wmiiv_seat *seat,
 	struct seatop_default_event *e = seat->seatop_data;
 	struct wmiiv_cursor *cursor = seat->cursor;
 	struct wmiiv_workspace *workspace = NULL;
-	struct wmiiv_container *window = NULL;
+	struct wmiiv_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
@@ -705,7 +705,7 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 
 	// Determine what's under the cursor
 	struct wmiiv_workspace *workspace = NULL;
-	struct wmiiv_container *window = NULL;
+	struct wmiiv_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
@@ -758,9 +758,9 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 				desired = siblings->length - 1;
 			}
 
-			struct wmiiv_container *new_sibling_container = siblings->items[desired];
+			struct wmiiv_window *new_sibling_container = siblings->items[desired];
 			struct wmiiv_node *new_sibling = &new_sibling_container->node;
-			struct wmiiv_container *new_focus =
+			struct wmiiv_window *new_focus =
 				seat_get_focus_inactive_view(seat, new_sibling);
 			// Use the focused child of the tabbed/stacked container, not the
 			// container the user scrolled on.
@@ -796,7 +796,7 @@ static void handle_rebase(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct wmiiv_cursor *cursor = seat->cursor;
 	struct wmiiv_workspace *workspace = NULL;
-	struct wmiiv_container *window = NULL;
+	struct wmiiv_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx = 0.0, sy = 0.0;
 	seat_get_target_at(

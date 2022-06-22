@@ -18,7 +18,7 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *window = config->handler_context.window;
+	struct wmiiv_window *window = config->handler_context.window;
 
 	if (!window) {
 		// If the focus is not a window, do nothing successfully

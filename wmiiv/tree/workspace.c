@@ -577,7 +577,7 @@ bool workspace_switch(struct wmiiv_workspace *workspace) {
 	wmiiv_log(WMIIV_DEBUG, "Switching to workspace %p:%s",
 		workspace, workspace->name);
 
-	struct wmiiv_container *active_window = seat_get_active_window_for_workspace(seat, workspace);
+	struct wmiiv_window *active_window = seat_get_active_window_for_workspace(seat, workspace);
 	if (active_window) {
 		seat_set_focus_window(seat, active_window);
 	} else {
@@ -599,7 +599,7 @@ bool workspace_is_empty(struct wmiiv_workspace *workspace) {
 	}
 	// Sticky views are not considered to be part of this workspace
 	for (int i = 0; i < workspace->floating->length; ++i) {
-		struct wmiiv_container *floater = workspace->floating->items[i];
+		struct wmiiv_window *floater = workspace->floating->items[i];
 		if (!window_is_sticky(floater)) {
 			return false;
 		}
@@ -672,7 +672,7 @@ struct wmiiv_output *workspace_output_get_highest_available(
 	return NULL;
 }
 
-static bool find_urgent_iterator(struct wmiiv_container *container, void *data) {
+static bool find_urgent_iterator(struct wmiiv_window *container, void *data) {
 	return container->view && view_is_urgent(container->view);
 }
 
@@ -687,7 +687,7 @@ void workspace_detect_urgent(struct wmiiv_workspace *workspace) {
 	}
 }
 
-void workspace_for_each_window(struct wmiiv_workspace *workspace, void (*f)(struct wmiiv_container *window, void *data), void *data) {
+void workspace_for_each_window(struct wmiiv_workspace *workspace, void (*f)(struct wmiiv_window *window, void *data), void *data) {
 	// Tiling
 	for (int i = 0; i < workspace->tiling->length; ++i) {
 		struct wmiiv_column *column = workspace->tiling->items[i];
@@ -695,7 +695,7 @@ void workspace_for_each_window(struct wmiiv_workspace *workspace, void (*f)(stru
 	}
 	// Floating
 	for (int i = 0; i < workspace->floating->length; ++i) {
-		struct wmiiv_container *window = workspace->floating->items[i];
+		struct wmiiv_window *window = workspace->floating->items[i];
 		f(window, data);
 	}
 }
@@ -707,9 +707,9 @@ void workspace_for_each_column(struct wmiiv_workspace *workspace, void (*f)(stru
 	}
 }
 
-struct wmiiv_container *workspace_find_window(struct wmiiv_workspace *workspace,
-		bool (*test)(struct wmiiv_container *window, void *data), void *data) {
-	struct wmiiv_container *result = NULL;
+struct wmiiv_window *workspace_find_window(struct wmiiv_workspace *workspace,
+		bool (*test)(struct wmiiv_window *window, void *data), void *data) {
+	struct wmiiv_window *result = NULL;
 	// Tiling
 	for (int i = 0; i < workspace->tiling->length; ++i) {
 		struct wmiiv_column *child = workspace->tiling->items[i];
@@ -719,7 +719,7 @@ struct wmiiv_container *workspace_find_window(struct wmiiv_workspace *workspace,
 	}
 	// Floating
 	for (int i = 0; i < workspace->floating->length; ++i) {
-		struct wmiiv_container *child = workspace->floating->items[i];
+		struct wmiiv_window *child = workspace->floating->items[i];
 		if (test(child, data)) {
 			return child;
 		}
@@ -727,7 +727,7 @@ struct wmiiv_container *workspace_find_window(struct wmiiv_workspace *workspace,
 	return NULL;
 }
 
-static void set_workspace(struct wmiiv_container *container, void *data) {
+static void set_workspace(struct wmiiv_window *container, void *data) {
 	container->pending.workspace = container->pending.parent->pending.workspace;
 }
 
@@ -761,7 +761,7 @@ struct wmiiv_column *workspace_add_tiling(struct wmiiv_workspace *workspace,
 }
 
 void workspace_add_floating(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *window) {
+		struct wmiiv_window *window) {
 	wmiiv_assert(container_is_window(window), "Can only float windows");
 
 	if (window->pending.workspace) {
@@ -801,7 +801,7 @@ struct wmiiv_column *workspace_insert_tiling(struct wmiiv_workspace *workspace,
 
 bool workspace_has_single_visible_container(struct wmiiv_workspace *workspace) {
 	struct wmiiv_seat *seat = input_manager_get_default_seat();
-	struct wmiiv_container *focus =
+	struct wmiiv_window *focus =
 		seat_get_focus_inactive_tiling(seat, workspace);
 	if (focus && !focus->view) {
 		focus = seat_get_focus_inactive_view(seat, &focus->node);
@@ -860,8 +860,8 @@ void workspace_add_gaps(struct wmiiv_workspace *workspace) {
 	workspace->height -= workspace->current_gaps.top + workspace->current_gaps.bottom;
 }
 
-struct wmiiv_container *workspace_split(struct wmiiv_workspace *workspace,
-		enum wmiiv_container_layout layout) {
+struct wmiiv_window *workspace_split(struct wmiiv_workspace *workspace,
+		enum wmiiv_window_layout layout) {
 	wmiiv_assert(false, "workspace_split is deprecated");
 
 	return NULL;
@@ -885,7 +885,7 @@ void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box) {
 	box->height = workspace->height;
 }
 
-static void count_tiling_views(struct wmiiv_container *container, void *data) {
+static void count_tiling_views(struct wmiiv_window *container, void *data) {
 	if (container_is_window(container) && !window_is_floating(container)) {
 		size_t *count = data;
 		*count += 1;
@@ -898,7 +898,7 @@ size_t workspace_num_tiling_views(struct wmiiv_workspace *workspace) {
 	return count;
 }
 
-static void count_sticky_containers(struct wmiiv_container *container, void *data) {
+static void count_sticky_containers(struct wmiiv_window *container, void *data) {
 	if (!container_is_window(container)) {
 		return;
 	}

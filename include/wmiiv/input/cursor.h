@@ -82,11 +82,11 @@ struct wmiiv_cursor {
 };
 
 struct wmiiv_workspace;
-struct wmiiv_container;
+struct wmiiv_window;
 
 void seat_get_target_at(
 		struct wmiiv_seat *seat, double lx, double ly,
-		struct wmiiv_workspace **wsp, struct wmiiv_container **winp,
+		struct wmiiv_workspace **wsp, struct wmiiv_window **winp,
 		struct wlr_surface **surface, double *sx, double *sy);
 
 void wmiiv_cursor_destroy(struct wmiiv_cursor *cursor);
@@ -124,7 +124,7 @@ void cursor_set_image_surface(struct wmiiv_cursor *cursor,
 		struct wl_client *client);
 
 void cursor_warp_to_container(struct wmiiv_cursor *cursor,
-	struct wmiiv_container *container, bool force);
+	struct wmiiv_window *container, bool force);
 
 void cursor_warp_to_workspace(struct wmiiv_cursor *cursor,
 		struct wmiiv_workspace *workspace);

@@ -14,7 +14,7 @@ void desktop_damage_surface(struct wlr_surface *surface, double lx, double ly,
 	}
 }
 
-void desktop_damage_window(struct wmiiv_container *window) {
+void desktop_damage_window(struct wmiiv_window *window) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
 		output_damage_window(output, window);

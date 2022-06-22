@@ -615,7 +615,7 @@ void seat_execute_command(struct wmiiv_seat *seat, struct wmiiv_binding *binding
 	}
 
 	wmiiv_log(WMIIV_DEBUG, "running command for binding: %s", binding->command);
-	struct wmiiv_container *container = NULL;
+	struct wmiiv_window *container = NULL;
 	if (binding->type == BINDING_MOUSESYM
 			|| binding->type == BINDING_MOUSECODE) {
 		struct wmiiv_workspace *workspace;

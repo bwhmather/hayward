@@ -32,7 +32,7 @@ struct wmiiv_transaction_instruction {
 	union {
 		struct wmiiv_output_state output_state;
 		struct wmiiv_workspace_state workspace_state;
-		struct wmiiv_container_state container_state;
+		struct wmiiv_window_state container_state;
 	};
 	uint32_t serial;
 	bool server_request;
@@ -129,7 +129,7 @@ static void copy_workspace_state(struct wmiiv_workspace *workspace,
 	state->focused = seat_get_focus(seat) == &workspace->node;
 
 	// Set focused_inactive_child to the direct tiling child
-	struct wmiiv_container *focus = seat_get_focus_inactive_tiling(seat, workspace);
+	struct wmiiv_window *focus = seat_get_focus_inactive_tiling(seat, workspace);
 	state->focused_inactive_child = focus ? focus->pending.parent : NULL;
 }
 
@@ -139,13 +139,13 @@ static void copy_column_state(struct wmiiv_column *container,
 		return;
 	}
 
-	struct wmiiv_container_state *state = &instruction->container_state;
+	struct wmiiv_window_state *state = &instruction->container_state;
 
 	if (state->children) {
 		list_free(state->children);
 	}
 
-	memcpy(state, &container->pending, sizeof(struct wmiiv_container_state));
+	memcpy(state, &container->pending, sizeof(struct wmiiv_window_state));
 
 	// We store a copy of the child list to avoid having it mutated after
 	// we copy the state.
@@ -160,11 +160,11 @@ static void copy_column_state(struct wmiiv_column *container,
 	state->focused_inactive_child = focus ? focus->wmiiv_window : NULL;
 }
 
-static void copy_window_state(struct wmiiv_container *container,
+static void copy_window_state(struct wmiiv_window *container,
 		struct wmiiv_transaction_instruction *instruction) {
-	struct wmiiv_container_state *state = &instruction->container_state;
+	struct wmiiv_window_state *state = &instruction->container_state;
 
-	memcpy(state, &container->pending, sizeof(struct wmiiv_container_state));
+	memcpy(state, &container->pending, sizeof(struct wmiiv_window_state));
 	state->children = NULL;
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
@@ -238,7 +238,7 @@ static void apply_workspace_state(struct wmiiv_workspace *workspace,
 	output_damage_whole(workspace->current.output);
 }
 
-static void apply_column_state(struct wmiiv_column *column, struct wmiiv_container_state *state) {
+static void apply_column_state(struct wmiiv_column *column, struct wmiiv_window_state *state) {
 	// Damage the old location
 	desktop_damage_column(column);
 
@@ -249,7 +249,7 @@ static void apply_column_state(struct wmiiv_column *column, struct wmiiv_contain
 	// transaction_destroy().
 	list_free(column->current.children);
 
-	memcpy(&column->current, state, sizeof(struct wmiiv_container_state));
+	memcpy(&column->current, state, sizeof(struct wmiiv_window_state));
 
 	// Damage the new location
 	desktop_damage_column(column);
@@ -259,8 +259,8 @@ static void apply_column_state(struct wmiiv_column *column, struct wmiiv_contain
 	}
 }
 
-static void apply_window_state(struct wmiiv_container *window,
-		struct wmiiv_container_state *state) {
+static void apply_window_state(struct wmiiv_window *window,
+		struct wmiiv_window_state *state) {
 	struct wmiiv_view *view = window->view;
 	// Damage the old location
 	desktop_damage_window(window);
@@ -283,7 +283,7 @@ static void apply_window_state(struct wmiiv_container *window,
 	// deleted will be cleaned up in transaction_destroy().
 	list_free(window->current.children);
 
-	memcpy(&window->current, state, sizeof(struct wmiiv_container_state));
+	memcpy(&window->current, state, sizeof(struct wmiiv_window_state));
 
 	if (!wl_list_empty(&view->saved_buffers)) {
 		if (!window->node.destroying || window->node.ntxnrefs == 1) {
@@ -403,8 +403,8 @@ static bool should_configure(struct wmiiv_node *node,
 	if (!instruction->server_request) {
 		return false;
 	}
-	struct wmiiv_container_state *cstate = &node->wmiiv_window->current;
-	struct wmiiv_container_state *istate = &instruction->container_state;
+	struct wmiiv_window_state *cstate = &node->wmiiv_window->current;
+	struct wmiiv_window_state *istate = &instruction->container_state;
 #if HAVE_XWAYLAND
 	// Xwayland views are position-aware and need to be reconfigured
 	// when their position changes.

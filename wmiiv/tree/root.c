@@ -226,7 +226,7 @@ void root_for_each_workspace(void (*f)(struct wmiiv_workspace *workspace, void *
 	}
 }
 
-void root_for_each_window(void (*f)(struct wmiiv_container *window, void *data),
+void root_for_each_window(void (*f)(struct wmiiv_window *window, void *data),
 		void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
@@ -263,9 +263,9 @@ struct wmiiv_workspace *root_find_workspace(
 	return NULL;
 }
 
-struct wmiiv_container *root_find_window(
-		bool (*test)(struct wmiiv_container *window, void *data), void *data) {
-	struct wmiiv_container *result = NULL;
+struct wmiiv_window *root_find_window(
+		bool (*test)(struct wmiiv_window *window, void *data), void *data) {
+	struct wmiiv_window *result = NULL;
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
 		if ((result = output_find_window(output, test, data))) {
