@@ -175,7 +175,9 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 		list_t *siblings = column_get_siblings(column);
 
 		if (desired_idx >= 0 && desired_idx < siblings->length) {
-			return siblings->items[desired_idx];
+			struct wmiiv_column *next_column = siblings->items[desired_idx];
+			struct wmiiv_window *next_window = seat_get_focus_inactive_view(seat, &next_column->node);
+			return &next_window->node;
 		}
 
 		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
@@ -405,6 +407,8 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		next_focus = node_get_in_direction_tiling(window, seat, direction);
 	}
 	if (next_focus) {
+		wmiiv_assert(next_focus->type != N_COLUMN, "Shouldn't focus columns");
+		wmiiv_assert(next_focus->type != N_WORKSPACE, "Shouldn't focus workspaces");
 		seat_set_focus(seat, next_focus);
 		seat_consider_warp_to_focus(seat);
 		window_raise_floating(next_focus->wmiiv_window);
