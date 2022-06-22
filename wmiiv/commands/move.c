@@ -102,10 +102,6 @@ static bool window_move_to_next_output(struct wmiiv_window *window,
 // Returns true if moved
 static bool window_move_in_direction(struct wmiiv_window *window,
 		enum wlr_direction move_dir) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return false;
-	}
-
 	// If moving a fullscreen view, only consider outputs
 	switch (window->pending.fullscreen_mode) {
 	case FULLSCREEN_NONE:

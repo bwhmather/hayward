@@ -195,7 +195,6 @@ wmiiv_sources = files(
 
 	'tree/arrange.c',
         'tree/column.c',
-	'tree/container.c',
 	'tree/node.c',
 	'tree/root.c',
 	'tree/view.c',

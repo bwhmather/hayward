@@ -153,10 +153,6 @@ void window_end_mouse_operation(struct wmiiv_window *window) {
 
 static bool find_by_mark_iterator(struct wmiiv_window *container, void *data) {
 	char *mark = data;
-	if (!container_is_window(container)) {
-		return false;
-	}
-
 	if (!window_has_mark(container, mark)) {
 		return false;
 	}
@@ -189,10 +185,6 @@ bool window_find_and_unmark(char *mark) {
 }
 
 void window_clear_marks(struct wmiiv_window *container) {
-	if (!wmiiv_assert(container_is_window(container), "Cannot only clear marks on windows")) {
-		return;
-	}
-
 	for (int i = 0; i < container->marks->length; ++i) {
 		free(container->marks->items[i]);
 	}
@@ -201,10 +193,6 @@ void window_clear_marks(struct wmiiv_window *container) {
 }
 
 bool window_has_mark(struct wmiiv_window *container, char *mark) {
-	if (!wmiiv_assert(container_is_window(container), "Cannot only check marks on windows")) {
-		return false;
-	}
-
 	for (int i = 0; i < container->marks->length; ++i) {
 		char *item = container->marks->items[i];
 		if (strcmp(item, mark) == 0) {
@@ -215,10 +203,6 @@ bool window_has_mark(struct wmiiv_window *container, char *mark) {
 }
 
 void window_add_mark(struct wmiiv_window *container, char *mark) {
-	if (!wmiiv_assert(container_is_window(container), "Cannot only mark windows")) {
-		return;
-	}
-
 	list_add(container->marks, strdup(mark));
 	ipc_event_window(container, "mark");
 }
@@ -338,10 +322,6 @@ static void update_marks_texture(struct wmiiv_window *window,
 }
 
 void window_update_marks_textures(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Only windows have marks textures")) {
-		return;
-	}
-
 	if (!config->show_marks) {
 		return;
 	}
@@ -391,10 +371,6 @@ void window_update_title_textures(struct wmiiv_window *window) {
 }
 
 bool window_is_floating(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Only windows can float")) {
-		return false;
-	}
-
 	if (!window->pending.parent && window->pending.workspace &&
 			list_find(window->pending.workspace->floating, window) != -1) {
 		return true;
@@ -403,9 +379,6 @@ bool window_is_floating(struct wmiiv_window *window) {
 }
 
 bool window_is_current_floating(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Only windows can float")) {
-		return false;
-	}
 	if (!window->current.parent && window->current.workspace &&
 			list_find(window->current.workspace->floating, window) != -1) {
 		return true;
@@ -414,10 +387,6 @@ bool window_is_current_floating(struct wmiiv_window *window) {
 }
 
 void window_set_floating(struct wmiiv_window *window, bool enable) {
-	if (!wmiiv_assert(container_is_window(window), "Can only float windows")) {
-		return;
-	}
-
 	if (window_is_floating(window) == enable) {
 		return;
 	}
@@ -468,18 +437,10 @@ void window_set_floating(struct wmiiv_window *window, bool enable) {
 }
 
 bool window_is_fullscreen(struct wmiiv_window* window) {
-	if (!wmiiv_assert(container_is_window(window), "Only windows can be fullscreen")) {
-		return false;
-	}
-
 	return window->pending.fullscreen_mode;
 }
 
 bool window_is_tiling(struct wmiiv_window* window) {
-	if (!wmiiv_assert(container_is_window(window), "Only windows can be tiling")) {
-		return false;
-	}
-
 	return window->pending.parent != NULL;
 }
 
@@ -506,13 +467,6 @@ static void workspace_focus_fullscreen(struct wmiiv_workspace *workspace) {
 static void window_move_to_column_from_maybe_direction(
 		struct wmiiv_window *window, struct wmiiv_column *column,
 		bool has_move_dir, enum wlr_direction move_dir) {
-	if (!wmiiv_assert(container_is_window(window), "Can only move windows to columns")) {
-		return;
-	}
-	if (!wmiiv_assert(container_is_column(column), "Can only move windows to columns")) {
-		return;
-	}
-
 	if (window->pending.parent == column) {
 		return;
 	}
@@ -566,10 +520,6 @@ void window_move_to_column(struct wmiiv_window *window,
 static void window_move_to_workspace_from_maybe_direction(
 		struct wmiiv_window *window, struct wmiiv_workspace *workspace,
 		bool has_move_dir, enum wlr_direction move_dir) {
-	if (!wmiiv_assert(container_is_window(window), "Can only move windows between workspaces")) {
-		return;
-	}
-
 	if (workspace == window->pending.workspace) {
 		return;
 	}
@@ -635,9 +585,6 @@ void window_move_to_workspace(struct wmiiv_window *window,
 }
 
 struct wlr_surface *window_surface_at(struct wmiiv_window *window, double lx, double ly, double *sx, double *sy) {
-	if (!wmiiv_assert(container_is_window(window), "Expected a view")) {
-		return NULL;
-	}
 	struct wmiiv_view *view = window->view;
 	double view_sx = lx - window->surface_x + view->geometry.x;
 	double view_sy = ly - window->surface_y + view->geometry.y;
@@ -666,10 +613,6 @@ struct wlr_surface *window_surface_at(struct wmiiv_window *window, double lx, do
 }
 
 bool window_contents_contain_point(struct wmiiv_window *window, double lx, double ly) {
-	if (!wmiiv_assert(container_is_window(window), "Expected a window")) {
-		return false;
-	}
-
 	struct wlr_box box = {
 		.x = window->pending.content_x,
 		.y = window->pending.content_y,
@@ -681,10 +624,6 @@ bool window_contents_contain_point(struct wmiiv_window *window, double lx, doubl
 }
 
 bool window_contains_point(struct wmiiv_window *window, double lx, double ly) {
-	if (!wmiiv_assert(container_is_window(window), "Expected a windowdwo")) {
-		return false;
-	}
-
 	struct wlr_box box = {
 		.x = window->pending.x,
 		.y = window->pending.y,
@@ -695,11 +634,7 @@ bool window_contains_point(struct wmiiv_window *window, double lx, double ly) {
 	return wlr_box_contains_point(&box, lx, ly);
 }
 
-struct wmiiv_window *window_obstructing_fullscreen_window(struct wmiiv_window *window)
-{
-	if (!wmiiv_assert(container_is_window(window), "Only windows can be fullscreen")) {
-		return NULL;
-	}
+struct wmiiv_window *window_obstructing_fullscreen_window(struct wmiiv_window *window) {
 
 	struct wmiiv_workspace *workspace = window->pending.workspace;
 
@@ -818,9 +753,6 @@ static void set_fullscreen(struct wmiiv_window *window, bool enable) {
 }
 
 static void window_fullscreen_workspace(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return;
-	}
 	if (!wmiiv_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
@@ -855,9 +787,6 @@ static void window_fullscreen_workspace(struct wmiiv_window *window) {
 }
 
 static void window_fullscreen_global(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return;
-	}
 	if (!wmiiv_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
 				"Expected a non-fullscreen container")) {
 		return;
@@ -919,9 +848,6 @@ void window_set_fullscreen(struct wmiiv_window *window,
 }
 
 void window_fullscreen_disable(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return;
-	}
 	if (!wmiiv_assert(window->pending.fullscreen_mode != FULLSCREEN_NONE,
 				"Expected a fullscreen container")) {
 		return;
@@ -1077,8 +1003,6 @@ void window_floating_set_default_size(struct wmiiv_window *window) {
 		return;
 	}
 
-	wmiiv_assert(container_is_window(window), "Expected window");
-
 	int min_width, max_width, min_height, max_height;
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);
@@ -1194,8 +1118,6 @@ void window_set_resizing(struct wmiiv_window *window, bool resizing) {
 		return;
 	}
 
-	wmiiv_assert(container_is_window(window), "Expected window");
-
 	if (window->view->impl->set_resizing) {
 		window->view->impl->set_resizing(window->view, resizing);
 	}
@@ -1240,7 +1162,7 @@ void window_raise_floating(struct wmiiv_window *window) {
 }
 
 bool window_is_sticky(struct wmiiv_window *window) {
-	return container_is_window(window) && window->is_sticky && window_is_floating(window);
+	return window->is_sticky && window_is_floating(window);
 }
 
 list_t *window_get_siblings(struct wmiiv_window *window) {
@@ -1268,10 +1190,6 @@ list_t *window_get_current_siblings(struct wmiiv_window *window) {
 }
 
 struct wmiiv_window *window_get_previous_sibling(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return NULL;
-	}
-
 	if (!window->pending.parent) {
 		return NULL;
 	}
@@ -1287,10 +1205,6 @@ struct wmiiv_window *window_get_previous_sibling(struct wmiiv_window *window) {
 }
 
 struct wmiiv_window *window_get_next_sibling(struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return NULL;
-	}
-
 	if (!window->pending.parent) {
 		return NULL;
 	}

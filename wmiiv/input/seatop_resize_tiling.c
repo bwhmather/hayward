@@ -32,10 +32,6 @@ struct seatop_resize_tiling_event {
 };
 
 static struct wmiiv_column *column_get_resize_sibling(struct wmiiv_column *column, uint32_t edge) {
-	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
-		return NULL;
-	}
-
 	list_t *siblings = column_get_siblings(column);
 	int offset = (edge & WLR_EDGE_LEFT) ? -1 : 1;
 	int index = column_sibling_index(column) + offset;
@@ -52,10 +48,6 @@ static struct wmiiv_column *column_get_resize_sibling(struct wmiiv_column *colum
 }
 
 static struct wmiiv_window *window_get_resize_sibling(struct wmiiv_window *window, uint32_t edge) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return NULL;
-	}
-
 	list_t *siblings = window_get_siblings(window);
 	int offset = (edge & WLR_EDGE_TOP) ? -1 : 1;
 	int index = window_sibling_index(window) + offset;

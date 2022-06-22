@@ -9,10 +9,8 @@
 #include "stringop.h"
 
 static void remove_all_marks_iterator(struct wmiiv_window *container, void *data) {
-	if (container_is_window(container)) {
-		window_clear_marks(container);
-		window_update_marks_textures(container);
-	}
+	window_clear_marks(container);
+	window_update_marks_textures(container);
 }
 
 // unmark                  Remove all marks from all views

@@ -10,10 +10,8 @@
 #include "log.h"
 
 static void rebuild_textures_iterator(struct wmiiv_window *container, void *data) {
-	if (container_is_window(container)) {
-		window_update_title_textures(container);
-		window_update_marks_textures(container);
-	}
+	window_update_title_textures(container);
+	window_update_marks_textures(container);
 }
 
 static void do_reload(void *data) {

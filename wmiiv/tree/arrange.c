@@ -22,7 +22,6 @@ void arrange_window(struct wmiiv_window *window) {
 }
 
 static void arrange_column_vert(struct wmiiv_column *column) {
-	wmiiv_assert(container_is_column(column), "Expected column");
 	wmiiv_assert(column->pending.layout == L_VERT, "Expected vertical column");
 
 	struct wlr_box box;
@@ -96,7 +95,6 @@ static void arrange_column_vert(struct wmiiv_column *column) {
 }
 
 static void arrange_column_tabbed(struct wmiiv_column *column) {
-	wmiiv_assert(container_is_column(column), "Expected column");
 	wmiiv_assert(column->pending.layout == L_TABBED, "Expected tabbed column");
 
 	struct wlr_box box;
@@ -118,7 +116,6 @@ static void arrange_column_tabbed(struct wmiiv_column *column) {
 }
 
 static void arrange_column_stacked(struct wmiiv_column *column) {
-	wmiiv_assert(container_is_column(column), "Expected column");
 	wmiiv_assert(column->pending.layout == L_STACKED, "Expected stacked column");
 
 	struct wlr_box box;

@@ -278,9 +278,6 @@ static void handle_window_destroy(struct wl_listener *listener, void *data) {
 		wl_container_of(listener, seat_window, destroy);
 	struct wmiiv_seat *seat = seat_window->seat;
 	struct wmiiv_window *window = seat_window->window;
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return;
-	}
 	struct wmiiv_node *focus = seat_get_focus(seat);
 
 	if (&window->node == focus) {
@@ -430,10 +427,6 @@ static struct wmiiv_seat_workspace *seat_workspace_from_workspace(
 
 static struct wmiiv_seat_window *seat_window_from_window(
 	struct wmiiv_seat *seat, struct wmiiv_window *window) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return NULL;
-	}
-
 	struct wmiiv_seat_window *seat_window = NULL;
 	wl_list_for_each(seat_window, &seat->active_window_stack, link) {
 		if (seat_window->window == window) {
@@ -1229,7 +1222,6 @@ static int handle_urgent_timeout(void *data) {
  */
 static void seat_set_active_window(struct wmiiv_seat *seat, struct wmiiv_window *window) {
 	wmiiv_assert(window != NULL, "Expected non-null pointer");
-	wmiiv_assert(container_is_window(window), "Expected window");
 
 	struct wmiiv_seat_window *seat_window = seat_window_from_window(seat, window);
 
@@ -1251,10 +1243,6 @@ void seat_set_raw_focus(struct wmiiv_seat *seat, struct wmiiv_node *node) {
 }
 
 static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_workspace *new_workspace, struct wmiiv_window *new_window) {
-	if (!wmiiv_assert(!new_window || container_is_window(new_window), "Cannot focus non-window")) {
-		return;
-	}
-
 	if (!wmiiv_assert(!new_window || new_window->pending.workspace == new_workspace, "Window workspace does not match expected")) {
 		return;
 	}
@@ -1430,9 +1418,6 @@ void seat_clear_focus(struct wmiiv_seat *seat) {
  * should be called to patch up the workspace focus stack.
  */
 void seat_set_focus_window(struct wmiiv_seat *seat, struct wmiiv_window *new_window) {
-	if (!wmiiv_assert(!new_window || container_is_window(new_window), "Cannot focus non-window")) {
-		return;
-	}
 	struct wmiiv_workspace *new_workspace = new_window ? new_window->pending.workspace : seat_get_focused_workspace(seat);
 
 	seat_set_focus_internal(seat, new_workspace, new_window);
@@ -1549,10 +1534,6 @@ struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *
 }
 
 struct wmiiv_window *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_column *column) {
-	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
-		return NULL;
-	}
-
 	struct wmiiv_seat_window *current;
 	wl_list_for_each(current, &seat->active_window_stack, link) {
 		struct wmiiv_window *window = current->window;

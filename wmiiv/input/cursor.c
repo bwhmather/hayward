@@ -59,7 +59,6 @@ static struct wmiiv_window *seat_column_window_at_tabbed(struct wmiiv_seat *seat
 			child_index = children->length - 1;
 		}
 		struct wmiiv_window *child = children->items[child_index];
-		wmiiv_assert(container_is_window(child), "Returning column where window expected");
 		return child;
 	}
 
@@ -87,7 +86,6 @@ static struct wmiiv_window *seat_column_window_at_stacked(struct wmiiv_seat *sea
 		int child_index = (ly - box.y) / title_height;
 		if (child_index < children->length) {
 			struct wmiiv_window *child = children->items[child_index];
-			wmiiv_assert(container_is_window(child), "Returning column where window expected");
 			return child;
 		}
 	}
@@ -113,10 +111,6 @@ static struct wmiiv_window *seat_column_window_at_linear(struct wmiiv_seat *seat
 }
 
 struct wmiiv_window *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
-	if (!wmiiv_assert(container_is_column(column), "expected column")) {
-		return NULL;
-	}
-
 	switch (node_get_layout(&column->node)) {
 	case L_HORIZ:
 	case L_VERT:

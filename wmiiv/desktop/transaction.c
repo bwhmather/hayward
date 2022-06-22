@@ -135,10 +135,6 @@ static void copy_workspace_state(struct wmiiv_workspace *workspace,
 
 static void copy_column_state(struct wmiiv_column *container,
 		struct wmiiv_transaction_instruction *instruction) {
-	if (!wmiiv_assert(container_is_column(container), "Expected column")) {
-		return;
-	}
-
 	struct wmiiv_window_state *state = &instruction->container_state;
 
 	if (state->children) {

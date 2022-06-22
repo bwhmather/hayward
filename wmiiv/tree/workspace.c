@@ -745,7 +745,6 @@ void workspace_detach(struct wmiiv_workspace *workspace) {
 
 struct wmiiv_column *workspace_add_tiling(struct wmiiv_workspace *workspace,
 		struct wmiiv_column *column) {
-	wmiiv_assert(container_is_column(column), "Can only add columns to workspace");
 	if (column->pending.workspace) {
 		column_detach(column);
 	}
@@ -762,8 +761,6 @@ struct wmiiv_column *workspace_add_tiling(struct wmiiv_workspace *workspace,
 
 void workspace_add_floating(struct wmiiv_workspace *workspace,
 		struct wmiiv_window *window) {
-	wmiiv_assert(container_is_window(window), "Can only float windows");
-
 	if (window->pending.workspace) {
 		window_detach(window);
 	}
@@ -779,7 +776,6 @@ void workspace_add_floating(struct wmiiv_workspace *workspace,
 
 void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
 		struct wmiiv_column *column, int index) {
-	wmiiv_assert(container_is_column(column), "Can only insert columns into workspace");
 	list_insert(workspace->tiling, index, column);
 	column->pending.workspace = workspace;
 	column_for_each_child(column, set_workspace, NULL);
@@ -790,7 +786,6 @@ void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
 
 struct wmiiv_column *workspace_insert_tiling(struct wmiiv_workspace *workspace,
 		struct wmiiv_column *column, int index) {
-	wmiiv_assert(container_is_column(column), "Can only insert columns into workspace");
 	if (column->pending.workspace) {
 		column_detach(column);
 	}
@@ -886,7 +881,7 @@ void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box) {
 }
 
 static void count_tiling_views(struct wmiiv_window *container, void *data) {
-	if (container_is_window(container) && !window_is_floating(container)) {
+	if (!window_is_floating(container)) {
 		size_t *count = data;
 		*count += 1;
 	}
@@ -899,9 +894,6 @@ size_t workspace_num_tiling_views(struct wmiiv_workspace *workspace) {
 }
 
 static void count_sticky_containers(struct wmiiv_window *container, void *data) {
-	if (!container_is_window(container)) {
-		return;
-	}
 	if (!window_is_sticky(container)) {
 		return;
 	}

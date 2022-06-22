@@ -116,7 +116,7 @@ static enum wlr_edges find_edge(struct wmiiv_window *cont,
 enum wlr_edges find_resize_edge(struct wmiiv_window *cont,
 		struct wlr_surface *surface, struct wmiiv_cursor *cursor) {
 	enum wlr_edges edge = find_edge(cont, surface, cursor);
-	if (edge && (!container_is_window(cont) || !window_is_floating(cont)) && window_edge_is_external(cont, edge)) {
+	if (edge && (!window_is_floating(cont)) && window_edge_is_external(cont, edge)) {
 		return WLR_EDGE_NONE;
 	}
 	return edge;

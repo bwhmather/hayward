@@ -313,10 +313,6 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_window *window,
  */
 static struct cmd_results *resize_set_floating(struct wmiiv_window *window,
 		struct movement_amount *width, struct movement_amount *height) {
-	if (!wmiiv_assert(container_is_window(window), "Not a window")) {
-		return cmd_results_new(CMD_FAILURE, NULL);
-	}
-
 	int min_width, max_width, min_height, max_height, grow_width = 0, grow_height = 0;
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);

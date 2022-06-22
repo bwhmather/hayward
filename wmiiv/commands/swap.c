@@ -101,12 +101,6 @@ void window_swap(struct wmiiv_window *window1, struct wmiiv_window *window2) {
 	if (!wmiiv_assert(window1 && window2, "Cannot swap with nothing")) {
 		return;
 	}
-	if (!wmiiv_assert(container_is_window(window1), "Can only swap windows")) {
-		return;
-	}
-	if (!wmiiv_assert(container_is_window(window1), "Can only swap windows")) {
-		return;
-	}
 
 	wmiiv_log(WMIIV_DEBUG, "Swapping containers %zu and %zu",
 			window1->node.id, window2->node.id);
@@ -214,10 +208,10 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	if (!other || !container_is_window(other)) {
+	if (!other) {
 		error = cmd_results_new(CMD_FAILURE,
 				"Failed to find %s '%s'", argv[2], value);
-	} else if (!current || !container_is_window(current)) {
+	} else if (!current) {
 		error = cmd_results_new(CMD_FAILURE,
 				"Can only swap with windows");
 	} else if (current == other) {

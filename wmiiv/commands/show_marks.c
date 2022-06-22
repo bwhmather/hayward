@@ -11,9 +11,7 @@
 #include "util.h"
 
 static void rebuild_marks_iterator(struct wmiiv_window *container, void *data) {
-	if (container_is_window(container)) {
-		window_update_marks_textures(container);
-	}
+	window_update_marks_textures(container);
 }
 
 struct cmd_results *cmd_show_marks(int argc, char **argv) {

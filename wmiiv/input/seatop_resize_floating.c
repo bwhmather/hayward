@@ -162,9 +162,6 @@ static const struct wmiiv_seatop_impl seatop_impl = {
 
 void seatop_begin_resize_floating(struct wmiiv_seat *seat,
 		struct wmiiv_window *window, enum wlr_edges edge) {
-	if (!wmiiv_assert(container_is_window(window), "Expected window")) {
-		return;
-	}
 	seatop_end(seat);
 
 	struct seatop_resize_floating_event *e =

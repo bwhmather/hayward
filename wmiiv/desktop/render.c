@@ -423,8 +423,6 @@ static void render_titlebar(struct wmiiv_output *output,
 		int x, int y, int width,
 		struct border_colors *colors, struct wlr_texture *title_texture,
 		struct wlr_texture *marks_texture) {
-	wmiiv_assert(container_is_window(window), "Expected window");
-
 	struct wlr_box box;
 	float color[4];
 	float output_scale = output->wlr_output->scale;

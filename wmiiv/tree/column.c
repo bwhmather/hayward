@@ -95,9 +95,6 @@ void column_begin_destroy(struct wmiiv_column *column) {
 }
 
 void column_consider_destroy(struct wmiiv_column *column) {
-	if (!wmiiv_assert(container_is_column(column), "Cannot reap a non-column container")) {
-		return;
-	}
 	struct wmiiv_workspace *workspace = column->pending.workspace;
 
 	if (column->pending.children->length) {
@@ -132,9 +129,6 @@ void column_detach(struct wmiiv_column *column) {
 
 struct wmiiv_window *column_find_child(struct wmiiv_column *column,
 		bool (*test)(struct wmiiv_window *container, void *data), void *data) {
-	if (!wmiiv_assert(container_is_column(column), "Cannot find children in non-column containers")) {
-		return NULL;
-	}
 	if (!column->pending.children) {
 		return NULL;
 	}
@@ -149,9 +143,6 @@ struct wmiiv_window *column_find_child(struct wmiiv_column *column,
 
 void column_insert_child(struct wmiiv_column *parent,
 		struct wmiiv_window *child, int i) {
-	wmiiv_assert(container_is_column(parent), "Target is not a column");
-	wmiiv_assert(container_is_window(child), "Not a window");
-
 	if (!wmiiv_assert(!child->pending.workspace && !child->pending.parent,
 			"Windows must be detatched before they can be added to a column")) {
 		window_detach(child);
@@ -165,9 +156,6 @@ void column_insert_child(struct wmiiv_column *parent,
 
 void column_add_sibling(struct wmiiv_window *fixed,
 		struct wmiiv_window *active, bool after) {
-	wmiiv_assert(container_is_window(fixed), "Target sibling is not a window");
-	wmiiv_assert(container_is_window(active), "Not a window");
-
 	if (!wmiiv_assert(!active->pending.workspace && !active->pending.parent,
 			"Windows must be detatched before they can be added to a column")) {
 		window_detach(active);
@@ -184,9 +172,6 @@ void column_add_sibling(struct wmiiv_window *fixed,
 
 void column_add_child(struct wmiiv_column *parent,
 		struct wmiiv_window *child) {
-	wmiiv_assert(container_is_column(parent), "Target is not a column");
-	wmiiv_assert(container_is_window(child), "Not a window");
-
 	if (!wmiiv_assert(!child->pending.workspace && !child->pending.workspace,
 			"Windows must be detatched before they can be added to a column")) {
 		window_detach(child);
@@ -203,8 +188,6 @@ void column_add_child(struct wmiiv_column *parent,
 void column_for_each_child(struct wmiiv_column *column,
 		void (*f)(struct wmiiv_window *window, void *data),
 		void *data) {
-	wmiiv_assert(container_is_column(column), "Expected column");
-
 	if (column->pending.children)  {
 		for (int i = 0; i < column->pending.children->length; ++i) {
 			struct wmiiv_window *child = column->pending.children->items[i];
@@ -267,8 +250,6 @@ size_t column_build_representation(enum wmiiv_window_layout layout,
 }
 
 void column_update_representation(struct wmiiv_column *column) {
-	wmiiv_assert(container_is_column(column), "Expected column");
-
 	size_t len = column_build_representation(column->pending.layout,
 			column->pending.children, NULL);
 	free(column->formatted_title);
@@ -301,8 +282,6 @@ void column_set_resizing(struct wmiiv_column *column, bool resizing) {
 		return;
 	}
 
-	wmiiv_assert(container_is_column(column), "Expected column");
-
 	for (int i = 0; i < column->pending.children->length; ++i ) {
 		struct wmiiv_window *child = column->pending.children->items[i];
 		window_set_resizing(child, resizing);
@@ -328,10 +307,6 @@ list_t *column_get_current_siblings(struct wmiiv_column *column) {
 }
 
 struct wmiiv_column *column_get_previous_sibling(struct wmiiv_column *column) {
-	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
-		return NULL;
-	}
-
 	if (!wmiiv_assert(column->pending.workspace, "Column is not attached to a workspace")) {
 		return NULL;
 	}
@@ -347,10 +322,6 @@ struct wmiiv_column *column_get_previous_sibling(struct wmiiv_column *column) {
 }
 
 struct wmiiv_column *column_get_next_sibling(struct wmiiv_column *column) {
-	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
-		return NULL;
-	}
-
 	if (!wmiiv_assert(column->pending.workspace, "Column is not attached to a workspace")) {
 		return NULL;
 	}

@@ -130,8 +130,4 @@ struct wmiiv_window {
 #include "wmiiv/tree/column.h"
 #include "wmiiv/tree/window.h"
 
-
-bool container_is_column(struct wmiiv_column *container);
-bool container_is_window(struct wmiiv_window *container);
-
 #endif
