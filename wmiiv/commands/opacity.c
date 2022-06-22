@@ -3,6 +3,7 @@
 #include <strings.h>
 #include "wmiiv/commands.h"
 #include "wmiiv/tree/view.h"
+#include "wmiiv/desktop.h"
 #include "log.h"
 
 struct cmd_results *cmd_opacity(int argc, char **argv) {
@@ -37,6 +38,6 @@ struct cmd_results *cmd_opacity(int argc, char **argv) {
 	}
 
 	window->alpha = val;
-	window_damage_whole(window);
+	desktop_damage_window(window);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

@@ -11,12 +11,12 @@ struct cmd_results *cmd_title_format(int argc, char **argv) {
 	if ((error = checkarg(argc, "title_format", EXPECTED_AT_LEAST, 1))) {
 		return error;
 	}
-	struct wmiiv_container *container = config->handler_context.container;
-	if (!container || !container->view) {
+	struct wmiiv_container *window = config->handler_context.window;
+	if (!window) {
 		return cmd_results_new(CMD_INVALID,
 				"Only views can have a title_format");
 	}
-	struct wmiiv_view *view = container->view;
+	struct wmiiv_view *view = window->view;
 	char *format = join_args(argv, argc);
 	if (view->title_format) {
 		free(view->title_format);

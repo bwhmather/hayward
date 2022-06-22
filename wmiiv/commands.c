@@ -172,7 +172,6 @@ static const struct cmd_handler *find_core_handler(char *line) {
 static void set_config_node(struct wmiiv_node *node, bool node_overridden) {
 	config->handler_context.node = node;
 	config->handler_context.workspace = NULL;
-	config->handler_context.container = NULL;
 	config->handler_context.column = NULL;
 	config->handler_context.window = NULL;
 	config->handler_context.node_overridden = node_overridden;
@@ -191,13 +190,11 @@ static void set_config_node(struct wmiiv_node *node, bool node_overridden) {
 		break;
 	case N_COLUMN:
 		config->handler_context.workspace = node->wmiiv_column->pending.workspace;
-		config->handler_context.container = node->wmiiv_column;
 		config->handler_context.column = node->wmiiv_column;
 		break;
 	case N_WINDOW:
 		config->handler_context.workspace = node->wmiiv_window->pending.workspace;
-		config->handler_context.container = node->wmiiv_window;
-		config->handler_context.window = node->wmiiv_column;
+		config->handler_context.window = node->wmiiv_window;
 		break;
 	}
 }
@@ -242,7 +239,7 @@ list_t *execute_command(char *_exec, struct wmiiv_seat *seat,
 					goto cleanup;
 				}
 				list_free(containers);
-				containers = criteria_get_containers(criteria);
+				containers = criteria_get_windows(criteria);
 				head += strlen(criteria->raw);
 				criteria_destroy(criteria);
 				using_criteria = true;

@@ -75,8 +75,8 @@ struct criteria *criteria_parse(char *raw, char **error);
 list_t *criteria_for_view(struct wmiiv_view *view, enum criteria_type types);
 
 /**
- * Compile a list of containers matching the given criteria.
+ * Compile a list of windows matching the given criteria.
  */
-list_t *criteria_get_containers(struct criteria *criteria);
+list_t *criteria_get_windows(struct criteria *criteria);
 
 #endif

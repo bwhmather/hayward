@@ -48,8 +48,7 @@ static void swap_places(struct wmiiv_container *window1,
 	} else if (window_is_floating(window2)) {
 		workspace_add_floating(window2->pending.workspace, window1);
 	} else {
-		workspace_insert_tiling(window2->pending.workspace, window1,
-				window_sibling_index(window2));
+		wmiiv_assert(false, "Window must either be floating or have a parent");
 	}
 
 	window_detach(window2);
@@ -58,7 +57,7 @@ static void swap_places(struct wmiiv_container *window1,
 	} else if (temp_floating) {
 		workspace_add_floating(temp->pending.workspace, window2);
 	} else {
-		workspace_insert_tiling(temp->pending.workspace, window2, temp_index);
+		wmiiv_assert(false, "Window must either be floating or have a parent");
 	}
 
 	free(temp);
@@ -203,14 +202,13 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 	if (strcasecmp(argv[2], "id") == 0) {
 #if HAVE_XWAYLAND
 		xcb_window_t id = strtol(value, NULL, 0);
-		// TODO (wmiiv) should be root_find_window.
-		other = root_find_container(test_id, &id);
+		other = root_find_window(test_id, &id);
 #endif
 	} else if (strcasecmp(argv[2], "container_id") == 0) {
 		size_t container_id = atoi(value);
-		other = root_find_container(test_container_id, &container_id);
+		other = root_find_window(test_container_id, &container_id);
 	} else if (strcasecmp(argv[2], "mark") == 0) {
-		other = root_find_container(test_mark, value);
+		other = root_find_window(test_mark, value);
 	} else {
 		free(value);
 		return cmd_results_new(CMD_INVALID, expected_syntax);

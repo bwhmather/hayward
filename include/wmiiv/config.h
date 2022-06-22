@@ -571,8 +571,7 @@ struct wmiiv_config {
 		struct wmiiv_seat *seat;
 		struct wmiiv_node *node;
 		struct wmiiv_workspace *workspace;
-		struct wmiiv_container *container;  // TODO (wmiiv) deprecated.
-		struct wmiiv_container *column;
+		struct wmiiv_column *column;
 		struct wmiiv_container *window;
 		bool node_overridden; // True if the node is selected by means other than focus
 		struct {

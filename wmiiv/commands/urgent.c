@@ -11,14 +11,11 @@ struct cmd_results *cmd_urgent(int argc, char **argv) {
 	if ((error = checkarg(argc, "urgent", EXPECTED_EQUAL_TO, 1))) {
 		return error;
 	}
-	struct wmiiv_container *container = config->handler_context.container;
-	if (!container) {
-		return cmd_results_new(CMD_FAILURE, "No current container");
+	struct wmiiv_container *window = config->handler_context.window;
+	if (!window) {
+		return cmd_results_new(CMD_FAILURE, "No current window");
 	}
-	if (!container->view) {
-		return cmd_results_new(CMD_INVALID, "Only views can be urgent");
-	}
-	struct wmiiv_view *view = container->view;
+	struct wmiiv_view *view = window->view;
 
 	if (strcmp(argv[0], "allow") == 0) {
 		view->allow_request_urgent = true;

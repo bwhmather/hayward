@@ -50,7 +50,7 @@ static void do_reload(void *data) {
 	}
 	list_free_items_and_destroy(bar_ids);
 
-	root_for_each_container(rebuild_textures_iterator, NULL);
+	root_for_each_window(rebuild_textures_iterator, NULL);
 
 	arrange_root();
 }

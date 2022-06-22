@@ -116,10 +116,6 @@ static struct wmiiv_node *get_node_in_output_direction(
 	}
 
 	if (window) {
-		// TODO (wmiir) remove this check once hierarchy is fixed.
-		if (container_is_column(window)) {
-			window = seat_get_focus_inactive_view(seat, &window->node);
-		}
 		return &window->node;
 	}
 
@@ -171,7 +167,7 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 	} else {
 		// Try to move to the next column to the left of right within
 		// the current workspace.
-		struct wmiiv_container *column = window->pending.parent;
+		struct wmiiv_column *column = window->pending.parent;
 
 		int current_idx = column_sibling_index(column);
 		int desired_idx = current_idx + (dir == WLR_DIRECTION_LEFT ? -1 : 1);

@@ -39,9 +39,9 @@ static void handle_tablet_tool_tip(struct wmiiv_seat *seat,
 static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	struct seatop_move_floating_event *e = seat->seatop_data;
 	struct wlr_cursor *cursor = seat->cursor->cursor;
-	desktop_damage_whole_container(e->window);
+	desktop_damage_window(e->window);
 	window_floating_move_to(e->window, cursor->x - e->dx, cursor->y - e->dy);
-	desktop_damage_whole_container(e->window);
+	desktop_damage_window(e->window);
 	transaction_commit_dirty();
 }
 

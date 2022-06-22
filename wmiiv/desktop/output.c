@@ -338,7 +338,7 @@ static void output_for_each_surface(struct wmiiv_output *output,
 			&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
 			iterator, user_data);
 
-		workspace_for_each_container(workspace,
+		workspace_for_each_window(workspace,
 			for_each_surface_container_iterator, &data);
 
 #if HAVE_XWAYLAND
@@ -692,35 +692,40 @@ void output_damage_box(struct wmiiv_output *output, struct wlr_box *_box) {
 	wlr_output_damage_add_box(output->damage, &box);
 }
 
-static void damage_child_views_iterator(struct wmiiv_container *container,
-		void *data) {
-	if (!container->view || !view_is_visible(container->view)) {
-		return;
-	}
-	struct wmiiv_output *output = data;
-	bool whole = true;
-	output_view_for_each_surface(output, container->view, damage_surface_iterator,
-			&whole);
-}
-
-// TODO (wmiiv) deprecated
-void output_damage_whole_container(struct wmiiv_output *output,
-		struct wmiiv_container *container) {
+void output_damage_window(struct wmiiv_output *output, struct wmiiv_container *window) {
 	// Pad the box by 1px, because the width is a double and might be a fraction
 	struct wlr_box box = {
-		.x = container->current.x - output->lx - 1,
-		.y = container->current.y - output->ly - 1,
-		.width = container->current.width + 2,
-		.height = container->current.height + 2,
+		.x = window->current.x - output->lx - 1,
+		.y = window->current.y - output->ly - 1,
+		.width = window->current.width + 2,
+		.height = window->current.height + 2,
 	};
 	scale_box(&box, output->wlr_output->scale);
 	wlr_output_damage_add_box(output->damage, &box);
+
 	// Damage subsurfaces as well, which may extend outside the box
-	if (container->view) {
-		damage_child_views_iterator(container, output);
-	} else {
-		column_for_each_child(container, damage_child_views_iterator, output);
-	}
+	bool whole = true;
+	output_view_for_each_surface(output, window->view, damage_surface_iterator, &whole);
+}
+
+static void damage_child_views_iterator(struct wmiiv_container *window, void *data) {
+	struct wmiiv_output *output = data;
+	output_damage_window(output, window);
+}
+
+void output_damage_column(struct wmiiv_output *output, struct wmiiv_column *column) {
+	// Pad the box by 1px, because the width is a double and might be a fraction
+	struct wlr_box box = {
+		.x = column->current.x - output->lx - 1,
+		.y = column->current.y - output->ly - 1,
+		.width = column->current.width + 2,
+		.height = column->current.height + 2,
+	};
+	scale_box(&box, output->wlr_output->scale);
+	wlr_output_damage_add_box(output->damage, &box);
+
+	// Damage subsurfaces as well, which may extend outside the box
+	column_for_each_child(column, damage_child_views_iterator, output);
 }
 
 static void damage_handle_destroy(struct wl_listener *listener, void *data) {
@@ -828,7 +833,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 	}
 
 	if (event->committed & WLR_OUTPUT_STATE_SCALE) {
-		output_for_each_container(output, update_textures, NULL);
+		output_for_each_window(output, update_textures, NULL);
 	}
 
 	if (event->committed & (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {

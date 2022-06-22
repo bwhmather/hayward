@@ -259,7 +259,7 @@ void output_disable(struct wmiiv_output *output) {
 
 	output_evacuate(output);
 
-	root_for_each_container(untrack_output, output);
+	root_for_each_window(untrack_output, output);
 
 	list_del(root->outputs, index);
 
@@ -325,11 +325,11 @@ void output_for_each_workspace(struct wmiiv_output *output,
 	}
 }
 
-void output_for_each_container(struct wmiiv_output *output,
-		void (*f)(struct wmiiv_container *container, void *data), void *data) {
+void output_for_each_window(struct wmiiv_output *output,
+		void (*f)(struct wmiiv_container *window, void *data), void *data) {
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];
-		workspace_for_each_container(workspace, f, data);
+		workspace_for_each_window(workspace, f, data);
 	}
 }
 
@@ -344,12 +344,12 @@ struct wmiiv_workspace *output_find_workspace(struct wmiiv_output *output,
 	return NULL;
 }
 
-struct wmiiv_container *output_find_container(struct wmiiv_output *output,
-		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
+struct wmiiv_container *output_find_window(struct wmiiv_output *output,
+		bool (*test)(struct wmiiv_container *window, void *data), void *data) {
 	struct wmiiv_container *result = NULL;
 	for (int i = 0; i < output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = output->workspaces->items[i];
-		if ((result = workspace_find_container(workspace, test, data))) {
+		if ((result = workspace_find_window(workspace, test, data))) {
 			return result;
 		}
 	}

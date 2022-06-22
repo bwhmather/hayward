@@ -21,13 +21,13 @@ static void remove_all_marks_iterator(struct wmiiv_container *container, void *d
 // [criteria] unmark foo   Remove single mark from matched view
 
 struct cmd_results *cmd_unmark(int argc, char **argv) {
-	// Determine the container
-	struct wmiiv_container *container = NULL;
+	// Determine the window
+	struct wmiiv_container *window = NULL;
 	if (config->handler_context.node_overridden) {
-		container = config->handler_context.container;
+		window = config->handler_context.window;
 	}
 
-	if (container && !container_is_window(container)) {
+	if (window) {
 		return cmd_results_new(CMD_INVALID, "Only windows can have marks");
 	}
 
@@ -37,21 +37,21 @@ struct cmd_results *cmd_unmark(int argc, char **argv) {
 		mark = join_args(argv, argc);
 	}
 
-	if (container && mark) {
-		// Remove the mark from the given container
-		if (window_has_mark(container, mark)) {
+	if (window && mark) {
+		// Remove the mark from the given window
+		if (window_has_mark(window, mark)) {
 			window_find_and_unmark(mark);
 		}
-	} else if (container && !mark) {
-		// Clear all marks from the given container
-		window_clear_marks(container);
-		window_update_marks_textures(container);
-	} else if (!container && mark) {
-		// Remove mark from whichever container has it
+	} else if (window && !mark) {
+		// Clear all marks from the given window
+		window_clear_marks(window);
+		window_update_marks_textures(window);
+	} else if (!window && mark) {
+		// Remove mark from whichever window has it
 		window_find_and_unmark(mark);
 	} else {
-		// Remove all marks from all containers
-		root_for_each_container(remove_all_marks_iterator, NULL);
+		// Remove all marks from all windows
+		root_for_each_window(remove_all_marks_iterator, NULL);
 	}
 	free(mark);
 

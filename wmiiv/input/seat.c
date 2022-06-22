@@ -708,7 +708,7 @@ struct wmiiv_seat *seat_create(const char *seat_name) {
 	wl_list_init(&seat->devices);
 
 	root_for_each_workspace(collect_focus_workspace_iter, seat);
-	root_for_each_container(collect_focus_container_iter, seat);
+	root_for_each_window(collect_focus_container_iter, seat);
 
 	seat->deferred_bindings = create_list();
 
@@ -1208,7 +1208,7 @@ static void seat_send_unfocus(struct wmiiv_node *node, struct wmiiv_seat *seat) 
 	wmiiv_cursor_constrain(seat->cursor, NULL);
 	wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 	if (node->type == N_WORKSPACE) {
-		workspace_for_each_container(node->wmiiv_workspace, send_unfocus, seat);
+		workspace_for_each_window(node->wmiiv_workspace, send_unfocus, seat);
 	} else if (node->type == N_WINDOW) {
 		send_unfocus(node->wmiiv_window, seat);
 	}
@@ -1548,7 +1548,7 @@ struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *
 	return NULL;
 }
 
-struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_container *column) {
+struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_column *column) {
 	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
 		return NULL;
 	}

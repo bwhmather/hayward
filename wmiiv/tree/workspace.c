@@ -677,7 +677,7 @@ static bool find_urgent_iterator(struct wmiiv_container *container, void *data) 
 }
 
 void workspace_detect_urgent(struct wmiiv_workspace *workspace) {
-	bool new_urgent = (bool)workspace_find_container(workspace,
+	bool new_urgent = (bool)workspace_find_window(workspace,
 			find_urgent_iterator, NULL);
 
 	if (workspace->urgent != new_urgent) {
@@ -687,35 +687,34 @@ void workspace_detect_urgent(struct wmiiv_workspace *workspace) {
 	}
 }
 
-// TODO (wmiiv) deprecated.
-void workspace_for_each_container(struct wmiiv_workspace *workspace,
-		void (*f)(struct wmiiv_container *container, void *data), void *data) {
+void workspace_for_each_window(struct wmiiv_workspace *workspace, void (*f)(struct wmiiv_container *window, void *data), void *data) {
 	// Tiling
 	for (int i = 0; i < workspace->tiling->length; ++i) {
-		struct wmiiv_container *container = workspace->tiling->items[i];
-		f(container, data);
-		column_for_each_child(container, f, data);
+		struct wmiiv_column *column = workspace->tiling->items[i];
+		column_for_each_child(column, f, data);
 	}
 	// Floating
 	for (int i = 0; i < workspace->floating->length; ++i) {
-		struct wmiiv_container *container = workspace->floating->items[i];
-		f(container, data);
+		struct wmiiv_container *window = workspace->floating->items[i];
+		f(window, data);
 	}
 }
 
-struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *workspace,
-		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
+void workspace_for_each_column(struct wmiiv_workspace *workspace, void (*f)(struct wmiiv_column *column, void *data), void *data) {
+	for (int i = 0; i < workspace->tiling->length; ++i) {
+		struct wmiiv_column *column = workspace->tiling->items[i];
+		f(column, data);
+	}
+}
+
+struct wmiiv_container *workspace_find_window(struct wmiiv_workspace *workspace,
+		bool (*test)(struct wmiiv_container *window, void *data), void *data) {
 	struct wmiiv_container *result = NULL;
 	// Tiling
 	for (int i = 0; i < workspace->tiling->length; ++i) {
-		struct wmiiv_container *child = workspace->tiling->items[i];
-		if (test(child, data)) {
-			return child;
-		}
-		if (container_is_column(child))  {
-			if ((result = column_find_child(child, test, data))) {
-				return result;
-			}
+		struct wmiiv_column *child = workspace->tiling->items[i];
+		if ((result = column_find_child(child, test, data))) {
+			return result;
 		}
 	}
 	// Floating
@@ -744,8 +743,8 @@ void workspace_detach(struct wmiiv_workspace *workspace) {
 	node_set_dirty(&output->node);
 }
 
-struct wmiiv_container *workspace_add_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *column) {
+struct wmiiv_column *workspace_add_tiling(struct wmiiv_workspace *workspace,
+		struct wmiiv_column *column) {
 	wmiiv_assert(container_is_column(column), "Can only add columns to workspace");
 	if (column->pending.workspace) {
 		column_detach(column);
@@ -779,7 +778,7 @@ void workspace_add_floating(struct wmiiv_workspace *workspace,
 }
 
 void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *column, int index) {
+		struct wmiiv_column *column, int index) {
 	wmiiv_assert(container_is_column(column), "Can only insert columns into workspace");
 	list_insert(workspace->tiling, index, column);
 	column->pending.workspace = workspace;
@@ -789,8 +788,8 @@ void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
 	node_set_dirty(&column->node);
 }
 
-struct wmiiv_container *workspace_insert_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *column, int index) {
+struct wmiiv_column *workspace_insert_tiling(struct wmiiv_workspace *workspace,
+		struct wmiiv_column *column, int index) {
 	wmiiv_assert(container_is_column(column), "Can only insert columns into workspace");
 	if (column->pending.workspace) {
 		column_detach(column);
@@ -895,7 +894,7 @@ static void count_tiling_views(struct wmiiv_container *container, void *data) {
 
 size_t workspace_num_tiling_views(struct wmiiv_workspace *workspace) {
 	size_t count = 0;
-	workspace_for_each_container(workspace, count_tiling_views, &count);
+	workspace_for_each_window(workspace, count_tiling_views, &count);
 	return count;
 }
 
@@ -913,7 +912,6 @@ static void count_sticky_containers(struct wmiiv_container *container, void *dat
 
 size_t workspace_num_sticky_containers(struct wmiiv_workspace *workspace) {
 	size_t count = 0;
-	// TODO should be for each window
-	workspace_for_each_container(workspace, count_sticky_containers, &count);
+	workspace_for_each_window(workspace, count_sticky_containers, &count);
 	return count;
 }

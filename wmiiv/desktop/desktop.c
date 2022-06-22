@@ -14,10 +14,18 @@ void desktop_damage_surface(struct wlr_surface *surface, double lx, double ly,
 	}
 }
 
-void desktop_damage_whole_container(struct wmiiv_container *container) {
+void desktop_damage_window(struct wmiiv_container *window) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
-		output_damage_whole_container(output, container);
+		output_damage_window(output, window);
+	}
+}
+
+
+void desktop_damage_column(struct wmiiv_column *column) {
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct wmiiv_output *output = root->outputs->items[i];
+		output_damage_column(output, column);
 	}
 }
 
@@ -29,7 +37,7 @@ void desktop_damage_box(struct wlr_box *box) {
 }
 
 void desktop_damage_view(struct wmiiv_view *view) {
-	desktop_damage_whole_container(view->container);
+	desktop_damage_window(view->container);
 	struct wlr_box box = {
 		.x = view->container->current.content_x - view->geometry.x,
 		.y = view->container->current.content_y - view->geometry.y,

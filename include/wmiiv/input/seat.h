@@ -213,7 +213,7 @@ struct wmiiv_workspace *seat_get_active_workspace(struct wmiiv_seat *seat);
 
 struct wmiiv_workspace *seat_get_active_workspace_for_output(struct wmiiv_seat *seat, struct wmiiv_output *output);
 
-struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_container *column);
+struct wmiiv_container *seat_get_active_window_for_column(struct wmiiv_seat *seat, struct wmiiv_column *column);
 
 struct wmiiv_container *seat_get_active_tiling_window_for_workspace(struct wmiiv_seat *seat, struct wmiiv_workspace *workspace);
 

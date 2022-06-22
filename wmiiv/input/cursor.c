@@ -38,7 +38,7 @@ static uint32_t get_current_time_msec(void) {
 	return now.tv_sec * 1000 + now.tv_nsec / 1000000;
 }
 
-static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
+static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
 	struct wlr_box box;
 	column_get_box(column, &box);
 	if (lx < box.x || lx > box.x + box.width ||
@@ -72,7 +72,7 @@ static struct wmiiv_container *seat_column_window_at_tabbed(struct wmiiv_seat *s
 	return NULL;
 }
 
-static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
+static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
 	struct wlr_box box;
 	node_get_box(&column->node, &box);
 	if (lx < box.x || lx > box.x + box.width ||
@@ -101,7 +101,7 @@ static struct wmiiv_container *seat_column_window_at_stacked(struct wmiiv_seat *
 	return NULL;
 }
 
-static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
+static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
 	list_t *children = column->pending.children;
 	for (int i = 0; i < children->length; ++i) {
 		struct wmiiv_container *window = children->items[i];
@@ -112,7 +112,7 @@ static struct wmiiv_container *seat_column_window_at_linear(struct wmiiv_seat *s
 	return NULL;
 }
 
-struct wmiiv_container *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_container *column, double lx, double ly) {
+struct wmiiv_container *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
 	if (!wmiiv_assert(container_is_column(column), "expected column")) {
 		return NULL;
 	}
@@ -144,7 +144,7 @@ static struct wmiiv_container *seat_tiling_window_at(struct wmiiv_seat *seat, do
 
 		list_t *columns = workspace->tiling;
 		for (int i = 0; i < columns->length; ++i) {
-			struct wmiiv_container *column = columns->items[i];
+			struct wmiiv_column *column = columns->items[i];
 			struct wmiiv_container *window = seat_column_window_at(seat, column, lx, ly);
 			if (window) {
 				return window;
@@ -1417,26 +1417,22 @@ struct wmiiv_cursor *wmiiv_cursor_create(struct wmiiv_seat *seat) {
  * Does nothing if the cursor is already inside the container and `force` is
  * false. If container is NULL, returns without doing anything.
  */
-// TODO (wmiiv) window
 void cursor_warp_to_container(struct wmiiv_cursor *cursor,
-		struct wmiiv_container *container, bool force) {
-	if (!container) {
+		struct wmiiv_container *window, bool force) {
+	if (!window) {
 		return;
 	}
 
 	struct wlr_box box;
-	if (container_is_window(container)) {
-		window_get_box(container, &box);
-	} else {
-		column_get_box(container, &box);
-	}
+	window_get_box(window, &box);
+
 	if (!force && wlr_box_contains_point(&box, cursor->cursor->x,
 			cursor->cursor->y)) {
 		return;
 	}
 
-	double x = container->pending.x + container->pending.width / 2.0;
-	double y = container->pending.y + container->pending.height / 2.0;
+	double x = window->pending.x + window->pending.width / 2.0;
+	double y = window->pending.y + window->pending.height / 2.0;
 
 	wlr_cursor_warp(cursor->cursor, NULL, x, y);
 	cursor_unhide(cursor);

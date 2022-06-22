@@ -53,7 +53,7 @@ static struct cmd_results *handle_command(int argc, char **argv, char *cmd_name,
 	memcpy(class, &colors, sizeof(struct border_colors));
 
 	if (config->active) {
-		root_for_each_container(rebuild_textures_iterator, NULL);
+		root_for_each_window(rebuild_textures_iterator, NULL);
 
 		for (int i = 0; i < root->outputs->length; ++i) {
 			struct wmiiv_output *output = root->outputs->items[i];

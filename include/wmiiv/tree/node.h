@@ -27,7 +27,7 @@ struct wmiiv_node {
 		struct wmiiv_root *wmiiv_root;
 		struct wmiiv_output *wmiiv_output;
 		struct wmiiv_workspace *wmiiv_workspace;
-		struct wmiiv_container *wmiiv_column;
+		struct wmiiv_column *wmiiv_column;
 		struct wmiiv_container *wmiiv_window;
 	};
 

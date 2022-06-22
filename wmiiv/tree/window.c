@@ -120,7 +120,7 @@ void window_detach(struct wmiiv_container *window) {
 		root->fullscreen_global = NULL;
 	}
 
-	struct wmiiv_container *old_parent = window->pending.parent;
+	struct wmiiv_column *old_parent = window->pending.parent;
 	struct wmiiv_workspace *old_workspace = window->pending.workspace;
 
 	list_t *siblings = window_get_siblings(window);
@@ -165,11 +165,11 @@ static bool find_by_mark_iterator(struct wmiiv_container *container, void *data)
 }
 
 struct wmiiv_container *window_find_mark(char *mark) {
-	return root_find_container(find_by_mark_iterator, mark);
+	return root_find_window(find_by_mark_iterator, mark);
 }
 
 bool window_find_and_unmark(char *mark) {
-	struct wmiiv_container *container = root_find_container(
+	struct wmiiv_container *container = root_find_window(
 		find_by_mark_iterator, mark);
 	if (!container) {
 		return false;
@@ -355,7 +355,7 @@ void window_update_marks_textures(struct wmiiv_container *window) {
 			&config->border_colors.urgent);
 	update_marks_texture(window, &window->marks_focused_tab_title,
 			&config->border_colors.focused_tab_title);
-	window_damage_whole(window);
+	desktop_damage_window(window);
 }
 
 static void update_title_texture(struct wmiiv_container *window,
@@ -387,7 +387,7 @@ void window_update_title_textures(struct wmiiv_container *window) {
 			&config->border_colors.urgent);
 	update_title_texture(window, &window->title_focused_tab_title,
 			&config->border_colors.focused_tab_title);
-	window_damage_whole(window);
+	desktop_damage_window(window);
 }
 
 bool window_is_floating(struct wmiiv_container *window) {
@@ -425,7 +425,7 @@ void window_set_floating(struct wmiiv_container *window, bool enable) {
 	struct wmiiv_workspace *workspace = window->pending.workspace;
 
 	if (enable) {
-		struct wmiiv_container *old_parent = window->pending.parent;
+		struct wmiiv_column *old_parent = window->pending.parent;
 		window_detach(window);
 		workspace_add_floating(workspace, window);
 		view_set_tiled(window->view, false);
@@ -504,7 +504,7 @@ static void workspace_focus_fullscreen(struct wmiiv_workspace *workspace) {
 }
 
 static void window_move_to_column_from_maybe_direction(
-		struct wmiiv_container *window, struct wmiiv_container *column,
+		struct wmiiv_container *window, struct wmiiv_column *column,
 		bool has_move_dir, enum wlr_direction move_dir) {
 	if (!wmiiv_assert(container_is_window(window), "Can only move windows to columns")) {
 		return;
@@ -553,13 +553,13 @@ static void window_move_to_column_from_maybe_direction(
 }
 
 void window_move_to_column_from_direction(
-		struct wmiiv_container *window, struct wmiiv_container *column,
+		struct wmiiv_container *window, struct wmiiv_column *column,
 		enum wlr_direction move_dir) {
 	window_move_to_column_from_maybe_direction(window, column, true, move_dir);
 }
 
 void window_move_to_column(struct wmiiv_container *window,
-		struct wmiiv_container *column) {
+		struct wmiiv_column *column) {
 	window_move_to_column_from_maybe_direction(window, column, false, WLR_DIRECTION_DOWN);
 }
 
@@ -595,7 +595,7 @@ static void window_move_to_workspace_from_maybe_direction(
 	window->width_fraction = window->height_fraction = 0;
 
 	if (!workspace->tiling->length) {
-		struct wmiiv_container *column = column_create();
+		struct wmiiv_column *column = column_create();
 		workspace_insert_tiling_direct(workspace, column, 0);
 	}
 
@@ -606,12 +606,12 @@ static void window_move_to_workspace_from_maybe_direction(
 		int index =
 			move_dir == WLR_DIRECTION_RIGHT ?
 			0 : workspace->tiling->length;
-		struct wmiiv_container *column = workspace->tiling->items[index];
+		struct wmiiv_column *column = workspace->tiling->items[index];
 		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
 	} else {
 		wmiiv_log(WMIIV_DEBUG, "Reparenting container (perpendicular)");
 		// Move to the most recently focused column in the workspace.
-		struct wmiiv_container *column = NULL;
+		struct wmiiv_column *column = NULL;
 
 		struct wmiiv_container *focus_inactive = seat_get_focus_inactive_tiling(seat, workspace);
 		if (focus_inactive) {
@@ -719,13 +719,6 @@ struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_contai
 	}
 
 	return NULL;
-}
-
-void window_damage_whole(struct wmiiv_container *window) {
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct wmiiv_output *output = root->outputs->items[i];
-		output_damage_whole_container(output, window);
-	}
 }
 
 size_t window_titlebar_height(void) {

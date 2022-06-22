@@ -18,9 +18,9 @@ struct cmd_results *cmd_mark(int argc, char **argv) {
 	if ((error = checkarg(argc, "mark", EXPECTED_AT_LEAST, 1))) {
 		return error;
 	}
-	struct wmiiv_container *container = config->handler_context.container;
-	if (!container || !container_is_window(container)) {
-		return cmd_results_new(CMD_INVALID, "Only containers can have marks");
+	struct wmiiv_container *window = config->handler_context.window;
+	if (!window) {
+		return cmd_results_new(CMD_INVALID, "Only windows can have marks");
 	}
 
 	bool add = false, toggle = false;
@@ -45,24 +45,22 @@ struct cmd_results *cmd_mark(int argc, char **argv) {
 	}
 
 	char *mark = join_args(argv, argc);
-	bool had_mark = window_has_mark(container, mark);
+	bool had_mark = window_has_mark(window, mark);
 
 	if (!add) {
 		// Replacing
-		window_clear_marks(container);
+		window_clear_marks(window);
 	}
 
 	window_find_and_unmark(mark);
 
 	if (!toggle || !had_mark) {
-		window_add_mark(container, mark);
+		window_add_mark(window, mark);
 	}
 
 	free(mark);
-	window_update_marks_textures(container);
-	if (container->view) {
-		view_execute_criteria(container->view);
-	}
+	window_update_marks_textures(window);
+	view_execute_criteria(window->view);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

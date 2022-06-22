@@ -30,7 +30,7 @@
 #include "log.h"
 #include "stringop.h"
 
-bool container_is_column(struct wmiiv_container* container) {
+bool container_is_column(struct wmiiv_column* container) {
 	return container->view == NULL;
 }
 

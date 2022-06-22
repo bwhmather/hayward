@@ -46,7 +46,7 @@ struct wmiiv_container_state {
 	enum wmiiv_fullscreen_mode fullscreen_mode;
 
 	struct wmiiv_workspace *workspace;
-	struct wmiiv_container *parent;    // NULL if container in root of workspace
+	struct wmiiv_column *parent;    // NULL if container in root of workspace
 	list_t *children;                 // struct wmiiv_container
 
 	struct wmiiv_container *focused_inactive_child;
@@ -131,7 +131,7 @@ struct wmiiv_container {
 #include "wmiiv/tree/window.h"
 
 
-bool container_is_column(struct wmiiv_container *container);
+bool container_is_column(struct wmiiv_column *container);
 bool container_is_window(struct wmiiv_container *container);
 
 #endif

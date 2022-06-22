@@ -126,7 +126,7 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 		return false;
 	}
 
-	struct wmiiv_container *old_column = window->pending.parent;
+	struct wmiiv_column *old_column = window->pending.parent;
 	int old_column_index = list_find(window->pending.workspace->tiling, old_column);
 
 	switch (move_dir) {
@@ -155,7 +155,7 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 						window->pending.workspace->output, move_dir);
 				}
 
-				struct wmiiv_container *new_column = column_create();
+				struct wmiiv_column *new_column = column_create();
 				new_column->pending.height = new_column->pending.width = 0;
 				new_column->height_fraction = new_column->width_fraction = 0;
 				new_column->pending.layout = L_STACKED;
@@ -164,7 +164,7 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 				old_column_index += 1;
 			}
 
-			struct wmiiv_container *new_column = window->pending.workspace->tiling->items[old_column_index - 1];
+			struct wmiiv_column *new_column = window->pending.workspace->tiling->items[old_column_index - 1];
 			window_move_to_column_from_direction(window, new_column, move_dir);
 
 			return true;
@@ -182,7 +182,7 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 						window->pending.workspace->output, move_dir);
 				}
 
-				struct wmiiv_container *new_column = column_create();
+				struct wmiiv_column *new_column = column_create();
 				new_column->pending.height = new_column->pending.width = 0;
 				new_column->height_fraction = new_column->width_fraction = 0;
 				new_column->pending.layout = L_STACKED;
@@ -190,7 +190,7 @@ static bool window_move_in_direction(struct wmiiv_container *window,
 				workspace_insert_tiling_direct(window->pending.workspace, new_column, old_column_index + 1);
 			}
 
-			struct wmiiv_container *new_column = window->pending.workspace->tiling->items[old_column_index + 1];
+			struct wmiiv_column *new_column = window->pending.workspace->tiling->items[old_column_index + 1];
 			window_move_to_column_from_direction(window, new_column, move_dir);
 
 			return true;
@@ -219,7 +219,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	}
 
 	struct wmiiv_seat *seat = config->handler_context.seat;
-	struct wmiiv_container *old_parent = window->pending.parent;
+	struct wmiiv_column *old_parent = window->pending.parent;
 	struct wmiiv_workspace *old_workspace = window->pending.workspace;
 	struct wmiiv_output *old_output = old_workspace ? old_workspace->output : NULL;
 	struct wmiiv_node *destination = NULL;
@@ -546,7 +546,7 @@ static struct cmd_results *cmd_move_in_direction(
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 	struct wmiiv_workspace *old_workspace = window->pending.workspace;
-	struct wmiiv_container *old_parent = window->pending.parent;
+	struct wmiiv_column *old_parent = window->pending.parent;
 
 	if (!window_move_in_direction(window, direction)) {
 		// Container didn't move

@@ -31,22 +31,18 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *window = config->handler_context.container;
+	struct wmiiv_container *window = config->handler_context.window;
 	struct wmiiv_workspace *workspace = config->handler_context.workspace;
 
 	if (!window) {
 		return cmd_results_new(CMD_INVALID, "No window selected");
 	}
 
-	if (!container_is_window(window)) {
-		return cmd_results_new(CMD_FAILURE, "Can only run this command on a window");
-	}
-
 	if (window_is_floating(window)) {
 		return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating containers");
 	}
 
-	struct wmiiv_container *column = window->pending.parent;
+	struct wmiiv_column *column = window->pending.parent;
 	if (!column) {
 		return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
 	}

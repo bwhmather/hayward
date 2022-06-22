@@ -68,7 +68,7 @@ bool window_is_tiling(struct wmiiv_container *container);
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_column_from_direction(
-		struct wmiiv_container *window, struct wmiiv_container *column,
+		struct wmiiv_container *window, struct wmiiv_column *column,
 		enum wlr_direction move_dir);
 
 /**
@@ -84,7 +84,7 @@ void window_move_to_column_from_direction(
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_column(struct wmiiv_container *window,
-		struct wmiiv_container *destination);
+		struct wmiiv_column *destination);
 
 /**
  * Detaches a window from its current workspace and column, and attaches it to
@@ -114,8 +114,6 @@ bool window_contents_contain_point(struct wmiiv_container *window, double lx, do
  * Returns the fullscreen window obstructing this window if it exists.
  */
 struct wmiiv_container *window_obstructing_fullscreen_window(struct wmiiv_container *window);
-
-void window_damage_whole(struct wmiiv_container *window);
 
 void window_update_title_textures(struct wmiiv_container *window);
 

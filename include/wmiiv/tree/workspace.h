@@ -15,7 +15,7 @@ struct wmiiv_workspace_state {
 	list_t *floating;
 	list_t *tiling;
 
-	struct wmiiv_container *focused_inactive_child;
+	struct wmiiv_column *focused_inactive_child;
 	bool focused;
 };
 
@@ -35,7 +35,7 @@ struct wmiiv_workspace {
 
 	struct wmiiv_output *output; // NULL if no outputs are connected
 	list_t *floating;           // struct wmiiv_container
-	list_t *tiling;             // struct wmiiv_container
+	list_t *tiling;             // struct wmiiv_column
 	list_t *output_priority;
 	bool urgent;
 
@@ -89,11 +89,11 @@ struct wmiiv_output *workspace_output_get_highest_available(
 
 void workspace_detect_urgent(struct wmiiv_workspace *workspace);
 
-void workspace_for_each_container(struct wmiiv_workspace *workspace,
-		void (*f)(struct wmiiv_container *container, void *data), void *data);
+void workspace_for_each_window(struct wmiiv_workspace *workspace, void (*f)(struct wmiiv_container *container, void *data), void *data);
+void workspace_for_each_column(struct wmiiv_workspace *workspace, void (*f)(struct wmiiv_column *container, void *data), void *data);
 
-struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *workspace,
-		bool (*test)(struct wmiiv_container *container, void *data), void *data);
+struct wmiiv_container *workspace_find_window(struct wmiiv_workspace *workspace,
+		bool (*test)(struct wmiiv_container *window, void *data), void *data);
 
 /**
  * Wrap the workspace's tiling children in a new container.
@@ -102,8 +102,8 @@ struct wmiiv_container *workspace_find_container(struct wmiiv_workspace *workspa
  */
 void workspace_detach(struct wmiiv_workspace *workspace);
 
-struct wmiiv_container *workspace_add_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *container);
+struct wmiiv_column *workspace_add_tiling(struct wmiiv_workspace *workspace,
+		struct wmiiv_column *column);
 
 void workspace_add_floating(struct wmiiv_workspace *workspace,
 		struct wmiiv_container *container);
@@ -113,10 +113,10 @@ void workspace_add_floating(struct wmiiv_workspace *workspace,
  * the workspace_layout, so the container will not be split.
  */
 void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *container, int index);
+		struct wmiiv_column *column, int index);
 
-struct wmiiv_container *workspace_insert_tiling(struct wmiiv_workspace *workspace,
-		struct wmiiv_container *container, int index);
+struct wmiiv_column *workspace_insert_tiling(struct wmiiv_workspace *workspace,
+		struct wmiiv_column *column, int index);
 
 void workspace_remove_gaps(struct wmiiv_workspace *workspace);
 

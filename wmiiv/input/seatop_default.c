@@ -26,7 +26,7 @@ struct seatop_default_event {
  * Functions shared by multiple callbacks  /
  *---------------------------------------*/
 
-static bool column_edge_is_external(struct wmiiv_container *column, enum wlr_edges edge) {
+static bool column_edge_is_external(struct wmiiv_column *column, enum wlr_edges edge) {
 	if (edge == WLR_EDGE_TOP) {
 		return true;
 	}
@@ -79,18 +79,6 @@ static bool window_edge_is_external(struct wmiiv_container *window, enum wlr_edg
 	return false;
 }
 
-/**
- * Determine if the edge of the given container is on the edge of the
- * workspace/output.
- */
-static bool edge_is_external(struct wmiiv_container *cont, enum wlr_edges edge) {
-	if (container_is_window(cont)) {
-		return window_edge_is_external(cont, edge);
-	} else {
-		return column_edge_is_external(cont, edge);
-	}
-}
-
 static enum wlr_edges find_edge(struct wmiiv_container *cont,
 		struct wlr_surface *surface, struct wmiiv_cursor *cursor) {
 	if (!cont->view || (surface && cont->view->surface != surface)) {
@@ -128,7 +116,7 @@ static enum wlr_edges find_edge(struct wmiiv_container *cont,
 enum wlr_edges find_resize_edge(struct wmiiv_container *cont,
 		struct wlr_surface *surface, struct wmiiv_cursor *cursor) {
 	enum wlr_edges edge = find_edge(cont, surface, cursor);
-	if (edge && (!container_is_window(cont) || !window_is_floating(cont)) && edge_is_external(cont, edge)) {
+	if (edge && (!container_is_window(cont) || !window_is_floating(cont)) && window_edge_is_external(cont, edge)) {
 		return WLR_EDGE_NONE;
 	}
 	return edge;
@@ -758,7 +746,7 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 
 	// Scrolling on a tabbed or stacked title bar (handled as press event)
 	if (!handled && (on_titlebar || on_titlebar_border)) {
-		struct wmiiv_container *column = window->pending.parent;
+		struct wmiiv_column *column = window->pending.parent;
 		if (column->pending.layout == L_TABBED || column->pending.layout == L_STACKED) {
 			struct wmiiv_node *active = seat_get_active_tiling_child(seat, &column->node);
 			list_t *siblings = window_get_siblings(window);

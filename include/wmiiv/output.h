@@ -85,8 +85,8 @@ void output_damage_from_view(struct wmiiv_output *output,
 
 void output_damage_box(struct wmiiv_output *output, struct wlr_box *box);
 
-void output_damage_whole_container(struct wmiiv_output *output,
-	struct wmiiv_container *container);
+void output_damage_window(struct wmiiv_output *output, struct wmiiv_container *window);
+void output_damage_column(struct wmiiv_output *output, struct wmiiv_column *column);
 
 // this ONLY includes the enabled outputs
 struct wmiiv_output *output_by_name_or_id(const char *name_or_id);
@@ -144,14 +144,14 @@ void output_drag_icons_for_each_surface(struct wmiiv_output *output,
 void output_for_each_workspace(struct wmiiv_output *output,
 		void (*f)(struct wmiiv_workspace *workspace, void *data), void *data);
 
-void output_for_each_container(struct wmiiv_output *output,
-		void (*f)(struct wmiiv_container *container, void *data), void *data);
+void output_for_each_window(struct wmiiv_output *output,
+		void (*f)(struct wmiiv_container *window, void *data), void *data);
 
 struct wmiiv_workspace *output_find_workspace(struct wmiiv_output *output,
 		bool (*test)(struct wmiiv_workspace *workspace, void *data), void *data);
 
-struct wmiiv_container *output_find_container(struct wmiiv_output *output,
-		bool (*test)(struct wmiiv_container *container, void *data), void *data);
+struct wmiiv_container *output_find_window(struct wmiiv_output *output,
+		bool (*test)(struct wmiiv_container *window, void *data), void *data);
 
 void output_get_box(struct wmiiv_output *output, struct wlr_box *box);
 

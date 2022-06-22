@@ -19,13 +19,13 @@ struct cmd_results *cmd_max_render_time(int argc, char **argv) {
 		}
 	}
 
-	struct wmiiv_container *container = config->handler_context.container;
-	if (!container || !container->view) {
+	struct wmiiv_container *window = config->handler_context.window;
+	if (!window) {
 		return cmd_results_new(CMD_INVALID,
 				"Only views can have a max_render_time");
 	}
 
-	struct wmiiv_view *view = container->view;
+	struct wmiiv_view *view = window->view;
 	view->max_render_time = max_render_time;
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

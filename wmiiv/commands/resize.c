@@ -47,9 +47,9 @@ static void window_resize_tiled_horizontal(struct wmiiv_container *window, uint3
 		return;
 	}
 
-	struct wmiiv_container *column = window->pending.parent;
-	struct wmiiv_container *prev_sibling = NULL;
-	struct wmiiv_container *next_sibling = NULL;
+	struct wmiiv_column *column = window->pending.parent;
+	struct wmiiv_column *prev_sibling = NULL;
+	struct wmiiv_column *next_sibling = NULL;
 	if (axis & WLR_EDGE_LEFT) {
        		prev_sibling = column_get_previous_sibling(column);
 	}
@@ -103,7 +103,7 @@ static void window_resize_tiled_vertical(struct wmiiv_container *window, uint32_
 		return;
 	}
 
-	struct wmiiv_container *column = window->pending.parent;
+	struct wmiiv_column *column = window->pending.parent;
 	if (column->pending.layout != L_VERT) {
 		return;
 	}
@@ -176,7 +176,7 @@ void window_resize_tiled(struct wmiiv_container *window, uint32_t axis, int amou
  */
 static struct cmd_results *resize_adjust_floating(uint32_t axis,
 		struct movement_amount *amount) {
-	struct wmiiv_container *container = config->handler_context.container;
+	struct wmiiv_container *window = config->handler_context.window;
 	int grow_width = 0, grow_height = 0;
 
 	if (is_horizontal(axis)) {
@@ -189,15 +189,15 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
 	int min_width, max_width, min_height, max_height;
 	floating_calculate_constraints(&min_width, &max_width,
 			&min_height, &max_height);
-	if (container->pending.width + grow_width < min_width) {
-		grow_width = min_width - container->pending.width;
-	} else if (container->pending.width + grow_width > max_width) {
-		grow_width = max_width - container->pending.width;
+	if (window->pending.width + grow_width < min_width) {
+		grow_width = min_width - window->pending.width;
+	} else if (window->pending.width + grow_width > max_width) {
+		grow_width = max_width - window->pending.width;
 	}
-	if (container->pending.height + grow_height < min_height) {
-		grow_height = min_height - container->pending.height;
-	} else if (container->pending.height + grow_height > max_height) {
-		grow_height = max_height - container->pending.height;
+	if (window->pending.height + grow_height < min_height) {
+		grow_height = min_height - window->pending.height;
+	} else if (window->pending.height + grow_height > max_height) {
+		grow_height = max_height - window->pending.height;
 	}
 	int grow_x = 0, grow_y = 0;
 
@@ -213,17 +213,17 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
 	if (grow_width == 0 && grow_height == 0) {
 		return cmd_results_new(CMD_INVALID, "Cannot resize any further");
 	}
-	container->pending.x += grow_x;
-	container->pending.y += grow_y;
-	container->pending.width += grow_width;
-	container->pending.height += grow_height;
+	window->pending.x += grow_x;
+	window->pending.y += grow_y;
+	window->pending.width += grow_width;
+	window->pending.height += grow_height;
 
-	container->pending.content_x += grow_x;
-	container->pending.content_y += grow_y;
-	container->pending.content_width += grow_width;
-	container->pending.content_height += grow_height;
+	window->pending.content_x += grow_x;
+	window->pending.content_y += grow_y;
+	window->pending.content_width += grow_width;
+	window->pending.content_height += grow_height;
 
-	arrange_window(container);
+	arrange_window(window);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -267,7 +267,7 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_container *window,
 		if (width->unit == MOVEMENT_UNIT_PPT ||
 				width->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
-			struct wmiiv_container *parent = window->pending.parent;
+			struct wmiiv_column *parent = window->pending.parent;
 			while (parent && parent->pending.layout != L_HORIZ) {
 				parent = parent->pending.parent;
 			}
@@ -288,7 +288,7 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_container *window,
 		if (height->unit == MOVEMENT_UNIT_PPT ||
 				height->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
-			struct wmiiv_container *parent = window->pending.parent;
+			struct wmiiv_column *parent = window->pending.parent;
 			while (parent && parent->pending.layout != L_VERT) {
 				parent = parent->pending.parent;
 			}
@@ -526,7 +526,7 @@ struct cmd_results *cmd_resize(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct wmiiv_container *current = config->handler_context.container;
+	struct wmiiv_container *current = config->handler_context.window;
 	if (!current) {
 		return cmd_results_new(CMD_INVALID, "Cannot resize nothing");
 	}

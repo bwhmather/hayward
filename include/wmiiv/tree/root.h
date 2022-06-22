@@ -52,7 +52,7 @@ void root_remove_workspace_pid(pid_t pid);
 void root_for_each_workspace(void (*f)(struct wmiiv_workspace *workspace, void *data),
 		void *data);
 
-void root_for_each_container(void (*f)(struct wmiiv_container *container, void *data),
+void root_for_each_window(void (*f)(struct wmiiv_container *window, void *data),
 		void *data);
 
 struct wmiiv_output *root_find_output(
@@ -61,8 +61,8 @@ struct wmiiv_output *root_find_output(
 struct wmiiv_workspace *root_find_workspace(
 		bool (*test)(struct wmiiv_workspace *workspace, void *data), void *data);
 
-struct wmiiv_container *root_find_container(
-		bool (*test)(struct wmiiv_container *container, void *data), void *data);
+struct wmiiv_container *root_find_window(
+		bool (*test)(struct wmiiv_container *window, void *data), void *data);
 
 void root_get_box(struct wmiiv_root *root, struct wlr_box *box);
 

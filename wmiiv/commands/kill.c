@@ -6,10 +6,8 @@
 #include "wmiiv/tree/workspace.h"
 #include "wmiiv/commands.h"
 
-static void close_container_iterator(struct wmiiv_container *container, void *data) {
-	if (container->view) {
-		view_close(container->view);
-	}
+static void close_window_iterator(struct wmiiv_container *window, void *data) {
+	view_close(window->view);
 }
 
 struct cmd_results *cmd_kill(int argc, char **argv) {
@@ -21,9 +19,9 @@ struct cmd_results *cmd_kill(int argc, char **argv) {
 	struct wmiiv_workspace *workspace = config->handler_context.workspace;
 
 	if (window) {
-		close_container_iterator(window, NULL);
+		close_window_iterator(window, NULL);
 	} else {
-		workspace_for_each_container(workspace, close_container_iterator, NULL);
+		workspace_for_each_window(workspace, close_window_iterator, NULL);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

@@ -342,7 +342,7 @@ static bool criteria_matches_view(struct criteria *criteria,
 			return false;
 		}
 		list_t *urgent_views = create_list();
-		root_for_each_container(find_urgent_iterator, urgent_views);
+		root_for_each_window(find_urgent_iterator, urgent_views);
 		list_stable_sort(urgent_views, cmp_urgent);
 		struct wmiiv_view *target;
 		if (criteria->urgent == 'o') { // oldest
@@ -403,7 +403,7 @@ struct match_data {
 	list_t *matches;
 };
 
-static void criteria_get_containers_iterator(struct wmiiv_container *container,
+static void criteria_get_windows_iterator(struct wmiiv_container *container,
 		void *data) {
 	struct match_data *match_data = data;
 	if (container->view) {
@@ -417,13 +417,13 @@ static void criteria_get_containers_iterator(struct wmiiv_container *container,
 	}
 }
 
-list_t *criteria_get_containers(struct criteria *criteria) {
+list_t *criteria_get_windows(struct criteria *criteria) {
 	list_t *matches = create_list();
 	struct match_data data = {
 		.criteria = criteria,
 		.matches = matches,
 	};
-	root_for_each_container(criteria_get_containers_iterator, &data);
+	root_for_each_window(criteria_get_windows_iterator, &data);
 	return matches;
 }
 

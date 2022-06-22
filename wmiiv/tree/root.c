@@ -226,17 +226,17 @@ void root_for_each_workspace(void (*f)(struct wmiiv_workspace *workspace, void *
 	}
 }
 
-void root_for_each_container(void (*f)(struct wmiiv_container *container, void *data),
+void root_for_each_window(void (*f)(struct wmiiv_container *window, void *data),
 		void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
-		output_for_each_container(output, f, data);
+		output_for_each_window(output, f, data);
 	}
 
 	// Saved workspaces
 	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = root->fallback_output->workspaces->items[i];
-		workspace_for_each_container(workspace, f, data);
+		workspace_for_each_window(workspace, f, data);
 	}
 }
 
@@ -263,12 +263,12 @@ struct wmiiv_workspace *root_find_workspace(
 	return NULL;
 }
 
-struct wmiiv_container *root_find_container(
-		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
+struct wmiiv_container *root_find_window(
+		bool (*test)(struct wmiiv_container *window, void *data), void *data) {
 	struct wmiiv_container *result = NULL;
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct wmiiv_output *output = root->outputs->items[i];
-		if ((result = output_find_container(output, test, data))) {
+		if ((result = output_find_window(output, test, data))) {
 			return result;
 		}
 	}
@@ -276,7 +276,7 @@ struct wmiiv_container *root_find_container(
 	// Saved workspaces
 	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
 		struct wmiiv_workspace *workspace = root->fallback_output->workspaces->items[i];
-		if ((result = workspace_find_container(workspace, test, data))) {
+		if ((result = workspace_find_window(workspace, test, data))) {
 			return result;
 		}
 	}

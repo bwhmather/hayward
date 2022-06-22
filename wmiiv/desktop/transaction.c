@@ -130,15 +130,10 @@ static void copy_workspace_state(struct wmiiv_workspace *workspace,
 
 	// Set focused_inactive_child to the direct tiling child
 	struct wmiiv_container *focus = seat_get_focus_inactive_tiling(seat, workspace);
-	if (focus) {
-		while (focus->pending.parent) {
-			focus = focus->pending.parent;
-		}
-	}
-	state->focused_inactive_child = focus;
+	state->focused_inactive_child = focus ? focus->pending.parent : NULL;
 }
 
-static void copy_column_state(struct wmiiv_container *container,
+static void copy_column_state(struct wmiiv_column *container,
 		struct wmiiv_transaction_instruction *instruction) {
 	if (!wmiiv_assert(container_is_column(container), "Expected column")) {
 		return;
@@ -243,34 +238,32 @@ static void apply_workspace_state(struct wmiiv_workspace *workspace,
 	output_damage_whole(workspace->current.output);
 }
 
-static void apply_column_state(struct wmiiv_container *container,
-		struct wmiiv_container_state *state) {
+static void apply_column_state(struct wmiiv_column *column, struct wmiiv_container_state *state) {
 	// Damage the old location
-	desktop_damage_whole_container(container);
+	desktop_damage_column(column);
 
 	// There are separate children lists for each instruction state, the
 	// container's current state and the container's pending state
-	// (ie. container->children). The list itself needs to be freed here.
+	// (ie. column->children). The list itself needs to be freed here.
 	// Any child containers which are being deleted will be cleaned up in
 	// transaction_destroy().
-	list_free(container->current.children);
+	list_free(column->current.children);
 
-	memcpy(&container->current, state, sizeof(struct wmiiv_container_state));
+	memcpy(&column->current, state, sizeof(struct wmiiv_container_state));
 
 	// Damage the new location
-	desktop_damage_whole_container(container);
+	desktop_damage_column(column);
 
-	if (!container->node.destroying) {
-		column_discover_outputs(container);
+	if (!column->node.destroying) {
+		column_discover_outputs(column);
 	}
 }
 
-
-static void apply_window_state(struct wmiiv_container *container,
+static void apply_window_state(struct wmiiv_container *window,
 		struct wmiiv_container_state *state) {
-	struct wmiiv_view *view = container->view;
+	struct wmiiv_view *view = window->view;
 	// Damage the old location
-	desktop_damage_whole_container(container);
+	desktop_damage_window(window);
 	if (!wl_list_empty(&view->saved_buffers)) {
 		struct wmiiv_saved_buffer *saved_buf;
 		wl_list_for_each(saved_buf, &view->saved_buffers, link) {
@@ -285,42 +278,41 @@ static void apply_window_state(struct wmiiv_container *container,
 	}
 
 	// There are separate children lists for each instruction state, the
-	// container's current state and the container's pending state
-	// (ie. container->children). The list itself needs to be freed here.
-	// Any child containers which are being deleted will be cleaned up in
-	// transaction_destroy().
-	list_free(container->current.children);
+	// window's current state and the window's pending state.  The list
+	// itself needs to be freed here.  Any child containers which are being
+	// deleted will be cleaned up in transaction_destroy().
+	list_free(window->current.children);
 
-	memcpy(&container->current, state, sizeof(struct wmiiv_container_state));
+	memcpy(&window->current, state, sizeof(struct wmiiv_container_state));
 
 	if (!wl_list_empty(&view->saved_buffers)) {
-		if (!container->node.destroying || container->node.ntxnrefs == 1) {
+		if (!window->node.destroying || window->node.ntxnrefs == 1) {
 			view_remove_saved_buffer(view);
 		}
 	}
 
 	// If the view hasn't responded to the configure, center it within
-	// the container. This is important for fullscreen views which
+	// the window. This is important for fullscreen views which
 	// refuse to resize to the size of the output.
 	if (view->surface) {
 		view_center_surface(view);
 	}
 
 	// Damage the new location
-	desktop_damage_whole_container(container);
+	desktop_damage_window(window);
 	if (view->surface) {
 		struct wlr_surface *surface = view->surface;
 		struct wlr_box box = {
-			.x = container->current.content_x - view->geometry.x,
-			.y = container->current.content_y - view->geometry.y,
+			.x = window->current.content_x - view->geometry.x,
+			.y = window->current.content_y - view->geometry.y,
 			.width = surface->current.width,
 			.height = surface->current.height,
 		};
 		desktop_damage_box(&box);
 	}
 
-	if (!container->node.destroying) {
-		window_discover_outputs(container);
+	if (!window->node.destroying) {
+		window_discover_outputs(window);
 	}
 }
 

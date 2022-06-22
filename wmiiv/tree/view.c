@@ -197,7 +197,7 @@ bool view_inhibit_idle(struct wmiiv_view *view) {
 
 bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
 	struct wmiiv_container *window = view->container;
-	struct wmiiv_container *column = window->pending.parent;
+	struct wmiiv_column *column = window->pending.parent;
 
 	list_t *siblings = column_get_siblings(column);
 	if (siblings && siblings->length > 1) {
@@ -218,7 +218,7 @@ static bool view_is_only_visible(struct wmiiv_view *view) {
 		}
 	}
 
-	struct wmiiv_container *column = window->pending.parent;
+	struct wmiiv_column *column = window->pending.parent;
 	list_t *siblings = column_get_siblings(column);
 	if (siblings && siblings->length > 1) {
 		return false;
@@ -646,11 +646,7 @@ static void handle_foreign_fullscreen_request(
 		struct wmiiv_output *output = event->output->data;
 		struct wmiiv_workspace *workspace = output_get_active_workspace(output);
 		if (workspace) {
-			if (window_is_floating(window)) {
-				workspace_add_floating(workspace, window);
-			} else {
-				workspace_add_tiling(workspace, window);
-			}
+			window_move_to_workspace(window, workspace);
 		}
 	}
 
@@ -714,10 +710,6 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	struct wmiiv_seat *seat = input_manager_current_seat();
 
 	struct wmiiv_container *target_sibling = seat_get_focus_inactive_tiling(seat, workspace);
-	if (target_sibling && container_is_column(target_sibling)) {
-		// TODO (wmiiv) Shouldn't be possible once columns are no longer focusable.
-		target_sibling = seat_get_focus_inactive_view(seat, &target_sibling->node);
-	}
 
 	view->foreign_toplevel =
 		wlr_foreign_toplevel_handle_v1_create(server.foreign_toplevel_manager);
@@ -737,7 +729,7 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	if (target_sibling) {
 		column_add_sibling(target_sibling, view->container, 1);
 	} else if (workspace) {
-		struct wmiiv_container *column = column_create();
+		struct wmiiv_column *column = column_create();
 		column_add_child(column, view->container);
 		workspace_insert_tiling_direct(workspace, column, 0);
 	}
@@ -831,7 +823,7 @@ void view_unmap(struct wmiiv_view *view) {
 		view->foreign_toplevel = NULL;
 	}
 
-	struct wmiiv_container *parent = view->container->pending.parent;
+	struct wmiiv_column *parent = view->container->pending.parent;
 	struct wmiiv_workspace *workspace = view->container->pending.workspace;
 	window_begin_destroy(view->container);
 	if (parent) {
@@ -1284,17 +1276,7 @@ bool view_is_visible(struct wmiiv_view *view) {
 	}
 	struct wmiiv_workspace *workspace = view->container->pending.workspace;
 	if (!workspace && view->container->pending.fullscreen_mode != FULLSCREEN_GLOBAL) {
-		bool fs_global_descendant = false;
-		struct wmiiv_container *parent = view->container->pending.parent;
-		while (parent) {
-			if (parent->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-				fs_global_descendant = true;
-			}
-			parent = parent->pending.parent;
-		}
-		if (!fs_global_descendant) {
-			return false;
-		}
+		return false;
 	}
 
 	if (!window_is_sticky(view->container) && workspace &&
@@ -1304,7 +1286,7 @@ bool view_is_visible(struct wmiiv_view *view) {
 	// Check view isn't in a tabbed or stacked container on an inactive tab
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_container *window = view->container;
-	struct wmiiv_container *column = window->pending.parent;
+	struct wmiiv_column *column = window->pending.parent;
 	if (column != NULL) {
 		enum wmiiv_container_layout parent_layout = column->pending.layout;
 		if (parent_layout == L_TABBED || parent_layout == L_STACKED) {
@@ -1341,7 +1323,7 @@ void view_set_urgent(struct wmiiv_view *view, bool enable) {
 			view->urgent_timer = NULL;
 		}
 	}
-	window_damage_whole(view->container);
+	desktop_damage_window(view->container);
 
 	ipc_event_window(view->container, "urgent");
 

@@ -233,7 +233,7 @@ static void finalize_move(struct wmiiv_seat *seat) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 
 	struct wmiiv_container *moving_window = e->moving_window;
-	struct wmiiv_container *old_parent = moving_window->pending.parent;
+	struct wmiiv_column *old_parent = moving_window->pending.parent;
 	struct wmiiv_workspace *old_workspace = moving_window->pending.workspace;
 
 	struct wmiiv_workspace *target_workspace = e->target_workspace;
@@ -251,10 +251,10 @@ static void finalize_move(struct wmiiv_seat *seat) {
 		window_move_to_workspace(moving_window, target_workspace);
 	} else {
 		if (target_edge == WLR_EDGE_LEFT || target_edge == WLR_EDGE_RIGHT) {
-			struct wmiiv_container *target_column = target_window->pending.parent;
+			struct wmiiv_column *target_column = target_window->pending.parent;
 			int target_column_index = list_find(target_workspace->tiling, target_column);
 
-			struct wmiiv_container *new_column = column_create();
+			struct wmiiv_column *new_column = column_create();
 			new_column->pending.height = new_column->pending.width = 0;
 			new_column->height_fraction = new_column->width_fraction = 0;
 			new_column->pending.layout = L_STACKED;

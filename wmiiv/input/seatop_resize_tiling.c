@@ -16,12 +16,12 @@ struct seatop_resize_tiling_event {
 	// Container, or ancestor of container which will be resized horizontally/vertically.
 	// TODO v_container will always be the selected window.  h_container
 	// will always be the containing column.  
-	struct wmiiv_container *h_container;
+	struct wmiiv_column *h_container;
 	struct wmiiv_container *v_container;
 
 	// Sibling container(s) that will be resized to accommodate.  h_sib is
 	// always a column.  v_sib is always a window.
-	struct wmiiv_container *h_sib;
+	struct wmiiv_column *h_sib;
 	struct wmiiv_container *v_sib;
 
 	enum wlr_edges edge;
@@ -31,7 +31,7 @@ struct seatop_resize_tiling_event {
 	double v_container_orig_height;      // height of the vertical ancestor at start
 };
 
-static struct wmiiv_container *column_get_resize_sibling(struct wmiiv_container *column, uint32_t edge) {
+static struct wmiiv_column *column_get_resize_sibling(struct wmiiv_column *column, uint32_t edge) {
 	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
 		return NULL;
 	}
@@ -80,20 +80,12 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 		if (e->h_container) {
 			column_set_resizing(e->h_container, false);
 			column_set_resizing(e->h_sib, false);
-			if (e->h_container->pending.parent) {
-				arrange_column(e->h_container->pending.parent);
-			} else {
-				arrange_workspace(e->h_container->pending.workspace);
-			}
+			arrange_workspace(e->h_container->pending.workspace);
 		}
 		if (e->v_container) {
 			window_set_resizing(e->v_container, false);
 			window_set_resizing(e->v_sib, false);
-			if (e->v_container->pending.parent) {
-				arrange_column(e->v_container->pending.parent);
-			} else {
-				arrange_workspace(e->v_container->pending.workspace);
-			}
+			arrange_column(e->v_container->pending.parent);
 		}
 		transaction_commit_dirty();
 		seatop_begin_default(seat);
@@ -123,10 +115,10 @@ static void handle_pointer_motion(struct wmiiv_seat *seat, uint32_t time_msec) {
 	}
 
 	if (amount_x != 0) {
-		window_resize_tiled(e->h_container, e->edge_x, amount_x);
+		window_resize_tiled(e->container, e->edge_x, amount_x);
 	}
 	if (amount_y != 0) {
-		window_resize_tiled(e->v_container, e->edge_y, amount_y);
+		window_resize_tiled(e->container, e->edge_y, amount_y);
 	}
 	transaction_commit_dirty();
 }
@@ -136,7 +128,7 @@ static void handle_unref(struct wmiiv_seat *seat, struct wmiiv_container *contai
 	if (e->container == container) {
 		seatop_begin_default(seat);
 	}
-	if (e->h_sib == container || e->v_sib == container) {
+	if (e->h_sib == container->pending.parent || e->v_sib == container) {
 		seatop_begin_default(seat);
 	}
 }

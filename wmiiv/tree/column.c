@@ -30,10 +30,10 @@
 #include "log.h"
 #include "stringop.h"
 
-struct wmiiv_container *column_create(void) {
-	struct wmiiv_container *c = calloc(1, sizeof(struct wmiiv_container));
+struct wmiiv_column *column_create(void) {
+	struct wmiiv_column *c = calloc(1, sizeof(struct wmiiv_column));
 	if (!c) {
-		wmiiv_log(WMIIV_ERROR, "Unable to allocate wmiiv_container");
+		wmiiv_log(WMIIV_ERROR, "Unable to allocate wmiiv_column");
 		return NULL;
 	}
 	node_init(&c->node, N_COLUMN, c);
@@ -53,7 +53,7 @@ struct wmiiv_container *column_create(void) {
 	return c;
 }
 
-void column_destroy(struct wmiiv_container *column) {
+void column_destroy(struct wmiiv_column *column) {
 	if (!wmiiv_assert(column->node.destroying,
 				"Tried to free column which wasn't marked as destroying")) {
 		return;
@@ -83,7 +83,7 @@ void column_destroy(struct wmiiv_container *column) {
 	free(column);
 }
 
-void column_begin_destroy(struct wmiiv_container *column) {
+void column_begin_destroy(struct wmiiv_column *column) {
 	wl_signal_emit(&column->node.events.destroy, &column->node);
 
 	column->node.destroying = true;
@@ -94,7 +94,7 @@ void column_begin_destroy(struct wmiiv_container *column) {
 	}
 }
 
-void column_consider_destroy(struct wmiiv_container *column) {
+void column_consider_destroy(struct wmiiv_column *column) {
 	if (!wmiiv_assert(container_is_column(column), "Cannot reap a non-column container")) {
 		return;
 	}
@@ -110,7 +110,7 @@ void column_consider_destroy(struct wmiiv_container *column) {
 	}
 }
 
-void column_detach(struct wmiiv_container *column) {
+void column_detach(struct wmiiv_column *column) {
 	struct wmiiv_workspace *old_workspace = column->pending.workspace;
 
 	list_t *siblings = column_get_siblings(column);
@@ -130,7 +130,7 @@ void column_detach(struct wmiiv_container *column) {
 	node_set_dirty(&column->node);
 }
 
-struct wmiiv_container *column_find_child(struct wmiiv_container *column,
+struct wmiiv_container *column_find_child(struct wmiiv_column *column,
 		bool (*test)(struct wmiiv_container *container, void *data), void *data) {
 	if (!wmiiv_assert(container_is_column(column), "Cannot find children in non-column containers")) {
 		return NULL;
@@ -147,7 +147,7 @@ struct wmiiv_container *column_find_child(struct wmiiv_container *column,
 	return NULL;
 }
 
-void column_insert_child(struct wmiiv_container *parent,
+void column_insert_child(struct wmiiv_column *parent,
 		struct wmiiv_container *child, int i) {
 	wmiiv_assert(container_is_column(parent), "Target is not a column");
 	wmiiv_assert(container_is_window(child), "Not a window");
@@ -182,7 +182,7 @@ void column_add_sibling(struct wmiiv_container *fixed,
 	column_update_representation(fixed->pending.parent);
 }
 
-void column_add_child(struct wmiiv_container *parent,
+void column_add_child(struct wmiiv_column *parent,
 		struct wmiiv_container *child) {
 	wmiiv_assert(container_is_column(parent), "Target is not a column");
 	wmiiv_assert(container_is_window(child), "Not a window");
@@ -200,7 +200,7 @@ void column_add_child(struct wmiiv_container *parent,
 	node_set_dirty(&parent->node);
 }
 
-void column_for_each_child(struct wmiiv_container *column,
+void column_for_each_child(struct wmiiv_column *column,
 		void (*f)(struct wmiiv_container *window, void *data),
 		void *data) {
 	wmiiv_assert(container_is_column(column), "Expected column");
@@ -210,13 +210,6 @@ void column_for_each_child(struct wmiiv_container *column,
 			struct wmiiv_container *child = column->pending.children->items[i];
 			f(child, data);
 		}
-	}
-}
-
-void column_damage_whole(struct wmiiv_container *column) {
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct wmiiv_output *output = root->outputs->items[i];
-		output_damage_whole_container(output, column);
 	}
 }
 
@@ -273,7 +266,7 @@ size_t column_build_representation(enum wmiiv_container_layout layout,
 	return len;
 }
 
-void column_update_representation(struct wmiiv_container *column) {
+void column_update_representation(struct wmiiv_column *column) {
 	wmiiv_assert(container_is_column(column), "Expected column");
 
 	size_t len = column_build_representation(column->pending.layout,
@@ -292,7 +285,7 @@ void column_update_representation(struct wmiiv_container *column) {
 	}
 }
 
-void column_get_box(struct wmiiv_container *column, struct wlr_box *box) {
+void column_get_box(struct wmiiv_column *column, struct wlr_box *box) {
 	box->x = column->pending.x;
 	box->y = column->pending.y;
 	box->width = column->pending.width;
@@ -303,7 +296,7 @@ void column_get_box(struct wmiiv_container *column, struct wlr_box *box) {
  * Indicate to clients in this container that they are participating in (or
  * have just finished) an interactive resize
  */
-void column_set_resizing(struct wmiiv_container *column, bool resizing) {
+void column_set_resizing(struct wmiiv_column *column, bool resizing) {
 	if (!column) {
 		return;
 	}
@@ -316,25 +309,25 @@ void column_set_resizing(struct wmiiv_container *column, bool resizing) {
 	}
 }
 
-list_t *column_get_siblings(struct wmiiv_container *column) {
+list_t *column_get_siblings(struct wmiiv_column *column) {
 	if (column->pending.workspace) {
 		return column->pending.workspace->tiling;
 	}
 	return NULL;
 }
 
-int column_sibling_index(struct wmiiv_container *child) {
+int column_sibling_index(struct wmiiv_column *child) {
 	return list_find(column_get_siblings(child), child);
 }
 
-list_t *column_get_current_siblings(struct wmiiv_container *column) {
+list_t *column_get_current_siblings(struct wmiiv_column *column) {
 	if (column->current.workspace) {
 		return column->current.workspace->tiling;
 	}
 	return NULL;
 }
 
-struct wmiiv_container *column_get_previous_sibling(struct wmiiv_container *column) {
+struct wmiiv_column *column_get_previous_sibling(struct wmiiv_column *column) {
 	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
 		return NULL;
 	}
@@ -353,7 +346,7 @@ struct wmiiv_container *column_get_previous_sibling(struct wmiiv_container *colu
 	return siblings->items[index - 1];
 }
 
-struct wmiiv_container *column_get_next_sibling(struct wmiiv_container *column) {
+struct wmiiv_column *column_get_next_sibling(struct wmiiv_column *column) {
 	if (!wmiiv_assert(container_is_column(column), "Expected column")) {
 		return NULL;
 	}
@@ -380,14 +373,14 @@ struct wmiiv_container *column_get_next_sibling(struct wmiiv_container *column) 
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
  */
-struct wmiiv_output *column_get_effective_output(struct wmiiv_container *column) {
+struct wmiiv_output *column_get_effective_output(struct wmiiv_column *column) {
 	if (column->outputs->length == 0) {
 		return NULL;
 	}
 	return column->outputs->items[column->outputs->length - 1];
 }
 
-void column_discover_outputs(struct wmiiv_container *column) {
+void column_discover_outputs(struct wmiiv_column *column) {
 	struct wlr_box column_box = {
 		.x = column->current.x,
 		.y = column->current.y,
@@ -420,7 +413,7 @@ static bool find_urgent_iterator(struct wmiiv_container *container, void *data) 
 	return container->view && view_is_urgent(container->view);
 }
 
-bool column_has_urgent_child(struct wmiiv_container *column) {
+bool column_has_urgent_child(struct wmiiv_column *column) {
 	return column_find_child(column, find_urgent_iterator, NULL);
 }
 

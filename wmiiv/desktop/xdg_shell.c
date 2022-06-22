@@ -341,11 +341,7 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 		struct wmiiv_output *output = req->fullscreen_output->data;
 		struct wmiiv_workspace *workspace = output_get_active_workspace(output);
 		if (workspace && window->pending.workspace != workspace) {
-			if (window_is_floating(window)) {
-				workspace_add_floating(workspace, window);
-			} else {
-				workspace_add_tiling(workspace, window);
-			}
+			window_move_to_workspace(window, workspace);
 		}
 	}
 

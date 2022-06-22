@@ -21,7 +21,7 @@ void arrange_window(struct wmiiv_container *window) {
 	node_set_dirty(&window->node);
 }
 
-static void arrange_column_vert(struct wmiiv_container *column) {
+static void arrange_column_vert(struct wmiiv_column *column) {
 	wmiiv_assert(container_is_column(column), "Expected column");
 	wmiiv_assert(column->pending.layout == L_VERT, "Expected vertical column");
 
@@ -95,7 +95,7 @@ static void arrange_column_vert(struct wmiiv_container *column) {
 	}
 }
 
-static void arrange_column_tabbed(struct wmiiv_container *column) {
+static void arrange_column_tabbed(struct wmiiv_column *column) {
 	wmiiv_assert(container_is_column(column), "Expected column");
 	wmiiv_assert(column->pending.layout == L_TABBED, "Expected tabbed column");
 
@@ -117,7 +117,7 @@ static void arrange_column_tabbed(struct wmiiv_container *column) {
 	}
 }
 
-static void arrange_column_stacked(struct wmiiv_container *column) {
+static void arrange_column_stacked(struct wmiiv_column *column) {
 	wmiiv_assert(container_is_column(column), "Expected column");
 	wmiiv_assert(column->pending.layout == L_STACKED, "Expected stacked column");
 
@@ -140,7 +140,7 @@ static void arrange_column_stacked(struct wmiiv_container *column) {
 	}
 }
 
-void arrange_column(struct wmiiv_container *column) {
+void arrange_column(struct wmiiv_column *column) {
 	if (config->reloading) {
 		return;
 	}
@@ -246,7 +246,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	}
 
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_container *child = children->items[i];
+		struct wmiiv_column *child = children->items[i];
 		arrange_column(child);
 	}
 }

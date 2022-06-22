@@ -697,91 +697,67 @@ static void render_top_border(struct wmiiv_output *output,
 	render_rect(output, output_damage, &box, color);
 }
 
-struct parent_data {
-	enum wmiiv_container_layout layout;
-	struct wlr_box box;
-	list_t *children;
-	bool focused;
-	struct wmiiv_container *active_child;
-};
-
-static void render_container(struct wmiiv_output *output,
-	pixman_region32_t *damage, struct wmiiv_container *container, bool parent_focused);
-
 /**
  * Render a container's children using a L_HORIZ or L_VERT layout.
  *
  * Wrap child views in borders and leave child containers borderless because
  * they'll apply their own borders to their children.
  */
-static void render_containers_linear(struct wmiiv_output *output,
-		pixman_region32_t *damage, struct parent_data *parent) {
-	for (int i = 0; i < parent->children->length; ++i) {
-		struct wmiiv_container *child = parent->children->items[i];
+static void render_column_linear(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
+	struct wmiiv_container *current = column->current.focused_inactive_child;
 
-		if (child->view) {
-			struct wmiiv_view *view = child->view;
-			struct border_colors *colors;
-			struct wlr_texture *title_texture;
-			struct wlr_texture *marks_texture;
-			struct wmiiv_container_state *state = &child->current;
+	for (int i = 0; i < column->current.children->length; ++i) {
+		struct wmiiv_container *child = column->current.children->items[i];
 
-			if (view_is_urgent(view)) {
-				colors = &config->border_colors.urgent;
-				title_texture = child->title_urgent;
-				marks_texture = child->marks_urgent;
-			} else if (state->focused || parent->focused) {
-				colors = &config->border_colors.focused;
-				title_texture = child->title_focused;
-				marks_texture = child->marks_focused;
-			} else if (child == parent->active_child) {
-				colors = &config->border_colors.focused_inactive;
-				title_texture = child->title_focused_inactive;
-				marks_texture = child->marks_focused_inactive;
-			} else {
-				colors = &config->border_colors.unfocused;
-				title_texture = child->title_unfocused;
-				marks_texture = child->marks_unfocused;
-			}
+		struct wmiiv_view *view = child->view;
+		struct border_colors *colors;
+		struct wlr_texture *title_texture;
+		struct wlr_texture *marks_texture;
+		struct wmiiv_container_state *state = &child->current;
 
-			if (state->border == B_NORMAL) {
-				render_titlebar(output, damage, child, floor(state->x),
-						floor(state->y), state->width, colors,
-						title_texture, marks_texture);
-			} else if (state->border == B_PIXEL) {
-				render_top_border(output, damage, child, colors);
-			}
-			render_view(output, damage, child, colors);
+		if (view_is_urgent(view)) {
+			colors = &config->border_colors.urgent;
+			title_texture = child->title_urgent;
+			marks_texture = child->marks_urgent;
+		} else if (state->focused) {
+			colors = &config->border_colors.focused;
+			title_texture = child->title_focused;
+			marks_texture = child->marks_focused;
+		} else if (child == current) {
+			colors = &config->border_colors.focused_inactive;
+			title_texture = child->title_focused_inactive;
+			marks_texture = child->marks_focused_inactive;
 		} else {
-			render_container(output, damage, child,
-					parent->focused || child->current.focused);
+			colors = &config->border_colors.unfocused;
+			title_texture = child->title_unfocused;
+			marks_texture = child->marks_unfocused;
 		}
+
+		if (state->border == B_NORMAL) {
+			render_titlebar(output, damage, child, floor(state->x),
+					floor(state->y), state->width, colors,
+					title_texture, marks_texture);
+		} else if (state->border == B_PIXEL) {
+			render_top_border(output, damage, child, colors);
+		}
+		render_view(output, damage, child, colors);
 	}
-}
-
-static bool container_is_focused(struct wmiiv_container *container, void *data) {
-	return container->current.focused;
-}
-
-static bool container_has_focused_child(struct wmiiv_container *container) {
-	return column_find_child(container, container_is_focused, NULL);
 }
 
 /**
  * Render a container's children using the L_TABBED layout.
  */
-static void render_containers_tabbed(struct wmiiv_output *output,
-		pixman_region32_t *damage, struct parent_data *parent) {
-	if (!parent->children->length) {
+static void render_column_tabbed(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
+	if (!column->current.children->length) {
 		return;
 	}
-	struct wmiiv_container *current = parent->active_child;
+	struct wmiiv_container *current = column->current.focused_inactive_child;
 	struct border_colors *current_colors = &config->border_colors.unfocused;
-	int tab_width = parent->box.width / parent->children->length;
+	int tab_width = column->current.width / column->current.children->length;
 
-	// Render tabs
-	for (int i = 0; i < parent->children->length; ++i) {
-		struct wmiiv_container *child = parent->children->items[i];
+	// Render titles
+	for (int i = 0; i < column->current.children->length; ++i) {
+		struct wmiiv_container *child = column->current.children->items[i];
 		struct wmiiv_view *view = child->view;
 		struct wmiiv_container_state *cstate = &child->current;
 		struct border_colors *colors;
@@ -792,15 +768,11 @@ static void render_containers_tabbed(struct wmiiv_output *output,
 			colors = &config->border_colors.urgent;
 			title_texture = child->title_urgent;
 			marks_texture = child->marks_urgent;
-		} else if (cstate->focused || parent->focused) {
+		} else if (cstate->focused) {
 			colors = &config->border_colors.focused;
 			title_texture = child->title_focused;
 			marks_texture = child->marks_focused;
-		} else if (config->has_focused_tab_title && container_has_focused_child(child)) {
-			colors = &config->border_colors.focused_tab_title;
-			title_texture = child->title_focused_tab_title;
-			marks_texture = child->marks_focused_tab_title;
-		} else if (child == parent->active_child) {
+		} else if (child == current) {
 			colors = &config->border_colors.focused_inactive;
 			title_texture = child->title_focused_inactive;
 			marks_texture = child->marks_focused_inactive;
@@ -813,11 +785,11 @@ static void render_containers_tabbed(struct wmiiv_output *output,
 		int x = floor(cstate->x + tab_width * i);
 
 		// Make last tab use the remaining width of the parent
-		if (i == parent->children->length - 1) {
-			tab_width = parent->box.width - tab_width * i;
+		if (i == column->current.children->length - 1) {
+			tab_width = column->current.width - tab_width * i;
 		}
 
-		render_titlebar(output, damage, child, x, parent->box.y, tab_width,
+		render_titlebar(output, damage, child, x, column->current.y, tab_width,
 				colors, title_texture, marks_texture);
 
 		if (child == current) {
@@ -832,18 +804,17 @@ static void render_containers_tabbed(struct wmiiv_output *output,
 /**
  * Render a container's children using the L_STACKED layout.
  */
-static void render_containers_stacked(struct wmiiv_output *output,
-		pixman_region32_t *damage, struct parent_data *parent) {
-	if (!parent->children->length) {
+static void render_column_stacked(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
+	if (!column->current.children->length) {
 		return;
 	}
-	struct wmiiv_container *current = parent->active_child;
+	struct wmiiv_container *current = column->current.focused_inactive_child;
 	struct border_colors *current_colors = &config->border_colors.unfocused;
 	size_t titlebar_height = window_titlebar_height();
 
 	// Render titles
-	for (int i = 0; i < parent->children->length; ++i) {
-		struct wmiiv_container *child = parent->children->items[i];
+	for (int i = 0; i < column->current.children->length; ++i) {
+		struct wmiiv_container *child = column->current.children->items[i];
 		struct wmiiv_view *view = child->view;
 		struct wmiiv_container_state *cstate = &child->current;
 		struct border_colors *colors;
@@ -854,15 +825,11 @@ static void render_containers_stacked(struct wmiiv_output *output,
 			colors = &config->border_colors.urgent;
 			title_texture = child->title_urgent;
 			marks_texture = child->marks_urgent;
-		} else if (cstate->focused || parent->focused) {
+		} else if (cstate->focused) {
 			colors = &config->border_colors.focused;
 			title_texture = child->title_focused;
 			marks_texture = child->marks_focused;
-		} else if (config->has_focused_tab_title && container_has_focused_child(child)) {
-			colors = &config->border_colors.focused_tab_title;
-			title_texture = child->title_focused_tab_title;
-			marks_texture = child->marks_focused_tab_title;
-		 } else if (child == parent->active_child) {
+		 } else if (child == current) {
 			colors = &config->border_colors.focused_inactive;
 			title_texture = child->title_focused_inactive;
 			marks_texture = child->marks_focused_inactive;
@@ -872,9 +839,9 @@ static void render_containers_stacked(struct wmiiv_output *output,
 			marks_texture = child->marks_unfocused;
 		}
 
-		int y = parent->box.y + titlebar_height * i;
-		render_titlebar(output, damage, child, parent->box.x, y,
-				parent->box.width, colors, title_texture, marks_texture);
+		int y = column->current.y + titlebar_height * i;
+		render_titlebar(output, damage, child, column->current.x, y,
+				column->current.width, colors, title_texture, marks_texture);
 
 		if (child == current) {
 			current_colors = colors;
@@ -882,106 +849,65 @@ static void render_containers_stacked(struct wmiiv_output *output,
 	}
 
 	// Render surface and left/right/bottom borders
-	if (current->view) {
-		render_view(output, damage, current, current_colors);
-	} else {
-		render_container(output, damage, current,
-				parent->focused || current->current.focused);
-	}
+	render_view(output, damage, current, current_colors);
 }
 
-static void render_containers(struct wmiiv_output *output,
-		pixman_region32_t *damage, struct parent_data *parent) {
-	if (config->hide_lone_tab && parent->children->length == 1) {
-		struct wmiiv_container *child = parent->children->items[0];
-		if (child->view) {
-			render_containers_linear(output,damage, parent);
-			return;
-		}
+static void render_column(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
+	if (config->hide_lone_tab && column->current.children->length == 1) {
+		render_column_linear(output, damage, column);
 	}
 
-	switch (parent->layout) {
+	switch (column->current.layout) {
 	case L_NONE:
 	case L_HORIZ:
 	case L_VERT:
-		render_containers_linear(output, damage, parent);
+		render_column_linear(output, damage, column);
 		break;
 	case L_STACKED:
-		render_containers_stacked(output, damage, parent);
+		render_column_stacked(output, damage, column);
 		break;
 	case L_TABBED:
-		render_containers_tabbed(output, damage, parent);
+		render_column_tabbed(output, damage, column);
 		break;
 	}
-}
-
-static void render_container(struct wmiiv_output *output,
-		pixman_region32_t *damage, struct wmiiv_container *container, bool focused) {
-	struct parent_data data = {
-		.layout = container->current.layout,
-		.box = {
-			.x = floor(container->current.x),
-			.y = floor(container->current.y),
-			.width = container->current.width,
-			.height = container->current.height,
-		},
-		.children = container->current.children,
-		.focused = focused,
-		.active_child = container->current.focused_inactive_child,
-	};
-	render_containers(output, damage, &data);
 }
 
 static void render_workspace(struct wmiiv_output *output,
 		pixman_region32_t *damage, struct wmiiv_workspace *workspace, bool focused) {
-	struct parent_data data = {
-		.layout = L_HORIZ,
-		.box = {
-			.x = floor(workspace->current.x),
-			.y = floor(workspace->current.y),
-			.width = workspace->current.width,
-			.height = workspace->current.height,
-		},
-		.children = workspace->current.tiling,
-		.focused = focused,
-		.active_child = workspace->current.focused_inactive_child,
-	};
-	render_containers(output, damage, &data);
+	for (int i = 0; i < workspace->tiling->length; ++i) {
+		struct wmiiv_column *child = workspace->tiling->items[i];
+		render_column(output, damage, child);
+	}
 }
 
-static void render_floating_container(struct wmiiv_output *soutput,
-		pixman_region32_t *damage, struct wmiiv_container *container) {
-	if (container->view) {
-		struct wmiiv_view *view = container->view;
-		struct border_colors *colors;
-		struct wlr_texture *title_texture;
-		struct wlr_texture *marks_texture;
+static void render_floating_window(struct wmiiv_output *soutput, pixman_region32_t *damage, struct wmiiv_container *window) {
+	struct wmiiv_view *view = window->view;
+	struct border_colors *colors;
+	struct wlr_texture *title_texture;
+	struct wlr_texture *marks_texture;
 
-		if (view_is_urgent(view)) {
-			colors = &config->border_colors.urgent;
-			title_texture = container->title_urgent;
-			marks_texture = container->marks_urgent;
-		} else if (container->current.focused) {
-			colors = &config->border_colors.focused;
-			title_texture = container->title_focused;
-			marks_texture = container->marks_focused;
-		} else {
-			colors = &config->border_colors.unfocused;
-			title_texture = container->title_unfocused;
-			marks_texture = container->marks_unfocused;
-		}
-
-		if (container->current.border == B_NORMAL) {
-			render_titlebar(soutput, damage, container, floor(container->current.x),
-					floor(container->current.y), container->current.width, colors,
-					title_texture, marks_texture);
-		} else if (container->current.border == B_PIXEL) {
-			render_top_border(soutput, damage, container, colors);
-		}
-		render_view(soutput, damage, container, colors);
+	if (view_is_urgent(view)) {
+		colors = &config->border_colors.urgent;
+		title_texture = window->title_urgent;
+		marks_texture = window->marks_urgent;
+	} else if (window->current.focused) {
+		colors = &config->border_colors.focused;
+		title_texture = window->title_focused;
+		marks_texture = window->marks_focused;
 	} else {
-		render_container(soutput, damage, container, container->current.focused);
+		colors = &config->border_colors.unfocused;
+		title_texture = window->title_unfocused;
+		marks_texture = window->marks_unfocused;
 	}
+
+	if (window->current.border == B_NORMAL) {
+		render_titlebar(soutput, damage, window, floor(window->current.x),
+				floor(window->current.y), window->current.width, colors,
+				title_texture, marks_texture);
+	} else if (window->current.border == B_PIXEL) {
+		render_top_border(soutput, damage, window, colors);
+	}
+	render_view(soutput, damage, window, colors);
 }
 
 static void render_floating(struct wmiiv_output *soutput,
@@ -998,7 +924,7 @@ static void render_floating(struct wmiiv_output *soutput,
 				if (floater->current.fullscreen_mode != FULLSCREEN_NONE) {
 					continue;
 				}
-				render_floating_container(soutput, damage, floater);
+				render_floating_window(soutput, damage, floater);
 			}
 		}
 	}
@@ -1101,15 +1027,14 @@ void output_render(struct wmiiv_output *output, struct timespec *when,
 						output, damage, 1.0f);
 			}
 		} else {
-			render_container(output, damage, fullscreen_container,
-					fullscreen_container->current.focused);
+			render_view(output, damage, fullscreen_container, &config->border_colors.focused);
 		}
 
 		for (int i = 0; i < workspace->current.floating->length; ++i) {
 			struct wmiiv_container *floater =
 				workspace->current.floating->items[i];
 			if (window_is_transient_for(floater, fullscreen_container)) {
-				render_floating_container(output, damage, floater);
+				render_floating_window(output, damage, floater);
 			}
 		}
 #if HAVE_XWAYLAND

@@ -411,7 +411,7 @@ static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 }
 
 
-static void column_get_deco_rect(struct wmiiv_container *column, struct wlr_box *deco_rect) {
+static void column_get_deco_rect(struct wmiiv_column *column, struct wlr_box *deco_rect) {
 	// TODO it's unclear whether columns should actually ever have a decoration rectangle.
 	if (column->pending.workspace == NULL) {
 		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
@@ -560,7 +560,7 @@ static void ipc_json_describe_view(struct wmiiv_container *c, json_object *objec
 #endif
 }
 
-static void ipc_json_describe_column(struct wmiiv_container *column, json_object *object) {
+static void ipc_json_describe_column(struct wmiiv_column *column, json_object *object) {
 	json_object_object_add(object, "name",
 			column->title ? json_object_new_string(column->title) : NULL);
 
