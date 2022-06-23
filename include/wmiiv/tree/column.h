@@ -42,11 +42,6 @@ struct wmiiv_column {
 	char *title;           // The view's title (unformatted)
 	char *formatted_title; // The title displayed in the title bar
 
-	// Whether stickiness has been enabled on this container. Use
-	// `container_is_sticky_[or_child]` rather than accessing this field
-	// directly; it'll also check that the container is floating.
-	bool is_sticky;
-
 	// For C_ROOT, this has no meaning
 	// For other types, this is the position in layout coordinates
 	// Includes borders

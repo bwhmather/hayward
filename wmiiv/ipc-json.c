@@ -574,7 +574,6 @@ static void ipc_json_describe_column(struct wmiiv_column *column, json_object *o
 
 	bool urgent = column_has_urgent_child(column);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
-	json_object_object_add(object, "sticky", json_object_new_boolean(column->is_sticky));
 
 	json_object_object_add(object, "fullscreen_mode",
 			json_object_new_int(column->pending.fullscreen_mode));
