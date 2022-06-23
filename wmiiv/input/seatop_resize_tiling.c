@@ -44,7 +44,7 @@ static struct wmiiv_column *column_get_resize_sibling(struct wmiiv_column *colum
 		return NULL;
 	}
 
-	return siblings->items[offset];
+	return siblings->items[index];
 }
 
 static struct wmiiv_window *window_get_resize_sibling(struct wmiiv_window *window, uint32_t edge) {
@@ -60,7 +60,7 @@ static struct wmiiv_window *window_get_resize_sibling(struct wmiiv_window *windo
 		return NULL;
 	}
 
-	return siblings->items[offset];
+	return siblings->items[index];
 }
 
 static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
