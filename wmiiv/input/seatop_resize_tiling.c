@@ -40,7 +40,7 @@ static struct wmiiv_column *column_get_resize_sibling(struct wmiiv_column *colum
 		return NULL;
 	}
 
-	if (index > siblings->length) {
+	if (index >= siblings->length) {
 		return NULL;
 	}
 
@@ -56,7 +56,7 @@ static struct wmiiv_window *window_get_resize_sibling(struct wmiiv_window *windo
 		return NULL;
 	}
 
-	if (index > siblings->length) {
+	if (index >= siblings->length) {
 		return NULL;
 	}
 
