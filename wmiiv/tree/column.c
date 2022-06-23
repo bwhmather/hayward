@@ -43,7 +43,6 @@ struct wmiiv_column *column_create(void) {
 	c->pending.children = create_list();
 	c->current.children = create_list();
 
-	c->marks = create_list();
 	c->outputs = create_list();
 
 	wl_signal_init(&c->events.destroy);
@@ -71,13 +70,6 @@ void column_destroy(struct wmiiv_column *column) {
 	list_free(column->pending.children);
 	list_free(column->current.children);
 	list_free(column->outputs);
-
-	list_free_items_and_destroy(column->marks);
-	wlr_texture_destroy(column->marks_focused);
-	wlr_texture_destroy(column->marks_focused_inactive);
-	wlr_texture_destroy(column->marks_unfocused);
-	wlr_texture_destroy(column->marks_urgent);
-	wlr_texture_destroy(column->marks_focused_tab_title);
 
 	free(column);
 }

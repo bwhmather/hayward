@@ -73,13 +73,6 @@ struct wmiiv_column {
 	struct wlr_texture *title_unfocused;
 	struct wlr_texture *title_urgent;
 
-	list_t *marks; // char *
-	struct wlr_texture *marks_focused;
-	struct wlr_texture *marks_focused_inactive;
-	struct wlr_texture *marks_focused_tab_title;
-	struct wlr_texture *marks_unfocused;
-	struct wlr_texture *marks_urgent;
-
 	struct {
 		struct wl_signal destroy;
 	} events;
