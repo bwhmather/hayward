@@ -35,7 +35,6 @@ struct wmiiv_column_state {
 
 struct wmiiv_column {
 	struct wmiiv_node node;
-	struct wmiiv_view *view;
 
 	struct wmiiv_column_state current;
 	struct wmiiv_column_state pending;

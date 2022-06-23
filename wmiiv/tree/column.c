@@ -38,7 +38,6 @@ struct wmiiv_column *column_create(void) {
 	}
 	node_init(&c->node, N_COLUMN, c);
 	c->pending.layout = L_STACKED;
-	c->view = NULL;
 	c->alpha = 1.0f;
 
 	c->pending.children = create_list();
