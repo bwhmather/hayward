@@ -48,10 +48,6 @@ struct wmiiv_column {
 	double saved_x, saved_y;
 	double saved_width, saved_height;
 
-	// Used when the view changes to CSD unexpectedly. This will be a non-B_CSD
-	// border which we use to restore when the view returns to SSD.
-	enum wmiiv_window_border saved_border;
-
 	// The share of the space of parent container this container occupies
 	double width_fraction;
 	double height_fraction;
