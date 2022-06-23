@@ -611,14 +611,6 @@ static void ipc_json_describe_window(struct wmiiv_window *window, json_object *o
 				json_object_new_string("floating_container"));
 	}
 
-	json_object_object_add(object, "layout",
-			json_object_new_string(
-				ipc_json_layout_description(window->pending.layout)));
-
-	json_object_object_add(object, "orientation",
-			json_object_new_string(
-				ipc_json_orientation_description(window->pending.layout)));
-
 	bool urgent = view_is_urgent(window->view);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
 	json_object_object_add(object, "sticky", json_object_new_boolean(window->is_sticky));

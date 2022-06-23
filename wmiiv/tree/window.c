@@ -37,7 +37,6 @@ struct wmiiv_window *window_create(struct wmiiv_view *view) {
 		return NULL;
 	}
 	node_init(&c->node, N_WINDOW, c);
-	c->pending.layout = L_NONE;
 	c->view = view;
 	c->alpha = 1.0f;
 

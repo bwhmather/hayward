@@ -39,7 +39,6 @@ enum wlr_direction;
 
 struct wmiiv_window_state {
 	// Container properties
-	enum wmiiv_window_layout layout;
 	double x, y;
 	double width, height;
 
