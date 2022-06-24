@@ -228,7 +228,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	// Resize windows.
 	double child_x = box.x;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_window *child = children->items[i];
+		struct wmiiv_column *child = children->items[i];
 		child->child_total_width = child_total_width;
 		child->pending.x = child_x;
 		child->pending.y = box.y;
