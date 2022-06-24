@@ -45,10 +45,8 @@ struct wmiiv_window_state {
 	enum wmiiv_fullscreen_mode fullscreen_mode;
 
 	struct wmiiv_workspace *workspace;
-	struct wmiiv_column *parent;    // NULL if container in root of workspace
-	list_t *children;                 // struct wmiiv_window
+	struct wmiiv_column *parent;
 
-	struct wmiiv_window *focused_inactive_child;
 	bool focused;
 
 	enum wmiiv_window_border border;

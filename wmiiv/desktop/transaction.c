@@ -32,7 +32,8 @@ struct wmiiv_transaction_instruction {
 	union {
 		struct wmiiv_output_state output_state;
 		struct wmiiv_workspace_state workspace_state;
-		struct wmiiv_window_state container_state;
+		struct wmiiv_column_state column_state;
+		struct wmiiv_window_state window_state;
 	};
 	uint32_t serial;
 	bool server_request;
@@ -135,13 +136,13 @@ static void copy_workspace_state(struct wmiiv_workspace *workspace,
 
 static void copy_column_state(struct wmiiv_column *container,
 		struct wmiiv_transaction_instruction *instruction) {
-	struct wmiiv_window_state *state = &instruction->container_state;
+	struct wmiiv_column_state *state = &instruction->column_state;
 
 	if (state->children) {
 		list_free(state->children);
 	}
 
-	memcpy(state, &container->pending, sizeof(struct wmiiv_window_state));
+	memcpy(state, &container->pending, sizeof(struct wmiiv_column_state));
 
 	// We store a copy of the child list to avoid having it mutated after
 	// we copy the state.
@@ -158,10 +159,9 @@ static void copy_column_state(struct wmiiv_column *container,
 
 static void copy_window_state(struct wmiiv_window *container,
 		struct wmiiv_transaction_instruction *instruction) {
-	struct wmiiv_window_state *state = &instruction->container_state;
+	struct wmiiv_window_state *state = &instruction->window_state;
 
 	memcpy(state, &container->pending, sizeof(struct wmiiv_window_state));
-	state->children = NULL;
 
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	state->focused = seat_get_focus(seat) == &container->node;
@@ -234,7 +234,7 @@ static void apply_workspace_state(struct wmiiv_workspace *workspace,
 	output_damage_whole(workspace->current.output);
 }
 
-static void apply_column_state(struct wmiiv_column *column, struct wmiiv_window_state *state) {
+static void apply_column_state(struct wmiiv_column *column, struct wmiiv_column_state *state) {
 	// Damage the old location
 	desktop_damage_column(column);
 
@@ -245,7 +245,7 @@ static void apply_column_state(struct wmiiv_column *column, struct wmiiv_window_
 	// transaction_destroy().
 	list_free(column->current.children);
 
-	memcpy(&column->current, state, sizeof(struct wmiiv_window_state));
+	memcpy(&column->current, state, sizeof(struct wmiiv_column_state));
 
 	// Damage the new location
 	desktop_damage_column(column);
@@ -272,12 +272,6 @@ static void apply_window_state(struct wmiiv_window *window,
 			desktop_damage_box(&box);
 		}
 	}
-
-	// There are separate children lists for each instruction state, the
-	// window's current state and the window's pending state.  The list
-	// itself needs to be freed here.  Any child containers which are being
-	// deleted will be cleaned up in transaction_destroy().
-	list_free(window->current.children);
 
 	memcpy(&window->current, state, sizeof(struct wmiiv_window_state));
 
@@ -345,11 +339,11 @@ static void transaction_apply(struct wmiiv_transaction *transaction) {
 			break;
 		case N_COLUMN:
 			apply_column_state(node->wmiiv_column,
-					&instruction->container_state);
+					&instruction->column_state);
 			break;
 		case N_WINDOW:
 			apply_window_state(node->wmiiv_window,
-					&instruction->container_state);
+					&instruction->window_state);
 		}
 
 		node->instruction = NULL;
@@ -400,7 +394,7 @@ static bool should_configure(struct wmiiv_node *node,
 		return false;
 	}
 	struct wmiiv_window_state *cstate = &node->wmiiv_window->current;
-	struct wmiiv_window_state *istate = &instruction->container_state;
+	struct wmiiv_window_state *istate = &instruction->window_state;
 #if HAVE_XWAYLAND
 	// Xwayland views are position-aware and need to be reconfigured
 	// when their position changes.
@@ -434,10 +428,10 @@ static void transaction_commit(struct wmiiv_transaction *transaction) {
 			!view_is_visible(node->wmiiv_window->view);
 		if (should_configure(node, instruction)) {
 			instruction->serial = view_configure(node->wmiiv_window->view,
-					instruction->container_state.content_x,
-					instruction->container_state.content_y,
-					instruction->container_state.content_width,
-					instruction->container_state.content_height);
+					instruction->window_state.content_x,
+					instruction->window_state.content_y,
+					instruction->window_state.content_width,
+					instruction->window_state.content_height);
 			if (!hidden) {
 				instruction->waiting = true;
 				++transaction->num_waiting;
@@ -542,10 +536,10 @@ void transaction_notify_view_ready_by_geometry(struct wmiiv_view *view,
 	struct wmiiv_transaction_instruction *instruction =
 		view->container->node.instruction;
 	if (instruction != NULL &&
-			(int)instruction->container_state.content_x == (int)x &&
-			(int)instruction->container_state.content_y == (int)y &&
-			instruction->container_state.content_width == width &&
-			instruction->container_state.content_height == height) {
+			(int)instruction->window_state.content_x == (int)x &&
+			(int)instruction->window_state.content_y == (int)y &&
+			instruction->window_state.content_width == width &&
+			instruction->window_state.content_height == height) {
 		set_instruction_ready(instruction);
 	}
 }

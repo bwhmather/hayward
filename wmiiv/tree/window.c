@@ -65,8 +65,6 @@ void window_destroy(struct wmiiv_window *window) {
 	wlr_texture_destroy(window->title_unfocused);
 	wlr_texture_destroy(window->title_urgent);
 	wlr_texture_destroy(window->title_focused_tab_title);
-	list_free(window->pending.children);
-	list_free(window->current.children);
 	list_free(window->outputs);
 
 	list_free_items_and_destroy(window->marks);
