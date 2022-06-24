@@ -192,8 +192,10 @@ void column_for_each_child(struct wmiiv_column *column,
  * An example tree representation is: V[Terminal, Firefox]
  * If buffer is not NULL, also populate the buffer with the representation.
  */
-size_t column_build_representation(enum wmiiv_window_layout layout,
-		list_t *children, char *buffer) {
+static size_t column_build_representation(struct wmiiv_column *column, char *buffer) {
+	enum wmiiv_window_layout layout = column->pending.layout;
+	list_t *children = column->pending.children;
+
 	size_t len = 2;
 	switch (layout) {
 	case L_VERT:
@@ -241,16 +243,14 @@ size_t column_build_representation(enum wmiiv_window_layout layout,
 }
 
 void column_update_representation(struct wmiiv_column *column) {
-	size_t len = column_build_representation(column->pending.layout,
-			column->pending.children, NULL);
+	size_t len = column_build_representation(column, NULL);
 	free(column->formatted_title);
 	column->formatted_title = calloc(len + 1, sizeof(char));
 	if (!wmiiv_assert(column->formatted_title,
 				"Unable to allocate title string")) {
 		return;
 	}
-	column_build_representation(column->pending.layout, column->pending.children,
-			column->formatted_title);
+	column_build_representation(column, column->formatted_title);
 
 	if (column->pending.workspace) {
 		workspace_update_representation(column->pending.workspace);

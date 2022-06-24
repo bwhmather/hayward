@@ -111,9 +111,6 @@ void column_detach(struct wmiiv_column *column);
 void column_for_each_child(struct wmiiv_column *column,
 		void (*f)(struct wmiiv_window *window, void *data), void *data);
 
-size_t column_build_representation(enum wmiiv_window_layout layout,
-		list_t *children, char *buffer);
-
 void column_update_representation(struct wmiiv_column *column);
 
 /**

@@ -862,15 +862,40 @@ struct wmiiv_window *workspace_split(struct wmiiv_workspace *workspace,
 	return NULL;
 }
 
+static size_t workspace_build_representation(struct wmiiv_workspace *workspace, char *buffer) {
+	list_t *children = workspace->tiling;
+
+	size_t len = 2;
+	lenient_strcat(buffer, "H[");
+
+	for (int i = 0; i < children->length; ++i) {
+		if (i != 0) {
+			++len;
+			lenient_strcat(buffer, " ");
+		}
+		struct wmiiv_window *child = children->items[i];
+		const char *identifier = NULL;
+		identifier = child->formatted_title;
+		if (identifier) {
+			len += strlen(identifier);
+			lenient_strcat(buffer, identifier);
+		} else {
+			len += 6;
+			lenient_strcat(buffer, "(null)");
+		}
+	}
+	++len;
+	lenient_strcat(buffer, "]");
+	return len;
+}
 void workspace_update_representation(struct wmiiv_workspace *workspace) {
-	// TODO (wmiiv) we can probably inline the L_HORIZ part of this function.
-	size_t len = column_build_representation(L_HORIZ, workspace->tiling, NULL);
+	size_t len = workspace_build_representation(workspace, NULL);
 	free(workspace->representation);
 	workspace->representation = calloc(len + 1, sizeof(char));
 	if (!wmiiv_assert(workspace->representation, "Unable to allocate title string")) {
 		return;
 	}
-	column_build_representation(L_HORIZ, workspace->tiling, workspace->representation);
+	workspace_build_representation(workspace, workspace->representation);
 }
 
 void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box) {
