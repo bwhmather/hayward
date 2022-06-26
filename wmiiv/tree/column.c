@@ -62,11 +62,6 @@ void column_destroy(struct wmiiv_column *column) {
 	}
 	free(column->title);
 	free(column->formatted_title);
-	wlr_texture_destroy(column->title_focused);
-	wlr_texture_destroy(column->title_focused_inactive);
-	wlr_texture_destroy(column->title_unfocused);
-	wlr_texture_destroy(column->title_urgent);
-	wlr_texture_destroy(column->title_focused_tab_title);
 	list_free(column->pending.children);
 	list_free(column->current.children);
 	list_free(column->outputs);

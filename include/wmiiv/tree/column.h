@@ -62,12 +62,6 @@ struct wmiiv_column {
 
 	float alpha;
 
-	struct wlr_texture *title_focused;
-	struct wlr_texture *title_focused_inactive;
-	struct wlr_texture *title_focused_tab_title;
-	struct wlr_texture *title_unfocused;
-	struct wlr_texture *title_urgent;
-
 	struct {
 		struct wl_signal destroy;
 	} events;
