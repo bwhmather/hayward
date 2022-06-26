@@ -27,10 +27,6 @@ struct wmiiv_column_state {
 	bool border_bottom;
 	bool border_left;
 	bool border_right;
-
-	// These are in layout coordinates.
-	double content_x, content_y;
-	double content_width, content_height;
 };
 
 struct wmiiv_column {
