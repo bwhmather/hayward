@@ -1220,14 +1220,14 @@ struct wmiiv_window *window_get_next_sibling(struct wmiiv_window *window) {
 	return siblings->items[index + 1];
 }
 
-enum wmiiv_window_layout window_parent_layout(struct wmiiv_window *window) {
+enum wmiiv_column_layout window_parent_layout(struct wmiiv_window *window) {
 	if (window->pending.parent) {
 		return window->pending.parent->pending.layout;
 	}
 	return L_NONE;
 }
 
-enum wmiiv_window_layout window_current_parent_layout(struct wmiiv_window *window) {
+enum wmiiv_column_layout window_current_parent_layout(struct wmiiv_window *window) {
 	if (window->current.parent) {
 		return window->current.parent->current.layout;
 	}

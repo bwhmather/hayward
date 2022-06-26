@@ -38,7 +38,7 @@ static const char *ipc_json_node_type_description(enum wmiiv_node_type node_type
 	return "none";
 }
 
-static const char *ipc_json_layout_description(enum wmiiv_window_layout l) {
+static const char *ipc_json_layout_description(enum wmiiv_column_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "splitv";
@@ -54,7 +54,7 @@ static const char *ipc_json_layout_description(enum wmiiv_window_layout l) {
 	return "none";
 }
 
-static const char *ipc_json_orientation_description(enum wmiiv_window_layout l) {
+static const char *ipc_json_orientation_description(enum wmiiv_column_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "vertical";
@@ -426,7 +426,7 @@ static void column_get_deco_rect(struct wmiiv_column *column, struct wlr_box *de
 }
 
 static void window_get_deco_rect(struct wmiiv_window *window, struct wlr_box *deco_rect) {
-	enum wmiiv_window_layout parent_layout = window_parent_layout(window);
+	enum wmiiv_column_layout parent_layout = window_parent_layout(window);
 	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
 
 	if (((!tab_or_stack || window_is_floating(window)) &&

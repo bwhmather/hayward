@@ -856,7 +856,7 @@ void workspace_add_gaps(struct wmiiv_workspace *workspace) {
 }
 
 struct wmiiv_window *workspace_split(struct wmiiv_workspace *workspace,
-		enum wmiiv_window_layout layout) {
+		enum wmiiv_column_layout layout) {
 	wmiiv_assert(false, "workspace_split is deprecated");
 
 	return NULL;

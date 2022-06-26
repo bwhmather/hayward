@@ -68,7 +68,7 @@ void node_get_box(struct wmiiv_node *node, struct wlr_box *box);
 
 struct wmiiv_output *node_get_output(struct wmiiv_node *node);
 
-enum wmiiv_window_layout node_get_layout(struct wmiiv_node *node);
+enum wmiiv_column_layout node_get_layout(struct wmiiv_node *node);
 
 struct wmiiv_node *node_get_parent(struct wmiiv_node *node);
 

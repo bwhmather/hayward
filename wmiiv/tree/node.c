@@ -100,7 +100,7 @@ struct wmiiv_output *node_get_output(struct wmiiv_node *node) {
 	return NULL;
 }
 
-enum wmiiv_window_layout node_get_layout(struct wmiiv_node *node) {
+enum wmiiv_column_layout node_get_layout(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:
 		return L_NONE;

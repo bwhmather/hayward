@@ -210,7 +210,7 @@ bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
 static bool view_is_only_visible(struct wmiiv_view *view) {
 	struct wmiiv_window *window = view->container;
 
-	enum wmiiv_window_layout layout = window_parent_layout(window);
+	enum wmiiv_column_layout layout = window_parent_layout(window);
 	if (layout != L_TABBED && layout != L_STACKED) {
 		list_t *siblings = window_get_siblings(window);
 		if (siblings && siblings->length > 1) {
@@ -291,7 +291,7 @@ void view_autoconfigure(struct wmiiv_view *view) {
 		bool show_titlebar = (siblings && siblings->length > 1)
 			|| !config->hide_lone_tab;
 		if (show_titlebar) {
-			enum wmiiv_window_layout layout = window_parent_layout(window);
+			enum wmiiv_column_layout layout = window_parent_layout(window);
 			if (layout == L_TABBED) {
 				y_offset = window_titlebar_height();
 				window->pending.border_top = false;
@@ -1288,7 +1288,7 @@ bool view_is_visible(struct wmiiv_view *view) {
 	struct wmiiv_window *window = view->container;
 	struct wmiiv_column *column = window->pending.parent;
 	if (column != NULL) {
-		enum wmiiv_window_layout parent_layout = column->pending.layout;
+		enum wmiiv_column_layout parent_layout = column->pending.layout;
 		if (parent_layout == L_TABBED || parent_layout == L_STACKED) {
 			if (seat_get_active_tiling_child(seat, &column->node) != &window->node) {
 				return false;

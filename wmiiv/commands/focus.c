@@ -16,7 +16,7 @@
 
 static bool get_direction_from_next_prev(struct wmiiv_window *window,
 		struct wmiiv_seat *seat, const char *name, enum wlr_direction *out) {
-	enum wmiiv_window_layout parent_layout = L_NONE;
+	enum wmiiv_column_layout parent_layout = L_NONE;
 	if (window) {
 		parent_layout = window_parent_layout(window);
 	}

@@ -488,7 +488,7 @@ struct wmiiv_config {
 	char *floating_scroll_down_cmd;
 	char *floating_scroll_left_cmd;
 	char *floating_scroll_right_cmd;
-	enum wmiiv_window_layout default_layout;
+	enum wmiiv_column_layout default_layout;
 	char *font;
 	int font_height;
 	int font_baseline;

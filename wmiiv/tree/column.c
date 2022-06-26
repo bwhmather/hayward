@@ -188,7 +188,7 @@ void column_for_each_child(struct wmiiv_column *column,
  * If buffer is not NULL, also populate the buffer with the representation.
  */
 static size_t column_build_representation(struct wmiiv_column *column, char *buffer) {
-	enum wmiiv_window_layout layout = column->pending.layout;
+	enum wmiiv_column_layout layout = column->pending.layout;
 	list_t *children = column->pending.children;
 
 	size_t len = 2;

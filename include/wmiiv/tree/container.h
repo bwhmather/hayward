@@ -9,7 +9,7 @@
 struct wmiiv_view;
 struct wmiiv_seat;
 
-enum wmiiv_window_layout {
+enum wmiiv_column_layout {
 	L_NONE,
 	L_HORIZ,
 	L_VERT,

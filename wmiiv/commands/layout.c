@@ -8,7 +8,7 @@
 #include "wmiiv/tree/workspace.h"
 #include "log.h"
 
-static enum wmiiv_window_layout parse_layout_string(char *s) {
+static enum wmiiv_column_layout parse_layout_string(char *s) {
 	if (strcasecmp(s, "split") == 0) {
 		return L_VERT;
 	} else if (strcasecmp(s, "stacking") == 0) {
@@ -48,8 +48,8 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 	}
 
 
-	enum wmiiv_window_layout new_layout = L_NONE;
-	enum wmiiv_window_layout old_layout = L_NONE;
+	enum wmiiv_column_layout new_layout = L_NONE;
+	enum wmiiv_column_layout old_layout = L_NONE;
 
 	old_layout = column->pending.layout;
 	new_layout = parse_layout_string(argv[0]);

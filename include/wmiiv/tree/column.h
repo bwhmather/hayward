@@ -8,7 +8,7 @@
 
 struct wmiiv_column_state {
 	// Container properties
-	enum wmiiv_window_layout layout;
+	enum wmiiv_column_layout layout;
 	double x, y;
 	double width, height;
 

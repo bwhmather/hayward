@@ -123,7 +123,7 @@ void workspace_remove_gaps(struct wmiiv_workspace *workspace);
 void workspace_add_gaps(struct wmiiv_workspace *workspace);
 
 struct wmiiv_window *workspace_split(struct wmiiv_workspace *workspace,
-		enum wmiiv_window_layout layout);
+		enum wmiiv_column_layout layout);
 
 void workspace_update_representation(struct wmiiv_workspace *workspace);
 

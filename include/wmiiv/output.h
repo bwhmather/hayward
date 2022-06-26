@@ -155,7 +155,7 @@ struct wmiiv_window *output_find_window(struct wmiiv_output *output,
 
 void output_get_box(struct wmiiv_output *output, struct wlr_box *box);
 
-enum wmiiv_window_layout output_get_default_layout(
+enum wmiiv_column_layout output_get_default_layout(
 		struct wmiiv_output *output);
 
 void render_rect(struct wmiiv_output *output,

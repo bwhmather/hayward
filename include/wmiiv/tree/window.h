@@ -183,9 +183,9 @@ list_t *window_get_current_siblings(struct wmiiv_window *window);
 struct wmiiv_window *window_get_previous_sibling(struct wmiiv_window *window);
 struct wmiiv_window *window_get_next_sibling(struct wmiiv_window *window);
 
-enum wmiiv_window_layout window_parent_layout(struct wmiiv_window *window);
+enum wmiiv_column_layout window_parent_layout(struct wmiiv_window *window);
 
-enum wmiiv_window_layout window_current_parent_layout(struct wmiiv_window *window);
+enum wmiiv_column_layout window_current_parent_layout(struct wmiiv_window *window);
 
 void window_swap(struct wmiiv_window *window1, struct wmiiv_window *window2);
 
