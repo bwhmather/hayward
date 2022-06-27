@@ -184,22 +184,22 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 		return;
 	}
 
-	// Count the number of new windows we are resizing, and how much space
+	// Count the number of new columns we are resizing, and how much space
 	// is currently occupied.
 	int new_children = 0;
 	double current_width_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_window *child = children->items[i];
+		struct wmiiv_column *child = children->items[i];
 		current_width_fraction += child->width_fraction;
 		if (child->width_fraction <= 0) {
 			new_children += 1;
 		}
 	}
 
-	// Calculate each height fraction.
+	// Calculate each width fraction.
 	double total_width_fraction = 0;
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_window *child = children->items[i];
+		struct wmiiv_column *child = children->items[i];
 		if (child->width_fraction <= 0) {
 			if (current_width_fraction <= 0) {
 				child->width_fraction = 1.0;
@@ -214,7 +214,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	}
 	// Normalize width fractions so the sum is 1.0.
 	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_window *child = children->items[i];
+		struct wmiiv_column *child = children->items[i];
 		child->width_fraction /= total_width_fraction;
 	}
 
@@ -225,7 +225,7 @@ static void arrange_tiling(struct wmiiv_workspace *workspace) {
 	double child_total_width = box.width - total_gap;
 	inner_gap = floor(total_gap / (children->length - 1));
 
-	// Resize windows.
+	// Resize columns.
 	double child_x = box.x;
 	for (int i = 0; i < children->length; ++i) {
 		struct wmiiv_column *child = children->items[i];
