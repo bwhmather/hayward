@@ -12,8 +12,6 @@ struct wmiiv_column_state {
 	double x, y;
 	double width, height;
 
-	enum wmiiv_fullscreen_mode fullscreen_mode;
-
 	struct wmiiv_workspace *workspace;
 	struct wmiiv_column *parent;    // NULL if container in root of workspace
 	list_t *children;                 // struct wmiiv_window
