@@ -6,6 +6,13 @@
 #include "list.h"
 #include "wmiiv/tree/node.h"
 
+enum wmiiv_column_layout {
+	L_NONE,
+	L_VERT,
+	L_STACKED,
+	L_TABBED,
+};
+
 struct wmiiv_column_state {
 	// Container properties
 	enum wmiiv_column_layout layout;
