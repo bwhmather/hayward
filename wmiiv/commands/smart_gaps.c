@@ -3,7 +3,7 @@
 #include "wmiiv/config.h"
 #include "wmiiv/tree/arrange.h"
 #include "wmiiv/tree/view.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "log.h"
 #include "stringop.h"
 #include "util.h"

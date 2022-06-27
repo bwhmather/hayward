@@ -4,7 +4,7 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/render/wlr_texture.h>
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/node.h"
 #include "config.h"
 #include "list.h"

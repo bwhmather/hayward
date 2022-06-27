@@ -7,7 +7,8 @@
 #include "wmiiv/input/cursor.h"
 #include "wmiiv/input/seat.h"
 #include "wmiiv/tree/arrange.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/column.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/view.h"
 
 struct seatop_resize_tiling_event {

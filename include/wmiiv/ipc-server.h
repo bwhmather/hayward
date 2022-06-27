@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 #include "wmiiv/config.h"
 #include "wmiiv/input/input-manager.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "ipc.h"
 
 struct wmiiv_server;

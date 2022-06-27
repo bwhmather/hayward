@@ -1,7 +1,7 @@
 #include "wmiiv/commands.h"
 #include "wmiiv/config.h"
 #include "wmiiv/output.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/root.h"
 
 struct cmd_results *cmd_title_align(int argc, char **argv) {

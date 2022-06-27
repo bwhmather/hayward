@@ -26,6 +26,7 @@
 #include "wmiiv/input/keyboard.h"
 #include "wmiiv/input/seat.h"
 #include "wmiiv/tree/root.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/view.h"
 #include "wmiiv/tree/workspace.h"
 #include "list.h"

@@ -2,7 +2,7 @@
 #include "wmiiv/commands.h"
 #include "wmiiv/config.h"
 #include "wmiiv/desktop/idle_inhibit_v1.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/view.h"
 
 struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {

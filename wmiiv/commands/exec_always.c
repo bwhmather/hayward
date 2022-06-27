@@ -8,7 +8,6 @@
 #include "wmiiv/commands.h"
 #include "wmiiv/config.h"
 #include "wmiiv/server.h"
-#include "wmiiv/tree/container.h"
 #include "wmiiv/tree/root.h"
 #include "wmiiv/tree/workspace.h"
 #include "log.h"

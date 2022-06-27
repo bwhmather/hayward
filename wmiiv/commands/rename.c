@@ -7,7 +7,7 @@
 #include "wmiiv/config.h"
 #include "wmiiv/ipc-server.h"
 #include "wmiiv/output.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/workspace.h"
 #include "wmiiv/tree/root.h"
 

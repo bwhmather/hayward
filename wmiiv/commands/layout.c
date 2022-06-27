@@ -4,7 +4,7 @@
 #include "wmiiv/commands.h"
 #include "wmiiv/output.h"
 #include "wmiiv/tree/arrange.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/workspace.h"
 #include "log.h"
 

@@ -6,7 +6,8 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include "wmiiv/tree/arrange.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/column.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/output.h"
 #include "wmiiv/tree/workspace.h"
 #include "wmiiv/tree/view.h"

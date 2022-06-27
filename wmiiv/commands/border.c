@@ -4,7 +4,7 @@
 #include "wmiiv/input/cursor.h"
 #include "wmiiv/input/input-manager.h"
 #include "wmiiv/tree/arrange.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/view.h"
 
 // A couple of things here:

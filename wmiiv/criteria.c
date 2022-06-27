@@ -6,7 +6,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 #include "wmiiv/criteria.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/config.h"
 #include "wmiiv/tree/root.h"
 #include "wmiiv/tree/view.h"

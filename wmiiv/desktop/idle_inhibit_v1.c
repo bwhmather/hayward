@@ -3,7 +3,7 @@
 #include "log.h"
 #include "wmiiv/desktop/idle_inhibit_v1.h"
 #include "wmiiv/input/seat.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/view.h"
 #include "wmiiv/server.h"
 

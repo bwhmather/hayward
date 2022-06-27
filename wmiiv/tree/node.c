@@ -1,7 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "wmiiv/output.h"
 #include "wmiiv/server.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/column.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/node.h"
 #include "wmiiv/tree/root.h"
 #include "wmiiv/tree/workspace.h"

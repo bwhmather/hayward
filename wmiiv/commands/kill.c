@@ -1,7 +1,7 @@
 #include "log.h"
 #include "wmiiv/input/input-manager.h"
 #include "wmiiv/input/seat.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/view.h"
 #include "wmiiv/tree/workspace.h"
 #include "wmiiv/commands.h"

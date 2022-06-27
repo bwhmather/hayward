@@ -3,7 +3,7 @@
 #include "wmiiv/commands.h"
 #include "wmiiv/config.h"
 #include "wmiiv/input/seat.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/view.h"
 
 struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {

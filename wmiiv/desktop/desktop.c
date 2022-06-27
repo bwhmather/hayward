@@ -1,4 +1,5 @@
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/column.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/desktop.h"
 #include "wmiiv/output.h"
 

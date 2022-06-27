@@ -12,6 +12,8 @@
 #include "wmiiv/tree/node.h"
 #include "wmiiv/tree/view.h"
 #include "wmiiv/tree/workspace.h"
+#include "wmiiv/tree/column.h"
+#include "wmiiv/tree/window.h"
 #include "log.h"
 #include "util.h"
 

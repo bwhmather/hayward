@@ -2,7 +2,8 @@
 #define _WMIIV_WORKSPACE_H
 
 #include <stdbool.h>
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/column.h"
+#include "wmiiv/tree/window.h"
 #include "wmiiv/tree/node.h"
 
 struct wmiiv_view;

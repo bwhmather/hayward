@@ -1,7 +1,7 @@
 #include "log.h"
 #include "wmiiv/commands.h"
 #include "wmiiv/config.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 
 struct cmd_results *cmd_default_border(int argc, char **argv) {
 	struct cmd_results *error = NULL;

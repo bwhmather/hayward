@@ -2,7 +2,7 @@
 #include "wmiiv/commands.h"
 #include "wmiiv/config.h"
 #include "wmiiv/output.h"
-#include "wmiiv/tree/container.h"
+#include "wmiiv/tree/window.h"
 #include "util.h"
 
 static void rebuild_textures_iterator(struct wmiiv_window *container, void *data) {
