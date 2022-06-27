@@ -60,8 +60,6 @@ void column_destroy(struct wmiiv_column *column) {
 				"which is still referenced by transactions")) {
 		return;
 	}
-	free(column->title);
-	free(column->formatted_title);
 	list_free(column->pending.children);
 	list_free(column->current.children);
 	list_free(column->outputs);
@@ -107,7 +105,6 @@ void column_detach(struct wmiiv_column *column) {
 	column->pending.workspace = NULL;
 
 	if (old_workspace) {
-		workspace_update_representation(old_workspace);
 		node_set_dirty(&old_workspace->node);
 	}
 	node_set_dirty(&column->node);
@@ -137,7 +134,6 @@ void column_insert_child(struct wmiiv_column *parent,
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
 	window_handle_fullscreen_reparent(child);
-	column_update_representation(parent);
 }
 
 void column_add_sibling(struct wmiiv_window *fixed,
@@ -153,7 +149,6 @@ void column_add_sibling(struct wmiiv_window *fixed,
 	active->pending.parent = fixed->pending.parent;
 	active->pending.workspace = fixed->pending.workspace;
 	window_handle_fullscreen_reparent(active);
-	column_update_representation(fixed->pending.parent);
 }
 
 void column_add_child(struct wmiiv_column *parent,
@@ -166,7 +161,6 @@ void column_add_child(struct wmiiv_column *parent,
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
 	window_handle_fullscreen_reparent(child);
-	column_update_representation(parent);
 	node_set_dirty(&child->node);
 	node_set_dirty(&parent->node);
 }
@@ -179,73 +173,6 @@ void column_for_each_child(struct wmiiv_column *column,
 			struct wmiiv_window *child = column->pending.children->items[i];
 			f(child, data);
 		}
-	}
-}
-
-/**
- * Calculate and return the length of the tree representation.
- * An example tree representation is: V[Terminal, Firefox]
- * If buffer is not NULL, also populate the buffer with the representation.
- */
-static size_t column_build_representation(struct wmiiv_column *column, char *buffer) {
-	enum wmiiv_column_layout layout = column->pending.layout;
-	list_t *children = column->pending.children;
-
-	size_t len = 2;
-	switch (layout) {
-	case L_VERT:
-		lenient_strcat(buffer, "V[");
-		break;
-	case L_TABBED:
-		lenient_strcat(buffer, "T[");
-		break;
-	case L_STACKED:
-		lenient_strcat(buffer, "S[");
-		break;
-	case L_NONE:
-		lenient_strcat(buffer, "D[");
-		break;
-	}
-	for (int i = 0; i < children->length; ++i) {
-		if (i != 0) {
-			++len;
-			lenient_strcat(buffer, " ");
-		}
-		struct wmiiv_window *child = children->items[i];
-		const char *identifier = NULL;
-		if (child->view) {
-			identifier = view_get_class(child->view);
-			if (!identifier) {
-				identifier = view_get_app_id(child->view);
-			}
-		} else {
-			identifier = child->formatted_title;
-		}
-		if (identifier) {
-			len += strlen(identifier);
-			lenient_strcat(buffer, identifier);
-		} else {
-			len += 6;
-			lenient_strcat(buffer, "(null)");
-		}
-	}
-	++len;
-	lenient_strcat(buffer, "]");
-	return len;
-}
-
-void column_update_representation(struct wmiiv_column *column) {
-	size_t len = column_build_representation(column, NULL);
-	free(column->formatted_title);
-	column->formatted_title = calloc(len + 1, sizeof(char));
-	if (!wmiiv_assert(column->formatted_title,
-				"Unable to allocate title string")) {
-		return;
-	}
-	column_build_representation(column, column->formatted_title);
-
-	if (column->pending.workspace) {
-		workspace_update_representation(column->pending.workspace);
 	}
 }
 

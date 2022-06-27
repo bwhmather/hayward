@@ -367,8 +367,6 @@ static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 			json_object_new_string(workspace->output->wlr_output->name) : NULL);
 	json_object_object_add(object, "urgent",
 			json_object_new_boolean(workspace->urgent));
-	json_object_object_add(object, "representation", workspace->representation ?
-			json_object_new_string(workspace->representation) : NULL);
 
 	// Floating
 	json_object *floating_array = json_object_new_array();
@@ -516,9 +514,6 @@ static void ipc_json_describe_view(struct wmiiv_window *c, json_object *object) 
 }
 
 static void ipc_json_describe_column(struct wmiiv_column *column, json_object *object) {
-	json_object_object_add(object, "name",
-			column->title ? json_object_new_string(column->title) : NULL);
-
 	json_object_object_add(object, "layout",
 			json_object_new_string(
 				ipc_json_layout_description(column->pending.layout)));

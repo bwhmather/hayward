@@ -28,9 +28,6 @@ struct wmiiv_column {
 	struct wmiiv_column_state current;
 	struct wmiiv_column_state pending;
 
-	char *title;           // The view's title (unformatted)
-	char *formatted_title; // The title displayed in the title bar
-
 	// For C_ROOT, this has no meaning
 	// For other types, this is the position in layout coordinates
 	// Includes borders
@@ -88,8 +85,6 @@ void column_detach(struct wmiiv_column *column);
 
 void column_for_each_child(struct wmiiv_column *column,
 		void (*f)(struct wmiiv_window *window, void *data), void *data);
-
-void column_update_representation(struct wmiiv_column *column);
 
 /**
  * Get a column's box in layout coordinates.

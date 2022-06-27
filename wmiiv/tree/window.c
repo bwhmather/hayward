@@ -132,10 +132,8 @@ void window_detach(struct wmiiv_window *window) {
 	window->pending.workspace = NULL;
 
 	if (old_parent) {
-		column_update_representation(old_parent);
 		node_set_dirty(&old_parent->node);
 	} else if (old_workspace) {
-		workspace_update_representation(old_workspace);
 		node_set_dirty(&old_workspace->node);
 	}
 	node_set_dirty(&window->node);

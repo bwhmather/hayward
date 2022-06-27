@@ -53,7 +53,7 @@ char *node_get_name(struct wmiiv_node *node) {
 	case N_WORKSPACE:
 		return node->wmiiv_workspace->name;
 	case N_COLUMN:
-		return node->wmiiv_column->title;
+		return "column";
 	case N_WINDOW:
 		return node->wmiiv_window->title;
 	}

@@ -128,7 +128,6 @@ void workspace_destroy(struct wmiiv_workspace *workspace) {
 	}
 
 	free(workspace->name);
-	free(workspace->representation);
 	list_free_items_and_destroy(workspace->output_priority);
 	list_free(workspace->floating);
 	list_free(workspace->tiling);
@@ -753,7 +752,6 @@ struct wmiiv_column *workspace_add_tiling(struct wmiiv_workspace *workspace,
 	column->pending.workspace = workspace;
 
 	column_for_each_child(column, set_workspace, NULL);
-	workspace_update_representation(workspace);
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&column->node);
 	return column;
@@ -779,7 +777,6 @@ void workspace_insert_tiling_direct(struct wmiiv_workspace *workspace,
 	list_insert(workspace->tiling, index, column);
 	column->pending.workspace = workspace;
 	column_for_each_child(column, set_workspace, NULL);
-	workspace_update_representation(workspace);
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&column->node);
 }
@@ -860,42 +857,6 @@ struct wmiiv_window *workspace_split(struct wmiiv_workspace *workspace,
 	wmiiv_assert(false, "workspace_split is deprecated");
 
 	return NULL;
-}
-
-static size_t workspace_build_representation(struct wmiiv_workspace *workspace, char *buffer) {
-	list_t *children = workspace->tiling;
-
-	size_t len = 2;
-	lenient_strcat(buffer, "H[");
-
-	for (int i = 0; i < children->length; ++i) {
-		if (i != 0) {
-			++len;
-			lenient_strcat(buffer, " ");
-		}
-		struct wmiiv_window *child = children->items[i];
-		const char *identifier = NULL;
-		identifier = child->formatted_title;
-		if (identifier) {
-			len += strlen(identifier);
-			lenient_strcat(buffer, identifier);
-		} else {
-			len += 6;
-			lenient_strcat(buffer, "(null)");
-		}
-	}
-	++len;
-	lenient_strcat(buffer, "]");
-	return len;
-}
-void workspace_update_representation(struct wmiiv_workspace *workspace) {
-	size_t len = workspace_build_representation(workspace, NULL);
-	free(workspace->representation);
-	workspace->representation = calloc(len + 1, sizeof(char));
-	if (!wmiiv_assert(workspace->representation, "Unable to allocate title string")) {
-		return;
-	}
-	workspace_build_representation(workspace, workspace->representation);
 }
 
 void workspace_get_box(struct wmiiv_workspace *workspace, struct wlr_box *box) {

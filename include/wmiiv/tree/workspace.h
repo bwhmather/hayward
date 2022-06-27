@@ -24,7 +24,6 @@ struct wmiiv_workspace {
 	struct wmiiv_window *fullscreen;
 
 	char *name;
-	char *representation;
 
 	double x, y;
 	int width, height;
