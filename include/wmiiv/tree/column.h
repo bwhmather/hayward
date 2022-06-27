@@ -20,13 +20,6 @@ struct wmiiv_column_state {
 
 	struct wmiiv_window *focused_inactive_child;
 	bool focused;
-
-	enum wmiiv_window_border border;
-	int border_thickness;
-	bool border_top;
-	bool border_bottom;
-	bool border_left;
-	bool border_right;
 };
 
 struct wmiiv_column {

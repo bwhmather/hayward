@@ -410,21 +410,6 @@ static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 	json_object_object_add(object, "floating_nodes", floating_array);
 }
 
-
-static void column_get_deco_rect(struct wmiiv_column *column, struct wlr_box *deco_rect) {
-	// TODO it's unclear whether columns should actually ever have a decoration rectangle.
-	if (column->pending.workspace == NULL) {
-		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
-		return;
-	}
-
-	deco_rect->x = column->pending.x - column->pending.workspace->x;
-	deco_rect->y = column->pending.y - column->pending.workspace->y;
-
-	deco_rect->width = column->pending.width;
-	deco_rect->height = window_titlebar_height();
-}
-
 static void window_get_deco_rect(struct wmiiv_window *window, struct wlr_box *deco_rect) {
 	enum wmiiv_column_layout parent_layout = window_parent_layout(window);
 	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
@@ -575,9 +560,6 @@ static void ipc_json_describe_column(struct wmiiv_column *column, json_object *o
 	bool urgent = column_has_urgent_child(column);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
 
-	json_object_object_add(object, "fullscreen_mode",
-			json_object_new_int(column->pending.fullscreen_mode));
-
 	struct wmiiv_node *parent = node_get_parent(&column->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};
 
@@ -591,16 +573,7 @@ static void ipc_json_describe_column(struct wmiiv_column *column, json_object *o
 		json_object_object_add(object, "percent", json_object_new_double(percent));
 	}
 
-	json_object_object_add(object, "border",
-			json_object_new_string(
-				ipc_json_border_description(column->current.border)));
-	json_object_object_add(object, "current_border_width",
-			json_object_new_int(column->current.border_thickness));
 	json_object_object_add(object, "floating_nodes", json_object_new_array());
-
-	struct wlr_box deco_box = {0, 0, 0, 0};
-	column_get_deco_rect(column, &deco_box);
-	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 }
 
 static void ipc_json_describe_window(struct wmiiv_window *window, json_object *object) {
@@ -688,13 +661,6 @@ json_object *ipc_json_describe_node(struct wmiiv_node *node) {
 
 	struct wlr_box box;
 	node_get_box(node, &box);
-
-	if (node->type == N_COLUMN) {
-		struct wlr_box deco_rect = {0, 0, 0, 0};
-		column_get_deco_rect(node->wmiiv_column, &deco_rect);
-		box.y += deco_rect.height;
-		box.height -= deco_rect.height;
-	}
 
 	if (node->type == N_WINDOW) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
