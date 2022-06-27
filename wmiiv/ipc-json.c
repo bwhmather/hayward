@@ -42,8 +42,6 @@ static const char *ipc_json_layout_description(enum wmiiv_column_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "splitv";
-	case L_HORIZ:
-		return "splith";
 	case L_TABBED:
 		return "tabbed";
 	case L_STACKED:
@@ -52,17 +50,6 @@ static const char *ipc_json_layout_description(enum wmiiv_column_layout l) {
 		break;
 	}
 	return "none";
-}
-
-static const char *ipc_json_orientation_description(enum wmiiv_column_layout l) {
-	switch (l) {
-	case L_VERT:
-		return "vertical";
-	case L_HORIZ:
-		return "horizontal";
-	default:
-		return "none";
-	}
 }
 
 static const char *ipc_json_border_description(enum wmiiv_window_border border) {
@@ -210,16 +197,10 @@ static json_object *ipc_json_create_node(int id, const char* type, char *name,
 
 	json_object_object_add(object, "id", json_object_new_int(id));
 	json_object_object_add(object, "type", json_object_new_string(type));
-	json_object_object_add(object, "orientation",
-			json_object_new_string(
-				ipc_json_orientation_description(L_HORIZ)));
 	json_object_object_add(object, "percent", NULL);
 	json_object_object_add(object, "urgent", json_object_new_boolean(false));
 	json_object_object_add(object, "marks", json_object_new_array());
 	json_object_object_add(object, "focused", json_object_new_boolean(focused));
-	json_object_object_add(object, "layout",
-			json_object_new_string(
-				ipc_json_layout_description(L_HORIZ)));
 
 	// set default values to be compatible with i3
 	json_object_object_add(object, "border",
@@ -251,9 +232,6 @@ static void ipc_json_describe_output(struct wmiiv_output *output,
 			json_object_new_boolean(wlr_output->enabled));
 	json_object_object_add(object, "primary", json_object_new_boolean(false));
 	json_object_object_add(object, "layout", json_object_new_string("output"));
-	json_object_object_add(object, "orientation",
-			json_object_new_string(
-				ipc_json_orientation_description(L_NONE)));
 	json_object_object_add(object, "make",
 			json_object_new_string(wlr_output->make));
 	json_object_object_add(object, "model",
@@ -391,14 +369,6 @@ static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 			json_object_new_boolean(workspace->urgent));
 	json_object_object_add(object, "representation", workspace->representation ?
 			json_object_new_string(workspace->representation) : NULL);
-
-	// TODO (wmiiv) workspaces are always split horizontally.
-	json_object_object_add(object, "layout",
-			json_object_new_string(
-				ipc_json_layout_description(L_HORIZ)));
-	json_object_object_add(object, "orientation",
-			json_object_new_string(
-				ipc_json_orientation_description(L_HORIZ)));
 
 	// Floating
 	json_object *floating_array = json_object_new_array();
@@ -552,10 +522,6 @@ static void ipc_json_describe_column(struct wmiiv_column *column, json_object *o
 	json_object_object_add(object, "layout",
 			json_object_new_string(
 				ipc_json_layout_description(column->pending.layout)));
-
-	json_object_object_add(object, "orientation",
-			json_object_new_string(
-				ipc_json_orientation_description(column->pending.layout)));
 
 	bool urgent = column_has_urgent_child(column);
 	json_object_object_add(object, "urgent", json_object_new_boolean(urgent));

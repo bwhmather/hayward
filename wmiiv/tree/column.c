@@ -196,9 +196,6 @@ static size_t column_build_representation(struct wmiiv_column *column, char *buf
 	case L_VERT:
 		lenient_strcat(buffer, "V[");
 		break;
-	case L_HORIZ:
-		lenient_strcat(buffer, "H[");
-		break;
 	case L_TABBED:
 		lenient_strcat(buffer, "T[");
 		break;

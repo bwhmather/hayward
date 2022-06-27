@@ -268,14 +268,7 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_window *window,
 				width->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
 			struct wmiiv_column *parent = window->pending.parent;
-			while (parent && parent->pending.layout != L_HORIZ) {
-				parent = parent->pending.parent;
-			}
-			if (parent) {
-				width->amount = parent->pending.width * width->amount / 100;
-			} else {
-				width->amount = window->pending.workspace->width * width->amount / 100;
-			}
+			width->amount = parent->pending.width * width->amount / 100;
 			width->unit = MOVEMENT_UNIT_PX;
 		}
 		if (width->unit == MOVEMENT_UNIT_PX) {
@@ -289,10 +282,7 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_window *window,
 				height->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
 			struct wmiiv_column *parent = window->pending.parent;
-			while (parent && parent->pending.layout != L_VERT) {
-				parent = parent->pending.parent;
-			}
-			if (parent) {
+			if (parent->pending.layout != L_VERT) {
 				height->amount = parent->pending.height * height->amount / 100;
 			} else {
 				height->amount = window->pending.workspace->height * height->amount / 100;

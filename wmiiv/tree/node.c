@@ -100,22 +100,6 @@ struct wmiiv_output *node_get_output(struct wmiiv_node *node) {
 	return NULL;
 }
 
-enum wmiiv_column_layout node_get_layout(struct wmiiv_node *node) {
-	switch (node->type) {
-	case N_ROOT:
-		return L_NONE;
-	case N_OUTPUT:
-		return L_NONE;
-	case N_WORKSPACE:
-		return L_HORIZ;
-	case N_COLUMN:
-		return node->wmiiv_column->pending.layout;
-	case N_WINDOW:
-		return L_NONE;
-	}
-	return L_NONE;
-}
-
 struct wmiiv_node *node_get_parent(struct wmiiv_node *node) {
 	switch (node->type) {
 	case N_ROOT:

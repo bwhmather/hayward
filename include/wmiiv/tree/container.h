@@ -11,7 +11,6 @@ struct wmiiv_seat;
 
 enum wmiiv_column_layout {
 	L_NONE,
-	L_HORIZ,
 	L_VERT,
 	L_STACKED,
 	L_TABBED,

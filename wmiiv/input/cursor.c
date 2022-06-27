@@ -111,8 +111,7 @@ static struct wmiiv_window *seat_column_window_at_linear(struct wmiiv_seat *seat
 }
 
 struct wmiiv_window *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
-	switch (node_get_layout(&column->node)) {
-	case L_HORIZ:
+	switch (column->pending.layout) {
 	case L_VERT:
 		return seat_column_window_at_linear(seat, column, lx, ly);
 	case L_TABBED:

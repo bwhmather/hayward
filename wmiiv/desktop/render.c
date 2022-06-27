@@ -696,7 +696,7 @@ static void render_top_border(struct wmiiv_output *output,
 }
 
 /**
- * Render a container's children using a L_HORIZ or L_VERT layout.
+ * Render a container's children using an L_VERT layout.
  *
  * Wrap child views in borders and leave child containers borderless because
  * they'll apply their own borders to their children.
@@ -857,7 +857,6 @@ static void render_column(struct wmiiv_output *output, pixman_region32_t *damage
 
 	switch (column->current.layout) {
 	case L_NONE:
-	case L_HORIZ:
 	case L_VERT:
 		render_column_linear(output, damage, column);
 		break;
