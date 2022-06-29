@@ -48,13 +48,13 @@ struct ipc_client {
 	struct wl_event_source *writable_event_source;
 	struct wmiiv_server *server;
 	int fd;
-	enum ipc_command_type subscribed_events;
+	ipc_command_type subscribed_events;
 	size_t write_buffer_len;
 	size_t write_buffer_size;
 	char *write_buffer;
 	// The followindowg are for storing data between event_loop calls
 	uint32_t pending_length;
-	enum ipc_command_type pending_type;
+	ipc_command_type pending_type;
 };
 
 struct sockaddr_un *ipc_user_sockaddr(void);
@@ -63,8 +63,8 @@ int ipc_client_handle_readable(int client_fd, uint32_t mask, void *data);
 int ipc_client_handle_writable(int client_fd, uint32_t mask, void *data);
 void ipc_client_disconnect(struct ipc_client *client);
 void ipc_client_handle_command(struct ipc_client *client, uint32_t payload_length,
-	enum ipc_command_type payload_type);
-bool ipc_send_reply(struct ipc_client *client, enum ipc_command_type payload_type,
+	ipc_command_type payload_type);
+bool ipc_send_reply(struct ipc_client *client, ipc_command_type payload_type,
 	const char *payload, uint32_t payload_length);
 
 static void handle_display_destroy(struct wl_listener *listener, void *data) {
@@ -231,7 +231,7 @@ int ipc_client_handle_readable(int client_fd, uint32_t mask, void *data) {
 		if ((uint32_t)read_available >= client->pending_length) {
 			// Reset pending values.
 			uint32_t pending_length = client->pending_length;
-			enum ipc_command_type pending_type = client->pending_type;
+			ipc_command_type pending_type = client->pending_type;
 			client->pending_length = 0;
 			ipc_client_handle_command(client, pending_length, pending_type);
 		}
@@ -263,7 +263,7 @@ int ipc_client_handle_readable(int client_fd, uint32_t mask, void *data) {
 	if (read_available - received >= (long)client->pending_length) {
 		// Reset pending values.
 		uint32_t pending_length = client->pending_length;
-		enum ipc_command_type pending_type = client->pending_type;
+		ipc_command_type pending_type = client->pending_type;
 		client->pending_length = 0;
 		ipc_client_handle_command(client, pending_length, pending_type);
 	}
@@ -271,7 +271,7 @@ int ipc_client_handle_readable(int client_fd, uint32_t mask, void *data) {
 	return 0;
 }
 
-static bool ipc_has_event_listeners(enum ipc_command_type event) {
+static bool ipc_has_event_listeners(ipc_command_type event) {
 	for (int i = 0; i < ipc_client_list->length; i++) {
 		struct ipc_client *client = ipc_client_list->items[i];
 		if ((client->subscribed_events & event_mask(event)) != 0) {
@@ -281,7 +281,7 @@ static bool ipc_has_event_listeners(enum ipc_command_type event) {
 	return false;
 }
 
-static void ipc_send_event(const char *json_string, enum ipc_command_type event) {
+static void ipc_send_event(const char *json_string, ipc_command_type event) {
 	struct ipc_client *client;
 	for (int i = 0; i < ipc_client_list->length; i++) {
 		client = ipc_client_list->items[i];
@@ -606,7 +606,7 @@ static void ipc_get_marks_callback(struct wmiiv_window *container, void *data) {
 }
 
 void ipc_client_handle_command(struct ipc_client *client, uint32_t payload_length,
-		enum ipc_command_type payload_type) {
+		ipc_command_type payload_type) {
 	if (!wmiiv_assert(client != NULL, "client != NULL")) {
 		return;
 	}
@@ -915,7 +915,7 @@ exit_cleanup:
 	return;
 }
 
-bool ipc_send_reply(struct ipc_client *client, enum ipc_command_type payload_type,
+bool ipc_send_reply(struct ipc_client *client, ipc_command_type payload_type,
 		const char *payload, uint32_t payload_length) {
 	assert(payload);
 
