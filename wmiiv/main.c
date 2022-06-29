@@ -237,7 +237,7 @@ static void handle_wlr_log(enum wlr_log_importance importance,
 		const char *fmt, va_list args) {
 	static char wmiiv_fmt[1024];
 	snprintf(wmiiv_fmt, sizeof(wmiiv_fmt), "[wlr] %s", fmt);
-	_wmiiv_vlog(convert_wlr_log_importance(importance), wmiiv_fmt, args);
+	wmiiv_vlog(convert_wlr_log_importance(importance), wmiiv_fmt, args);
 }
 
 static const struct option long_options[] = {
