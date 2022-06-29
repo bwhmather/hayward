@@ -3,10 +3,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_output_layout.h>
 #include "list.h"
 #include "wmiiv/tree/node.h"
-
-enum wlr_direction;
 
 enum wmiiv_window_border {
 	B_NONE,
