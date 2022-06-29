@@ -141,12 +141,15 @@ cairo_surface_t *load_background_image(const char *path) {
 		return NULL;
 	}
 	if (cairo_surface_status(image) != CAIRO_STATUS_SUCCESS) {
-		wmiiv_log(WMIIV_ERROR, "Failed to read background image: %s."
 #if !HAVE_GDK_PIXBUF
+		wmiiv_log(WMIIV_ERROR, "Failed to read background image: %s."
 				"\nWMiiv was compiled without gdk_pixbuf support, so only"
 				"\nPNG images can be loaded. This is the likely cause."
-#endif // !HAVE_GDK_PIXBUF
 				, cairo_status_to_string(cairo_surface_status(image)));
+#else
+		wmiiv_log(WMIIV_ERROR, "Failed to read background image: %s."
+				, cairo_status_to_string(cairo_surface_status(image)));
+#endif // HAVE_GDK_PIXBUF
 		return NULL;
 	}
 	return image;
