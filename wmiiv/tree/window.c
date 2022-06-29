@@ -1275,7 +1275,7 @@ void window_discover_outputs(struct wmiiv_window *window) {
 
 		if (intersects && index == -1) {
 			// Send enter
-			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", window, output);
+			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", (void *) window, (void *) output);
 			view_for_each_surface(window->view,
 					surface_send_enter_iterator, output->wlr_output);
 			if (window->view->foreign_toplevel) {
@@ -1285,7 +1285,7 @@ void window_discover_outputs(struct wmiiv_window *window) {
 			list_add(window->outputs, output);
 		} else if (!intersects && index != -1) {
 			// Send leave
-			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", window, output);
+			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", (void *) window, (void *) output);
 			view_for_each_surface(window->view,
 				surface_send_leave_iterator, output->wlr_output);
 			if (window->view->foreign_toplevel) {

@@ -381,7 +381,7 @@ void view_request_activate(struct wmiiv_view *view) {
 }
 
 void view_set_csd_from_server(struct wmiiv_view *view, bool enabled) {
-	wmiiv_log(WMIIV_DEBUG, "Telling view %p to set CSD to %i", view, enabled);
+	wmiiv_log(WMIIV_DEBUG, "Telling view %p to set CSD to %i", (void *) view, enabled);
 	if (view->xdg_decoration) {
 		uint32_t mode = enabled ?
 			WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE :
@@ -393,7 +393,7 @@ void view_set_csd_from_server(struct wmiiv_view *view, bool enabled) {
 }
 
 void view_update_csd_from_client(struct wmiiv_view *view, bool enabled) {
-	wmiiv_log(WMIIV_DEBUG, "View %p updated CSD to %i", view, enabled);
+	wmiiv_log(WMIIV_DEBUG, "View %p updated CSD to %i", (void *) view, enabled);
 	struct wmiiv_window *window = view->container;
 	if (enabled && window && window->pending.border != B_CSD) {
 		window->saved_border = window->pending.border;
@@ -491,7 +491,7 @@ void view_execute_criteria(struct wmiiv_view *view) {
 			continue;
 		}
 		wmiiv_log(WMIIV_DEBUG, "for_window '%s' matches view %p, cmd: '%s'",
-				criteria->raw, view, criteria->cmdlist);
+				criteria->raw, (void *) view, criteria->cmdlist);
 		list_add(view->executed_criteria, criteria);
 		list_t *res_list = execute_command(
 				criteria->cmdlist, NULL, view->container);
@@ -1151,7 +1151,7 @@ struct wmiiv_view *view_from_wlr_surface(struct wlr_surface *wlr_surface) {
 
 	const char *role = wlr_surface->role ? wlr_surface->role->name : NULL;
 	wmiiv_log(WMIIV_DEBUG, "Surface of unknown type (role %s): %p",
-		role, wlr_surface);
+		role, (void *) wlr_surface);
 	return NULL;
 }
 

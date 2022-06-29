@@ -575,7 +575,7 @@ bool workspace_switch(struct wmiiv_workspace *workspace) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
 
 	wmiiv_log(WMIIV_DEBUG, "Switching to workspace %p:%s",
-		workspace, workspace->name);
+		(void *) workspace, workspace->name);
 
 	struct wmiiv_window *active_window = seat_get_active_window_for_workspace(seat, workspace);
 	if (active_window) {

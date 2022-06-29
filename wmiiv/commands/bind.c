@@ -407,7 +407,7 @@ static struct cmd_results *cmd_bindsym_or_bindcode(int argc, char **argv,
 						"Only one group can be specified");
 			}
 			char *end;
-			int group = strtol(split->items[i] + strlen("Group"), &end, 10);
+			int group = strtol((char *) split->items[i] + strlen("Group"), &end, 10);
 			if (group < 1 || group > 4 || end[0] != '\0') {
 				free_wmiiv_binding(binding);
 				list_free_items_and_destroy(split);

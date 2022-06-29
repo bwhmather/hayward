@@ -824,13 +824,12 @@ static void wmiiv_keyboard_group_remove(struct wmiiv_keyboard *keyboard) {
 	struct wlr_keyboard_group *wlr_group = wlr_keyboard->group;
 
 	wmiiv_log(WMIIV_DEBUG, "Removing keyboard %s from group %p",
-			device->identifier, wlr_group);
+			device->identifier, (void *) wlr_group);
 
 	wlr_keyboard_group_remove_keyboard(wlr_keyboard->group, wlr_keyboard);
 
 	if (wl_list_empty(&wlr_group->devices)) {
-		wmiiv_log(WMIIV_DEBUG, "Destroying empty keyboard group %p",
-				wlr_group);
+		wmiiv_log(WMIIV_DEBUG, "Destroying empty keyboard group %p", (void *) wlr_group);
 		struct wmiiv_keyboard_group *wmiiv_group = wlr_group->data;
 		wlr_group->data = NULL;
 		wl_list_remove(&wmiiv_group->link);
@@ -911,7 +910,7 @@ static void wmiiv_keyboard_group_add(struct wmiiv_keyboard *keyboard) {
 						wlr_group->keyboard.keymap) &&
 					repeat_info_match(keyboard, &wlr_group->keyboard)) {
 				wmiiv_log(WMIIV_DEBUG, "Adding keyboard %s to group %p",
-						device->identifier, wlr_group);
+						device->identifier, (void *) wlr_group);
 				wlr_keyboard_group_add_keyboard(wlr_group, wlr_keyboard);
 				return;
 			}
@@ -935,7 +934,7 @@ static void wmiiv_keyboard_group_add(struct wmiiv_keyboard *keyboard) {
 	wlr_keyboard_set_keymap(&wmiiv_group->wlr_group->keyboard, keyboard->keymap);
 	wlr_keyboard_set_repeat_info(&wmiiv_group->wlr_group->keyboard,
 			keyboard->repeat_rate, keyboard->repeat_delay);
-	wmiiv_log(WMIIV_DEBUG, "Created keyboard group %p", wmiiv_group->wlr_group);
+	wmiiv_log(WMIIV_DEBUG, "Created keyboard group %p", (void *) wmiiv_group->wlr_group);
 
 	wmiiv_group->seat_device = calloc(1, sizeof(struct wmiiv_seat_device));
 	if (!wmiiv_group->seat_device) {
@@ -959,7 +958,7 @@ static void wmiiv_keyboard_group_add(struct wmiiv_keyboard *keyboard) {
 	}
 
 	wmiiv_log(WMIIV_DEBUG, "Adding keyboard %s to group %p",
-			device->identifier, wmiiv_group->wlr_group);
+			device->identifier, (void *) wmiiv_group->wlr_group);
 	wlr_keyboard_group_add_keyboard(wmiiv_group->wlr_group, wlr_keyboard);
 
 	wl_list_insert(&seat->keyboard_groups, &wmiiv_group->link);

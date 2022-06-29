@@ -280,11 +280,11 @@ void column_discover_outputs(struct wmiiv_column *column) {
 
 		if (intersects && index == -1) {
 			// Send enter
-			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", column, output);
+			wmiiv_log(WMIIV_DEBUG, "Container %p entered output %p", (void *) column, (void *) output);
 			list_add(column->outputs, output);
 		} else if (!intersects && index != -1) {
 			// Send leave
-			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", column, output);
+			wmiiv_log(WMIIV_DEBUG, "Container %p left output %p", (void *) column, (void *) output);
 			list_del(column->outputs, index);
 		}
 	}

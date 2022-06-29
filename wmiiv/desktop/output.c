@@ -873,7 +873,7 @@ void handle_new_output(struct wl_listener *listener, void *data) {
 	}
 
 	wmiiv_log(WMIIV_DEBUG, "New output %p: %s (non-desktop: %d)",
-			wlr_output, wlr_output->name, wlr_output->non_desktop);
+			(void *) wlr_output, wlr_output->name, wlr_output->non_desktop);
 
 	if (wlr_output->non_desktop) {
 		wmiiv_log(WMIIV_DEBUG, "Not configuring non-desktop output");

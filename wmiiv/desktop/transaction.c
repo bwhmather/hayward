@@ -311,7 +311,7 @@ static void apply_window_state(struct wmiiv_window *window,
  * Apply a transaction to the "current" state of the tree.
  */
 static void transaction_apply(struct wmiiv_transaction *transaction) {
-	wmiiv_log(WMIIV_DEBUG, "Applying transaction %p", transaction);
+	wmiiv_log(WMIIV_DEBUG, "Applying transaction %p", (void *) transaction);
 	if (debug.txn_timings) {
 		struct timespec now;
 		clock_gettime(CLOCK_MONOTONIC, &now);
@@ -319,7 +319,7 @@ static void transaction_apply(struct wmiiv_transaction *transaction) {
 		float ms = (now.tv_sec - commit->tv_sec) * 1000 +
 			(now.tv_nsec - commit->tv_nsec) / 1000000.0;
 		wmiiv_log(WMIIV_DEBUG, "Transaction %p: %.1fms waiting "
-				"(%.1f frames if 60Hz)", transaction, ms, ms / (1000.0f / 60));
+				"(%.1f frames if 60Hz)", (void *) transaction, ms, ms / (1000.0f / 60));
 	}
 
 	// Apply the instruction state to the node's current state
@@ -377,7 +377,7 @@ static void transaction_progress(void) {
 static int handle_timeout(void *data) {
 	struct wmiiv_transaction *transaction = data;
 	wmiiv_log(WMIIV_DEBUG, "Transaction %p timed out (%zi waiting)",
-			transaction, transaction->num_waiting);
+			(void *) transaction, transaction->num_waiting);
 	transaction->num_waiting = 0;
 	transaction_progress();
 	return 0;
@@ -419,7 +419,7 @@ static bool should_configure(struct wmiiv_node *node,
 
 static void transaction_commit(struct wmiiv_transaction *transaction) {
 	wmiiv_log(WMIIV_DEBUG, "Transaction %p committing with %i instructions",
-			transaction, transaction->instructions->length);
+			(void *) transaction, transaction->instructions->length);
 	transaction->num_waiting = 0;
 	for (int i = 0; i < transaction->instructions->length; ++i) {
 		struct wmiiv_transaction_instruction *instruction =
@@ -506,7 +506,7 @@ static void set_instruction_ready(
 		float ms = (now.tv_sec - start->tv_sec) * 1000 +
 			(now.tv_nsec - start->tv_nsec) / 1000000.0;
 		wmiiv_log(WMIIV_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
-				transaction,
+				(void *) transaction,
 				transaction->num_configures - transaction->num_waiting + 1,
 				transaction->num_configures, ms,
 				instruction->node->wmiiv_window->title);
@@ -515,7 +515,7 @@ static void set_instruction_ready(
 	// If the transaction has timed out then its num_waiting will be 0 already.
 	if (instruction->waiting && transaction->num_waiting > 0 &&
 			--transaction->num_waiting == 0) {
-		wmiiv_log(WMIIV_DEBUG, "Transaction %p is ready", transaction);
+		wmiiv_log(WMIIV_DEBUG, "Transaction %p is ready", (void *) transaction);
 		wl_event_source_timer_update(transaction->timer, 0);
 	}
 
