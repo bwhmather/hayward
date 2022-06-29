@@ -28,10 +28,12 @@ typedef void (*terminate_callback_t)(int exit_code);
 // The `terminate` callback is called by `wmiiv_abort`
 void wmiiv_log_init(wmiiv_log_importance_t verbosity, terminate_callback_t terminate);
 
-void _wmiiv_log(wmiiv_log_importance_t verbosity, const char *format, ...) ATTRIB_PRINTF(2, 3);
-void _wmiiv_vlog(wmiiv_log_importance_t verbosity, const char *format, va_list args) ATTRIB_PRINTF(2, 0);
-void _wmiiv_abort(const char *filename, ...) ATTRIB_PRINTF(1, 2);
-bool _wmiiv_assert(bool condition, const char* format, ...) ATTRIB_PRINTF(2, 3);
+void _wmiiv_vlog(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) ATTRIB_PRINTF(4, 0);
+void _wmiiv_log(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) ATTRIB_PRINTF(4, 5);
+void _wmiiv_vlog_errno(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) ATTRIB_PRINTF(4, 0);
+void _wmiiv_log_errno(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) ATTRIB_PRINTF(4, 5);
+void _wmiiv_abort(const char *filename, long int lineno, const char *format, ...) ATTRIB_PRINTF(3, 4);
+bool _wmiiv_assert(bool condition, const char *filename, long int lineno, const char *function, const char* format, ...) ATTRIB_PRINTF(5, 6);
 
 #ifdef WMIIV_REL_SRC_DIR
 // strip prefix from __FILE__, leaving the path relative to the project root
@@ -40,19 +42,19 @@ bool _wmiiv_assert(bool condition, const char* format, ...) ATTRIB_PRINTF(2, 3);
 #define _WMIIV_FILENAME __FILE__
 #endif
 
-#define wmiiv_log(verb, fmt, ...) \
-	_wmiiv_log(verb, "[%s:%d] " fmt, _WMIIV_FILENAME, __LINE__, ##__VA_ARGS__)
+#define wmiiv_log(VERB, ...) \
+	_wmiiv_log(VERB,  _WMIIV_FILENAME, __LINE__, ##__VA_ARGS__)
 
-#define wmiiv_vlog(verb, fmt, args) \
-	_wmiiv_vlog(verb, "[%s:%d] " fmt, _WMIIV_FILENAME, __LINE__, args)
+#define wmiiv_vlog(VERB, FMT, ARGS) \
+	_wmiiv_vlog(VERB, _WMIIV_FILENAME, __LINE__, FMT, ARGS)
 
-#define wmiiv_log_errno(verb, fmt, ...) \
-	wmiiv_log(verb, fmt ": %s", ##__VA_ARGS__, strerror(errno))
+#define wmiiv_log_errno(VERB, ...) \
+	_wmiiv_log_errno(VERB, _WMIIV_FILENAME, __LINE__, ##__VA_ARGS__)
 
-#define wmiiv_abort(FMT, ...) \
-	_wmiiv_abort("[%s:%d] " FMT, _WMIIV_FILENAME, __LINE__, ##__VA_ARGS__)
+#define wmiiv_abort(...) \
+	_wmiiv_abort(_WMIIV_FILENAME,  __LINE__, ##__VA_ARGS__)
 
-#define wmiiv_assert(COND, FMT, ...) \
-	_wmiiv_assert(COND, "[%s:%d] %s:" FMT, _WMIIV_FILENAME, __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+#define wmiiv_assert(COND, ...) \
+	_wmiiv_assert(COND, _WMIIV_FILENAME, __LINE__, __func__, ##__VA_ARGS__)
 
 #endif
