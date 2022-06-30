@@ -69,7 +69,7 @@ output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
     bindsym $mod+Shift+q kill
 
     # Start your launcher
-    bindsym $mod+d exec $menu
+    bindsym $mod+p exec $menu
 
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
@@ -145,7 +145,7 @@ output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
 
     # Switch the current column between different layout styles
     bindsym $mod+s layout stacking
-    bindsym $mod+e layout toggle split
+    bindsym $mod+d layout toggle split
 
     # Make the current focus fullscreen
     bindsym $mod+f fullscreen
