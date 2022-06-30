@@ -382,8 +382,3 @@ void output_get_box(struct wmiiv_output *output, struct wlr_box *box) {
 	box->width = output->width;
 	box->height = output->height;
 }
-
-enum wmiiv_column_layout output_get_default_layout(
-		struct wmiiv_output *output) {
-	return L_VERT;
-}

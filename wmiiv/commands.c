@@ -103,7 +103,6 @@ static const struct cmd_handler config_handlers[] = {
 	{ "include", cmd_include },
 	{ "wmiivbg_command", cmd_wmiivbg_command },
 	{ "wmiivnag_command", cmd_wmiivnag_command },
-	{ "workspace_layout", cmd_workspace_layout },
 	{ "xwayland", cmd_xwayland },
 };
 
