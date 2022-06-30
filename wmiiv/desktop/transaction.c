@@ -526,7 +526,7 @@ static void set_instruction_ready(
 void transaction_notify_view_ready_by_serial(struct wmiiv_view *view,
 		uint32_t serial) {
 	struct wmiiv_transaction_instruction *instruction =
-		view->container->node.instruction;
+		view->window->node.instruction;
 	if (instruction != NULL && instruction->serial == serial) {
 		set_instruction_ready(instruction);
 	}
@@ -535,7 +535,7 @@ void transaction_notify_view_ready_by_serial(struct wmiiv_view *view,
 void transaction_notify_view_ready_by_geometry(struct wmiiv_view *view,
 		double x, double y, int width, int height) {
 	struct wmiiv_transaction_instruction *instruction =
-		view->container->node.instruction;
+		view->window->node.instruction;
 	if (instruction != NULL &&
 			(int)instruction->window_state.content_x == (int)x &&
 			(int)instruction->window_state.content_y == (int)y &&

@@ -427,7 +427,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 		// we only recenter the surface.
 		desktop_damage_view(view);
 		memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
-		if (window_is_floating(view->container)) {
+		if (window_is_floating(view->window)) {
 			view_update_size(view);
 			transaction_commit_dirty_client();
 		} else {
@@ -436,7 +436,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 		desktop_damage_view(view);
 	}
 
-	if (view->container->node.instruction) {
+	if (view->window->node.instruction) {
 		transaction_notify_view_ready_by_geometry(view,
 				xsurface->x, xsurface->y, state->width, state->height);
 	}
@@ -539,22 +539,22 @@ static void handle_request_configure(struct wl_listener *listener, void *data) {
 			ev->width, ev->height);
 		return;
 	}
-	if (window_is_floating(view->container)) {
+	if (window_is_floating(view->window)) {
 		// Respect minimum and maximum sizes
 		view->natural_width = ev->width;
 		view->natural_height = ev->height;
-		window_floating_resize_and_center(view->container);
+		window_floating_resize_and_center(view->window);
 
-		configure(view, view->container->pending.content_x,
-				view->container->pending.content_y,
-				view->container->pending.content_width,
-				view->container->pending.content_height);
-		node_set_dirty(&view->container->node);
+		configure(view, view->window->pending.content_x,
+				view->window->pending.content_y,
+				view->window->pending.content_width,
+				view->window->pending.content_height);
+		node_set_dirty(&view->window->node);
 	} else {
-		configure(view, view->container->current.content_x,
-				view->container->current.content_y,
-				view->container->current.content_width,
-				view->container->current.content_height);
+		configure(view, view->window->current.content_x,
+				view->window->current.content_y,
+				view->window->current.content_width,
+				view->window->current.content_height);
 	}
 }
 
@@ -566,7 +566,7 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 	if (!xsurface->mapped) {
 		return;
 	}
-	window_set_fullscreen(view->container, xsurface->fullscreen);
+	window_set_fullscreen(view->window, xsurface->fullscreen);
 
 	arrange_root();
 	transaction_commit_dirty();
@@ -583,7 +583,7 @@ static void handle_request_minimize(struct wl_listener *listener, void *data) {
 
 	struct wlr_xwayland_minimize_event *e = data;
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	bool focused = seat_get_focus(seat) == &view->container->node;
+	bool focused = seat_get_focus(seat) == &view->window->node;
 	wlr_xwayland_surface_set_minimized(xsurface, !focused && e->minimize);
 }
 
@@ -595,12 +595,12 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
 	if (!xsurface->mapped) {
 		return;
 	}
-	if (!window_is_floating(view->container) ||
-			view->container->pending.fullscreen_mode) {
+	if (!window_is_floating(view->window) ||
+			view->window->pending.fullscreen_mode) {
 		return;
 	}
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	seatop_begin_move_floating(seat, view->container);
+	seatop_begin_move_floating(seat, view->window);
 }
 
 static void handle_request_resize(struct wl_listener *listener, void *data) {
@@ -611,12 +611,12 @@ static void handle_request_resize(struct wl_listener *listener, void *data) {
 	if (!xsurface->mapped) {
 		return;
 	}
-	if (!window_is_floating(view->container)) {
+	if (!window_is_floating(view->window)) {
 		return;
 	}
 	struct wlr_xwayland_resize_event *e = data;
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	seatop_begin_resize_floating(seat, view->container, e->edges);
+	seatop_begin_resize_floating(seat, view->window, e->edges);
 }
 
 static void handle_request_activate(struct wl_listener *listener, void *data) {

@@ -74,8 +74,8 @@ void window_destroy(struct wmiiv_window *window) {
 	wlr_texture_destroy(window->marks_urgent);
 	wlr_texture_destroy(window->marks_focused_tab_title);
 
-	if (window->view->container == window) {
-		window->view->container = NULL;
+	if (window->view->window == window) {
+		window->view->window = NULL;
 		if (window->view->destroying) {
 			view_destroy(window->view);
 		}

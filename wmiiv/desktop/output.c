@@ -140,12 +140,12 @@ void output_view_for_each_surface(struct wmiiv_output *output,
 		.user_data = user_data,
 		.output = output,
 		.view = view,
-		.ox = view->container->surface_x - output->lx
+		.ox = view->window->surface_x - output->lx
 			- view->geometry.x,
-		.oy = view->container->surface_y - output->ly
+		.oy = view->window->surface_y - output->ly
 			- view->geometry.y,
-		.width = view->container->current.content_width,
-		.height = view->container->current.content_height,
+		.width = view->window->current.content_width,
+		.height = view->window->current.content_height,
 	};
 
 	view_for_each_surface(view, output_for_each_surface_iterator, &data);
@@ -159,12 +159,12 @@ void output_view_for_each_popup_surface(struct wmiiv_output *output,
 		.user_data = user_data,
 		.output = output,
 		.view = view,
-		.ox = view->container->surface_x - output->lx
+		.ox = view->window->surface_x - output->lx
 			- view->geometry.x,
-		.oy = view->container->surface_y - output->ly
+		.oy = view->window->surface_y - output->ly
 			- view->geometry.y,
-		.width = view->container->current.content_width,
-		.height = view->container->current.content_height,
+		.width = view->window->current.content_width,
+		.height = view->window->current.content_height,
 	};
 
 	view_for_each_popup_surface(view, output_for_each_surface_iterator, &data);
@@ -452,7 +452,7 @@ static bool scan_out_fullscreen_view(struct wmiiv_output *output,
 	for (int i = 0; i < workspace->current.floating->length; ++i) {
 		struct wmiiv_window *floater =
 			workspace->current.floating->items[i];
-		if (window_is_transient_for(floater, view->container)) {
+		if (window_is_transient_for(floater, view->window)) {
 			return false;
 		}
 	}

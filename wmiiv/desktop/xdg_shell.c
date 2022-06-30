@@ -67,13 +67,13 @@ static void popup_unconstrain(struct wmiiv_xdg_popup *popup) {
 	struct wmiiv_view *view = popup->child.view;
 	struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
-	struct wmiiv_output *output = view->container->pending.workspace->output;
+	struct wmiiv_output *output = view->window->pending.workspace->output;
 
 	// the output box expressed in the coordinate system of the toplevel parent
 	// of the popup
 	struct wlr_box output_toplevel_sx_box = {
-		.x = output->lx - view->container->pending.content_x + view->geometry.x,
-		.y = output->ly - view->container->pending.content_y + view->geometry.y,
+		.x = output->lx - view->window->pending.content_x + view->geometry.x,
+		.y = output->ly - view->window->pending.content_y + view->geometry.y,
 		.width = output->width,
 		.height = output->height,
 	};
@@ -286,7 +286,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 		// we only recenter the surface.
 		desktop_damage_view(view);
 		memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
-		if (window_is_floating(view->container)) {
+		if (window_is_floating(view->window)) {
 			view_update_size(view);
 			transaction_commit_dirty_client();
 		} else {
@@ -295,7 +295,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 		desktop_damage_view(view);
 	}
 
-	if (view->container->node.instruction) {
+	if (view->window->node.instruction) {
 		transaction_notify_view_ready_by_serial(view,
 				xdg_surface->current.configure_serial);
 	}
@@ -335,7 +335,7 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 		return;
 	}
 
-	struct wmiiv_window *window = view->container;
+	struct wmiiv_window *window = view->window;
 	struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 	if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
 		struct wmiiv_output *output = req->fullscreen_output->data;
@@ -355,14 +355,14 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
 	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, request_move);
 	struct wmiiv_view *view = &xdg_shell_view->view;
-	if (!window_is_floating(view->container) ||
-			view->container->pending.fullscreen_mode) {
+	if (!window_is_floating(view->window) ||
+			view->window->pending.fullscreen_mode) {
 		return;
 	}
 	struct wlr_xdg_toplevel_move_event *e = data;
 	struct wmiiv_seat *seat = e->seat->seat->data;
 	if (e->serial == seat->last_button_serial) {
-		seatop_begin_move_floating(seat, view->container);
+		seatop_begin_move_floating(seat, view->window);
 	}
 }
 
@@ -370,13 +370,13 @@ static void handle_request_resize(struct wl_listener *listener, void *data) {
 	struct wmiiv_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, request_resize);
 	struct wmiiv_view *view = &xdg_shell_view->view;
-	if (!window_is_floating(view->container)) {
+	if (!window_is_floating(view->window)) {
 		return;
 	}
 	struct wlr_xdg_toplevel_resize_event *e = data;
 	struct wmiiv_seat *seat = e->seat->seat->data;
 	if (e->serial == seat->last_button_serial) {
-		seatop_begin_resize_floating(seat, view->container, e->edges);
+		seatop_begin_resize_floating(seat, view->window, e->edges);
 	}
 }
 

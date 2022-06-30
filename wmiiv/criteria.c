@@ -246,7 +246,7 @@ static bool criteria_matches_view(struct criteria *criteria,
 		}
 	}
 
-	if (!criteria_matches_container(criteria, view->container)) {
+	if (!criteria_matches_container(criteria, view->window)) {
 		return false;
 	}
 
@@ -326,13 +326,13 @@ static bool criteria_matches_view(struct criteria *criteria,
 #endif
 
 	if (criteria->floating) {
-		if (!window_is_floating(view->container)) {
+		if (!window_is_floating(view->window)) {
 			return false;
 		}
 	}
 
 	if (criteria->tiling) {
-		if (window_is_floating(view->container)) {
+		if (window_is_floating(view->window)) {
 			return false;
 		}
 	}
@@ -357,7 +357,7 @@ static bool criteria_matches_view(struct criteria *criteria,
 	}
 
 	if (criteria->workspace) {
-		struct wmiiv_workspace *workspace = view->container->pending.workspace;
+		struct wmiiv_workspace *workspace = view->window->pending.workspace;
 		if (!workspace) {
 			return false;
 		}
@@ -365,7 +365,7 @@ static bool criteria_matches_view(struct criteria *criteria,
 		switch (criteria->workspace->match_type) {
 		case PATTERN_FOCUSED:
 			if (focused &&
-					strcmp(workspace->name, focused->container->pending.workspace->name)) {
+					strcmp(workspace->name, focused->window->pending.workspace->name)) {
 				return false;
 			}
 			break;
@@ -548,7 +548,7 @@ static bool parse_token(struct criteria *criteria, char *name, char *value) {
 			struct wmiiv_seat *seat = input_manager_current_seat();
 			struct wmiiv_window *focus = seat_get_focused_container(seat);
 			struct wmiiv_view *view = focus ? focus->view : NULL;
-			criteria->container_id = view ? view->container->node.id : 0;
+			criteria->container_id = view ? view->window->node.id : 0;
 		} else {
 			criteria->container_id = strtoul(value, &endptr, 10);
 			if (*endptr != 0) {

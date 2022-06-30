@@ -53,7 +53,7 @@ void view_destroy(struct wmiiv_view *view) {
 				"Tried to free view which wasn't marked as destroying")) {
 		return;
 	}
-	if (!wmiiv_assert(view->container == NULL,
+	if (!wmiiv_assert(view->window == NULL,
 				"Tried to free view which still has a container "
 				"(might have a pending transaction?)")) {
 		return;
@@ -79,7 +79,7 @@ void view_begin_destroy(struct wmiiv_view *view) {
 	}
 	view->destroying = true;
 
-	if (!view->container) {
+	if (!view->window) {
 		view_destroy(view);
 	}
 }
@@ -197,7 +197,7 @@ bool view_inhibit_idle(struct wmiiv_view *view) {
 }
 
 bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
-	struct wmiiv_window *window = view->container;
+	struct wmiiv_window *window = view->window;
 	struct wmiiv_column *column = window->pending.parent;
 
 	list_t *siblings = column_get_siblings(column);
@@ -209,7 +209,7 @@ bool view_ancestor_is_only_visible(struct wmiiv_view *view) {
 }
 
 static bool view_is_only_visible(struct wmiiv_view *view) {
-	struct wmiiv_window *window = view->container;
+	struct wmiiv_window *window = view->window;
 
 	enum wmiiv_column_layout layout = window_parent_layout(window);
 	if (layout != L_STACKED) {
@@ -229,12 +229,12 @@ static bool view_is_only_visible(struct wmiiv_view *view) {
 }
 
 static bool gaps_to_edge(struct wmiiv_view *view) {
-	struct side_gaps gaps = view->container->pending.workspace->current_gaps;
+	struct side_gaps gaps = view->window->pending.workspace->current_gaps;
 	return gaps.top > 0 || gaps.right > 0 || gaps.bottom > 0 || gaps.left > 0;
 }
 
 void view_autoconfigure(struct wmiiv_view *view) {
-	struct wmiiv_window *window = view->container;
+	struct wmiiv_window *window = view->window;
 	struct wmiiv_workspace *workspace = window->pending.workspace;
 
 	struct wmiiv_output *output = workspace ? workspace->output : NULL;
@@ -356,13 +356,13 @@ void view_set_activated(struct wmiiv_view *view, bool activated) {
 }
 
 void view_request_activate(struct wmiiv_view *view) {
-	struct wmiiv_workspace *workspace = view->container->pending.workspace;
+	struct wmiiv_workspace *workspace = view->window->pending.workspace;
 	struct wmiiv_seat *seat = input_manager_current_seat();
 
 	switch (config->focus_on_window_activation) {
 	case FOWA_SMART:
 		if (workspace_is_visible(workspace)) {
-			seat_set_focus_window(seat, view->container);
+			seat_set_focus_window(seat, view->window);
 		} else {
 			view_set_urgent(view, true);
 		}
@@ -371,7 +371,7 @@ void view_request_activate(struct wmiiv_view *view) {
 		view_set_urgent(view, true);
 		break;
 	case FOWA_FOCUS:
-		seat_set_focus_window(seat, view->container);
+		seat_set_focus_window(seat, view->window);
 		break;
 	case FOWA_NONE:
 		break;
@@ -392,7 +392,7 @@ void view_set_csd_from_server(struct wmiiv_view *view, bool enabled) {
 
 void view_update_csd_from_client(struct wmiiv_view *view, bool enabled) {
 	wmiiv_log(WMIIV_DEBUG, "View %p updated CSD to %i", (void *) view, enabled);
-	struct wmiiv_window *window = view->container;
+	struct wmiiv_window *window = view->window;
 	if (enabled && window && window->pending.border != B_CSD) {
 		window->saved_border = window->pending.border;
 		if (window_is_floating(window)) {
@@ -492,7 +492,7 @@ void view_execute_criteria(struct wmiiv_view *view) {
 				criteria->raw, (void *) view, criteria->cmdlist);
 		list_add(view->executed_criteria, criteria);
 		list_t *res_list = execute_command(
-				criteria->cmdlist, NULL, view->container);
+				criteria->cmdlist, NULL, view->window);
 		while (res_list->length) {
 			struct cmd_results *res = res_list->items[0];
 			free_cmd_results(res);
@@ -583,9 +583,9 @@ static bool should_focus(struct wmiiv_view *view) {
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_window *prev_container = seat_get_focused_container(seat);
 	struct wmiiv_workspace *prev_workspace = seat_get_focused_workspace(seat);
-	struct wmiiv_workspace *map_workspace = view->container->pending.workspace;
+	struct wmiiv_workspace *map_workspace = view->window->pending.workspace;
 
-	if (view->container->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
+	if (view->window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
 		return true;
 	}
 
@@ -601,9 +601,9 @@ static bool should_focus(struct wmiiv_view *view) {
 
 	// If the view is the only one in the focused workspace, it'll get focus
 	// regardless of any no_focus criteria.
-	if (!view->container->pending.parent && !prev_container) {
-		size_t num_children = view->container->pending.workspace->tiling->length +
-			view->container->pending.workspace->floating->length;
+	if (!view->window->pending.parent && !prev_container) {
+		size_t num_children = view->window->pending.workspace->tiling->length +
+			view->window->pending.workspace->floating->length;
 		if (num_children == 1) {
 			return true;
 		}
@@ -624,9 +624,9 @@ static void handle_foreign_activate_request(
 	struct wmiiv_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		if (seat->wlr_seat == event->seat) {
-			seat_set_focus_window(seat, view->container);
+			seat_set_focus_window(seat, view->window);
 			seat_consider_warp_to_focus(seat);
-			window_raise_floating(view->container);
+			window_raise_floating(view->window);
 			break;
 		}
 	}
@@ -639,7 +639,7 @@ static void handle_foreign_fullscreen_request(
 			listener, view, foreign_fullscreen_request);
 	struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
-	struct wmiiv_window *window = view->container;
+	struct wmiiv_window *window = view->window;
 
 	if (event->fullscreen && event->output && event->output->data) {
 		struct wmiiv_output *output = event->output->data;
@@ -689,7 +689,7 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	}
 	view->surface = wlr_surface;
 	view_populate_pid(view);
-	view->container = window_create(view);
+	view->window = window_create(view);
 
 	// If there is a request to be opened fullscreen on a specific output, try
 	// to honor that request. Otherwise, fallback to assigns, pid mappings,
@@ -726,13 +726,13 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 			&view->foreign_destroy);
 
 	if (target_sibling) {
-		column_add_sibling(target_sibling, view->container, 1);
+		column_add_sibling(target_sibling, view->window, 1);
 	} else if (workspace) {
 		struct wmiiv_column *column = column_create();
-		column_add_child(column, view->container);
+		column_add_child(column, view->window);
 		workspace_insert_tiling_direct(workspace, column, 0);
 	}
-	ipc_event_window(view->container, "new");
+	ipc_event_window(view->window, "new");
 
 	view_init_subsurfaces(view, wlr_surface);
 	wl_signal_add(&wlr_surface->events.new_subsurface,
@@ -744,20 +744,20 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	}
 
 	if (view->impl->wants_floating && view->impl->wants_floating(view)) {
-		view->container->pending.border = config->floating_border;
-		view->container->pending.border_thickness = config->floating_border_thickness;
-		window_set_floating(view->container, true);
+		view->window->pending.border = config->floating_border;
+		view->window->pending.border_thickness = config->floating_border_thickness;
+		window_set_floating(view->window, true);
 	} else {
-		view->container->pending.border = config->border;
-		view->container->pending.border_thickness = config->border_thickness;
+		view->window->pending.border = config->border;
+		view->window->pending.border_thickness = config->border_thickness;
 		view_set_tiled(view, true);
 	}
 
 	if (config->popup_during_fullscreen == POPUP_LEAVE &&
-			view->container->pending.workspace &&
-			view->container->pending.workspace->fullscreen &&
-			view->container->pending.workspace->fullscreen->view) {
-		struct wmiiv_window *fs = view->container->pending.workspace->fullscreen;
+			view->window->pending.workspace &&
+			view->window->pending.workspace->fullscreen &&
+			view->window->pending.workspace->fullscreen->view) {
+		struct wmiiv_window *fs = view->window->pending.workspace->fullscreen;
 		if (view_is_transient_for(view, fs->view)) {
 			window_set_fullscreen(fs, false);
 		}
@@ -766,13 +766,13 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 	view_update_title(view, false);
 
 	if (fullscreen) {
-		window_set_fullscreen(view->container, true);
-		arrange_workspace(view->container->pending.workspace);
+		window_set_fullscreen(view->window, true);
+		arrange_workspace(view->window->pending.workspace);
 	} else {
 		if (target_sibling) {
-			arrange_column(view->container->pending.parent);
-		} else if (view->container->pending.workspace) {
-			arrange_workspace(view->container->pending.workspace);
+			arrange_column(view->window->pending.parent);
+		} else if (view->window->pending.workspace) {
+			arrange_workspace(view->window->pending.workspace);
 		}
 	}
 
@@ -790,7 +790,7 @@ void view_map(struct wmiiv_view *view, struct wlr_surface *wlr_surface,
 #endif
 
 	if (set_focus) {
-		input_manager_set_focus(&view->container->node);
+		input_manager_set_focus(&view->window->node);
 	}
 
 	const char *app_id;
@@ -817,9 +817,9 @@ void view_unmap(struct wmiiv_view *view) {
 		view->foreign_toplevel = NULL;
 	}
 
-	struct wmiiv_column *parent = view->container->pending.parent;
-	struct wmiiv_workspace *workspace = view->container->pending.workspace;
-	window_begin_destroy(view->container);
+	struct wmiiv_column *parent = view->window->pending.parent;
+	struct wmiiv_workspace *workspace = view->window->pending.workspace;
+	window_begin_destroy(view->window);
 	if (parent) {
 		column_consider_destroy(parent);
 	} else if (workspace) {
@@ -853,14 +853,14 @@ void view_unmap(struct wmiiv_view *view) {
 }
 
 void view_update_size(struct wmiiv_view *view) {
-	struct wmiiv_window *container = view->container;
+	struct wmiiv_window *container = view->window;
 	container->pending.content_width = view->geometry.width;
 	container->pending.content_height = view->geometry.height;
 	window_set_geometry_from_content(container);
 }
 
 void view_center_surface(struct wmiiv_view *view) {
-	struct wmiiv_window *container = view->container;
+	struct wmiiv_window *container = view->window;
 	// We always center the current coordinates rather than the next, as the
 	// geometry immediately affects the currently active rendering.
 	container->surface_x = fmax(container->current.content_x, container->current.content_x +
@@ -962,15 +962,15 @@ static bool view_child_is_mapped(struct wmiiv_view_child *child) {
 }
 
 static void view_child_damage(struct wmiiv_view_child *child, bool whole) {
-	if (!child || !view_child_is_mapped(child) || !child->view || !child->view->container) {
+	if (!child || !view_child_is_mapped(child) || !child->view || !child->view->window) {
 		return;
 	}
 	int sx, sy;
 	child->impl->get_view_coords(child, &sx, &sy);
 	desktop_damage_surface(child->surface,
-			child->view->container->pending.content_x -
+			child->view->window->pending.content_x -
 				child->view->geometry.x + sx,
-			child->view->container->pending.content_y -
+			child->view->window->pending.content_y -
 				child->view->geometry.y + sy, whole);
 }
 
@@ -1072,7 +1072,7 @@ void view_child_init(struct wmiiv_view_child *child,
 	wl_signal_add(&view->events.unmap, &child->view_unmap);
 	child->view_unmap.notify = view_child_handle_view_unmap;
 
-	struct wmiiv_window *container = child->view->container;
+	struct wmiiv_window *container = child->view->window;
 	if (container != NULL) {
 		struct wmiiv_workspace *workspace = container->pending.workspace;
 		if (workspace) {
@@ -1084,7 +1084,7 @@ void view_child_init(struct wmiiv_view_child *child,
 }
 
 void view_child_destroy(struct wmiiv_view_child *child) {
-	if (view_child_is_mapped(child) && child->view->container != NULL) {
+	if (view_child_is_mapped(child) && child->view->window != NULL) {
 		view_child_damage(child, true);
 	}
 
@@ -1228,17 +1228,17 @@ void view_update_title(struct wmiiv_view *view, bool force) {
 	const char *title = view_get_title(view);
 
 	if (!force) {
-		if (title && view->container->title &&
-				strcmp(title, view->container->title) == 0) {
+		if (title && view->window->title &&
+				strcmp(title, view->window->title) == 0) {
 			return;
 		}
-		if (!title && !view->container->title) {
+		if (!title && !view->window->title) {
 			return;
 		}
 	}
 
-	free(view->container->title);
-	free(view->container->formatted_title);
+	free(view->window->title);
+	free(view->window->formatted_title);
 	if (title) {
 		size_t len = parse_title_format(view, NULL);
 		char *buffer = calloc(len + 1, sizeof(char));
@@ -1247,17 +1247,17 @@ void view_update_title(struct wmiiv_view *view, bool force) {
 		}
 		parse_title_format(view, buffer);
 
-		view->container->title = strdup(title);
-		view->container->formatted_title = buffer;
+		view->window->title = strdup(title);
+		view->window->formatted_title = buffer;
 	} else {
-		view->container->title = NULL;
-		view->container->formatted_title = NULL;
+		view->window->title = NULL;
+		view->window->formatted_title = NULL;
 	}
 
 	// Update title after the global font height is updated
-	window_update_title_textures(view->container);
+	window_update_title_textures(view->window);
 
-	ipc_event_window(view->container, "title");
+	ipc_event_window(view->window, "title");
 
 	if (view->foreign_toplevel && title) {
 		wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel, title);
@@ -1265,21 +1265,21 @@ void view_update_title(struct wmiiv_view *view, bool force) {
 }
 
 bool view_is_visible(struct wmiiv_view *view) {
-	if (view->container->node.destroying) {
+	if (view->window->node.destroying) {
 		return false;
 	}
-	struct wmiiv_workspace *workspace = view->container->pending.workspace;
-	if (!workspace && view->container->pending.fullscreen_mode != FULLSCREEN_GLOBAL) {
+	struct wmiiv_workspace *workspace = view->window->pending.workspace;
+	if (!workspace && view->window->pending.fullscreen_mode != FULLSCREEN_GLOBAL) {
 		return false;
 	}
 
-	if (!window_is_sticky(view->container) && workspace &&
+	if (!window_is_sticky(view->window) && workspace &&
 			!workspace_is_visible(workspace)) {
 		return false;
 	}
 	// Check view isn't in a stacked container on an inactive tab
 	struct wmiiv_seat *seat = input_manager_current_seat();
-	struct wmiiv_window *window = view->container;
+	struct wmiiv_window *window = view->window;
 	struct wmiiv_column *column = window->pending.parent;
 	if (column != NULL) {
 		enum wmiiv_column_layout parent_layout = column->pending.layout;
@@ -1293,8 +1293,8 @@ bool view_is_visible(struct wmiiv_view *view) {
 	// Check view isn't hidden by another fullscreen view
 	struct wmiiv_window *fs = root->fullscreen_global ?
 		root->fullscreen_global : workspace->fullscreen;
-	if (fs && !window_is_fullscreen(view->container) &&
-			!window_is_transient_for(view->container, fs)) {
+	if (fs && !window_is_fullscreen(view->window) &&
+			!window_is_transient_for(view->window, fs)) {
 		return false;
 	}
 	return true;
@@ -1306,7 +1306,7 @@ void view_set_urgent(struct wmiiv_view *view, bool enable) {
 	}
 	if (enable) {
 		struct wmiiv_seat *seat = input_manager_current_seat();
-		if (seat_get_focused_container(seat) == view->container) {
+		if (seat_get_focused_container(seat) == view->window) {
 			return;
 		}
 		clock_gettime(CLOCK_MONOTONIC, &view->urgent);
@@ -1317,11 +1317,11 @@ void view_set_urgent(struct wmiiv_view *view, bool enable) {
 			view->urgent_timer = NULL;
 		}
 	}
-	desktop_damage_window(view->container);
+	desktop_damage_window(view->window);
 
-	ipc_event_window(view->container, "urgent");
+	ipc_event_window(view->window, "urgent");
 
-	workspace_detect_urgent(view->container->pending.workspace);
+	workspace_detect_urgent(view->window->pending.workspace);
 }
 
 bool view_is_urgent(struct wmiiv_view *view) {
@@ -1350,8 +1350,8 @@ static void view_save_buffer_iterator(struct wlr_surface *surface,
 		saved_buffer->buffer = surface->buffer;
 		saved_buffer->width = surface->current.width;
 		saved_buffer->height = surface->current.height;
-		saved_buffer->x = view->container->surface_x + sx;
-		saved_buffer->y = view->container->surface_y + sy;
+		saved_buffer->x = view->window->surface_x + sx;
+		saved_buffer->y = view->window->surface_y + sy;
 		saved_buffer->transform = surface->current.transform;
 		wlr_surface_get_buffer_source_box(surface, &saved_buffer->source_box);
 		wl_list_insert(view->saved_buffers.prev, &saved_buffer->link);

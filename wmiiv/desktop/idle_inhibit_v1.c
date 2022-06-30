@@ -107,7 +107,7 @@ bool wmiiv_idle_inhibit_v1_is_active(struct wmiiv_idle_inhibitor_v1 *inhibitor) 
 	case INHIBIT_IDLE_APPLICATION:;
 		// If there is no view associated with the inhibitor, assume visible
 		struct wmiiv_view *view = view_from_wlr_surface(inhibitor->wlr_inhibitor->surface);
-		return !view || !view->container || view_is_visible(view);
+		return !view || !view->window || view_is_visible(view);
 	case INHIBIT_IDLE_FOCUS:;
 		struct wmiiv_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {
@@ -118,8 +118,8 @@ bool wmiiv_idle_inhibit_v1_is_active(struct wmiiv_idle_inhibitor_v1 *inhibitor) 
 		}
 		return false;
 	case INHIBIT_IDLE_FULLSCREEN:
-		return inhibitor->view->container &&
-			window_is_fullscreen(inhibitor->view->container) &&
+		return inhibitor->view->window &&
+			window_is_fullscreen(inhibitor->view->window) &&
 			view_is_visible(inhibitor->view);
 	case INHIBIT_IDLE_OPEN:
 		// Inhibitor is destroyed on unmap so it must be open/mapped

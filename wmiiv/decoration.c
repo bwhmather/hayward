@@ -30,7 +30,7 @@ static void server_decoration_handle_mode(struct wl_listener *listener,
 			WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
 	view_update_csd_from_client(view, csd);
 
-	arrange_window(view->container);
+	arrange_window(view->window);
 	transaction_commit_dirty();
 }
 

@@ -261,17 +261,17 @@ static void render_view_toplevels(struct wmiiv_view *view,
 		.alpha = alpha,
 	};
 	struct wlr_box clip_box;
-	if (!window_is_current_floating(view->container)) {
+	if (!window_is_current_floating(view->window)) {
 		// As we pass the geometry offsets to the surface iterator, we will
 		// need to account for the offsets in the clip dimensions.
-		clip_box.width = view->container->current.content_width + view->geometry.x;
-		clip_box.height = view->container->current.content_height + view->geometry.y;
+		clip_box.width = view->window->current.content_width + view->geometry.x;
+		clip_box.height = view->window->current.content_height + view->geometry.y;
 		data.clip_box = &clip_box;
 	}
 	// Render all toplevels without descending into popups
-	double ox = view->container->surface_x -
+	double ox = view->window->surface_x -
 		output->lx - view->geometry.x;
-	double oy = view->container->surface_y -
+	double oy = view->window->surface_y -
 		output->ly - view->geometry.y;
 	output_surface_for_each_surface(output, view->surface, ox, oy,
 			render_surface_iterator, &data);
@@ -295,7 +295,7 @@ static void render_saved_view(struct wmiiv_view *view,
 		return;
 	}
 
-	bool floating = window_is_current_floating(view->container);
+	bool floating = window_is_current_floating(view->window);
 
 	struct wmiiv_saved_buffer *saved_buf;
 	wl_list_for_each(saved_buf, &view->saved_buffers, link) {
@@ -331,11 +331,11 @@ static void render_saved_view(struct wmiiv_view *view,
 
 		if (!floating) {
 			dst_box.width = fmin(dst_box.width,
-					view->container->current.content_width -
-					(saved_buf->x - view->container->current.content_x) + view->saved_geometry.x);
+					view->window->current.content_width -
+					(saved_buf->x - view->window->current.content_x) + view->saved_geometry.x);
 			dst_box.height = fmin(dst_box.height,
-					view->container->current.content_height -
-					(saved_buf->y - view->container->current.content_y) + view->saved_geometry.y);
+					view->window->current.content_height -
+					(saved_buf->y - view->window->current.content_y) + view->saved_geometry.y);
 		}
 		scale_box(&dst_box, wlr_output->scale);
 
@@ -355,9 +355,9 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 		struct wmiiv_window *window, struct border_colors *colors) {
 	struct wmiiv_view *view = window->view;
 	if (!wl_list_empty(&view->saved_buffers)) {
-		render_saved_view(view, output, damage, view->container->alpha);
+		render_saved_view(view, output, damage, view->window->alpha);
 	} else if (view->surface) {
-		render_view_toplevels(view, output, damage, view->container->alpha);
+		render_view_toplevels(view, output, damage, view->window->alpha);
 	}
 
 	if (window->current.border == B_NONE || window->current.border == B_CSD) {

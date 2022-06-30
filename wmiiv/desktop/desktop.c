@@ -38,10 +38,10 @@ void desktop_damage_box(struct wlr_box *box) {
 }
 
 void desktop_damage_view(struct wmiiv_view *view) {
-	desktop_damage_window(view->container);
+	desktop_damage_window(view->window);
 	struct wlr_box box = {
-		.x = view->container->current.content_x - view->geometry.x,
-		.y = view->container->current.content_y - view->geometry.y,
+		.x = view->window->current.content_x - view->geometry.x,
+		.y = view->window->current.content_y - view->geometry.y,
 		.width = view->surface->current.width,
 		.height = view->surface->current.height,
 	};

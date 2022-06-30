@@ -1018,7 +1018,7 @@ static void check_constraint_region(struct wmiiv_cursor *cursor) {
 	if (cursor->active_confine_requires_warp && view) {
 		cursor->active_confine_requires_warp = false;
 
-		struct wmiiv_window *container = view->container;
+		struct wmiiv_window *container = view->window;
 
 		double sx = cursor->cursor->x - container->pending.content_x + view->geometry.x;
 		double sy = cursor->cursor->y - container->pending.content_y + view->geometry.y;
@@ -1502,7 +1502,7 @@ static void warp_to_constraint_cursor_hint(struct wmiiv_cursor *cursor) {
 		double sy = constraint->current.cursor_hint.y;
 
 		struct wmiiv_view *view = view_from_wlr_surface(constraint->surface);
-		struct wmiiv_window *container = view->container;
+		struct wmiiv_window *container = view->window;
 
 		double lx = sx + container->pending.content_x - view->geometry.x;
 		double ly = sy + container->pending.content_y - view->geometry.y;
