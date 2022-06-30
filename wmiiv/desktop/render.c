@@ -744,63 +744,6 @@ static void render_column_linear(struct wmiiv_output *output, pixman_region32_t 
 }
 
 /**
- * Render a container's children using the L_TABBED layout.
- */
-static void render_column_tabbed(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
-	if (!column->current.children->length) {
-		return;
-	}
-	struct wmiiv_window *current = column->current.focused_inactive_child;
-	struct border_colors *current_colors = &config->border_colors.unfocused;
-	int tab_width = column->current.width / column->current.children->length;
-
-	// Render titles
-	for (int i = 0; i < column->current.children->length; ++i) {
-		struct wmiiv_window *child = column->current.children->items[i];
-		struct wmiiv_view *view = child->view;
-		struct wmiiv_window_state *cstate = &child->current;
-		struct border_colors *colors;
-		struct wlr_texture *title_texture;
-		struct wlr_texture *marks_texture;
-
-		if (view_is_urgent(view)) {
-			colors = &config->border_colors.urgent;
-			title_texture = child->title_urgent;
-			marks_texture = child->marks_urgent;
-		} else if (cstate->focused) {
-			colors = &config->border_colors.focused;
-			title_texture = child->title_focused;
-			marks_texture = child->marks_focused;
-		} else if (child == current) {
-			colors = &config->border_colors.focused_inactive;
-			title_texture = child->title_focused_inactive;
-			marks_texture = child->marks_focused_inactive;
-		} else {
-			colors = &config->border_colors.unfocused;
-			title_texture = child->title_unfocused;
-			marks_texture = child->marks_unfocused;
-		}
-
-		int x = floor(cstate->x + tab_width * i);
-
-		// Make last tab use the remaining width of the parent
-		if (i == column->current.children->length - 1) {
-			tab_width = column->current.width - tab_width * i;
-		}
-
-		render_titlebar(output, damage, child, x, column->current.y, tab_width,
-				colors, title_texture, marks_texture);
-
-		if (child == current) {
-			current_colors = colors;
-		}
-	}
-
-	// Render surface and left/right/bottom borders
-	render_view(output, damage, current, current_colors);
-}
-
-/**
  * Render a container's children using the L_STACKED layout.
  */
 static void render_column_stacked(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
@@ -863,9 +806,6 @@ static void render_column(struct wmiiv_output *output, pixman_region32_t *damage
 		break;
 	case L_STACKED:
 		render_column_stacked(output, damage, column);
-		break;
-	case L_TABBED:
-		render_column_tabbed(output, damage, column);
 		break;
 	}
 }

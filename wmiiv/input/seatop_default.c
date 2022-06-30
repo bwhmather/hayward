@@ -60,7 +60,7 @@ static bool window_edge_is_external(struct wmiiv_window *window, enum wlr_edges 
 
 	enum wmiiv_column_layout layout = window->pending.parent->pending.layout;
 
-	if (layout == L_STACKED || layout == L_TABBED) {
+	if (layout == L_STACKED) {
 		return true;
        	}
 	
@@ -400,13 +400,14 @@ static void handle_button(struct wmiiv_seat *seat, uint32_t time_msec,
 	// Handle tiling resize via border
 	if (window && resize_edge && button == BTN_LEFT &&
 			state == WLR_BUTTON_PRESSED && !is_floating) {
-		// If a resize is triggered on a window within a tabbed or stacked column,
-		// change focus to the tab which already had inactive focus -- otherwise, if
-		// the user clicked on the title of a hidden tab, we'd change the active tab
-		// when the user probably just wanted to resize.
+		// If a resize is triggered on a window within a stacked
+		// column, change focus to the tab which already had inactive
+		// focus -- otherwise, if the user clicked on the title of a
+		// hidden tab, we'd change the active tab when the user
+		// probably just wanted to resize.
 		struct wmiiv_window *window_to_focus = window;
 		enum wmiiv_column_layout layout = window_parent_layout(window);
-		if (layout == L_TABBED || layout == L_STACKED) {
+		if (layout == L_STACKED) {
 			window_to_focus = seat_get_focus_inactive_view(seat, &window->pending.parent->node);
 		}
 		seat_set_focus_window(seat, window_to_focus);
@@ -744,10 +745,10 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 		handled = true;
 	}
 
-	// Scrolling on a tabbed or stacked title bar (handled as press event)
+	// Scrolling on a stacked title bar (handled as press event)
 	if (!handled && (on_titlebar || on_titlebar_border)) {
 		struct wmiiv_column *column = window->pending.parent;
-		if (column->pending.layout == L_TABBED || column->pending.layout == L_STACKED) {
+		if (column->pending.layout == L_STACKED) {
 			struct wmiiv_node *active = seat_get_active_tiling_child(seat, &column->node);
 			list_t *siblings = window_get_siblings(window);
 			int desired = list_find(siblings, active->wmiiv_window) +
@@ -762,7 +763,7 @@ static void handle_pointer_axis(struct wmiiv_seat *seat,
 			struct wmiiv_node *new_sibling = &new_sibling_container->node;
 			struct wmiiv_window *new_focus =
 				seat_get_focus_inactive_view(seat, new_sibling);
-			// Use the focused child of the tabbed/stacked container, not the
+			// Use the focused child of the stacked container, not the
 			// container the user scrolled on.
 			seat_set_focus_window(seat, new_focus);
 			transaction_commit_dirty();

@@ -39,39 +39,6 @@ static uint32_t get_current_time_msec(void) {
 	return now.tv_sec * 1000 + now.tv_nsec / 1000000;
 }
 
-static struct wmiiv_window *seat_column_window_at_tabbed(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
-	struct wlr_box box;
-	column_get_box(column, &box);
-	if (lx < box.x || lx > box.x + box.width ||
-			ly < box.y || ly > box.y + box.height) {
-		return NULL;
-	}
-	list_t *children = column->pending.children;
-	if (!children->length) {
-		return NULL;
-	}
-
-	// Tab titles
-	int title_height = window_titlebar_height();
-	if (ly < box.y + title_height) {
-		int tab_width = box.width / children->length;
-		int child_index = (lx - box.x) / tab_width;
-		if (child_index >= children->length) {
-			child_index = children->length - 1;
-		}
-		struct wmiiv_window *child = children->items[child_index];
-		return child;
-	}
-
-	// Surfaces
-	struct wmiiv_window *current = seat_get_focus_inactive_view(seat, &column->node);
-	if (window_contains_point(current, lx, ly)) {
-		return current;
-	}
-
-	return NULL;
-}
-
 static struct wmiiv_window *seat_column_window_at_stacked(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
 	struct wlr_box box;
 	node_get_box(&column->node, &box);
@@ -115,8 +82,6 @@ struct wmiiv_window *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv
 	switch (column->pending.layout) {
 	case L_VERT:
 		return seat_column_window_at_linear(seat, column, lx, ly);
-	case L_TABBED:
-		return seat_column_window_at_tabbed(seat, column, lx, ly);
 	case L_STACKED:
 		return seat_column_window_at_stacked(seat, column, lx, ly);
 	case L_NONE:

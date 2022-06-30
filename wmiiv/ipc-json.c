@@ -43,8 +43,6 @@ static const char *ipc_json_layout_description(enum wmiiv_column_layout l) {
 	switch (l) {
 	case L_VERT:
 		return "splitv";
-	case L_TABBED:
-		return "tabbed";
 	case L_STACKED:
 		return "stacked";
 	case L_NONE:
@@ -381,9 +379,8 @@ static void ipc_json_describe_workspace(struct wmiiv_workspace *workspace,
 
 static void window_get_deco_rect(struct wmiiv_window *window, struct wlr_box *deco_rect) {
 	enum wmiiv_column_layout parent_layout = window_parent_layout(window);
-	bool tab_or_stack = parent_layout == L_TABBED || parent_layout == L_STACKED;
 
-	if (((!tab_or_stack || window_is_floating(window)) &&
+	if (((parent_layout != L_STACKED || window_is_floating(window)) &&
 				window->current.border != B_NORMAL) ||
 			window->pending.fullscreen_mode != FULLSCREEN_NONE ||
 			window->pending.workspace == NULL) {
@@ -402,12 +399,7 @@ static void window_get_deco_rect(struct wmiiv_window *window, struct wlr_box *de
 	deco_rect->height = window_titlebar_height();
 
 	if (!window_is_floating(window)) {
-		if (parent_layout == L_TABBED) {
-			deco_rect->width = window->pending.parent
-				? window->pending.parent->pending.width / window->pending.parent->pending.children->length
-				: window->pending.workspace->width / window->pending.workspace->tiling->length;
-			deco_rect->x += deco_rect->width * window_sibling_index(window);
-		} else if (parent_layout == L_STACKED) {
+		if (parent_layout == L_STACKED) {
 			if (!window->view) {
 				size_t siblings = window_get_siblings(window)->length;
 				deco_rect->y -= deco_rect->height * siblings;

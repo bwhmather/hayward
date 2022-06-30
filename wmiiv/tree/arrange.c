@@ -95,27 +95,6 @@ static void arrange_column_vert(struct wmiiv_column *column) {
 	}
 }
 
-static void arrange_column_tabbed(struct wmiiv_column *column) {
-	wmiiv_assert(column->pending.layout == L_TABBED, "Expected tabbed column");
-
-	struct wlr_box box;
-	column_get_box(column, &box);
-
-	list_t *children = column->pending.children;
-
-	if (!children->length) {
-		return;
-	}
-	for (int i = 0; i < children->length; ++i) {
-		struct wmiiv_window *child = children->items[i];
-		int parent_offset = child->view ? 0 : window_titlebar_height();
-		child->pending.x = box.x;
-		child->pending.y = box.y + parent_offset;
-		child->pending.width = box.width;
-		child->pending.height = box.height - parent_offset;
-	}
-}
-
 static void arrange_column_stacked(struct wmiiv_column *column) {
 	wmiiv_assert(column->pending.layout == L_STACKED, "Expected stacked column");
 
@@ -147,9 +126,6 @@ void arrange_column(struct wmiiv_column *column) {
 	switch (column->pending.layout) {
 	case L_VERT:
 		arrange_column_vert(column);
-		break;
-	case L_TABBED:
-		arrange_column_tabbed(column);
 		break;
 	case L_STACKED:
 		arrange_column_stacked(column);

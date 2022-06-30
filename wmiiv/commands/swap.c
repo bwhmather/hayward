@@ -71,13 +71,12 @@ static void swap_focus(struct wmiiv_window *window1,
 		struct wmiiv_workspace *workspace2 = window2->pending.workspace;
 		enum wmiiv_column_layout layout1 = window_parent_layout(window1);
 		enum wmiiv_column_layout layout2 = window_parent_layout(window2);
-		if (focus == window1 && (layout2 == L_TABBED || layout2 == L_STACKED)) {
+		if (focus == window1 && layout2 == L_STACKED) {
 			if (workspace_is_visible(workspace2)) {
 				seat_set_raw_focus(seat, &window2->node);
 			}
 			seat_set_focus_window(seat, workspace1 != workspace2 ? window2 : window1);
-		} else if (focus == window2 && (layout1 == L_TABBED
-					|| layout1 == L_STACKED)) {
+		} else if (focus == window2 && layout1 == L_STACKED) {
 			if (workspace_is_visible(workspace1)) {
 				seat_set_raw_focus(seat, &window1->node);
 			}

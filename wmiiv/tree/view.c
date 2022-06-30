@@ -212,7 +212,7 @@ static bool view_is_only_visible(struct wmiiv_view *view) {
 	struct wmiiv_window *window = view->container;
 
 	enum wmiiv_column_layout layout = window_parent_layout(window);
-	if (layout != L_TABBED && layout != L_STACKED) {
+	if (layout != L_STACKED) {
 		list_t *siblings = window_get_siblings(window);
 		if (siblings && siblings->length > 1) {
 			return false;
@@ -285,18 +285,16 @@ void view_autoconfigure(struct wmiiv_view *view) {
 	}
 
 	if (!window_is_floating(window)) {
-		// In a tabbed or stacked container, the container's y is the top of the
-		// title area. We have to offset the surface y by the height of the title,
-		// bar, and disable any top border because we'll always have the title bar.
+		// In a stacked container, the container's y is the top of the
+		// title area. We have to offset the surface y by the height of
+		// the title, bar, and disable any top border because we'll
+		// always have the title bar.
 		list_t *siblings = window_get_siblings(window);
 		bool show_titlebar = (siblings && siblings->length > 1)
 			|| !config->hide_lone_tab;
 		if (show_titlebar) {
 			enum wmiiv_column_layout layout = window_parent_layout(window);
-			if (layout == L_TABBED) {
-				y_offset = window_titlebar_height();
-				window->pending.border_top = false;
-			} else if (layout == L_STACKED) {
+			if (layout == L_STACKED) {
 				y_offset = window_titlebar_height() * siblings->length;
 				window->pending.border_top = false;
 			}
@@ -1279,13 +1277,13 @@ bool view_is_visible(struct wmiiv_view *view) {
 			!workspace_is_visible(workspace)) {
 		return false;
 	}
-	// Check view isn't in a tabbed or stacked container on an inactive tab
+	// Check view isn't in a stacked container on an inactive tab
 	struct wmiiv_seat *seat = input_manager_current_seat();
 	struct wmiiv_window *window = view->container;
 	struct wmiiv_column *column = window->pending.parent;
 	if (column != NULL) {
 		enum wmiiv_column_layout parent_layout = column->pending.layout;
-		if (parent_layout == L_TABBED || parent_layout == L_STACKED) {
+		if (parent_layout == L_STACKED) {
 			if (seat_get_active_tiling_child(seat, &column->node) != &window->node) {
 				return false;
 			}
