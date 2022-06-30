@@ -144,7 +144,7 @@ static struct wmiiv_node *node_get_in_direction_tiling(
 	if (dir == WLR_DIRECTION_UP || dir == WLR_DIRECTION_DOWN) {
 		// Try to move up and down within the current column.
 		int current_idx = window_sibling_index(window);
-		int desired_idx = current_idx + (dir == WLR_DIRECTION_LEFT ? -1 : 1);
+		int desired_idx = current_idx + (dir == WLR_DIRECTION_UP ? -1 : 1);
 
 		list_t *siblings = window_get_siblings(window);
 
