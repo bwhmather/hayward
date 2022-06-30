@@ -170,7 +170,7 @@ set|plus|minus|toggle <amount>
 	This can also be used with criteria to set an idle inhibitor for any
 	existing view or with _for_window_ to set idle inhibitors for future views.
 
-*layout* default|splith|splitv|stacking|tabbed
+*layout* default|split|stacking
 	Sets the layout mode of the focused container.
 
 	When using the _stacking_ layout, only the focused window in the container is
