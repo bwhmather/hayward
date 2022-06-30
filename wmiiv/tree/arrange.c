@@ -22,8 +22,8 @@ void arrange_window(struct wmiiv_window *window) {
 	node_set_dirty(&window->node);
 }
 
-static void arrange_column_vert(struct wmiiv_column *column) {
-	wmiiv_assert(column->pending.layout == L_VERT, "Expected vertical column");
+static void arrange_column_split(struct wmiiv_column *column) {
+	wmiiv_assert(column->pending.layout == L_SPLIT, "Expected split column");
 
 	struct wlr_box box;
 	column_get_box(column, &box);
@@ -124,8 +124,8 @@ void arrange_column(struct wmiiv_column *column) {
 
 	// Calculate x, y, width and height of children
 	switch (column->pending.layout) {
-	case L_VERT:
-		arrange_column_vert(column);
+	case L_SPLIT:
+		arrange_column_split(column);
 		break;
 	case L_STACKED:
 		arrange_column_stacked(column);

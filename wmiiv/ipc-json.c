@@ -41,8 +41,8 @@ static const char *ipc_json_node_type_description(enum wmiiv_node_type node_type
 
 static const char *ipc_json_layout_description(enum wmiiv_column_layout l) {
 	switch (l) {
-	case L_VERT:
-		return "splitv";
+	case L_SPLIT:
+		return "split";
 	case L_STACKED:
 		return "stacked";
 	case L_NONE:

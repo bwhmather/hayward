@@ -23,7 +23,7 @@ static bool get_direction_from_next_prev(struct wmiiv_window *window,
 
 	if (strcasecmp(name, "prev") == 0) {
 		switch (parent_layout) {
-		case L_VERT:
+		case L_SPLIT:
 		case L_STACKED:
 			*out = WLR_DIRECTION_UP;
 			break;
@@ -34,7 +34,7 @@ static bool get_direction_from_next_prev(struct wmiiv_window *window,
 		}
 	} else if (strcasecmp(name, "next") == 0) {
 		switch (parent_layout) {
-		case L_VERT:
+		case L_SPLIT:
 		case L_STACKED:
 			*out = WLR_DIRECTION_DOWN;
 			break;

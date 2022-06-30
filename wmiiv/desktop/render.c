@@ -395,7 +395,7 @@ static void render_view(struct wmiiv_output *output, pixman_region32_t *damage,
 	}
 
 	if (state->border_bottom) {
-		if (!window_is_current_floating(window) && siblings->length == 1 && layout == L_VERT) {
+		if (!window_is_current_floating(window) && siblings->length == 1 && layout == L_SPLIT) {
 			memcpy(&color, colors->indicator, sizeof(float) * 4);
 		} else {
 			memcpy(&color, colors->child_border, sizeof(float) * 4);
@@ -697,12 +697,12 @@ static void render_top_border(struct wmiiv_output *output,
 }
 
 /**
- * Render a container's children using an L_VERT layout.
+ * Render a container's children using an L_SPLIT layout.
  *
  * Wrap child views in borders and leave child containers borderless because
  * they'll apply their own borders to their children.
  */
-static void render_column_linear(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
+static void render_column_split(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
 	struct wmiiv_window *current = column->current.focused_inactive_child;
 
 	for (int i = 0; i < column->current.children->length; ++i) {
@@ -796,13 +796,13 @@ static void render_column_stacked(struct wmiiv_output *output, pixman_region32_t
 
 static void render_column(struct wmiiv_output *output, pixman_region32_t *damage, struct wmiiv_column *column) {
 	if (config->hide_lone_tab && column->current.children->length == 1) {
-		render_column_linear(output, damage, column);
+		render_column_split(output, damage, column);
 	}
 
 	switch (column->current.layout) {
 	case L_NONE:
-	case L_VERT:
-		render_column_linear(output, damage, column);
+	case L_SPLIT:
+		render_column_split(output, damage, column);
 		break;
 	case L_STACKED:
 		render_column_stacked(output, damage, column);

@@ -104,7 +104,7 @@ static void window_resize_tiled_vertical(struct wmiiv_window *window, uint32_t a
 	}
 
 	struct wmiiv_column *column = window->pending.parent;
-	if (column->pending.layout != L_VERT) {
+	if (column->pending.layout != L_SPLIT) {
 		return;
 	}
 
@@ -282,7 +282,7 @@ static struct cmd_results *resize_set_tiled(struct wmiiv_window *window,
 				height->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
 			struct wmiiv_column *parent = window->pending.parent;
-			if (parent->pending.layout != L_VERT) {
+			if (parent->pending.layout != L_SPLIT) {
 				height->amount = parent->pending.height * height->amount / 100;
 			} else {
 				height->amount = window->pending.workspace->height * height->amount / 100;

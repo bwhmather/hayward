@@ -8,7 +8,7 @@
 
 enum wmiiv_column_layout {
 	L_NONE,
-	L_VERT,
+	L_SPLIT,
 	L_STACKED,
 };
 

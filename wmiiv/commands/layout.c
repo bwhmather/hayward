@@ -10,7 +10,7 @@
 
 static enum wmiiv_column_layout parse_layout_string(char *s) {
 	if (strcasecmp(s, "split") == 0) {
-		return L_VERT;
+		return L_SPLIT;
 	} else if (strcasecmp(s, "stacking") == 0) {
 		return L_STACKED;
 	}
@@ -18,9 +18,9 @@ static enum wmiiv_column_layout parse_layout_string(char *s) {
 }
 
 static const char expected_syntax[] =
-	"Expected 'layout default|stacking|splitv' or "
+	"Expected 'layout default|stacking|split' or "
 	"'layout toggle [split|all]' or "
-	"'layout toggle [split|stacking|splitv|splitv] [split|stacking|splitv|splith]...'";
+	"'layout toggle [split|stacking] [split|stacking]...'";
 
 struct cmd_results *cmd_layout(int argc, char **argv) {
 	struct cmd_results *error = NULL;

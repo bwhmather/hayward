@@ -67,7 +67,7 @@ static struct wmiiv_window *seat_column_window_at_stacked(struct wmiiv_seat *sea
 	return NULL;
 }
 
-static struct wmiiv_window *seat_column_window_at_linear(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
+static struct wmiiv_window *seat_column_window_at_split(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
 	list_t *children = column->pending.children;
 	for (int i = 0; i < children->length; ++i) {
 		struct wmiiv_window *window = children->items[i];
@@ -80,8 +80,8 @@ static struct wmiiv_window *seat_column_window_at_linear(struct wmiiv_seat *seat
 
 struct wmiiv_window *seat_column_window_at(struct wmiiv_seat *seat, struct wmiiv_column *column, double lx, double ly) {
 	switch (column->pending.layout) {
-	case L_VERT:
-		return seat_column_window_at_linear(seat, column, lx, ly);
+	case L_SPLIT:
+		return seat_column_window_at_split(seat, column, lx, ly);
 	case L_STACKED:
 		return seat_column_window_at_stacked(seat, column, lx, ly);
 	case L_NONE:
