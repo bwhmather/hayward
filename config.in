@@ -139,7 +139,7 @@ output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
 #
     # Switch the current column between different layout styles
     bindsym $mod+s layout stacking
-    bindsym $mod+d layout toggle split
+    bindsym $mod+d layout split
 
     # Make the current focus fullscreen
     bindsym $mod+f fullscreen

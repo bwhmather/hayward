@@ -18,9 +18,7 @@ static enum wmiiv_column_layout parse_layout_string(char *s) {
 }
 
 static const char expected_syntax[] =
-	"Expected 'layout default|stacking|split' or "
-	"'layout toggle [split|all]' or "
-	"'layout toggle [split|stacking] [split|stacking]...'";
+	"Expected 'layout default|stacking|split'";
 
 struct cmd_results *cmd_layout(int argc, char **argv) {
 	struct cmd_results *error = NULL;
