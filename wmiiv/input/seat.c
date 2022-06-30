@@ -1361,14 +1361,11 @@ static void seat_set_focus_internal(struct wmiiv_seat *seat, struct wmiiv_worksp
 	}
 
 	// Emit ipc events
-	if (new_window) {
-		if (new_window != last_window) {
-			ipc_event_window(new_window, "focus");
-		}
-	} else {
-		if (new_workspace != last_workspace) {
-			ipc_event_workspace(last_workspace, new_workspace, "focus");
-		}
+	if (new_window != last_window) {
+		ipc_event_window(new_window, "focus");
+	}
+	if (new_workspace != last_workspace) {
+		ipc_event_workspace(last_workspace, new_workspace, "focus");
 	}
 
 	seat->has_focus = new_window ? true : false;
