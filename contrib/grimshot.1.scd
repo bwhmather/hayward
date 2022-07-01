@@ -2,7 +2,7 @@ grimshot(1)
 
 # NAME
 
-grimshot - a helper for screenshots within WMiiv
+grimshot - a helper for screenshots within Hayward
 
 # SYNOPSIS
 
@@ -29,13 +29,13 @@ grimshot - a helper for screenshots within WMiiv
 
 # DESCRIPTION
 
-Grimshot is an easy-to-use screenshot utility for WMiiv. It provides a
+Grimshot is an easy-to-use screenshot utility for Hayward. It provides a
 convenient interface over grim, slurp and jq, and supports storing the
 screenshot either directly to the clipboard using wl-copy or to a file.
 
 # EXAMPLES
 
-An example usage pattern is to add these bindings to your WMiiv config:
+An example usage pattern is to add these bindings to your Hayward config:
 
 ```
 # Screenshots:

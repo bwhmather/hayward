@@ -1,5 +1,5 @@
-#ifndef _WMIIV_UTIL_H
-#define _WMIIV_UTIL_H
+#ifndef _HAYWARD_UTIL_H
+#define _HAYWARD_UTIL_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -57,8 +57,8 @@ bool parse_boolean(const char *boolean, bool current);
  */
 float parse_float(const char *value);
 
-const char *wmiiv_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel);
+const char *hayward_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel);
 
-bool wmiiv_set_cloexec(int fd, bool cloexec);
+bool hayward_set_cloexec(int fd, bool cloexec);
 
 #endif

@@ -26,16 +26,16 @@ packages:
 - x11/pixman
 - x11/xcb-util-wm
 sources:
-- https://github.com/wmiivwm/wmiiv
+- https://github.com/haywardwm/hayward
 - https://gitlab.freedesktop.org/wlroots/wlroots.git
 tasks:
 - setup: |
-    cd wmiiv
+    cd hayward
     mkdir subprojects
     cd subprojects
     ln -s ../../wlroots wlroots
     cd ..
     meson build --fatal-meson-warnings -Dtray=enabled -Dsd-bus-provider=basu
 - build: |
-    cd wmiiv
+    cd hayward
     ninja -C build

@@ -1,5 +1,5 @@
-#ifndef _WMIIV_BUFFERS_H
-#define _WMIIV_BUFFERS_H
+#ifndef _HAYWARD_BUFFERS_H
+#define _HAYWARD_BUFFERS_H
 #include <cairo.h>
 #include <pango/pangocairo.h>
 #include <stdbool.h>

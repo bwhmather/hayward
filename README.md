@@ -1,12 +1,12 @@
 > **Warning**
 >
-> Wmiiv is currently a work-in-progress.  The move from i3's tree-of-containers
+> Hayward is currently a work-in-progress.  The move from i3's tree-of-containers
 > model to wmii's list-of-columns is only partly complete, and there are many
 > show stopper bugs.
 
-# wmiiv
+# hayward
 
-Wmiiv is a [Wayland] compositor which replicates the wmii interaction model.
+Hayward is a [Wayland] compositor which replicates the wmii interaction model.
 It started as a fork of [sway].
 
 ## Installation
@@ -14,7 +14,7 @@ It started as a fork of [sway].
 ### Compiling from Source
 
 Check out [this wiki page][Development setup] if you want to build the HEAD of
-wmiiv and wlroots for testing or development.
+hayward and wlroots for testing or development.
 
 Install dependencies:
 
@@ -38,19 +38,19 @@ Run these commands:
     ninja -C build/
     sudo ninja -C build/ install
 
-On systems without logind nor seatd, you need to suid the wmiiv binary:
+On systems without logind nor seatd, you need to suid the hayward binary:
 
-    sudo chmod a+s /usr/local/bin/wmiiv
+    sudo chmod a+s /usr/local/bin/hayward
 
-WMiiv will drop root permissions shortly after startup.
+Hayward will drop root permissions shortly after startup.
 
 ## Running
 
-Run `wmiiv` from a TTY. Some display managers may work but are not supported by
-wmiiv (gdm is known to work fairly well).
+Run `hayward` from a TTY. Some display managers may work but are not supported by
+hayward (gdm is known to work fairly well).
 
 [sway]: https://github.com/swaywm/sway/
 [Wayland]: https://wayland.freedesktop.org/
-[Development setup]: https://github.com/bwhmather/wmiiv/wiki/Development-Setup
+[Development setup]: https://github.com/bwhmather/hayward/wiki/Development-Setup
 [wlroots]: https://gitlab.freedesktop.org/wlroots/wlroots
 [scdoc]: https://git.sr.ht/~sircmpwn/scdoc

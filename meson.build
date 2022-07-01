@@ -1,5 +1,5 @@
 project(
-	'wmiiv',
+	'hayward',
 	'c',
 	version: '1.8-dev',
 	license: 'MIT',
@@ -81,7 +81,7 @@ foreach name, _ : wlroots_features
 endforeach
 
 if get_option('xwayland').enabled() and not wlroots_features['xwayland']
-	error('Cannot enable Xwayland in wmiiv: wlroots has been built without Xwayland support')
+	error('Cannot enable Xwayland in hayward: wlroots has been built without Xwayland support')
 endif
 have_xwayland = xcb.found() and wlroots_features['xwayland']
 
@@ -120,20 +120,20 @@ if scdoc.found()
 	scdoc_prog = find_program(scdoc.get_variable(pkgconfig: 'scdoc'), native: true)
 	mandir = get_option('mandir')
 	man_files = [
-		'wmiiv/wmiiv.1.scd',
-		'wmiiv/wmiiv.5.scd',
-		'wmiiv/wmiiv-bar.5.scd',
-		'wmiiv/wmiiv-input.5.scd',
-		'wmiiv/wmiiv-ipc.7.scd',
-		'wmiiv/wmiiv-output.5.scd',
-		'wmiivbar/wmiivbar-protocol.7.scd',
-		'wmiivmsg/wmiivmsg.1.scd',
+		'hayward/hayward.1.scd',
+		'hayward/hayward.5.scd',
+		'hayward/hayward-bar.5.scd',
+		'hayward/hayward-input.5.scd',
+		'hayward/hayward-ipc.7.scd',
+		'hayward/hayward-output.5.scd',
+		'haywardbar/haywardbar-protocol.7.scd',
+		'haywardmsg/haywardmsg.1.scd',
 	]
 
-	if get_option('wmiivnag')
+	if get_option('haywardnag')
 		man_files += [
-			'wmiivnag/wmiivnag.1.scd',
-			'wmiivnag/wmiivnag.5.scd',
+			'haywardnag/haywardnag.1.scd',
+			'haywardnag/haywardnag.5.scd',
 		]
 	endif
 
@@ -170,7 +170,7 @@ if git.found()
 		)
 	endif
 endif
-add_project_arguments('-DWMIIV_VERSION=@0@'.format(version), language: 'c')
+add_project_arguments('-DHAYWARD_VERSION=@0@'.format(version), language: 'c')
 
 # Compute the relative path used by compiler invocations.
 source_root = meson.current_source_dir().split('/')
@@ -204,28 +204,28 @@ if cc.has_argument('-fmacro-prefix-map=/prefix/to/hide=')
 	)
 else
 	add_project_arguments(
-		'-DWMIIV_REL_SRC_DIR="@0@"'.format(relative_dir),
+		'-DHAYWARD_REL_SRC_DIR="@0@"'.format(relative_dir),
 		language: 'c',
 	)
 endif
 
 
-wmiiv_inc = include_directories('include')
+hayward_inc = include_directories('include')
 
 subdir('include')
 subdir('protocols')
 subdir('common')
-subdir('wmiiv')
-subdir('wmiivmsg')
+subdir('hayward')
+subdir('haywardmsg')
 
-if get_option('wmiivbar') or get_option('wmiivnag')
+if get_option('haywardbar') or get_option('haywardnag')
 	subdir('client')
 endif
-if get_option('wmiivbar')
-	subdir('wmiivbar')
+if get_option('haywardbar')
+	subdir('haywardbar')
 endif
-if get_option('wmiivnag')
-	subdir('wmiivnag')
+if get_option('haywardnag')
+	subdir('haywardnag')
 endif
 
 config = configuration_data()
@@ -237,11 +237,11 @@ configure_file(
 	configuration: config,
 	input: 'config.in',
 	output: '@BASENAME@',
-	install_dir: join_paths(sysconfdir, 'wmiiv')
+	install_dir: join_paths(sysconfdir, 'hayward')
 )
 
 install_data(
-	'wmiiv.desktop',
+	'hayward.desktop',
 	install_dir: join_paths(datadir, 'wayland-sessions')
 )
 
@@ -256,15 +256,15 @@ if get_option('default-wallpaper')
 		'assets/Sway_Wallpaper_Blue_2048x1536.png',
 		'assets/Sway_Wallpaper_Blue_2048x1536_Portrait.png',
 	)
-	wallpaper_install_dir = join_paths(datadir, 'backgrounds', 'wmiiv')
+	wallpaper_install_dir = join_paths(datadir, 'backgrounds', 'hayward')
 
 	install_data(wallpaper_files, install_dir: wallpaper_install_dir)
 endif
 
 if get_option('zsh-completions')
 	zsh_files = files(
-		'completions/zsh/_wmiiv',
-		'completions/zsh/_wmiivmsg',
+		'completions/zsh/_hayward',
+		'completions/zsh/_haywardmsg',
 	)
 	zsh_install_dir = join_paths(datadir, 'zsh', 'site-functions')
 
@@ -273,12 +273,12 @@ endif
 
 if get_option('bash-completions')
 	bash_files = files(
-		'completions/bash/wmiiv',
-		'completions/bash/wmiivmsg',
+		'completions/bash/hayward',
+		'completions/bash/haywardmsg',
 	)
 
-	if get_option('wmiivbar')
-		bash_files += files('completions/bash/wmiivbar')
+	if get_option('haywardbar')
+		bash_files += files('completions/bash/haywardbar')
 	endif
 
 	if bash_comp.found()
@@ -295,12 +295,12 @@ endif
 
 if get_option('fish-completions')
 	fish_files = files(
-		'completions/fish/wmiiv.fish',
-		'completions/fish/wmiivmsg.fish',
+		'completions/fish/hayward.fish',
+		'completions/fish/haywardmsg.fish',
 	)
 
-	if get_option('wmiivnag')
-		fish_files += files('completions/fish/wmiivnag.fish')
+	if get_option('haywardnag')
+		fish_files += files('completions/fish/haywardnag.fish')
 	endif
 
 	if fish_comp.found()

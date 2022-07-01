@@ -1,8 +1,8 @@
-# Default config for wmiiv
+# Default config for hayward
 #
-# Copy this to ~/.config/wmiiv/config and edit it to your liking.
+# Copy this to ~/.config/hayward/config and edit it to your liking.
 #
-# Read `man 5 wmiiv` for a complete reference.
+# Read `man 5 hayward` for a complete reference.
 
 ### Variables
 #
@@ -16,29 +16,29 @@ set $right l
 # Your preferred terminal emulator
 set $term foot
 # Your preferred application launcher
-# Note: pass the final command to wmiivmsg so that the resulting window can be opened
+# Note: pass the final command to haywardmsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
-set $menu dmenu_path | dmenu | xargs wmiivmsg exec --
+set $menu dmenu_path | dmenu | xargs haywardmsg exec --
 
 ### Output configuration
 #
-# Default wallpaper (more resolutions are available in @datadir@/backgrounds/wmiiv/)
-output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
+# Default wallpaper (more resolutions are available in @datadir@/backgrounds/hayward/)
+output * bg @datadir@/backgrounds/hayward/Hayward_Wallpaper_Blue_1920x1080.png fill
 #
 # Example configuration:
 #
 #   output HDMI-A-1 resolution 1920x1080 position 1920,0
 #
-# You can get the names of your outputs by running: wmiivmsg -t get_outputs
+# You can get the names of your outputs by running: haywardmsg -t get_outputs
 
 ### Idle configuration
 #
 # Example configuration:
 #
-# exec wmiividle -w \
-#          timeout 300 'wmiivlock -f -c 000000' \
-#          timeout 600 'wmiivmsg "output * dpms off"' resume 'wmiivmsg "output * dpms on"' \
-#          before-sleep 'wmiivlock -f -c 000000'
+# exec haywardidle -w \
+#          timeout 300 'haywardlock -f -c 000000' \
+#          timeout 600 'haywardmsg "output * dpms off"' resume 'haywardmsg "output * dpms on"' \
+#          before-sleep 'haywardlock -f -c 000000'
 #
 # This will lock your screen after 300 seconds of inactivity, then turn off
 # your displays after another 300 seconds, and turn your screens back on when
@@ -55,8 +55,8 @@ output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
 #       middle_emulation enabled
 #   }
 #
-# You can get the names of your inputs by running: wmiivmsg -t get_inputs
-# Read `man 5 wmiiv-input` for more information about this section.
+# You can get the names of your inputs by running: haywardmsg -t get_inputs
+# Read `man 5 hayward-input` for more information about this section.
 
 ### Key bindings
 #
@@ -81,8 +81,8 @@ output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
     # Reload the configuration file
     bindsym $mod+Shift+c reload
 
-    # Exit wmiiv (logs you out of your Wayland session)
-    bindsym $mod+Shift+e exec wmiivnag -t warning -m 'You pressed the exit shortcut. Do you really want to exit wmiiv? This will end your Wayland session.' -B 'Yes, exit wmiiv' 'wmiivmsg exit'
+    # Exit hayward (logs you out of your Wayland session)
+    bindsym $mod+Shift+e exec haywardnag -t warning -m 'You pressed the exit shortcut. Do you really want to exit hayward? This will end your Wayland session.' -B 'Yes, exit hayward' 'haywardmsg exit'
 #
 # Moving around:
 #
@@ -153,7 +153,7 @@ output * bg @datadir@/backgrounds/wmiiv/WMiiv_Wallpaper_Blue_1920x1080.png fill
 #
 # Scratchpad:
 #
-    # WMiiv has a "scratchpad", which is a bag of holding for windows.
+    # Hayward has a "scratchpad", which is a bag of holding for windows.
     # You can send windows there and get them back later.
 
     # Move the currently focused window to the scratchpad
@@ -190,11 +190,11 @@ bindsym $mod+r mode "resize"
 #
 # Status Bar:
 #
-# Read `man 5 wmiiv-bar` for more information about this section.
+# Read `man 5 hayward-bar` for more information about this section.
 bar {
     position top
 
-    # When the status_command prints a new line to stdout, wmiivbar updates.
+    # When the status_command prints a new line to stdout, haywardbar updates.
     # The default just shows the current date and time.
     status_command while date +'%Y-%m-%d %I:%M:%S %p'; do sleep 1; done
 
@@ -205,4 +205,4 @@ bar {
     }
 }
 
-include @sysconfdir@/wmiiv/config.d/*
+include @sysconfdir@/hayward/config.d/*

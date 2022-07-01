@@ -1,5 +1,0 @@
-[Desktop Entry]
-Name=WMiiv
-Comment=An wmii compatible Wayland compositor
-Exec=wmiiv
-Type=Application

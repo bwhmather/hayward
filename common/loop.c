@@ -34,7 +34,7 @@ struct loop {
 struct loop *loop_create(void) {
 	struct loop *loop = calloc(1, sizeof(struct loop));
 	if (!loop) {
-		wmiiv_log(WMIIV_ERROR, "Unable to allocate memory for loop");
+		hayward_log(HAYWARD_ERROR, "Unable to allocate memory for loop");
 		return NULL;
 	}
 	loop->fd_capacity = 10;
@@ -107,7 +107,7 @@ void loop_add_fd(struct loop *loop, int fd, short mask,
 		void (*callback)(int fd, short mask, void *data), void *data) {
 	struct loop_fd_event *event = calloc(1, sizeof(struct loop_fd_event));
 	if (!event) {
-		wmiiv_log(WMIIV_ERROR, "Unable to allocate memory for event");
+		hayward_log(HAYWARD_ERROR, "Unable to allocate memory for event");
 		return;
 	}
 	event->callback = callback;
@@ -121,7 +121,7 @@ void loop_add_fd(struct loop *loop, int fd, short mask,
 		struct pollfd *tmp = realloc(loop->fds,
 				sizeof(struct pollfd) * capacity);
 		if (!tmp) {
-			wmiiv_log(WMIIV_ERROR, "Unable to allocate memory for pollfd");
+			hayward_log(HAYWARD_ERROR, "Unable to allocate memory for pollfd");
 			return;
 		}
 		loop->fds = tmp;
@@ -135,7 +135,7 @@ struct loop_timer *loop_add_timer(struct loop *loop, int ms,
 		void (*callback)(void *data), void *data) {
 	struct loop_timer *timer = calloc(1, sizeof(struct loop_timer));
 	if (!timer) {
-		wmiiv_log(WMIIV_ERROR, "Unable to allocate memory for timer");
+		hayward_log(HAYWARD_ERROR, "Unable to allocate memory for timer");
 		return NULL;
 	}
 	timer->callback = callback;

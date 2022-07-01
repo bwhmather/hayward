@@ -10,24 +10,24 @@
 static terminate_callback_t log_terminate = exit;
 
 static bool colored = true;
-static wmiiv_log_importance_t log_importance = WMIIV_ERROR;
+static hayward_log_importance_t log_importance = HAYWARD_ERROR;
 static struct timespec start_time = {-1, -1};
 
 static const char *verbosity_headers_plain[] = {
-	[WMIIV_SILENT] = "",
-	[WMIIV_ERROR] = "[ERROR]",
-	[WMIIV_INFO] = "[INFO]",
-	[WMIIV_DEBUG] = "[DEBUG]",
+	[HAYWARD_SILENT] = "",
+	[HAYWARD_ERROR] = "[ERROR]",
+	[HAYWARD_INFO] = "[INFO]",
+	[HAYWARD_DEBUG] = "[DEBUG]",
 };
 
 static const char *verbosity_headers_colour[] = {
-	[WMIIV_SILENT] = "",
-	[WMIIV_ERROR ] = "[\x1B[1;31mERROR\x1B[0m]",
-	[WMIIV_INFO  ] = "[\x1B[1;34mINFO\x1B[0m]",
-	[WMIIV_DEBUG ] = "[\x1B[1;90mDEBUG\x1B[0m]",
+	[HAYWARD_SILENT] = "",
+	[HAYWARD_ERROR ] = "[\x1B[1;31mERROR\x1B[0m]",
+	[HAYWARD_INFO  ] = "[\x1B[1;34mINFO\x1B[0m]",
+	[HAYWARD_DEBUG ] = "[\x1B[1;90mDEBUG\x1B[0m]",
 };
 
-static void wmiiv_print_verbosity_stderr(wmiiv_log_importance_t verbosity) {
+static void hayward_print_verbosity_stderr(hayward_log_importance_t verbosity) {
 	if (colored && isatty(STDERR_FILENO)) {
 		fprintf(stderr, "%s ", verbosity_headers_colour[verbosity]);
 	} else {
@@ -53,7 +53,7 @@ static void timespec_sub(struct timespec *r, const struct timespec *a,
 	}
 }
 
-static void wmiiv_print_timestamp_stderr(void) {
+static void hayward_print_timestamp_stderr(void) {
 	struct timespec ts = {0};
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	timespec_sub(&ts, &ts, &start_time);
@@ -63,7 +63,7 @@ static void wmiiv_print_timestamp_stderr(void) {
 		ts.tv_nsec / 1000000);
 }
 
-static void wmiiv_print_location_stderr(const char *filename, long int lineno, const char *function) {
+static void hayward_print_location_stderr(const char *filename, long int lineno, const char *function) {
 	if (function != NULL) {
 		fprintf(stderr, "[%s:%ld:%s] ", filename, lineno, function);
 	} else {
@@ -72,10 +72,10 @@ static void wmiiv_print_location_stderr(const char *filename, long int lineno, c
 
 }
 
-void wmiiv_log_init(wmiiv_log_importance_t verbosity, terminate_callback_t callback) {
+void hayward_log_init(hayward_log_importance_t verbosity, terminate_callback_t callback) {
 	init_start_time();
 
-	if (verbosity < WMIIV_LOG_IMPORTANCE_LAST) {
+	if (verbosity < HAYWARD_LOG_IMPORTANCE_LAST) {
 		log_importance = verbosity;
 	}
 	if (callback) {
@@ -83,66 +83,66 @@ void wmiiv_log_init(wmiiv_log_importance_t verbosity, terminate_callback_t callb
 	}
 }
 
-void _wmiiv_vlog(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) {
+void _hayward_vlog(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) {
 	init_start_time();
 
 	if (verbosity > log_importance) {
 		return;
 	}
 
-	wmiiv_print_verbosity_stderr(verbosity);
-	wmiiv_print_timestamp_stderr();
-	wmiiv_print_location_stderr(filename, lineno, NULL);
+	hayward_print_verbosity_stderr(verbosity);
+	hayward_print_timestamp_stderr();
+	hayward_print_location_stderr(filename, lineno, NULL);
 
 	vfprintf(stderr, format, args);
 	fprintf(stderr, "\n");
 }
 
-void _wmiiv_log(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) {
+void _hayward_log(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) {
 	va_list args;
 	va_start(args, format);
-	_wmiiv_vlog(verbosity, filename, lineno, format, args);
+	_hayward_vlog(verbosity, filename, lineno, format, args);
 	va_end(args);
 }
 
-void _wmiiv_vlog_errno(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) {
+void _hayward_vlog_errno(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) {
 	init_start_time();
 
 	if (verbosity > log_importance) {
 		return;
 	}
 
-	wmiiv_print_verbosity_stderr(verbosity);
-	wmiiv_print_timestamp_stderr();
-	wmiiv_print_location_stderr(filename, lineno, NULL);
+	hayward_print_verbosity_stderr(verbosity);
+	hayward_print_timestamp_stderr();
+	hayward_print_location_stderr(filename, lineno, NULL);
 
 	vfprintf(stderr, format, args);
 	fprintf(stderr, ": %s\n", strerror(errno));
 }
 
-void _wmiiv_log_errno(wmiiv_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) {
+void _hayward_log_errno(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) {
 	va_list args;
 	va_start(args, format);
-	_wmiiv_vlog(verbosity, filename, lineno, format, args);
+	_hayward_vlog(verbosity, filename, lineno, format, args);
 	va_end(args);
 }
 
-void _wmiiv_abort(const char *filename, long int lineno, const char *format, ...) {
+void _hayward_abort(const char *filename, long int lineno, const char *format, ...) {
 	va_list args;
 	va_start(args, format);
-	_wmiiv_vlog(WMIIV_ERROR, filename, lineno, format, args);
+	_hayward_vlog(HAYWARD_ERROR, filename, lineno, format, args);
 	va_end(args);
 	log_terminate(EXIT_FAILURE);
 }
 
-bool _wmiiv_assert(bool condition, const char *filename, long int lineno, const char *function, const char *format, ...) {
+bool _hayward_assert(bool condition, const char *filename, long int lineno, const char *function, const char *format, ...) {
 	if (condition) {
 		return true;
 	}
 
-	wmiiv_print_verbosity_stderr(WMIIV_ERROR);
-	wmiiv_print_timestamp_stderr();
-	wmiiv_print_location_stderr(filename, lineno, function);
+	hayward_print_verbosity_stderr(HAYWARD_ERROR);
+	hayward_print_timestamp_stderr();
+	hayward_print_location_stderr(filename, lineno, function);
 
 	va_list args;
 	va_start(args, format);

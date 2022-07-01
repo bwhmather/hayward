@@ -81,7 +81,7 @@ def construct_workspace_name(parts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="This script automatically changes the workspace name in wmiiv depending on your open applications."
+        description="This script automatically changes the workspace name in hayward depending on your open applications."
     )
     parser.add_argument(
         "--duplicates",
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         "--logfile",
         "-l",
         type=str,
-        default="/tmp/wmiiv-autoname-workspaces.log",
+        default="/tmp/hayward-autoname-workspaces.log",
         help="Path for the logfile.",
     )
     args = parser.parse_args()

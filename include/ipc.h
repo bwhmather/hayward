@@ -1,5 +1,5 @@
-#ifndef _WMIIV_IPC_H
-#define _WMIIV_IPC_H
+#ifndef _HAYWARD_IPC_H
+#define _HAYWARD_IPC_H
 
 #define event_mask(ev) (1 << (ev & 0x7F))
 
@@ -20,11 +20,11 @@ typedef uint32_t ipc_command_type;
 #define IPC_SYNC 11
 #define IPC_GET_BINDING_STATE 12
 
-// wmiiv-specific command types
+// hayward-specific command types
 #define IPC_GET_INPUTS 100
 #define IPC_GET_SEATS 101
 
-// Events sent from wmiiv to clients. Events have the highest bits set.
+// Events sent from hayward to clients. Events have the highest bits set.
 #define IPC_EVENT_WORKSPACE 0x80000000
 #define IPC_EVENT_OUTPUT 0x80000001
 #define IPC_EVENT_MODE 0x80000002
@@ -34,7 +34,7 @@ typedef uint32_t ipc_command_type;
 #define IPC_EVENT_SHUTDOWN 0x80000006
 #define IPC_EVENT_TICK 0x80000007
 
-// wmiiv-specific event types
+// hayward-specific event types
 #define IPC_EVENT_BAR_STATE_UPDATE 0x80000014
 #define IPC_EVENT_INPUT 0x80000015
 

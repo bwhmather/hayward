@@ -89,7 +89,7 @@ void list_move_to_end(list_t *list, void *item) {
 			break;
 		}
 	}
-	if (!wmiiv_assert(i < list->length, "Item not found in list")) {
+	if (!hayward_assert(i < list->length, "Item not found in list")) {
 		return;
 	}
 	list_del(list, i);

@@ -1,5 +1,5 @@
-#ifndef _WMIIV_IPC_CLIENT_H
-#define _WMIIV_IPC_CLIENT_H
+#ifndef _HAYWARD_IPC_CLIENT_H
+#define _HAYWARD_IPC_CLIENT_H
 
 // arbitrary number, it's probably sufficient, higher number = more memory usage
 #define JSON_MAX_DEPTH 512
@@ -21,16 +21,16 @@ struct ipc_response {
 };
 
 /**
- * Gets the path to the IPC socket from wmiiv.
+ * Gets the path to the IPC socket from hayward.
  */
 char *get_socketpath(void);
 /**
- * Opens the wmiiv socket.
+ * Opens the hayward socket.
  */
 int ipc_open_socket(const char *socket_path);
 /**
  * Issues a single IPC command and returns the buffer. len will be updated with
- * the length of the buffer returned from wmiiv.
+ * the length of the buffer returned from hayward.
  */
 char *ipc_single_command(int socketfd, uint32_t type, const char *payload, uint32_t *len);
 /**

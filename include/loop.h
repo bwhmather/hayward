@@ -1,9 +1,9 @@
-#ifndef _WMIIV_LOOP_H
-#define _WMIIV_LOOP_H
+#ifndef _HAYWARD_LOOP_H
+#define _HAYWARD_LOOP_H
 #include <stdbool.h>
 
 /**
- * This is an event loop system designed for wmiiv clients, not wmiiv itself.
+ * This is an event loop system designed for hayward clients, not hayward itself.
  *
  * The loop consists of file descriptors and timers. Typically the Wayland
  * display's file descriptor will be one of the fds in the loop.

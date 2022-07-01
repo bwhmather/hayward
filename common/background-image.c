@@ -20,7 +20,7 @@ enum background_mode parse_background_mode(const char *mode) {
 	} else if (strcmp(mode, "solid_color") == 0) {
 		return BACKGROUND_MODE_SOLID_COLOR;
 	}
-	wmiiv_log(WMIIV_ERROR, "Unsupported background mode: %s", mode);
+	hayward_log(HAYWARD_ERROR, "Unsupported background mode: %s", mode);
 	return BACKGROUND_MODE_INVALID;
 }
 
@@ -127,7 +127,7 @@ cairo_surface_t *load_background_image(const char *path) {
 	GError *err = NULL;
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, &err);
 	if (!pixbuf) {
-		wmiiv_log(WMIIV_ERROR, "Failed to load background image (%s).",
+		hayward_log(HAYWARD_ERROR, "Failed to load background image (%s).",
 				err->message);
 		return NULL;
 	}
@@ -137,17 +137,17 @@ cairo_surface_t *load_background_image(const char *path) {
 	image = cairo_image_surface_create_from_png(path);
 #endif // HAVE_GDK_PIXBUF
 	if (!image) {
-		wmiiv_log(WMIIV_ERROR, "Failed to read background image.");
+		hayward_log(HAYWARD_ERROR, "Failed to read background image.");
 		return NULL;
 	}
 	if (cairo_surface_status(image) != CAIRO_STATUS_SUCCESS) {
 #if !HAVE_GDK_PIXBUF
-		wmiiv_log(WMIIV_ERROR, "Failed to read background image: %s."
-				"\nWMiiv was compiled without gdk_pixbuf support, so only"
+		hayward_log(HAYWARD_ERROR, "Failed to read background image: %s."
+				"\nHayward was compiled without gdk_pixbuf support, so only"
 				"\nPNG images can be loaded. This is the likely cause."
 				, cairo_status_to_string(cairo_surface_status(image)));
 #else
-		wmiiv_log(WMIIV_ERROR, "Failed to read background image: %s."
+		hayward_log(HAYWARD_ERROR, "Failed to read background image: %s."
 				, cairo_status_to_string(cairo_surface_status(image)));
 #endif // HAVE_GDK_PIXBUF
 		return NULL;

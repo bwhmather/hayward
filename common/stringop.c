@@ -234,7 +234,7 @@ int unescape_string(char *string) {
 }
 
 char *join_args(char **argv, int argc) {
-	if (!wmiiv_assert(argc > 0, "argc should be positive")) {
+	if (!hayward_assert(argc > 0, "argc should be positive")) {
 		return NULL;
 	}
 	int len = 0, i;

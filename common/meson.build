@@ -1,5 +1,5 @@
-lib_wmiiv_common = static_library(
-	'wmiiv-common',
+lib_hayward_common = static_library(
+	'hayward-common',
 	files(
 		'background-image.c',
 		'cairo.c',
@@ -18,5 +18,5 @@ lib_wmiiv_common = static_library(
 		pangocairo,
 		wayland_client.partial_dependency(compile_args: true)
 	],
-	include_directories: wmiiv_inc
+	include_directories: hayward_inc
 )

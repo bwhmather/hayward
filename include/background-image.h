@@ -1,5 +1,5 @@
-#ifndef _WMIIV_BACKGROUND_IMAGE_H
-#define _WMIIV_BACKGROUND_IMAGE_H
+#ifndef _HAYWARD_BACKGROUND_IMAGE_H
+#define _HAYWARD_BACKGROUND_IMAGE_H
 #include "cairo_util.h"
 
 enum background_mode {

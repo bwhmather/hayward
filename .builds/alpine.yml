@@ -21,7 +21,7 @@ packages:
   - xcb-util-wm-dev
   - xwayland
 sources:
-  - https://github.com/wmiivwm/wmiiv
+  - https://github.com/haywardwm/hayward
   - https://gitlab.freedesktop.org/wlroots/wlroots.git
 tasks:
   - wlroots: |
@@ -30,17 +30,17 @@ tasks:
       ninja -C build
       sudo ninja -C build install
   - setup: |
-      cd wmiiv
+      cd hayward
       meson build --fatal-meson-warnings -Dauto_features=enabled -Dtray=disabled
   - build: |
-      cd wmiiv
+      cd hayward
       ninja -C build
   - build-no-xwayland: |
-      cd wmiiv
+      cd hayward
       meson configure build -Dxwayland=disabled
       ninja -C build
   - build-static: |
-      cd wmiiv
+      cd hayward
       mkdir subprojects
       ln -s ../../wlroots subprojects/wlroots
       rm -rf build

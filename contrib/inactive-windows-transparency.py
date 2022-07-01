@@ -43,7 +43,7 @@ if __name__ == "__main__":
     transparency_val = "0.80"
 
     parser = argparse.ArgumentParser(
-        description="This script allows you to set the transparency of unfocused windows in wmiiv."
+        description="This script allows you to set the transparency of unfocused windows in hayward."
     )
     parser.add_argument(
         "--opacity",

@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Hayward
+Comment=An wmii compatible Wayland compositor
+Exec=hayward
+Type=Application

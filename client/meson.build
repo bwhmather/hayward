@@ -1,5 +1,5 @@
-lib_wmiiv_client = static_library(
-	'wmiiv-client',
+lib_hayward_client = static_library(
+	'hayward-client',
 	files(
 		'pool-buffer.c',
 	),
@@ -9,6 +9,6 @@ lib_wmiiv_client = static_library(
 		pangocairo,
 		wayland_client
 	],
-	link_with: [lib_wmiiv_common],
-	include_directories: wmiiv_inc
+	link_with: [lib_hayward_common],
+	include_directories: hayward_inc
 )
