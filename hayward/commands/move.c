@@ -153,7 +153,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 
 				struct hayward_column *new_column = column_create();
 				new_column->pending.height = new_column->pending.width = 0;
-				new_column->height_fraction = new_column->width_fraction = 0;
+				new_column->width_fraction = 0;
 				new_column->pending.layout = L_STACKED;
 
 				workspace_insert_tiling_direct(window->pending.workspace, new_column, 0);
@@ -180,7 +180,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 
 				struct hayward_column *new_column = column_create();
 				new_column->pending.height = new_column->pending.width = 0;
-				new_column->height_fraction = new_column->width_fraction = 0;
+				new_column->width_fraction = 0;
 				new_column->pending.layout = L_STACKED;
 
 				workspace_insert_tiling_direct(window->pending.workspace, new_column, old_column_index + 1);

@@ -258,7 +258,7 @@ static void finalize_move(struct hayward_seat *seat) {
 
 			struct hayward_column *new_column = column_create();
 			new_column->pending.height = new_column->pending.width = 0;
-			new_column->height_fraction = new_column->width_fraction = 0;
+			new_column->width_fraction = 0;
 			new_column->pending.layout = L_STACKED;
 
 			int new_column_index = target_edge == WLR_EDGE_LEFT ? target_column_index : target_column_index + 1;
