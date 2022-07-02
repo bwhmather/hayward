@@ -706,10 +706,6 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 		return;
 	}
 
-	struct hayward_seat *seat = input_manager_current_seat();
-
-	struct hayward_window *target_sibling = seat_get_focus_inactive_tiling(seat, workspace);
-
 	view->foreign_toplevel =
 		wlr_foreign_toplevel_handle_v1_create(server.foreign_toplevel_manager);
 	view->foreign_activate_request.notify = handle_foreign_activate_request;
@@ -725,32 +721,46 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 	wl_signal_add(&view->foreign_toplevel->events.destroy,
 			&view->foreign_destroy);
 
-	if (target_sibling) {
-		column_add_sibling(target_sibling, view->window, 1);
-	} else if (workspace) {
-		struct hayward_column *column = column_create();
-		column_add_child(column, view->window);
-		workspace_insert_tiling_direct(workspace, column, 0);
-	}
-	ipc_event_window(view->window, "new");
-
 	view_init_subsurfaces(view, wlr_surface);
 	wl_signal_add(&wlr_surface->events.new_subsurface,
 			&view->surface_new_subsurface);
 	view->surface_new_subsurface.notify = view_handle_surface_new_subsurface;
 
-	if (decoration) {
-		view_update_csd_from_client(view, decoration);
+	const char *app_id;
+	const char *class;
+	if ((app_id = view_get_app_id(view)) != NULL) {
+		wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel, app_id);
+	} else if ((class = view_get_class(view)) != NULL) {
+		wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel, class);
 	}
 
+	struct hayward_seat *seat = input_manager_current_seat();
+
 	if (view->impl->wants_floating && view->impl->wants_floating(view)) {
+		workspace_add_floating(workspace, view->window);
+
 		view->window->pending.border = config->floating_border;
 		view->window->pending.border_thickness = config->floating_border_thickness;
 		window_set_floating(view->window, true);
 	} else {
+		struct hayward_window *target_sibling = seat_get_focus_inactive_tiling(seat, workspace);
+		if (target_sibling) {
+			column_add_sibling(target_sibling, view->window, 1);
+		} else {
+			struct hayward_column *column = column_create();
+			workspace_insert_tiling_direct(workspace, column, 0);
+			column_add_child(column, view->window);
+		}
+
 		view->window->pending.border = config->border;
 		view->window->pending.border_thickness = config->border_thickness;
 		view_set_tiled(view, true);
+
+		if (target_sibling) {
+			arrange_column(view->window->pending.parent);
+		} else {
+			arrange_workspace(workspace);
+		}
 	}
 
 	if (config->popup_during_fullscreen == POPUP_LEAVE &&
@@ -763,19 +773,18 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 		}
 	}
 
-	view_update_title(view, false);
-
-	if (fullscreen) {
-		window_set_fullscreen(view->window, true);
-		arrange_workspace(view->window->pending.workspace);
-	} else {
-		if (target_sibling) {
-			arrange_column(view->window->pending.parent);
-		} else if (view->window->pending.workspace) {
-			arrange_workspace(view->window->pending.workspace);
-		}
+	if (decoration) {
+		view_update_csd_from_client(view, decoration);
 	}
 
+	if (fullscreen) {
+		// Fullscreen windows still have to have a place as regular
+		// tiling or floating windows, so this does not make the
+		// previous logic unnecessary. 
+		window_set_fullscreen(view->window, true);
+	}
+
+	view_update_title(view, false);
 	view_execute_criteria(view);
 
 	bool set_focus = should_focus(view);
@@ -793,13 +802,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 		input_manager_set_focus(&view->window->node);
 	}
 
-	const char *app_id;
-	const char *class;
-	if ((app_id = view_get_app_id(view)) != NULL) {
-		wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel, app_id);
-	} else if ((class = view_get_class(view)) != NULL) {
-		wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel, class);
-	}
+	ipc_event_window(view->window, "new");
 }
 
 void view_unmap(struct hayward_view *view) {
