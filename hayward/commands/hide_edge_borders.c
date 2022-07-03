@@ -12,13 +12,6 @@ struct cmd_results *cmd_hide_edge_borders(int argc, char **argv) {
 		return error;
 	}
 
-	bool hide_lone_tab = false;
-	if (strcmp(*argv, "--i3") == 0) {
-		hide_lone_tab = true;
-		++argv;
-		--argc;
-	}
-
 	if (!argc) {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
@@ -40,7 +33,6 @@ struct cmd_results *cmd_hide_edge_borders(int argc, char **argv) {
 	} else {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
-	config->hide_lone_tab = hide_lone_tab;
 
 	arrange_root();
 

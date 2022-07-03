@@ -286,7 +286,6 @@ static void config_defaults(struct hayward_config *config) {
 	config->floating_border_thickness = 2;
 	config->hide_edge_borders = E_NONE;
 	config->hide_edge_borders_smart = ESMART_OFF;
-	config->hide_lone_tab = false;
 
 	config->has_focused_tab_title = false;
 

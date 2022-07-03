@@ -290,14 +290,10 @@ void view_autoconfigure(struct hayward_view *view) {
 		// the title, bar, and disable any top border because we'll
 		// always have the title bar.
 		list_t *siblings = window_get_siblings(window);
-		bool show_titlebar = (siblings && siblings->length > 1)
-			|| !config->hide_lone_tab;
-		if (show_titlebar) {
-			enum hayward_column_layout layout = window_parent_layout(window);
-			if (layout == L_STACKED) {
-				y_offset = window_titlebar_height() * siblings->length;
-				window->pending.border_top = false;
-			}
+		enum hayward_column_layout layout = window_parent_layout(window);
+		if (layout == L_STACKED) {
+			y_offset = window_titlebar_height() * siblings->length;
+			window->pending.border_top = false;
 		}
 	}
 

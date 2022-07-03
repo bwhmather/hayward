@@ -539,7 +539,6 @@ struct hayward_config {
 	int floating_border_thickness;
 	enum edge_border_types hide_edge_borders;
 	enum edge_border_smart_types hide_edge_borders_smart;
-	bool hide_lone_tab;
 
 	// border colors
 	struct {

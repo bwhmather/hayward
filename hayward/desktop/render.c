@@ -795,10 +795,6 @@ static void render_column_stacked(struct hayward_output *output, pixman_region32
 }
 
 static void render_column(struct hayward_output *output, pixman_region32_t *damage, struct hayward_column *column) {
-	if (config->hide_lone_tab && column->current.children->length == 1) {
-		render_column_split(output, damage, column);
-	}
-
 	switch (column->current.layout) {
 	case L_NONE:
 	case L_SPLIT:
