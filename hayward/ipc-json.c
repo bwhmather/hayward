@@ -45,10 +45,9 @@ static const char *ipc_json_layout_description(enum hayward_column_layout l) {
 		return "split";
 	case L_STACKED:
 		return "stacked";
-	case L_NONE:
-		break;
 	}
-	return "none";
+	hayward_assert(false, "invalid layout");
+	return NULL;
 }
 
 static const char *ipc_json_border_description(enum hayward_window_border border) {

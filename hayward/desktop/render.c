@@ -380,9 +380,6 @@ static void render_view(struct hayward_output *output, pixman_region32_t *damage
 		render_rect(output, damage, &box, color);
 	}
 
-	list_t *siblings = window_get_current_siblings(window);
-	enum hayward_column_layout layout = window_current_parent_layout(window);
-
 	if (state->border_right) {
 		memcpy(&color, colors->child_border, sizeof(float) * 4);
 		premultiply_alpha(color, window->alpha);
@@ -395,7 +392,7 @@ static void render_view(struct hayward_output *output, pixman_region32_t *damage
 	}
 
 	if (state->border_bottom) {
-		if (!window_is_current_floating(window) && siblings->length == 1 && layout == L_SPLIT) {
+		if (!window_is_current_floating(window) && window_get_current_siblings(window)->length == 1 && window_current_parent_layout(window) == L_SPLIT) {
 			memcpy(&color, colors->indicator, sizeof(float) * 4);
 		} else {
 			memcpy(&color, colors->child_border, sizeof(float) * 4);
@@ -796,7 +793,6 @@ static void render_column_stacked(struct hayward_output *output, pixman_region32
 
 static void render_column(struct hayward_output *output, pixman_region32_t *damage, struct hayward_column *column) {
 	switch (column->current.layout) {
-	case L_NONE:
 	case L_SPLIT:
 		render_column_split(output, damage, column);
 		break;

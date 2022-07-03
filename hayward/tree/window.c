@@ -1219,17 +1219,18 @@ struct hayward_window *window_get_next_sibling(struct hayward_window *window) {
 }
 
 enum hayward_column_layout window_parent_layout(struct hayward_window *window) {
-	if (window->pending.parent) {
-		return window->pending.parent->pending.layout;
+	if (!hayward_assert(window->pending.parent, "Missing parent")) {
+		return L_STACKED;
 	}
-	return L_NONE;
+
+	return window->pending.parent->pending.layout;
 }
 
 enum hayward_column_layout window_current_parent_layout(struct hayward_window *window) {
-	if (window->current.parent) {
-		return window->current.parent->current.layout;
+	if (!hayward_assert(window->current.parent, "Missing parent")) {
+		return L_STACKED;
 	}
-	return L_NONE;
+	return window->current.parent->current.layout;
 }
 
 /**

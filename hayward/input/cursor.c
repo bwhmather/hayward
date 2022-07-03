@@ -84,9 +84,8 @@ struct hayward_window *seat_column_window_at(struct hayward_seat *seat, struct h
 		return seat_column_window_at_split(seat, column, lx, ly);
 	case L_STACKED:
 		return seat_column_window_at_stacked(seat, column, lx, ly);
-	case L_NONE:
-		return NULL;
 	}
+	hayward_assert(false, "invalid layout");
 	return NULL;
 }
 

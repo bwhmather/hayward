@@ -14,42 +14,6 @@
 #include "stringop.h"
 #include "util.h"
 
-static bool get_direction_from_next_prev(struct hayward_window *window,
-		struct hayward_seat *seat, const char *name, enum wlr_direction *out) {
-	enum hayward_column_layout parent_layout = L_NONE;
-	if (window) {
-		parent_layout = window_parent_layout(window);
-	}
-
-	if (strcasecmp(name, "prev") == 0) {
-		switch (parent_layout) {
-		case L_SPLIT:
-		case L_STACKED:
-			*out = WLR_DIRECTION_UP;
-			break;
-		case L_NONE:
-			return true;
-		default:
-			return false;
-		}
-	} else if (strcasecmp(name, "next") == 0) {
-		switch (parent_layout) {
-		case L_SPLIT:
-		case L_STACKED:
-			*out = WLR_DIRECTION_DOWN;
-			break;
-		case L_NONE:
-			return true;
-		default:
-			return false;
-		}
-	} else {
-		return false;
-	}
-
-	return true;
-}
-
 static bool parse_direction(const char *name,
 		enum wlr_direction *out) {
 	if (strcasecmp(name, "left") == 0) {
@@ -362,11 +326,9 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 
 	enum wlr_direction direction = 0;
 	if (!parse_direction(argv[0], &direction)) {
-		if (!get_direction_from_next_prev(window, seat, argv[0], &direction)) {
-			return cmd_results_new(CMD_INVALID,
-				"Expected 'focus <direction|next|prev|mode_toggle|floating|tiling>' "
-				"or 'focus output <direction|name>'");
-		}
+		return cmd_results_new(CMD_INVALID,
+			"Expected 'focus <direction|mode_toggle|floating|tiling>' "
+			"or 'focus output <direction|name>'");
 	}
 
 	if (!direction) {

@@ -8,17 +8,8 @@
 #include "hayward/tree/workspace.h"
 #include "log.h"
 
-static enum hayward_column_layout parse_layout_string(char *s) {
-	if (strcasecmp(s, "split") == 0) {
-		return L_SPLIT;
-	} else if (strcasecmp(s, "stacking") == 0) {
-		return L_STACKED;
-	}
-	return L_NONE;
-}
-
 static const char expected_syntax[] =
-	"Expected 'layout default|stacking|split'";
+	"Expected 'layout stacking|split'";
 
 struct cmd_results *cmd_layout(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -45,14 +36,14 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
 	}
 
+	enum hayward_column_layout old_layout = column->pending.layout;
 
-	enum hayward_column_layout new_layout = L_NONE;
-	enum hayward_column_layout old_layout = L_NONE;
-
-	old_layout = column->pending.layout;
-	new_layout = parse_layout_string(argv[0]);
-
-	if (new_layout == L_NONE) {
+	enum hayward_column_layout new_layout;
+	if (strcasecmp(argv[0], "split") == 0) {
+		new_layout = L_SPLIT;
+	} else if (strcasecmp(argv[0], "stacking") == 0) {
+		new_layout = L_STACKED;
+	} else {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 

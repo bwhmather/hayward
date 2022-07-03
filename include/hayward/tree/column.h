@@ -7,7 +7,6 @@
 #include "hayward/tree/node.h"
 
 enum hayward_column_layout {
-	L_NONE,
 	L_SPLIT,
 	L_STACKED,
 };
