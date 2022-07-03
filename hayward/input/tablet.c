@@ -37,9 +37,7 @@ struct hayward_tablet *hayward_tablet_create(struct hayward_seat *seat,
 		struct hayward_seat_device *device) {
 	struct hayward_tablet *tablet =
 		calloc(1, sizeof(struct hayward_tablet));
-	if (!hayward_assert(tablet, "could not allocate hayward tablet for seat")) {
-		return NULL;
-	}
+	hayward_assert(tablet, "could not allocate hayward tablet for seat");
 
 	wl_list_insert(&seat->cursor->tablets, &tablet->link);
 
@@ -138,9 +136,7 @@ void hayward_tablet_tool_configure(struct hayward_tablet *tablet,
 		struct wlr_tablet_tool *wlr_tool) {
 	struct hayward_tablet_tool *tool =
 		calloc(1, sizeof(struct hayward_tablet_tool));
-	if (!hayward_assert(tool, "could not allocate hayward tablet tool for tablet")) {
-		return;
-	}
+	hayward_assert(tool, "could not allocate hayward tablet tool for tablet");
 
 	switch (wlr_tool->type) {
 	case WLR_TABLET_TOOL_TYPE_LENS:
@@ -242,9 +238,7 @@ struct hayward_tablet_pad *hayward_tablet_pad_create(struct hayward_seat *seat,
 		struct hayward_seat_device *device) {
 	struct hayward_tablet_pad *tablet_pad =
 		calloc(1, sizeof(struct hayward_tablet_pad));
-	if (!hayward_assert(tablet_pad, "could not allocate hayward tablet")) {
-		return NULL;
-	}
+	hayward_assert(tablet_pad, "could not allocate hayward tablet");
 
 	tablet_pad->seat_device = device;
 	wl_list_init(&tablet_pad->attach.link);

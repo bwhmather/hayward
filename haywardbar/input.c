@@ -162,9 +162,7 @@ static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer,
 	struct haywardbar_seat *seat = data;
 	struct haywardbar_pointer *pointer = &seat->pointer;
 	struct haywardbar_output *output = pointer->current;
-	if (!hayward_assert(output, "button with no active output")) {
-		return;
-	}
+	hayward_assert(output, "button with no active output");
 
 	if (check_bindings(seat->bar, button, state)) {
 		return;
@@ -190,9 +188,7 @@ static void workspace_next(struct haywardbar *bar, struct haywardbar_output *out
 			break;
 		}
 	}
-	if (!hayward_assert(active->visible, "axis with null workspace")) {
-		return;
-	}
+	hayward_assert(active->visible, "axis with null workspace");
 
 	struct haywardbar_workspace *new;
 	if (left) {
@@ -241,9 +237,7 @@ static void process_discrete_scroll(struct haywardbar_seat *seat,
 		return;
 	}
 
-	if (!hayward_assert(!wl_list_empty(&output->workspaces), "axis with no workspaces")) {
-		return;
-	}
+	hayward_assert(!wl_list_empty(&output->workspaces), "axis with no workspaces");
 
 	workspace_next(seat->bar, output, amt < 0.0);
 
@@ -272,13 +266,8 @@ static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
 	struct haywardbar_seat *seat = data;
 	struct haywardbar_pointer *pointer = &seat->pointer;
 	struct haywardbar_output *output = pointer->current;
-	if (!hayward_assert(output, "axis with no active output")) {
-		return;
-	}
-
-	if (!hayward_assert(axis < 2, "axis out of range")) {
-		return;
-	}
+	hayward_assert(output, "axis with no active output");
+	hayward_assert(axis < 2, "axis out of range");
 
 	// If there's a while since the last scroll event,
 	// set 'value' to zero as if to reset the "virtual scroll wheel"
@@ -332,9 +321,7 @@ static void wl_pointer_axis_stop(void *data, struct wl_pointer *wl_pointer,
 static void wl_pointer_axis_discrete(void *data, struct wl_pointer *wl_pointer,
 		uint32_t axis, int32_t discrete) {
 	struct haywardbar_seat *seat = data;
-	if (!hayward_assert(axis < 2, "axis out of range")) {
-		return;
-	}
+	hayward_assert(axis < 2, "axis out of range");
 
 	seat->axis[axis].discrete_steps += abs(discrete);
 }

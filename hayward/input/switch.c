@@ -7,9 +7,7 @@ struct hayward_switch *hayward_switch_create(struct hayward_seat *seat,
 		struct hayward_seat_device *device) {
 	struct hayward_switch *switch_device =
 		calloc(1, sizeof(struct hayward_switch));
-	if (!hayward_assert(switch_device, "could not allocate switch")) {
-		return NULL;
-	}
+	hayward_assert(switch_device, "could not allocate switch");
 	device->switch_device = switch_device;
 	switch_device->seat_device = device;
 	switch_device->state = WLR_SWITCH_STATE_OFF;

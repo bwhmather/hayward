@@ -707,9 +707,7 @@ struct hayward_keyboard *hayward_keyboard_create(struct hayward_seat *seat,
 		struct hayward_seat_device *device) {
 	struct hayward_keyboard *keyboard =
 		calloc(1, sizeof(struct hayward_keyboard));
-	if (!hayward_assert(keyboard, "could not allocate hayward keyboard")) {
-		return NULL;
-	}
+	hayward_assert(keyboard, "could not allocate hayward keyboard");
 
 	keyboard->seat_device = device;
 	device->keyboard = keyboard;
@@ -763,9 +761,7 @@ static void handle_xkb_context_log(struct xkb_context *context,
 struct xkb_keymap *hayward_keyboard_compile_keymap(struct input_config *ic,
 		char **error) {
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-	if (!hayward_assert(context, "cannot create XKB context")) {
-		return NULL;
-	}
+	hayward_assert(context, "cannot create XKB context");
 	xkb_context_set_user_data(context, error);
 	xkb_context_set_log_fn(context, handle_xkb_context_log);
 
@@ -970,10 +966,10 @@ static void hayward_keyboard_group_add(struct hayward_keyboard *keyboard) {
 	wl_signal_add(&hayward_group->wlr_group->keyboard.events.modifiers,
 			&hayward_group->keyboard_modifiers);
 	hayward_group->keyboard_modifiers.notify = handle_keyboard_group_modifiers;
-	
+
 	wl_signal_add(&hayward_group->wlr_group->events.enter, &hayward_group->enter);
 	hayward_group->enter.notify = handle_keyboard_group_enter;
-	
+
 	wl_signal_add(&hayward_group->wlr_group->events.leave, &hayward_group->leave);
 	hayward_group->leave.notify = handle_keyboard_group_leave;
 	return;
@@ -994,11 +990,9 @@ void hayward_keyboard_configure(struct hayward_keyboard *keyboard) {
 	struct wlr_input_device *wlr_device =
 		keyboard->seat_device->input_device->wlr_device;
 
-	if (!hayward_assert(!wlr_keyboard_group_from_wlr_keyboard(wlr_device->keyboard),
+	hayward_assert(!wlr_keyboard_group_from_wlr_keyboard(wlr_device->keyboard),
 				"hayward_keyboard_configure should not be called with a "
-				"keyboard group's keyboard")) {
-		return;
-	}
+				"keyboard group's keyboard");
 
 	struct xkb_keymap *keymap = hayward_keyboard_compile_keymap(input_config, NULL);
 	if (!keymap) {

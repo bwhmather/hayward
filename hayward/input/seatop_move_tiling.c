@@ -152,12 +152,7 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 	}
 
 	// TODO possible if window is global fullscreen.
-	if (!hayward_assert(target_workspace && target_window, "Mouse over unowned workspace")) {
-		e->target_workspace = NULL;
-		e->target_window = NULL;
-		e->target_edge = WLR_EDGE_NONE;
-		return;
-	}
+	hayward_assert(target_workspace && target_window, "Mouse over unowned workspace");
 
 	// Moving window to itself should be a no-op.
 	if (e->target_window == e->moving_window) {

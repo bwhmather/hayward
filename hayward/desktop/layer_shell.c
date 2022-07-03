@@ -163,10 +163,9 @@ static void arrange_layer(struct hayward_output *output, struct wl_list *list,
 		} else if ((state->anchor & ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM)) {
 			box.y -= state->margin.bottom;
 		}
-		if (!hayward_assert(box.width >= 0 && box.height >= 0,
-				"Expected layer surface to have positive size")) {
-			continue;
-		}
+		hayward_assert(box.width >= 0 && box.height >= 0,
+				"Expected layer surface to have positive size");
+
 		// Apply
 		hayward_layer->geo = box;
 		apply_exclusive(usable_area, state->anchor, state->exclusive_zone,

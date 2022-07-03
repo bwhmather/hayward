@@ -208,9 +208,7 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat,
 	if (seat == NULL) {
 		// passing a NULL seat means we just pick the default seat
 		seat = input_manager_get_default_seat();
-		if (!hayward_assert(seat, "could not find a seat to run the command on")) {
-			return NULL;
-		}
+		hayward_assert(seat, "could not find a seat to run the command on");
 	}
 
 	char *exec = strdup(_exec);

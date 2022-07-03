@@ -441,9 +441,7 @@ static bool scan_out_fullscreen_view(struct hayward_output *output,
 		struct hayward_view *view) {
 	struct wlr_output *wlr_output = output->wlr_output;
 	struct hayward_workspace *workspace = output->current.active_workspace;
-	if (!hayward_assert(workspace, "Expected an active workspace")) {
-		return false;
-	}
+	hayward_assert(workspace, "Expected an active workspace");
 
 	if (!wl_list_empty(&view->saved_buffers)) {
 		return false;

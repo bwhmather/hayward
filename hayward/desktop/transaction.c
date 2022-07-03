@@ -44,9 +44,8 @@ struct hayward_transaction_instruction {
 static struct hayward_transaction *transaction_create(void) {
 	struct hayward_transaction *transaction =
 		calloc(1, sizeof(struct hayward_transaction));
-	if (!hayward_assert(transaction, "Unable to allocate transaction")) {
-		return NULL;
-	}
+	hayward_assert(transaction, "Unable to allocate transaction");
+
 	transaction->instructions = create_list();
 	return transaction;
 }
@@ -64,8 +63,7 @@ static void transaction_destroy(struct hayward_transaction *transaction) {
 		if (node->destroying && node->ntxnrefs == 0) {
 			switch (node->type) {
 			case N_ROOT:
-				hayward_assert(false, "Never reached");
-				break;
+				hayward_abort("Never reached");
 			case N_OUTPUT:
 				output_destroy(node->hayward_output);
 				break;
@@ -187,9 +185,8 @@ static void transaction_add_node(struct hayward_transaction *transaction,
 
 	if (!instruction) {
 		instruction = calloc(1, sizeof(struct hayward_transaction_instruction));
-		if (!hayward_assert(instruction, "Unable to allocate instruction")) {
-			return;
-		}
+		hayward_assert(instruction, "Unable to allocate instruction");
+
 		instruction->transaction = transaction;
 		instruction->node = node;
 		instruction->server_request = server_request;

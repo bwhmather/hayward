@@ -89,9 +89,7 @@ void list_move_to_end(list_t *list, void *item) {
 			break;
 		}
 	}
-	if (!hayward_assert(i < list->length, "Item not found in list")) {
-		return;
-	}
+	hayward_assert(i < list->length, "Item not found in list");
 	list_del(list, i);
 	list_add(list, item);
 }

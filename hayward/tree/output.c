@@ -111,9 +111,7 @@ struct hayward_output *output_create(struct wlr_output *wlr_output) {
 }
 
 void output_enable(struct hayward_output *output) {
-	if (!hayward_assert(!output->enabled, "output is already enabled")) {
-		return;
-	}
+	hayward_assert(!output->enabled, "output is already enabled");
 	struct wlr_output *wlr_output = output->wlr_output;
 	output->enabled = true;
 	list_add(root->outputs, output);
@@ -148,9 +146,7 @@ void output_enable(struct hayward_output *output) {
 static void evacuate_sticky(struct hayward_workspace *old_workspace,
 		struct hayward_output *new_output) {
 	struct hayward_workspace *new_workspace = output_get_active_workspace(new_output);
-	if (!hayward_assert(new_workspace, "New output does not have a workspace")) {
-		return;
-	}
+	hayward_assert(new_workspace, "New output does not have a workspace");
 	while(old_workspace->floating->length) {
 		struct hayward_window *sticky = old_workspace->floating->items[0];
 		window_detach(sticky);
@@ -219,18 +215,12 @@ static void output_evacuate(struct hayward_output *output) {
 }
 
 void output_destroy(struct hayward_output *output) {
-	if (!hayward_assert(output->node.destroying,
-				"Tried to free output which wasn't marked as destroying")) {
-		return;
-	}
-	if (!hayward_assert(output->wlr_output == NULL,
-				"Tried to free output which still had a wlr_output")) {
-		return;
-	}
-	if (!hayward_assert(output->node.ntxnrefs == 0, "Tried to free output "
-				"which is still referenced by transactions")) {
-		return;
-	}
+	hayward_assert(output->node.destroying,
+				"Tried to free output which wasn't marked as destroying");
+	hayward_assert(output->wlr_output == NULL,
+				"Tried to free output which still had a wlr_output");
+	hayward_assert(output->node.ntxnrefs == 0, "Tried to free output "
+				"which is still referenced by transactions");
 	list_free(output->workspaces);
 	list_free(output->current.workspaces);
 	wl_event_source_remove(output->repaint_timer);
@@ -246,13 +236,10 @@ static void untrack_output(struct hayward_window *container, void *data) {
 }
 
 void output_disable(struct hayward_output *output) {
-	if (!hayward_assert(output->enabled, "Expected an enabled output")) {
-		return;
-	}
+	hayward_assert(output->enabled, "Expected an enabled output");
+
 	int index = list_find(root->outputs, output);
-	if (!hayward_assert(index >= 0, "Output not found in root node")) {
-		return;
-	}
+	hayward_assert(index >= 0, "Output not found in root node");
 
 	hayward_log(HAYWARD_DEBUG, "Disabling output '%s'", output->wlr_output->name);
 	wl_signal_emit(&output->events.disable, output);
@@ -275,9 +262,7 @@ void output_disable(struct hayward_output *output) {
 }
 
 void output_begin_destroy(struct hayward_output *output) {
-	if (!hayward_assert(!output->enabled, "Expected a disabled output")) {
-		return;
-	}
+	hayward_assert(!output->enabled, "Expected a disabled output");
 	hayward_log(HAYWARD_DEBUG, "Destroying output '%s'", output->wlr_output->name);
 	wl_signal_emit(&output->node.events.destroy, &output->node);
 
@@ -291,9 +276,7 @@ struct hayward_output *output_from_wlr_output(struct wlr_output *output) {
 
 struct hayward_output *output_get_in_direction(struct hayward_output *reference,
 		enum wlr_direction direction) {
-	if (!hayward_assert(direction, "got invalid direction: %d", direction)) {
-		return NULL;
-	}
+	hayward_assert(direction, "got invalid direction: %d", direction);
 	struct wlr_box output_box;
 	wlr_output_layout_get_box(root->output_layout, reference->wlr_output, &output_box);
 	int lx = output_box.x + output_box.width / 2;

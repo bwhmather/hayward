@@ -330,13 +330,13 @@ int main(int argc, char **argv) {
 	// As the 'callback' function for wlr_log is equivalent to that for
 	// hayward, we do not need to override it.
 	if (debug) {
-		hayward_log_init(HAYWARD_DEBUG, hayward_terminate);
+		hayward_log_init(HAYWARD_DEBUG);
 		wlr_log_init(WLR_DEBUG, handle_wlr_log);
 	} else if (verbose) {
-		hayward_log_init(HAYWARD_INFO, hayward_terminate);
+		hayward_log_init(HAYWARD_INFO);
 		wlr_log_init(WLR_INFO, handle_wlr_log);
 	} else {
-		hayward_log_init(HAYWARD_ERROR, hayward_terminate);
+		hayward_log_init(HAYWARD_ERROR);
 		wlr_log_init(WLR_ERROR, handle_wlr_log);
 	}
 

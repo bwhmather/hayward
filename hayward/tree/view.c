@@ -46,18 +46,12 @@ void view_init(struct hayward_view *view, enum hayward_view_type type,
 }
 
 void view_destroy(struct hayward_view *view) {
-	if (!hayward_assert(view->surface == NULL, "Tried to free mapped view")) {
-		return;
-	}
-	if (!hayward_assert(view->destroying,
-				"Tried to free view which wasn't marked as destroying")) {
-		return;
-	}
-	if (!hayward_assert(view->window == NULL,
+	hayward_assert(view->surface == NULL, "Tried to free mapped view");
+	hayward_assert(view->destroying,
+				"Tried to free view which wasn't marked as destroying");
+	hayward_assert(view->window == NULL,
 				"Tried to free view which still has a container "
-				"(might have a pending transaction?)")) {
-		return;
-	}
+				"(might have a pending transaction?)");
 	wl_list_remove(&view->events.unmap.listener_list);
 	if (!wl_list_empty(&view->saved_buffers)) {
 		view_remove_saved_buffer(view);
@@ -74,9 +68,7 @@ void view_destroy(struct hayward_view *view) {
 }
 
 void view_begin_destroy(struct hayward_view *view) {
-	if (!hayward_assert(view->surface == NULL, "Tried to destroy a mapped view")) {
-		return;
-	}
+	hayward_assert(view->surface == NULL, "Tried to destroy a mapped view");
 	view->destroying = true;
 
 	if (!view->window) {
@@ -571,8 +563,7 @@ static struct hayward_workspace *select_workspace(struct hayward_view *view) {
 
 	// When there's no outputs connected, the above should match a workspace on
 	// the noop output.
-	hayward_assert(false, "Expected to find a workspace");
-	return NULL;
+	hayward_abort("Expected to find a workspace");
 }
 
 static bool should_focus(struct hayward_view *view) {
@@ -680,9 +671,7 @@ static void handle_foreign_destroy(
 void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 			  bool fullscreen, struct wlr_output *fullscreen_output,
 			  bool decoration) {
-	if (!hayward_assert(view->surface == NULL, "cannot map mapped view")) {
-		return;
-	}
+	hayward_assert(view->surface == NULL, "cannot map mapped view");
 	view->surface = wlr_surface;
 	view_populate_pid(view);
 	view->window = window_create(view);
@@ -698,9 +687,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 	if (!workspace) {
 		workspace = select_workspace(view);
 	}
-	if (!hayward_assert(workspace, "Could not find workspace to map view to")) {
-		return;
-	}
+	hayward_assert(workspace, "Could not find workspace to map view to");
 
 	view->foreign_toplevel =
 		wlr_foreign_toplevel_handle_v1_create(server.foreign_toplevel_manager);
@@ -776,7 +763,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 	if (fullscreen) {
 		// Fullscreen windows still have to have a place as regular
 		// tiling or floating windows, so this does not make the
-		// previous logic unnecessary. 
+		// previous logic unnecessary.
 		window_set_fullscreen(view->window, true);
 	}
 
@@ -886,10 +873,7 @@ static void subsurface_get_view_coords(struct hayward_view_child *child,
 }
 
 static void subsurface_destroy(struct hayward_view_child *child) {
-	if (!hayward_assert(child->impl == &subsurface_impl,
-			"Expected a subsurface")) {
-		return;
-	}
+	hayward_assert(child->impl == &subsurface_impl, "Expected a subsurface");
 	struct hayward_subsurface *subsurface = (struct hayward_subsurface *)child;
 	wl_list_remove(&subsurface->destroy.link);
 	free(subsurface);
@@ -1241,9 +1225,7 @@ void view_update_title(struct hayward_view *view, bool force) {
 	if (title) {
 		size_t len = parse_title_format(view, NULL);
 		char *buffer = calloc(len + 1, sizeof(char));
-		if (!hayward_assert(buffer, "Unable to allocate title string")) {
-			return;
-		}
+		hayward_assert(buffer, "Unable to allocate title string");
 		parse_title_format(view, buffer);
 
 		view->window->title = strdup(title);
@@ -1328,9 +1310,7 @@ bool view_is_urgent(struct hayward_view *view) {
 }
 
 void view_remove_saved_buffer(struct hayward_view *view) {
-	if (!hayward_assert(!wl_list_empty(&view->saved_buffers), "Expected a saved buffer")) {
-		return;
-	}
+	hayward_assert(!wl_list_empty(&view->saved_buffers), "Expected a saved buffer");
 	struct hayward_saved_buffer *saved_buf, *tmp;
 	wl_list_for_each_safe(saved_buf, tmp, &view->saved_buffers, link) {
 		wlr_buffer_unlock(&saved_buf->buffer->base);
@@ -1358,9 +1338,7 @@ static void view_save_buffer_iterator(struct wlr_surface *surface,
 }
 
 void view_save_buffer(struct hayward_view *view) {
-	if (!hayward_assert(wl_list_empty(&view->saved_buffers), "Didn't expect saved buffer")) {
-		view_remove_saved_buffer(view);
-	}
+	hayward_assert(wl_list_empty(&view->saved_buffers), "Didn't expect saved buffer");
 	view_for_each_surface(view, view_save_buffer_iterator, view);
 }
 

@@ -46,8 +46,7 @@ static const char *ipc_json_layout_description(enum hayward_column_layout l) {
 	case L_STACKED:
 		return "stacked";
 	}
-	hayward_assert(false, "invalid layout");
-	return NULL;
+	hayward_abort("invalid layout");
 }
 
 static const char *ipc_json_border_description(enum hayward_window_border border) {
@@ -251,9 +250,8 @@ static void ipc_json_describe_output(struct hayward_output *output,
 		json_object_new_string(adaptive_sync_status));
 
 	struct hayward_workspace *workspace = output_get_active_workspace(output);
-	if (!hayward_assert(workspace, "Expected output to have a workspace")) {
-		return;
-	}
+	hayward_assert(workspace, "Expected output to have a workspace");
+
 	json_object_object_add(object, "current_workspace",
 			json_object_new_string(workspace->name));
 
@@ -896,9 +894,7 @@ static json_object *describe_libinput_device(struct libinput_device *device) {
 }
 
 json_object *ipc_json_describe_input(struct hayward_input_device *device) {
-	if (!(hayward_assert(device, "Device must not be null"))) {
-		return NULL;
-	}
+	hayward_assert(device, "Device must not be null");
 
 	json_object *object = json_object_new_object();
 
@@ -918,10 +914,10 @@ json_object *ipc_json_describe_input(struct hayward_input_device *device) {
 		struct wlr_keyboard *keyboard = device->wlr_device->keyboard;
 		struct xkb_keymap *keymap = keyboard->keymap;
 		struct xkb_state *state = keyboard->xkb_state;
-		
-		json_object_object_add(object, "repeat_delay", 
+
+		json_object_object_add(object, "repeat_delay",
 			json_object_new_int(keyboard->repeat_info.delay));
-		json_object_object_add(object, "repeat_rate", 
+		json_object_object_add(object, "repeat_rate",
 			json_object_new_int(keyboard->repeat_info.rate));
 
 		json_object *layouts_arr = json_object_new_array();
@@ -948,11 +944,11 @@ json_object *ipc_json_describe_input(struct hayward_input_device *device) {
 	if (device->wlr_device->type == WLR_INPUT_DEVICE_POINTER) {
 		struct input_config *ic = input_device_get_config(device);
 		float scroll_factor = 1.0f;
-		if (ic != NULL && !isnan(ic->scroll_factor) && 
+		if (ic != NULL && !isnan(ic->scroll_factor) &&
 				ic->scroll_factor != FLT_MIN) {
 			scroll_factor = ic->scroll_factor;
 		}
-		json_object_object_add(object, "scroll_factor", 
+		json_object_object_add(object, "scroll_factor",
 				json_object_new_double(scroll_factor));
 	}
 
@@ -967,9 +963,7 @@ json_object *ipc_json_describe_input(struct hayward_input_device *device) {
 }
 
 json_object *ipc_json_describe_seat(struct hayward_seat *seat) {
-	if (!(hayward_assert(seat, "Seat must not be null"))) {
-		return NULL;
-	}
+	hayward_assert(seat, "Seat must not be null");
 
 	json_object *object = json_object_new_object();
 	struct hayward_node *focus = seat_get_focus(seat);
@@ -1017,9 +1011,7 @@ static uint32_t event_to_x11_button(uint32_t event) {
 }
 
 json_object *ipc_json_describe_bar_config(struct bar_config *bar) {
-	if (!hayward_assert(bar, "Bar must not be NULL")) {
-		return NULL;
-	}
+	hayward_assert(bar, "Bar must not be NULL");
 
 	json_object *json = json_object_new_object();
 	json_object_object_add(json, "id", json_object_new_string(bar->id));

@@ -95,10 +95,8 @@ void hayward_idle_inhibit_v1_user_inhibitor_destroy(
 	if (!inhibitor) {
 		return;
 	}
-	if (!hayward_assert(inhibitor->mode != INHIBIT_IDLE_APPLICATION,
-				"User should not be able to destroy application inhibitor")) {
-		return;
-	}
+	hayward_assert(inhibitor->mode != INHIBIT_IDLE_APPLICATION,
+				"User should not be able to destroy application inhibitor");
 	destroy_inhibitor(inhibitor);
 }
 

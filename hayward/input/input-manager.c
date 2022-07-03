@@ -195,9 +195,7 @@ static void handle_device_destroy(struct wl_listener *listener, void *data) {
 
 	struct hayward_input_device *input_device = input_hayward_device_from_wlr(device);
 
-	if (!hayward_assert(input_device, "could not find hayward device")) {
-		return;
-	}
+	hayward_assert(input_device, "could not find hayward device");
 
 	hayward_log(HAYWARD_DEBUG, "removing device: '%s'",
 		input_device->identifier);
@@ -222,9 +220,7 @@ static void handle_new_input(struct wl_listener *listener, void *data) {
 
 	struct hayward_input_device *input_device =
 		calloc(1, sizeof(struct hayward_input_device));
-	if (!hayward_assert(input_device, "could not allocate input device")) {
-		return;
-	}
+	hayward_assert(input_device, "could not allocate input device");
 	device->data = input_device;
 
 	input_device->wlr_device = device;
@@ -328,10 +324,7 @@ static void handle_keyboard_shortcuts_inhibit_new_inhibitor(
 
 	struct hayward_keyboard_shortcuts_inhibitor *hayward_inhibitor =
 		calloc(1, sizeof(struct hayward_keyboard_shortcuts_inhibitor));
-	if (!hayward_assert(hayward_inhibitor, "could not allocate keyboard "
-				"shortcuts inhibitor")) {
-		return;
-	}
+	hayward_assert(hayward_inhibitor, "could not allocate keyboard shortcuts inhibitor");
 	hayward_inhibitor->inhibitor = inhibitor;
 
 	hayward_inhibitor->destroy.notify = handle_keyboard_shortcuts_inhibitor_destroy;
@@ -390,9 +383,7 @@ void handle_virtual_keyboard(struct wl_listener *listener, void *data) {
 
 	struct hayward_input_device *input_device =
 		calloc(1, sizeof(struct hayward_input_device));
-	if (!hayward_assert(input_device, "could not allocate input device")) {
-		return;
-	}
+	hayward_assert(input_device, "could not allocate input device");
 	device->data = input_device;
 
 	input_device->is_virtual = true;
@@ -422,9 +413,7 @@ void handle_virtual_pointer(struct wl_listener *listener, void *data) {
 
 	struct hayward_input_device *input_device =
 		calloc(1, sizeof(struct hayward_input_device));
-	if (!hayward_assert(input_device, "could not allocate input device")) {
-		return;
-	}
+	hayward_assert(input_device, "could not allocate input device");
 	device->data = input_device;
 
 	input_device->is_virtual = true;

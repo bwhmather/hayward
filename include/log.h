@@ -1,6 +1,7 @@
 #ifndef _HAYWARD_LOG_H
 #define _HAYWARD_LOG_H
 
+#include <stdnoreturn.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <string.h>
@@ -20,20 +21,16 @@ typedef enum {
 #define ATTRIB_PRINTF(start, end)
 #endif
 
-void error_handler(int sig);
-
-typedef void (*terminate_callback_t)(int exit_code);
-
 // Will log all messages less than or equal to `verbosity`
 // The `terminate` callback is called by `hayward_abort`
-void hayward_log_init(hayward_log_importance_t verbosity, terminate_callback_t terminate);
+void hayward_log_init(hayward_log_importance_t verbosity);
 
 void _hayward_vlog(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) ATTRIB_PRINTF(4, 0);
 void _hayward_log(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) ATTRIB_PRINTF(4, 5);
 void _hayward_vlog_errno(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) ATTRIB_PRINTF(4, 0);
 void _hayward_log_errno(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) ATTRIB_PRINTF(4, 5);
-void _hayward_abort(const char *filename, long int lineno, const char *format, ...) ATTRIB_PRINTF(3, 4);
-bool _hayward_assert(bool condition, const char *filename, long int lineno, const char *function, const char* format, ...) ATTRIB_PRINTF(5, 6);
+noreturn void _hayward_abort(const char *filename, long int lineno, const char *format, ...) ATTRIB_PRINTF(3, 4);
+void _hayward_assert(bool condition, const char *filename, long int lineno, const char *function, const char* format, ...) ATTRIB_PRINTF(5, 6);
 
 #ifdef HAYWARD_REL_SRC_DIR
 // strip prefix from __FILE__, leaving the path relative to the project root

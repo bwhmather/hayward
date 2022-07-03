@@ -29,11 +29,7 @@ struct cmd_results *cmd_sticky(int argc, char **argv) {
 		// move window to active workspace
 		struct hayward_workspace *active_workspace =
 			output_get_active_workspace(window->pending.workspace->output);
-		if (!hayward_assert(active_workspace,
-					"Expected output to have a workspace")) {
-			return cmd_results_new(CMD_FAILURE,
-					"Expected output to have a workspace");
-		}
+		hayward_assert(active_workspace, "Expected output to have a workspace");
 		if (window->pending.workspace != active_workspace) {
 			struct hayward_workspace *old_workspace = window->pending.workspace;
 			window_detach(window);

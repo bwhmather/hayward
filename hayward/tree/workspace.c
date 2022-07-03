@@ -119,14 +119,10 @@ struct hayward_workspace *workspace_create(struct hayward_output *output,
 }
 
 void workspace_destroy(struct hayward_workspace *workspace) {
-	if (!hayward_assert(workspace->node.destroying,
-				"Tried to free workspace which wasn't marked as destroying")) {
-		return;
-	}
-	if (!hayward_assert(workspace->node.ntxnrefs == 0, "Tried to free workspace "
-				"which is still referenced by transactions")) {
-		return;
-	}
+	hayward_assert(workspace->node.destroying,
+				"Tried to free workspace which wasn't marked as destroying");
+	hayward_assert(workspace->node.ntxnrefs == 0, "Tried to free workspace "
+				"which is still referenced by transactions");
 
 	free(workspace->name);
 	list_free_items_and_destroy(workspace->output_priority);
@@ -851,13 +847,6 @@ void workspace_add_gaps(struct hayward_workspace *workspace) {
 	workspace->y += workspace->current_gaps.top;
 	workspace->width -= workspace->current_gaps.left + workspace->current_gaps.right;
 	workspace->height -= workspace->current_gaps.top + workspace->current_gaps.bottom;
-}
-
-struct hayward_window *workspace_split(struct hayward_workspace *workspace,
-		enum hayward_column_layout layout) {
-	hayward_assert(false, "workspace_split is deprecated");
-
-	return NULL;
 }
 
 void workspace_get_box(struct hayward_workspace *workspace, struct wlr_box *box) {

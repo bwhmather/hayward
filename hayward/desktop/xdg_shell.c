@@ -33,10 +33,8 @@ static void popup_get_view_coords(struct hayward_view_child *child,
 }
 
 static void popup_destroy(struct hayward_view_child *child) {
-	if (!hayward_assert(child->impl == &popup_impl,
-			"Expected an xdg_shell popup")) {
-		return;
-	}
+	hayward_assert(child->impl == &popup_impl,
+			"Expected an xdg_shell popup");
 	struct hayward_xdg_popup *popup = (struct hayward_xdg_popup *)child;
 	wl_list_remove(&popup->new_popup.link);
 	wl_list_remove(&popup->destroy.link);
@@ -109,10 +107,8 @@ static struct hayward_xdg_popup *popup_create(
 
 static struct hayward_xdg_shell_view *xdg_shell_view_from_view(
 		struct hayward_view *view) {
-	if (!hayward_assert(view->type == HAYWARD_VIEW_XDG_SHELL,
-			"Expected xdg_shell view")) {
-		return NULL;
-	}
+	hayward_assert(view->type == HAYWARD_VIEW_XDG_SHELL,
+			"Expected xdg_shell view");
 	return (struct hayward_xdg_shell_view *)view;
 }
 
@@ -385,9 +381,7 @@ static void handle_unmap(struct wl_listener *listener, void *data) {
 		wl_container_of(listener, xdg_shell_view, unmap);
 	struct hayward_view *view = &xdg_shell_view->view;
 
-	if (!hayward_assert(view->surface, "Cannot unmap unmapped view")) {
-		return;
-	}
+	hayward_assert(view->surface, "Cannot unmap unmapped view");
 
 	view_unmap(view);
 
@@ -466,9 +460,7 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_xdg_shell_view *xdg_shell_view =
 		wl_container_of(listener, xdg_shell_view, destroy);
 	struct hayward_view *view = &xdg_shell_view->view;
-	if (!hayward_assert(view->surface == NULL, "Tried to destroy a mapped view")) {
-		return;
-	}
+	hayward_assert(view->surface == NULL, "Tried to destroy a mapped view");
 	wl_list_remove(&xdg_shell_view->destroy.link);
 	wl_list_remove(&xdg_shell_view->map.link);
 	wl_list_remove(&xdg_shell_view->unmap.link);
@@ -498,9 +490,7 @@ void handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
 
 	struct hayward_xdg_shell_view *xdg_shell_view =
 		calloc(1, sizeof(struct hayward_xdg_shell_view));
-	if (!hayward_assert(xdg_shell_view, "Failed to allocate view")) {
-		return;
-	}
+	hayward_assert(xdg_shell_view, "Failed to allocate view");
 
 	view_init(&xdg_shell_view->view, HAYWARD_VIEW_XDG_SHELL, &view_impl);
 	xdg_shell_view->view.wlr_xdg_toplevel = xdg_surface->toplevel;

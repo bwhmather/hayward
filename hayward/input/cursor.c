@@ -85,8 +85,7 @@ struct hayward_window *seat_column_window_at(struct hayward_seat *seat, struct h
 	case L_STACKED:
 		return seat_column_window_at_stacked(seat, column, lx, ly);
 	}
-	hayward_assert(false, "invalid layout");
-	return NULL;
+	hayward_abort("Invalid layout");
 }
 
 static struct hayward_window *seat_tiling_window_at(struct hayward_seat *seat, double lx, double ly) {
@@ -358,8 +357,7 @@ void seat_get_target_at(
 		*wsp = node->hayward_workspace;
 		break;
 	default:
-		hayward_assert(false, "node_at_coords returned unsupported node type");
-		break;
+		hayward_abort("node_at_coords returned unsupported node type");
 	}
 
 }
@@ -1274,15 +1272,10 @@ void hayward_cursor_destroy(struct hayward_cursor *cursor) {
 
 struct hayward_cursor *hayward_cursor_create(struct hayward_seat *seat) {
 	struct hayward_cursor *cursor = calloc(1, sizeof(struct hayward_cursor));
-	if (!hayward_assert(cursor, "could not allocate hayward cursor")) {
-		return NULL;
-	}
+	hayward_assert(cursor, "could not allocate hayward cursor");
 
 	struct wlr_cursor *wlr_cursor = wlr_cursor_create();
-	if (!hayward_assert(wlr_cursor, "could not allocate wlr cursor")) {
-		free(cursor);
-		return NULL;
-	}
+	hayward_assert(wlr_cursor, "could not allocate wlr cursor");
 
 	cursor->previous.x = wlr_cursor->x;
 	cursor->previous.y = wlr_cursor->y;

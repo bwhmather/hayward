@@ -22,10 +22,7 @@ struct cmd_results *cmd_titlebar_border_thickness(int argc, char **argv) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct hayward_output *output = root->outputs->items[i];
 		struct hayward_workspace *workspace = output_get_active_workspace(output);
-		if (!hayward_assert(workspace, "Expected output to have a workspace")) {
-			return cmd_results_new(CMD_FAILURE,
-					"Expected output to have a workspace");
-		}
+		hayward_assert(workspace, "Expected output to have a workspace");
 		arrange_workspace(workspace);
 		output_damage_whole(output);
 	}

@@ -48,7 +48,7 @@ static void swap_places(struct hayward_window *window1,
 	} else if (window_is_floating(window2)) {
 		workspace_add_floating(window2->pending.workspace, window1);
 	} else {
-		hayward_assert(false, "Window must either be floating or have a parent");
+		hayward_abort("Window must either be floating or have a parent");
 	}
 
 	window_detach(window2);
@@ -57,7 +57,7 @@ static void swap_places(struct hayward_window *window1,
 	} else if (temp_floating) {
 		workspace_add_floating(temp->pending.workspace, window2);
 	} else {
-		hayward_assert(false, "Window must either be floating or have a parent");
+		hayward_abort("Window must either be floating or have a parent");
 	}
 
 	free(temp);
@@ -97,9 +97,7 @@ static void swap_focus(struct hayward_window *window1,
 }
 
 void window_swap(struct hayward_window *window1, struct hayward_window *window2) {
-	if (!hayward_assert(window1 && window2, "Cannot swap with nothing")) {
-		return;
-	}
+	hayward_assert(window1 && window2, "Cannot swap with nothing");
 
 	hayward_log(HAYWARD_DEBUG, "Swapping containers %zu and %zu",
 			window1->node.id, window2->node.id);
@@ -119,10 +117,8 @@ void window_swap(struct hayward_window *window1, struct hayward_window *window2)
 		output_get_active_workspace(window1->pending.workspace->output);
 	struct hayward_workspace *vis2 =
 		output_get_active_workspace(window2->pending.workspace->output);
-	if (!hayward_assert(vis1 && vis2, "window1 or window2 are on an output without a"
-				"workspace. This should not happen")) {
-		return;
-	}
+	hayward_assert(vis1 && vis2, "window1 or window2 are on an output without a"
+				"workspace. This should not happen");
 
 	char *stored_prev_name = NULL;
 	if (seat->prev_workspace_name) {

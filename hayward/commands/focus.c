@@ -41,9 +41,7 @@ static struct hayward_node *get_node_in_output_direction(
 		struct hayward_output *output, enum wlr_direction dir) {
 	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_workspace *workspace = output_get_active_workspace(output);
-	if (!hayward_assert(workspace, "Expected output to have a workspace")) {
-		return NULL;
-	}
+	hayward_assert(workspace, "Expected output to have a workspace");
 	if (workspace->fullscreen) {
 		return &workspace->fullscreen->node;
 	}
@@ -350,9 +348,8 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	if (!hayward_assert(window, "Expected container to be non null")) {
-		return cmd_results_new(CMD_FAILURE, "");
-	}
+	hayward_assert(window, "Expected container to be non null");
+
 	struct hayward_node *next_focus = NULL;
 	if (window_is_floating(window) &&
 			window->pending.fullscreen_mode == FULLSCREEN_NONE) {

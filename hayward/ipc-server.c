@@ -557,9 +557,7 @@ int ipc_client_handle_writable(int client_fd, uint32_t mask, void *data) {
 }
 
 void ipc_client_disconnect(struct ipc_client *client) {
-	if (!hayward_assert(client != NULL, "client != NULL")) {
-		return;
-	}
+	hayward_assert(client != NULL, "client != NULL");
 
 	shutdown(client->fd, SHUT_RDWR);
 
@@ -607,9 +605,7 @@ static void ipc_get_marks_callback(struct hayward_window *container, void *data)
 
 void ipc_client_handle_command(struct ipc_client *client, uint32_t payload_length,
 		ipc_command_type payload_type) {
-	if (!hayward_assert(client != NULL, "client != NULL")) {
-		return;
-	}
+	hayward_assert(client != NULL, "client != NULL");
 
 	char *buf = malloc(payload_length + 1);
 	if (!buf) {

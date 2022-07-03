@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include "log.h"
 
-static terminate_callback_t log_terminate = exit;
-
 static bool colored = true;
 static hayward_log_importance_t log_importance = HAYWARD_ERROR;
 static struct timespec start_time = {-1, -1};
@@ -72,14 +70,11 @@ static void hayward_print_location_stderr(const char *filename, long int lineno,
 
 }
 
-void hayward_log_init(hayward_log_importance_t verbosity, terminate_callback_t callback) {
+void hayward_log_init(hayward_log_importance_t verbosity) {
 	init_start_time();
 
 	if (verbosity < HAYWARD_LOG_IMPORTANCE_LAST) {
 		log_importance = verbosity;
-	}
-	if (callback) {
-		log_terminate = callback;
 	}
 }
 
@@ -127,17 +122,19 @@ void _hayward_log_errno(hayward_log_importance_t verbosity, const char *filename
 	va_end(args);
 }
 
-void _hayward_abort(const char *filename, long int lineno, const char *format, ...) {
+noreturn void _hayward_abort(const char *filename, long int lineno, const char *format, ...) {
 	va_list args;
 	va_start(args, format);
 	_hayward_vlog(HAYWARD_ERROR, filename, lineno, format, args);
 	va_end(args);
-	log_terminate(EXIT_FAILURE);
+
+	raise(SIGABRT);
+	exit(1);
 }
 
-bool _hayward_assert(bool condition, const char *filename, long int lineno, const char *function, const char *format, ...) {
+void _hayward_assert(bool condition, const char *filename, long int lineno, const char *function, const char *format, ...) {
 	if (condition) {
-		return true;
+		return;
 	}
 
 	hayward_print_verbosity_stderr(HAYWARD_ERROR);
@@ -151,10 +148,7 @@ bool _hayward_assert(bool condition, const char *filename, long int lineno, cons
 
 	fprintf(stderr, "\n");
 
-#ifndef NDEBUG
 	raise(SIGABRT);
-#endif
-
-	return false;
+	exit(1);
 }
 

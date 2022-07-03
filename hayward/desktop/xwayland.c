@@ -200,10 +200,7 @@ static struct hayward_xwayland_unmanaged *create_unmanaged(
 
 static struct hayward_xwayland_view *xwayland_view_from_view(
 		struct hayward_view *view) {
-	if (!hayward_assert(view->type == HAYWARD_VIEW_XWAYLAND,
-			"Expected xwayland view")) {
-		return NULL;
-	}
+	hayward_assert(view->type == HAYWARD_VIEW_XWAYLAND, "Expected xwayland view");
 	return (struct hayward_xwayland_view *)view;
 }
 
@@ -480,9 +477,7 @@ static void handle_unmap(struct wl_listener *listener, void *data) {
 		wl_container_of(listener, xwayland_view, unmap);
 	struct hayward_view *view = &xwayland_view->view;
 
-	if (!hayward_assert(view->surface, "Cannot unmap unmapped view")) {
-		return;
-	}
+	hayward_assert(view->surface, "Cannot unmap unmapped view");
 
 	view_unmap(view);
 
@@ -708,9 +703,7 @@ struct hayward_xwayland_view *create_xwayland_view(struct wlr_xwayland_surface *
 
 	struct hayward_xwayland_view *xwayland_view =
 		calloc(1, sizeof(struct hayward_xwayland_view));
-	if (!hayward_assert(xwayland_view, "Failed to allocate view")) {
-		return NULL;
-	}
+	hayward_assert(xwayland_view, "Failed to allocate view");
 
 	view_init(&xwayland_view->view, HAYWARD_VIEW_XWAYLAND, &view_impl);
 	xwayland_view->view.wlr_xwayland_surface = xsurface;

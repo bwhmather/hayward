@@ -52,14 +52,10 @@ struct hayward_column *column_create(void) {
 }
 
 void column_destroy(struct hayward_column *column) {
-	if (!hayward_assert(column->node.destroying,
-				"Tried to free column which wasn't marked as destroying")) {
-		return;
-	}
-	if (!hayward_assert(column->node.ntxnrefs == 0, "Tried to free column "
-				"which is still referenced by transactions")) {
-		return;
-	}
+	hayward_assert(column->node.destroying,
+				"Tried to free column which wasn't marked as destroying");
+	hayward_assert(column->node.ntxnrefs == 0, "Tried to free column "
+				"which is still referenced by transactions");
 	list_free(column->pending.children);
 	list_free(column->current.children);
 	list_free(column->outputs);
@@ -126,10 +122,8 @@ struct hayward_window *column_find_child(struct hayward_column *column,
 
 void column_insert_child(struct hayward_column *parent,
 		struct hayward_window *child, int i) {
-	if (!hayward_assert(!child->pending.workspace && !child->pending.parent,
-			"Windows must be detatched before they can be added to a column")) {
-		window_detach(child);
-	}
+	hayward_assert(!child->pending.workspace && !child->pending.parent,
+			"Windows must be detatched before they can be added to a column");
 	list_insert(parent->pending.children, i, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
@@ -138,10 +132,8 @@ void column_insert_child(struct hayward_column *parent,
 
 void column_add_sibling(struct hayward_window *fixed,
 		struct hayward_window *active, bool after) {
-	if (!hayward_assert(!active->pending.workspace && !active->pending.parent,
-			"Windows must be detatched before they can be added to a column")) {
-		window_detach(active);
-	}
+	hayward_assert(!active->pending.workspace && !active->pending.parent,
+			"Windows must be detatched before they can be added to a column");
 
 	list_t *siblings = window_get_siblings(fixed);
 	int index = list_find(siblings, fixed);
@@ -153,10 +145,8 @@ void column_add_sibling(struct hayward_window *fixed,
 
 void column_add_child(struct hayward_column *parent,
 		struct hayward_window *child) {
-	if (!hayward_assert(!child->pending.workspace && !child->pending.workspace,
-			"Windows must be detatched before they can be added to a column")) {
-		window_detach(child);
-	}
+	hayward_assert(!child->pending.workspace && !child->pending.workspace,
+			"Windows must be detatched before they can be added to a column");
 	list_add(parent->pending.children, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
@@ -217,9 +207,7 @@ list_t *column_get_current_siblings(struct hayward_column *column) {
 }
 
 struct hayward_column *column_get_previous_sibling(struct hayward_column *column) {
-	if (!hayward_assert(column->pending.workspace, "Column is not attached to a workspace")) {
-		return NULL;
-	}
+	hayward_assert(column->pending.workspace, "Column is not attached to a workspace");
 
 	list_t *siblings = column->pending.workspace->tiling;
 	int index = list_find(siblings, column);
@@ -232,9 +220,7 @@ struct hayward_column *column_get_previous_sibling(struct hayward_column *column
 }
 
 struct hayward_column *column_get_next_sibling(struct hayward_column *column) {
-	if (!hayward_assert(column->pending.workspace, "Column is not attached to a workspace")) {
-		return NULL;
-	}
+	hayward_assert(column->pending.workspace, "Column is not attached to a workspace");
 
 	list_t *siblings = column->pending.workspace->tiling;
 	int index = list_find(siblings, column);

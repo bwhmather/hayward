@@ -13,21 +13,14 @@ struct seat_config *new_seat_config(const char* name) {
 	}
 
 	seat->name = strdup(name);
-	if (!hayward_assert(seat->name, "could not allocate name for seat")) {
-		free(seat);
-		return NULL;
-	}
+	hayward_assert(seat->name, "could not allocate name for seat");
 
 	seat->idle_inhibit_sources = seat->idle_wake_sources = UINT32_MAX;
 
 	seat->fallback = -1;
 	seat->attachments = create_list();
-	if (!hayward_assert(seat->attachments,
-				"could not allocate seat attachments list")) {
-		free(seat->name);
-		free(seat);
-		return NULL;
-	}
+	hayward_assert(seat->attachments,
+				"could not allocate seat attachments list");
 	seat->hide_cursor_timeout = -1;
 	seat->hide_cursor_when_typing = HIDE_WHEN_TYPING_DEFAULT;
 	seat->allow_constrain = CONSTRAIN_DEFAULT;

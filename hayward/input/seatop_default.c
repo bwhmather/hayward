@@ -63,11 +63,11 @@ static bool window_edge_is_external(struct hayward_window *window, enum wlr_edge
 	if (layout == L_STACKED) {
 		return true;
        	}
-	
+
 	list_t *siblings = window_get_siblings(window);
 	int index = list_find(siblings, window);
 	hayward_assert(index >= 0, "Window not found");
-	
+
 	if (edge == WLR_EDGE_TOP && index == 0) {
 		return true;
 	}
@@ -237,10 +237,8 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 		&surface, &sx, &sy
 	);
 
-	if (!hayward_assert(surface,
-			"Expected null-surface tablet input to route through pointer emulation")) {
-		return;
-	}
+	hayward_assert(surface,
+			"Expected null-surface tablet input to route through pointer emulation");
 
 	if (wlr_surface_is_layer_surface(surface)) {
 		// Handle tapping a layer surface.

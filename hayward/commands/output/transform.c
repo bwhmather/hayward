@@ -63,9 +63,7 @@ struct cmd_results *output_cmd_transform(int argc, char **argv) {
 			return cmd_results_new(CMD_INVALID,
 				"Relative transforms cannot be used in the configuration file");
 		}
-		if (!hayward_assert(output->name != NULL, "Output config name not set")) {
-			return NULL;
-		}
+		hayward_assert(output->name != NULL, "Output config name not set");
 		if (strcmp(output->name, "*") == 0) {
 			return cmd_results_new(CMD_INVALID,
 				"Cannot apply relative transform to all outputs.");

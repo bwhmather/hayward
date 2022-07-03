@@ -68,9 +68,9 @@ int main(int argc, char **argv) {
 	}
 
 	if (debug) {
-		hayward_log_init(HAYWARD_DEBUG, NULL);
+		hayward_log_init(HAYWARD_DEBUG);
 	} else {
-		hayward_log_init(HAYWARD_INFO, NULL);
+		hayward_log_init(HAYWARD_INFO);
 	}
 
 	if (!haywardbar.id) {

@@ -182,9 +182,7 @@ static void seat_tablet_pads_notify_enter(struct hayward_seat *seat,
  * keyboard input on any.
  */
 static void seat_send_focus(struct hayward_node *node, struct hayward_seat *seat) {
-	if (!hayward_assert(node_is_view(node), "Can only focus windows")) {
-		return;
-	}
+	hayward_assert(node_is_view(node), "Can only focus windows");
 
 	if (!seat_is_input_allowed(seat, node->hayward_window->view->surface)) {
 		hayward_log(HAYWARD_DEBUG, "Refusing to set focus, input is inhibited");
@@ -255,14 +253,10 @@ static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_seat *seat = seat_workspace->seat;
 	struct hayward_node *node = data;
 
-	if (!hayward_assert(node->type == N_WORKSPACE, "Expected workspace")) {
-		return;
-	}
+	hayward_assert(node->type == N_WORKSPACE, "Expected workspace");
 	struct hayward_workspace *workspace = node->hayward_workspace;
 
-	if (!hayward_assert(workspace == seat_workspace->workspace, "Destroy handler registered for different workspace")) {
-		return;
-	}
+	hayward_assert(workspace == seat_workspace->workspace, "Destroy handler registered for different workspace");
 
 	seat_workspace_destroy(seat_workspace);
 
@@ -675,10 +669,7 @@ struct hayward_seat *seat_create(const char *seat_name) {
 	}
 
 	seat->wlr_seat = wlr_seat_create(server.wl_display, seat_name);
-	if (!hayward_assert(seat->wlr_seat, "could not allocate seat")) {
-		free(seat);
-		return NULL;
-	}
+	hayward_assert(seat->wlr_seat, "could not allocate seat");
 	seat->wlr_seat->data = seat;
 
 	seat->cursor = hayward_cursor_create(seat);
@@ -1237,16 +1228,12 @@ static void seat_set_active_window(struct hayward_seat *seat, struct hayward_win
 }
 
 void seat_set_raw_focus(struct hayward_seat *seat, struct hayward_node *node) {
-	if (!hayward_assert(node->type == N_WINDOW, "Expected window")) {
-		return;
-	}
+	hayward_assert(node->type == N_WINDOW, "Expected window");
 	seat_set_active_window(seat, node->hayward_window);
 }
 
 static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_workspace *new_workspace, struct hayward_window *new_window) {
-	if (!hayward_assert(!new_window || new_window->pending.workspace == new_workspace, "Window workspace does not match expected")) {
-		return;
-	}
+	hayward_assert(!new_window || new_window->pending.workspace == new_workspace, "Window workspace does not match expected");
 
  	if (wl_list_empty(&seat->active_workspace_stack)) {
 		hayward_assert(new_workspace == NULL, "Can't focus non-existant workspace");
@@ -1254,9 +1241,7 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 		return;
 	}
 
-	if (!hayward_assert(new_workspace != NULL, "Cannot focus null workspace")) {
-		return;
-	}
+	hayward_assert(new_workspace != NULL, "Cannot focus null workspace");
 
 	if (seat->focused_layer) {
 		struct wlr_layer_surface_v1 *layer = seat->focused_layer;

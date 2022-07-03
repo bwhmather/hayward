@@ -389,7 +389,7 @@ int main(int argc, char **argv) {
 	char *socket_path = NULL;
 	char *cmdtype = NULL;
 
-	hayward_log_init(HAYWARD_INFO, NULL);
+	hayward_log_init(HAYWARD_INFO);
 
 	static const struct option long_options[] = {
 		{"help", no_argument, NULL, 'h'},

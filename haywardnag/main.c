@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 	if (status != 0)  {
 		goto cleanup;
 	}
-	hayward_log_init(debug ? HAYWARD_DEBUG : HAYWARD_ERROR, NULL);
+	hayward_log_init(debug ? HAYWARD_DEBUG : HAYWARD_ERROR);
 
 	if (!config_path) {
 		config_path = haywardnag_get_config_path();

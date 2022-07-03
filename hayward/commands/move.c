@@ -82,9 +82,7 @@ static bool window_move_to_next_output(struct hayward_window *window,
 		output_get_in_direction(output, move_dir);
 	if (next_output) {
 		struct hayward_workspace *workspace = output_get_active_workspace(next_output);
-		if (!hayward_assert(workspace, "Expected output to have a workspace")) {
-			return false;
-		}
+		hayward_assert(workspace, "Expected output to have a workspace");
 		switch (window->pending.fullscreen_mode) {
 		case FULLSCREEN_NONE:
 			window_move_to_workspace_from_direction(window, workspace, move_dir);
@@ -364,10 +362,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	case N_OUTPUT: {
 			struct hayward_output *output = destination->hayward_output;
 			struct hayward_workspace *workspace = output_get_active_workspace(output);
-			if (!hayward_assert(workspace, "Expected output to have a workspace")) {
-				return cmd_results_new(CMD_FAILURE,
-						"Expected output to have a workspace");
-			}
+			hayward_assert(workspace, "Expected output to have a workspace");
 			window_move_to_workspace(window, workspace);
 		}
 		break;
@@ -385,10 +380,8 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	// restore focus on destination output back to its last active workspace
 	struct hayward_workspace *new_workspace = new_output ?
 		output_get_active_workspace(new_output) : NULL;
-	if (new_output &&
-			!hayward_assert(new_workspace, "Expected output to have a workspace")) {
-		return cmd_results_new(CMD_FAILURE,
-				"Expected output to have a workspace");
+	if (new_output) {
+		hayward_assert(new_workspace, "Expected output to have a workspace");
 	}
 
 	if (new_output_last_workspace && new_output_last_workspace != new_workspace) {
@@ -439,9 +432,7 @@ static void workspace_move_to_output(struct hayward_workspace *workspace,
 	workspace_detach(workspace);
 	struct hayward_workspace *new_output_old_workspace =
 		output_get_active_workspace(output);
-	if (!hayward_assert(new_output_old_workspace, "Expected output to have a workspace")) {
-		return;
-	}
+	hayward_assert(new_output_old_workspace, "Expected output to have a workspace");
 
 	output_add_workspace(output, workspace);
 
@@ -720,8 +711,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 	case MOVEMENT_UNIT_DEFAULT:
 		break;
 	case MOVEMENT_UNIT_INVALID:
-		hayward_assert(false, "invalid x unit");
-		break;
+		hayward_abort("Invalid x unit");
 	}
 
 	switch (ly.unit) {
@@ -738,8 +728,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 	case MOVEMENT_UNIT_DEFAULT:
 		break;
 	case MOVEMENT_UNIT_INVALID:
-		hayward_assert(false, "invalid y unit");
-		break;
+		hayward_abort("invalid y unit");
 	}
 	if (!absolute) {
 		lx.amount += workspace->x;
