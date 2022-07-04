@@ -102,18 +102,12 @@ static void arrange_column_stacked(struct hayward_column *column) {
 	column_get_box(column, &box);
 
 	list_t *children = column->pending.children;
-
-	if (!children->length) {
-		return;
-	}
 	for (int i = 0; i < children->length; ++i) {
 		struct hayward_window *child = children->items[i];
-		int parent_offset = child->view ?  0 :
-			window_titlebar_height() * children->length;
 		child->pending.x = box.x;
-		child->pending.y = box.y + parent_offset;
+		child->pending.y = box.y;
 		child->pending.width = box.width;
-		child->pending.height = box.height - parent_offset;
+		child->pending.height = box.height;
 	}
 }
 

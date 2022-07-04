@@ -242,6 +242,7 @@ void view_autoconfigure(struct hayward_view *view) {
 	window->pending.border_top = window->pending.border_bottom = true;
 	window->pending.border_left = window->pending.border_right = true;
 	double y_offset = 0;
+	double y_allocation = window->pending.height;
 
 	if (!window_is_floating(window) && workspace) {
 		if (config->hide_edge_borders == E_BOTH
@@ -278,7 +279,8 @@ void view_autoconfigure(struct hayward_view *view) {
 		list_t *siblings = window_get_siblings(window);
 		enum hayward_column_layout layout = window_parent_layout(window);
 		if (layout == L_STACKED) {
-			y_offset = window_titlebar_height() * siblings->length;
+			y_offset = window_titlebar_height() * (1 + list_find(siblings, window));
+			y_allocation -= window_titlebar_height() * siblings->length;
 			window->pending.border_top = false;
 		}
 	}
@@ -291,7 +293,7 @@ void view_autoconfigure(struct hayward_view *view) {
 		x = window->pending.x;
 		y = window->pending.y + y_offset;
 		width = window->pending.width;
-		height = window->pending.height - y_offset;
+		height = y_allocation;
 		break;
 	case B_PIXEL:
 		x = window->pending.x + window->pending.border_thickness * window->pending.border_left;
@@ -299,7 +301,7 @@ void view_autoconfigure(struct hayward_view *view) {
 		width = window->pending.width
 			- window->pending.border_thickness * window->pending.border_left
 			- window->pending.border_thickness * window->pending.border_right;
-		height = window->pending.height - y_offset
+		height = y_allocation
 			- window->pending.border_thickness * window->pending.border_top
 			- window->pending.border_thickness * window->pending.border_bottom;
 		break;
@@ -311,7 +313,7 @@ void view_autoconfigure(struct hayward_view *view) {
 			- window->pending.border_thickness * window->pending.border_right;
 		if (y_offset) {
 			y = window->pending.y + y_offset;
-			height = window->pending.height - y_offset
+			height = y_allocation
 				- window->pending.border_thickness * window->pending.border_bottom;
 		} else {
 			y = window->pending.y + window_titlebar_height();

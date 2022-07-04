@@ -751,6 +751,8 @@ static void render_column_stacked(struct hayward_output *output, pixman_region32
 	struct border_colors *current_colors = &config->border_colors.unfocused;
 	size_t titlebar_height = window_titlebar_height();
 
+	int y_offset = column->current.y;
+
 	// Render titles
 	for (int i = 0; i < column->current.children->length; ++i) {
 		struct hayward_window *child = column->current.children->items[i];
@@ -778,12 +780,14 @@ static void render_column_stacked(struct hayward_output *output, pixman_region32
 			marks_texture = child->marks_unfocused;
 		}
 
-		int y = column->current.y + titlebar_height * i;
-		render_titlebar(output, damage, child, column->current.x, y,
+		render_titlebar(output, damage, child, column->current.x, y_offset,
 				column->current.width, colors, title_texture, marks_texture);
+
+		y_offset += titlebar_height;
 
 		if (child == current) {
 			current_colors = colors;
+			y_offset += column->current.height - titlebar_height * column->current.children->length;
 		}
 	}
 
