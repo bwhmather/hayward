@@ -307,13 +307,11 @@ static void output_for_each_surface(struct hayward_output *output,
 	};
 
 	struct hayward_workspace *workspace = output_get_active_workspace(output);
-	struct hayward_window *fullscreen_window = root->fullscreen_global;
-	if (!fullscreen_window) {
-		if (!workspace) {
-			return;
-		}
-		fullscreen_window = workspace->current.fullscreen;
+	if (!workspace) {
+		return;
 	}
+	struct hayward_window *fullscreen_window = workspace->current.fullscreen;
+		fullscreen_window = workspace->current.fullscreen;
 	if (fullscreen_window) {
 		for_each_surface_container_iterator(fullscreen_window, &data);
 
@@ -512,10 +510,7 @@ static int output_repaint_timer_handler(void *data) {
 		return 0;
 	}
 
-	struct hayward_window *fullscreen_window = root->fullscreen_global;
-	if (!fullscreen_window) {
-		fullscreen_window = workspace->current.fullscreen;
-	}
+	struct hayward_window *fullscreen_window = workspace->current.fullscreen;
 
 	if (fullscreen_window && !debug.noscanout) {
 		// Try to scan-out the fullscreen view

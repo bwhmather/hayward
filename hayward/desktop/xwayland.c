@@ -590,8 +590,7 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
 	if (!xsurface->mapped) {
 		return;
 	}
-	if (!window_is_floating(view->window) ||
-			view->window->pending.fullscreen_mode) {
+	if (!window_is_floating(view->window) || view->window->pending.fullscreen) {
 		return;
 	}
 	struct hayward_seat *seat = input_manager_current_seat();

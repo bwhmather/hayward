@@ -88,7 +88,7 @@ static enum wlr_edges find_edge(struct hayward_window *cont,
 			cont->pending.border == B_CSD) {
 		return WLR_EDGE_NONE;
 	}
-	if (cont->pending.fullscreen_mode) {
+	if (cont->pending.fullscreen) {
 		return WLR_EDGE_NONE;
 	}
 
@@ -264,7 +264,7 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 
 		// Handle moving a tiled window.
 		if (config->tiling_drag && mod_pressed && !is_floating_or_child &&
-				window->pending.fullscreen_mode == FULLSCREEN_NONE) {
+				!window->pending.fullscreen) {
 			seatop_begin_move_tiling(seat, window);
 			return;
 		}
@@ -480,7 +480,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	// Handle moving a tiling container
 	if (config->tiling_drag && (mod_pressed || on_titlebar) &&
 			state == WLR_BUTTON_PRESSED && !is_floating &&
-			window && window->pending.fullscreen_mode == FULLSCREEN_NONE) {
+			window && !window->pending.fullscreen) {
 		// TODO with focus follows mouse, is there ever a situation where this will
 		// actually be triggered.
 		struct hayward_window *focus = seat_get_focused_container(seat);

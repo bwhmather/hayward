@@ -49,11 +49,7 @@ struct cmd_results *cmd_layout(int argc, char **argv) {
 
 	if (new_layout != old_layout) {
 		column->pending.layout = new_layout;
-		if (root->fullscreen_global) {
-			arrange_root();
-		} else {
-			arrange_workspace(workspace);
-		}
+		arrange_workspace(workspace);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

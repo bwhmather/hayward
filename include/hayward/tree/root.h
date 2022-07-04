@@ -32,8 +32,6 @@ struct hayward_root {
 	// For when there's no connected outputs
 	struct hayward_output *fallback_output;
 
-	struct hayward_window *fullscreen_global;
-
 	struct {
 		struct wl_signal new_node;
 	} events;

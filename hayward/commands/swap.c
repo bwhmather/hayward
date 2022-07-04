@@ -89,11 +89,6 @@ static void swap_focus(struct hayward_window *window1,
 	} else {
 		seat_set_focus_window(seat, focus);
 	}
-
-	if (root->fullscreen_global) {
-		seat_set_focus(seat,
-				seat_get_focus_inactive(seat, &root->fullscreen_global->node));
-	}
 }
 
 void window_swap(struct hayward_window *window1, struct hayward_window *window2) {
@@ -102,13 +97,13 @@ void window_swap(struct hayward_window *window1, struct hayward_window *window2)
 	hayward_log(HAYWARD_DEBUG, "Swapping containers %zu and %zu",
 			window1->node.id, window2->node.id);
 
-	enum hayward_fullscreen_mode fs1 = window1->pending.fullscreen_mode;
+	bool fs1 = window1->pending.fullscreen;
 	if (fs1) {
-		window_fullscreen_disable(window1);
+		window_set_fullscreen(window1, false);
 	}
-	enum hayward_fullscreen_mode fs2 = window2->pending.fullscreen_mode;
+	bool fs2 = window2->pending.fullscreen;
 	if (fs2) {
-		window_fullscreen_disable(window2);
+		window_set_fullscreen(window2, false);
 	}
 
 	struct hayward_seat *seat = config->handler_context.seat;
@@ -141,12 +136,8 @@ void window_swap(struct hayward_window *window1, struct hayward_window *window2)
 		seat->prev_workspace_name = stored_prev_name;
 	}
 
-	if (fs1) {
-		window_set_fullscreen(window2, fs1);
-	}
-	if (fs2) {
-		window_set_fullscreen(window1, fs2);
-	}
+	window_set_fullscreen(window2, fs1);
+	window_set_fullscreen(window1, fs2);
 }
 
 static bool test_container_id(struct hayward_window *container, void *data) {
@@ -222,17 +213,13 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 
 	window_swap(current, other);
 
-	if (root->fullscreen_global) {
-		arrange_root();
-	} else {
-		struct hayward_node *current_parent = node_get_parent(&current->node);
-		struct hayward_node *other_parent = node_get_parent(&other->node);
-		if (current_parent) {
-			arrange_node(current_parent);
-		}
-		if (other_parent && current_parent != other_parent) {
-			arrange_node(other_parent);
-		}
+	struct hayward_node *current_parent = node_get_parent(&current->node);
+	struct hayward_node *other_parent = node_get_parent(&other->node);
+	if (current_parent) {
+		arrange_node(current_parent);
+	}
+	if (other_parent && current_parent != other_parent) {
+		arrange_node(other_parent);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

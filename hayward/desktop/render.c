@@ -851,7 +851,7 @@ static void render_floating(struct hayward_output *soutput,
 			}
 			for (int k = 0; k < workspace->current.floating->length; ++k) {
 				struct hayward_window *floater = workspace->current.floating->items[k];
-				if (floater->current.fullscreen_mode != FULLSCREEN_NONE) {
+				if (floater->current.fullscreen) {
 					continue;
 				}
 				render_floating_window(soutput, damage, floater);
@@ -878,10 +878,7 @@ void output_render(struct hayward_output *output, struct timespec *when,
 		return;
 	}
 
-	struct hayward_window *fullscreen_container = root->fullscreen_global;
-	if (!fullscreen_container) {
-		fullscreen_container = workspace->current.fullscreen;
-	}
+	struct hayward_window *fullscreen_container = workspace->current.fullscreen;
 
 	wlr_renderer_begin(renderer, wlr_output->width, wlr_output->height);
 

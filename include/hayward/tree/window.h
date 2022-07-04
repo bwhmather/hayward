@@ -14,12 +14,6 @@ enum hayward_window_border {
 	B_CSD,
 };
 
-enum hayward_fullscreen_mode {
-	FULLSCREEN_NONE,
-	FULLSCREEN_WORKSPACE,
-	FULLSCREEN_GLOBAL,
-};
-
 struct hayward_seat;
 struct hayward_root;
 struct hayward_output;
@@ -31,7 +25,7 @@ struct hayward_window_state {
 	double x, y;
 	double width, height;
 
-	enum hayward_fullscreen_mode fullscreen_mode;
+	bool fullscreen;
 
 	struct hayward_workspace *workspace;
 	struct hayward_column *parent;
@@ -228,10 +222,7 @@ void window_update_title_textures(struct hayward_window *window);
  */
 size_t window_titlebar_height(void);
 
-void window_set_fullscreen(struct hayward_window *window,
-		enum hayward_fullscreen_mode mode);
-
-void window_fullscreen_disable(struct hayward_window *window);
+void window_set_fullscreen(struct hayward_window *window, bool enabled);
 
 void window_handle_fullscreen_reparent(struct hayward_window *window);
 

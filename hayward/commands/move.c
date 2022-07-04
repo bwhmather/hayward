@@ -80,35 +80,26 @@ static bool window_move_to_next_output(struct hayward_window *window,
 		struct hayward_output *output, enum wlr_direction move_dir) {
 	struct hayward_output *next_output =
 		output_get_in_direction(output, move_dir);
-	if (next_output) {
-		struct hayward_workspace *workspace = output_get_active_workspace(next_output);
-		hayward_assert(workspace, "Expected output to have a workspace");
-		switch (window->pending.fullscreen_mode) {
-		case FULLSCREEN_NONE:
-			window_move_to_workspace_from_direction(window, workspace, move_dir);
-			return true;
-		case FULLSCREEN_WORKSPACE:
-			window_move_to_workspace(window, workspace);
-			return true;
-		case FULLSCREEN_GLOBAL:
-			return false;
-		}
+	if (!next_output) {
+		return false;
 	}
-	return false;
+	struct hayward_workspace *workspace = output_get_active_workspace(next_output);
+	hayward_assert(workspace, "Expected output to have a workspace");
+	if (window->pending.fullscreen) {
+		window_move_to_workspace(window, workspace);
+	} else {
+		window_move_to_workspace_from_direction(window, workspace, move_dir);
+	}
+	return true;
 }
 
 // Returns true if moved
 static bool window_move_in_direction(struct hayward_window *window,
 		enum wlr_direction move_dir) {
 	// If moving a fullscreen view, only consider outputs
-	switch (window->pending.fullscreen_mode) {
-	case FULLSCREEN_NONE:
-		break;
-	case FULLSCREEN_WORKSPACE:
+	if (window->pending.fullscreen) {
 		return window_move_to_next_output(window,
 				window->pending.workspace->output, move_dir);
-	case FULLSCREEN_GLOBAL:
-		return false;
 	}
 
 	if (window_is_floating(window)) {
@@ -207,11 +198,6 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		return cmd_results_new(CMD_FAILURE, "Can only move windows");
 	}
 
-	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		return cmd_results_new(CMD_FAILURE,
-				"Can't move fullscreen global window");
-	}
-
 	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_column *old_parent = window->pending.parent;
 	struct hayward_workspace *old_workspace = window->pending.workspace;
@@ -308,16 +294,12 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 
 
 		// Re-arrange windows
-		if (root->fullscreen_global) {
-			arrange_root();
-		} else {
-			if (old_workspace && !old_workspace->node.destroying) {
-				arrange_workspace(old_workspace);
-			}
-			// TODO (hayward) it should often be possible to get away without rearranging
-			// the entire workspace.
-			arrange_workspace(workspace);
+		if (old_workspace && !old_workspace->node.destroying) {
+			arrange_workspace(old_workspace);
 		}
+		// TODO (hayward) it should often be possible to get away without rearranging
+		// the entire workspace.
+		arrange_workspace(workspace);
 
 		return cmd_results_new(CMD_SUCCESS, NULL);
 
@@ -411,14 +393,11 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	}
 
 	// arrange windows
-	if (root->fullscreen_global) {
-		arrange_root();
-	} else {
-		if (old_workspace && !old_workspace->node.destroying) {
-			arrange_workspace(old_workspace);
-		}
-		arrange_node(node_get_parent(destination));
+	arrange_root();
+	if (old_workspace && !old_workspace->node.destroying) {
+		arrange_workspace(old_workspace);
 	}
+	arrange_node(node_get_parent(destination));
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -509,7 +488,7 @@ static struct cmd_results *cmd_move_in_direction(
 				"Cannot move workspaces in a direction");
 	}
 	if (window_is_floating(window)) {
-		if (window->pending.fullscreen_mode) {
+		if (window->pending.fullscreen) {
 			return cmd_results_new(CMD_FAILURE,
 					"Cannot move fullscreen floating window");
 		}
@@ -550,13 +529,9 @@ static struct cmd_results *cmd_move_in_direction(
 
 	struct hayward_workspace *new_workspace = window->pending.workspace;
 
-	if (root->fullscreen_global) {
-		arrange_root();
-	} else {
-		arrange_workspace(old_workspace);
-		if (new_workspace != old_workspace) {
-			arrange_workspace(new_workspace);
-		}
+	arrange_workspace(old_workspace);
+	if (new_workspace != old_workspace) {
+		arrange_workspace(new_workspace);
 	}
 
 	ipc_event_window(window, "move");

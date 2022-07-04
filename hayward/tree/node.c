@@ -155,10 +155,6 @@ list_t *node_get_children(struct hayward_node *node) {
 }
 
 bool node_has_ancestor(struct hayward_node *node, struct hayward_node *ancestor) {
-	if (ancestor->type == N_ROOT && node->type == N_WINDOW &&
-			node->hayward_window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		return true;
-	}
 	struct hayward_node *parent = node_get_parent(node);
 	while (parent) {
 		if (parent == ancestor) {

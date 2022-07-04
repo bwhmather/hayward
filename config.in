@@ -144,7 +144,7 @@ output * bg @datadir@/backgrounds/hayward/Hayward_Wallpaper_Blue_1920x1080.png f
     bindsym $mod+d layout split
 
     # Make the current focus fullscreen
-    bindsym $mod+f fullscreen
+    bindsym $mod+f fullscreen toggle
 
     # Toggle the current focus between tiling and floating mode
     bindsym $mod+Shift+space floating toggle

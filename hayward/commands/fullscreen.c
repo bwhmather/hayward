@@ -8,7 +8,8 @@
 #include "hayward/tree/workspace.h"
 #include "util.h"
 
-// fullscreen [enable|disable|toggle] [global]
+static const char expected_syntax[] = "Expected `fullscreen [enable|disable|toggle]`";
+
 struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 	struct cmd_results *error = NULL;
 	if ((error = checkarg(argc, "fullscreen", EXPECTED_AT_MOST, 2))) {
@@ -25,29 +26,27 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	bool is_fullscreen = window->pending.fullscreen_mode != FULLSCREEN_NONE;
-	bool global = false;
-	bool enable = !is_fullscreen;
+	bool is_fullscreen = window->pending.fullscreen;
 
-	if (argc >= 1) {
-		if (strcasecmp(argv[0], "global") == 0) {
-			global = true;
-		} else {
-			enable = parse_boolean(argv[0], is_fullscreen);
-		}
+	if (argc != 1) {
+		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	if (argc >= 2) {
-		global = strcasecmp(argv[1], "global") == 0;
+	bool enable;
+	if (strcasecmp(argv[0], "toggle") == 0) {
+		enable = !is_fullscreen;
+	} else if (strcasecmp(argv[0], "enable") == 0) {
+		enable = true;
+	} else if (strcasecmp(argv[0], "disable") == 0) {
+		enable = false;
+	} else {
+		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
 
-	enum hayward_fullscreen_mode mode = FULLSCREEN_NONE;
-	if (enable) {
-		mode = global ? FULLSCREEN_GLOBAL : FULLSCREEN_WORKSPACE;
+	if (enable != is_fullscreen) {
+		window_set_fullscreen(window, enable);
+		arrange_root();
 	}
-
-	window_set_fullscreen(window, mode);
-	arrange_root();
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

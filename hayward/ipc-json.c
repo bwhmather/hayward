@@ -379,7 +379,7 @@ static void window_get_deco_rect(struct hayward_window *window, struct wlr_box *
 
 	if (((parent_layout != L_STACKED || window_is_floating(window)) &&
 				window->current.border != B_NORMAL) ||
-			window->pending.fullscreen_mode != FULLSCREEN_NONE ||
+			window->pending.fullscreen ||
 			window->pending.workspace == NULL) {
 		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
 		return;
@@ -540,7 +540,7 @@ static void ipc_json_describe_window(struct hayward_window *window, json_object 
 	json_object_object_add(object, "sticky", json_object_new_boolean(window->is_sticky));
 
 	json_object_object_add(object, "fullscreen_mode",
-			json_object_new_int(window->pending.fullscreen_mode));
+			json_object_new_int(window->pending.fullscreen));
 
 	struct hayward_node *parent = node_get_parent(&window->node);
 	struct wlr_box parent_box = {0, 0, 0, 0};

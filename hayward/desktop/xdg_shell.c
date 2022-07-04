@@ -352,7 +352,7 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
 		wl_container_of(listener, xdg_shell_view, request_move);
 	struct hayward_view *view = &xdg_shell_view->view;
 	if (!window_is_floating(view->window) ||
-			view->window->pending.fullscreen_mode) {
+			view->window->pending.fullscreen) {
 		return;
 	}
 	struct wlr_xdg_toplevel_move_event *e = data;

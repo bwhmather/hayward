@@ -264,14 +264,6 @@ static struct hayward_node *node_at_coords(
 	}
 #endif
 
-	if (root->fullscreen_global) {
-		// Try fullscreen container
-		if ((*surface = window_surface_at(root->fullscreen_global, lx, ly, sx, sy))) {
-			return &root->fullscreen_global->node;
-		}
-		return NULL;
-	}
-
 	// find the focused workspace on the output for this seat
 	struct hayward_workspace *workspace = output_get_active_workspace(output);
 	if (!workspace) {

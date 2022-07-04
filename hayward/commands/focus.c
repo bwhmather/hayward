@@ -81,7 +81,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 		enum wlr_direction dir) {
 	struct hayward_window *wrap_candidate = NULL;
 
-	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+	if (window->pending.fullscreen) {
 		// Fullscreen container with a direction - go straight to outputs
 		struct hayward_output *output = window->pending.workspace->output;
 		struct hayward_output *new_output =
@@ -90,9 +90,6 @@ static struct hayward_node *node_get_in_direction_tiling(
 			return NULL;
 		}
 		return get_node_in_output_direction(new_output, dir);
-	}
-	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		return NULL;
 	}
 
 	// TODO (hayward) this is a manually unrolled recursion over container.  Make it nice.
@@ -299,7 +296,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		// need to exit fullscreen so that the newly focused container becomes visible
 		struct hayward_window *obstructing = window_obstructing_fullscreen_window(window);
 		if (obstructing) {
-			window_fullscreen_disable(obstructing);
+			window_set_fullscreen(obstructing, false);
 			arrange_root();
 		}
 		seat_set_focus_window(seat, window);
@@ -351,8 +348,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	hayward_assert(window, "Expected container to be non null");
 
 	struct hayward_node *next_focus = NULL;
-	if (window_is_floating(window) &&
-			window->pending.fullscreen_mode == FULLSCREEN_NONE) {
+	if (window_is_floating(window) && !window->pending.fullscreen) {
 		next_focus = node_get_in_direction_floating(window, seat, direction);
 	} else {
 		next_focus = node_get_in_direction_tiling(window, seat, direction);

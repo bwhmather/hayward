@@ -85,7 +85,7 @@ void window_begin_destroy(struct hayward_window *window) {
 
 	// The workspace must have the fullscreen pointer cleared so that the
 	// seat code can find an appropriate new focus.
-	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE && window->pending.workspace) {
+	if (window->pending.fullscreen && window->pending.workspace) {
 		window->pending.workspace->fullscreen = NULL;
 	}
 
@@ -96,21 +96,14 @@ void window_begin_destroy(struct hayward_window *window) {
 	window->node.destroying = true;
 	node_set_dirty(&window->node);
 
-	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		window_fullscreen_disable(window);
-	}
-
 	if (window->pending.parent || window->pending.workspace) {
 		window_detach(window);
 	}
 }
 
 void window_detach(struct hayward_window *window) {
-	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
+	if (window->pending.fullscreen) {
 		window->pending.workspace->fullscreen = NULL;
-	}
-	if (window->pending.fullscreen_mode == FULLSCREEN_GLOBAL) {
-		root->fullscreen_global = NULL;
 	}
 
 	struct hayward_column *old_parent = window->pending.parent;
@@ -425,7 +418,7 @@ void window_set_floating(struct hayward_window *window, bool enable) {
 }
 
 bool window_is_fullscreen(struct hayward_window* window) {
-	return window->pending.fullscreen_mode;
+	return window->pending.fullscreen;
 }
 
 bool window_is_tiling(struct hayward_window* window) {
@@ -522,7 +515,7 @@ static void window_move_to_workspace_from_maybe_direction(
 		workspace_add_floating(workspace, window);
 		window_handle_fullscreen_reparent(window);
 		// If changing output, center it within the workspace
-		if (old_output != workspace->output && !window->pending.fullscreen_mode) {
+		if (old_output != workspace->output && !window->pending.fullscreen) {
 			window_floating_move_to_center(window);
 		}
 
@@ -633,14 +626,6 @@ struct hayward_window *window_obstructing_fullscreen_window(struct hayward_windo
 		return workspace->fullscreen;
 	}
 
-	struct hayward_window *fullscreen_global = root->fullscreen_global;
-	if (fullscreen_global && window != fullscreen_global) {
-		if (window_is_transient_for(window, fullscreen_global)) {
-			return NULL;
-		}
-		return fullscreen_global;
-	}
-
 	return NULL;
 }
 
@@ -740,100 +725,48 @@ static void set_fullscreen(struct hayward_window *window, bool enable) {
 	wlr_drm_format_set_finish(&scanout_formats);
 }
 
-static void window_fullscreen_workspace(struct hayward_window *window) {
-	hayward_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
-				"Expected a non-fullscreen container");
-	set_fullscreen(window, true);
-	window->pending.fullscreen_mode = FULLSCREEN_WORKSPACE;
+static void window_fullscreen_enable(struct hayward_window *window) {
+	hayward_assert(window->pending.workspace, "Window must be attached to a workspace");
 
-	window->saved_x = window->pending.x;
-	window->saved_y = window->pending.y;
-	window->saved_width = window->pending.width;
-	window->saved_height = window->pending.height;
-
-	if (window->pending.workspace) {
-		window->pending.workspace->fullscreen = window;
-		struct hayward_seat *seat;
-		struct hayward_workspace *focus_workspace;
-		wl_list_for_each(seat, &server.input->seats, link) {
-			focus_workspace = seat_get_focused_workspace(seat);
-			if (focus_workspace == window->pending.workspace) {
-				seat_set_focus_window(seat, window);
-			} else {
-				struct hayward_node *focus =
-					seat_get_focus_inactive(seat, &root->node);
-				seat_set_raw_focus(seat, &window->node);
-				seat_set_raw_focus(seat, focus);
-			}
-		}
-	}
-
-	window_end_mouse_operation(window);
-	ipc_event_window(window, "fullscreen_mode");
-}
-
-static void window_fullscreen_global(struct hayward_window *window) {
-	hayward_assert(window->pending.fullscreen_mode == FULLSCREEN_NONE,
-				"Expected a non-fullscreen container");
-	set_fullscreen(window, true);
-
-	root->fullscreen_global = window;
-	window->saved_x = window->pending.x;
-	window->saved_y = window->pending.y;
-	window->saved_width = window->pending.width;
-	window->saved_height = window->pending.height;
-
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		struct hayward_window *focus = seat_get_focused_container(seat);
-		if (focus && focus != window) {
-			seat_set_focus_window(seat, window);
-		}
-	}
-
-	window->pending.fullscreen_mode = FULLSCREEN_GLOBAL;
-	window_end_mouse_operation(window);
-	ipc_event_window(window, "fullscreen_mode");
-}
-
-
-void window_set_fullscreen(struct hayward_window *window,
-		enum hayward_fullscreen_mode mode) {
-	if (window->pending.fullscreen_mode == mode) {
+	if (window->pending.fullscreen) {
 		return;
 	}
 
-	switch (mode) {
-	case FULLSCREEN_NONE:
-		window_fullscreen_disable(window);
-		break;
-	case FULLSCREEN_WORKSPACE:
-		// TODO (hayward) if disabling previous fullscreen window is
-		// neccessary, why are these disable/enable functions public
-		// and non-static.
-		if (root->fullscreen_global) {
-			window_fullscreen_disable(root->fullscreen_global);
+	set_fullscreen(window, true);
+
+	window->pending.fullscreen = true;
+
+	window->saved_x = window->pending.x;
+	window->saved_y = window->pending.y;
+	window->saved_width = window->pending.width;
+	window->saved_height = window->pending.height;
+
+	window->pending.workspace->fullscreen = window;
+	struct hayward_seat *seat;
+	struct hayward_workspace *focus_workspace;
+	wl_list_for_each(seat, &server.input->seats, link) {
+		focus_workspace = seat_get_focused_workspace(seat);
+		if (focus_workspace == window->pending.workspace) {
+			seat_set_focus_window(seat, window);
+		} else {
+			struct hayward_node *focus =
+				seat_get_focus_inactive(seat, &root->node);
+			seat_set_raw_focus(seat, &window->node);
+			seat_set_raw_focus(seat, focus);
 		}
-		if (window->pending.workspace && window->pending.workspace->fullscreen) {
-			window_fullscreen_disable(window->pending.workspace->fullscreen);
-		}
-		window_fullscreen_workspace(window);
-		break;
-	case FULLSCREEN_GLOBAL:
-		if (root->fullscreen_global) {
-			window_fullscreen_disable(root->fullscreen_global);
-		}
-		if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-			window_fullscreen_disable(window);
-		}
-		window_fullscreen_global(window);
-		break;
 	}
+
+	window_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
 }
 
-void window_fullscreen_disable(struct hayward_window *window) {
-	hayward_assert(window->pending.fullscreen_mode != FULLSCREEN_NONE,
-				"Expected a fullscreen container");
+static void window_fullscreen_disable(struct hayward_window *window) {
+	hayward_assert(window->pending.workspace, "Window must be attached to a workspace");
+
+	if (!window->pending.fullscreen) {
+		return;
+	}
+
 	set_fullscreen(window, false);
 
 	if (window_is_floating(window)) {
@@ -843,19 +776,15 @@ void window_fullscreen_disable(struct hayward_window *window) {
 		window->pending.height = window->saved_height;
 	}
 
-	if (window->pending.fullscreen_mode == FULLSCREEN_WORKSPACE) {
-		if (window->pending.workspace) {
-			window->pending.workspace->fullscreen = NULL;
-			if (window_is_floating(window)) {
-				struct hayward_output *output =
-					window_floating_find_output(window);
-				if (window->pending.workspace->output != output) {
-					window_floating_move_to_center(window);
-				}
+	if (window->pending.workspace) {
+		window->pending.workspace->fullscreen = NULL;
+		if (window_is_floating(window)) {
+			struct hayward_output *output =
+				window_floating_find_output(window);
+			if (window->pending.workspace->output != output) {
+				window_floating_move_to_center(window);
 			}
 		}
-	} else {
-		root->fullscreen_global = NULL;
 	}
 
 	// If the container was mapped as fullscreen and set as floating by
@@ -865,13 +794,23 @@ void window_fullscreen_disable(struct hayward_window *window) {
 		window_floating_resize_and_center(window);
 	}
 
-	window->pending.fullscreen_mode = FULLSCREEN_NONE;
+	window->pending.fullscreen = false;
+
 	window_end_mouse_operation(window);
 	ipc_event_window(window, "fullscreen_mode");
 }
 
+void window_set_fullscreen(struct hayward_window *window, bool enabled) {
+	if (enabled) {
+		window_fullscreen_enable(window);
+	} else {
+		window_fullscreen_disable(window);
+	}
+}
+
+
 void window_handle_fullscreen_reparent(struct hayward_window *window) {
-	if (window->pending.fullscreen_mode != FULLSCREEN_WORKSPACE || !window->pending.workspace ||
+	if (!window->pending.fullscreen || !window->pending.workspace ||
 			window->pending.workspace->fullscreen == window) {
 		return;
 	}
@@ -1099,7 +1038,7 @@ void window_set_geometry_from_content(struct hayward_window *window) {
 	size_t border_width = 0;
 	size_t top = 0;
 
-	if (window->pending.border != B_CSD && !window->pending.fullscreen_mode) {
+	if (window->pending.border != B_CSD && !window->pending.fullscreen) {
 		border_width = window->pending.border_thickness * (window->pending.border != B_NONE);
 		top = window->pending.border == B_NORMAL ?
 			window_titlebar_height() : border_width;

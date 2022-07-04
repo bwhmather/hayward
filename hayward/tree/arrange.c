@@ -310,18 +310,9 @@ void arrange_root(void) {
 	root->width = layout_box.width;
 	root->height = layout_box.height;
 
-	if (root->fullscreen_global) {
-		struct hayward_window *fs = root->fullscreen_global;
-		fs->pending.x = root->x;
-		fs->pending.y = root->y;
-		fs->pending.width = root->width;
-		fs->pending.height = root->height;
-		arrange_window(fs);
-	} else {
-		for (int i = 0; i < root->outputs->length; ++i) {
-			struct hayward_output *output = root->outputs->items[i];
-			arrange_output(output);
-		}
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct hayward_output *output = root->outputs->items[i];
+		arrange_output(output);
 	}
 }
 
