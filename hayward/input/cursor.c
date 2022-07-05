@@ -46,20 +46,27 @@ static struct hayward_window *seat_column_window_at_stacked(struct hayward_seat 
 			ly < box.y || ly > box.y + box.height) {
 		return NULL;
 	}
-	list_t *children = column->pending.children;
 
 	// Title bars
-	int title_height = window_titlebar_height();
-	if (title_height > 0) {
-		int child_index = (ly - box.y) / title_height;
-		if (child_index < children->length) {
-			struct hayward_window *child = children->items[child_index];
+	struct hayward_window *current = seat_get_focus_inactive_view(seat, &column->node);
+	int titlebar_height = window_titlebar_height();
+
+	int y_offset = column->current.y;
+
+	for (int i = 0; i < column->current.children->length; ++i) {
+		struct hayward_window *child = column->current.children->items[i];
+
+		if (ly >= y_offset && ly < y_offset + titlebar_height) {
 			return child;
+		}
+
+		y_offset += titlebar_height;
+		if (child == current) {
+			y_offset += column->current.height - titlebar_height * column->current.children->length;
 		}
 	}
 
 	// Surfaces
-	struct hayward_window *current = seat_get_focus_inactive_view(seat, &column->node);
 	if (window_contains_point(current, lx, ly)) {
 		return current;
 	}
@@ -148,7 +155,6 @@ static bool surface_is_popup(struct wlr_surface *surface) {
 struct hayward_window *seat_window_at(struct hayward_seat *seat, double lx, double ly) {
 	struct hayward_window *window;
 	struct hayward_window *focus = seat_get_focused_container(seat);
-	bool is_floating = focus && window_is_floating(focus);
 
 	// Focused view's popups
 	if (focus) {
@@ -163,11 +169,6 @@ struct hayward_window *seat_window_at(struct hayward_seat *seat, double lx, doub
 	// Floating
 	if ((window = seat_floating_window_at(seat, lx, ly))) {
 		return window;
-	}
-
-	// Tiling (focused)
-	if (focus && !is_floating && window_contains_point(focus, lx, ly)) {
-		return focus;
 	}
 
 	// Tiling (non-focused)
