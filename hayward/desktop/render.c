@@ -700,7 +700,7 @@ static void render_top_border(struct hayward_output *output,
  * they'll apply their own borders to their children.
  */
 static void render_column_split(struct hayward_output *output, pixman_region32_t *damage, struct hayward_column *column) {
-	struct hayward_window *current = column->current.focused_inactive_child;
+	struct hayward_window *current = column->current.active_child;
 
 	for (int i = 0; i < column->current.children->length; ++i) {
 		struct hayward_window *child = column->current.children->items[i];
@@ -747,7 +747,7 @@ static void render_column_stacked(struct hayward_output *output, pixman_region32
 	if (!column->current.children->length) {
 		return;
 	}
-	struct hayward_window *current = column->current.focused_inactive_child;
+	struct hayward_window *current = column->current.active_child;
 	struct border_colors *current_colors = &config->border_colors.unfocused;
 	size_t titlebar_height = window_titlebar_height();
 

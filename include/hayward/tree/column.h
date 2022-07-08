@@ -21,7 +21,7 @@ struct hayward_column_state {
 	struct hayward_column *parent;    // NULL if container in root of workspace
 	list_t *children;                 // struct hayward_window
 
-	struct hayward_window *focused_inactive_child;
+	struct hayward_window *active_child;
 	bool focused;
 };
 
