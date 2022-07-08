@@ -46,7 +46,7 @@ static void handle_render(struct hayward_seat *seat,
 	       return;
 	}
 
-	if (e->target_workspace->output != output) {
+	if (e->target_workspace->pending.output != output) {
 		return;
 	}
 
@@ -249,7 +249,7 @@ static void finalize_move(struct hayward_seat *seat) {
 	} else {
 		if (target_edge == WLR_EDGE_LEFT || target_edge == WLR_EDGE_RIGHT) {
 			struct hayward_column *target_column = target_window->pending.parent;
-			int target_column_index = list_find(target_workspace->tiling, target_column);
+			int target_column_index = list_find(target_workspace->pending.tiling, target_column);
 
 			struct hayward_column *new_column = column_create();
 			new_column->pending.height = new_column->pending.width = 0;

@@ -106,7 +106,7 @@ static struct hayward_window *seat_tiling_window_at(struct hayward_seat *seat, d
 			continue;
 		}
 
-		list_t *columns = workspace->tiling;
+		list_t *columns = workspace->pending.tiling;
 		for (int i = 0; i < columns->length; ++i) {
 			struct hayward_column *column = columns->items[i];
 			struct hayward_window *window = seat_column_window_at(seat, column, lx, ly);
@@ -128,8 +128,8 @@ static struct hayward_window *seat_floating_window_at(struct hayward_seat *seat,
 
 		// Items at the end of the list are on top, so iterate the list in
 		// reverse.
-		for (int k = workspace->floating->length - 1; k >= 0; --k) {
-			struct hayward_window *window = workspace->floating->items[k];
+		for (int k = workspace->pending.floating->length - 1; k >= 0; --k) {
+			struct hayward_window *window = workspace->pending.floating->items[k];
 			if (window_contains_point(window, lx, ly)) {
 				return window;
 			}
@@ -271,19 +271,19 @@ static struct hayward_node *node_at_coords(
 		return NULL;
 	}
 
-	if (workspace->fullscreen) {
+	if (workspace->pending.fullscreen) {
 		// Try transient containers
-		for (int i = 0; i < workspace->floating->length; ++i) {
-			struct hayward_window *floater = workspace->floating->items[i];
-			if (window_is_transient_for(floater, workspace->fullscreen)) {
+		for (int i = 0; i < workspace->pending.floating->length; ++i) {
+			struct hayward_window *floater = workspace->pending.floating->items[i];
+			if (window_is_transient_for(floater, workspace->pending.fullscreen)) {
 				if ((*surface = window_surface_at(floater, lx, ly, sx, sy))) {
 					return &floater->node;
 				}
 			}
 		}
 		// Try fullscreen container
-		if ((*surface = window_surface_at(workspace->fullscreen, lx, ly, sx, sy))) {
-			return &workspace->fullscreen->node;
+		if ((*surface = window_surface_at(workspace->pending.fullscreen, lx, ly, sx, sy))) {
+			return &workspace->pending.fullscreen->node;
 		}
 		return NULL;
 	}
@@ -1392,8 +1392,8 @@ void cursor_warp_to_workspace(struct hayward_cursor *cursor,
 		return;
 	}
 
-	double x = workspace->x + workspace->width / 2.0;
-	double y = workspace->y + workspace->height / 2.0;
+	double x = workspace->pending.x + workspace->pending.width / 2.0;
+	double y = workspace->pending.y + workspace->pending.height / 2.0;
 
 	wlr_cursor_warp(cursor->cursor, NULL, x, y);
 	cursor_unhide(cursor);

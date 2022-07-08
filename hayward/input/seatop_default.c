@@ -36,7 +36,7 @@ static bool column_edge_is_external(struct hayward_column *column, enum wlr_edge
 	}
 
 	hayward_assert(column->pending.workspace, "Column is not attached to a workspace");
-	list_t *columns = column->pending.workspace->tiling;
+	list_t *columns = column->pending.workspace->pending.tiling;
 	int index = list_find(columns, column);
 	hayward_assert(index >= 0, "Column not found");
 

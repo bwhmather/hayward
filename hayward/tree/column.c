@@ -190,7 +190,7 @@ void column_set_resizing(struct hayward_column *column, bool resizing) {
 
 list_t *column_get_siblings(struct hayward_column *column) {
 	if (column->pending.workspace) {
-		return column->pending.workspace->tiling;
+		return column->pending.workspace->pending.tiling;
 	}
 	return NULL;
 }
@@ -201,7 +201,7 @@ int column_sibling_index(struct hayward_column *child) {
 
 list_t *column_get_current_siblings(struct hayward_column *column) {
 	if (column->current.workspace) {
-		return column->current.workspace->tiling;
+		return column->current.workspace->pending.tiling;
 	}
 	return NULL;
 }
@@ -209,7 +209,7 @@ list_t *column_get_current_siblings(struct hayward_column *column) {
 struct hayward_column *column_get_previous_sibling(struct hayward_column *column) {
 	hayward_assert(column->pending.workspace, "Column is not attached to a workspace");
 
-	list_t *siblings = column->pending.workspace->tiling;
+	list_t *siblings = column->pending.workspace->pending.tiling;
 	int index = list_find(siblings, column);
 
 	if (index <= 0) {
@@ -222,7 +222,7 @@ struct hayward_column *column_get_previous_sibling(struct hayward_column *column
 struct hayward_column *column_get_next_sibling(struct hayward_column *column) {
 	hayward_assert(column->pending.workspace, "Column is not attached to a workspace");
 
-	list_t *siblings = column->pending.workspace->tiling;
+	list_t *siblings = column->pending.workspace->pending.tiling;
 	int index = list_find(siblings, column);
 
 	if (index < 0) {

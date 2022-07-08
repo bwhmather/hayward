@@ -105,13 +105,13 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 		struct hayward_transaction_instruction *instruction) {
 	struct hayward_workspace_state *state = &instruction->workspace_state;
 
-	state->fullscreen = workspace->fullscreen;
-	state->x = workspace->x;
-	state->y = workspace->y;
-	state->width = workspace->width;
-	state->height = workspace->height;
+	state->fullscreen = workspace->pending.fullscreen;
+	state->x = workspace->pending.x;
+	state->y = workspace->pending.y;
+	state->width = workspace->pending.width;
+	state->height = workspace->pending.height;
 
-	state->output = workspace->output;
+	state->output = workspace->pending.output;
 	if (state->floating) {
 		state->floating->length = 0;
 	} else {
@@ -122,8 +122,8 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 	} else {
 		state->tiling = create_list();
 	}
-	list_cat(state->floating, workspace->floating);
-	list_cat(state->tiling, workspace->tiling);
+	list_cat(state->floating, workspace->pending.floating);
+	list_cat(state->tiling, workspace->pending.tiling);
 
 	struct hayward_seat *seat = input_manager_current_seat();
 	state->focused = seat_get_focus(seat) == &workspace->node;

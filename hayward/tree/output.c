@@ -68,8 +68,8 @@ static void restore_workspaces(struct hayward_output *output) {
 		// outside of the output's bounds, do the same as the output layout has
 		// likely changed and the maximum size needs to be checked and the
 		// floater re-centered
-		for (int i = 0; i < workspace->floating->length; i++) {
-			struct hayward_window *floater = workspace->floating->items[i];
+		for (int i = 0; i < workspace->pending.floating->length; i++) {
+			struct hayward_window *floater = workspace->pending.floating->items[i];
 			if (floater->pending.width == 0 || floater->pending.height == 0 ||
 					floater->pending.width > output->width ||
 					floater->pending.height > output->height ||
@@ -147,8 +147,8 @@ static void evacuate_sticky(struct hayward_workspace *old_workspace,
 		struct hayward_output *new_output) {
 	struct hayward_workspace *new_workspace = output_get_active_workspace(new_output);
 	hayward_assert(new_workspace, "New output does not have a workspace");
-	while(old_workspace->floating->length) {
-		struct hayward_window *sticky = old_workspace->floating->items[0];
+	while(old_workspace->pending.floating->length) {
+		struct hayward_window *sticky = old_workspace->pending.floating->items[0];
 		window_detach(sticky);
 		workspace_add_floating(new_workspace, sticky);
 		window_handle_fullscreen_reparent(sticky);
@@ -291,11 +291,11 @@ struct hayward_output *output_get_in_direction(struct hayward_output *reference,
 
 void output_add_workspace(struct hayward_output *output,
 		struct hayward_workspace *workspace) {
-	if (workspace->output) {
+	if (workspace->pending.output) {
 		workspace_detach(workspace);
 	}
 	list_add(output->workspaces, workspace);
-	workspace->output = output;
+	workspace->pending.output = output;
 	node_set_dirty(&output->node);
 	node_set_dirty(&workspace->node);
 }

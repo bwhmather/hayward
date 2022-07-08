@@ -35,7 +35,7 @@ static struct hayward_output *output_in_direction(const char *direction_string,
 		if (!active_workspace) {
 			return NULL;
 		}
-		return active_workspace->output;
+		return active_workspace->pending.output;
 	}
 
 	struct {
@@ -99,7 +99,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 	// If moving a fullscreen view, only consider outputs
 	if (window->pending.fullscreen) {
 		return window_move_to_next_output(window,
-				window->pending.workspace->output, move_dir);
+				window->pending.workspace->pending.output, move_dir);
 	}
 
 	if (window_is_floating(window)) {
@@ -112,7 +112,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 	}
 
 	struct hayward_column *old_column = window->pending.parent;
-	int old_column_index = list_find(window->pending.workspace->tiling, old_column);
+	int old_column_index = list_find(window->pending.workspace->pending.tiling, old_column);
 
 	switch (move_dir) {
 	case WLR_DIRECTION_UP: {
@@ -137,7 +137,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 					// workspace.
 
 					return window_move_to_next_output(window,
-						window->pending.workspace->output, move_dir);
+						window->pending.workspace->pending.output, move_dir);
 				}
 
 				struct hayward_column *new_column = column_create();
@@ -149,13 +149,13 @@ static bool window_move_in_direction(struct hayward_window *window,
 				old_column_index += 1;
 			}
 
-			struct hayward_column *new_column = window->pending.workspace->tiling->items[old_column_index - 1];
+			struct hayward_column *new_column = window->pending.workspace->pending.tiling->items[old_column_index - 1];
 			window_move_to_column_from_direction(window, new_column, move_dir);
 
 			return true;
 		}
 	case WLR_DIRECTION_RIGHT: {
-			if (old_column_index == window->pending.workspace->tiling->length - 1) {
+			if (old_column_index == window->pending.workspace->pending.tiling->length - 1) {
 				// Window is already in the right most column.
 				// If window is the only child of this column
 				// then attempt to move it to the next
@@ -164,7 +164,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 				if (old_column->pending.children->length == 1) {
 					// TODO find then move should be separate calls at this level of abstraction.
 					return window_move_to_next_output(window,
-						window->pending.workspace->output, move_dir);
+						window->pending.workspace->pending.output, move_dir);
 				}
 
 				struct hayward_column *new_column = column_create();
@@ -175,7 +175,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 				workspace_insert_tiling_direct(window->pending.workspace, new_column, old_column_index + 1);
 			}
 
-			struct hayward_column *new_column = window->pending.workspace->tiling->items[old_column_index + 1];
+			struct hayward_column *new_column = window->pending.workspace->pending.tiling->items[old_column_index + 1];
 			window_move_to_column_from_direction(window, new_column, move_dir);
 
 			return true;
@@ -201,7 +201,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_column *old_parent = window->pending.parent;
 	struct hayward_workspace *old_workspace = window->pending.workspace;
-	struct hayward_output *old_output = old_workspace ? old_workspace->output : NULL;
+	struct hayward_output *old_output = old_workspace ? old_workspace->pending.output : NULL;
 	struct hayward_node *destination = NULL;
 
 	// determine destination
@@ -404,10 +404,10 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 
 static void workspace_move_to_output(struct hayward_workspace *workspace,
 		struct hayward_output *output) {
-	if (workspace->output == output) {
+	if (workspace->pending.output == output) {
 		return;
 	}
-	struct hayward_output *old_output = workspace->output;
+	struct hayward_output *old_output = workspace->pending.output;
 	workspace_detach(workspace);
 	struct hayward_workspace *new_output_old_workspace =
 		output_get_active_workspace(output);
@@ -454,9 +454,9 @@ static struct cmd_results *cmd_move_workspace(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "No workspace to move");
 	}
 
-	struct hayward_output *old_output = workspace->output;
-	int center_x = workspace->width / 2 + workspace->x,
-		center_y = workspace->height / 2 + workspace->y;
+	struct hayward_output *old_output = workspace->pending.output;
+	int center_x = workspace->pending.width / 2 + workspace->pending.x,
+		center_y = workspace->pending.height / 2 + workspace->pending.y;
 	struct hayward_output *new_output = output_in_direction(argv[0],
 			old_output, center_x, center_y);
 	if (!new_output) {
@@ -630,8 +630,8 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 				struct hayward_seat *seat = config->handler_context.seat;
 				workspace = seat_get_focused_workspace(seat);
 			}
-			lx = workspace->x + (workspace->width - window->pending.width) / 2;
-			ly = workspace->y + (workspace->height - window->pending.height) / 2;
+			lx = workspace->pending.x + (workspace->pending.width - window->pending.width) / 2;
+			ly = workspace->pending.y + (workspace->pending.height - window->pending.height) / 2;
 		}
 		window_floating_move_to(window, lx, ly);
 		return cmd_results_new(CMD_SUCCESS, NULL);
@@ -679,7 +679,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 					"Cannot move to absolute positions by ppt");
 		}
 		// Convert to px
-		lx.amount = workspace->width * lx.amount / 100;
+		lx.amount = workspace->pending.width * lx.amount / 100;
 		lx.unit = MOVEMENT_UNIT_PX;
 		// Falls through
 	case MOVEMENT_UNIT_PX:
@@ -696,7 +696,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 					"Cannot move to absolute positions by ppt");
 		}
 		// Convert to px
-		ly.amount = workspace->height * ly.amount / 100;
+		ly.amount = workspace->pending.height * ly.amount / 100;
 		ly.unit = MOVEMENT_UNIT_PX;
 		// Falls through
 	case MOVEMENT_UNIT_PX:
@@ -706,8 +706,8 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		hayward_abort("invalid y unit");
 	}
 	if (!absolute) {
-		lx.amount += workspace->x;
-		ly.amount += workspace->y;
+		lx.amount += workspace->pending.x;
+		ly.amount += workspace->pending.y;
 	}
 	window_floating_move_to(window, lx.amount, ly.amount);
 	return cmd_results_new(CMD_SUCCESS, NULL);

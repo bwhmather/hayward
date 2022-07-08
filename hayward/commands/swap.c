@@ -109,9 +109,9 @@ void window_swap(struct hayward_window *window1, struct hayward_window *window2)
 	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_window *focus = seat_get_focused_container(seat);
 	struct hayward_workspace *vis1 =
-		output_get_active_workspace(window1->pending.workspace->output);
+		output_get_active_workspace(window1->pending.workspace->pending.output);
 	struct hayward_workspace *vis2 =
-		output_get_active_workspace(window2->pending.workspace->output);
+		output_get_active_workspace(window2->pending.workspace->pending.output);
 	hayward_assert(vis1 && vis2, "window1 or window2 are on an output without a"
 				"workspace. This should not happen");
 

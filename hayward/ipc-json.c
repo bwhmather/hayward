@@ -359,15 +359,15 @@ static void ipc_json_describe_workspace(struct hayward_workspace *workspace,
 	}
 	json_object_object_add(object, "num", json_object_new_int(num));
 	json_object_object_add(object, "fullscreen_mode", json_object_new_int(1));
-	json_object_object_add(object, "output", workspace->output ?
-			json_object_new_string(workspace->output->wlr_output->name) : NULL);
+	json_object_object_add(object, "output", workspace->pending.output ?
+			json_object_new_string(workspace->pending.output->wlr_output->name) : NULL);
 	json_object_object_add(object, "urgent",
 			json_object_new_boolean(workspace->urgent));
 
 	// Floating
 	json_object *floating_array = json_object_new_array();
-	for (int i = 0; i < workspace->floating->length; ++i) {
-		struct hayward_window *floater = workspace->floating->items[i];
+	for (int i = 0; i < workspace->pending.floating->length; ++i) {
+		struct hayward_window *floater = workspace->pending.floating->items[i];
 		json_object_array_add(floating_array,
 				ipc_json_describe_node_recursive(&floater->node));
 	}
@@ -389,8 +389,8 @@ static void window_get_deco_rect(struct hayward_window *window, struct wlr_box *
 		deco_rect->x = window->pending.x - window->pending.parent->pending.x;
 		deco_rect->y = window->pending.y - window->pending.parent->pending.y;
 	} else {
-		deco_rect->x = window->pending.x - window->pending.workspace->x;
-		deco_rect->y = window->pending.y - window->pending.workspace->y;
+		deco_rect->x = window->pending.x - window->pending.workspace->pending.x;
+		deco_rect->y = window->pending.y - window->pending.workspace->pending.y;
 	}
 	deco_rect->width = window->pending.width;
 	deco_rect->height = window_titlebar_height();
@@ -675,8 +675,8 @@ json_object *ipc_json_describe_node_recursive(struct hayward_node *node) {
 		}
 		break;
 	case N_WORKSPACE:
-		for (i = 0; i < node->hayward_workspace->tiling->length; ++i) {
-			struct hayward_window *container = node->hayward_workspace->tiling->items[i];
+		for (i = 0; i < node->hayward_workspace->pending.tiling->length; ++i) {
+			struct hayward_window *container = node->hayward_workspace->pending.tiling->items[i];
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&container->node));
 		}

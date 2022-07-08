@@ -176,7 +176,7 @@ void root_record_workspace_pid(pid_t pid) {
 		hayward_log(HAYWARD_DEBUG, "Bailing out, no workspace");
 		return;
 	}
-	struct hayward_output *output = workspace->output;
+	struct hayward_output *output = workspace->pending.output;
 	if (!output) {
 		hayward_log(HAYWARD_DEBUG, "Bailing out, no output");
 		return;

@@ -625,7 +625,7 @@ void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 		if (seat) {
 			struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
 			if (workspace != NULL) {
-				output = workspace->output;
+				output = workspace->pending.output;
 			}
 		}
 		if (!output || output == root->fallback_output) {

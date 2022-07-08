@@ -138,7 +138,7 @@ void arrange_column(struct hayward_column *column) {
 }
 
 static void arrange_floating(struct hayward_workspace *workspace) {
-	list_t *floating = workspace->floating;
+	list_t *floating = workspace->pending.floating;
 	for (int i = 0; i < floating->length; ++i) {
 		struct hayward_window *floater = floating->items[i];
 		arrange_window(floater);
@@ -147,9 +147,9 @@ static void arrange_floating(struct hayward_workspace *workspace) {
 
 static void arrange_tiling(struct hayward_workspace *workspace) {
 	struct wlr_box box;
-	workspace_get_box(workspace, &box);	
+	workspace_get_box(workspace, &box);
 
-	list_t *children = workspace->tiling;
+	list_t *children = workspace->pending.tiling;
 
 	if (!children->length) {
 		return;
@@ -224,29 +224,29 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 	if (config->reloading) {
 		return;
 	}
-	if (!workspace->output) {
+	if (!workspace->pending.output) {
 		// Happens when there are no outputs connected.
 		return;
 	}
-	struct hayward_output *output = workspace->output;
+	struct hayward_output *output = workspace->pending.output;
 	struct wlr_box *area = &output->usable_area;
 	hayward_log(HAYWARD_DEBUG, "Usable area for workspace: %dx%d@%d,%d",
 			area->width, area->height, area->x, area->y);
 
-	bool first_arrange = workspace->width == 0 && workspace->height == 0;
-	double prev_x = workspace->x - workspace->current_gaps.left;
-	double prev_y = workspace->y - workspace->current_gaps.top;
-	workspace->width = area->width;
-	workspace->height = area->height;
-	workspace->x = output->lx + area->x;
-	workspace->y = output->ly + area->y;
+	bool first_arrange = workspace->pending.width == 0 && workspace->pending.height == 0;
+	double prev_x = workspace->pending.x - workspace->current_gaps.left;
+	double prev_y = workspace->pending.y - workspace->current_gaps.top;
+	workspace->pending.width = area->width;
+	workspace->pending.height = area->height;
+	workspace->pending.x = output->lx + area->x;
+	workspace->pending.y = output->ly + area->y;
 
 	// Adjust any floating containers.
-	double diff_x = workspace->x - prev_x;
-	double diff_y = workspace->y - prev_y;
+	double diff_x = workspace->pending.x - prev_x;
+	double diff_y = workspace->pending.y - prev_y;
 	if (!first_arrange && (diff_x != 0 || diff_y != 0)) {
-		for (int i = 0; i < workspace->floating->length; ++i) {
-			struct hayward_window *floater = workspace->floating->items[i];
+		for (int i = 0; i < workspace->pending.floating->length; ++i) {
+			struct hayward_window *floater = workspace->pending.floating->items[i];
 			window_floating_translate(floater, diff_x, diff_y);
 			double center_x = floater->pending.x + floater->pending.width / 2;
 			double center_y = floater->pending.y + floater->pending.height / 2;
@@ -261,9 +261,9 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 	workspace_add_gaps(workspace);
 	node_set_dirty(&workspace->node);
 	hayward_log(HAYWARD_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
-			workspace->x, workspace->y);
-	if (workspace->fullscreen) {
-		struct hayward_window *fs = workspace->fullscreen;
+			workspace->pending.x, workspace->pending.y);
+	if (workspace->pending.fullscreen) {
+		struct hayward_window *fs = workspace->pending.fullscreen;
 		fs->pending.x = output->lx;
 		fs->pending.y = output->ly;
 		fs->pending.width = output->width;

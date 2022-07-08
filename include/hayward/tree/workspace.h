@@ -12,9 +12,9 @@ struct hayward_workspace_state {
 	struct hayward_window *fullscreen;
 	double x, y;
 	int width, height;
-	struct hayward_output *output;
-	list_t *floating;
-	list_t *tiling;
+	struct hayward_output *output; // NULL if no outputs are connected
+	list_t *floating;           // struct hayward_window
+	list_t *tiling;             // struct hayward_column
 
 	struct hayward_column *focused_inactive_child;
 	bool focused;
@@ -22,24 +22,18 @@ struct hayward_workspace_state {
 
 struct hayward_workspace {
 	struct hayward_node node;
-	struct hayward_window *fullscreen;
 
 	char *name;
-
-	double x, y;
-	int width, height;
 
 	struct side_gaps current_gaps;
 	int gaps_inner;
 	struct side_gaps gaps_outer;
 
-	struct hayward_output *output; // NULL if no outputs are connected
-	list_t *floating;           // struct hayward_window
-	list_t *tiling;             // struct hayward_column
 	list_t *output_priority;
 	bool urgent;
 
 	struct hayward_workspace_state current;
+	struct hayward_workspace_state pending;
 };
 
 struct workspace_config *workspace_find_config(const char *workspace_name);

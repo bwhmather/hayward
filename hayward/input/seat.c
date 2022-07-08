@@ -1264,7 +1264,7 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 		return;
 	}
 
-	struct hayward_output *new_output = new_workspace->output;
+	struct hayward_output *new_output = new_workspace->pending.output;
 	struct hayward_workspace *new_output_last_workspace =
 		new_output ? seat_get_active_workspace_for_output(seat, new_output) : NULL;
 
@@ -1275,9 +1275,9 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 		wl_list_insert(&seat->active_workspace_stack, &seat_workspace->link);
 
 		if (new_output_last_workspace && new_workspace != new_output_last_workspace) {
-			for (int i = 0; i < new_output_last_workspace->floating->length; ++i) {
+			for (int i = 0; i < new_output_last_workspace->pending.floating->length; ++i) {
 				struct hayward_window *floater =
-					new_output_last_workspace->floating->items[i];
+					new_output_last_workspace->pending.floating->items[i];
 				if (window_is_sticky(floater)) {
 					window_detach(floater);
 					workspace_add_floating(new_workspace, floater);
@@ -1289,13 +1289,13 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 		if (last_workspace) {
 			node_set_dirty(&last_workspace->node);
 		}
-		if (last_workspace && last_workspace->output) {
-			node_set_dirty(&last_workspace->output->node);
+		if (last_workspace && last_workspace->pending.output) {
+			node_set_dirty(&last_workspace->pending.output->node);
 		}
 
 		node_set_dirty(&new_workspace->node);
-		if (new_workspace->output) {
-			node_set_dirty(&new_workspace->output->node);
+		if (new_workspace->pending.output) {
+			node_set_dirty(&new_workspace->pending.output->node);
 		}
 	}
 
@@ -1502,11 +1502,11 @@ struct hayward_workspace *seat_get_active_workspace_for_output(struct hayward_se
 	wl_list_for_each(current, &seat->active_workspace_stack, link) {
 		struct hayward_workspace *workspace = current->workspace;
 
-		if (workspace->output == NULL) {
+		if (workspace->pending.output == NULL) {
 			continue;
 		}
 
-		if (workspace->output != output) {
+		if (workspace->pending.output != output) {
 			continue;
 		}
 
@@ -1532,7 +1532,7 @@ struct hayward_window *seat_get_active_window_for_column(struct hayward_seat *se
 }
 
 struct hayward_window *seat_get_active_tiling_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace) {
-	if (!workspace->tiling->length) {
+	if (!workspace->pending.tiling->length) {
 		return NULL;
 	}
 
@@ -1555,7 +1555,7 @@ struct hayward_window *seat_get_active_tiling_window_for_workspace(struct haywar
 }
 
 struct hayward_window *seat_get_active_floating_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace) {
-	if (!workspace->floating->length) {
+	if (!workspace->pending.floating->length) {
 		return NULL;
 	}
 
@@ -1579,7 +1579,7 @@ struct hayward_window *seat_get_active_floating_window_for_workspace(struct hayw
 }
 
 struct hayward_window *seat_get_active_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace) {
-	if (!workspace->tiling->length) {
+	if (!workspace->pending.tiling->length) {
 		return NULL;
 	}
 

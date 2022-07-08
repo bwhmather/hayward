@@ -229,7 +229,7 @@ void view_autoconfigure(struct hayward_view *view) {
 	struct hayward_window *window = view->window;
 	struct hayward_workspace *workspace = window->pending.workspace;
 
-	struct hayward_output *output = workspace ? workspace->output : NULL;
+	struct hayward_output *output = workspace ? workspace->pending.output : NULL;
 
 	if (window->pending.fullscreen) {
 		window->pending.content_x = output->lx;
@@ -247,16 +247,16 @@ void view_autoconfigure(struct hayward_view *view) {
 	if (!window_is_floating(window) && workspace) {
 		if (config->hide_edge_borders == E_BOTH
 				|| config->hide_edge_borders == E_VERTICAL) {
-			window->pending.border_left = window->pending.x != workspace->x;
+			window->pending.border_left = window->pending.x != workspace->pending.x;
 			int right_x = window->pending.x + window->pending.width;
-			window->pending.border_right = right_x != workspace->x + workspace->width;
+			window->pending.border_right = right_x != workspace->pending.x + workspace->pending.width;
 		}
 
 		if (config->hide_edge_borders == E_BOTH
 				|| config->hide_edge_borders == E_HORIZONTAL) {
-			window->pending.border_top = window->pending.y != workspace->y;
+			window->pending.border_top = window->pending.y != workspace->pending.y;
 			int bottom_y = window->pending.y + window->pending.height;
-			window->pending.border_bottom = bottom_y != workspace->y + workspace->height;
+			window->pending.border_bottom = bottom_y != workspace->pending.y + workspace->pending.height;
 		}
 
 		bool smart = config->hide_edge_borders_smart == ESMART_ON ||
@@ -569,7 +569,7 @@ static bool should_focus(struct hayward_view *view) {
 	struct hayward_workspace *map_workspace = view->window->pending.workspace;
 
 	// View opened "under" fullscreen view should not be given focus.
-	if (!map_workspace || map_workspace->fullscreen) {
+	if (!map_workspace || map_workspace->pending.fullscreen) {
 		return false;
 	}
 
@@ -581,8 +581,8 @@ static bool should_focus(struct hayward_view *view) {
 	// If the view is the only one in the focused workspace, it'll get focus
 	// regardless of any no_focus criteria.
 	if (!view->window->pending.parent && !prev_container) {
-		size_t num_children = view->window->pending.workspace->tiling->length +
-			view->window->pending.workspace->floating->length;
+		size_t num_children = view->window->pending.workspace->pending.tiling->length +
+			view->window->pending.workspace->pending.floating->length;
 		if (num_children == 1) {
 			return true;
 		}
@@ -739,9 +739,9 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 
 	if (config->popup_during_fullscreen == POPUP_LEAVE &&
 			view->window->pending.workspace &&
-			view->window->pending.workspace->fullscreen &&
-			view->window->pending.workspace->fullscreen->view) {
-		struct hayward_window *fs = view->window->pending.workspace->fullscreen;
+			view->window->pending.workspace->pending.fullscreen &&
+			view->window->pending.workspace->pending.fullscreen->view) {
+		struct hayward_window *fs = view->window->pending.workspace->pending.fullscreen;
 		if (view_is_transient_for(view, fs->view)) {
 			window_set_fullscreen(fs, false);
 		}
@@ -1047,7 +1047,7 @@ void view_child_init(struct hayward_view_child *child,
 	if (container != NULL) {
 		struct hayward_workspace *workspace = container->pending.workspace;
 		if (workspace) {
-			wlr_surface_send_enter(child->surface, workspace->output->wlr_output);
+			wlr_surface_send_enter(child->surface, workspace->pending.output->wlr_output);
 		}
 	}
 
@@ -1260,7 +1260,7 @@ bool view_is_visible(struct hayward_view *view) {
 	}
 
 	// Check view isn't hidden by another fullscreen view
-	struct hayward_window *fs = workspace->fullscreen;
+	struct hayward_window *fs = workspace->pending.fullscreen;
 	if (fs && !window_is_fullscreen(view->window) &&
 			!window_is_transient_for(view->window, fs)) {
 		return false;

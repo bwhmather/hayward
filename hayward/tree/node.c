@@ -84,19 +84,19 @@ void node_get_box(struct hayward_node *node, struct wlr_box *box) {
 struct hayward_output *node_get_output(struct hayward_node *node) {
 	switch (node->type) {
 	case N_WORKSPACE:
-		return node->hayward_workspace->output;
+		return node->hayward_workspace->pending.output;
 	case N_OUTPUT:
 		return node->hayward_output;
 	case N_ROOT:
 		return NULL;
 	case N_COLUMN: {
 			struct hayward_workspace *workspace = node->hayward_column->pending.workspace;
-			return workspace ? workspace->output : NULL;
+			return workspace ? workspace->pending.output : NULL;
 		}
 	case N_WINDOW: {
 			struct hayward_workspace *workspace = node->hayward_window->pending.workspace;
-			return workspace ? workspace->output : NULL;
-		}	
+			return workspace ? workspace->pending.output : NULL;
+		}
 	}
 	return NULL;
 }
@@ -109,8 +109,8 @@ struct hayward_node *node_get_parent(struct hayward_node *node) {
 		return &root->node;
 	case N_WORKSPACE: {
 			struct hayward_workspace *workspace = node->hayward_workspace;
-			if (workspace->output) {
-				return &workspace->output->node;
+			if (workspace->pending.output) {
+				return &workspace->pending.output->node;
 			}
 		}
 		return NULL;
@@ -145,7 +145,7 @@ list_t *node_get_children(struct hayward_node *node) {
 	case N_OUTPUT:
 		return NULL;
 	case N_WORKSPACE:
-		return node->hayward_workspace->tiling;
+		return node->hayward_workspace->pending.tiling;
 	case N_COLUMN:
 		return node->hayward_column->pending.children;
 	case N_WINDOW:

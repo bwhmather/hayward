@@ -42,22 +42,22 @@ static struct hayward_node *get_node_in_output_direction(
 	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_workspace *workspace = output_get_active_workspace(output);
 	hayward_assert(workspace, "Expected output to have a workspace");
-	if (workspace->fullscreen) {
-		return &workspace->fullscreen->node;
+	if (workspace->pending.fullscreen) {
+		return &workspace->pending.fullscreen->node;
 	}
 	struct hayward_window *column = NULL;
 	struct hayward_window *window = NULL;
 
-	if (workspace->tiling->length > 0) {
+	if (workspace->pending.tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
 			// get most right child of new output
-			column = workspace->tiling->items[workspace->tiling->length-1];
+			column = workspace->pending.tiling->items[workspace->pending.tiling->length-1];
 			window = seat_get_focus_inactive_view(seat, &column->node);
 			break;
 		case WLR_DIRECTION_RIGHT:
 			// get most left child of new output
-			column = workspace->tiling->items[0];
+			column = workspace->pending.tiling->items[0];
 			window = seat_get_focus_inactive_view(seat, &column->node);
 			break;
 		case WLR_DIRECTION_UP:
@@ -83,7 +83,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 
 	if (window->pending.fullscreen) {
 		// Fullscreen container with a direction - go straight to outputs
-		struct hayward_output *output = window->pending.workspace->output;
+		struct hayward_output *output = window->pending.workspace->pending.output;
 		struct hayward_output *new_output =
 			output_get_in_direction(output, dir);
 		if (!new_output) {
@@ -146,7 +146,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 	}
 
 	// Check a different output
-	struct hayward_output *output = window->pending.workspace->output;
+	struct hayward_output *output = window->pending.workspace->pending.output;
 	struct hayward_output *new_output = output_get_in_direction(output, dir);
 	if (config->focus_wrapping != WRAP_WORKSPACE && new_output) {
 		return get_node_in_output_direction(new_output, dir);
@@ -174,8 +174,8 @@ static struct hayward_node *node_get_in_direction_floating(
 		return NULL;
 	}
 
-	for (int i = 0; i < container->pending.workspace->floating->length; i++) {
-		struct hayward_window *floater = container->pending.workspace->floating->items[i];
+	for (int i = 0; i < container->pending.workspace->pending.floating->length; i++) {
+		struct hayward_window *floater = container->pending.workspace->pending.floating->items[i];
 		if (floater == container) {
 			continue;
 		}
@@ -247,14 +247,14 @@ static struct cmd_results *focus_output(struct hayward_seat *seat,
 			return cmd_results_new(CMD_FAILURE,
 				"No focused workspace to base directions off of.");
 		}
-		output = output_get_in_direction(workspace->output, direction);
+		output = output_get_in_direction(workspace->pending.output, direction);
 
 		if (!output) {
-			int center_lx = workspace->output->lx + workspace->output->width / 2;
-			int center_ly = workspace->output->ly + workspace->output->height / 2;
+			int center_lx = workspace->pending.output->lx + workspace->pending.output->width / 2;
+			int center_ly = workspace->pending.output->ly + workspace->pending.output->height / 2;
 			struct wlr_output *target = wlr_output_layout_farthest_output(
 					root->output_layout, opposite_direction(direction),
-					workspace->output->wlr_output, center_lx, center_ly);
+					workspace->pending.output->wlr_output, center_lx, center_ly);
 			if (target) {
 				output = output_from_wlr_output(target);
 			}
@@ -333,7 +333,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	if (node->type == N_WORKSPACE) {
 		// Jump to the next output
 		struct hayward_output *new_output =
-			output_get_in_direction(workspace->output, direction);
+			output_get_in_direction(workspace->pending.output, direction);
 		if (!new_output) {
 			return cmd_results_new(CMD_SUCCESS, NULL);
 		}

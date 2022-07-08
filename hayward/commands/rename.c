@@ -96,7 +96,7 @@ struct cmd_results *cmd_rename(int argc, char **argv) {
 	free(workspace->name);
 	workspace->name = new_name;
 
-	output_sort_workspaces(workspace->output);
+	output_sort_workspaces(workspace->pending.output);
 	ipc_event_workspace(NULL, workspace, "rename");
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

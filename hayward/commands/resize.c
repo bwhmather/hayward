@@ -285,7 +285,7 @@ static struct cmd_results *resize_set_tiled(struct hayward_window *window,
 			if (parent->pending.layout != L_SPLIT) {
 				height->amount = parent->pending.height * height->amount / 100;
 			} else {
-				height->amount = window->pending.workspace->height * height->amount / 100;
+				height->amount = window->pending.workspace->pending.height * height->amount / 100;
 			}
 			height->unit = MOVEMENT_UNIT_PX;
 		}
@@ -311,7 +311,7 @@ static struct cmd_results *resize_set_floating(struct hayward_window *window,
 		switch (width->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			width->amount = window->pending.workspace->width * width->amount / 100;
+			width->amount = window->pending.workspace->pending.width * width->amount / 100;
 			width->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
@@ -331,7 +331,7 @@ static struct cmd_results *resize_set_floating(struct hayward_window *window,
 		switch (height->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			height->amount = window->pending.workspace->height * height->amount / 100;
+			height->amount = window->pending.workspace->pending.height * height->amount / 100;
 			height->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
