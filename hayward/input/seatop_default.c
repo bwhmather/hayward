@@ -406,7 +406,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		struct hayward_window *window_to_focus = window;
 		enum hayward_column_layout layout = window_parent_layout(window);
 		if (layout == L_STACKED) {
-			window_to_focus = seat_get_focus_inactive_view(seat, &window->pending.parent->node);
+			window_to_focus = window->pending.parent->pending.active_child;
 		}
 		seat_set_focus_window(seat, window_to_focus);
 		seatop_begin_resize_tiling(seat, window, edge);   // TODO (hayward) will only ever take a window.
@@ -757,13 +757,8 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 				desired = siblings->length - 1;
 			}
 
-			struct hayward_window *new_sibling_container = siblings->items[desired];
-			struct hayward_node *new_sibling = &new_sibling_container->node;
-			struct hayward_window *new_focus =
-				seat_get_focus_inactive_view(seat, new_sibling);
-			// Use the focused child of the stacked container, not the
-			// container the user scrolled on.
-			seat_set_focus_window(seat, new_focus);
+			struct hayward_window *new_sibling = siblings->items[desired];
+			seat_set_focus_window(seat, new_sibling);
 			transaction_commit_dirty();
 			handled = true;
 		}

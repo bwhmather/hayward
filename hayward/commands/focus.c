@@ -45,7 +45,7 @@ static struct hayward_node *get_node_in_output_direction(
 	if (workspace->pending.fullscreen) {
 		return &workspace->pending.fullscreen->node;
 	}
-	struct hayward_window *column = NULL;
+	struct hayward_column *column = NULL;
 	struct hayward_window *window = NULL;
 
 	if (workspace->pending.tiling->length > 0) {
@@ -53,12 +53,12 @@ static struct hayward_node *get_node_in_output_direction(
 		case WLR_DIRECTION_LEFT:
 			// get most right child of new output
 			column = workspace->pending.tiling->items[workspace->pending.tiling->length-1];
-			window = seat_get_focus_inactive_view(seat, &column->node);
+			window = column->pending.active_child;
 			break;
 		case WLR_DIRECTION_RIGHT:
 			// get most left child of new output
 			column = workspace->pending.tiling->items[0];
-			window = seat_get_focus_inactive_view(seat, &column->node);
+			window = column->pending.active_child;
 			break;
 		case WLR_DIRECTION_UP:
 			window = seat_get_focus_inactive_tiling(seat, workspace);
@@ -127,18 +127,18 @@ static struct hayward_node *node_get_in_direction_tiling(
 
 		if (desired_idx >= 0 && desired_idx < siblings->length) {
 			struct hayward_column *next_column = siblings->items[desired_idx];
-			struct hayward_window *next_window = seat_get_focus_inactive_view(seat, &next_column->node);
+			struct hayward_window *next_window = next_column->pending.active_child;
 			return &next_window->node;
 		}
 
 		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
-			struct hayward_window *wrap_candidate_column;
+			struct hayward_column *wrap_candidate_column;
 			if (desired_idx < 0) {
 				wrap_candidate_column = siblings->items[siblings->length - 1];
 			} else {
 				wrap_candidate_column = siblings->items[0];
 			}
-			wrap_candidate = seat_get_focus_inactive_view(seat, &wrap_candidate_column->node);
+			wrap_candidate = wrap_candidate_column->pending.active_child;
 			if (config->focus_wrapping == WRAP_FORCE) {
 				return &wrap_candidate->node;
 			}
@@ -154,9 +154,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 
 	// If there is a wrap candidate, return its focus inactive view
 	if (wrap_candidate) {
-		struct hayward_window *wrap_inactive = seat_get_focus_inactive_view(
-				seat, &wrap_candidate->node);
-		return &wrap_inactive->node;
+		return &wrap_candidate->node;
 	}
 
 	return NULL;

@@ -452,7 +452,6 @@ static void window_move_to_column_from_maybe_direction(
 		return;
 	}
 
-	struct hayward_seat *seat = input_manager_get_default_seat();
 	struct hayward_workspace *old_workspace = window->pending.workspace;
 
 	if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
@@ -466,7 +465,7 @@ static void window_move_to_column_from_maybe_direction(
 		window->width_fraction = window->height_fraction = 0;
 	} else {
 		hayward_log(HAYWARD_DEBUG, "Reparenting window (perpendicular)");
-		struct hayward_window *target_sibling = seat_get_focus_inactive_view(seat, &column->node);
+		struct hayward_window *target_sibling = column->pending.active_child;
 		window_detach(window);
 		if (target_sibling) {
 			column_add_sibling(target_sibling, window, 1);

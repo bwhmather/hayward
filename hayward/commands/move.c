@@ -276,14 +276,6 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 
 		ipc_event_window(window, "move");
 
-		// Restore focus to the original workspace.
-		struct hayward_window *focus = seat_get_focus_inactive_view(seat, &old_workspace->node);
-		if (focus) {
-			seat_set_focus_window(seat, focus);
-		} else {
-			seat_set_focus_workspace(seat, old_workspace);
-		}
-
 		// If necessary, clean up old column and workspace.
 		if (old_parent) {
 			column_consider_destroy(old_parent);
@@ -291,7 +283,6 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		if (old_workspace) {
 			workspace_consider_destroy(old_workspace);
 		}
-
 
 		// Re-arrange windows
 		if (old_workspace && !old_workspace->node.destroying) {

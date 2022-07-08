@@ -233,21 +233,6 @@ void seat_for_each_window(struct hayward_seat *seat,
 	}
 }
 
-struct hayward_window *seat_get_focus_inactive_view(struct hayward_seat *seat,
-		struct hayward_node *ancestor) {
-	if (node_is_view(ancestor)) {
-		return ancestor->hayward_window;
-	}
-	struct hayward_seat_window *current;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct hayward_window *window = current->window;
-		if (node_has_ancestor(&window->node, ancestor)) {
-			return window;
-		}
-	}
-	return NULL;
-}
-
 static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_seat_workspace *seat_workspace = wl_container_of(listener, seat_workspace, destroy);
 	struct hayward_seat *seat = seat_workspace->seat;

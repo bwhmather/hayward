@@ -237,13 +237,6 @@ struct hayward_window *seat_get_focus_inactive_tiling(struct hayward_seat *seat,
 		struct hayward_workspace *workspace);
 
 /**
- * Descend into the focus stack to find the focus-inactive view. Useful for
- * container placement when they change position in the tree.
- */
-struct hayward_window *seat_get_focus_inactive_view(struct hayward_seat *seat,
-		struct hayward_node *ancestor);
-
-/**
  * Return the immediate child of container which was most recently focused.
  */
 struct hayward_node *seat_get_active_tiling_child(struct hayward_seat *seat,

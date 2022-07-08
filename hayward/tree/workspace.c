@@ -789,13 +789,20 @@ struct hayward_column *workspace_insert_tiling(struct hayward_workspace *workspa
 }
 
 bool workspace_has_single_visible_container(struct hayward_workspace *workspace) {
-	struct hayward_seat *seat = input_manager_get_default_seat();
-	struct hayward_window *focus =
-		seat_get_focus_inactive_tiling(seat, workspace);
-	if (focus && !focus->view) {
-		focus = seat_get_focus_inactive_view(seat, &focus->node);
+	if (workspace->pending.tiling->length != 1) {
+		return false;
 	}
-	return (focus && focus->view && view_ancestor_is_only_visible(focus->view));
+
+	struct hayward_column *column = workspace->pending.tiling->items[0];
+	if (column->pending.layout == L_STACKED) {
+		return true;
+	}
+
+	if (column->pending.children->length == 1) {
+		return true;
+	}
+
+	return false;
 }
 
 void workspace_add_gaps(struct hayward_workspace *workspace) {
