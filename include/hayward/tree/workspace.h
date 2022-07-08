@@ -6,6 +6,11 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/node.h"
 
+enum hayward_focus_mode {
+	F_TILING,
+	F_FLOATING,
+};
+
 struct hayward_view;
 
 struct hayward_workspace_state {
@@ -16,10 +21,10 @@ struct hayward_workspace_state {
 	list_t *floating;           // struct hayward_window
 	list_t *tiling;             // struct hayward_column
 
-	// The column that should be given focus if this workspace is focused.  If
-	// the workspace has columns but active_column is NULL, it indicates that
-	// the floating layer should be focused.
+	// The column that should be given focus if this workspace is focused and
+	// focus_mode is F_TILING.
 	struct hayward_column *active_column;
+	enum hayward_focus_mode focus_mode;
 	bool focused;
 };
 

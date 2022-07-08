@@ -129,6 +129,7 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 	state->focused = seat_get_focus(seat) == &workspace->node;
 
 	state->active_column = workspace->pending.active_column;
+	state->focus_mode = workspace->pending.focus_mode;
 }
 
 static void copy_column_state(struct hayward_column *column,
