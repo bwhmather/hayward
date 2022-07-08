@@ -128,9 +128,9 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 	struct hayward_seat *seat = input_manager_current_seat();
 	state->focused = seat_get_focus(seat) == &workspace->node;
 
-	// Set focused_inactive_child to the direct tiling child
+	// Set active_column to the direct tiling child
 	struct hayward_window *focus = seat_get_focus_inactive_tiling(seat, workspace);
-	state->focused_inactive_child = focus ? focus->pending.parent : NULL;
+	state->active_column = focus ? focus->pending.parent : NULL;
 }
 
 static void copy_column_state(struct hayward_column *container,

@@ -16,7 +16,10 @@ struct hayward_workspace_state {
 	list_t *floating;           // struct hayward_window
 	list_t *tiling;             // struct hayward_column
 
-	struct hayward_column *focused_inactive_child;
+	// The column that should be given focus if this workspace is focused.  If
+	// the workspace has columns but active_column is NULL, it indicates that
+	// the floating layer should be focused.
+	struct hayward_column *active_column;
 	bool focused;
 };
 
