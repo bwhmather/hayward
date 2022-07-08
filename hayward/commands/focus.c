@@ -39,7 +39,6 @@ static bool parse_direction(const char *name,
  */
 static struct hayward_node *get_node_in_output_direction(
 		struct hayward_output *output, enum wlr_direction dir) {
-	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_workspace *workspace = output_get_active_workspace(output);
 	hayward_assert(workspace, "Expected output to have a workspace");
 	if (workspace->pending.fullscreen) {
@@ -61,10 +60,10 @@ static struct hayward_node *get_node_in_output_direction(
 			window = column->pending.active_child;
 			break;
 		case WLR_DIRECTION_UP:
-			window = seat_get_focus_inactive_tiling(seat, workspace);
+			window = workspace_get_active_tiling_window(workspace);
 			break;
 		case WLR_DIRECTION_DOWN:
-			window = seat_get_focus_inactive_tiling(seat, workspace);
+			window = workspace_get_active_tiling_window(workspace);
 			break;
 		}
 	}
@@ -199,9 +198,9 @@ static struct cmd_results *focus_mode(struct hayward_workspace *workspace,
 		struct hayward_seat *seat, bool floating) {
 	struct hayward_window *new_focus = NULL;
 	if (floating) {
-		new_focus = seat_get_focus_inactive_floating(seat, workspace);
+		new_focus = workspace_get_active_floating_window(workspace);
 	} else {
-		new_focus = seat_get_focus_inactive_tiling(seat, workspace);
+		new_focus = workspace_get_active_tiling_window(workspace);
 	}
 	if (new_focus) {
 		seat_set_focus_window(seat, new_focus);

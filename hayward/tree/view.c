@@ -708,8 +708,6 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 		wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel, class);
 	}
 
-	struct hayward_seat *seat = input_manager_current_seat();
-
 	if (view->impl->wants_floating && view->impl->wants_floating(view)) {
 		workspace_add_floating(workspace, view->window);
 
@@ -717,7 +715,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 		view->window->pending.border_thickness = config->floating_border_thickness;
 		window_set_floating(view->window, true);
 	} else {
-		struct hayward_window *target_sibling = seat_get_focus_inactive_tiling(seat, workspace);
+		struct hayward_window *target_sibling = workspace_get_active_tiling_window(workspace);
 		if (target_sibling) {
 			column_add_sibling(target_sibling, view->window, 1);
 		} else {
@@ -1247,15 +1245,12 @@ bool view_is_visible(struct hayward_view *view) {
 		return false;
 	}
 	// Check view isn't in a stacked container on an inactive tab
-	struct hayward_seat *seat = input_manager_current_seat();
 	struct hayward_window *window = view->window;
 	struct hayward_column *column = window->pending.parent;
 	if (column != NULL) {
 		enum hayward_column_layout parent_layout = column->pending.layout;
-		if (parent_layout == L_STACKED) {
-			if (seat_get_active_tiling_child(seat, &column->node) != &window->node) {
-				return false;
-			}
+		if (parent_layout == L_STACKED && column->pending.active_child != window) {
+			return false;
 		}
 	}
 

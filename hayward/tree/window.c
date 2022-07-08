@@ -504,8 +504,6 @@ static void window_move_to_workspace_from_maybe_direction(
 		return;
 	}
 
-	struct hayward_seat *seat = input_manager_get_default_seat();
-
 	// TODO (hayward) fullscreen.
 
 	if (window_is_floating(window)) {
@@ -541,14 +539,7 @@ static void window_move_to_workspace_from_maybe_direction(
 	} else {
 		hayward_log(HAYWARD_DEBUG, "Reparenting container (perpendicular)");
 		// Move to the most recently focused column in the workspace.
-		struct hayward_column *column = NULL;
-
-		struct hayward_window *focus_inactive = seat_get_focus_inactive_tiling(seat, workspace);
-		if (focus_inactive) {
-			column = focus_inactive->pending.parent;
-		} else {
-			column = workspace->pending.tiling->items[0];
-		}
+		struct hayward_column *column = workspace->pending.active_column;
 		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
 	}
 }

@@ -1600,42 +1600,6 @@ struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat,
 	return NULL;
 }
 
-// TODO (hayward) deprecated.
-struct hayward_window *seat_get_focus_inactive_tiling(struct hayward_seat *seat,
-		struct hayward_workspace *workspace) {
-	return seat_get_active_tiling_window_for_workspace(seat, workspace);
-}
-
-// TODO (hayward) deprecated.
-struct hayward_window *seat_get_focus_inactive_floating(struct hayward_seat *seat,
-		struct hayward_workspace *workspace) {
-	return seat_get_active_floating_window_for_workspace(seat, workspace);
-}
-
-// TODO (hayward) deprecated.
-struct hayward_node *seat_get_active_tiling_child(struct hayward_seat *seat,
-		struct hayward_node *parent) {
-	struct hayward_window *window = NULL;
-
-	switch (parent->type) {
-	case N_WORKSPACE:
-		window = seat_get_active_tiling_window_for_workspace(seat, parent->hayward_workspace);
-		break;
-
-	case N_COLUMN:
-		window = seat_get_active_window_for_column(seat, parent->hayward_column);
-		break;
-
-	case N_WINDOW:
-		window = parent->hayward_window;
-		break;
-
-	default:
-		hayward_assert(false, "Unexpected node type");
-	}
-	return window != NULL ? &window->node : NULL;
-}
-
 struct hayward_node *seat_get_focus(struct hayward_seat *seat) {
 	if (!seat->has_focus) {
 		return NULL;

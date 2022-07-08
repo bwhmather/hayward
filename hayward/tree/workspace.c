@@ -772,8 +772,13 @@ void workspace_add_floating(struct hayward_workspace *workspace,
 void workspace_insert_tiling_direct(struct hayward_workspace *workspace,
 		struct hayward_column *column, int index) {
 	list_insert(workspace->pending.tiling, index, column);
+	if (workspace->pending.active_column == NULL) {
+		workspace->pending.active_column = column;
+	}
+
 	column->pending.workspace = workspace;
 	column_for_each_child(column, set_workspace, NULL);
+
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&column->node);
 }
@@ -890,3 +895,21 @@ size_t workspace_num_sticky_containers(struct hayward_workspace *workspace) {
 	workspace_for_each_window(workspace, count_sticky_containers, &count);
 	return count;
 }
+
+struct hayward_window *workspace_get_active_tiling_window(struct hayward_workspace *workspace) {
+	struct hayward_column *active_column = workspace->pending.active_column;
+	if (active_column == NULL) {
+		return NULL;
+	}
+
+	return active_column->pending.active_child;
+}
+
+struct hayward_window *workspace_get_active_floating_window(struct hayward_workspace *workspace) {
+	if (workspace->pending.floating->length == 0) {
+		return NULL;
+	}
+
+	return workspace->pending.floating->items[0];
+}
+

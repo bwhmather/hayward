@@ -96,7 +96,16 @@ void column_detach(struct hayward_column *column) {
 		if (index != -1) {
 			list_del(siblings, index);
 		}
+
+		if (old_workspace->pending.active_column == column) {
+			if (siblings->length) {
+				old_workspace->pending.active_column = siblings->items[index > 0 ? index : 0];
+			} else {
+				old_workspace->pending.active_column = NULL;
+			}
+		}
 	}
+
 	column->pending.parent = NULL;
 	column->pending.workspace = NULL;
 

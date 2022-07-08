@@ -233,15 +233,6 @@ struct hayward_window *seat_get_active_window_for_workspace(struct hayward_seat 
 struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat,
 		struct hayward_node *node);
 
-struct hayward_window *seat_get_focus_inactive_tiling(struct hayward_seat *seat,
-		struct hayward_workspace *workspace);
-
-/**
- * Return the immediate child of container which was most recently focused.
- */
-struct hayward_node *seat_get_active_tiling_child(struct hayward_seat *seat,
-		struct hayward_node *parent);
-
 /**
  * Iterate over the focus-inactive children of the container calling the
  * function on each.
@@ -290,9 +281,6 @@ void seatop_begin_resize_floating(struct hayward_seat *seat,
 
 void seatop_begin_resize_tiling(struct hayward_seat *seat,
 		struct hayward_window *container, enum wlr_edges edge);
-
-struct hayward_window *seat_get_focus_inactive_floating(struct hayward_seat *seat,
-		struct hayward_workspace *workspace);
 
 void seat_pointer_notify_button(struct hayward_seat *seat, uint32_t time_msec,
 		uint32_t button, enum wlr_button_state state);

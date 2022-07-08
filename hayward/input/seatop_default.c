@@ -747,9 +747,9 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	if (!handled && (on_titlebar || on_titlebar_border)) {
 		struct hayward_column *column = window->pending.parent;
 		if (column->pending.layout == L_STACKED) {
-			struct hayward_node *active = seat_get_active_tiling_child(seat, &column->node);
+			struct hayward_window *active = column->pending.active_child;
 			list_t *siblings = window_get_siblings(window);
-			int desired = list_find(siblings, active->hayward_window) +
+			int desired = list_find(siblings, active) +
 				round(scroll_factor * event->delta_discrete);
 			if (desired < 0) {
 				desired = 0;
