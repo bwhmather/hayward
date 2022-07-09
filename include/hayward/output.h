@@ -36,9 +36,9 @@ struct hayward_output {
 	struct wlr_output_mode *current_mode;
 
 	bool enabling, enabled;
-	list_t *workspaces;
 
 	struct hayward_output_state current;
+	struct hayward_output_state pending;
 
 	struct wl_listener destroy;
 	struct wl_listener commit;

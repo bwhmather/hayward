@@ -668,8 +668,8 @@ json_object *ipc_json_describe_node_recursive(struct hayward_node *node) {
 		}
 		break;
 	case N_OUTPUT:
-		for (i = 0; i < node->hayward_output->workspaces->length; ++i) {
-			struct hayward_workspace *workspace = node->hayward_output->workspaces->items[i];
+		for (i = 0; i < node->hayward_output->pending.workspaces->length; ++i) {
+			struct hayward_workspace *workspace = node->hayward_output->pending.workspaces->items[i];
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&workspace->node));
 		}

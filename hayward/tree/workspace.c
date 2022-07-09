@@ -393,8 +393,8 @@ struct hayward_workspace *workspace_prev(struct hayward_workspace *workspace) {
 		int othern = -1;
 		for (int i = root->outputs->length - 1; i >= 0; i--) {
 			struct hayward_output *output = root->outputs->items[i];
-			for (int j = output->workspaces->length - 1; j >= 0; j--) {
-				struct hayward_workspace *candidate = output->workspaces->items[j];
+			for (int j = output->pending.workspaces->length - 1; j >= 0; j--) {
+				struct hayward_workspace *candidate = output->pending.workspaces->items[j];
 				int wsn = workspace_get_number(candidate);
 				if (!last) {
 					// The first workspace in reverse order
@@ -418,8 +418,8 @@ struct hayward_workspace *workspace_prev(struct hayward_workspace *workspace) {
 		int prevn = -1, lastn = -1;
 		for (int i = root->outputs->length - 1; i >= 0; i--) {
 			struct hayward_output *output = root->outputs->items[i];
-			for (int j = output->workspaces->length - 1; j >= 0; j--) {
-				struct hayward_workspace *candidate = output->workspaces->items[j];
+			for (int j = output->pending.workspaces->length - 1; j >= 0; j--) {
+				struct hayward_workspace *candidate = output->pending.workspaces->items[j];
 				int wsn = workspace_get_number(candidate);
 				if (!last || (wsn >= 0 && wsn > lastn)) {
 					// The greatest numbered (or last) workspace
@@ -458,8 +458,8 @@ struct hayward_workspace *workspace_next(struct hayward_workspace *workspace) {
 		int othern = -1;
 		for (int i = 0; i < root->outputs->length; i++) {
 			struct hayward_output *output = root->outputs->items[i];
-			for (int j = 0; j < output->workspaces->length; j++) {
-				struct hayward_workspace *candidate = output->workspaces->items[j];
+			for (int j = 0; j < output->pending.workspaces->length; j++) {
+				struct hayward_workspace *candidate = output->pending.workspaces->items[j];
 				int wsn = workspace_get_number(candidate);
 				if (!first) {
 					// The first named workspace
@@ -483,8 +483,8 @@ struct hayward_workspace *workspace_next(struct hayward_workspace *workspace) {
 		int nextn = -1, firstn = -1;
 		for (int i = 0; i < root->outputs->length; i++) {
 			struct hayward_output *output = root->outputs->items[i];
-			for (int j = 0; j < output->workspaces->length; j++) {
-				struct hayward_workspace *candidate = output->workspaces->items[j];
+			for (int j = 0; j < output->pending.workspaces->length; j++) {
+				struct hayward_workspace *candidate = output->pending.workspaces->items[j];
 				int wsn = workspace_get_number(candidate);
 				if (!first || (wsn >= 0 && wsn < firstn)) {
 					// The first (or least numbered) workspace
@@ -531,9 +531,9 @@ static struct hayward_workspace *workspace_output_prev_next_impl(
 		return NULL;
 	}
 
-	int index = list_find(output->workspaces, workspace);
-	size_t new_index = wrap(index + dir, output->workspaces->length);
-	return output->workspaces->items[new_index];
+	int index = list_find(output->pending.workspaces, workspace);
+	size_t new_index = wrap(index + dir, output->pending.workspaces->length);
+	return output->pending.workspaces->items[new_index];
 }
 
 
@@ -729,9 +729,9 @@ static void set_workspace(struct hayward_window *container, void *data) {
 
 void workspace_detach(struct hayward_workspace *workspace) {
 	struct hayward_output *output = workspace->pending.output;
-	int index = list_find(output->workspaces, workspace);
+	int index = list_find(output->pending.workspaces, workspace);
 	if (index != -1) {
-		list_del(output->workspaces, index);
+		list_del(output->pending.workspaces, index);
 	}
 	workspace->pending.output = NULL;
 

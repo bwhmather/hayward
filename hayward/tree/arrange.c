@@ -287,8 +287,8 @@ void arrange_output(struct hayward_output *output) {
 	output->width = output_box.width;
 	output->height = output_box.height;
 
-	for (int i = 0; i < output->workspaces->length; ++i) {
-		struct hayward_workspace *workspace = output->workspaces->items[i];
+	for (int i = 0; i < output->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = output->pending.workspaces->items[i];
 		arrange_workspace(workspace);
 	}
 }

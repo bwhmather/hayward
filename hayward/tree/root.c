@@ -234,8 +234,8 @@ void root_for_each_window(void (*f)(struct hayward_window *window, void *data),
 	}
 
 	// Saved workspaces
-	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->fallback_output->workspaces->items[i];
+	for (int i = 0; i < root->fallback_output->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = root->fallback_output->pending.workspaces->items[i];
 		workspace_for_each_window(workspace, f, data);
 	}
 }
@@ -274,8 +274,8 @@ struct hayward_window *root_find_window(
 	}
 
 	// Saved workspaces
-	for (int i = 0; i < root->fallback_output->workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->fallback_output->workspaces->items[i];
+	for (int i = 0; i < root->fallback_output->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = root->fallback_output->pending.workspaces->items[i];
 		if ((result = workspace_find_window(workspace, test, data))) {
 			return result;
 		}

@@ -35,8 +35,8 @@ static void restore_workspaces(struct hayward_output *output) {
 			continue;
 		}
 
-		for (int j = 0; j < other->workspaces->length; j++) {
-			struct hayward_workspace *workspace = other->workspaces->items[j];
+		for (int j = 0; j < other->pending.workspaces->length; j++) {
+			struct hayward_workspace *workspace = other->pending.workspaces->items[j];
 			struct hayward_output *highest =
 				workspace_output_get_highest_available(workspace, NULL);
 			if (highest == output) {
@@ -47,7 +47,7 @@ static void restore_workspaces(struct hayward_output *output) {
 			}
 		}
 
-		if (other->workspaces->length == 0) {
+		if (other->pending.workspaces->length == 0) {
 			char *next = workspace_next_name(other->wlr_output->name);
 			struct hayward_workspace *workspace = workspace_create(other, next);
 			free(next);
@@ -56,8 +56,8 @@ static void restore_workspaces(struct hayward_output *output) {
 	}
 
 	// Saved workspaces
-	while (root->fallback_output->workspaces->length) {
-		struct hayward_workspace *workspace = root->fallback_output->workspaces->items[0];
+	while (root->fallback_output->pending.workspaces->length) {
+		struct hayward_workspace *workspace = root->fallback_output->pending.workspaces->items[0];
 		workspace_detach(workspace);
 		output_add_workspace(output, workspace);
 
@@ -99,7 +99,7 @@ struct hayward_output *output_create(struct wlr_output *wlr_output) {
 
 	wl_list_insert(&root->all_outputs, &output->link);
 
-	output->workspaces = create_list();
+	output->pending.workspaces = create_list();
 	output->current.workspaces = create_list();
 
 	size_t len = sizeof(output->layers) / sizeof(output->layers[0]);
@@ -119,7 +119,7 @@ void output_enable(struct hayward_output *output) {
 	restore_workspaces(output);
 
 	struct hayward_workspace *workspace = NULL;
-	if (!output->workspaces->length) {
+	if (!output->pending.workspaces->length) {
 		// Create workspace
 		char *workspace_name = workspace_next_name(wlr_output->name);
 		hayward_log(HAYWARD_DEBUG, "Creating default workspace %s", workspace_name);
@@ -159,7 +159,7 @@ static void evacuate_sticky(struct hayward_workspace *old_workspace,
 }
 
 static void output_evacuate(struct hayward_output *output) {
-	if (!output->workspaces->length) {
+	if (!output->pending.workspaces->length) {
 		return;
 	}
 	struct hayward_output *fallback_output = NULL;
@@ -170,8 +170,8 @@ static void output_evacuate(struct hayward_output *output) {
 		}
 	}
 
-	while (output->workspaces->length) {
-		struct hayward_workspace *workspace = output->workspaces->items[0];
+	while (output->pending.workspaces->length) {
+		struct hayward_workspace *workspace = output->pending.workspaces->items[0];
 
 		workspace_detach(workspace);
 
@@ -221,7 +221,7 @@ void output_destroy(struct hayward_output *output) {
 				"Tried to free output which still had a wlr_output");
 	hayward_assert(output->node.ntxnrefs == 0, "Tried to free output "
 				"which is still referenced by transactions");
-	list_free(output->workspaces);
+	list_free(output->pending.workspaces);
 	list_free(output->current.workspaces);
 	wl_event_source_remove(output->repaint_timer);
 	free(output);
@@ -294,7 +294,7 @@ void output_add_workspace(struct hayward_output *output,
 	if (workspace->pending.output) {
 		workspace_detach(workspace);
 	}
-	list_add(output->workspaces, workspace);
+	list_add(output->pending.workspaces, workspace);
 	workspace->pending.output = output;
 	node_set_dirty(&output->node);
 	node_set_dirty(&workspace->node);
@@ -302,24 +302,24 @@ void output_add_workspace(struct hayward_output *output,
 
 void output_for_each_workspace(struct hayward_output *output,
 		void (*f)(struct hayward_workspace *workspace, void *data), void *data) {
-	for (int i = 0; i < output->workspaces->length; ++i) {
-		struct hayward_workspace *workspace = output->workspaces->items[i];
+	for (int i = 0; i < output->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = output->pending.workspaces->items[i];
 		f(workspace, data);
 	}
 }
 
 void output_for_each_window(struct hayward_output *output,
 		void (*f)(struct hayward_window *window, void *data), void *data) {
-	for (int i = 0; i < output->workspaces->length; ++i) {
-		struct hayward_workspace *workspace = output->workspaces->items[i];
+	for (int i = 0; i < output->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = output->pending.workspaces->items[i];
 		workspace_for_each_window(workspace, f, data);
 	}
 }
 
 struct hayward_workspace *output_find_workspace(struct hayward_output *output,
 		bool (*test)(struct hayward_workspace *workspace, void *data), void *data) {
-	for (int i = 0; i < output->workspaces->length; ++i) {
-		struct hayward_workspace *workspace = output->workspaces->items[i];
+	for (int i = 0; i < output->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = output->pending.workspaces->items[i];
 		if (test(workspace, data)) {
 			return workspace;
 		}
@@ -330,8 +330,8 @@ struct hayward_workspace *output_find_workspace(struct hayward_output *output,
 struct hayward_window *output_find_window(struct hayward_output *output,
 		bool (*test)(struct hayward_window *window, void *data), void *data) {
 	struct hayward_window *result = NULL;
-	for (int i = 0; i < output->workspaces->length; ++i) {
-		struct hayward_workspace *workspace = output->workspaces->items[i];
+	for (int i = 0; i < output->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = output->pending.workspaces->items[i];
 		if ((result = workspace_find_window(workspace, test, data))) {
 			return result;
 		}
@@ -356,7 +356,7 @@ static int sort_workspace_cmp_qsort(const void *_a, const void *_b) {
 }
 
 void output_sort_workspaces(struct hayward_output *output) {
-	list_stable_sort(output->workspaces, sort_workspace_cmp_qsort);
+	list_stable_sort(output->pending.workspaces, sort_workspace_cmp_qsort);
 }
 
 void output_get_box(struct hayward_output *output, struct wlr_box *box) {

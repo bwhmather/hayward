@@ -409,7 +409,7 @@ static void workspace_move_to_output(struct hayward_workspace *workspace,
 	// If moving the last workspace from the old output, create a new workspace
 	// on the old output
 	struct hayward_seat *seat = config->handler_context.seat;
-	if (old_output->workspaces->length == 0) {
+	if (old_output->pending.workspaces->length == 0) {
 		char *workspace_name = workspace_next_name(old_output->wlr_output->name);
 		struct hayward_workspace *workspace = workspace_create(old_output, workspace_name);
 		free(workspace_name);
