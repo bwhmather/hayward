@@ -116,9 +116,6 @@ struct hayward_node *node_get_parent(struct hayward_node *node) {
 		return NULL;
 	case N_COLUMN: {
 			struct hayward_column *column = node->hayward_column;
-			if (column->pending.parent) {
-				return &column->pending.parent->node;
-			}
 			if (column->pending.workspace) {
 				return &column->pending.workspace->node;
 			}

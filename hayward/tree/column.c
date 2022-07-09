@@ -106,7 +106,6 @@ void column_detach(struct hayward_column *column) {
 		}
 	}
 
-	column->pending.parent = NULL;
 	column->pending.workspace = NULL;
 
 	if (old_workspace) {

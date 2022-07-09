@@ -18,7 +18,6 @@ struct hayward_column_state {
 	double width, height;
 
 	struct hayward_workspace *workspace;
-	struct hayward_column *parent;    // NULL if container in root of workspace
 	list_t *children;                 // struct hayward_window
 
 	struct hayward_window *active_child;
