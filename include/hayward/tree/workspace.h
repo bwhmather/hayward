@@ -137,6 +137,6 @@ size_t workspace_num_sticky_containers(struct hayward_workspace *workspace);
 
 struct hayward_window *workspace_get_active_tiling_window(struct hayward_workspace *workspace);
 struct hayward_window *workspace_get_active_floating_window(struct hayward_workspace *workspace);
-
+struct hayward_window *workspace_get_active_window(struct hayward_workspace *workspace);
 
 #endif

@@ -913,3 +913,14 @@ struct hayward_window *workspace_get_active_floating_window(struct hayward_works
 	return workspace->pending.floating->items[0];
 }
 
+struct hayward_window *workspace_get_active_window(struct hayward_workspace *workspace) {
+	switch (workspace->pending.focus_mode) {
+	case F_TILING:
+		return workspace_get_active_tiling_window(workspace);
+	case F_FLOATING:
+		return workspace_get_active_floating_window(workspace);
+	default:
+		hayward_abort("Invalid focus mode");
+	}
+}
+
