@@ -189,7 +189,7 @@ static json_object *ipc_json_create_empty_rect(void) {
 }
 
 static json_object *ipc_json_create_node(int id, const char* type, char *name,
-		bool focused, json_object *focus, struct wlr_box *box) {
+		bool focused, struct wlr_box *box) {
 	json_object *object = json_object_new_object();
 
 	json_object_object_add(object, "id", json_object_new_int(id));
@@ -214,7 +214,6 @@ static json_object *ipc_json_create_node(int id, const char* type, char *name,
 	json_object_object_add(object, "window", NULL);
 	json_object_object_add(object, "nodes", json_object_new_array());
 	json_object_object_add(object, "floating_nodes", json_object_new_array());
-	json_object_object_add(object, "focus", focus);
 	json_object_object_add(object, "fullscreen_mode", json_object_new_int(0));
 	json_object_object_add(object, "sticky", json_object_new_boolean(false));
 
@@ -577,34 +576,6 @@ static void ipc_json_describe_window(struct hayward_window *window, json_object 
 	ipc_json_describe_view(window, object);
 }
 
-struct focus_inactive_data {
-	struct hayward_node *node;
-	json_object *object;
-};
-
-static void focus_inactive_children_iterator(struct hayward_node *node,
-		void *_data) {
-	struct focus_inactive_data *data = _data;
-	json_object *focus = data->object;
-	if (data->node == &root->node) {
-		struct hayward_output *output = node_get_output(node);
-		if (output == NULL) {
-			return;
-		}
-		size_t id = output->node.id;
-		int len = json_object_array_length(focus);
-		for (int i = 0; i < len; ++i) {
-			if ((size_t) json_object_get_int(json_object_array_get_idx(focus, i)) == id) {
-				return;
-			}
-		}
-		node = &output->node;
-	} else if (node_get_parent(node) != data->node) {
-		return;
-	}
-	json_object_array_add(focus, json_object_new_int(node->id));
-}
-
 json_object *ipc_json_describe_node(struct hayward_node *node) {
 	struct hayward_seat *seat = input_manager_get_default_seat();
 	bool focused = seat_get_focus(seat) == node;
@@ -624,15 +595,8 @@ json_object *ipc_json_describe_node(struct hayward_node *node) {
 		box.height -= deco_rect.height * count;
 	}
 
-	json_object *focus = json_object_new_array();
-	struct focus_inactive_data data = {
-		.node = node,
-		.object = focus,
-	};
-	seat_for_each_node(seat, focus_inactive_children_iterator, &data);
-
 	json_object *object = ipc_json_create_node((int)node->id,
-				ipc_json_node_type_description(node->type), name, focused, focus, &box);
+				ipc_json_node_type_description(node->type), name, focused, &box);
 
 	switch (node->type) {
 	case N_ROOT:

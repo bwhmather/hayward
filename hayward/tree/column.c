@@ -90,6 +90,13 @@ void column_consider_destroy(struct hayward_column *column) {
 void column_detach(struct hayward_column *column) {
 	struct hayward_workspace *old_workspace = column->pending.workspace;
 
+	if (old_workspace == NULL) {
+		return;
+	}
+
+	struct hayward_seat *seat = input_manager_current_seat();
+	struct hayward_window *old_focus = seat_get_focused_container(seat);
+
 	list_t *siblings = column_get_siblings(column);
 	if (siblings) {
 		int index = list_find(siblings, column);
@@ -107,6 +114,18 @@ void column_detach(struct hayward_column *column) {
 	}
 
 	column->pending.workspace = NULL;
+
+	if (old_focus->pending.parent == column) {
+		struct hayward_window *focus = seat_get_focused_container(seat);
+		if (focus != NULL) {
+			// TODO `seat_set_focus_window` will rewrite all of the parent/child
+			// links, but this isn't really necessary.  Focus should probably
+			// just be inferred at the end of the transaction.
+			seat_set_focus_window(seat, focus);
+		} else {
+			seat_set_focus_workspace(seat, old_workspace);
+		}
+	}
 
 	if (old_workspace) {
 		node_set_dirty(&old_workspace->node);

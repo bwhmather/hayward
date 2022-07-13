@@ -41,15 +41,6 @@ struct hayward_seat_device {
 	struct wl_list link; // hayward_seat::devices
 };
 
-struct hayward_seat_window {
-	struct hayward_seat *seat;
-	struct hayward_window *window;
-
-	struct wl_list link; // hayward_seat::active_window_stack
-
-	struct wl_listener destroy;
-};
-
 struct hayward_seat_workspace {
 	struct hayward_seat *seat;
 	struct hayward_workspace *workspace;
@@ -85,9 +76,6 @@ struct hayward_seat {
 	// True if a window, in particular the window at the top of the active
 	// window stack, has focus.
 	bool has_focus;
-
-	// List of windows in focus order.
-	struct wl_list active_window_stack;
 
 	// List of workspaces in focus order.  If the seat has a focused window, the
 	// top of the stack will match the workspace for that window.
@@ -232,16 +220,6 @@ struct hayward_window *seat_get_active_window_for_workspace(struct hayward_seat 
  */
 struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat,
 		struct hayward_node *node);
-
-/**
- * Iterate over the focus-inactive children of the container calling the
- * function on each.
- */
-void seat_for_each_node(struct hayward_seat *seat,
-		void (*f)(struct hayward_node *node, void *data), void *data);
-
-void seat_for_each_window(struct hayward_seat *seat,
-		void (*f)(struct hayward_window *window, void *data), void *data);
 
 void seat_apply_config(struct hayward_seat *seat, struct seat_config *seat_config);
 

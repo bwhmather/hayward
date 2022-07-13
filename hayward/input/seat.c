@@ -51,22 +51,6 @@ static void seat_device_destroy(struct hayward_seat_device *seat_device) {
 	free(seat_device);
 }
 
-static void seat_window_destroy(struct hayward_seat_window *seat_window) {
-	wl_list_remove(&seat_window->destroy.link);
-	wl_list_remove(&seat_window->link);
-
-	/*
-	 * This is the only time we remove items from the focus stack without
-	 * immediately re-adding them. If we just removed the last thing,
-	 * mark that nothing has focus anymore.
-	 */
-	if (wl_list_empty(&seat_window->seat->active_window_stack)) {
-		seat_window->seat->has_focus = false;
-	}
-
-	free(seat_window);
-}
-
 static void seat_workspace_destroy(struct hayward_seat_workspace *seat_workspace) {
 	wl_list_remove(&seat_workspace->destroy.link);
 	wl_list_remove(&seat_workspace->link);
@@ -81,11 +65,6 @@ void seat_destroy(struct hayward_seat *seat) {
 	struct hayward_seat_device *seat_device, *next;
 	wl_list_for_each_safe(seat_device, next, &seat->devices, link) {
 		seat_device_destroy(seat_device);
-	}
-	struct hayward_seat_window *seat_window, *next_seat_window;
-	wl_list_for_each_safe(seat_window, next_seat_window, &seat->active_window_stack,
-			link) {
-		seat_window_destroy(seat_window);
 	}
 	struct hayward_seat_workspace *seat_workspace, *next_seat_workspace;
 	wl_list_for_each_safe(seat_workspace, next_seat_workspace, &seat->active_workspace_stack, link) {
@@ -217,22 +196,6 @@ void hayward_force_focus(struct wlr_surface *surface) {
 	}
 }
 
-void seat_for_each_node(struct hayward_seat *seat,
-		void (*f)(struct hayward_node *node, void *data), void *data) {
-	struct hayward_seat_window *current = NULL;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		f(&current->window->node, data);
-	}
-}
-
-void seat_for_each_window(struct hayward_seat *seat,
-		void (*f)(struct hayward_window *window, void *data), void *data) {
-	struct hayward_seat_window *current = NULL;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		f(current->window, data);
-	}
-}
-
 static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_seat_workspace *seat_workspace = wl_container_of(listener, seat_workspace, destroy);
 	struct hayward_seat *seat = seat_workspace->seat;
@@ -251,134 +214,6 @@ static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	// value of seat->workspace.
 	struct hayward_node *window_node = seat_get_focus_inactive(seat, &root->node);
 	seat_set_focus(seat, window_node);
-}
-
-static void handle_window_destroy(struct wl_listener *listener, void *data) {
-	struct hayward_seat_window *seat_window =
-		wl_container_of(listener, seat_window, destroy);
-	struct hayward_seat *seat = seat_window->seat;
-	struct hayward_window *window = seat_window->window;
-	struct hayward_node *focus = seat_get_focus(seat);
-
-	if (&window->node == focus) {
-		seat_set_focus_window(seat, NULL);
-	}
-
-	seat_window_destroy(seat_window);
-
-	if (!window->pending.workspace) {
-		// Window has already been removed from the tree.  Nothing to do.
-		return;
-	}
-
-	if (&window->node != focus) {
-		// Window wasn't focused, so removing it doesn't affect the focus
-		// state.  Nothing to do.
-		return;
-	}
-
-	// Find the next window to focus.
-	// We would prefer to keep focus as close as possible to the closed window
-	// so, instead of just picking the next window in the stack, we search back
-	// for windows in the same column, the same workspace, and then in other
-	// visible workspaces.  We do not switch between floating and tiling, and we
-	// do not change the visible workspace for an output.
-	struct hayward_window *new_focus = NULL;
-
-	if (window_is_fullscreen(window)) {
-		struct hayward_seat_window *candidate_seat_window;
-
-		// Search for first floating, tiling or fullscreen container on a visible
-		// workspace.
-		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct hayward_window *candidate = candidate_seat_window->window;
-
-			if (!workspace_is_visible(candidate->pending.workspace)) {
-				continue;
-			}
-
-			new_focus = candidate;
-			break;
-		}
-
-	} else if (window_is_floating(window)) {
-		struct hayward_seat_window *candidate_seat_window;
-
-		// Search other floating containers in all visible workspaces.
-		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct hayward_window *candidate = candidate_seat_window->window;
-
-			if (!window_is_floating(candidate)) {
-				continue;
-			}
-
-			if (!workspace_is_visible(candidate->pending.workspace)) {
-				continue;
-			}
-
-			new_focus = candidate;
-			break;
-		}
-
-	} else {
-		struct hayward_seat_window *candidate_seat_window;
-
-		// Search for next tiling container in same column.
-		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct hayward_window *candidate = candidate_seat_window->window;
-
-			if (candidate->pending.parent != window->pending.parent) {
-				continue;
-			}
-
-			new_focus = candidate;
-			break;
-		}
-
-		// Search for next tiling container in same workspace.
-		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct hayward_window *candidate = candidate_seat_window->window;
-
-			if (candidate->pending.workspace != window->pending.workspace) {
-				continue;
-			}
-
-			if (window_is_floating(candidate)) {
-				continue;
-			}
-
-			if (window_is_fullscreen(candidate)) {
-				continue;
-			}
-
-			new_focus = candidate;
-			break;
-		}
-
-		// Search for next tiling container in all visible workspaces.
-		wl_list_for_each(candidate_seat_window, &seat->active_window_stack, link) {
-			struct hayward_window *candidate = candidate_seat_window->window;
-
-			if (window_is_floating(candidate)) {
-				continue;
-			}
-
-			if (window_is_fullscreen(candidate)) {
-				continue;
-			}
-
-			if (!workspace_is_visible(candidate->pending.workspace)) {
-				continue;
-			}
-
-			new_focus = candidate;
-			break;
-		}
-	}
-
-	if (new_focus) {
-		seat_set_focus_window(seat, new_focus);
-	}
 }
 
 static struct hayward_seat_workspace *seat_workspace_from_workspace(
@@ -405,38 +240,6 @@ static struct hayward_seat_workspace *seat_workspace_from_workspace(
 	return seat_workspace;
 }
 
-static struct hayward_seat_window *seat_window_from_window(
-	struct hayward_seat *seat, struct hayward_window *window) {
-	struct hayward_seat_window *seat_window = NULL;
-	wl_list_for_each(seat_window, &seat->active_window_stack, link) {
-		if (seat_window->window == window) {
-			return seat_window;
-		}
-	}
-
-	seat_window = calloc(1, sizeof(struct hayward_seat_window));
-	if (seat_window == NULL) {
-		hayward_log(HAYWARD_ERROR, "could not allocate seat node");
-		return NULL;
-	}
-
-	seat_window->window = window;
-	seat_window->seat = seat;
-	wl_list_insert(seat->active_window_stack.prev, &seat_window->link);
-	wl_signal_add(&window->node.events.destroy, &seat_window->destroy);
-	seat_window->destroy.notify = handle_window_destroy;
-
-	return seat_window;
-}
-
-static struct hayward_seat_window *seat_window_from_node(
-		struct hayward_seat *seat, struct hayward_node *node) {
-	if (node->type != N_WINDOW) {
-		return NULL;
-	}
-	return seat_window_from_window(seat, node->hayward_window);
-}
-
 static void handle_new_node(struct wl_listener *listener, void *data) {
 	struct hayward_seat *seat = wl_container_of(listener, seat, new_node);
 	struct hayward_node *node = data;
@@ -451,7 +254,6 @@ static void handle_new_node(struct wl_listener *listener, void *data) {
 	case N_COLUMN:
 		break;
 	case N_WINDOW:
-		seat_window_from_window(seat, node->hayward_window);
 		break;
 	}
 }
@@ -627,24 +429,15 @@ static void handle_request_set_primary_selection(struct wl_listener *listener,
 	wlr_seat_set_primary_selection(seat->wlr_seat, event->source, event->serial);
 }
 
-static void collect_focus_iter(struct hayward_node *node, void *data) {
-	struct hayward_seat *seat = data;
-	struct hayward_seat_window *seat_window = seat_window_from_node(seat, node);
-	if (!seat_window) {
-		return;
-	}
-	wl_list_remove(&seat_window->link);
-	wl_list_insert(&seat->active_window_stack, &seat_window->link);
-}
-
 static void collect_focus_workspace_iter(struct hayward_workspace *workspace,
 		void *data) {
-	collect_focus_iter(&workspace->node, data);
-}
-
-static void collect_focus_container_iter(struct hayward_window *container,
-		void *data) {
-	collect_focus_iter(&container->node, data);
+	struct hayward_seat *seat = data;
+	struct hayward_seat_workspace *seat_workspace = seat_workspace_from_workspace(seat, workspace);
+	if (!seat_workspace) {
+		return;
+	}
+	wl_list_remove(&seat_workspace->link);
+	wl_list_insert(&seat->active_workspace_stack, &seat_workspace->link);
 }
 
 struct hayward_seat *seat_create(const char *seat_name) {
@@ -672,13 +465,11 @@ struct hayward_seat *seat_create(const char *seat_name) {
 		IDLE_SOURCE_TABLET_TOOL |
 		IDLE_SOURCE_SWITCH;
 
-	wl_list_init(&seat->active_window_stack);
 	wl_list_init(&seat->active_workspace_stack);
 
 	wl_list_init(&seat->devices);
 
 	root_for_each_workspace(collect_focus_workspace_iter, seat);
-	root_for_each_window(collect_focus_container_iter, seat);
 
 	seat->deferred_bindings = create_list();
 
@@ -1200,15 +991,31 @@ static int handle_urgent_timeout(void *data) {
 static void seat_set_active_window(struct hayward_seat *seat, struct hayward_window *window) {
 	hayward_assert(window != NULL, "Expected non-null pointer");
 
-	struct hayward_seat_window *seat_window = seat_window_from_window(seat, window);
+	struct hayward_workspace *workspace = window->pending.workspace;
+	struct hayward_column *column = window->pending.parent;
 
-	wl_list_remove(&seat_window->link);
-	wl_list_insert(&seat->active_window_stack, &seat_window->link);
+	if (column != NULL) {
+		hayward_assert(
+			column->pending.workspace == workspace,
+			"Column workspace does not equal window workspace"
+		);
 
-	node_set_dirty(&window->node);
-	struct hayward_node *parent = node_get_parent(&window->node);
-	if (parent) {
-		node_set_dirty(parent);
+		column->pending.active_child = window;
+		workspace->pending.active_column = column;
+		workspace->pending.focus_mode = F_TILING;
+
+		node_set_dirty(&window->node);
+		node_set_dirty(&column->node);
+	} else {
+		int index = list_find(workspace->pending.floating, window);
+		hayward_assert(index >= 0, "Window is not in list of floating windows for workspace");
+
+		list_del(workspace->pending.floating, index);
+		list_insert(workspace->pending.floating, 0, column);
+		workspace->pending.focus_mode = F_FLOATING;
+
+		node_set_dirty(&window->node);
+		node_set_dirty(&workspace->node);
 	}
 }
 
@@ -1296,10 +1103,24 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 	}
 
 	if (new_window && new_window != last_window) {
-		// Move window to top of focus stack.
-		struct hayward_seat_window *seat_window = seat_window_from_window(seat, new_window);
-		wl_list_remove(&seat_window->link);
-		wl_list_insert(&seat->active_window_stack, &seat_window->link);
+		struct hayward_column *column = new_window->pending.parent;
+		if (column != NULL) {
+			hayward_assert(
+				column->pending.workspace == new_workspace,
+				"Column workspace does not equal window workspace"
+			);
+
+			column->pending.active_child = new_window;
+			new_workspace->pending.active_column = column;
+			new_workspace->pending.focus_mode = F_TILING;
+		} else {
+			int index = list_find(new_workspace->pending.floating, new_window);
+			hayward_assert(index >= 0, "Window is not in list of floating windows for workspace");
+
+			list_del(new_workspace->pending.floating, index);
+			list_insert(new_workspace->pending.floating, 0, column);
+			new_workspace->pending.focus_mode = F_FLOATING;
+		}
 
 		// Let the client know that it has focus.
 		seat_send_focus(&new_window->node, seat);
@@ -1502,114 +1323,100 @@ struct hayward_workspace *seat_get_active_workspace_for_output(struct hayward_se
 }
 
 struct hayward_window *seat_get_active_window_for_column(struct hayward_seat *seat, struct hayward_column *column) {
-	struct hayward_seat_window *current;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct hayward_window *window = current->window;
-
-		if (window->pending.parent != column) {
-			continue;
-		}
-
-		return window;
-	}
-
-	return NULL;
+	return column->pending.active_child;
 }
 
+// TODO deprecated.
 struct hayward_window *seat_get_active_tiling_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace) {
-	if (!workspace->pending.tiling->length) {
-		return NULL;
-	}
-
-	struct hayward_seat_window *current;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct hayward_window *window = current->window;
-
-		if (window->pending.workspace != workspace) {
-			continue;
-		}
-
-		if (!window_is_tiling(window)) {
-			continue;
-		}
-
-		return window;
-	}
-
-	return NULL;
+	return workspace_get_active_tiling_window(workspace);
 }
 
+// TODO deprecated.
 struct hayward_window *seat_get_active_floating_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace) {
-	if (!workspace->pending.floating->length) {
-		return NULL;
-	}
-
-	struct hayward_seat_window *current;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct hayward_window *window = current->window;
-
-		if (window->pending.workspace != workspace) {
-			continue;
-		}
-
-		if (!window_is_floating(window)) {
-			continue;
-		}
-
-		return window;
-	}
-
-	return NULL;
+	return workspace_get_active_floating_window(workspace);
 
 }
 
+// TODO deprecated.
 struct hayward_window *seat_get_active_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace) {
-	if (!workspace->pending.tiling->length) {
-		return NULL;
-	}
-
-	struct hayward_seat_window *current;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		struct hayward_window *window = current->window;
-
-		if (window->pending.workspace != workspace) {
-			continue;
-		}
-
-		return window;
-	}
-
-	return NULL;
+	return workspace_get_active_window(workspace);
 }
 
 // TODO (hayward) deprecated.
-struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat,
-		struct hayward_node *node) {
-	if (node_is_view(node)) {
-		return node;
-	}
-	struct hayward_seat_window *current;
-	wl_list_for_each(current, &seat->active_window_stack, link) {
-		if (node_has_ancestor(&current->window->node, node)) {
-			return &current->window->node;
+struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat, struct hayward_node *node) {
+	if (node->type == N_ROOT) {
+		struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
+		if (workspace == NULL) {
+			return NULL;
 		}
+
+		struct hayward_window *window = workspace_get_active_window(workspace);
+		if (window == NULL) {
+			return &workspace->node;
+		}
+
+		return &window->node;
 	}
+
+	if (node->type == N_OUTPUT) {
+		struct hayward_output *output = node->hayward_output;
+
+		struct hayward_workspace *workspace = seat_get_active_workspace_for_output(seat, output);
+		if (workspace == NULL) {
+			return NULL;
+		}
+
+		struct hayward_window *window = workspace_get_active_window(workspace);
+		if (window == NULL) {
+			return &workspace->node;
+		}
+
+		return &window->node;
+	}
+
 	if (node->type == N_WORKSPACE) {
-		return node;
+		struct hayward_workspace *workspace = node->hayward_workspace;
+
+		struct hayward_window *window = workspace_get_active_window(workspace);
+		if (window == NULL) {
+			return &workspace->node;
+		}
+
+		return &window->node;
 	}
-	return NULL;
+
+	if (node->type == N_COLUMN) {
+		struct hayward_column *column = node->hayward_column;
+
+		struct hayward_window *window = column->pending.active_child;
+		if (window == NULL) {
+			return NULL;
+		}
+
+		return &window->node;
+	}
+
+	if (node->type == N_WINDOW) {
+		struct hayward_window *window = node->hayward_window;
+
+		return &window->node;
+	}
+
+	hayward_abort("Unknown node type");
 }
 
 struct hayward_node *seat_get_focus(struct hayward_seat *seat) {
-	if (!seat->has_focus) {
+	struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
+	if (workspace == NULL) {
 		return NULL;
 	}
-	hayward_assert(!wl_list_empty(&seat->active_window_stack),
-			"active_window_stack is empty, but has_focus is true");
-	struct hayward_seat_window *current =
-		wl_container_of(seat->active_window_stack.next, current, link);
-	// TODO (hayward) should just return window.
-	return &current->window->node;
+
+	struct hayward_window *window = workspace_get_active_window(workspace);
+	if (window == NULL) {
+		return &workspace->node;
+	}
+
+	return &window->node;
 }
 
 struct hayward_workspace *seat_get_focused_workspace(struct hayward_seat *seat) {
@@ -1624,11 +1431,17 @@ struct hayward_workspace *seat_get_focused_workspace(struct hayward_seat *seat) 
 }
 
 struct hayward_window *seat_get_focused_container(struct hayward_seat *seat) {
-	struct hayward_node *focus = seat_get_focus(seat);
-	if (focus && (focus->type == N_WINDOW)) {
-		return focus->hayward_window;
+	struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
+	if (workspace == NULL) {
+		return NULL;
 	}
-	return NULL;
+
+	struct hayward_window *window = workspace_get_active_window(workspace);
+	if (window == NULL) {
+		return NULL;
+	}
+
+	return window;
 }
 
 void seat_apply_config(struct hayward_seat *seat,

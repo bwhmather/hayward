@@ -102,15 +102,38 @@ void window_begin_destroy(struct hayward_window *window) {
 }
 
 void window_detach(struct hayward_window *window) {
+	struct hayward_column *old_column = window->pending.parent;
+	struct hayward_workspace *old_workspace = window->pending.workspace;
+
+	if (old_workspace == NULL) {
+		return;
+	}
+
+	struct hayward_seat *seat = input_manager_current_seat();
+	struct hayward_window *old_focus = seat_get_focused_container(seat);
+
 	if (window->pending.fullscreen) {
 		window->pending.workspace->pending.fullscreen = NULL;
 	}
 
-	struct hayward_column *old_parent = window->pending.parent;
-	struct hayward_workspace *old_workspace = window->pending.workspace;
+	if (old_column != NULL) {
+		list_t *siblings = old_column->pending.children;
 
-	list_t *siblings = window_get_siblings(window);
-	if (siblings) {
+		int index = list_find(siblings, window);
+		if (index != -1) {
+			list_del(siblings, index);
+		}
+
+		if (old_column->pending.active_child == window) {
+			if (siblings->length) {
+				old_column->pending.active_child = siblings->items[index > 0 ? index : 0];
+			} else {
+				old_column->pending.active_child = NULL;
+			}
+		}
+	} else {
+		list_t *siblings = old_workspace->pending.floating;
+
 		int index = list_find(siblings, window);
 		if (index != -1) {
 			list_del(siblings, index);
@@ -120,9 +143,21 @@ void window_detach(struct hayward_window *window) {
 	window->pending.parent = NULL;
 	window->pending.workspace = NULL;
 
-	if (old_parent) {
-		node_set_dirty(&old_parent->node);
-	} else if (old_workspace) {
+	if (old_focus == window) {
+		struct hayward_window *focus = seat_get_focused_container(seat);
+		if (focus != NULL) {
+			// TODO `seat_set_focus_window` will rewrite all of the parent/child
+			// links, but this isn't really necessary.  Focus should probably
+			// just be inferred at the end of the transaction.
+			seat_set_focus_window(seat, focus);
+		} else {
+			seat_set_focus_workspace(seat, old_workspace);
+		}
+	}
+
+	if (old_column != NULL) {
+		node_set_dirty(&old_column->node);
+	} else {
 		node_set_dirty(&old_workspace->node);
 	}
 	node_set_dirty(&window->node);
