@@ -97,7 +97,9 @@ static void copy_output_state(struct hayward_output *output,
 		state->workspaces = create_list();
 	}
 	list_cat(state->workspaces, output->pending.workspaces);
-	state->active_workspace = output->pending.active_workspace;
+
+	struct hayward_seat *seat = input_manager_current_seat();
+	state->active_workspace = seat_get_active_workspace_for_output(seat, output);
 }
 
 static void copy_workspace_state(struct hayward_workspace *workspace,
