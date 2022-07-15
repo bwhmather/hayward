@@ -110,7 +110,7 @@ void column_detach(struct hayward_column *column) {
 
 		if (old_workspace->pending.active_column == column) {
 			if (siblings->length) {
-				old_workspace->pending.active_column = siblings->items[index > 0 ? index : 0];
+				old_workspace->pending.active_column = siblings->items[index > 0 ? index - 1: 0];
 			} else {
 				old_workspace->pending.active_column = NULL;
 			}
@@ -119,13 +119,15 @@ void column_detach(struct hayward_column *column) {
 
 	column->pending.workspace = NULL;
 
-	if (old_focus->pending.parent == column) {
-		struct hayward_window *focus = seat_get_focused_container(seat);
-		if (focus != NULL) {
+	struct hayward_window *new_focus = seat_get_focused_container(seat);
+	if (new_focus != old_focus) {
+		if (new_focus != NULL) {
 			// TODO `seat_set_focus_window` will rewrite all of the parent/child
 			// links, but this isn't really necessary.  Focus should probably
 			// just be inferred at the end of the transaction.
-			seat_set_focus_window(seat, focus);
+			// TODO This probably won't unfocus the old window.  Same solution
+			// as above.
+			seat_set_focus_window(seat, new_focus);
 		} else {
 			seat_set_focus_workspace(seat, old_workspace);
 		}
@@ -159,6 +161,9 @@ void column_insert_child(struct hayward_column *parent, struct hayward_window *c
 
 	hayward_assert(!child->pending.workspace && !child->pending.parent,
 			"Windows must be detatched before they can be added to a column");
+	if (parent->pending.children->length == 0) {
+		parent->pending.active_child = child;
+	}
 	list_insert(parent->pending.children, i, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;
@@ -187,6 +192,9 @@ void column_add_child(struct hayward_column *parent,
 	hayward_assert(child != NULL, "Expected window");
 	hayward_assert(!child->pending.workspace && !child->pending.workspace,
 			"Windows must be detatched before they can be added to a column");
+	if (parent->pending.children->length == 0) {
+		parent->pending.active_child = child;
+	}
 	list_add(parent->pending.children, child);
 	child->pending.parent = parent;
 	child->pending.workspace = parent->pending.workspace;

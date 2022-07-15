@@ -120,13 +120,12 @@ void window_detach(struct hayward_window *window) {
 		list_t *siblings = old_column->pending.children;
 
 		int index = list_find(siblings, window);
-		if (index != -1) {
-			list_del(siblings, index);
-		}
+		hayward_assert(index != -1, "Window not found in column siblings list");
+		list_del(siblings, index);
 
 		if (old_column->pending.active_child == window) {
 			if (siblings->length) {
-				old_column->pending.active_child = siblings->items[index > 0 ? index : 0];
+				old_column->pending.active_child = siblings->items[index > 0 ? index - 1: 0];
 			} else {
 				old_column->pending.active_child = NULL;
 			}
