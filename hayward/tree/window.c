@@ -145,6 +145,7 @@ void window_detach(struct hayward_window *window) {
 
 	if (old_focus == window) {
 		struct hayward_window *focus = seat_get_focused_container(seat);
+		hayward_assert(focus != window, "Window has been removed and so should no longer be focused");
 		if (focus != NULL) {
 			// TODO `seat_set_focus_window` will rewrite all of the parent/child
 			// links, but this isn't really necessary.  Focus should probably
