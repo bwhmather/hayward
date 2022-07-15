@@ -374,27 +374,24 @@ static void ipc_json_describe_workspace(struct hayward_workspace *workspace,
 }
 
 static void window_get_deco_rect(struct hayward_window *window, struct wlr_box *deco_rect) {
-	enum hayward_column_layout parent_layout = window_parent_layout(window);
-
-	if (((parent_layout != L_STACKED || window_is_floating(window)) &&
-				window->current.border != B_NORMAL) ||
-			window->pending.fullscreen ||
-			window->pending.workspace == NULL) {
+	if (window->current.border != B_NORMAL || window->pending.fullscreen || window->pending.workspace == NULL) {
 		deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
 		return;
 	}
 
-	if (window->pending.parent) {
-		deco_rect->x = window->pending.x - window->pending.parent->pending.x;
-		deco_rect->y = window->pending.y - window->pending.parent->pending.y;
-	} else {
+	if (window_is_floating(window)) {
 		deco_rect->x = window->pending.x - window->pending.workspace->pending.x;
 		deco_rect->y = window->pending.y - window->pending.workspace->pending.y;
-	}
-	deco_rect->width = window->pending.width;
-	deco_rect->height = window_titlebar_height();
+		deco_rect->width = window->pending.width;
+		deco_rect->height = window_titlebar_height();
+	} else {
+		enum hayward_column_layout parent_layout = window_parent_layout(window);
 
-	if (!window_is_floating(window)) {
+		deco_rect->x = window->pending.x - window->pending.parent->pending.x;
+		deco_rect->y = window->pending.y - window->pending.parent->pending.y;
+		deco_rect->width = window->pending.width;
+		deco_rect->height = window_titlebar_height();
+
 		if (parent_layout == L_STACKED) {
 			if (!window->view) {
 				size_t siblings = window_get_siblings(window)->length;
@@ -588,7 +585,7 @@ json_object *ipc_json_describe_node(struct hayward_node *node) {
 		struct wlr_box deco_rect = {0, 0, 0, 0};
 		window_get_deco_rect(node->hayward_window, &deco_rect);
 		size_t count = 1;
-		if (window_parent_layout(node->hayward_window) == L_STACKED) {
+		if (node->hayward_window->pending.parent != NULL && window_parent_layout(node->hayward_window) == L_STACKED) {
 			count = window_get_siblings(node->hayward_window)->length;
 		}
 		box.y += deco_rect.height * count;
