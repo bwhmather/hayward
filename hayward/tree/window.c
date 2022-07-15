@@ -558,7 +558,7 @@ void window_move_to_workspace(struct hayward_window *window, struct hayward_work
 
 			column = candidate_column;
 		}
-		if (workspace->pending.active_column->pending.output == output) {
+		if (workspace->pending.active_column != NULL && workspace->pending.active_column->pending.output == output) {
 			column = workspace->pending.active_column;
 		}
 		if (column == NULL) {
