@@ -155,7 +155,7 @@ static void arrange_tiling(struct hayward_workspace *workspace) {
 		struct hayward_output *output = root->outputs->items[i];
 
 		struct wlr_box box;
-		output_get_box(output, &box);
+		output_get_usable_area(output, &box);
 
 		// Count the number of new columns we are resizing, and how much space
 		// is currently occupied.

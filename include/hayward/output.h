@@ -154,6 +154,7 @@ struct hayward_window *output_find_window(struct hayward_output *output,
 		bool (*test)(struct hayward_window *window, void *data), void *data);
 
 void output_get_box(struct hayward_output *output, struct wlr_box *box);
+void output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
 
 void render_rect(struct hayward_output *output,
 		pixman_region32_t *output_damage, const struct wlr_box *_box,

@@ -365,3 +365,10 @@ void output_get_box(struct hayward_output *output, struct wlr_box *box) {
 	box->width = output->width;
 	box->height = output->height;
 }
+
+void output_get_usable_area(struct hayward_output *output, struct wlr_box *box) {
+	box->x = output->usable_area.x;
+	box->y = output->usable_area.y;
+	box->width = output->usable_area.width;
+	box->height = output->usable_area.height;
+}
