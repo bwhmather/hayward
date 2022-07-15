@@ -775,26 +775,7 @@ void workspace_detach(struct hayward_workspace *workspace) {
 	node_set_dirty(&output->node);
 }
 
-struct hayward_column *workspace_add_tiling(struct hayward_workspace *workspace,
-		struct hayward_column *column) {
-	hayward_assert(workspace != NULL, "Expected workspace");
-	hayward_assert(column != NULL, "Expected column");
-	hayward_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
-
-	if (workspace->pending.active_column == NULL) {
-		workspace->pending.active_column = column;
-	}
-	list_add(workspace->pending.tiling, column);
-	column->pending.workspace = workspace;
-
-	column_for_each_child(column, set_workspace, NULL);
-	node_set_dirty(&workspace->node);
-	node_set_dirty(&column->node);
-	return column;
-}
-
-void workspace_add_floating(struct hayward_workspace *workspace,
-		struct hayward_window *window) {
+void workspace_add_floating(struct hayward_workspace *workspace, struct hayward_window *window) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 	hayward_assert(window != NULL, "Expected window");
 	hayward_assert(window->pending.parent == NULL, "Window still has a parent");
@@ -809,10 +790,12 @@ void workspace_add_floating(struct hayward_workspace *workspace,
 	node_set_dirty(&window->node);
 }
 
-void workspace_insert_tiling_direct(struct hayward_workspace *workspace,
-		struct hayward_column *column, int index) {
+void workspace_insert_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column, int index) {
 	hayward_assert(workspace != NULL, "Expected workspace");
+	hayward_assert(output != NULL, "Expected output");
 	hayward_assert(column != NULL, "Expected column");
+	hayward_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
+	hayward_assert(column->pending.output == NULL, "Column is already attached to an output");
 	hayward_assert(index >= 0 && index <= workspace->pending.tiling->length, "Column index not in bounds");
 
 	list_insert(workspace->pending.tiling, index, column);
@@ -821,16 +804,12 @@ void workspace_insert_tiling_direct(struct hayward_workspace *workspace,
 	}
 
 	column->pending.workspace = workspace;
+	column->pending.output = output;
+
 	column_for_each_child(column, set_workspace, NULL);
 
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&column->node);
-}
-
-struct hayward_column *workspace_insert_tiling(struct hayward_workspace *workspace,
-		struct hayward_column *column, int index) {
-	workspace_insert_tiling_direct(workspace, column, index);
-	return column;
 }
 
 bool workspace_has_single_visible_container(struct hayward_workspace *workspace) {

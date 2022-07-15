@@ -146,76 +146,92 @@ static void arrange_floating(struct hayward_workspace *workspace) {
 }
 
 static void arrange_tiling(struct hayward_workspace *workspace) {
-	struct wlr_box box;
-	workspace_get_box(workspace, &box);
-
-	list_t *children = workspace->pending.tiling;
-
-	if (!children->length) {
+	list_t *columns = workspace->pending.tiling;
+	if (!columns->length) {
 		return;
 	}
 
-	// Count the number of new columns we are resizing, and how much space
-	// is currently occupied.
-	int new_children = 0;
-	double current_width_fraction = 0;
-	for (int i = 0; i < children->length; ++i) {
-		struct hayward_column *child = children->items[i];
-		current_width_fraction += child->width_fraction;
-		if (child->width_fraction <= 0) {
-			new_children += 1;
-		}
-	}
+	for (int i = 0; i < root->outputs->length; ++i) {
+		struct hayward_output *output = root->outputs->items[i];
 
-	// Calculate each width fraction.
-	double total_width_fraction = 0;
-	for (int i = 0; i < children->length; ++i) {
-		struct hayward_column *child = children->items[i];
-		if (child->width_fraction <= 0) {
-			if (current_width_fraction <= 0) {
-				child->width_fraction = 1.0;
-			} else if (children->length > new_children) {
-				child->width_fraction = current_width_fraction /
-					(children->length - new_children);
-			} else {
-				child->width_fraction = current_width_fraction;
+		struct wlr_box box;
+		output_get_box(output, &box);
+
+		// Count the number of new columns we are resizing, and how much space
+		// is currently occupied.
+		int new_columns = 0;
+		int total_columns = 0;
+		double current_width_fraction = 0;
+		for (int j = 0; j < columns->length; ++j) {
+			struct hayward_column *column = columns->items[j];
+			if (column->pending.output != output) {
+				continue;
+			}
+
+			current_width_fraction += column->width_fraction;
+			if (column->width_fraction <= 0) {
+				new_columns += 1;
+			}
+			total_columns += 1;
+		}
+
+		// Calculate each width fraction.
+		double total_width_fraction = 0;
+		for (int j = 0; j < columns->length; ++j) {
+			struct hayward_column *column = columns->items[j];
+			if (column->pending.output != output) {
+				continue;
+			}
+
+			if (column->width_fraction <= 0) {
+				if (current_width_fraction <= 0) {
+					column->width_fraction = 1.0;
+				} else if (total_columns > new_columns) {
+					column->width_fraction = current_width_fraction /
+						(total_columns - new_columns);
+				} else {
+					column->width_fraction = current_width_fraction;
+				}
+			}
+			total_width_fraction += column->width_fraction;
+		}
+		// Normalize width fractions so the sum is 1.0.
+		for (int j = 0; j < columns->length; ++j) {
+			struct hayward_column *column = columns->items[j];
+			if (column->pending.output != output) {
+				continue;
+			}
+			column->width_fraction /= total_width_fraction;
+		}
+
+		// Calculate gap size.
+		double inner_gap = workspace->gaps_inner;
+		double total_gap = fmin(inner_gap * (total_columns - 1),
+			fmax(0, box.width - MIN_SANE_W * columns->length));
+		double columns_total_width = box.width - total_gap;
+		inner_gap = floor(total_gap / (total_columns - 1));
+
+		// Resize columns.
+		double column_x = box.x;
+		for (int j = 0; j < columns->length; ++j) {
+			struct hayward_column *column = columns->items[j];
+			column->child_total_width = columns_total_width;
+			column->pending.x = column_x;
+			column->pending.y = box.y;
+			column->pending.width = round(column->width_fraction * columns_total_width);
+			column->pending.height = box.height;
+			column_x += column->pending.width + inner_gap;
+
+			// Make last child use remaining width of parent.
+			if (j == total_columns - 1) {
+				column->pending.width = box.x + box.width - column->pending.x;
 			}
 		}
-		total_width_fraction += child->width_fraction;
-	}
-	// Normalize width fractions so the sum is 1.0.
-	for (int i = 0; i < children->length; ++i) {
-		struct hayward_column *child = children->items[i];
-		child->width_fraction /= total_width_fraction;
 	}
 
-	// Calculate gap size.
-	double inner_gap = workspace->gaps_inner;
-	double total_gap = fmin(inner_gap * (children->length - 1),
-		fmax(0, box.width - MIN_SANE_W * children->length));
-	double child_total_width = box.width - total_gap;
-	inner_gap = floor(total_gap / (children->length - 1));
-
-	// Resize columns.
-	double child_x = box.x;
-	for (int i = 0; i < children->length; ++i) {
-		struct hayward_column *child = children->items[i];
-		child->child_total_width = child_total_width;
-		child->pending.x = child_x;
-		child->pending.y = box.y;
-		child->pending.width = round(child->width_fraction * child_total_width);
-		child->pending.height = box.height;
-		child_x += child->pending.width + inner_gap;
-
-		// Make last child use remaining width of parent.
-		if (i == children->length - 1) {
-			child->pending.width = box.x + box.width - child->pending.x;
-		}
-	}
-
-	for (int i = 0; i < children->length; ++i) {
-		struct hayward_column *child = children->items[i];
-		arrange_column(child);
+	for (int i = 0; i < columns->length; ++i) {
+		struct hayward_column *column = columns->items[i];
+		arrange_column(column);
 	}
 }
 

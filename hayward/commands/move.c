@@ -83,13 +83,7 @@ static bool window_move_to_next_output(struct hayward_window *window,
 	if (!next_output) {
 		return false;
 	}
-	struct hayward_workspace *workspace = output_get_active_workspace(next_output);
-	hayward_assert(workspace, "Expected output to have a workspace");
-	if (window->pending.fullscreen) {
-		window_move_to_workspace(window, workspace);
-	} else {
-		window_move_to_workspace_from_direction(window, workspace, move_dir);
-	}
+	window_move_to_output_from_direction(window, output, move_dir);
 	return true;
 }
 
@@ -145,7 +139,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 				new_column->width_fraction = 0;
 				new_column->pending.layout = L_STACKED;
 
-				workspace_insert_tiling_direct(window->pending.workspace, new_column, 0);
+				workspace_insert_tiling(window->pending.workspace, old_column->pending.output, new_column, 0);
 				old_column_index += 1;
 			}
 
@@ -172,7 +166,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 				new_column->width_fraction = 0;
 				new_column->pending.layout = L_STACKED;
 
-				workspace_insert_tiling_direct(window->pending.workspace, new_column, old_column_index + 1);
+				workspace_insert_tiling(window->pending.workspace, old_column->pending.output, new_column, old_column_index + 1);
 			}
 
 			struct hayward_column *new_column = window->pending.workspace->pending.tiling->items[old_column_index + 1];

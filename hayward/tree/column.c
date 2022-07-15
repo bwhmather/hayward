@@ -118,6 +118,7 @@ void column_detach(struct hayward_column *column) {
 	}
 
 	column->pending.workspace = NULL;
+	column->pending.output = NULL;
 
 	struct hayward_window *new_focus = seat_get_focused_container(seat);
 	if (new_focus != old_focus) {

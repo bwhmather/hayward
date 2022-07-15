@@ -104,21 +104,11 @@ struct hayward_window *workspace_find_window(struct hayward_workspace *workspace
  */
 void workspace_detach(struct hayward_workspace *workspace);
 
-struct hayward_column *workspace_add_tiling(struct hayward_workspace *workspace,
-		struct hayward_column *column);
-
 void workspace_add_floating(struct hayward_workspace *workspace,
 		struct hayward_window *container);
 
-/**
- * Adds a tiling container to the workspace without considering
- * the workspace_layout, so the container will not be split.
- */
-void workspace_insert_tiling_direct(struct hayward_workspace *workspace,
-		struct hayward_column *column, int index);
-
-struct hayward_column *workspace_insert_tiling(struct hayward_workspace *workspace,
-		struct hayward_column *column, int index);
+void workspace_add_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column);
+void workspace_insert_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column, int index);
 
 void workspace_remove_gaps(struct hayward_workspace *workspace);
 

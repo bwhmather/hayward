@@ -809,8 +809,11 @@ static void render_column(struct hayward_output *output, pixman_region32_t *dama
 static void render_workspace(struct hayward_output *output,
 		pixman_region32_t *damage, struct hayward_workspace *workspace, bool focused) {
 	for (int i = 0; i < workspace->current.tiling->length; ++i) {
-		struct hayward_column *child = workspace->current.tiling->items[i];
-		render_column(output, damage, child);
+		struct hayward_column *column = workspace->current.tiling->items[i];
+		if (column->current.output != output) {
+			continue;
+		}
+		render_column(output, damage, column);
 	}
 }
 

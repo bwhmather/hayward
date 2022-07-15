@@ -18,6 +18,7 @@ struct hayward_column_state {
 	double width, height;
 
 	struct hayward_workspace *workspace;
+	struct hayward_output *output;
 	list_t *children;                 // struct hayward_window
 
 	struct hayward_window *active_child;

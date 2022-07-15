@@ -186,23 +186,9 @@ void window_move_to_column_from_direction(
 void window_move_to_column(struct hayward_window *window,
 		struct hayward_column *destination);
 
-/**
- * Detaches a window from its current workspace and column, and attaches it to
- * a different one.  The new column, and location within that column, are
- * determined by the direction of movement.
- *
- * If the window is floating or fullscreen, it will remain so.
- *
- * The window will not be automatically focused.
- *
- * The old workspace and old columns will not be automatically cleaned up.
- */
-void window_move_to_workspace_from_direction(
-		struct hayward_window *window, struct hayward_workspace *workspace,
-		enum wlr_direction move_dir);
+void window_move_to_output_from_direction(struct hayward_window *window, struct hayward_output *output, enum wlr_direction move_dir);
 
-void window_move_to_workspace(struct hayward_window *window,
-		struct hayward_workspace *workspace);
+void window_move_to_workspace(struct hayward_window *window, struct hayward_workspace *workspace);
 
 struct wlr_surface *window_surface_at(struct hayward_window *window, double lx, double ly, double *sx, double *sy);
 

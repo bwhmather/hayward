@@ -670,6 +670,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 	// If there is a request to be opened fullscreen on a specific output, try
 	// to honor that request. Otherwise, fallback to assigns, pid mappings,
 	// focused workspace, etc
+	// TODO this is all upside down now that workspaces span outputs.
 	struct hayward_workspace *workspace = NULL;
 	if (fullscreen_output && fullscreen_output->data) {
 		struct hayward_output *output = fullscreen_output->data;
@@ -720,7 +721,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 			column_add_sibling(target_sibling, view->window, 1);
 		} else {
 			struct hayward_column *column = column_create();
-			workspace_insert_tiling_direct(workspace, column, 0);
+			workspace_insert_tiling(workspace, workspace->pending.output, column, 0);
 			column_add_child(column, view->window);
 		}
 

@@ -532,62 +532,89 @@ void window_move_to_column(struct hayward_window *window,
 	window_move_to_column_from_maybe_direction(window, column, false, WLR_DIRECTION_DOWN);
 }
 
-static void window_move_to_workspace_from_maybe_direction(
-		struct hayward_window *window, struct hayward_workspace *workspace,
-		bool has_move_dir, enum wlr_direction move_dir) {
+void window_move_to_workspace(struct hayward_window *window, struct hayward_workspace *workspace) {
 	if (workspace == window->pending.workspace) {
 		return;
 	}
 
-	// TODO (hayward) fullscreen.
-
 	if (window_is_floating(window)) {
-		struct hayward_output *old_output = window->pending.workspace->pending.output;
 		window_detach(window);
 		workspace_add_floating(workspace, window);
 		window_handle_fullscreen_reparent(window);
-		// If changing output, center it within the workspace
-		if (old_output != workspace->pending.output && !window->pending.fullscreen) {
+	} else {
+		struct hayward_output *output = window->pending.parent->pending.output;
+		struct hayward_column *column = NULL;
+
+		for (int i = 0; i < workspace->pending.tiling->length; i++) {
+			struct hayward_column *candidate_column = workspace->pending.tiling->items[i];
+
+			if (candidate_column->pending.output != output) {
+				continue;
+			}
+
+			if (column != NULL) {
+				continue;
+			}
+
+			column = candidate_column;
+		}
+		if (workspace->pending.active_column->pending.output == output) {
+			column = workspace->pending.active_column;
+		}
+		if (column == NULL) {
+			struct hayward_column *column = column_create();
+			workspace_insert_tiling(workspace, output, column, 0);
+		}
+
+		window->pending.width = window->pending.height = 0;
+		window->width_fraction = window->height_fraction = 0;
+
+		window_move_to_column(window, column);
+	}
+}
+
+void window_move_to_output_from_direction(struct hayward_window *window, struct hayward_output *output, enum wlr_direction move_dir) {
+	hayward_assert(window != NULL, "Expected window");
+	hayward_assert(output != NULL, "Expected output");
+
+	struct hayward_workspace *workspace = window->pending.workspace;
+	hayward_assert(workspace != NULL, "Window is not attached to a workspace");
+
+	// TODO this should be derived from the window's current position.
+	struct hayward_output *old_output = workspace->pending.output;
+	if (window_is_floating(window)) {
+		if (old_output != output && !window->pending.fullscreen) {
 			window_floating_move_to_center(window);
 		}
 
 		return;
-	}
-
-	window->pending.width = window->pending.height = 0;
-	window->width_fraction = window->height_fraction = 0;
-
-	if (!workspace->pending.tiling->length) {
-		struct hayward_column *column = column_create();
-		workspace_insert_tiling_direct(workspace, column, 0);
-	}
-
-	if (has_move_dir && (move_dir == WLR_DIRECTION_LEFT || move_dir == WLR_DIRECTION_RIGHT)) {
-		hayward_log(HAYWARD_DEBUG, "Reparenting window (parallel)");
-		// Move to either left-most or right-most column based on move
-		// direction.
-		int index =
-			move_dir == WLR_DIRECTION_RIGHT ?
-			0 : workspace->pending.tiling->length;
-		struct hayward_column *column = workspace->pending.tiling->items[index];
-		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
 	} else {
-		hayward_log(HAYWARD_DEBUG, "Reparenting container (perpendicular)");
-		// Move to the most recently focused column in the workspace.
-		struct hayward_column *column = workspace->pending.active_column;
-		window_move_to_column_from_maybe_direction(window, column, has_move_dir, move_dir);
+		struct hayward_column *column = NULL;
+
+		for (int i = 0; i < workspace->pending.tiling->length; i++) {
+			struct hayward_column *candidate_column = workspace->pending.tiling->items[i];
+
+			if (candidate_column->pending.output != output) {
+				continue;
+			}
+
+			if (move_dir == WLR_DIRECTION_LEFT || column == NULL) {
+				column = candidate_column;
+			}
+		}
+		if (workspace->pending.active_column->pending.output == output && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
+			column = workspace->pending.active_column;
+		}
+		if (column == NULL) {
+			struct hayward_column *column = column_create();
+			workspace_insert_tiling(workspace, output, column, 0);
+		}
+
+		window->pending.width = window->pending.height = 0;
+		window->width_fraction = window->height_fraction = 0;
+
+		window_move_to_column_from_direction(window, column, move_dir);
 	}
-}
-
-void window_move_to_workspace_from_direction(
-		struct hayward_window *window, struct hayward_workspace *workspace,
-		enum wlr_direction move_dir) {
-	window_move_to_workspace_from_maybe_direction(window, workspace, true, move_dir);
-}
-
-void window_move_to_workspace(struct hayward_window *window,
-		struct hayward_workspace *workspace) {
-	window_move_to_workspace_from_maybe_direction(window, workspace, false, WLR_DIRECTION_DOWN);
 }
 
 struct wlr_surface *window_surface_at(struct hayward_window *window, double lx, double ly, double *sx, double *sy) {

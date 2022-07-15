@@ -234,6 +234,7 @@ static void finalize_move(struct hayward_seat *seat) {
 	struct hayward_workspace *old_workspace = moving_window->pending.workspace;
 
 	struct hayward_workspace *target_workspace = e->target_workspace;
+	struct hayward_output *target_output = target_workspace->pending.output;  // TODO
 	struct hayward_window *target_window = e->target_window;
 	enum wlr_edges target_edge = e->target_edge;
 
@@ -258,7 +259,7 @@ static void finalize_move(struct hayward_seat *seat) {
 
 			int new_column_index = target_edge == WLR_EDGE_LEFT ? target_column_index : target_column_index + 1;
 
-			workspace_insert_tiling_direct(target_workspace, new_column, new_column_index);
+			workspace_insert_tiling(target_workspace, target_output, new_column, new_column_index);
 
 			window_move_to_column(moving_window, new_column);
 		} else if (target_edge == WLR_EDGE_TOP || target_edge == WLR_EDGE_BOTTOM) {
