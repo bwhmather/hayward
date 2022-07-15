@@ -957,3 +957,27 @@ struct hayward_window *workspace_get_active_window(struct hayward_workspace *wor
 	}
 }
 
+void workspace_set_active_window(struct hayward_workspace *workspace, struct hayward_window *window) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+	hayward_assert(window != NULL, "Expected window");
+	hayward_assert(window->pending.workspace == workspace, "Window attached to wrong workspace");
+
+	if (window_is_floating(window)) {
+		int index = list_find(workspace->pending.floating, window);
+		hayward_assert(index != -1, "Window missing from list of floating windows");
+
+		list_del(workspace->pending.floating, index);
+		list_add(workspace->pending.floating, window);
+
+		workspace->pending.focus_mode = F_FLOATING;
+	} else {
+		struct hayward_column *column = window->pending.parent;
+		hayward_assert(column->pending.workspace == workspace, "Column attached to wrong workspace");
+
+		column->pending.active_child = window;
+		workspace->pending.active_column = column;
+
+		workspace->pending.focus_mode = F_TILING;
+	}
+}
+
