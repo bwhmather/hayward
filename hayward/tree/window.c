@@ -137,6 +137,10 @@ void window_detach(struct hayward_window *window) {
 		if (index != -1) {
 			list_del(siblings, index);
 		}
+
+		if (siblings->length == 0) {
+			old_workspace->pending.focus_mode = F_TILING;
+		}
 	}
 
 	window->pending.parent = NULL;
