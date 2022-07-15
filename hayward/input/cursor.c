@@ -49,6 +49,9 @@ static struct hayward_window *seat_column_window_at_stacked(struct hayward_seat 
 
 	// Title bars
 	struct hayward_window *current = column->pending.active_child;
+	if (current == NULL) {
+		return NULL;
+	}
 	int titlebar_height = window_titlebar_height();
 
 	int y_offset = column->current.y;
