@@ -1008,10 +1008,10 @@ static void seat_set_active_window(struct hayward_seat *seat, struct hayward_win
 		node_set_dirty(&column->node);
 	} else {
 		int index = list_find(workspace->pending.floating, window);
-		hayward_assert(index >= 0, "Window is not in list of floating windows for workspace");
+		hayward_assert(index != -1, "Window is not in list of floating windows for workspace");
 
 		list_del(workspace->pending.floating, index);
-		list_insert(workspace->pending.floating, 0, column);
+		list_add(workspace->pending.floating, window);
 		workspace->pending.focus_mode = F_FLOATING;
 
 		node_set_dirty(&window->node);
@@ -1115,10 +1115,10 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 			new_workspace->pending.focus_mode = F_TILING;
 		} else {
 			int index = list_find(new_workspace->pending.floating, new_window);
-			hayward_assert(index >= 0, "Window is not in list of floating windows for workspace");
+			hayward_assert(index != -1, "Window is not in list of floating windows for workspace");
 
 			list_del(new_workspace->pending.floating, index);
-			list_insert(new_workspace->pending.floating, 0, column);
+			list_add(new_workspace->pending.floating, new_window);
 			new_workspace->pending.focus_mode = F_FLOATING;
 		}
 
