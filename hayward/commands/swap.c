@@ -108,33 +108,10 @@ void window_swap(struct hayward_window *window1, struct hayward_window *window2)
 
 	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_window *focus = seat_get_focused_container(seat);
-	struct hayward_workspace *vis1 =
-		output_get_active_workspace(window1->pending.workspace->pending.output);
-	struct hayward_workspace *vis2 =
-		output_get_active_workspace(window2->pending.workspace->pending.output);
-	hayward_assert(vis1 && vis2, "window1 or window2 are on an output without a"
-				"workspace. This should not happen");
-
-	char *stored_prev_name = NULL;
-	if (seat->prev_workspace_name) {
-		stored_prev_name = strdup(seat->prev_workspace_name);
-	}
 
 	swap_places(window1, window2);
 
-	if (!workspace_is_visible(vis1)) {
-		seat_set_focus(seat, seat_get_focus_inactive(seat, &vis1->node));
-	}
-	if (!workspace_is_visible(vis2)) {
-		seat_set_focus(seat, seat_get_focus_inactive(seat, &vis2->node));
-	}
-
 	swap_focus(window1, window2, seat, focus);
-
-	if (stored_prev_name) {
-		free(seat->prev_workspace_name);
-		seat->prev_workspace_name = stored_prev_name;
-	}
 
 	window_set_fullscreen(window2, fs1);
 	window_set_fullscreen(window1, fs2);

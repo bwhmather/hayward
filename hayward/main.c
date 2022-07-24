@@ -20,6 +20,7 @@
 #include "hayward/haywardnag.h"
 #include "hayward/desktop/transaction.h"
 #include "hayward/tree/root.h"
+#include "hayward/tree/workspace.h"
 #include "hayward/ipc-server.h"
 #include "ipc-client.h"
 #include "log.h"
@@ -412,6 +413,14 @@ int main(int argc, char **argv) {
 		hayward_terminate(EXIT_FAILURE);
 		goto shutdown;
 	}
+
+	// TODO this probably shouldn't live here
+	// char *workspace_name = workspace_next_name("TODO-output");
+	char *workspace_name = "0";
+	struct hayward_workspace *workspace = workspace_create(workspace_name);
+	// free(workspace_name);
+	root_add_workspace(workspace);
+	ipc_event_workspace(NULL, workspace, "init");
 
 	if (!server_start(&server)) {
 		hayward_terminate(EXIT_FAILURE);

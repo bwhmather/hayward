@@ -65,7 +65,11 @@ static void popup_unconstrain(struct hayward_xdg_popup *popup) {
 	struct hayward_view *view = popup->child.view;
 	struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
-	struct hayward_output *output = view->window->pending.workspace->pending.output;
+	struct hayward_window *window = view->window;
+	hayward_assert(window != NULL, "Expected window");
+
+	struct hayward_output *output = window_get_output(window);
+	hayward_assert(output != NULL, "Expected output");
 
 	// the output box expressed in the coordinate system of the toplevel parent
 	// of the popup

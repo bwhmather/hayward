@@ -263,8 +263,6 @@ void seatop_begin_resize_tiling(struct hayward_seat *seat,
 void seat_pointer_notify_button(struct hayward_seat *seat, uint32_t time_msec,
 		uint32_t button, enum wlr_button_state state);
 
-void seat_consider_warp_to_focus(struct hayward_seat *seat);
-
 void seatop_button(struct hayward_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state);

@@ -443,12 +443,6 @@ enum focus_wrapping_mode {
 	WRAP_WORKSPACE,
 };
 
-enum mouse_warping_mode {
-	WARP_NO,
-	WARP_OUTPUT,
-	WARP_CONTAINER,
-};
-
 enum alignment {
 	ALIGN_LEFT,
 	ALIGN_CENTER,
@@ -508,7 +502,6 @@ struct hayward_config {
 
 	// Flags
 	enum focus_follows_mouse_mode focus_follows_mouse;
-	enum mouse_warping_mode mouse_warping;
 	enum focus_wrapping_mode focus_wrapping;
 	bool active;
 	bool failed;
@@ -705,7 +698,7 @@ void free_workspace_config(struct workspace_config *wsc);
 /**
  * Updates the value of config->font_height based on the metrics for title's
  * font as reported by pango.
- * 
+ *
  * If the height has changed, all containers will be rearranged to take on the
  * new size.
  */

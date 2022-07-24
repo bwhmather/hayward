@@ -227,13 +227,14 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 	}
 
 	struct hayward_cursor *cursor = seat->cursor;
-	struct hayward_workspace *workspace = NULL;
+	struct hayward_output *output = NULL;
 	struct hayward_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
+
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&workspace, &window,
+		&output, &window,
 		&surface, &sx, &sy
 	);
 
@@ -341,13 +342,14 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	struct hayward_cursor *cursor = seat->cursor;
 
 	// Determine what's under the cursor.
-	struct hayward_workspace *workspace;
+	struct hayward_output *output;
 	struct hayward_window *window;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
+
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&workspace, &window,
+		&output, &window,
 		&surface, &sx, &sy
 	);
 
@@ -358,7 +360,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		find_resize_edge(window, surface, cursor) : WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;
 	bool on_contents = window && !on_border && surface;
-	bool on_workspace = workspace && !window;
+	bool on_workspace = output && !window;
 	bool on_titlebar = window && !on_border && !surface;
 
 	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
@@ -371,7 +373,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	}
 
 	// Handle clicking an empty workspace
-	if (workspace && !window) {
+	if (output && !window) {
 		if (state == WLR_BUTTON_PRESSED) {
 			seat_clear_focus(seat);
 			transaction_commit_dirty();
@@ -550,7 +552,7 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 			return;
 		}
 		struct hayward_output *hovered_output = wlr_output->data;
-		if (focus && hovered_output != node_get_output(focus)) {
+		if (focus && hovered_output != root_get_active_output()) {
 			struct hayward_workspace *workspace = output_get_active_workspace(hovered_output);
 			seat_set_focus(seat, &workspace->node);
 			transaction_commit_dirty();
@@ -561,8 +563,15 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 	// If a workspace node is hovered (eg. in the gap area), only set focus if
 	// the workspace is on a different output to the previous focus.
 	if (focus && hovered_node->type == N_WORKSPACE) {
-		struct hayward_output *focused_output = node_get_output(focus);
-		struct hayward_output *hovered_output = node_get_output(hovered_node);
+		struct wlr_output *wlr_output = wlr_output_layout_output_at(
+				root->output_layout, seat->cursor->cursor->x, seat->cursor->cursor->y);
+		if (wlr_output == NULL) {
+			return;
+		}
+		struct hayward_output *hovered_output = wlr_output->data;
+
+		struct hayward_output *focused_output = root_get_active_output();
+
 		if (hovered_output != focused_output) {
 			seat_set_focus(seat, seat_get_focus_inactive(seat, hovered_node));
 			transaction_commit_dirty();
@@ -590,21 +599,21 @@ static void handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec)
 	struct seatop_default_event *e = seat->seatop_data;
 	struct hayward_cursor *cursor = seat->cursor;
 
-	struct hayward_workspace *workspace;
+	struct hayward_output *output;
 	struct hayward_window *window;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&workspace, &window,
+		&output, &window,
 		&surface, &sx, &sy
 	);
 
 	struct hayward_node *node = NULL;
 	if (window != NULL) {
 		node = &window->node;
-	} else if (workspace != NULL) {
-		node = &workspace->node;
+	} else if (output != NULL) {
+		node = &output->node;
 	}
 
 	if (config->focus_follows_mouse != FOLLOWS_NO) {
@@ -635,21 +644,21 @@ static void handle_tablet_tool_motion(struct hayward_seat *seat,
 		struct hayward_tablet_tool *tool, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct hayward_cursor *cursor = seat->cursor;
-	struct hayward_workspace *workspace = NULL;
+	struct hayward_output *output = NULL;
 	struct hayward_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&workspace, &window,
+		&output, &window,
 		&surface, &sx, &sy
 	);
 
 	struct hayward_node *node = NULL;
 	if (window != NULL) {
 		node = &window->node;
-	} else if (workspace != NULL) {
-		node = &workspace->node;
+	} else if (output != NULL) {
+		node = &output->node;
 	}
 
 	if (config->focus_follows_mouse != FOLLOWS_NO) {
@@ -703,13 +712,13 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	struct seatop_default_event *e = seat->seatop_data;
 
 	// Determine what's under the cursor
-	struct hayward_workspace *workspace = NULL;
+	struct hayward_output *output = NULL;
 	struct hayward_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&workspace, &window,
+		&output, &window,
 		&surface, &sx, &sy
 	);
 	enum wlr_edges edge = window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
@@ -718,7 +727,7 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	bool on_titlebar_border = window && on_border &&
 		cursor->cursor->y < window->pending.content_y;
 	bool on_contents = window && !on_border && surface;
-	bool on_workspace = workspace && !window;
+	bool on_workspace = output && !window;
 	float scroll_factor =
 		(ic == NULL || ic->scroll_factor == FLT_MIN) ? 1.0f : ic->scroll_factor;
 
@@ -789,21 +798,21 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 static void handle_rebase(struct hayward_seat *seat, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct hayward_cursor *cursor = seat->cursor;
-	struct hayward_workspace *workspace = NULL;
+	struct hayward_output *output = NULL;
 	struct hayward_window *window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx = 0.0, sy = 0.0;
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&workspace, &window,
+		&output, &window,
 		&surface, &sx, &sy
 	);
 
 	e->previous_node = NULL;
 	if (window != NULL) {
 		e->previous_node = &window->node;
-	} else if (workspace != NULL) {
-		e->previous_node = &workspace->node;
+	} else if (output != NULL) {
+		e->previous_node = &output->node;
 	}
 
 	if (surface) {

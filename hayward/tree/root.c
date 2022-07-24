@@ -38,6 +38,8 @@ struct hayward_root *root_create(void) {
 	wl_list_init(&root->drag_icons);
 	wl_signal_init(&root->events.new_node);
 	root->outputs = create_list();
+	root->pending.workspaces = create_list();
+	root->current.workspaces = create_list();
 
 	root->output_layout_change.notify = output_layout_handle_change;
 	wl_signal_add(&root->output_layout->events.change,
@@ -140,15 +142,7 @@ found:
 					"Creating workspace %s for pid %d because it disappeared",
 					pw->workspace, pid);
 
-			struct hayward_output *output = pw->output;
-			if (pw->output && !pw->output->enabled) {
-				hayward_log(HAYWARD_DEBUG,
-						"Workspace output %s is disabled, trying another one",
-						pw->output->wlr_output->name);
-				output = NULL;
-			}
-
-			workspace = workspace_create(output, pw->workspace);
+			workspace = workspace_create(pw->workspace);
 		}
 
 		pid_workspace_destroy(pw);
@@ -170,13 +164,12 @@ void root_record_workspace_pid(pid_t pid) {
 		wl_list_init(&pid_workspaces);
 	}
 
-	struct hayward_seat *seat = input_manager_current_seat();
-	struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (!workspace) {
 		hayward_log(HAYWARD_DEBUG, "Bailing out, no workspace");
 		return;
 	}
-	struct hayward_output *output = workspace->pending.output;
+	struct hayward_output *output = root_get_active_output();
 	if (!output) {
 		hayward_log(HAYWARD_DEBUG, "Bailing out, no output");
 		return;
@@ -218,28 +211,6 @@ void root_remove_workspace_pid(pid_t pid) {
 	}
 }
 
-void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data),
-		void *data) {
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct hayward_output *output = root->outputs->items[i];
-		output_for_each_workspace(output, f, data);
-	}
-}
-
-void root_for_each_window(void (*f)(struct hayward_window *window, void *data),
-		void *data) {
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct hayward_output *output = root->outputs->items[i];
-		output_for_each_window(output, f, data);
-	}
-
-	// Saved workspaces
-	for (int i = 0; i < root->fallback_output->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->fallback_output->pending.workspaces->items[i];
-		workspace_for_each_window(workspace, f, data);
-	}
-}
-
 struct hayward_output *root_find_output(
 		bool (*test)(struct hayward_output *output, void *data), void *data) {
 	for (int i = 0; i < root->outputs->length; ++i) {
@@ -248,39 +219,6 @@ struct hayward_output *root_find_output(
 			return output;
 		}
 	}
-	return NULL;
-}
-
-struct hayward_workspace *root_find_workspace(
-		bool (*test)(struct hayward_workspace *workspace, void *data), void *data) {
-	struct hayward_workspace *result = NULL;
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct hayward_output *output = root->outputs->items[i];
-		if ((result = output_find_workspace(output, test, data))) {
-			return result;
-		}
-	}
-	return NULL;
-}
-
-struct hayward_window *root_find_window(
-		bool (*test)(struct hayward_window *window, void *data), void *data) {
-	struct hayward_window *result = NULL;
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct hayward_output *output = root->outputs->items[i];
-		if ((result = output_find_window(output, test, data))) {
-			return result;
-		}
-	}
-
-	// Saved workspaces
-	for (int i = 0; i < root->fallback_output->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->fallback_output->pending.workspaces->items[i];
-		if ((result = workspace_find_window(workspace, test, data))) {
-			return result;
-		}
-	}
-
 	return NULL;
 }
 
@@ -303,4 +241,105 @@ void root_rename_pid_workspaces(const char *old_name, const char *new_name) {
 			pw->workspace = strdup(new_name);
 		}
 	}
+}
+
+
+void root_add_workspace(struct hayward_workspace *workspace) {
+	list_add(root->pending.workspaces, workspace);
+	if (root->pending.active_workspace == NULL) {
+		root_set_active_workspace(workspace);
+	}
+	node_set_dirty(&root->node);
+	node_set_dirty(&workspace->node);
+}
+
+static int sort_workspace_cmp_qsort(const void *_a, const void *_b) {
+	struct hayward_workspace *a = *(void **)_a;
+	struct hayward_workspace *b = *(void **)_b;
+
+	if (isdigit(a->name[0]) && isdigit(b->name[0])) {
+		int a_num = strtol(a->name, NULL, 10);
+		int b_num = strtol(b->name, NULL, 10);
+		return (a_num < b_num) ? -1 : (a_num > b_num);
+	} else if (isdigit(a->name[0])) {
+		return -1;
+	} else if (isdigit(b->name[0])) {
+		return 1;
+	}
+	return 0;
+}
+
+void root_sort_workspaces(void) {
+	list_stable_sort(root->pending.workspaces, sort_workspace_cmp_qsort);
+}
+
+void root_set_active_workspace(struct hayward_workspace *workspace) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	if (workspace == root->pending.active_workspace) {
+		return;
+	}
+
+	struct hayward_output *active_output = workspace_get_active_output(workspace);
+	if (active_output != NULL) {
+		root->pending.active_output = active_output;
+	}
+
+	root->pending.active_workspace = workspace;
+}
+
+struct hayward_workspace *root_get_active_workspace(void) {
+	return root->pending.active_workspace;
+}
+
+struct hayward_workspace *root_get_current_active_workspace(void) {
+	return root->current.active_workspace;
+}
+
+void root_set_active_output(struct hayward_output *output) {
+	hayward_assert(output != NULL, "Expected output");
+	root->pending.active_output = output;
+}
+
+struct hayward_output *root_get_active_output(void) {
+	return root->pending.active_output;
+}
+
+struct hayward_output *root_get_current_active_output(void) {
+	return root->current.active_output;
+}
+
+void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data), void *data) {
+	for (int i = 0; i < root->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		f(workspace, data);
+	}
+}
+
+void root_for_each_window(void (*f)(struct hayward_window *window, void *data), void *data) {
+	for (int i = 0; i < root->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		workspace_for_each_window(workspace, f, data);
+	}
+}
+
+struct hayward_workspace *root_find_workspace(bool (*test)(struct hayward_workspace *workspace, void *data), void *data) {
+	for (int i = 0; i < root->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		if (test(workspace, data)) {
+			return workspace;
+		}
+	}
+	return NULL;
+}
+
+struct hayward_window *root_find_window(bool (*test)(struct hayward_window *window, void *data), void *data) {
+	struct hayward_window *result = NULL;
+	for (int i = 0; i < root->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		if ((result = workspace_find_window(workspace, test, data))) {
+			return result;
+		}
+	}
+	return NULL;
 }

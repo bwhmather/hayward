@@ -494,7 +494,6 @@ void input_manager_set_focus(struct hayward_node *node) {
 	struct hayward_seat *seat;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		seat_set_focus(seat, node);
-		seat_consider_warp_to_focus(seat);
 	}
 }
 

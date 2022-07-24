@@ -17,13 +17,13 @@ struct hayward_workspace_state {
 	struct hayward_window *fullscreen;
 	double x, y;
 	int width, height;
-	struct hayward_output *output; // NULL if no outputs are connected
 	list_t *floating;           // struct hayward_window
 	list_t *tiling;             // struct hayward_column
 
 	// The column that should be given focus if this workspace is focused and
 	// focus_mode is F_TILING.
 	struct hayward_column *active_column;
+
 	enum hayward_focus_mode focus_mode;
 	bool focused;
 };
@@ -48,8 +48,7 @@ struct workspace_config *workspace_find_config(const char *workspace_name);
 
 struct hayward_output *workspace_get_initial_output(const char *name);
 
-struct hayward_workspace *workspace_create(struct hayward_output *output,
-		const char *name);
+struct hayward_workspace *workspace_create(const char *name);
 
 void workspace_destroy(struct hayward_workspace *workspace);
 
@@ -59,22 +58,11 @@ void workspace_consider_destroy(struct hayward_workspace *workspace);
 
 char *workspace_next_name(const char *output_name);
 
-struct hayward_workspace *workspace_auto_back_and_forth(
-		struct hayward_workspace *workspace);
-
 bool workspace_switch(struct hayward_workspace *workspace);
 
 struct hayward_workspace *workspace_by_number(const char* name);
 
 struct hayward_workspace *workspace_by_name(const char*);
-
-struct hayward_workspace *workspace_output_next(struct hayward_workspace *current);
-
-struct hayward_workspace *workspace_next(struct hayward_workspace *current);
-
-struct hayward_workspace *workspace_output_prev(struct hayward_workspace *current);
-
-struct hayward_workspace *workspace_prev(struct hayward_workspace *current);
 
 bool workspace_is_visible(struct hayward_workspace *workspace);
 
@@ -130,5 +118,10 @@ struct hayward_window *workspace_get_active_floating_window(struct hayward_works
 struct hayward_window *workspace_get_active_window(struct hayward_workspace *workspace);
 
 void workspace_set_active_window(struct hayward_workspace *workspace, struct hayward_window *window);
+
+struct hayward_output *workspace_get_active_output(struct hayward_workspace *workspace);
+struct hayward_output *workspace_get_current_active_output(struct hayward_workspace *workspace);
+
+void workspace_damage_whole(struct hayward_workspace *workspace);
 
 #endif

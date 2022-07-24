@@ -618,12 +618,12 @@ void seat_execute_command(struct hayward_seat *seat, struct hayward_binding *bin
 	struct hayward_window *container = NULL;
 	if (binding->type == BINDING_MOUSESYM
 			|| binding->type == BINDING_MOUSECODE) {
-		struct hayward_workspace *workspace;
+		struct hayward_output *output;
 		struct wlr_surface *surface = NULL;
 		double sx, sy;
 		seat_get_target_at(
 			seat, seat->cursor->cursor->x, seat->cursor->cursor->y,
-			&workspace, &container,
+			&output, &container,
 			&surface, &sx, &sy);
 	}
 

@@ -12,8 +12,8 @@ struct hayward_server;
 struct hayward_window;
 
 struct hayward_output_state {
-	list_t *workspaces;
-	struct hayward_workspace *active_workspace;
+	int x, y;
+	int width, height;
 };
 
 struct hayward_output {
@@ -68,9 +68,6 @@ struct hayward_output *output_from_wlr_output(struct wlr_output *output);
 struct hayward_output *output_get_in_direction(struct hayward_output *reference,
 		enum wlr_direction direction);
 
-void output_add_workspace(struct hayward_output *output,
-		struct hayward_workspace *workspace);
-
 typedef void (*hayward_surface_iterator_func_t)(struct hayward_output *output,
 	struct hayward_view *view, struct wlr_surface *surface, struct wlr_box *box,
 	void *user_data);
@@ -93,8 +90,6 @@ struct hayward_output *output_by_name_or_id(const char *name_or_id);
 
 // this includes all the outputs, including disabled ones
 struct hayward_output *all_output_by_name_or_id(const char *name_or_id);
-
-void output_sort_workspaces(struct hayward_output *output);
 
 void output_enable(struct hayward_output *output);
 
@@ -140,18 +135,6 @@ void output_unmanaged_for_each_surface(struct hayward_output *output,
 void output_drag_icons_for_each_surface(struct hayward_output *output,
 	struct wl_list *drag_icons, hayward_surface_iterator_func_t iterator,
 	void *user_data);
-
-void output_for_each_workspace(struct hayward_output *output,
-		void (*f)(struct hayward_workspace *workspace, void *data), void *data);
-
-void output_for_each_window(struct hayward_output *output,
-		void (*f)(struct hayward_window *window, void *data), void *data);
-
-struct hayward_workspace *output_find_workspace(struct hayward_output *output,
-		bool (*test)(struct hayward_workspace *workspace, void *data), void *data);
-
-struct hayward_window *output_find_window(struct hayward_output *output,
-		bool (*test)(struct hayward_window *window, void *data), void *data);
 
 void output_get_box(struct hayward_output *output, struct wlr_box *box);
 void output_get_usable_area(struct hayward_output *output, struct wlr_box *box);

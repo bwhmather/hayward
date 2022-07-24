@@ -31,6 +31,7 @@ struct hayward_transaction_instruction {
 	struct hayward_transaction *transaction;
 	struct hayward_node *node;
 	union {
+		struct hayward_root_state root_state;
 		struct hayward_output_state output_state;
 		struct hayward_workspace_state workspace_state;
 		struct hayward_column_state column_state;
@@ -88,18 +89,18 @@ static void transaction_destroy(struct hayward_transaction *transaction) {
 	free(transaction);
 }
 
-static void copy_output_state(struct hayward_output *output,
-		struct hayward_transaction_instruction *instruction) {
-	struct hayward_output_state *state = &instruction->output_state;
+static void copy_root_state(struct hayward_root *root, struct hayward_transaction_instruction *instruction) {
+	struct hayward_root_state *state = &instruction->root_state;
 	if (state->workspaces) {
 		state->workspaces->length = 0;
 	} else {
 		state->workspaces = create_list();
 	}
-	list_cat(state->workspaces, output->pending.workspaces);
+	list_cat(state->workspaces, root->pending.workspaces);
+	state->active_workspace = root->pending.active_workspace;
+}
 
-	struct hayward_seat *seat = input_manager_current_seat();
-	state->active_workspace = seat_get_active_workspace_for_output(seat, output);
+static void copy_output_state(struct hayward_output *output, struct hayward_transaction_instruction *instruction) {
 }
 
 static void copy_workspace_state(struct hayward_workspace *workspace,
@@ -112,7 +113,6 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 	state->width = workspace->pending.width;
 	state->height = workspace->pending.height;
 
-	state->output = workspace->pending.output;
 	if (state->floating) {
 		state->floating->length = 0;
 	} else {
@@ -197,6 +197,7 @@ static void transaction_add_node(struct hayward_transaction *transaction,
 
 	switch (node->type) {
 	case N_ROOT:
+		copy_root_state(node->hayward_root, instruction);
 		break;
 	case N_OUTPUT:
 		copy_output_state(node->hayward_output, instruction);
@@ -213,21 +214,31 @@ static void transaction_add_node(struct hayward_transaction *transaction,
 	}
 }
 
+static void apply_root_state(struct hayward_root *root, struct hayward_root_state *state) {
+	if (root->current.active_workspace != NULL) {
+		workspace_damage_whole(root->current.active_workspace);
+	}
+	list_free(root->current.workspaces);
+	memcpy(&root->current, state, sizeof(struct hayward_output_state));
+	if (root->current.active_workspace != NULL) {
+		workspace_damage_whole(root->current.active_workspace);
+	}
+}
+
 static void apply_output_state(struct hayward_output *output,
 		struct hayward_output_state *state) {
 	output_damage_whole(output);
-	list_free(output->current.workspaces);
 	memcpy(&output->current, state, sizeof(struct hayward_output_state));
 	output_damage_whole(output);
 }
 
 static void apply_workspace_state(struct hayward_workspace *workspace,
 		struct hayward_workspace_state *state) {
-	output_damage_whole(workspace->current.output);
+	workspace_damage_whole(workspace);
 	list_free(workspace->current.floating);
 	list_free(workspace->current.tiling);
 	memcpy(&workspace->current, state, sizeof(struct hayward_workspace_state));
-	output_damage_whole(workspace->current.output);
+	workspace_damage_whole(workspace);
 }
 
 static void apply_column_state(struct hayward_column *column, struct hayward_column_state *state) {
@@ -325,6 +336,7 @@ static void transaction_apply(struct hayward_transaction *transaction) {
 
 		switch (node->type) {
 		case N_ROOT:
+			apply_root_state(node->hayward_root, &instruction->root_state);
 			break;
 		case N_OUTPUT:
 			apply_output_state(node->hayward_output, &instruction->output_state);

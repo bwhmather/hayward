@@ -26,7 +26,7 @@
 
 struct seatop_move_tiling_event {
 	struct hayward_window *moving_window;
-	struct hayward_workspace *target_workspace;
+	struct hayward_output *target_output;
 	struct hayward_window *target_window;
 	enum wlr_edges target_edge;
 	struct wlr_box drop_box;
@@ -42,12 +42,8 @@ static void handle_render(struct hayward_seat *seat,
 		return;
 	}
 
-	if (!e->target_workspace) {
+	if (!e->target_output) {
 	       return;
-	}
-
-	if (e->target_workspace->pending.output != output) {
-		return;
 	}
 
 	float color[4];
@@ -111,33 +107,35 @@ static void resize_box(struct wlr_box *box, enum wlr_edges edge,
 
 static void handle_motion_postthreshold(struct hayward_seat *seat) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
-	struct hayward_workspace *target_workspace = NULL;
+	struct hayward_output *target_output = NULL;
 	struct hayward_window *target_window = NULL;
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	struct hayward_cursor *cursor = seat->cursor;
+
 	seat_get_target_at(
 		seat, cursor->cursor->x, cursor->cursor->y,
-		&target_workspace, &target_window,
+		&target_output, &target_window,
 		&surface, &sx, &sy
 	);
+
 	// Damage the old location
 	desktop_damage_box(&e->drop_box);
 
-	if (!target_workspace && !target_window) {
+	if (!target_output && !target_window) {
 		// Eg. hovered over a layer surface such as haywardbar
-		e->target_workspace = NULL;
+		e->target_output = NULL;
 		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
-	if (target_workspace && !target_window) {
-		// Empty workspace
-		e->target_workspace = target_workspace;
+	if (target_output && !target_window) {
+		// Empty output
+		e->target_output = target_output;
 		e->target_window = target_window;
 		e->target_edge = WLR_EDGE_NONE;
-		workspace_get_box(target_workspace, &e->drop_box);
+		output_get_usable_area(target_output, &e->drop_box);
 		desktop_damage_box(&e->drop_box);
 		return;
 	}
@@ -145,36 +143,25 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 	// Deny moving within own workspace if this is the only child
 	if (workspace_num_tiling_views(e->moving_window->pending.workspace) == 1 &&
 			target_window->pending.workspace == e->moving_window->pending.workspace) {
-		e->target_workspace = NULL;
+		e->target_output = NULL;
 		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
-	// TODO possible if window is global fullscreen.
-	hayward_assert(target_workspace && target_window, "Mouse over unowned workspace");
+	hayward_assert(target_output && target_window, "Mouse over unowned window");
 
 	// Moving window to itself should be a no-op.
 	if (e->target_window == e->moving_window) {
-		e->target_workspace = NULL;
+		e->target_output = NULL;
 		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
 	}
 
-	// TODO (hayward) everything after this point needs to be reworked to
-	// make sense with WMII model.
-	//   - If near top edge: insert into column above target window.
-	//   - If near bottom edge: insert into column below target window.
-	//   - If near left edge: insert into workspace in new column to left of window.
-	//   - If near right edge: insert into workspace in new column to right of window.
-	// Tabbed layout probably no longer makes sense, and drag and drop behaviour
-	// would be much more straightforward if we followed WMII's convention of
-	// stacking below as well as above.
-
 	// Use the hovered view - but we must be over the actual surface
 	if (!target_window->view->surface) {
-		e->target_workspace = NULL;
+		e->target_output = NULL;
 		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
 		return;
@@ -206,7 +193,7 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 		e->target_edge = WLR_EDGE_NONE;
 	}
 
-	e->target_workspace = target_workspace;
+	e->target_output = target_output;
 	e->target_window = target_window;
 	e->drop_box.x = target_window->pending.content_x;
 	e->drop_box.y = target_window->pending.content_y;
@@ -233,8 +220,8 @@ static void finalize_move(struct hayward_seat *seat) {
 	struct hayward_column *old_parent = moving_window->pending.parent;
 	struct hayward_workspace *old_workspace = moving_window->pending.workspace;
 
-	struct hayward_workspace *target_workspace = e->target_workspace;
-	struct hayward_output *target_output = target_workspace->pending.output;  // TODO
+	struct hayward_workspace *target_workspace = root_get_active_workspace();
+	struct hayward_output *target_output = e->target_output;
 	struct hayward_window *target_window = e->target_window;
 	enum wlr_edges target_edge = e->target_edge;
 
@@ -319,7 +306,7 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 static void handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (e->target_window == container) {
-		e->target_workspace = NULL;
+		e->target_output = NULL;
 		e->target_window = NULL;
 	}
 	if (e->moving_window == container) {

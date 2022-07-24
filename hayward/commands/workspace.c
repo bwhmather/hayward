@@ -128,40 +128,15 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 		return error;
 	}
 
-	int output_location = -1;
 	int gaps_location = -1;
 
-	for (int i = 0; i < argc; ++i) {
-		if (strcasecmp(argv[i], "output") == 0) {
-			output_location = i;
-			break;
-		}
-	}
 	for (int i = 0; i < argc; ++i) {
 		if (strcasecmp(argv[i], "gaps") == 0) {
 			gaps_location = i;
 			break;
 		}
 	}
-	if (output_location == 0) {
-		return cmd_results_new(CMD_INVALID,
-			"Expected 'workspace <name> output <output>'");
-	} else if (output_location > 0) {
-		if ((error = checkarg(argc, "workspace", EXPECTED_AT_LEAST,
-						output_location + 2))) {
-			return error;
-		}
-		char *workspace_name = join_args(argv, output_location);
-		struct workspace_config *wsc = workspace_config_find_or_create(workspace_name);
-		free(workspace_name);
-		if (!wsc) {
-			return cmd_results_new(CMD_FAILURE,
-					"Unable to allocate workspace output");
-		}
-		for (int i = output_location + 1; i < argc; ++i) {
-			list_add(wsc->outputs, strdup(argv[i]));
-		}
-	} else if (gaps_location >= 0) {
+	if (gaps_location >= 0) {
 		if ((error = cmd_workspace_gaps(argc, argv, gaps_location))) {
 			return error;
 		}
@@ -172,17 +147,6 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 			return cmd_results_new(CMD_INVALID,
 					"Can't run this command while there's no outputs connected.");
 		}
-
-		bool auto_back_and_forth = true;
-		while (strcasecmp(argv[0], "--no-auto-back-and-forth") == 0) {
-			auto_back_and_forth = false;
-			if ((error = checkarg(--argc, "workspace", EXPECTED_AT_LEAST, 1))) {
-				return error;
-			}
-			++argv;
-		}
-
-		struct hayward_seat *seat = config->handler_context.seat;
 
 		struct hayward_workspace *workspace = NULL;
 		if (strcasecmp(argv[0], "number") == 0) {
@@ -196,41 +160,20 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 			}
 			if (!(workspace = workspace_by_number(argv[1]))) {
 				char *name = join_args(argv + 1, argc - 1);
-				workspace = workspace_create(NULL, name);
+				workspace = workspace_create(name);
 				free(name);
-			}
-			if (workspace && auto_back_and_forth) {
-				workspace = workspace_auto_back_and_forth(workspace);
-			}
-		} else if (strcasecmp(argv[0], "next") == 0 ||
-				strcasecmp(argv[0], "prev") == 0 ||
-				strcasecmp(argv[0], "next_on_output") == 0 ||
-				strcasecmp(argv[0], "prev_on_output") == 0 ||
-				strcasecmp(argv[0], "current") == 0) {
-			workspace = workspace_by_name(argv[0]);
-		} else if (strcasecmp(argv[0], "back_and_forth") == 0) {
-			if (!seat->prev_workspace_name) {
-				return cmd_results_new(CMD_INVALID,
-						"There is no previous workspace");
-			}
-			if (!(workspace = workspace_by_name(argv[0]))) {
-				workspace = workspace_create(NULL, seat->prev_workspace_name);
 			}
 		} else {
 			char *name = join_args(argv, argc);
 			if (!(workspace = workspace_by_name(name))) {
-				workspace = workspace_create(NULL, name);
+				workspace = workspace_create(name);
 			}
 			free(name);
-			if (workspace && auto_back_and_forth) {
-				workspace = workspace_auto_back_and_forth(workspace);
-			}
 		}
 		if (!workspace) {
 			return cmd_results_new(CMD_FAILURE, "No workspace to switch to");
 		}
 		workspace_switch(workspace);
-		seat_consider_warp_to_focus(seat);
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

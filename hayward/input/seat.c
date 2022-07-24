@@ -1056,39 +1056,26 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 		return;
 	}
 
-	struct hayward_output *new_output = new_workspace->pending.output;
-	struct hayward_workspace *new_output_last_workspace =
-		new_output ? seat_get_active_workspace_for_output(seat, new_output) : NULL;
-
 	if (new_workspace != last_workspace) {
 		struct hayward_seat_workspace *seat_workspace = seat_workspace_from_workspace(seat, new_workspace);
 
 		wl_list_remove(&seat_workspace->link);
 		wl_list_insert(&seat->active_workspace_stack, &seat_workspace->link);
 
-		if (new_output_last_workspace && new_workspace != new_output_last_workspace) {
-			for (int i = 0; i < new_output_last_workspace->pending.floating->length; ++i) {
-				struct hayward_window *floater =
-					new_output_last_workspace->pending.floating->items[i];
+		if (last_workspace != NULL) {
+			for (int i = 0; i < last_workspace->pending.floating->length; ++i) {
+				struct hayward_window *floater = last_workspace->pending.floating->items[i];
 				if (window_is_sticky(floater)) {
 					window_detach(floater);
 					workspace_add_floating(new_workspace, floater);
 					--i;
 				}
 			}
-		}
 
-		if (last_workspace) {
 			node_set_dirty(&last_workspace->node);
-		}
-		if (last_workspace && last_workspace->pending.output) {
-			node_set_dirty(&last_workspace->pending.output->node);
 		}
 
 		node_set_dirty(&new_workspace->node);
-		if (new_workspace->pending.output) {
-			node_set_dirty(&new_workspace->pending.output->node);
-		}
 	}
 
 	if (last_window && new_window != last_window) {
@@ -1161,10 +1148,7 @@ static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_wo
 
 	seat->has_focus = new_window ? true : false;
 
-	if (new_output_last_workspace && new_output_last_workspace != new_workspace) {
-		workspace_consider_destroy(new_output_last_workspace);
-	}
-	if (last_workspace && last_workspace != new_output_last_workspace && last_workspace != new_workspace) {
+	if (last_workspace && last_workspace != new_workspace) {
 		workspace_consider_destroy(last_workspace);
 	}
 
@@ -1303,23 +1287,9 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 	seat->exclusive_client = client;
 }
 
+// TODO deprecated.
 struct hayward_workspace *seat_get_active_workspace_for_output(struct hayward_seat *seat, struct hayward_output *output) {
-	struct hayward_seat_workspace *current;
-	wl_list_for_each(current, &seat->active_workspace_stack, link) {
-		struct hayward_workspace *workspace = current->workspace;
-
-		if (workspace->pending.output == NULL) {
-			continue;
-		}
-
-		if (workspace->pending.output != output) {
-			continue;
-		}
-
-		return workspace;
-	}
-
-	return NULL;
+	return root_get_active_workspace();
 }
 
 struct hayward_window *seat_get_active_window_for_column(struct hayward_seat *seat, struct hayward_column *column) {
@@ -1490,30 +1460,6 @@ void seat_pointer_notify_button(struct hayward_seat *seat, uint32_t time_msec,
 		uint32_t button, enum wlr_button_state state) {
 	seat->last_button_serial = wlr_seat_pointer_notify_button(seat->wlr_seat,
 			time_msec, button, state);
-}
-
-void seat_consider_warp_to_focus(struct hayward_seat *seat) {
-	struct hayward_node *focus = seat_get_focus(seat);
-	if (config->mouse_warping == WARP_NO || !focus) {
-		return;
-	}
-	if (config->mouse_warping == WARP_OUTPUT) {
-		struct hayward_output *output = node_get_output(focus);
-		if (output) {
-			struct wlr_box box;
-			output_get_box(output, &box);
-			if (wlr_box_contains_point(&box,
-						seat->cursor->cursor->x, seat->cursor->cursor->y)) {
-				return;
-			}
-		}
-	}
-
-	if (focus->type == N_WINDOW) {
-		cursor_warp_to_container(seat->cursor, focus->hayward_window, false);
-	} else {
-		cursor_warp_to_workspace(seat->cursor, focus->hayward_workspace);
-	}
 }
 
 void seatop_unref(struct hayward_seat *seat, struct hayward_window *container) {

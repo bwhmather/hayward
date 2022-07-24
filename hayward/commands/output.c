@@ -48,8 +48,7 @@ struct cmd_results *cmd_output(int argc, char **argv) {
 					"Current output alias (%s) cannot be used in the config",
 					argv[0]);
 		}
-		struct hayward_output *hayward_output = config->handler_context.node ?
-			node_get_output(config->handler_context.node) : NULL;
+		struct hayward_output *hayward_output = root_get_active_output();
 		if (!hayward_output) {
 			return cmd_results_new(CMD_FAILURE, "Unknown output");
 		}

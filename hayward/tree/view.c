@@ -229,7 +229,7 @@ void view_autoconfigure(struct hayward_view *view) {
 	struct hayward_window *window = view->window;
 	struct hayward_workspace *workspace = window->pending.workspace;
 
-	struct hayward_output *output = workspace ? workspace->pending.output : NULL;
+	struct hayward_output *output = workspace_get_active_output(workspace);
 
 	if (window->pending.fullscreen) {
 		window->pending.content_x = output->lx;
@@ -506,62 +506,6 @@ static void view_populate_pid(struct hayward_view *view) {
 	view->pid = pid;
 }
 
-static struct hayward_workspace *select_workspace(struct hayward_view *view) {
-	struct hayward_seat *seat = input_manager_current_seat();
-
-	// Check if there's any `assign` criteria for the view
-	list_t *criterias = criteria_for_view(view,
-			CT_ASSIGN_WORKSPACE | CT_ASSIGN_WORKSPACE_NUMBER | CT_ASSIGN_OUTPUT);
-	struct hayward_workspace *workspace = NULL;
-	for (int i = 0; i < criterias->length; ++i) {
-		struct criteria *criteria = criterias->items[i];
-		if (criteria->type == CT_ASSIGN_OUTPUT) {
-			struct hayward_output *output = output_by_name_or_id(criteria->target);
-			if (output) {
-				workspace = output_get_active_workspace(output);
-				break;
-			}
-		} else {
-			// CT_ASSIGN_WORKSPACE(_NUMBER)
-			workspace = criteria->type == CT_ASSIGN_WORKSPACE_NUMBER ?
-				workspace_by_number(criteria->target) :
-				workspace_by_name(criteria->target);
-
-			if (!workspace) {
-				if (strcasecmp(criteria->target, "back_and_forth") == 0) {
-					if (seat->prev_workspace_name) {
-						workspace = workspace_create(NULL, seat->prev_workspace_name);
-					}
-				} else {
-					workspace = workspace_create(NULL, criteria->target);
-				}
-			}
-			break;
-		}
-	}
-	list_free(criterias);
-	if (workspace) {
-		root_remove_workspace_pid(view->pid);
-		return workspace;
-	}
-
-	// Check if there's a PID mapping
-	workspace = root_workspace_for_pid(view->pid);
-	if (workspace) {
-		return workspace;
-	}
-
-	// Use the focused workspace
-	workspace = seat_get_focused_workspace(seat);
-	if (workspace) {
-		return workspace;
-	}
-
-	// When there's no outputs connected, the above should match a workspace on
-	// the noop output.
-	hayward_abort("Expected to find a workspace");
-}
-
 static bool should_focus(struct hayward_view *view) {
 	struct hayward_seat *seat = input_manager_current_seat();
 	struct hayward_window *prev_container = seat_get_focused_container(seat);
@@ -604,7 +548,6 @@ static void handle_foreign_activate_request(
 	wl_list_for_each(seat, &server.input->seats, link) {
 		if (seat->wlr_seat == event->seat) {
 			seat_set_focus_window(seat, view->window);
-			seat_consider_warp_to_focus(seat);
 			window_raise_floating(view->window);
 			break;
 		}
@@ -670,16 +613,14 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 	// If there is a request to be opened fullscreen on a specific output, try
 	// to honor that request. Otherwise, fallback to assigns, pid mappings,
 	// focused workspace, etc
-	// TODO this is all upside down now that workspaces span outputs.
-	struct hayward_workspace *workspace = NULL;
+	struct hayward_workspace *workspace = root_get_active_workspace();
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	struct hayward_output *output = root_get_active_output();
 	if (fullscreen_output && fullscreen_output->data) {
-		struct hayward_output *output = fullscreen_output->data;
-		workspace = output_get_active_workspace(output);
+		output = fullscreen_output->data;
 	}
-	if (!workspace) {
-		workspace = select_workspace(view);
-	}
-	hayward_assert(workspace, "Could not find workspace to map view to");
+	hayward_assert(output != NULL, "Expected output");
 
 	view->foreign_toplevel =
 		wlr_foreign_toplevel_handle_v1_create(server.foreign_toplevel_manager);
@@ -721,7 +662,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 			column_add_sibling(target_sibling, view->window, 1);
 		} else {
 			struct hayward_column *column = column_create();
-			workspace_insert_tiling(workspace, workspace->pending.output, column, 0);
+			workspace_insert_tiling(workspace, output, column, 0);
 			column_add_child(column, view->window);
 		}
 
@@ -818,7 +759,6 @@ void view_unmap(struct hayward_view *view) {
 				hayward_cursor_constrain(seat->cursor, NULL);
 			}
 		}
-		seat_consider_warp_to_focus(seat);
 	}
 
 	transaction_commit_dirty();
@@ -1042,11 +982,12 @@ void view_child_init(struct hayward_view_child *child,
 	wl_signal_add(&view->events.unmap, &child->view_unmap);
 	child->view_unmap.notify = view_child_handle_view_unmap;
 
-	struct hayward_window *container = child->view->window;
-	if (container != NULL) {
-		struct hayward_workspace *workspace = container->pending.workspace;
-		if (workspace) {
-			wlr_surface_send_enter(child->surface, workspace->pending.output->wlr_output);
+	struct hayward_window *window = child->view->window;
+	if (window != NULL) {
+		// TODO view can overlap multiple outputs.
+		struct hayward_output *output = window->pending.output;
+		if (output != NULL) {
+			wlr_surface_send_enter(child->surface, output->wlr_output);
 		}
 	}
 

@@ -240,11 +240,13 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 	if (config->reloading) {
 		return;
 	}
-	if (!workspace->pending.output) {
-		// Happens when there are no outputs connected.
+
+	// TODO TODO TODO
+	struct hayward_output *output = root_get_active_output();
+	if (output == NULL) {
 		return;
 	}
-	struct hayward_output *output = workspace->pending.output;
+
 	struct wlr_box *area = &output->usable_area;
 	hayward_log(HAYWARD_DEBUG, "Usable area for workspace: %dx%d@%d,%d",
 			area->width, area->height, area->x, area->y);
@@ -263,7 +265,7 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 	if (!first_arrange && (diff_x != 0 || diff_y != 0)) {
 		for (int i = 0; i < workspace->pending.floating->length; ++i) {
 			struct hayward_window *floater = workspace->pending.floating->items[i];
-			window_floating_translate(floater, diff_x, diff_y);
+			window_floating_move_to(floater, floater->pending.x + diff_x, floater->pending.y + diff_y);
 			double center_x = floater->pending.x + floater->pending.width / 2;
 			double center_y = floater->pending.y + floater->pending.height / 2;
 			struct wlr_box workspace_box;
@@ -302,11 +304,6 @@ void arrange_output(struct hayward_output *output) {
 	output->ly = output_box.y;
 	output->width = output_box.width;
 	output->height = output_box.height;
-
-	for (int i = 0; i < output->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = output->pending.workspaces->items[i];
-		arrange_workspace(workspace);
-	}
 }
 
 void arrange_root(void) {
@@ -323,6 +320,11 @@ void arrange_root(void) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct hayward_output *output = root->outputs->items[i];
 		arrange_output(output);
+	}
+
+	for (int i = 0; i < root->pending.workspaces->length; ++i) {
+		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		arrange_workspace(workspace);
 	}
 }
 

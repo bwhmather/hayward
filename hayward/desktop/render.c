@@ -847,23 +847,16 @@ static void render_floating_window(struct hayward_output *soutput, pixman_region
 	render_view(soutput, damage, window, colors);
 }
 
-static void render_floating(struct hayward_output *soutput,
-		pixman_region32_t *damage) {
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct hayward_output *output = root->outputs->items[i];
-		for (int j = 0; j < output->current.workspaces->length; ++j) {
-			struct hayward_workspace *workspace = output->current.workspaces->items[j];
-			if (!workspace_is_visible(workspace)) {
-				continue;
-			}
-			for (int k = 0; k < workspace->current.floating->length; ++k) {
-				struct hayward_window *floater = workspace->current.floating->items[k];
-				if (floater->current.fullscreen) {
-					continue;
-				}
-				render_floating_window(soutput, damage, floater);
-			}
+static void render_floating(struct hayward_output *output, pixman_region32_t *damage) {
+	struct hayward_workspace *workspace = root_get_active_workspace();
+	hayward_assert(workspace != NULL, "Expected active workspace");
+
+	for (int i = 0; i < workspace->current.floating->length; ++i) {
+		struct hayward_window *floater = workspace->current.floating->items[i];
+		if (floater->current.fullscreen) {
+			continue;
 		}
+		render_floating_window(output, damage, floater);
 	}
 }
 
@@ -880,7 +873,7 @@ void output_render(struct hayward_output *output, struct timespec *when,
 	struct wlr_output *wlr_output = output->wlr_output;
 	struct wlr_renderer *renderer = output->server->renderer;
 
-	struct hayward_workspace *workspace = output->current.active_workspace;
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (workspace == NULL) {
 		return;
 	}

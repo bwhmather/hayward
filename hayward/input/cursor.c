@@ -222,34 +222,53 @@ static struct wlr_surface *layer_surface_popup_at(struct hayward_output *output,
 }
 
 /**
- * Returns the node at the cursor's position. If there is a surface at that
- * location, it is stored in **surface (it may not be a view).
+ * Reports whatever objects are directly under the cursor coordinates.
+ * If the coordinates do not point inside an output then nothing will be
+ * returned.  If the cursor is not over anything then window and surface
+ * will be set to NULL.  If surface is not a view then window will be NULL.
  */
-static struct hayward_node *node_at_coords(
-		struct hayward_seat *seat, double lx, double ly,
-		struct wlr_surface **surface, double *sx, double *sy) {
-	// find the output the cursor is on
+void seat_get_target_at(
+	struct hayward_seat *seat, double lx, double ly,
+	struct hayward_output **output_out,
+	struct hayward_window **window_out,
+	struct wlr_surface **surface_out,
+	double *sx_out, double *sy_out
+) {
+	*output_out = NULL;
+	*window_out = NULL;
+	*surface_out = NULL;
+	*sx_out = 0;
+	*sy_out = 0;
+
+	// Find the output the cursor is on.
 	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-			root->output_layout, lx, ly);
+		root->output_layout, lx, ly
+	);
 	if (wlr_output == NULL) {
-		return NULL;
+		return;
 	}
+
 	struct hayward_output *output = wlr_output->data;
 	if (!output || !output->enabled) {
-		// output is being destroyed or is being enabled
-		return NULL;
+		// Output is being destroyed or is being enabled.
+		return;
 	}
+	*output_out = output;
+
 	double ox = lx, oy = ly;
 	wlr_output_layout_output_coords(root->output_layout, wlr_output, &ox, &oy);
 
-	// layer surfaces on the overlay layer are rendered on top
-	if ((*surface = layer_surface_at(output,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-				ox, oy, sx, sy))) {
-		return NULL;
+	// Layer surfaces on the overlay layer are rendered at the very top.
+	*surface_out = layer_surface_at(
+		output,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+		ox, oy, sx_out, sy_out
+	);
+	if (*surface_out != NULL) {
+		return;
 	}
 
-	// check for unmanaged views
+	// Check for unmanaged views.
 #if HAVE_XWAYLAND
 	struct wl_list *unmanaged = &root->xwayland_unmanaged;
 	struct hayward_xwayland_unmanaged *unmanaged_surface;
@@ -257,21 +276,22 @@ static struct hayward_node *node_at_coords(
 		struct wlr_xwayland_surface *xsurface =
 			unmanaged_surface->wlr_xwayland_surface;
 
-		double _sx = lx - unmanaged_surface->lx;
-		double _sy = ly - unmanaged_surface->ly;
-		if (wlr_surface_point_accepts_input(xsurface->surface, _sx, _sy)) {
-			*surface = xsurface->surface;
-			*sx = _sx;
-			*sy = _sy;
-			return NULL;
+		double sx = lx - unmanaged_surface->lx;
+		double sy = ly - unmanaged_surface->ly;
+		if (wlr_surface_point_accepts_input(xsurface->surface, sx, sy)) {
+			*surface_out = xsurface->surface;
+			*sx_out = sx;
+			*sy_out = sy;
+			return;
 		}
 	}
 #endif
 
-	// find the focused workspace on the output for this seat
-	struct hayward_workspace *workspace = output_get_active_workspace(output);
+	// Check for fullscreen windows.
+	// TODO fullscreen windows should be attached to the output, not the workspace.
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (!workspace) {
-		return NULL;
+		return;
 	}
 
 	if (workspace->pending.fullscreen) {
@@ -279,83 +299,80 @@ static struct hayward_node *node_at_coords(
 		for (int i = 0; i < workspace->pending.floating->length; ++i) {
 			struct hayward_window *floater = workspace->pending.floating->items[i];
 			if (window_is_transient_for(floater, workspace->pending.fullscreen)) {
-				if ((*surface = window_surface_at(floater, lx, ly, sx, sy))) {
-					return &floater->node;
+				if ((*surface_out = window_surface_at(floater, lx, ly, sx_out, sy_out))) {
+					*window_out = floater;
+					return;
 				}
 			}
 		}
 		// Try fullscreen container
-		if ((*surface = window_surface_at(workspace->pending.fullscreen, lx, ly, sx, sy))) {
-			return &workspace->pending.fullscreen->node;
+		*surface_out = window_surface_at(workspace->pending.fullscreen, lx, ly, sx_out, sy_out);
+		if (*surface_out != NULL) {
+			*window_out = workspace->pending.fullscreen;
+			return;
 		}
-		return NULL;
+		return;
 	}
-	if ((*surface = layer_surface_popup_at(output,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-				ox, oy, sx, sy))) {
-		return NULL;
-	}
-	if ((*surface = layer_surface_popup_at(output,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-				ox, oy, sx, sy))) {
-		return NULL;
-	}
-	if ((*surface = layer_surface_popup_at(output,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-				ox, oy, sx, sy))) {
-		return NULL;
-	}
-	if ((*surface = layer_surface_at(output,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-				ox, oy, sx, sy))) {
-		return NULL;
-	}
-
-	struct hayward_window *window;
-	if ((window = seat_window_at(seat, lx, ly))) {
-		*surface = window_surface_at(window, lx, ly, sx, sy);
-		return &window->node;
-	}
-
-	if ((*surface = layer_surface_at(output,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-				ox, oy, sx, sy))) {
-		return NULL;
-	}
-	if ((*surface = layer_surface_at(output,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-				ox, oy, sx, sy))) {
-		return NULL;
-	}
-
-	return &workspace->node;
-}
-
-void seat_get_target_at(
-		struct hayward_seat *seat, double lx, double ly,
-		struct hayward_workspace **wsp, struct hayward_window **windowp,
-		struct wlr_surface **surface, double *sx, double *sy) {
-	struct hayward_node *node = node_at_coords(seat, lx, ly, surface, sx, sy);
-
-	if (node == NULL) {
-		*windowp = NULL;
-		*wsp = NULL;
+	*surface_out = layer_surface_popup_at(
+		output,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
+		ox, oy, sx_out, sy_out
+	);
+	if (*surface_out != NULL) {
 		return;
 	}
 
-	switch (node->type) {
-	case N_WINDOW:
-		*windowp = node->hayward_window;
-		*wsp = node->hayward_window->pending.workspace;
-		break;
-	case N_WORKSPACE:
-		*windowp = NULL;
-		*wsp = node->hayward_workspace;
-		break;
-	default:
-		hayward_abort("node_at_coords returned unsupported node type");
+	*surface_out = layer_surface_popup_at(
+		output,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
+		ox, oy, sx_out, sy_out
+	);
+	if (*surface_out != NULL) {
+		return;
 	}
 
+	*surface_out = layer_surface_popup_at(
+		output,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+		ox, oy, sx_out, sy_out
+	);
+	if (*surface_out != NULL) {
+		return;
+	}
+
+	*surface_out = layer_surface_at(
+		output,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
+		ox, oy, sx_out, sy_out
+	);
+	if (*surface_out != NULL) {
+		return;
+	}
+
+	struct hayward_window *window = seat_window_at(seat, lx, ly);
+	if (window != NULL) {
+		*surface_out = window_surface_at(window, lx, ly, sx_out, sy_out);
+		*window_out = window;
+		return;
+	}
+
+	*surface_out = layer_surface_at(
+		output,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
+		ox, oy, sx_out, sy_out
+	);
+	if (*surface_out != NULL) {
+		return;
+	}
+
+	*surface_out = layer_surface_at(
+		output,
+		&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+		ox, oy, sx_out, sy_out
+	);
+	if (*surface_out != NULL) {
+		return;
+	}
 }
 
 void cursor_rebase(struct hayward_cursor *cursor) {
@@ -518,10 +535,17 @@ static void pointer_motion(struct hayward_cursor *cursor, uint32_t time_msec,
 
 	// Only apply pointer constraints to real pointer input.
 	if (cursor->active_constraint && device->type == WLR_INPUT_DEVICE_POINTER) {
+		struct hayward_output *output = NULL;
+		struct hayward_window *window = NULL;
 		struct wlr_surface *surface = NULL;
 		double sx, sy;
-		node_at_coords(cursor->seat,
-			cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
+
+		seat_get_target_at(
+			cursor->seat, cursor->cursor->x, cursor->cursor->y,
+			&output,
+			&window,
+		       	&surface, &sx, &sy
+		);
 
 		if (cursor->active_constraint->surface != surface) {
 			return;
@@ -629,8 +653,24 @@ static void handle_touch_down(struct wl_listener *listener, void *data) {
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(cursor->cursor, &event->touch->base,
 			event->x, event->y, &lx, &ly);
+	struct hayward_output *output = NULL;
+	struct hayward_window *window = NULL;
 	double sx, sy;
-	struct hayward_node *focused_node = node_at_coords(seat, lx, ly, &surface, &sx, &sy);
+
+	seat_get_target_at(
+		seat, lx, ly,
+		&output,
+		&window,
+		&surface, &sx, &sy
+	);
+
+	struct hayward_node *focused_node = NULL;
+	if (output != NULL) {
+	       focused_node = &output->node;
+	}
+	if (window != NULL) {
+		focused_node = &window->node;
+	}
 
 	seat->touch_id = event->touch_id;
 	seat->touch_x = lx;
@@ -693,8 +733,16 @@ static void handle_touch_motion(struct wl_listener *listener, void *data) {
 	double lx, ly;
 	wlr_cursor_absolute_to_layout_coords(cursor->cursor, &event->touch->base,
 			event->x, event->y, &lx, &ly);
+	struct hayward_output *output = NULL;
+	struct hayward_window *window = NULL;
 	double sx, sy;
-	node_at_coords(cursor->seat, lx, ly, &surface, &sx, &sy);
+
+	seat_get_target_at(
+		seat, lx, ly,
+		&output,
+		&window,
+		&surface, &sx, &sy
+	);
 
 	if (seat->touch_id == event->touch_id) {
 		seat->touch_x = lx;
@@ -796,10 +844,17 @@ static void handle_tablet_tool_position(struct hayward_cursor *cursor,
 		break;
 	}
 
-	double sx, sy;
+	struct hayward_output *output = NULL;
+	struct hayward_window *window = NULL;
 	struct wlr_surface *surface = NULL;
-	struct hayward_seat *seat = cursor->seat;
-	node_at_coords(seat, cursor->cursor->x, cursor->cursor->y, &surface, &sx, &sy);
+	double sx, sy;
+
+	seat_get_target_at(
+		cursor->seat, cursor->cursor->x, cursor->cursor->y,
+		&output, &window,
+		&surface, &sx, &sy
+	);
+
 
 	// The logic for whether we should send a tablet event or an emulated pointer
 	// event is tricky. It comes down to:
@@ -814,7 +869,7 @@ static void handle_tablet_tool_position(struct hayward_cursor *cursor,
 	if (!cursor->simulating_pointer_from_tool_tip &&
 			((surface && wlr_surface_accepts_tablet_v2(tablet->tablet_v2, surface)) ||
 				wlr_tablet_tool_v2_has_implicit_grab(tool->tablet_v2_tool))) {
-		seatop_tablet_tool_motion(seat, tool, time_msec);
+		seatop_tablet_tool_motion(cursor->seat, tool, time_msec);
 	} else {
 		wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tablet_v2_tool);
 		pointer_motion(cursor, time_msec, input_device->wlr_device, dx, dy, dx, dy);
@@ -886,11 +941,16 @@ static void handle_tool_tip(struct wl_listener *listener, void *data) {
 	struct wlr_tablet_v2_tablet *tablet_v2 = hayward_tool->tablet->tablet_v2;
 	struct hayward_seat *seat = cursor->seat;
 
-
-	double sx, sy;
+	struct hayward_output *output = NULL;
+	struct hayward_window *window = NULL;
 	struct wlr_surface *surface = NULL;
-	node_at_coords(seat, cursor->cursor->x, cursor->cursor->y,
-		&surface, &sx, &sy);
+	double sx, sy;
+
+	seat_get_target_at(
+		seat, cursor->cursor->x, cursor->cursor->y,
+		&output, &window,
+		&surface, &sx, &sy
+	);
 
 	if (cursor->simulating_pointer_from_tool_tip &&
 			event->state == WLR_TABLET_TOOL_TIP_UP) {
@@ -971,11 +1031,18 @@ static void handle_tool_button(struct wl_listener *listener, void *data) {
 	}
 	struct wlr_tablet_v2_tablet *tablet_v2 = hayward_tool->tablet->tablet_v2;
 
-	double sx, sy;
+	struct hayward_output *output = NULL;
+	struct hayward_window *window = NULL;
 	struct wlr_surface *surface = NULL;
+	double sx, sy;
 
-	node_at_coords(cursor->seat, cursor->cursor->x, cursor->cursor->y,
-		&surface, &sx, &sy);
+	seat_get_target_at(
+		cursor->seat, cursor->cursor->x, cursor->cursor->y,
+		&output, &window,
+		&surface, &sx, &sy
+	);
+
+
 
 	if (!surface || !wlr_surface_accepts_tablet_v2(tablet_v2, surface)) {
 		// TODO: the user may want to configure which tool buttons are mapped to

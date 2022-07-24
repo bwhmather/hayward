@@ -21,13 +21,13 @@ struct hayward_workspace;
 struct hayward_view;
 
 struct hayward_window_state {
-	// Container properties
 	double x, y;
 	double width, height;
 
 	bool fullscreen;
 
 	struct hayward_workspace *workspace;
+	struct hayward_output *output;
 	struct hayward_column *parent;
 
 	bool focused;
@@ -219,16 +219,8 @@ void window_floating_resize_and_center(struct hayward_window *window);
 
 void window_floating_set_default_size(struct hayward_window *window);
 
-/**
- * Move a floating window by the specified amount.
- */
-void window_floating_translate(struct hayward_window *window,
-		double x_amount, double y_amount);
-
-/**
- * Choose an output for the floating window's new position.
- */
-struct hayward_output *window_floating_find_output(struct hayward_window *window);
+struct hayward_output *window_get_output(struct hayward_window *window);
+struct hayward_output *window_get_current_output(struct hayward_window *window);
 
 /**
  * Move a floating window to a new layout-local position.
@@ -267,7 +259,6 @@ struct hayward_window *window_get_previous_sibling(struct hayward_window *window
 struct hayward_window *window_get_next_sibling(struct hayward_window *window);
 
 enum hayward_column_layout window_parent_layout(struct hayward_window *window);
-
 enum hayward_column_layout window_current_parent_layout(struct hayward_window *window);
 
 void window_swap(struct hayward_window *window1, struct hayward_window *window2);

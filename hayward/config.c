@@ -251,7 +251,6 @@ static void config_defaults(struct hayward_config *config) {
 
 	// Flags
 	config->focus_follows_mouse = FOLLOWS_YES;
-	config->mouse_warping = WARP_OUTPUT;
 	config->focus_wrapping = WRAP_YES;
 	config->validating = false;
 	config->reloading = false;

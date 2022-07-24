@@ -86,8 +86,8 @@ struct hayward_window;
 
 void seat_get_target_at(
 		struct hayward_seat *seat, double lx, double ly,
-		struct hayward_workspace **wsp, struct hayward_window **winp,
-		struct wlr_surface **surface, double *sx, double *sy);
+		struct hayward_output **output_out, struct hayward_window **window_out,
+		struct wlr_surface **surface_out, double *sx_out, double *sy_out);
 
 void hayward_cursor_destroy(struct hayward_cursor *cursor);
 struct hayward_cursor *hayward_cursor_create(struct hayward_seat *seat);
@@ -122,13 +122,6 @@ void cursor_set_image(struct hayward_cursor *cursor, const char *image,
 void cursor_set_image_surface(struct hayward_cursor *cursor,
 		struct wlr_surface *surface, int32_t hotspot_x, int32_t hotspot_y,
 		struct wl_client *client);
-
-void cursor_warp_to_container(struct hayward_cursor *cursor,
-	struct hayward_window *container, bool force);
-
-void cursor_warp_to_workspace(struct hayward_cursor *cursor,
-		struct hayward_workspace *workspace);
-
 
 void hayward_cursor_constrain(struct hayward_cursor *cursor,
 	struct wlr_pointer_constraint_v1 *constraint);

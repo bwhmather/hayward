@@ -621,27 +621,18 @@ void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 	if (!layer_surface->output) {
 		// Assign last active output
 		struct hayward_output *output = NULL;
-		struct hayward_seat *seat = input_manager_get_default_seat();
-		if (seat) {
-			struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
-			if (workspace != NULL) {
-				output = workspace->pending.output;
-			}
+		if (!root->outputs->length) {
+			hayward_log(HAYWARD_ERROR,
+					"no output to auto-assign layer surface '%s' to",
+					layer_surface->namespace);
+			// Note that layer_surface->output can be NULL
+			// here, but none of our destroy callbacks are
+			// registered yet so we don't have to make them
+			// handle that case.
+			wlr_layer_surface_v1_destroy(layer_surface);
+			return;
 		}
-		if (!output || output == root->fallback_output) {
-			if (!root->outputs->length) {
-				hayward_log(HAYWARD_ERROR,
-						"no output to auto-assign layer surface '%s' to",
-						layer_surface->namespace);
-				// Note that layer_surface->output can be NULL
-				// here, but none of our destroy callbacks are
-				// registered yet so we don't have to make them
-				// handle that case.
-				wlr_layer_surface_v1_destroy(layer_surface);
-				return;
-			}
-			output = root->outputs->items[0];
-		}
+		output = root->outputs->items[0];
 		layer_surface->output = output->wlr_output;
 	}
 

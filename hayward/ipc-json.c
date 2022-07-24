@@ -358,8 +358,6 @@ static void ipc_json_describe_workspace(struct hayward_workspace *workspace,
 	}
 	json_object_object_add(object, "num", json_object_new_int(num));
 	json_object_object_add(object, "fullscreen_mode", json_object_new_int(1));
-	json_object_object_add(object, "output", workspace->pending.output ?
-			json_object_new_string(workspace->pending.output->wlr_output->name) : NULL);
 	json_object_object_add(object, "urgent",
 			json_object_new_boolean(workspace->urgent));
 
@@ -627,13 +625,13 @@ json_object *ipc_json_describe_node_recursive(struct hayward_node *node) {
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&output->node));
 		}
-		break;
-	case N_OUTPUT:
-		for (i = 0; i < node->hayward_output->pending.workspaces->length; ++i) {
-			struct hayward_workspace *workspace = node->hayward_output->pending.workspaces->items[i];
+		for (i = 0; i < root->pending.workspaces->length; ++i) {
+			struct hayward_workspace *workspace = root->pending.workspaces->items[i];
 			json_object_array_add(children,
 					ipc_json_describe_node_recursive(&workspace->node));
 		}
+		break;
+	case N_OUTPUT:
 		break;
 	case N_WORKSPACE:
 		for (i = 0; i < node->hayward_workspace->pending.tiling->length; ++i) {

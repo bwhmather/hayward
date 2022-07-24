@@ -368,9 +368,9 @@ void scale_box(struct wlr_box *box, float scale) {
 	box->y = round(box->y * scale);
 }
 
+// TODO deprecated.
 struct hayward_workspace *output_get_active_workspace(struct hayward_output *output) {
-	struct hayward_seat *seat = input_manager_current_seat();
-	return seat_get_active_workspace_for_output(seat, output);
+	return root_get_active_workspace();
 }
 
 bool output_has_opaque_overlay_layer_surface(struct hayward_output *output) {
@@ -438,7 +438,7 @@ static void count_surface_iterator(struct hayward_output *output,
 static bool scan_out_fullscreen_view(struct hayward_output *output,
 		struct hayward_view *view) {
 	struct wlr_output *wlr_output = output->wlr_output;
-	struct hayward_workspace *workspace = output->current.active_workspace;
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	hayward_assert(workspace, "Expected an active workspace");
 
 	if (!wl_list_empty(&view->saved_buffers)) {
@@ -505,7 +505,7 @@ static int output_repaint_timer_handler(void *data) {
 
 	output->wlr_output->frame_pending = false;
 
-	struct hayward_workspace *workspace = output->current.active_workspace;
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (workspace == NULL) {
 		return 0;
 	}
@@ -825,7 +825,7 @@ static void handle_commit(struct wl_listener *listener, void *data) {
 	}
 
 	if (event->committed & WLR_OUTPUT_STATE_SCALE) {
-		output_for_each_window(output, update_textures, NULL);
+		root_for_each_window(update_textures, NULL);
 	}
 
 	if (event->committed & (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {

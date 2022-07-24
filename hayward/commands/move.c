@@ -29,14 +29,6 @@ static const char expected_syntax[] =
 
 static struct hayward_output *output_in_direction(const char *direction_string,
 		struct hayward_output *reference, int ref_lx, int ref_ly) {
-	if (strcasecmp(direction_string, "current") == 0) {
-		struct hayward_workspace *active_workspace =
-			seat_get_focused_workspace(config->handler_context.seat);
-		if (!active_workspace) {
-			return NULL;
-		}
-		return active_workspace->pending.output;
-	}
 
 	struct {
 		char *name;
@@ -93,7 +85,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 	// If moving a fullscreen view, only consider outputs
 	if (window->pending.fullscreen) {
 		return window_move_to_next_output(window,
-				window->pending.workspace->pending.output, move_dir);
+				window->pending.parent->pending.output, move_dir);
 	}
 
 	if (window_is_floating(window)) {
@@ -131,7 +123,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 					// workspace.
 
 					return window_move_to_next_output(window,
-						window->pending.workspace->pending.output, move_dir);
+						old_column->pending.output, move_dir);
 				}
 
 				struct hayward_column *new_column = column_create();
@@ -158,7 +150,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 				if (old_column->pending.children->length == 1) {
 					// TODO find then move should be separate calls at this level of abstraction.
 					return window_move_to_next_output(window,
-						window->pending.workspace->pending.output, move_dir);
+						old_column->pending.output, move_dir);
 				}
 
 				struct hayward_column *new_column = column_create();
@@ -178,8 +170,7 @@ static bool window_move_in_direction(struct hayward_window *window,
 	return false;  // TODO unreachable.
 }
 
-static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
-		int argc, char **argv) {
+static struct cmd_results *cmd_move_window(int argc, char **argv) {
 	struct cmd_results *error = NULL;
 	if ((error = checkarg(argc, "move window",
 				EXPECTED_AT_LEAST, 2))) {
@@ -195,7 +186,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_column *old_parent = window->pending.parent;
 	struct hayward_workspace *old_workspace = window->pending.workspace;
-	struct hayward_output *old_output = old_workspace ? old_workspace->pending.output : NULL;
+	struct hayward_output *old_output = window_get_output(window);
 	struct hayward_node *destination = NULL;
 
 	// determine destination
@@ -206,8 +197,7 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		if (strcasecmp(argv[1], "next") == 0 ||
 				strcasecmp(argv[1], "prev") == 0 ||
 				strcasecmp(argv[1], "next_on_output") == 0 ||
-				strcasecmp(argv[1], "prev_on_output") == 0 ||
-				strcasecmp(argv[1], "current") == 0) {
+				strcasecmp(argv[1], "prev_on_output") == 0) {
 			workspace = workspace_by_name(argv[1]);
 		} else if (strcasecmp(argv[1], "back_and_forth") == 0) {
 			if (!(workspace = workspace_by_name(argv[1]))) {
@@ -234,34 +224,9 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 				workspace_name = join_args(argv + 1, argc - 1);
 				workspace = workspace_by_name(workspace_name);
 			}
-
-			if (!no_auto_back_and_forth && config->auto_back_and_forth &&
-					seat->prev_workspace_name) {
-				// auto back and forth move
-				if (old_workspace && old_workspace->name &&
-						strcmp(old_workspace->name, workspace_name) == 0) {
-					// if target workspace is the current one
-					free(workspace_name);
-					workspace_name = strdup(seat->prev_workspace_name);
-					workspace = workspace_by_name(workspace_name);
-				}
-			}
 		}
 		if (!workspace) {
-			// We have to create the workspace, but if the window is
-			// sticky and the workspace is going to be created on the same
-			// output, we'll bail out first.
-			if (window_is_sticky(window)) {
-				struct hayward_output *new_output =
-					workspace_get_initial_output(workspace_name);
-				if (old_output == new_output) {
-					free(workspace_name);
-					return cmd_results_new(CMD_FAILURE,
-							"Can't move sticky container to another workspace "
-							"on the same output");
-				}
-			}
-			workspace = workspace_create(NULL, workspace_name);
+			workspace = workspace_create(workspace_name);
 		}
 		free(workspace_name);
 
@@ -313,12 +278,6 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 				"window to another workspace on the same output");
 	}
 
-	struct hayward_output *new_output = node_get_output(destination);
-	struct hayward_workspace *new_output_last_workspace = NULL;
-	if (new_output && old_output != new_output) {
-		new_output_last_workspace = output_get_active_workspace(new_output);
-	}
-
 	// save focus, in case it needs to be restored
 	struct hayward_node *focus = seat_get_focus(seat);
 
@@ -343,19 +302,6 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 	}
 
 	ipc_event_window(window, "move");
-
-	// restore focus on destination output back to its last active workspace
-	struct hayward_workspace *new_workspace = new_output ?
-		output_get_active_workspace(new_output) : NULL;
-	if (new_output) {
-		hayward_assert(new_workspace, "Expected output to have a workspace");
-	}
-
-	if (new_output_last_workspace && new_output_last_workspace != new_workspace) {
-		struct hayward_node *new_output_last_focus =
-			seat_get_focus_inactive(seat, &new_output_last_workspace->node);
-		seat_set_raw_focus(seat, new_output_last_focus);
-	}
 
 	// restore focus
 	if (focus == &window->node) {
@@ -383,75 +329,6 @@ static struct cmd_results *cmd_move_window(bool no_auto_back_and_forth,
 		arrange_workspace(old_workspace);
 	}
 	arrange_node(node_get_parent(destination));
-
-	return cmd_results_new(CMD_SUCCESS, NULL);
-}
-
-static void workspace_move_to_output(struct hayward_workspace *workspace,
-		struct hayward_output *output) {
-	if (workspace->pending.output == output) {
-		return;
-	}
-	struct hayward_output *old_output = workspace->pending.output;
-	workspace_detach(workspace);
-	struct hayward_workspace *new_output_old_workspace =
-		output_get_active_workspace(output);
-	hayward_assert(new_output_old_workspace, "Expected output to have a workspace");
-
-	output_add_workspace(output, workspace);
-
-	// If moving the last workspace from the old output, create a new workspace
-	// on the old output
-	struct hayward_seat *seat = config->handler_context.seat;
-	if (old_output->pending.workspaces->length == 0) {
-		char *workspace_name = workspace_next_name(old_output->wlr_output->name);
-		struct hayward_workspace *workspace = workspace_create(old_output, workspace_name);
-		free(workspace_name);
-		seat_set_raw_focus(seat, &workspace->node);
-	}
-
-	workspace_consider_destroy(new_output_old_workspace);
-
-	output_sort_workspaces(output);
-	struct hayward_node *focus = seat_get_focus_inactive(seat, &workspace->node);
-	seat_set_focus(seat, focus);
-	workspace_output_raise_priority(workspace, old_output, output);
-	ipc_event_workspace(NULL, workspace, "move");
-}
-
-static struct cmd_results *cmd_move_workspace(int argc, char **argv) {
-	struct cmd_results *error = NULL;
-	if ((error = checkarg(argc, "move workspace", EXPECTED_AT_LEAST, 1))) {
-		return error;
-	}
-
-	if (strcasecmp(argv[0], "output") == 0) {
-		--argc; ++argv;
-	}
-
-	if (!argc) {
-		return cmd_results_new(CMD_INVALID,
-				"Expected 'move workspace to [output] <output>'");
-	}
-
-	struct hayward_workspace *workspace = config->handler_context.workspace;
-	if (!workspace) {
-		return cmd_results_new(CMD_FAILURE, "No workspace to move");
-	}
-
-	struct hayward_output *old_output = workspace->pending.output;
-	int center_x = workspace->pending.width / 2 + workspace->pending.x,
-		center_y = workspace->pending.height / 2 + workspace->pending.y;
-	struct hayward_output *new_output = output_in_direction(argv[0],
-			old_output, center_x, center_y);
-	if (!new_output) {
-		return cmd_results_new(CMD_FAILURE,
-			"Can't find output with name/direction '%s'", argv[0]);
-	}
-	workspace_move_to_output(workspace, new_output);
-
-	arrange_output(old_output);
-	arrange_output(new_output);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -700,11 +577,10 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 
 static const char expected_full_syntax[] = "Expected "
 	"'move left|right|up|down [<amount> [px]]'"
-	" or 'move [--no-auto-back-and-forth] [window] [to] workspace"
-	"  <name>|next|prev|next_on_output|prev_on_output|current|(number <num>)'"
+	" or 'move [window] [to] workspace"
+	"  <name>|next|prev|next_on_output|prev_on_output|(number <num>)'"
 	" or 'move [window] [to] output <name/id>|left|right|up|down'"
 	" or 'move [window] [to] mark <mark>'"
-	" or 'move workspace to [output] <name/id>|left|right|up|down'"
 	" or 'move [window] [to] [absolute] position <x> [px] <y> [px]'"
 	" or 'move [window] [to] [absolute] position center'"
 	" or 'move [window] [to] position mouse|cursor|pointer'";
@@ -727,17 +603,6 @@ struct cmd_results *cmd_move(int argc, char **argv) {
 		return cmd_move_in_direction(WLR_DIRECTION_UP, --argc, ++argv);
 	} else if (strcasecmp(argv[0], "down") == 0) {
 		return cmd_move_in_direction(WLR_DIRECTION_DOWN, --argc, ++argv);
-	} else if (strcasecmp(argv[0], "workspace") == 0 && argc >= 2
-			&& (strcasecmp(argv[1], "to") == 0 ||
-				strcasecmp(argv[1], "output") == 0)) {
-		argc -= 2; argv += 2;
-		return cmd_move_workspace(argc, argv);
-	}
-
-	bool no_auto_back_and_forth = false;
-	if (strcasecmp(argv[0], "--no-auto-back-and-forth") == 0) {
-		no_auto_back_and_forth = true;
-		--argc; ++argv;
 	}
 
 	if (argc > 0 && (strcasecmp(argv[0], "window") == 0)) {
@@ -752,16 +617,10 @@ struct cmd_results *cmd_move(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, expected_full_syntax);
 	}
 
-	// Only `move [window] [to] workspace` supports
-	// `--no-auto-back-and-forth` so treat others as invalid syntax
-	if (no_auto_back_and_forth && strcasecmp(argv[0], "workspace") != 0) {
-		return cmd_results_new(CMD_INVALID, expected_full_syntax);
-	}
-
 	if (strcasecmp(argv[0], "workspace") == 0 ||
 			strcasecmp(argv[0], "output") == 0 ||
 			strcasecmp(argv[0], "mark") == 0) {
-		return cmd_move_window(no_auto_back_and_forth, argc, argv);
+		return cmd_move_window(argc, argv);
 	} else if (strcasecmp(argv[0], "position") == 0 ||
 			(argc > 1 && strcasecmp(argv[0], "absolute") == 0 &&
 			strcasecmp(argv[1], "position") == 0)) {

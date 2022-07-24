@@ -82,7 +82,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 
 	if (window->pending.fullscreen) {
 		// Fullscreen container with a direction - go straight to outputs
-		struct hayward_output *output = window->pending.workspace->pending.output;
+		struct hayward_output *output = window_get_output(window);
 		struct hayward_output *new_output =
 			output_get_in_direction(output, dir);
 		if (!new_output) {
@@ -145,7 +145,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 	}
 
 	// Check a different output
-	struct hayward_output *output = window->pending.workspace->pending.output;
+	struct hayward_output *output = window_get_output(window);
 	struct hayward_output *new_output = output_get_in_direction(output, dir);
 	if (config->focus_wrapping != WRAP_WORKSPACE && new_output) {
 		return get_node_in_output_direction(new_output, dir);
@@ -204,66 +204,11 @@ static struct cmd_results *focus_mode(struct hayward_workspace *workspace,
 	}
 	if (new_focus) {
 		seat_set_focus_window(seat, new_focus);
-
-		// If we're on the floating layer and the floating container area
-		// overlaps the position on the tiling layer that would be warped to,
-		// `seat_consider_warp_to_focus` would decide not to warp, but we need
-		// to anyway.
-		if (config->mouse_warping == WARP_CONTAINER) {
-			cursor_warp_to_container(seat->cursor, new_focus, true);
-		} else {
-			seat_consider_warp_to_focus(seat);
-		}
 	} else {
 		return cmd_results_new(CMD_FAILURE,
 				"Failed to find a %s container in workspace.",
 				floating ? "floating" : "tiling");
 	}
-	return cmd_results_new(CMD_SUCCESS, NULL);
-}
-
-static struct cmd_results *focus_output(struct hayward_seat *seat,
-		int argc, char **argv) {
-	if (!argc) {
-		return cmd_results_new(CMD_INVALID,
-			"Expected 'focus output <direction|name>'.");
-	}
-	char *identifier = join_args(argv, argc);
-	struct hayward_output *output = output_by_name_or_id(identifier);
-
-	if (!output) {
-		enum wlr_direction direction;
-		if (!parse_direction(identifier, &direction)) {
-			free(identifier);
-			return cmd_results_new(CMD_INVALID,
-				"There is no output with that name.");
-		}
-		struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
-		if (!workspace) {
-			free(identifier);
-			return cmd_results_new(CMD_FAILURE,
-				"No focused workspace to base directions off of.");
-		}
-		output = output_get_in_direction(workspace->pending.output, direction);
-
-		if (!output) {
-			int center_lx = workspace->pending.output->lx + workspace->pending.output->width / 2;
-			int center_ly = workspace->pending.output->ly + workspace->pending.output->height / 2;
-			struct wlr_output *target = wlr_output_layout_farthest_output(
-					root->output_layout, opposite_direction(direction),
-					workspace->pending.output->wlr_output, center_lx, center_ly);
-			if (target) {
-				output = output_from_wlr_output(target);
-			}
-		}
-	}
-
-	free(identifier);
-	if (output) {
-		seat_set_focus(seat, seat_get_focus_inactive(seat, &output->node));
-		seat_consider_warp_to_focus(seat);
-	}
-
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
@@ -275,31 +220,17 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID,
 				"Can't run this command while there's no outputs connected.");
 	}
-	struct hayward_node *node = config->handler_context.node;
 	struct hayward_workspace *workspace = config->handler_context.workspace;
-	struct hayward_window *window = config->handler_context.window;
 	struct hayward_seat *seat = config->handler_context.seat;
-	if (node->type < N_WORKSPACE) {
-		return cmd_results_new(CMD_FAILURE,
-			"Command 'focus' cannot be used above the workspace level.");
-	}
+
+	struct hayward_output *output = root_get_active_output();
+	hayward_assert(output != NULL, "Expected output");
+
+	struct hayward_window *window = seat_get_focused_container(seat);
 
 	if (argc == 0) {
-		if (!window) {
-			return cmd_results_new(CMD_INVALID, "No window to focus was specified.");
-		}
-
-		// if we are switching to a container under a fullscreen window, we first
-		// need to exit fullscreen so that the newly focused container becomes visible
-		struct hayward_window *obstructing = window_obstructing_fullscreen_window(window);
-		if (obstructing) {
-			window_set_fullscreen(obstructing, false);
-			arrange_root();
-		}
-		seat_set_focus_window(seat, window);
-		seat_consider_warp_to_focus(seat);
-		window_raise_floating(window);
-		return cmd_results_new(CMD_SUCCESS, NULL);
+		return cmd_results_new(CMD_INVALID,
+			"Expected 'focus <direction|mode_toggle|floating|tiling>' ");
 	}
 
 	if (strcmp(argv[0], "floating") == 0) {
@@ -311,38 +242,28 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return focus_mode(workspace, seat, !floating);
 	}
 
-	if (strcmp(argv[0], "output") == 0) {
-		argc--; argv++;
-		return focus_output(seat, argc, argv);
-	}
-
 	enum wlr_direction direction = 0;
 	if (!parse_direction(argv[0], &direction)) {
 		return cmd_results_new(CMD_INVALID,
-			"Expected 'focus <direction|mode_toggle|floating|tiling>' "
-			"or 'focus output <direction|name>'");
+			"Expected 'focus <direction|mode_toggle|floating|tiling>' ");
 	}
 
 	if (!direction) {
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	if (node->type == N_WORKSPACE) {
+	if (window == NULL) {
 		// Jump to the next output
 		struct hayward_output *new_output =
-			output_get_in_direction(workspace->pending.output, direction);
+			output_get_in_direction(output, direction);
 		if (!new_output) {
 			return cmd_results_new(CMD_SUCCESS, NULL);
 		}
 
-		struct hayward_node *node =
-			get_node_in_output_direction(new_output, direction);
+		struct hayward_node *node = get_node_in_output_direction(new_output, direction);
 		seat_set_focus(seat, node);
-		seat_consider_warp_to_focus(seat);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
-
-	hayward_assert(window, "Expected container to be non null");
 
 	struct hayward_node *next_focus = NULL;
 	if (window_is_floating(window) && !window->pending.fullscreen) {
@@ -354,7 +275,6 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		hayward_assert(next_focus->type != N_COLUMN, "Shouldn't focus columns");
 		hayward_assert(next_focus->type != N_WORKSPACE, "Shouldn't focus workspaces");
 		seat_set_focus(seat, next_focus);
-		seat_consider_warp_to_focus(seat);
 		window_raise_floating(next_focus->hayward_window);
 	}
 

@@ -8,8 +8,15 @@
 #include "hayward/tree/node.h"
 #include "config.h"
 #include "list.h"
+#include <ctype.h>
 
 extern struct hayward_root *root;
+
+struct hayward_root_state {
+	list_t *workspaces;
+	struct hayward_workspace *active_workspace;
+	struct hayward_output *active_output;
+};
 
 struct hayward_root {
 	struct hayward_node node;
@@ -32,6 +39,9 @@ struct hayward_root {
 	// For when there's no connected outputs
 	struct hayward_output *fallback_output;
 
+	struct hayward_root_state current;
+	struct hayward_root_state pending;
+
 	struct {
 		struct wl_signal new_node;
 	} events;
@@ -47,23 +57,31 @@ void root_record_workspace_pid(pid_t pid);
 
 void root_remove_workspace_pid(pid_t pid);
 
-void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data),
-		void *data);
-
-void root_for_each_window(void (*f)(struct hayward_window *window, void *data),
-		void *data);
-
 struct hayward_output *root_find_output(
 		bool (*test)(struct hayward_output *output, void *data), void *data);
-
-struct hayward_workspace *root_find_workspace(
-		bool (*test)(struct hayward_workspace *workspace, void *data), void *data);
-
-struct hayward_window *root_find_window(
-		bool (*test)(struct hayward_window *window, void *data), void *data);
 
 void root_get_box(struct hayward_root *root, struct wlr_box *box);
 
 void root_rename_pid_workspaces(const char *old_name, const char *new_name);
+
+void root_add_workspace(struct hayward_workspace *workspace);
+
+void root_sort_workspaces(void);
+
+void root_set_active_workspace(struct hayward_workspace *workspace);
+struct hayward_workspace *root_get_active_workspace(void);
+struct hayward_workspace *root_get_current_active_workspace(void);
+
+void root_set_active_output(struct hayward_output *output);
+struct hayward_output *root_get_active_output(void);
+struct hayward_output *root_get_current_active_output(void);
+
+void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data), void *data);
+
+void root_for_each_window(void (*f)(struct hayward_window *window, void *data), void *data);
+
+struct hayward_workspace *root_find_workspace(bool (*test)(struct hayward_workspace *workspace, void *data), void *data);
+
+struct hayward_window *root_find_window(bool (*test)(struct hayward_window *window, void *data), void *data);
 
 #endif

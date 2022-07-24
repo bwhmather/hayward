@@ -589,8 +589,7 @@ static void ipc_get_workspaces_callback(struct hayward_workspace *workspace,
 			json_object_new_boolean(focused));
 	json_object_array_add((json_object *)data, workspace_json);
 
-	focused_workspace = output_get_active_workspace(workspace->pending.output);
-	bool visible = workspace == focused_workspace;
+	bool visible = workspace_is_visible(workspace);
 	json_object_object_add(workspace_json, "visible",
 			json_object_new_boolean(visible));
 }
@@ -667,16 +666,6 @@ void ipc_client_handle_command(struct ipc_client *client, uint32_t payload_lengt
 		for (int i = 0; i < root->outputs->length; ++i) {
 			struct hayward_output *output = root->outputs->items[i];
 			json_object *output_json = ipc_json_describe_node(&output->node);
-
-			// override the default focused indicator because it's set
-			// differently for the get_outputs reply
-			struct hayward_seat *seat = input_manager_get_default_seat();
-			struct hayward_workspace *focused_workspace =
-				seat_get_focused_workspace(seat);
-			bool focused = focused_workspace && output == focused_workspace->pending.output;
-			json_object_object_del(output_json, "focused");
-			json_object_object_add(output_json, "focused",
-				json_object_new_boolean(focused));
 
 			const char *subpixel = hayward_wl_output_subpixel_to_string(output->wlr_output->subpixel);
 			json_object_object_add(output_json, "subpixel_hinting", json_object_new_string(subpixel));
