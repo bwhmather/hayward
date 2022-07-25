@@ -244,6 +244,7 @@ bool server_init(struct hayward_server *server) {
 			wlr_headless_add_output(server->headless_backend, 800, 600);
 	wlr_output_set_name(wlr_output, "FALLBACK");
 	root->fallback_output = output_create(wlr_output);
+	root->pending.active_output = root->fallback_output;
 
 	// This may have been set already via -Dtxn-timeout
 	if (!server->txn_timeout_ms) {
