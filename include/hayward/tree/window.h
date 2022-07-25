@@ -54,9 +54,9 @@ struct hayward_window {
 	char *title;           // The view's title (unformatted)
 	char *formatted_title; // The title displayed in the title bar
 
-	// Whether stickiness has been enabled on this container. Use
-	// `container_is_sticky_[or_child]` rather than accessing this field
-	// directly; it'll also check that the container is floating.
+	// Whether stickiness has been enabled on this window. Use
+	// `window_is_sticky_[or_child]` rather than accessing this field
+	// directly; it'll also check that the window is floating.
 	bool is_sticky;
 
 	// For C_ROOT, this has no meaning
@@ -69,11 +69,11 @@ struct hayward_window {
 	// border which we use to restore when the view returns to SSD.
 	enum hayward_window_border saved_border;
 
-	// The share of the space of parent container this container occupies
+	// The share of the space of parent window this window occupies
 	double width_fraction;
 	double height_fraction;
 
-	// The share of space of the parent container that all children occupy
+	// The share of space of the parent window that all children occupy
 	// Used for doing the resize calculations
 	double child_total_width;
 	double child_total_height;
@@ -121,39 +121,36 @@ void window_detach(struct hayward_window *window);
 void window_end_mouse_operation(struct hayward_window *window);
 
 /**
- * Find any container that has the given mark and return it.
+ * Find any window that has the given mark and return it.
  */
 struct hayward_window *window_find_mark(char *mark);
 
 /**
- * Find any container that has the given mark and remove the mark from the
- * container. Returns true if it matched a container.
+ * Find any window that has the given mark and remove the mark from the
+ * window. Returns true if it matched a window.
  */
 bool window_find_and_unmark(char *mark);
 
 /**
- * Remove all marks from the container.
+ * Remove all marks from the window.
  */
-void window_clear_marks(struct hayward_window *container);
+void window_clear_marks(struct hayward_window *window);
 
-bool window_has_mark(struct hayward_window *container, char *mark);
+bool window_has_mark(struct hayward_window *window, char *mark);
 
-void window_add_mark(struct hayward_window *container, char *mark);
+void window_add_mark(struct hayward_window *window, char *mark);
 
-void window_update_marks_textures(struct hayward_window *container);
+void window_update_marks_textures(struct hayward_window *window);
 
-bool window_is_floating(struct hayward_window *container);
+bool window_is_current_floating(struct hayward_window *window);
 
-/**
- * Same as `window_is_floating`, but for current container state.
- */
-bool window_is_current_floating(struct hayward_window *container);
+void window_set_floating(struct hayward_window *window, bool enable);
 
-void window_set_floating(struct hayward_window *container, bool enable);
+bool window_is_fullscreen(struct hayward_window *window);
 
-bool window_is_fullscreen(struct hayward_window *container);
+bool window_is_tiling(struct hayward_window *window);
 
-bool window_is_tiling(struct hayward_window *container);
+bool window_is_floating(struct hayward_window *window);
 
 /**
  * Detaches a window from its current column, and by extension workspace, and
@@ -266,7 +263,7 @@ void window_swap(struct hayward_window *window1, struct hayward_window *window2)
 /**
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
- * If the container is not on any output, return NULL.
+ * If the window is not on any output, return NULL.
  */
 struct hayward_output *window_get_effective_output(struct hayward_window *window);
 
