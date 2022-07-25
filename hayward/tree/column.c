@@ -166,24 +166,32 @@ void column_insert_child(struct hayward_column *parent, struct hayward_window *c
 		parent->pending.active_child = child;
 	}
 	list_insert(parent->pending.children, i, child);
-	child->pending.parent = parent;
-	child->pending.workspace = parent->pending.workspace;
+
+	window_reconcile_tiling(child, parent);
+
 	window_handle_fullscreen_reparent(child);
 }
 
 void column_add_sibling(struct hayward_window *fixed,
 		struct hayward_window *active, bool after) {
 	hayward_assert(fixed != NULL, "Expected fixed window");
-	hayward_assert(fixed->pending.workspace && fixed->pending.parent, "Expected fixed window to be in column");
 	hayward_assert(active != NULL, "Expected window");
 	hayward_assert(!active->pending.workspace && !active->pending.parent,
 			"Windows must be detatched before they can be added to a column");
 
-	list_t *siblings = window_get_siblings(fixed);
+	struct hayward_column *column = fixed->pending.parent;
+	hayward_assert(column != NULL, "Expected fixed window to be tiled");
+
+	list_t *siblings = column->pending.children;
+
 	int index = list_find(siblings, fixed);
+	hayward_assert(index != -1, "Could not find sibling in child array");
+
 	list_insert(siblings, index + after, active);
-	active->pending.parent = fixed->pending.parent;
-	active->pending.workspace = fixed->pending.workspace;
+
+	window_reconcile_tiling(fixed, column);
+	window_reconcile_tiling(active, column);
+
 	window_handle_fullscreen_reparent(active);
 }
 
@@ -197,11 +205,37 @@ void column_add_child(struct hayward_column *parent,
 		parent->pending.active_child = child;
 	}
 	list_add(parent->pending.children, child);
-	child->pending.parent = parent;
-	child->pending.workspace = parent->pending.workspace;
+
+	window_reconcile_tiling(child, parent);
+
 	window_handle_fullscreen_reparent(child);
 	node_set_dirty(&child->node);
 	node_set_dirty(&parent->node);
+}
+
+void column_remove_child(struct hayward_column *parent, struct hayward_window *child) {
+	hayward_assert(parent != NULL, "Expected column");
+	hayward_assert(child != NULL, "Expected window");
+	hayward_assert(child->pending.parent == parent, "Window is not a child of column");
+
+	int index = list_find(parent->pending.children, child);
+	hayward_assert(index != -1, "Window missing from column child list");
+
+	list_del(parent->pending.children, index);
+
+	if (parent->pending.active_child == child) {
+		if (parent->pending.children->length) {
+			parent->pending.active_child = parent->pending.children->items[index > 0 ? index - 1: 0];
+			window_reconcile_tiling(parent->pending.active_child, parent);
+		} else {
+			parent->pending.active_child = NULL;
+		}
+	}
+
+	window_reconcile_detached(child);
+
+	node_set_dirty(&parent->node);
+	node_set_dirty(&child->node);
 }
 
 void column_for_each_child(struct hayward_column *column,

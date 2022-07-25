@@ -58,6 +58,8 @@ struct hayward_column {
 
 struct hayward_column *column_create(void);
 
+void column_detach(struct hayward_column *column);
+
 void column_destroy(struct hayward_column *column);
 
 void column_begin_destroy(struct hayward_column *column);
@@ -77,13 +79,14 @@ void column_add_child(struct hayward_column *parent,
 void column_insert_child(struct hayward_column *parent,
 		struct hayward_window *child, int i);
 
+void column_remove_child(struct hayward_column *parent, struct hayward_window *child);
+
 /**
  * Side should be 0 to add before, or 1 to add after.
  */
 void column_add_sibling(struct hayward_window *parent,
 		struct hayward_window *child, bool after);
 
-void column_detach(struct hayward_column *column);
 
 void column_for_each_child(struct hayward_column *column,
 		void (*f)(struct hayward_window *window, void *data), void *data);

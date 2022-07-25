@@ -26,10 +26,25 @@ struct hayward_window_state {
 
 	bool fullscreen;
 
+	// Cached backlink to workspace containing the floating window or
+	// column containing the child window.  Should only be updated by
+	// calling one of the `window_reconcile_` functions.
 	struct hayward_workspace *workspace;
+
+	// Cached backlink to the primary output of the window.  If the window
+	// is tiling then this will simply be the output of the column.  If the
+	// window is floating then it will be the closest output to the centre
+	// of the window.  Should only be updated by calling one of the
+	// `window_reconcile_` functions.
 	struct hayward_output *output;
+
+	// Cached backlink to the column containing the window.  Null if window
+	// is not part of a column.  Should only be updated by calling one of
+	// the `window_reconcile_` functions.
 	struct hayward_column *parent;
 
+	// Cached flag indicating whether the window is focused.  Should only
+	// be updated by calling one of the `window_reconcile_` functions.
 	bool focused;
 
 	enum hayward_window_border border;
@@ -113,6 +128,14 @@ void window_destroy(struct hayward_window *window);
 void window_begin_destroy(struct hayward_window *window);
 
 void window_detach(struct hayward_window *window);
+
+/**
+ * These functions will cached back links and internal state to match canonical
+ * values on parent.
+ */
+void window_reconcile_floating(struct hayward_window *window, struct hayward_workspace *workspace);
+void window_reconcile_tiling(struct hayward_window *window, struct hayward_column *column);
+void window_reconcile_detached(struct hayward_window *window);
 
 /**
  * If the window is involved in a drag or resize operation via a mouse, this

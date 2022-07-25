@@ -117,34 +117,10 @@ void window_detach(struct hayward_window *window) {
 	}
 
 	if (old_column != NULL) {
-		list_t *siblings = old_column->pending.children;
-
-		int index = list_find(siblings, window);
-		hayward_assert(index != -1, "Window not found in column siblings list");
-		list_del(siblings, index);
-
-		if (old_column->pending.active_child == window) {
-			if (siblings->length) {
-				old_column->pending.active_child = siblings->items[index > 0 ? index - 1: 0];
-			} else {
-				old_column->pending.active_child = NULL;
-			}
-		}
+		column_remove_child(old_column, window);
 	} else {
-		list_t *siblings = old_workspace->pending.floating;
-
-		int index = list_find(siblings, window);
-		if (index != -1) {
-			list_del(siblings, index);
-		}
-
-		if (siblings->length == 0) {
-			old_workspace->pending.focus_mode = F_TILING;
-		}
+		workspace_remove_floating(old_workspace, window);
 	}
-
-	window->pending.parent = NULL;
-	window->pending.workspace = NULL;
 
 	if (old_focus == window) {
 		struct hayward_window *focus = seat_get_focused_container(seat);
@@ -165,6 +141,40 @@ void window_detach(struct hayward_window *window) {
 		node_set_dirty(&old_workspace->node);
 	}
 	node_set_dirty(&window->node);
+}
+
+void window_reconcile_floating(struct hayward_window *window, struct hayward_workspace *workspace) {
+	hayward_assert(window != NULL, "Expected window");
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	window->pending.workspace = workspace;
+	if (window->pending.output == NULL) {
+		window->pending.output = root_get_active_output();
+	}
+	window->pending.parent = NULL;
+
+	window->pending.focused = workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
+}
+
+void window_reconcile_tiling(struct hayward_window *window, struct hayward_column *column) {
+	hayward_assert(window != NULL, "Expected window");
+	hayward_assert(column != NULL, "Expected column");
+
+	window->pending.workspace = column->pending.workspace;
+	window->pending.output = column->pending.output;
+	window->pending.parent = column;
+
+	window->pending.focused = column->pending.focused && window == column->pending.active_child;
+}
+
+void window_reconcile_detached(struct hayward_window *window) {
+	hayward_assert(window != NULL, "Expected window");
+
+	window->pending.workspace = NULL;
+	window->pending.output = NULL;
+	window->pending.parent = NULL;
+
+	window->pending.focused = false;
 }
 
 void window_end_mouse_operation(struct hayward_window *window) {

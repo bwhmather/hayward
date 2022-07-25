@@ -95,6 +95,8 @@ void workspace_detach(struct hayward_workspace *workspace);
 void workspace_add_floating(struct hayward_workspace *workspace,
 		struct hayward_window *container);
 
+void workspace_remove_floating(struct hayward_workspace *workspace, struct hayward_window *window);
+
 void workspace_add_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column);
 void workspace_insert_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column, int index);
 

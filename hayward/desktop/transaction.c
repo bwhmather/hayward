@@ -613,7 +613,7 @@ static void validate_tree(void) {
 			hayward_assert(column->pending.workspace == workspace, "Column workspace does not match expected");
 			hayward_assert(list_find(root->outputs, column->pending.output) != -1, "Columm output missing from list");
 
-			for (int k = 0; k < column->pending.children->length; j++) {
+			for (int k = 0; k < column->pending.children->length; k++) {
 				struct hayward_window *window = column->pending.children->items[k];
 
 				hayward_assert(window->pending.parent == column, "Tiling window parent link broken");

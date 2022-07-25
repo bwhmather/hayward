@@ -485,8 +485,7 @@ static void set_workspace_and_output(struct hayward_window *window, void *data) 
 	struct hayward_column *column = window->pending.parent;
 	hayward_assert(column != NULL, "Expected column");
 
-	window->pending.workspace = column->pending.workspace;
-	window->pending.output = column->pending.output;
+	window_reconcile_tiling(window, column);
 }
 
 void workspace_detach(struct hayward_workspace *workspace) {
@@ -519,13 +518,46 @@ void workspace_add_floating(struct hayward_workspace *workspace, struct hayward_
 	hayward_assert(window->pending.parent == NULL, "Window still has a parent");
 	hayward_assert(window->pending.workspace == NULL, "Window is already attached to a workspace");
 
-	list_add(workspace->pending.floating, window);
-	window->pending.workspace = workspace;
+	struct hayward_window *prev_active_floating = workspace_get_active_floating_window(workspace);
 
-	window_handle_fullscreen_reparent(window);
+	list_add(workspace->pending.floating, window);
+
+	window_reconcile_floating(window, workspace);
+
+	if (prev_active_floating) {
+		window_reconcile_floating(prev_active_floating, workspace);
+		node_set_dirty(&prev_active_floating->node);
+	}
 
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&window->node);
+}
+
+void workspace_remove_floating(struct hayward_workspace *workspace, struct hayward_window *window) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+	hayward_assert(window != NULL, "Expected window");
+	hayward_assert(window->pending.workspace == workspace, "Window is not a child of workspace");
+	hayward_assert(window->pending.parent == NULL, "Window is not floating");
+
+	int index = list_find(workspace->pending.floating, window);
+	hayward_assert(index != -1, "Window missing from floating list");
+
+	list_del(workspace->pending.floating, index);
+
+	if (workspace->pending.floating->length == 0) {
+		// Switch back to tiling mode.
+		workspace->pending.focus_mode = F_TILING;
+
+		struct hayward_window *next_active = workspace_get_active_tiling_window(workspace);
+		if (next_active != NULL) {
+			window_reconcile_tiling(next_active, next_active->pending.parent);
+		}
+	} else {
+		// Focus next floating window.
+		window_reconcile_floating(workspace_get_active_floating_window(workspace), workspace);
+	}
+
+	window_reconcile_detached(window);
 }
 
 void workspace_insert_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column, int index) {
@@ -700,12 +732,19 @@ void workspace_set_active_window(struct hayward_workspace *workspace, struct hay
 	hayward_assert(window != NULL, "Expected window");
 	hayward_assert(window->pending.workspace == workspace, "Window attached to wrong workspace");
 
+	struct hayward_window *prev_active = workspace_get_active_window(workspace);
+	if (window == prev_active) {
+		return;
+	}
+
 	if (window_is_floating(window)) {
 		int index = list_find(workspace->pending.floating, window);
 		hayward_assert(index != -1, "Window missing from list of floating windows");
 
 		list_del(workspace->pending.floating, index);
 		list_add(workspace->pending.floating, window);
+
+		window_reconcile_floating(window, workspace);
 
 		workspace->pending.focus_mode = F_FLOATING;
 	} else {
@@ -718,7 +757,17 @@ void workspace_set_active_window(struct hayward_workspace *workspace, struct hay
 			root_set_active_output(column->pending.output);
 		}
 
+		window_reconcile_tiling(window, column);
+
 		workspace->pending.focus_mode = F_TILING;
+	}
+
+	if (prev_active != NULL) {
+		if (window_is_floating(prev_active)) {
+			window_reconcile_floating(prev_active, workspace);
+		} else {
+			window_reconcile_tiling(prev_active, prev_active->pending.parent);
+		}
 	}
 }
 
