@@ -51,7 +51,7 @@ void output_enable(struct hayward_output *output) {
 	hayward_assert(!output->enabled, "output is already enabled");
 	output->enabled = true;
 	list_add(root->outputs, output);
-	if (root->pending.active_output == NULL) {
+	if (root->pending.active_output == NULL || root->pending.active_output == root->fallback_output) {
 		root->pending.active_output = output;
 	}
 
@@ -147,6 +147,13 @@ void output_disable(struct hayward_output *output) {
 	root_for_each_window(untrack_output, output);
 
 	list_del(root->outputs, index);
+	if (root->pending.active_output == output) {
+		if (root->outputs->length == 0) {
+			root->pending.active_output = root->fallback_output;
+		} else {
+			root->pending.active_output = root->outputs->items[index - 1 < 0 ? 0 : index - 1];
+		}
+	}
 
 	output->enabled = false;
 	output->current_mode = NULL;
