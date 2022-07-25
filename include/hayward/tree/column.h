@@ -17,12 +17,20 @@ struct hayward_column_state {
 	double x, y;
 	double width, height;
 
+	// Cached backlink to containing workspace.
 	struct hayward_workspace *workspace;
+
+	// Backling to output.  This is actually the golden source, but should
+	// always be updated using the reconciliation functions.
 	struct hayward_output *output;
+
+	// Cached flag indicating whether the column contains the focused
+	// window.  Should only be updated using the reconciliation functions.
+	bool focused;
+
 	list_t *children;                 // struct hayward_window
 
 	struct hayward_window *active_child;
-	bool focused;
 };
 
 struct hayward_column {
@@ -59,6 +67,9 @@ struct hayward_column {
 struct hayward_column *column_create(void);
 
 void column_detach(struct hayward_column *column);
+
+void column_reconcile(struct hayward_column *column, struct hayward_workspace *workspace, struct hayward_output *output);
+void column_reconcile_detached(struct hayward_column *column);
 
 void column_destroy(struct hayward_column *column);
 

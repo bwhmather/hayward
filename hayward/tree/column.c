@@ -140,6 +140,35 @@ void column_detach(struct hayward_column *column) {
 	node_set_dirty(&column->node);
 }
 
+void column_reconcile(struct hayward_column *column, struct hayward_workspace *workspace, struct hayward_output *output) {
+	column->pending.workspace = workspace;
+	column->pending.output = output;
+
+	if (workspace_is_visible(workspace) && workspace->pending.focus_mode == F_TILING && column == workspace->pending.active_column) {
+		column->pending.focused = true;
+	} else {
+		column->pending.focused = false;
+	}
+
+	for (int child_index = 0; child_index < column->pending.children->length; child_index++) {
+		struct hayward_window *child = column->pending.children->items[child_index];
+		window_reconcile_tiling(child, column);
+	}
+}
+
+void column_reconcile_detached(struct hayward_column *column) {
+	column->pending.workspace = NULL;
+	column->pending.output = NULL;
+
+	column->pending.focused = false;
+
+	for (int child_index = 0; child_index < column->pending.children->length; child_index++) {
+		struct hayward_window *child = column->pending.children->items[child_index];
+		window_reconcile_tiling(child, column);
+	}
+}
+
+
 struct hayward_window *column_find_child(struct hayward_column *column,
 		bool (*test)(struct hayward_window *container, void *data), void *data) {
 	hayward_assert(column != NULL, "Expected column");

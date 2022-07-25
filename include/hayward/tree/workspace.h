@@ -99,6 +99,7 @@ void workspace_remove_floating(struct hayward_workspace *workspace, struct haywa
 
 void workspace_add_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column);
 void workspace_insert_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column, int index);
+void workspace_remove_tiling(struct hayward_workspace *workspace, struct hayward_column *column);
 
 void workspace_remove_gaps(struct hayward_workspace *workspace);
 

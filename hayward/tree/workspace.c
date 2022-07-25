@@ -479,15 +479,6 @@ struct hayward_window *workspace_find_window(struct hayward_workspace *workspace
 	return NULL;
 }
 
-static void set_workspace_and_output(struct hayward_window *window, void *data) {
-	hayward_assert(window != NULL, "Expected window");
-
-	struct hayward_column *column = window->pending.parent;
-	hayward_assert(column != NULL, "Expected column");
-
-	window_reconcile_tiling(window, column);
-}
-
 void workspace_detach(struct hayward_workspace *workspace) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
@@ -573,10 +564,52 @@ void workspace_insert_tiling(struct hayward_workspace *workspace, struct hayward
 		workspace->pending.active_column = column;
 	}
 
-	column->pending.workspace = workspace;
-	column->pending.output = output;
+	column_reconcile(column, workspace, output);
 
-	column_for_each_child(column, set_workspace_and_output, NULL);
+	node_set_dirty(&workspace->node);
+	node_set_dirty(&column->node);
+}
+
+void workspace_remove_tiling(struct hayward_workspace *workspace, struct hayward_column *column) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+	hayward_assert(column != NULL, "Expected column");
+	hayward_assert(column->pending.workspace == workspace, "Column is not a child of workspace");
+
+	struct hayward_output *output = column->pending.output;
+	hayward_assert(output != NULL, "Expected output");
+
+	int index = list_find(workspace->pending.tiling, column);
+	hayward_assert(index != -1, "Column is missing from workspace column list");
+
+	list_del(workspace->pending.tiling, index);
+
+	if (workspace->pending.active_column == column) {
+		struct hayward_column *next_active = NULL;
+
+		for (int candidate_index = 0; candidate_index < workspace->pending.tiling->length; candidate_index++) {
+			struct hayward_column *candidate = workspace->pending.tiling->items[candidate_index];
+
+			if (candidate->pending.output != output) {
+				continue;
+			}
+
+			if (next_active != NULL && candidate_index >= index) {
+				break;
+			}
+
+			next_active = candidate;
+		}
+
+		workspace->pending.active_column = next_active;
+
+		if (next_active != NULL) {
+			column_reconcile(next_active, workspace, output);
+
+			node_set_dirty(&next_active->node);
+		}
+	}
+
+	column_reconcile_detached(column);
 
 	node_set_dirty(&workspace->node);
 	node_set_dirty(&column->node);
