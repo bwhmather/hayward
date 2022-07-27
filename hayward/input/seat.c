@@ -84,7 +84,6 @@ void seat_destroy(struct hayward_seat *seat) {
 		free_hayward_binding(seat->deferred_bindings->items[i]);
 	}
 	list_free(seat->deferred_bindings);
-	free(seat->prev_workspace_name);
 	free(seat);
 }
 

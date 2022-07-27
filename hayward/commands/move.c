@@ -23,7 +23,7 @@
 
 static const char expected_syntax[] =
 	"Expected 'move <left|right|up|down> <[px] px>' or "
-	"'move [--no-auto-back-and-forth] <window> [to] workspace <name>' or "
+	"'move <window> [to] workspace <name>' or "
 	"'move <window|workspace> [to] output <name|direction>' or "
 	"'move <window> [to] mark <mark>'";
 
@@ -199,15 +199,6 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 				strcasecmp(argv[1], "next_on_output") == 0 ||
 				strcasecmp(argv[1], "prev_on_output") == 0) {
 			workspace = workspace_by_name(argv[1]);
-		} else if (strcasecmp(argv[1], "back_and_forth") == 0) {
-			if (!(workspace = workspace_by_name(argv[1]))) {
-				if (seat->prev_workspace_name) {
-					workspace_name = strdup(seat->prev_workspace_name);
-				} else {
-					return cmd_results_new(CMD_FAILURE,
-							"No workspace was previously active.");
-				}
-			}
 		} else {
 			if (strcasecmp(argv[1], "number") == 0) {
 				// move [window] [to] "workspace number x"

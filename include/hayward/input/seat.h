@@ -81,8 +81,6 @@ struct hayward_seat {
 	// top of the stack will match the workspace for that window.
 	struct wl_list active_workspace_stack;
 
-	char *prev_workspace_name; // for workspace back_and_forth
-
 	// If the focused layer is set, views cannot receive keyboard focus
 	struct wlr_layer_surface_v1 *focused_layer;
 
