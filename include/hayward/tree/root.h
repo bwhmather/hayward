@@ -42,6 +42,16 @@ struct hayward_root {
 	struct hayward_root_state current;
 	struct hayward_root_state pending;
 
+	/**
+	 * The nodes that are currently receiving input events.
+	 * These are tracked as we need to notify listeners over IPC when they
+	 * change, as well as do stuff like clearing the urgent flag.
+	 * We don't use the `current` state because this takes some time to
+	 * propagate through the transaction system.
+	 */
+	struct hayward_window *focused_window;
+	struct hayward_workspace *focused_workspace;
+
 	struct {
 		struct wl_signal new_node;
 	} events;
@@ -65,6 +75,7 @@ void root_get_box(struct hayward_root *root, struct wlr_box *box);
 void root_rename_pid_workspaces(const char *old_name, const char *new_name);
 
 void root_add_workspace(struct hayward_workspace *workspace);
+void root_remove_workspace(struct hayward_workspace *workspace);
 
 void root_sort_workspaces(void);
 
@@ -75,6 +86,14 @@ struct hayward_workspace *root_get_current_active_workspace(void);
 void root_set_active_output(struct hayward_output *output);
 struct hayward_output *root_get_active_output(void);
 struct hayward_output *root_get_current_active_output(void);
+
+/**
+ * Helper functions that traverse the tree to focus the right window.
+ */
+void root_set_focused_window(struct hayward_window *window);
+struct hayward_window *root_get_focused_window(void);
+
+void root_commit_focus(void);
 
 void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data), void *data);
 

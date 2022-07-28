@@ -92,6 +92,8 @@ void column_insert_child(struct hayward_column *parent,
 
 void column_remove_child(struct hayward_column *parent, struct hayward_window *child);
 
+void column_set_active_child(struct hayward_column *column, struct hayward_window *window);
+
 /**
  * Side should be 0 to add before, or 1 to add after.
  */

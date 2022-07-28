@@ -249,8 +249,36 @@ void root_add_workspace(struct hayward_workspace *workspace) {
 	if (root->pending.active_workspace == NULL) {
 		root_set_active_workspace(workspace);
 	}
+	workspace_reconcile(workspace);
+
 	node_set_dirty(&root->node);
 	node_set_dirty(&workspace->node);
+}
+
+void root_remove_workspace(struct hayward_workspace *workspace) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	int index = list_find(root->pending.workspaces, workspace);
+	if (index != -1) {
+		list_del(root->pending.workspaces, index);
+	}
+
+	if (root->pending.active_workspace == workspace) {
+		hayward_assert(index != -1, "Workspace is active but not attached");
+		int next_index = index != 0 ? index - 1 : index;
+
+		struct hayward_workspace *next_focus = NULL;
+		if (next_index < root->pending.workspaces->length) {
+			next_focus = root->pending.workspaces->items[next_index];
+		}
+
+		root_set_active_workspace(next_focus);
+	}
+
+	workspace_reconcile_detached(workspace);
+
+	node_set_dirty(&workspace->node);
+	node_set_dirty(&root->node);
 }
 
 static int sort_workspace_cmp_qsort(const void *_a, const void *_b) {
@@ -308,6 +336,91 @@ struct hayward_output *root_get_active_output(void) {
 struct hayward_output *root_get_current_active_output(void) {
 	return root->current.active_output;
 }
+
+struct hayward_window *root_get_focused_window(void) {
+	struct hayward_workspace *workspace = root_get_active_workspace();
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	return workspace_get_active_window(workspace);
+}
+
+void root_set_focused_window(struct hayward_window *window) {
+	hayward_assert(window != NULL, "Expected window");
+
+	struct hayward_workspace *workspace = window->pending.workspace;
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	root_set_active_workspace(workspace);
+
+	workspace_set_active_window(workspace, window);
+}
+
+static int handle_urgent_timeout(void *data) {
+	struct hayward_view *view = data;
+	view_set_urgent(view, false);
+	return 0;
+}
+
+void root_commit_focus(void) {
+	struct hayward_window *old_window = root->focused_window;
+	struct hayward_window *new_window = root_get_focused_window();
+
+	struct hayward_workspace *old_workspace = root->focused_workspace;
+	struct hayward_workspace *new_workspace = root_get_active_workspace();
+
+	if (old_window == new_window && old_workspace == new_workspace) {
+		return;
+	}
+
+	if (old_window && new_window != old_window) {
+		view_close_popups(old_window->view);
+
+		node_set_dirty(&old_window->node);
+		if (window_is_tiling(old_window)) {
+			node_set_dirty(&old_window->pending.parent->node);
+		}
+	}
+
+	if (new_window && new_window != old_window) {
+		struct hayward_view *view = new_window->view;
+
+		// If window was marked as urgent, i.e. requiring attention,
+		// then we usually want to clear the mark when it is focused.
+		// If a user focused an urgent window accidentally, for example
+		// by switching workspace, then we want to delay clearing the
+		// mark a little bit to let them know that the window was
+		// urgent.
+		if (view_is_urgent(view) && !view->urgent_timer) {
+			if (old_workspace && old_workspace != new_workspace && config->urgent_timeout > 0) {
+				view->urgent_timer = wl_event_loop_add_timer(server.wl_event_loop,
+						handle_urgent_timeout, view);
+				if (view->urgent_timer) {
+					wl_event_source_timer_update(view->urgent_timer,
+							config->urgent_timeout);
+				} else {
+					hayward_log_errno(HAYWARD_ERROR, "Unable to create urgency timer");
+					handle_urgent_timeout(view);
+				}
+			} else {
+				view_set_urgent(view, false);
+			}
+		}
+
+		node_set_dirty(&new_window->node);
+		if (window_is_tiling(new_window)) {
+			node_set_dirty(&new_window->pending.parent->node);
+		}
+	}
+
+	// Emit ipc events
+	if (new_window != old_window) {
+		ipc_event_window(new_window, "focus");
+	}
+	if (new_workspace != old_workspace) {
+		ipc_event_workspace(old_workspace, new_workspace, "focus");
+	}
+}
+
 
 void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data), void *data) {
 	for (int i = 0; i < root->pending.workspaces->length; ++i) {

@@ -141,6 +141,8 @@ void column_detach(struct hayward_column *column) {
 }
 
 void column_reconcile(struct hayward_column *column, struct hayward_workspace *workspace, struct hayward_output *output) {
+	hayward_assert(column != NULL, "Expected column");
+
 	column->pending.workspace = workspace;
 	column->pending.output = output;
 
@@ -157,6 +159,8 @@ void column_reconcile(struct hayward_column *column, struct hayward_workspace *w
 }
 
 void column_reconcile_detached(struct hayward_column *column) {
+	hayward_assert(column != NULL, "Expected column");
+
 	column->pending.workspace = NULL;
 	column->pending.output = NULL;
 
@@ -265,6 +269,31 @@ void column_remove_child(struct hayward_column *parent, struct hayward_window *c
 
 	node_set_dirty(&parent->node);
 	node_set_dirty(&child->node);
+}
+
+void column_set_active_child(struct hayward_column *column, struct hayward_window *window) {
+	hayward_assert(column != NULL, "Expected column");
+	hayward_assert(window != NULL, "Expected window");
+	hayward_assert(window->pending.parent == column, "Window is not a child of column");
+
+	struct hayward_window *prev_active = column->pending.active_child;
+
+	if (window == prev_active) {
+		return;
+	}
+
+	column->pending.active_child = window;
+
+	window_reconcile_tiling(window, column);
+	node_set_dirty(&window->node);
+
+	if (prev_active) {
+		window_reconcile_tiling(prev_active, column);
+		node_set_dirty(&prev_active->node);
+	}
+
+	node_set_dirty(&column->node);
+
 }
 
 void column_for_each_child(struct hayward_column *column,

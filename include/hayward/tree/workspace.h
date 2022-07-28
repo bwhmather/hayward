@@ -92,6 +92,9 @@ struct hayward_window *workspace_find_window(struct hayward_workspace *workspace
  */
 void workspace_detach(struct hayward_workspace *workspace);
 
+void workspace_reconcile(struct hayward_workspace *workspace);
+void workspace_reconcile_detached(struct hayward_workspace *workspace);
+
 void workspace_add_floating(struct hayward_workspace *workspace,
 		struct hayward_window *container);
 

@@ -503,6 +503,54 @@ void workspace_detach(struct hayward_workspace *workspace) {
 	node_set_dirty(&root->node);
 }
 
+void workspace_reconcile(struct hayward_workspace *workspace) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	bool dirty = false;
+
+	bool should_focus = workspace == root_get_active_workspace();
+	if (should_focus != workspace->pending.focused) {
+		workspace->pending.focused = should_focus;
+		dirty = true;
+	}
+
+	if (dirty) {
+		for (int column_index = 0; column_index < workspace->pending.tiling->length; column_index++) {
+			struct hayward_column *column = workspace->pending.tiling->items[column_index];
+			column_reconcile(column, workspace, column->pending.output);
+		}
+
+		for (int window_index = 0; window_index < workspace->pending.floating->length; window_index++) {
+			struct hayward_window *window = workspace->pending.floating->items[window_index];
+			window_reconcile_floating(window, workspace);
+		}
+	}
+}
+
+void workspace_reconcile_detached(struct hayward_workspace *workspace) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	bool dirty = false;
+
+	bool should_focus = false;
+	if (should_focus != workspace->pending.focused) {
+		workspace->pending.focused = should_focus;
+		dirty = true;
+	}
+
+	if (dirty) {
+		for (int column_index = 0; column_index < workspace->pending.tiling->length; column_index++) {
+			struct hayward_column *column = workspace->pending.tiling->items[column_index];
+			column_reconcile(column, workspace, column->pending.output);
+		}
+
+		for (int window_index = 0; window_index < workspace->pending.floating->length; window_index++) {
+			struct hayward_window *window = workspace->pending.floating->items[window_index];
+			window_reconcile_floating(window, workspace);
+		}
+	}
+}
+
 void workspace_add_floating(struct hayward_workspace *workspace, struct hayward_window *window) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 	hayward_assert(window != NULL, "Expected window");
@@ -777,22 +825,27 @@ void workspace_set_active_window(struct hayward_workspace *workspace, struct hay
 		list_del(workspace->pending.floating, index);
 		list_add(workspace->pending.floating, window);
 
-		window_reconcile_floating(window, workspace);
-
 		workspace->pending.focus_mode = F_FLOATING;
-	} else {
-		struct hayward_column *column = window->pending.parent;
-		hayward_assert(column->pending.workspace == workspace, "Column attached to wrong workspace");
 
-		column->pending.active_child = window;
-		workspace->pending.active_column = column;
+		window_reconcile_floating(window, workspace);
+	} else {
+		struct hayward_column *old_column = workspace->pending.active_column;
+		struct hayward_column *new_column = window->pending.parent;
+		hayward_assert(new_column->pending.workspace == workspace, "Column attached to wrong workspace");
+
+		column_set_active_child(new_column, window);
+
+		workspace->pending.active_column = new_column;
+		workspace->pending.focus_mode = F_TILING;
+
 		if (root_get_active_workspace() == workspace) {
-			root_set_active_output(column->pending.output);
+			root_set_active_output(new_column->pending.output);
 		}
 
-		window_reconcile_tiling(window, column);
-
-		workspace->pending.focus_mode = F_TILING;
+		column_reconcile(new_column, workspace, new_column->pending.output);
+		if (old_column != NULL && old_column != new_column) {
+			column_reconcile(old_column, workspace, old_column->pending.output);
+		}
 	}
 
 	if (prev_active != NULL) {
@@ -802,6 +855,8 @@ void workspace_set_active_window(struct hayward_workspace *workspace, struct hay
 			window_reconcile_tiling(prev_active, prev_active->pending.parent);
 		}
 	}
+
+	arrange_workspace(workspace);
 }
 
 struct hayward_output *workspace_get_active_output(struct hayward_workspace *workspace) {

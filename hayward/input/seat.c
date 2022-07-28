@@ -974,12 +974,6 @@ static void seat_send_unfocus(struct hayward_node *node, struct hayward_seat *se
 	}
 }
 
-static int handle_urgent_timeout(void *data) {
-	struct hayward_view *view = data;
-	view_set_urgent(view, false);
-	return 0;
-}
-
 /**
  * Moves a window to the top of the focus stack.
  *
@@ -1023,141 +1017,6 @@ void seat_set_raw_focus(struct hayward_seat *seat, struct hayward_node *node) {
 	seat_set_active_window(seat, node->hayward_window);
 }
 
-static void seat_set_focus_internal(struct hayward_seat *seat, struct hayward_workspace *new_workspace, struct hayward_window *new_window) {
-	hayward_assert(!new_window || new_window->pending.workspace == new_workspace, "Window workspace does not match expected");
-
- 	if (wl_list_empty(&seat->active_workspace_stack)) {
-		hayward_assert(new_workspace == NULL, "Can't focus non-existant workspace");
-		hayward_assert(new_window == NULL, "Can't focus non-existant window");
-		return;
-	}
-
-	hayward_assert(new_workspace != NULL, "Cannot focus null workspace");
-
-	if (seat->focused_layer) {
-		struct wlr_layer_surface_v1 *layer = seat->focused_layer;
-		seat_set_focus_layer(seat, NULL);
-		seat_set_focus_internal(seat, new_workspace, new_window);
-		seat_set_focus_layer(seat, layer);
-		return;
-	}
-
-	struct hayward_window *last_window = seat_get_focused_container(seat);
-	struct hayward_workspace *last_workspace = seat_get_focused_workspace(seat);
-
-	// Deny setting focus to a view which is hidden by a fullscreen container or global
-	if (new_window && window_obstructing_fullscreen_window(new_window)) {
-		return;
-	}
-
-	// Deny setting focus when an input grab or lockscreen is active
-	if (new_window && !seat_is_input_allowed(seat, new_window->view->surface)) {
-		return;
-	}
-
-	if (new_workspace != last_workspace) {
-		struct hayward_seat_workspace *seat_workspace = seat_workspace_from_workspace(seat, new_workspace);
-
-		wl_list_remove(&seat_workspace->link);
-		wl_list_insert(&seat->active_workspace_stack, &seat_workspace->link);
-
-		if (last_workspace != NULL) {
-			for (int i = 0; i < last_workspace->pending.floating->length; ++i) {
-				struct hayward_window *floater = last_workspace->pending.floating->items[i];
-				if (window_is_sticky(floater)) {
-					window_detach(floater);
-					workspace_add_floating(new_workspace, floater);
-					--i;
-				}
-			}
-
-			node_set_dirty(&last_workspace->node);
-		}
-
-		node_set_dirty(&new_workspace->node);
-	}
-
-	if (last_window && new_window != last_window) {
-		// Unfocus the previous focus
-		seat_send_unfocus(&last_window->node, seat);
-		view_close_popups(last_window->view);
-
-		node_set_dirty(&last_window->node);
-		if (last_window->pending.parent) {
-			node_set_dirty(&last_window->pending.parent->node);
-		}
-	}
-
-	if (new_window && new_window != last_window) {
-		struct hayward_column *column = new_window->pending.parent;
-		if (column != NULL) {
-			hayward_assert(
-				column->pending.workspace == new_workspace,
-				"Column workspace does not equal window workspace"
-			);
-
-			column->pending.active_child = new_window;
-			new_workspace->pending.active_column = column;
-			new_workspace->pending.focus_mode = F_TILING;
-		} else {
-			int index = list_find(new_workspace->pending.floating, new_window);
-			hayward_assert(index != -1, "Window is not in list of floating windows for workspace");
-
-			list_del(new_workspace->pending.floating, index);
-			list_add(new_workspace->pending.floating, new_window);
-			new_workspace->pending.focus_mode = F_FLOATING;
-		}
-
-		// Let the client know that it has focus.
-		seat_send_focus(&new_window->node, seat);
-
-		// If urgent, either unset the urgency or start a timer to unset it
-		if (view_is_urgent(new_window->view) &&
-				!new_window->view->urgent_timer) {
-			struct hayward_view *view = new_window->view;
-			if (last_workspace && last_workspace != new_workspace &&
-					config->urgent_timeout > 0) {
-				view->urgent_timer = wl_event_loop_add_timer(server.wl_event_loop,
-						handle_urgent_timeout, view);
-				if (view->urgent_timer) {
-					wl_event_source_timer_update(view->urgent_timer,
-							config->urgent_timeout);
-				} else {
-					hayward_log_errno(HAYWARD_ERROR, "Unable to create urgency timer");
-					handle_urgent_timeout(view);
-				}
-			} else {
-				view_set_urgent(view, false);
-			}
-		}
-
-		node_set_dirty(&new_window->node);
-		if (new_window->pending.parent) {
-			node_set_dirty(&new_window->pending.parent->node);
-		}
-	}
-
-	// Emit ipc events
-	if (new_window != last_window) {
-		ipc_event_window(new_window, "focus");
-	}
-	if (new_workspace != last_workspace) {
-		ipc_event_workspace(last_workspace, new_workspace, "focus");
-	}
-
-	seat->has_focus = new_window ? true : false;
-
-	if (last_workspace && last_workspace != new_workspace) {
-		workspace_consider_destroy(last_workspace);
-	}
-
-	if (config->smart_gaps && new_workspace) {
-		// When smart gaps is on, gaps may change when the focus changes so
-		// the workspace needs to be arranged
-		arrange_workspace(new_workspace);
-	}
-}
-
 void seat_set_focus(struct hayward_seat *seat, struct hayward_node *node) {
 	if (node == NULL) {
 		seat_set_focus_window(seat, NULL);
@@ -1181,6 +1040,30 @@ void seat_clear_focus(struct hayward_seat *seat) {
 	seat_set_focus(seat, NULL);
 }
 
+void seat_commit_focus(struct hayward_seat *seat) {
+	hayward_assert(seat != NULL, "Expected seat");
+
+	struct hayward_window *old_window = seat->focused_window;
+	struct hayward_window *new_window = root_get_focused_window();
+
+	if (old_window == new_window) {
+		return;
+	}
+
+	if (old_window && new_window != old_window) {
+		// Unfocus the previous window.
+		seat_send_unfocus(&old_window->node, seat);
+	}
+
+	if (new_window && new_window != old_window) {
+		// Let the client know that it has focus.
+		seat_send_focus(&new_window->node, seat);
+	}
+
+	seat->focused_window = new_window;
+	seat->has_focus = new_window ? true : false;
+}
+
 /**
  * Sets focus to a particular window.
  * If window is NULL, clears the window focus but leaves the current workspace
@@ -1190,9 +1073,7 @@ void seat_clear_focus(struct hayward_seat *seat) {
  * should be called to patch up the workspace focus stack.
  */
 void seat_set_focus_window(struct hayward_seat *seat, struct hayward_window *new_window) {
-	struct hayward_workspace *new_workspace = new_window ? new_window->pending.workspace : seat_get_focused_workspace(seat);
-
-	seat_set_focus_internal(seat, new_workspace, new_window);
+	root_set_focused_window(new_window);
 }
 
 /**
@@ -1203,7 +1084,7 @@ void seat_set_focus_workspace(struct hayward_seat *seat,
 		struct hayward_workspace *new_workspace) {
 	hayward_assert(new_workspace != NULL, "Can't set focus to null workspace");
 
-	seat_set_focus_internal(seat, new_workspace, NULL);
+	root_set_active_workspace(new_workspace);
 }
 
 void seat_set_focus_surface(struct hayward_seat *seat,

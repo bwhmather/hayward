@@ -81,10 +81,13 @@ struct hayward_seat {
 	// top of the stack will match the workspace for that window.
 	struct wl_list active_workspace_stack;
 
-	// If the focused layer is set, views cannot receive keyboard focus
+	// The window that is currently receiving input events.
+	struct hayward_window *focused_window;
+
+	// If the focused layer is set, views cannot receive keyboard focus.
 	struct wlr_layer_surface_v1 *focused_layer;
 
-	// If exclusive_client is set, no other clients will receive input events
+	// If exclusive_client is set, no other clients will receive input events.
 	struct wl_client *exclusive_client;
 
 	// Last touch point
@@ -154,13 +157,21 @@ void seat_configure_xcursor(struct hayward_seat *seat);
 // TODO (hayward) deprecated.
 void seat_set_focus(struct hayward_seat *seat, struct hayward_node *node);
 
+// TODO deprecated.
 void seat_clear_focus(struct hayward_seat *seat);
 
+// TODO deprecated.
 void seat_set_focus_window(struct hayward_seat *seat, struct hayward_window *window);
 
 // TODO (hayward) deprecated.
 void seat_set_focus_workspace(struct hayward_seat *seat,
 		struct hayward_workspace *workspace);
+
+/**
+ * Redirects input events to the window or surface currently marked as focused
+ * in the tree.
+ */
+void seat_commit_focus(struct hayward_seat *seat);
 
 /**
  * Manipulate the focus stack without triggering any other behaviour.

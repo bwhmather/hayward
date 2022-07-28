@@ -629,6 +629,14 @@ static void _transaction_commit_dirty(bool server_request) {
 	validate_tree();
 #endif
 
+	root_commit_focus();
+
+	struct hayward_seat *seat;
+	wl_list_for_each(seat, &server.input->seats, link) {
+		seat_commit_focus(seat);
+	}
+
+
 	if (!server.dirty_nodes->length) {
 		return;
 	}
