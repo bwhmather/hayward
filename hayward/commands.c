@@ -165,7 +165,6 @@ static const struct cmd_handler *find_core_handler(char *line) {
 
 static void set_config_node(struct hayward_node *node, bool node_overridden) {
 	config->handler_context.workspace = NULL;
-	config->handler_context.column = NULL;
 	config->handler_context.window = NULL;
 	config->handler_context.node_overridden = node_overridden;
 
@@ -183,7 +182,6 @@ static void set_config_node(struct hayward_node *node, bool node_overridden) {
 		break;
 	case N_COLUMN:
 		config->handler_context.workspace = node->hayward_column->pending.workspace;
-		config->handler_context.column = node->hayward_column;
 		break;
 	case N_WINDOW:
 		config->handler_context.workspace = node->hayward_window->pending.workspace;
