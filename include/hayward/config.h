@@ -561,7 +561,6 @@ struct hayward_config {
 		struct output_config *output_config;
 		struct seat_config *seat_config;
 		struct hayward_seat *seat;
-		struct hayward_node *node;
 		struct hayward_workspace *workspace;
 		struct hayward_column *column;
 		struct hayward_window *window;
