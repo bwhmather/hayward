@@ -20,10 +20,7 @@ static void remove_all_marks_iterator(struct hayward_window *container, void *da
 
 struct cmd_results *cmd_unmark(int argc, char **argv) {
 	// Determine the window
-	struct hayward_window *window = NULL;
-	if (config->handler_context.node_overridden) {
-		window = config->handler_context.window;
-	}
+	struct hayward_window *window = config->handler_context.window;
 
 	if (window) {
 		return cmd_results_new(CMD_INVALID, "Only windows can have marks");

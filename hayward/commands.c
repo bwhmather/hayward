@@ -163,10 +163,9 @@ static const struct cmd_handler *find_core_handler(char *line) {
 			handlers, sizeof(handlers));
 }
 
-static void set_config_node(struct hayward_node *node, bool node_overridden) {
+static void set_config_node(struct hayward_node *node) {
 	config->handler_context.workspace = NULL;
 	config->handler_context.window = NULL;
-	config->handler_context.node_overridden = node_overridden;
 
 	if (node == NULL) {
 		return;
@@ -251,10 +250,9 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat,
 
 
 		if (container) {
-			set_config_node(&container->node, true);
+			set_config_node(&container->node);
 		} else {
-			set_config_node(seat_get_focus_inactive(seat, &root->node),
-					false);
+			set_config_node(seat_get_focus_inactive(seat, &root->node));
 		}
 		struct cmd_results *res = handler->handle(argc-1, argv+1);
 		list_add(res_list, res);
