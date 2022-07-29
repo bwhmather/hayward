@@ -635,40 +635,18 @@ static void handle_set_title(struct wl_listener *listener, void *data) {
 		return;
 	}
 	view_update_title(view, false);
-	view_execute_criteria(view);
 }
 
 static void handle_set_class(struct wl_listener *listener, void *data) {
-	struct hayward_xwayland_view *xwayland_view =
-		wl_container_of(listener, xwayland_view, set_class);
-	struct hayward_view *view = &xwayland_view->view;
-	struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-	if (!xsurface->mapped) {
-		return;
-	}
-	view_execute_criteria(view);
+	// TODO probably remove.
 }
 
 static void handle_set_role(struct wl_listener *listener, void *data) {
-	struct hayward_xwayland_view *xwayland_view =
-		wl_container_of(listener, xwayland_view, set_role);
-	struct hayward_view *view = &xwayland_view->view;
-	struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-	if (!xsurface->mapped) {
-		return;
-	}
-	view_execute_criteria(view);
+	// TODO probably remove.
 }
 
 static void handle_set_window_type(struct wl_listener *listener, void *data) {
-	struct hayward_xwayland_view *xwayland_view =
-		wl_container_of(listener, xwayland_view, set_window_type);
-	struct hayward_view *view = &xwayland_view->view;
-	struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-	if (!xsurface->mapped) {
-		return;
-	}
-	view_execute_criteria(view);
+	// TODO probably remove.
 }
 
 static void handle_set_hints(struct wl_listener *listener, void *data) {

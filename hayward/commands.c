@@ -8,7 +8,6 @@
 #include <json.h>
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "hayward/criteria.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 #include "hayward/tree/view.h"
@@ -43,7 +42,6 @@ struct cmd_results *checkarg(int argc, const char *name, enum expected_args type
 
 /* Keep alphabetized */
 static const struct cmd_handler handlers[] = {
-	{ "assign", cmd_assign },
 	{ "bar", cmd_bar },
 	{ "bindcode", cmd_bindcode },
 	{ "bindswitch", cmd_bindswitch },
@@ -67,7 +65,6 @@ static const struct cmd_handler handlers[] = {
 	{ "focus_on_window_activation", cmd_focus_on_window_activation },
 	{ "focus_wrapping", cmd_focus_wrapping },
 	{ "font", cmd_font },
-	{ "for_window", cmd_for_window },
 	{ "force_display_urgency_hint", cmd_force_display_urgency_hint },
 	{ "force_focus_wrapping", cmd_force_focus_wrapping },
 	{ "fullscreen", cmd_fullscreen },
@@ -77,7 +74,6 @@ static const struct cmd_handler handlers[] = {
 	{ "mode", cmd_mode },
 	{ "new_float", cmd_new_float },
 	{ "new_window", cmd_new_window },
-	{ "no_focus", cmd_no_focus },
 	{ "output", cmd_output },
 	{ "popup_during_fullscreen", cmd_popup_during_fullscreen },
 	{ "seat", cmd_seat },
@@ -202,7 +198,6 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat,
 	char *cmd;
 	char matched_delim = ';';
 	list_t *containers = NULL;
-	bool using_criteria = false;
 
 	if (seat == NULL) {
 		// passing a NULL seat means we just pick the default seat
@@ -222,27 +217,7 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat,
 
 	do {
 		for (; isspace(*head); ++head) {}
-		// Extract criteria (valid for this command list only).
-		if (matched_delim == ';') {
-			using_criteria = false;
-			if (*head == '[') {
-				char *error = NULL;
-				struct criteria *criteria = criteria_parse(head, &error);
-				if (!criteria) {
-					list_add(res_list,
-							cmd_results_new(CMD_INVALID, "%s", error));
-					free(error);
-					goto cleanup;
-				}
-				list_free(containers);
-				containers = criteria_get_windows(criteria);
-				head += strlen(criteria->raw);
-				criteria_destroy(criteria);
-				using_criteria = true;
-				// Skip leading whitespace
-				for (; isspace(*head); ++head) {}
-			}
-		}
+
 		// Split command list
 		cmd = argsep(&head, ";,", &matched_delim);
 		for (; isspace(*cmd); ++cmd) {}
@@ -278,45 +253,17 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat,
 		}
 
 
-		if (!using_criteria) {
-			if (container) {
-				set_config_node(&container->node, true);
-			} else {
-				set_config_node(seat_get_focus_inactive(seat, &root->node),
-						false);
-			}
-			struct cmd_results *res = handler->handle(argc-1, argv+1);
-			list_add(res_list, res);
-			if (res->status == CMD_INVALID) {
-				free_argv(argc, argv);
-				goto cleanup;
-			}
-		} else if (containers->length == 0) {
-			list_add(res_list,
-					cmd_results_new(CMD_FAILURE, "No matching node."));
+		if (container) {
+			set_config_node(&container->node, true);
 		} else {
-			struct cmd_results *fail_res = NULL;
-			for (int i = 0; i < containers->length; ++i) {
-				struct hayward_window *container = containers->items[i];
-				set_config_node(&container->node, true);
-				struct cmd_results *res = handler->handle(argc-1, argv+1);
-				if (res->status == CMD_SUCCESS) {
-					free_cmd_results(res);
-				} else {
-					// last failure will take precedence
-					if (fail_res) {
-						free_cmd_results(fail_res);
-					}
-					fail_res = res;
-					if (res->status == CMD_INVALID) {
-						list_add(res_list, fail_res);
-						free_argv(argc, argv);
-						goto cleanup;
-					}
-				}
-			}
-			list_add(res_list,
-					fail_res ? fail_res : cmd_results_new(CMD_SUCCESS, NULL));
+			set_config_node(seat_get_focus_inactive(seat, &root->node),
+					false);
+		}
+		struct cmd_results *res = handler->handle(argc-1, argv+1);
+		list_add(res_list, res);
+		if (res->status == CMD_INVALID) {
+			free_argv(argc, argv);
+			goto cleanup;
 		}
 		free_argv(argc, argv);
 	} while(head);
@@ -404,7 +351,6 @@ struct cmd_results *config_command(char *exec, char **new_block) {
 				&& handler->handle != cmd_bindcode
 				&& handler->handle != cmd_bindswitch
 				&& handler->handle != cmd_set
-				&& handler->handle != cmd_for_window
 				&& (*argv[i] == '\"' || *argv[i] == '\'')) {
 			strip_quotes(argv[i]);
 		}

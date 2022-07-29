@@ -20,7 +20,6 @@
 #include "hayward/input/switch.h"
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "hayward/criteria.h"
 #include "hayward/desktop/transaction.h"
 #include "hayward/haywardnag.h"
 #include "hayward/tree/arrange.h"
@@ -144,12 +143,6 @@ void free_config(struct hayward_config *config) {
 			free_seat_config(config->seat_configs->items[i]);
 		}
 		list_free(config->seat_configs);
-	}
-	if (config->criteria) {
-		for (int i = 0; i < config->criteria->length; ++i) {
-			criteria_destroy(config->criteria->items[i]);
-		}
-		list_free(config->criteria);
 	}
 	list_free(config->no_focus);
 	list_free(config->active_bar_modifiers);

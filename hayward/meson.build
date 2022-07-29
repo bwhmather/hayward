@@ -1,7 +1,6 @@
 hayward_sources = files(
 	'commands.c',
 	'config.c',
-	'criteria.c',
 	'decoration.c',
 	'ipc-json.c',
 	'ipc-server.c',
@@ -41,7 +40,6 @@ hayward_sources = files(
 	'config/seat.c',
 	'config/input.c',
 
-	'commands/assign.c',
 	'commands/bar.c',
 	'commands/bind.c',
 	'commands/border.c',
@@ -60,7 +58,6 @@ hayward_sources = files(
 	'commands/focus_on_window_activation.c',
 	'commands/focus_wrapping.c',
 	'commands/font.c',
-	'commands/for_window.c',
 	'commands/force_display_urgency_hint.c',
 	'commands/force_focus_wrapping.c',
 	'commands/fullscreen.c',
@@ -78,7 +75,6 @@ hayward_sources = files(
 	'commands/move.c',
 	'commands/new_float.c',
 	'commands/new_window.c',
-	'commands/no_focus.c',
 	'commands/nop.c',
 	'commands/output.c',
 	'commands/popup_during_fullscreen.c',

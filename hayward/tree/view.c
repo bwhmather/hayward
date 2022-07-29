@@ -14,7 +14,6 @@
 #endif
 #include "list.h"
 #include "log.h"
-#include "hayward/criteria.h"
 #include "hayward/commands.h"
 #include "hayward/desktop.h"
 #include "hayward/desktop/transaction.h"
@@ -38,7 +37,6 @@ void view_init(struct hayward_view *view, enum hayward_view_type type,
 		const struct hayward_view_impl *impl) {
 	view->type = type;
 	view->impl = impl;
-	view->executed_criteria = create_list();
 	wl_list_init(&view->saved_buffers);
 	view->allow_request_urgent = true;
 	view->shortcuts_inhibit = SHORTCUTS_INHIBIT_DEFAULT;
@@ -56,7 +54,6 @@ void view_destroy(struct hayward_view *view) {
 	if (!wl_list_empty(&view->saved_buffers)) {
 		view_remove_saved_buffer(view);
 	}
-	list_free(view->executed_criteria);
 
 	free(view->title_format);
 
@@ -452,41 +449,6 @@ static void view_handle_surface_new_subsurface(struct wl_listener *listener,
 	view_subsurface_create(view, subsurface);
 }
 
-static bool view_has_executed_criteria(struct hayward_view *view,
-		struct criteria *criteria) {
-	for (int i = 0; i < view->executed_criteria->length; ++i) {
-		struct criteria *item = view->executed_criteria->items[i];
-		if (item == criteria) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void view_execute_criteria(struct hayward_view *view) {
-	list_t *criterias = criteria_for_view(view, CT_COMMAND);
-	for (int i = 0; i < criterias->length; i++) {
-		struct criteria *criteria = criterias->items[i];
-		hayward_log(HAYWARD_DEBUG, "Checking criteria %s", criteria->raw);
-		if (view_has_executed_criteria(view, criteria)) {
-			hayward_log(HAYWARD_DEBUG, "Criteria already executed");
-			continue;
-		}
-		hayward_log(HAYWARD_DEBUG, "for_window '%s' matches view %p, cmd: '%s'",
-				criteria->raw, (void *) view, criteria->cmdlist);
-		list_add(view->executed_criteria, criteria);
-		list_t *res_list = execute_command(
-				criteria->cmdlist, NULL, view->window);
-		while (res_list->length) {
-			struct cmd_results *res = res_list->items[0];
-			free_cmd_results(res);
-			list_del(res_list, 0);
-		}
-		list_free(res_list);
-	}
-	list_free(criterias);
-}
-
 static void view_populate_pid(struct hayward_view *view) {
 	pid_t pid;
 	switch (view->type) {
@@ -508,7 +470,6 @@ static void view_populate_pid(struct hayward_view *view) {
 
 static bool should_focus(struct hayward_view *view) {
 	struct hayward_seat *seat = input_manager_current_seat();
-	struct hayward_window *prev_container = seat_get_focused_container(seat);
 	struct hayward_workspace *prev_workspace = seat_get_focused_workspace(seat);
 	struct hayward_workspace *map_workspace = view->window->pending.workspace;
 
@@ -522,21 +483,7 @@ static bool should_focus(struct hayward_view *view) {
 		return false;
 	}
 
-	// If the view is the only one in the focused workspace, it'll get focus
-	// regardless of any no_focus criteria.
-	if (!view->window->pending.parent && !prev_container) {
-		size_t num_children = view->window->pending.workspace->pending.tiling->length +
-			view->window->pending.workspace->pending.floating->length;
-		if (num_children == 1) {
-			return true;
-		}
-	}
-
-	// Check no_focus criteria
-	list_t *criterias = criteria_for_view(view, CT_NO_FOCUS);
-	size_t len = criterias->length;
-	list_free(criterias);
-	return len == 0;
+	return true;
 }
 
 static void handle_foreign_activate_request(
@@ -699,7 +646,6 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 	}
 
 	view_update_title(view, false);
-	view_execute_criteria(view);
 
 	bool set_focus = should_focus(view);
 
