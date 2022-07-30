@@ -167,7 +167,6 @@ static void seat_send_focus(struct hayward_node *node, struct hayward_seat *seat
 		return;
 	}
 
-	view_set_activated(node->hayward_window->view, true);
 	struct hayward_view *view = node->hayward_window->view;
 #if HAVE_XWAYLAND
 	if (view->type == HAYWARD_VIEW_XWAYLAND) {
@@ -956,22 +955,11 @@ bool seat_is_input_allowed(struct hayward_seat *seat,
 		(seat->exclusive_client == NULL && !server.session_lock.locked);
 }
 
-static void send_unfocus(struct hayward_window *container, void *data) {
-	if (container->view) {
-		view_set_activated(container->view, false);
-	}
-}
-
 // TODO (hayward) deprecated.  Replace with `send_unfocus`.
 // Unfocus the container and any children (eg. when leaving `focus parent`)
 static void seat_send_unfocus(struct hayward_node *node, struct hayward_seat *seat) {
 	hayward_cursor_constrain(seat->cursor, NULL);
 	wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
-	if (node->type == N_WORKSPACE) {
-		workspace_for_each_window(node->hayward_workspace, send_unfocus, seat);
-	} else if (node->type == N_WINDOW) {
-		send_unfocus(node->hayward_window, seat);
-	}
 }
 
 /**
