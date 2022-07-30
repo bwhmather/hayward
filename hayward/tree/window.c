@@ -519,26 +519,6 @@ bool window_is_tiling(struct hayward_window* window) {
 	return window->pending.parent != NULL;
 }
 
-/**
- * Ensures all seats focus the fullscreen container if needed.
- */
-static void workspace_focus_fullscreen(struct hayward_workspace *workspace) {
-	// TODO (hayward) move me.
-	if (!workspace->pending.fullscreen) {
-		return;
-	}
-	struct hayward_seat *seat;
-	struct hayward_workspace *focus_workspace;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		focus_workspace = seat_get_focused_workspace(seat);
-		if (focus_workspace == workspace) {
-			struct hayward_node *new_focus =
-				seat_get_focus_inactive(seat, &workspace->pending.fullscreen->node);
-			seat_set_raw_focus(seat, new_focus);
-		}
-	}
-}
-
 static void window_move_to_column_from_maybe_direction(
 		struct hayward_window *window, struct hayward_column *column,
 		bool has_move_dir, enum wlr_direction move_dir) {
@@ -571,7 +551,6 @@ static void window_move_to_column_from_maybe_direction(
 	ipc_event_window(window, "move");
 
 	if (column->pending.workspace) {
-		workspace_focus_fullscreen(column->pending.workspace);
 		workspace_detect_urgent(column->pending.workspace);
 	}
 
@@ -856,19 +835,6 @@ static void window_fullscreen_enable(struct hayward_window *window) {
 	window->saved_height = window->pending.height;
 
 	window->pending.workspace->pending.fullscreen = window;
-	struct hayward_seat *seat;
-	struct hayward_workspace *focus_workspace;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		focus_workspace = seat_get_focused_workspace(seat);
-		if (focus_workspace == window->pending.workspace) {
-			seat_set_focus_window(seat, window);
-		} else {
-			struct hayward_node *focus =
-				seat_get_focus_inactive(seat, &root->node);
-			seat_set_raw_focus(seat, &window->node);
-			seat_set_raw_focus(seat, focus);
-		}
-	}
 
 	window_end_mouse_operation(window);
 	ipc_event_window(window, "fullscreen_mode");

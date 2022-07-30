@@ -962,49 +962,6 @@ static void seat_send_unfocus(struct hayward_node *node, struct hayward_seat *se
 	wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 }
 
-/**
- * Moves a window to the top of the focus stack.
- *
- * Does not touch any other seat and so does not, as such, _focus_ the
- * window.  This function is intended as a building block for other functions
- * which do manipulate the focus.
- */
-static void seat_set_active_window(struct hayward_seat *seat, struct hayward_window *window) {
-	hayward_assert(window != NULL, "Expected non-null pointer");
-
-	struct hayward_workspace *workspace = window->pending.workspace;
-	struct hayward_column *column = window->pending.parent;
-
-	if (column != NULL) {
-		hayward_assert(
-			column->pending.workspace == workspace,
-			"Column workspace does not equal window workspace"
-		);
-
-		column->pending.active_child = window;
-		workspace->pending.active_column = column;
-		workspace->pending.focus_mode = F_TILING;
-
-		node_set_dirty(&window->node);
-		node_set_dirty(&column->node);
-	} else {
-		int index = list_find(workspace->pending.floating, window);
-		hayward_assert(index != -1, "Window is not in list of floating windows for workspace");
-
-		list_del(workspace->pending.floating, index);
-		list_add(workspace->pending.floating, window);
-		workspace->pending.focus_mode = F_FLOATING;
-
-		node_set_dirty(&window->node);
-		node_set_dirty(&workspace->node);
-	}
-}
-
-void seat_set_raw_focus(struct hayward_seat *seat, struct hayward_node *node) {
-	hayward_assert(node->type == N_WINDOW, "Expected window");
-	seat_set_active_window(seat, node->hayward_window);
-}
-
 void seat_set_focus(struct hayward_seat *seat, struct hayward_node *node) {
 	if (node == NULL) {
 		seat_set_focus_window(seat, NULL);

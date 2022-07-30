@@ -173,15 +173,6 @@ void seat_set_focus_workspace(struct hayward_seat *seat,
  */
 void seat_commit_focus(struct hayward_seat *seat);
 
-/**
- * Manipulate the focus stack without triggering any other behaviour.
- *
- * This can be used to set focus_inactive by calling the function a second time
- * with the real focus.
- */
-// TODO (hayward) deprecated.  Should be replaced with window-only equivalent.
-void seat_set_raw_focus(struct hayward_seat *seat, struct hayward_node *node);
-
 void seat_set_focus_surface(struct hayward_seat *seat,
 		struct wlr_surface *surface, bool unfocus);
 

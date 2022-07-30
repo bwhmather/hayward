@@ -63,31 +63,13 @@ static void swap_places(struct hayward_window *window1,
 	free(temp);
 }
 
-static void swap_focus(struct hayward_window *window1,
-		struct hayward_window *window2, struct hayward_seat *seat,
-		struct hayward_window *focus) {
-	if (focus == window1 || focus == window2) {
-		struct hayward_workspace *workspace1 = window1->pending.workspace;
-		struct hayward_workspace *workspace2 = window2->pending.workspace;
-		enum hayward_column_layout layout1 = window_parent_layout(window1);
-		enum hayward_column_layout layout2 = window_parent_layout(window2);
-		if (focus == window1 && layout2 == L_STACKED) {
-			if (workspace_is_visible(workspace2)) {
-				seat_set_raw_focus(seat, &window2->node);
-			}
-			seat_set_focus_window(seat, workspace1 != workspace2 ? window2 : window1);
-		} else if (focus == window2 && layout1 == L_STACKED) {
-			if (workspace_is_visible(workspace1)) {
-				seat_set_raw_focus(seat, &window1->node);
-			}
-			seat_set_focus_window(seat, workspace1 != workspace2 ? window1 : window2);
-		} else if (workspace1 != workspace2) {
-			seat_set_focus_window(seat, focus == window1 ? window2 : window1);
-		} else {
-			seat_set_focus_window(seat, focus);
-		}
+static void swap_focus(struct hayward_window *window1, struct hayward_window *window2, struct hayward_window *focus) {
+	if (focus == window1) {
+		root_set_focused_window(window2);
+	} else if (focus == window2) {
+		root_set_focused_window(window1);
 	} else {
-		seat_set_focus_window(seat, focus);
+		root_set_focused_window(focus);
 	}
 }
 
@@ -106,12 +88,11 @@ void window_swap(struct hayward_window *window1, struct hayward_window *window2)
 		window_set_fullscreen(window2, false);
 	}
 
-	struct hayward_seat *seat = config->handler_context.seat;
-	struct hayward_window *focus = seat_get_focused_container(seat);
+	struct hayward_window *focus = root_get_focused_window();
 
 	swap_places(window1, window2);
 
-	swap_focus(window1, window2, seat, focus);
+	swap_focus(window1, window2, focus);
 
 	window_set_fullscreen(window2, fs1);
 	window_set_fullscreen(window1, fs2);
