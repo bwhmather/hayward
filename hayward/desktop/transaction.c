@@ -126,8 +126,7 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 	list_cat(state->floating, workspace->pending.floating);
 	list_cat(state->tiling, workspace->pending.tiling);
 
-	struct hayward_seat *seat = input_manager_current_seat();
-	state->focused = seat_get_focus(seat) == &workspace->node;
+	state->focused = workspace->pending.focused;
 
 	state->active_column = workspace->pending.active_column;
 	state->focus_mode = workspace->pending.focus_mode;
@@ -148,8 +147,7 @@ static void copy_column_state(struct hayward_column *column,
 	state->children = create_list();
 	list_cat(state->children, column->pending.children);
 
-	struct hayward_seat *seat = input_manager_current_seat();
-	state->focused = seat_get_focus(seat) == &column->node;
+	state->focused = column->pending.focused;
 
 	state->active_child = column->pending.active_child;
 }
@@ -159,9 +157,6 @@ static void copy_window_state(struct hayward_window *window,
 	struct hayward_window_state *state = &instruction->window_state;
 
 	memcpy(state, &window->pending, sizeof(struct hayward_window_state));
-
-	struct hayward_seat *seat = input_manager_current_seat();
-	state->focused = seat_get_focus(seat) == &window->node;
 }
 
 static void transaction_add_node(struct hayward_transaction *transaction,
