@@ -111,14 +111,6 @@ static void unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
 			seat_set_focus_surface(seat, xsurface->parent->surface, false);
 			return;
 		}
-
-		// Restore focus
-		struct hayward_node *previous = seat_get_focus_inactive(seat, &root->node);
-		if (previous) {
-			// Hack to get seat to re-focus the return value of get_focus
-			seat_set_focus(seat, NULL);
-			seat_set_focus(seat, previous);
-		}
 	}
 }
 
