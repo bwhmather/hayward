@@ -360,7 +360,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		find_resize_edge(window, surface, cursor) : WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;
 	bool on_contents = window && !on_border && surface;
-	bool on_workspace = output && !window;
+	bool on_workspace = output && !window && !surface;
 	bool on_titlebar = window && !on_border && !surface;
 
 	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
@@ -373,7 +373,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	}
 
 	// Handle clicking an empty workspace
-	if (output && !window) {
+	if (output && !window && !surface) {
 		if (state == WLR_BUTTON_PRESSED) {
 			seat_clear_focus(seat);
 			transaction_commit_dirty();
@@ -727,7 +727,7 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	bool on_titlebar_border = window && on_border &&
 		cursor->cursor->y < window->pending.content_y;
 	bool on_contents = window && !on_border && surface;
-	bool on_workspace = output && !window;
+	bool on_workspace = output && !window && !surface;
 	float scroll_factor =
 		(ic == NULL || ic->scroll_factor == FLT_MIN) ? 1.0f : ic->scroll_factor;
 
