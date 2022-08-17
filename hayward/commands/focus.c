@@ -218,7 +218,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	}
 	if (!root->outputs->length) {
 		return cmd_results_new(CMD_INVALID,
-				"Can't run this command while there's no outputs connected.");
+				"Can't run this command while there are no outputs connected.");
 	}
 	struct hayward_workspace *workspace = config->handler_context.workspace;
 	struct hayward_seat *seat = config->handler_context.seat;
