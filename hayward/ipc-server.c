@@ -594,14 +594,6 @@ static void ipc_get_workspaces_callback(struct hayward_workspace *workspace,
 			json_object_new_boolean(visible));
 }
 
-static void ipc_get_marks_callback(struct hayward_window *container, void *data) {
-	json_object *marks = (json_object *)data;
-	for (int i = 0; i < container->marks->length; ++i) {
-		char *mark = (char *)container->marks->items[i];
-		json_object_array_add(marks, json_object_new_string(mark));
-	}
-}
-
 void ipc_client_handle_command(struct ipc_client *client, uint32_t payload_length,
 		ipc_command_type payload_type) {
 	hayward_assert(client != NULL, "client != NULL");
@@ -785,17 +777,6 @@ void ipc_client_handle_command(struct ipc_client *client, uint32_t payload_lengt
 		ipc_send_reply(client, payload_type, json_string,
 			(uint32_t)strlen(json_string));
 		json_object_put(tree);
-		goto exit_cleanup;
-	}
-
-	case IPC_GET_MARKS:
-	{
-		json_object *marks = json_object_new_array();
-		root_for_each_window(ipc_get_marks_callback, marks);
-		const char *json_string = json_object_to_json_string(marks);
-		ipc_send_reply(client, payload_type, json_string,
-			(uint32_t)strlen(json_string));
-		json_object_put(marks);
 		goto exit_cleanup;
 	}
 

@@ -24,8 +24,7 @@
 static const char expected_syntax[] =
 	"Expected 'move <left|right|up|down> <[px] px>' or "
 	"'move <window> [to] workspace <name>' or "
-	"'move <window|workspace> [to] output <name|direction>' or "
-	"'move <window> [to] mark <mark>'";
+	"'move <window|workspace> [to] output <name|direction>'";
 
 static struct hayward_output *output_in_direction(const char *direction_string,
 		struct hayward_output *reference, int ref_lx, int ref_ly) {
@@ -252,13 +251,6 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 				"Can't find output with name/direction '%s'", argv[1]);
 		}
 		destination = seat_get_focus_inactive(seat, &new_output->node);
-	} else if (strcasecmp(argv[0], "mark") == 0) {
-		struct hayward_window *dest_container = window_find_mark(argv[1]);
-		if (dest_container == NULL) {
-			return cmd_results_new(CMD_FAILURE,
-					"Mark '%s' not found", argv[1]);
-		}
-		destination = &dest_container->node;
 	} else {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}
@@ -571,7 +563,6 @@ static const char expected_full_syntax[] = "Expected "
 	" or 'move [window] [to] workspace"
 	"  <name>|next|prev|next_on_output|prev_on_output|(number <num>)'"
 	" or 'move [window] [to] output <name/id>|left|right|up|down'"
-	" or 'move [window] [to] mark <mark>'"
 	" or 'move [window] [to] [absolute] position <x> [px] <y> [px]'"
 	" or 'move [window] [to] [absolute] position center'"
 	" or 'move [window] [to] position mouse|cursor|pointer'";
@@ -609,8 +600,7 @@ struct cmd_results *cmd_move(int argc, char **argv) {
 	}
 
 	if (strcasecmp(argv[0], "workspace") == 0 ||
-			strcasecmp(argv[0], "output") == 0 ||
-			strcasecmp(argv[0], "mark") == 0) {
+			strcasecmp(argv[0], "output") == 0) {
 		return cmd_move_window(argc, argv);
 	} else if (strcasecmp(argv[0], "position") == 0 ||
 			(argc > 1 && strcasecmp(argv[0], "absolute") == 0 &&

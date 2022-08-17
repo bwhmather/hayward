@@ -11,7 +11,7 @@
 #include "stringop.h"
 
 static const char expected_syntax[] =
-	"Expected 'swap container with id|container_id|mark <arg>'";
+	"Expected 'swap container with id|container_id'";
 
 static void swap_places(struct hayward_window *window1,
 		struct hayward_window *window2) {
@@ -111,14 +111,6 @@ static bool test_id(struct hayward_window *container, void *data) {
 }
 #endif
 
-static bool test_mark(struct hayward_window *container, void *mark) {
-	if (container->marks->length) {
-		return list_seq_find(container->marks,
-				(int (*)(const void *, const void *))strcmp, mark) != -1;
-	}
-	return false;
-}
-
 struct cmd_results *cmd_swap(int argc, char **argv) {
 	struct cmd_results *error = NULL;
 	if ((error = checkarg(argc, "swap", EXPECTED_AT_LEAST, 4))) {
@@ -145,8 +137,6 @@ struct cmd_results *cmd_swap(int argc, char **argv) {
 	} else if (strcasecmp(argv[2], "container_id") == 0) {
 		size_t container_id = atoi(value);
 		other = root_find_window(test_container_id, &container_id);
-	} else if (strcasecmp(argv[2], "mark") == 0) {
-		other = root_find_window(test_mark, value);
 	} else {
 		free(value);
 		return cmd_results_new(CMD_INVALID, expected_syntax);

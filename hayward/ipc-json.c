@@ -196,7 +196,6 @@ static json_object *ipc_json_create_node(int id, const char* type, char *name,
 	json_object_object_add(object, "type", json_object_new_string(type));
 	json_object_object_add(object, "percent", NULL);
 	json_object_object_add(object, "urgent", json_object_new_boolean(false));
-	json_object_object_add(object, "marks", json_object_new_array());
 	json_object_object_add(object, "focused", json_object_new_boolean(focused));
 
 	// set default values to be compatible with i3
@@ -559,14 +558,6 @@ static void ipc_json_describe_window(struct hayward_window *window, json_object 
 	struct wlr_box deco_box = {0, 0, 0, 0};
 	window_get_deco_rect(window, &deco_box);
 	json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
-
-	json_object *marks = json_object_new_array();
-	list_t *container_marks = window->marks;
-	for (int i = 0; i < container_marks->length; ++i) {
-		json_object_array_add(marks, json_object_new_string(container_marks->items[i]));
-	}
-
-	json_object_object_add(object, "marks", marks);
 
 	ipc_json_describe_view(window, object);
 }

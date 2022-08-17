@@ -419,8 +419,9 @@ static void render_view(struct hayward_output *output, pixman_region32_t *damage
 static void render_titlebar(struct hayward_output *output,
 		pixman_region32_t *output_damage, struct hayward_window *window,
 		int x, int y, int width,
-		struct border_colors *colors, struct wlr_texture *title_texture,
-		struct wlr_texture *marks_texture) {
+		struct border_colors *colors,
+		struct wlr_texture *title_texture
+) {
 	struct wlr_box box;
 	float color[4];
 	float output_scale = output->wlr_output->scale;
@@ -476,60 +477,6 @@ static void render_titlebar(struct hayward_output *output,
 			(titlebar_v_padding - titlebar_border_thickness) * 2 +
 			config->font_height, bg_y, output_scale);
 
-	// Marks
-	int ob_marks_x = 0; // output-buffer-local
-	int ob_marks_width = 0; // output-buffer-local
-	if (config->show_marks && marks_texture) {
-		struct wlr_box texture_box = {
-			.width = marks_texture->width,
-			.height = marks_texture->height,
-		};
-		ob_marks_width = texture_box.width;
-
-		// The marks texture might be shorter than the config->font_height, in
-		// which case we need to pad it as evenly as possible above and below.
-		int ob_padding_total = ob_bg_height - texture_box.height;
-		int ob_padding_above = floor(ob_padding_total / 2.0);
-		int ob_padding_below = ceil(ob_padding_total / 2.0);
-
-		// Render texture. If the title is on the right, the marks will be on
-		// the left. Otherwise, they will be on the right.
-		if (title_align == ALIGN_RIGHT || texture_box.width > ob_inner_width) {
-			texture_box.x = ob_inner_x;
-		} else {
-			texture_box.x = ob_inner_x + ob_inner_width - texture_box.width;
-		}
-		ob_marks_x = texture_box.x;
-
-		texture_box.y = round((bg_y - output_y) * output_scale) +
-			ob_padding_above;
-
-		float matrix[9];
-		wlr_matrix_project_box(matrix, &texture_box,
-			WL_OUTPUT_TRANSFORM_NORMAL,
-			0.0, output->wlr_output->transform_matrix);
-
-		if (ob_inner_width < texture_box.width) {
-			texture_box.width = ob_inner_width;
-		}
-		render_texture(output->wlr_output, output_damage, marks_texture,
-			NULL, &texture_box, matrix, window->alpha);
-
-		// Padding above
-		memcpy(&color, colors->background, sizeof(float) * 4);
-		premultiply_alpha(color, window->alpha);
-		box.x = texture_box.x + round(output_x * output_scale);
-		box.y = round((y + titlebar_border_thickness) * output_scale);
-		box.width = texture_box.width;
-		box.height = ob_padding_above;
-		render_rect(output, output_damage, &box, color);
-
-		// Padding below
-		box.y += ob_padding_above + texture_box.height;
-		box.height = ob_padding_below;
-		render_rect(output, output_damage, &box, color);
-	}
-
 	// Title text
 	int ob_title_x = 0;  // output-buffer-local
 	int ob_title_width = 0; // output-buffer-local
@@ -556,21 +503,13 @@ static void render_titlebar(struct hayward_output *output,
 			texture_box.height;
 
 		// Render texture
-		if (texture_box.width > ob_inner_width - ob_marks_width) {
-			texture_box.x = (title_align == ALIGN_RIGHT && ob_marks_width)
-				? ob_marks_x + ob_marks_width : ob_inner_x;
+		if (texture_box.width > ob_inner_width) {
+			texture_box.x = ob_inner_x;
 		} else if (title_align == ALIGN_LEFT) {
 			texture_box.x = ob_inner_x;
 		} else if (title_align == ALIGN_CENTER) {
-			// If there are marks visible, center between the edge and marks.
-			// Otherwise, center in the inner area.
-			if (ob_marks_width) {
-				texture_box.x = (ob_inner_x + ob_marks_x) / 2
-					- texture_box.width / 2;
-			} else {
-				texture_box.x = ob_inner_x + ob_inner_width / 2
-					- texture_box.width / 2;
-			}
+			// Center in the inner area.
+			texture_box.x = ob_inner_x + ob_inner_width / 2 - texture_box.width / 2;
 		} else {
 			texture_box.x = ob_inner_x + ob_inner_width - texture_box.width;
 		}
@@ -584,8 +523,8 @@ static void render_titlebar(struct hayward_output *output,
 			WL_OUTPUT_TRANSFORM_NORMAL,
 			0.0, output->wlr_output->transform_matrix);
 
-		if (ob_inner_width - ob_marks_width < texture_box.width) {
-			texture_box.width = ob_inner_width - ob_marks_width;
+		if (ob_inner_width < texture_box.width) {
+			texture_box.width = ob_inner_width;
 		}
 
 		render_texture(output->wlr_output, output_damage, title_texture,
@@ -608,19 +547,14 @@ static void render_titlebar(struct hayward_output *output,
 
 	// Determine the left + right extends of the textures (output-buffer local)
 	int ob_left_x, ob_left_width, ob_right_x, ob_right_width;
-	if (ob_title_width == 0 && ob_marks_width == 0) {
+	if (ob_title_width == 0) {
 		ob_left_x = ob_inner_x;
 		ob_left_width = 0;
 		ob_right_x = ob_inner_x;
 		ob_right_width = 0;
-	} else if (ob_title_x < ob_marks_x) {
-		ob_left_x = ob_title_x;
-		ob_left_width = ob_title_width;
-		ob_right_x = ob_marks_x;
-		ob_right_width = ob_marks_width;
 	} else {
-		ob_left_x = ob_marks_x;
-		ob_left_width = ob_marks_width;
+		ob_left_x = 0;
+		ob_left_width = 0;
 		ob_right_x = ob_title_x;
 		ob_right_width = ob_title_width;
 	}
@@ -631,7 +565,7 @@ static void render_titlebar(struct hayward_output *output,
 		ob_right_width = ob_left_width;
 	}
 
-	// Filler between title and marks
+	// Filler
 	box.width = ob_right_x - ob_left_x - ob_left_width;
 	if (box.width > 0) {
 		box.x = ob_left_x + ob_left_width + round(output_x * output_scale);
@@ -708,31 +642,28 @@ static void render_column_split(struct hayward_output *output, pixman_region32_t
 		struct hayward_view *view = child->view;
 		struct border_colors *colors;
 		struct wlr_texture *title_texture;
-		struct wlr_texture *marks_texture;
 		struct hayward_window_state *state = &child->current;
 
 		if (view_is_urgent(view)) {
 			colors = &config->border_colors.urgent;
 			title_texture = child->title_urgent;
-			marks_texture = child->marks_urgent;
 		} else if (state->focused) {
 			colors = &config->border_colors.focused;
 			title_texture = child->title_focused;
-			marks_texture = child->marks_focused;
 		} else if (child == current) {
 			colors = &config->border_colors.focused_inactive;
 			title_texture = child->title_focused_inactive;
-			marks_texture = child->marks_focused_inactive;
 		} else {
 			colors = &config->border_colors.unfocused;
 			title_texture = child->title_unfocused;
-			marks_texture = child->marks_unfocused;
 		}
 
 		if (state->border == B_NORMAL) {
-			render_titlebar(output, damage, child, floor(state->x),
-					floor(state->y), state->width, colors,
-					title_texture, marks_texture);
+			render_titlebar(
+				output, damage, child, floor(state->x),
+				floor(state->y), state->width, colors,
+				title_texture
+			);
 		} else if (state->border == B_PIXEL) {
 			render_top_border(output, damage, child, colors);
 		}
@@ -760,28 +691,23 @@ static void render_column_stacked(struct hayward_output *output, pixman_region32
 		struct hayward_window_state *cstate = &child->current;
 		struct border_colors *colors;
 		struct wlr_texture *title_texture;
-		struct wlr_texture *marks_texture;
 
 		if (view_is_urgent(view)) {
 			colors = &config->border_colors.urgent;
 			title_texture = child->title_urgent;
-			marks_texture = child->marks_urgent;
 		} else if (cstate->focused) {
 			colors = &config->border_colors.focused;
 			title_texture = child->title_focused;
-			marks_texture = child->marks_focused;
 		 } else if (child == current) {
 			colors = &config->border_colors.focused_inactive;
 			title_texture = child->title_focused_inactive;
-			marks_texture = child->marks_focused_inactive;
 		} else {
 			colors = &config->border_colors.unfocused;
 			title_texture = child->title_unfocused;
-			marks_texture = child->marks_unfocused;
 		}
 
 		render_titlebar(output, damage, child, column->current.x, y_offset,
-				column->current.width, colors, title_texture, marks_texture);
+				column->current.width, colors, title_texture);
 
 		y_offset += titlebar_height;
 
@@ -821,26 +747,22 @@ static void render_floating_window(struct hayward_output *soutput, pixman_region
 	struct hayward_view *view = window->view;
 	struct border_colors *colors;
 	struct wlr_texture *title_texture;
-	struct wlr_texture *marks_texture;
 
 	if (view_is_urgent(view)) {
 		colors = &config->border_colors.urgent;
 		title_texture = window->title_urgent;
-		marks_texture = window->marks_urgent;
 	} else if (window->current.focused) {
 		colors = &config->border_colors.focused;
 		title_texture = window->title_focused;
-		marks_texture = window->marks_focused;
 	} else {
 		colors = &config->border_colors.unfocused;
 		title_texture = window->title_unfocused;
-		marks_texture = window->marks_unfocused;
 	}
 
 	if (window->current.border == B_NORMAL) {
 		render_titlebar(soutput, damage, window, floor(window->current.x),
 				floor(window->current.y), window->current.width, colors,
-				title_texture, marks_texture);
+				title_texture);
 	} else if (window->current.border == B_PIXEL) {
 		render_top_border(soutput, damage, window, colors);
 	}

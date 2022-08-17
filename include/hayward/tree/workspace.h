@@ -108,11 +108,6 @@ void workspace_remove_gaps(struct hayward_workspace *workspace);
 
 void workspace_add_gaps(struct hayward_workspace *workspace);
 
-struct hayward_window *workspace_split(struct hayward_workspace *workspace,
-		enum hayward_column_layout layout);
-
-void workspace_update_representation(struct hayward_workspace *workspace);
-
 void workspace_get_box(struct hayward_workspace *workspace, struct wlr_box *box);
 
 size_t workspace_num_tiling_views(struct hayward_workspace *workspace);

@@ -7,7 +7,6 @@
 
 static void rebuild_textures_iterator(struct hayward_window *container, void *data) {
 	window_update_title_textures(container);
-	window_update_marks_textures(container);
 }
 
 static struct cmd_results *handle_command(int argc, char **argv, char *cmd_name,

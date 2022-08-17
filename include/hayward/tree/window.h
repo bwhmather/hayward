@@ -109,13 +109,6 @@ struct hayward_window {
 	struct wlr_texture *title_unfocused;
 	struct wlr_texture *title_urgent;
 
-	list_t *marks; // char *
-	struct wlr_texture *marks_focused;
-	struct wlr_texture *marks_focused_inactive;
-	struct wlr_texture *marks_focused_tab_title;
-	struct wlr_texture *marks_unfocused;
-	struct wlr_texture *marks_urgent;
-
 	struct {
 		struct wl_signal destroy;
 	} events;
@@ -142,28 +135,6 @@ void window_reconcile_detached(struct hayward_window *window);
  * ends the operation.
  */
 void window_end_mouse_operation(struct hayward_window *window);
-
-/**
- * Find any window that has the given mark and return it.
- */
-struct hayward_window *window_find_mark(char *mark);
-
-/**
- * Find any window that has the given mark and remove the mark from the
- * window. Returns true if it matched a window.
- */
-bool window_find_and_unmark(char *mark);
-
-/**
- * Remove all marks from the window.
- */
-void window_clear_marks(struct hayward_window *window);
-
-bool window_has_mark(struct hayward_window *window, char *mark);
-
-void window_add_mark(struct hayward_window *window, char *mark);
-
-void window_update_marks_textures(struct hayward_window *window);
 
 bool window_is_current_floating(struct hayward_window *window);
 

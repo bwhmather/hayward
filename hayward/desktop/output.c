@@ -813,7 +813,6 @@ static void handle_mode(struct wl_listener *listener, void *data) {
 
 static void update_textures(struct hayward_window *container, void *data) {
 	window_update_title_textures(container);
-	window_update_marks_textures(container);
 }
 
 static void handle_commit(struct wl_listener *listener, void *data) {

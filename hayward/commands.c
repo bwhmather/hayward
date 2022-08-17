@@ -78,7 +78,6 @@ static const struct cmd_handler handlers[] = {
 	{ "popup_during_fullscreen", cmd_popup_during_fullscreen },
 	{ "seat", cmd_seat },
 	{ "set", cmd_set },
-	{ "show_marks", cmd_show_marks },
 	{ "smart_borders", cmd_smart_borders },
 	{ "smart_gaps", cmd_smart_gaps },
 	{ "tiling_drag", cmd_tiling_drag },
@@ -111,7 +110,6 @@ static const struct cmd_handler command_handlers[] = {
 	{ "inhibit_idle", cmd_inhibit_idle },
 	{ "kill", cmd_kill },
 	{ "layout", cmd_layout },
-	{ "mark", cmd_mark },
 	{ "max_render_time", cmd_max_render_time },
 	{ "move", cmd_move },
 	{ "nop", cmd_nop },
@@ -123,7 +121,6 @@ static const struct cmd_handler command_handlers[] = {
 	{ "sticky", cmd_sticky },
 	{ "swap", cmd_swap },
 	{ "title_format", cmd_title_format },
-	{ "unmark", cmd_unmark },
 	{ "urgent", cmd_urgent },
 };
 

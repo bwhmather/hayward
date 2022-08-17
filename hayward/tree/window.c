@@ -40,7 +40,6 @@ struct hayward_window *window_create(struct hayward_view *view) {
 	c->view = view;
 	c->alpha = 1.0f;
 
-	c->marks = create_list();
 	c->outputs = create_list();
 
 	wl_signal_init(&c->events.destroy);
@@ -62,13 +61,6 @@ void window_destroy(struct hayward_window *window) {
 	wlr_texture_destroy(window->title_urgent);
 	wlr_texture_destroy(window->title_focused_tab_title);
 	list_free(window->outputs);
-
-	list_free_items_and_destroy(window->marks);
-	wlr_texture_destroy(window->marks_focused);
-	wlr_texture_destroy(window->marks_focused_inactive);
-	wlr_texture_destroy(window->marks_unfocused);
-	wlr_texture_destroy(window->marks_urgent);
-	wlr_texture_destroy(window->marks_focused_tab_title);
 
 	if (window->view->window == window) {
 		window->view->window = NULL;
@@ -184,62 +176,6 @@ void window_end_mouse_operation(struct hayward_window *window) {
 	}
 }
 
-static bool find_by_mark_iterator(struct hayward_window *container, void *data) {
-	char *mark = data;
-	if (!window_has_mark(container, mark)) {
-		return false;
-	}
-
-	return true;
-}
-
-struct hayward_window *window_find_mark(char *mark) {
-	return root_find_window(find_by_mark_iterator, mark);
-}
-
-bool window_find_and_unmark(char *mark) {
-	struct hayward_window *container = root_find_window(
-		find_by_mark_iterator, mark);
-	if (!container) {
-		return false;
-	}
-
-	for (int i = 0; i < container->marks->length; ++i) {
-		char *container_mark = container->marks->items[i];
-		if (strcmp(container_mark, mark) == 0) {
-			free(container_mark);
-			list_del(container->marks, i);
-			window_update_marks_textures(container);
-			ipc_event_window(container, "mark");
-			return true;
-		}
-	}
-	return false;
-}
-
-void window_clear_marks(struct hayward_window *container) {
-	for (int i = 0; i < container->marks->length; ++i) {
-		free(container->marks->items[i]);
-	}
-	container->marks->length = 0;
-	ipc_event_window(container, "mark");
-}
-
-bool window_has_mark(struct hayward_window *container, char *mark) {
-	for (int i = 0; i < container->marks->length; ++i) {
-		char *item = container->marks->items[i];
-		if (strcmp(item, mark) == 0) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void window_add_mark(struct hayward_window *container, char *mark) {
-	list_add(container->marks, strdup(mark));
-	ipc_event_window(container, "mark");
-}
-
 static void render_titlebar_text_texture(struct hayward_output *output,
 		struct hayward_window *container, struct wlr_texture **texture,
 		struct border_colors *class, bool pango_markup, char *text) {
@@ -309,63 +245,6 @@ static void render_titlebar_text_texture(struct hayward_output *output,
 	cairo_surface_destroy(surface);
 	g_object_unref(pango);
 	cairo_destroy(cairo);
-}
-
-static void update_marks_texture(struct hayward_window *window,
-		struct wlr_texture **texture, struct border_colors *class) {
-	struct hayward_output *output = window_get_effective_output(window);
-	if (!output) {
-		return;
-	}
-	if (*texture) {
-		wlr_texture_destroy(*texture);
-		*texture = NULL;
-	}
-	if (!window->marks->length) {
-		return;
-	}
-
-	size_t len = 0;
-	for (int i = 0; i < window->marks->length; ++i) {
-		char *mark = window->marks->items[i];
-		if (mark[0] != '_') {
-			len += strlen(mark) + 2;
-		}
-	}
-	char *buffer = calloc(len + 1, 1);
-	char *part = malloc(len + 1);
-
-	hayward_assert(buffer && part, "Unable to allocate memory");
-
-	for (int i = 0; i < window->marks->length; ++i) {
-		char *mark = window->marks->items[i];
-		if (mark[0] != '_') {
-			snprintf(part, len + 1, "[%s]", mark);
-			strcat(buffer, part);
-		}
-	}
-	free(part);
-
-	render_titlebar_text_texture(output, window, texture, class, false, buffer);
-
-	free(buffer);
-}
-
-void window_update_marks_textures(struct hayward_window *window) {
-	if (!config->show_marks) {
-		return;
-	}
-	update_marks_texture(window, &window->marks_focused,
-			&config->border_colors.focused);
-	update_marks_texture(window, &window->marks_focused_inactive,
-			&config->border_colors.focused_inactive);
-	update_marks_texture(window, &window->marks_unfocused,
-			&config->border_colors.unfocused);
-	update_marks_texture(window, &window->marks_urgent,
-			&config->border_colors.urgent);
-	update_marks_texture(window, &window->marks_focused_tab_title,
-			&config->border_colors.focused_tab_title);
-	desktop_damage_window(window);
 }
 
 static void update_title_texture(struct hayward_window *window,
@@ -1283,7 +1162,6 @@ void window_discover_outputs(struct hayward_window *window) {
 	double new_scale = new_output ? new_output->wlr_output->scale : -1;
 	if (old_scale != new_scale) {
 		window_update_title_textures(window);
-		window_update_marks_textures(window);
 	}
 }
 
