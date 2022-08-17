@@ -981,10 +981,6 @@ void seat_set_focus(struct hayward_seat *seat, struct hayward_node *node) {
 	hayward_abort("Can't focus unknown node type");
 }
 
-void seat_clear_focus(struct hayward_seat *seat) {
-	seat_set_focus(seat, NULL);
-}
-
 void seat_commit_focus(struct hayward_seat *seat) {
 	hayward_assert(seat != NULL, "Expected seat");
 

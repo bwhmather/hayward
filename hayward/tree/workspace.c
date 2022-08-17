@@ -792,15 +792,18 @@ struct hayward_window *workspace_get_active_window(struct hayward_workspace *wor
 
 void workspace_set_active_window(struct hayward_workspace *workspace, struct hayward_window *window) {
 	hayward_assert(workspace != NULL, "Expected workspace");
-	hayward_assert(window != NULL, "Expected window");
-	hayward_assert(window->pending.workspace == workspace, "Window attached to wrong workspace");
 
 	struct hayward_window *prev_active = workspace_get_active_window(workspace);
 	if (window == prev_active) {
 		return;
 	}
 
-	if (window_is_floating(window)) {
+	if (window == NULL) {
+		workspace->pending.active_column = NULL;
+		workspace->pending.focus_mode = F_TILING;
+	} else if (window_is_floating(window)) {
+		hayward_assert(window->pending.workspace == workspace, "Window attached to wrong workspace");
+
 		int index = list_find(workspace->pending.floating, window);
 		hayward_assert(index != -1, "Window missing from list of floating windows");
 
@@ -811,6 +814,8 @@ void workspace_set_active_window(struct hayward_workspace *workspace, struct hay
 
 		window_reconcile_floating(window, workspace);
 	} else {
+		hayward_assert(window->pending.workspace == workspace, "Window attached to wrong workspace");
+
 		struct hayward_column *old_column = workspace->pending.active_column;
 		struct hayward_column *new_column = window->pending.parent;
 		hayward_assert(new_column->pending.workspace == workspace, "Column attached to wrong workspace");

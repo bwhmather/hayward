@@ -353,6 +353,8 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		&surface, &sx, &sy
 	);
 
+	struct hayward_workspace *workspace = root_get_active_workspace();
+
 	bool is_floating = window && window_is_floating(window);
 	bool is_fullscreen = window && window_is_fullscreen(window);
 	enum wlr_edges edge = window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
@@ -375,7 +377,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	// Handle clicking an empty workspace
 	if (output && !window && !surface) {
 		if (state == WLR_BUTTON_PRESSED) {
-			seat_clear_focus(seat);
+			workspace_set_active_window(workspace, NULL);
 			transaction_commit_dirty();
 		}
 		seat_pointer_notify_button(seat, time_msec, button, state);

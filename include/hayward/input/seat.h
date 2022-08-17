@@ -158,9 +158,6 @@ void seat_configure_xcursor(struct hayward_seat *seat);
 void seat_set_focus(struct hayward_seat *seat, struct hayward_node *node);
 
 // TODO deprecated.
-void seat_clear_focus(struct hayward_seat *seat);
-
-// TODO deprecated.
 void seat_set_focus_window(struct hayward_seat *seat, struct hayward_window *window);
 
 // TODO (hayward) deprecated.
