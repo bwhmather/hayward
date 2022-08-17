@@ -92,52 +92,13 @@ void column_consider_destroy(struct hayward_column *column) {
 
 void column_detach(struct hayward_column *column) {
 	hayward_assert(column != NULL, "Expected column");
-	struct hayward_workspace *old_workspace = column->pending.workspace;
+	struct hayward_workspace *workspace = column->pending.workspace;
 
-	if (old_workspace == NULL) {
+	if (workspace == NULL) {
 		return;
 	}
 
-	struct hayward_seat *seat = input_manager_current_seat();
-	struct hayward_window *old_focus = seat_get_focused_container(seat);
-
-	list_t *siblings = column_get_siblings(column);
-	if (siblings) {
-		int index = list_find(siblings, column);
-		if (index != -1) {
-			list_del(siblings, index);
-		}
-
-		if (old_workspace->pending.active_column == column) {
-			if (siblings->length) {
-				old_workspace->pending.active_column = siblings->items[index > 0 ? index - 1: 0];
-			} else {
-				old_workspace->pending.active_column = NULL;
-			}
-		}
-	}
-
-	column->pending.workspace = NULL;
-	column->pending.output = NULL;
-
-	struct hayward_window *new_focus = seat_get_focused_container(seat);
-	if (new_focus != old_focus) {
-		if (new_focus != NULL) {
-			// TODO `seat_set_focus_window` will rewrite all of the parent/child
-			// links, but this isn't really necessary.  Focus should probably
-			// just be inferred at the end of the transaction.
-			// TODO This probably won't unfocus the old window.  Same solution
-			// as above.
-			seat_set_focus_window(seat, new_focus);
-		} else {
-			seat_set_focus_workspace(seat, old_workspace);
-		}
-	}
-
-	if (old_workspace) {
-		node_set_dirty(&old_workspace->node);
-	}
-	node_set_dirty(&column->node);
+	workspace_remove_tiling(workspace, column);
 }
 
 void column_reconcile(struct hayward_column *column, struct hayward_workspace *workspace, struct hayward_output *output) {
