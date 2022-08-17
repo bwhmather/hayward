@@ -94,45 +94,22 @@ void window_begin_destroy(struct hayward_window *window) {
 }
 
 void window_detach(struct hayward_window *window) {
-	struct hayward_column *old_column = window->pending.parent;
-	struct hayward_workspace *old_workspace = window->pending.workspace;
+	struct hayward_column *column = window->pending.parent;
+	struct hayward_workspace *workspace = window->pending.workspace;
 
-	if (old_workspace == NULL) {
+	if (workspace == NULL) {
 		return;
 	}
-
-	struct hayward_seat *seat = input_manager_current_seat();
-	struct hayward_window *old_focus = seat_get_focused_container(seat);
 
 	if (window->pending.fullscreen) {
 		window->pending.workspace->pending.fullscreen = NULL;
 	}
 
-	if (old_column != NULL) {
-		column_remove_child(old_column, window);
+	if (column != NULL) {
+		column_remove_child(column, window);
 	} else {
-		workspace_remove_floating(old_workspace, window);
+		workspace_remove_floating(workspace, window);
 	}
-
-	if (old_focus == window) {
-		struct hayward_window *focus = seat_get_focused_container(seat);
-		hayward_assert(focus != window, "Window has been removed and so should no longer be focused");
-		if (focus != NULL) {
-			// TODO `seat_set_focus_window` will rewrite all of the parent/child
-			// links, but this isn't really necessary.  Focus should probably
-			// just be inferred at the end of the transaction.
-			seat_set_focus_window(seat, focus);
-		} else {
-			seat_set_focus_workspace(seat, old_workspace);
-		}
-	}
-
-	if (old_column != NULL) {
-		node_set_dirty(&old_column->node);
-	} else {
-		node_set_dirty(&old_workspace->node);
-	}
-	node_set_dirty(&window->node);
 }
 
 void window_reconcile_floating(struct hayward_window *window, struct hayward_workspace *workspace) {
