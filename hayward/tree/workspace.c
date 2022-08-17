@@ -482,25 +482,7 @@ struct hayward_window *workspace_find_window(struct hayward_workspace *workspace
 void workspace_detach(struct hayward_workspace *workspace) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
-	int index = list_find(root->pending.workspaces, workspace);
-	if (index != -1) {
-		list_del(root->pending.workspaces, index);
-	}
-
-	if (root->pending.active_workspace == workspace) {
-		hayward_assert(index != -1, "Workspace is active but not attached");
-		int next_index = index != 0 ? index - 1 : index;
-
-		struct hayward_workspace *next_focus = NULL;
-		if (next_index < root->pending.workspaces->length) {
-			next_focus = root->pending.workspaces->items[next_index];
-		}
-
-		root_set_active_workspace(next_focus);
-	}
-
-	node_set_dirty(&workspace->node);
-	node_set_dirty(&root->node);
+	root_remove_workspace(workspace);
 }
 
 void workspace_reconcile(struct hayward_workspace *workspace) {
