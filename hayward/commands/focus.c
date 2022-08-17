@@ -194,8 +194,7 @@ static struct hayward_node *node_get_in_direction_floating(
 	return closest_container ? &closest_container->node : NULL;
 }
 
-static struct cmd_results *focus_mode(struct hayward_workspace *workspace,
-		struct hayward_seat *seat, bool floating) {
+static struct cmd_results *focus_mode(struct hayward_workspace *workspace, bool floating) {
 	struct hayward_window *new_focus = NULL;
 	if (floating) {
 		new_focus = workspace_get_active_floating_window(workspace);
@@ -203,7 +202,7 @@ static struct cmd_results *focus_mode(struct hayward_workspace *workspace,
 		new_focus = workspace_get_active_tiling_window(workspace);
 	}
 	if (new_focus) {
-		seat_set_focus_window(seat, new_focus);
+		workspace_set_active_window(workspace, new_focus);
 	} else {
 		return cmd_results_new(CMD_FAILURE,
 				"Failed to find a %s container in workspace.",
@@ -234,12 +233,12 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[0], "floating") == 0) {
-		return focus_mode(workspace, seat, true);
+		return focus_mode(workspace, true);
 	} else if (strcmp(argv[0], "tiling") == 0) {
-		return focus_mode(workspace, seat, false);
+		return focus_mode(workspace, false);
 	} else if (strcmp(argv[0], "mode_toggle") == 0) {
 		bool floating = window && window_is_floating(window);
-		return focus_mode(workspace, seat, !floating);
+		return focus_mode(workspace, !floating);
 	}
 
 	enum wlr_direction direction = 0;
