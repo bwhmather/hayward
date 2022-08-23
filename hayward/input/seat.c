@@ -255,8 +255,8 @@ static void drag_handle_destroy(struct wl_listener *listener, void *data) {
 		seat_set_focus_layer(seat, layer);
 	} else {
 		struct wlr_surface *unmanaged = seat->wlr_seat->keyboard_state.focused_surface;
-		seat_set_focus_surface(seat, NULL, false);
-		seat_set_focus_surface(seat, unmanaged, false);
+		seat_set_focus_surface(seat, NULL);
+		seat_set_focus_surface(seat, unmanaged);
 	}
 
 	drag->wlr_drag->data = NULL;
@@ -881,15 +881,7 @@ void seat_commit_focus(struct hayward_seat *seat) {
 	seat->has_focus = new_window ? true : false;
 }
 
-void seat_set_focus_surface(struct hayward_seat *seat,
-		struct wlr_surface *surface, bool unfocus) {
-	// TODO TODO TODO
-	struct hayward_window *focused_window = root_get_focused_window();
-	if (focused_window && unfocus) {
-		seat_send_unfocus(&focused_window->node, seat);
-		seat->has_focus = false;
-	}
-
+void seat_set_focus_surface(struct hayward_seat *seat, struct wlr_surface *surface) {
 	if (surface) {
 		seat_keyboard_notify_enter(seat, surface);
 	} else {
@@ -908,7 +900,14 @@ void seat_set_focus_layer(struct hayward_seat *seat,
 		return;
 	}
 	assert(layer->mapped);
-	seat_set_focus_surface(seat, layer->surface, true);
+
+	struct hayward_window *focused_window = root_get_focused_window();
+	if (focused_window) {
+		seat_send_unfocus(&focused_window->node, seat);
+		seat->has_focus = false;
+	}
+
+	seat_set_focus_surface(seat, layer->surface);
 	if (layer->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
 		seat->focused_layer = layer;
 	}

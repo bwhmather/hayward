@@ -146,8 +146,7 @@ void seat_configure_xcursor(struct hayward_seat *seat);
  */
 void seat_commit_focus(struct hayward_seat *seat);
 
-void seat_set_focus_surface(struct hayward_seat *seat,
-		struct wlr_surface *surface, bool unfocus);
+void seat_set_focus_surface(struct hayward_seat *seat, struct wlr_surface *surface);
 
 void seat_set_focus_layer(struct hayward_seat *seat,
 		struct wlr_layer_surface_v1 *layer);

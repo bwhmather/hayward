@@ -283,7 +283,7 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 				wlr_xwayland_or_surface_wants_focus(xsurface)) {
 			struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
 			wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
-			seat_set_focus_surface(seat, xsurface->surface, false);
+			seat_set_focus_surface(seat, xsurface->surface);
 			transaction_commit_dirty();
 		}
 	}
@@ -524,7 +524,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 				wlr_xwayland_or_surface_wants_focus(xsurface)) {
 			struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
 			wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
-			seat_set_focus_surface(seat, xsurface->surface, false);
+			seat_set_focus_surface(seat, xsurface->surface);
 			transaction_commit_dirty();
 			seat_pointer_notify_button(seat, time_msec, button, state);
 			return;
