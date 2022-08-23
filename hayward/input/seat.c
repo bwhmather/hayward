@@ -51,13 +51,6 @@ static void seat_device_destroy(struct hayward_seat_device *seat_device) {
 	free(seat_device);
 }
 
-static void seat_workspace_destroy(struct hayward_seat_workspace *seat_workspace) {
-	wl_list_remove(&seat_workspace->destroy.link);
-	wl_list_remove(&seat_workspace->link);
-
-	free(seat_workspace);
-}
-
 void seat_destroy(struct hayward_seat *seat) {
 	if (seat == config->handler_context.seat) {
 		config->handler_context.seat = input_manager_get_default_seat();
@@ -66,14 +59,9 @@ void seat_destroy(struct hayward_seat *seat) {
 	wl_list_for_each_safe(seat_device, next, &seat->devices, link) {
 		seat_device_destroy(seat_device);
 	}
-	struct hayward_seat_workspace *seat_workspace, *next_seat_workspace;
-	wl_list_for_each_safe(seat_workspace, next_seat_workspace, &seat->active_workspace_stack, link) {
-		seat_workspace_destroy(seat_workspace);
-	}
 
 	hayward_input_method_relay_finish(&seat->im_relay);
 	hayward_cursor_destroy(seat->cursor);
-	wl_list_remove(&seat->new_node.link);
 	wl_list_remove(&seat->request_start_drag.link);
 	wl_list_remove(&seat->start_drag.link);
 	wl_list_remove(&seat->request_set_selection.link);
@@ -191,60 +179,6 @@ void hayward_force_focus(struct wlr_surface *surface) {
 		seat_keyboard_notify_enter(seat, surface);
 		seat_tablet_pads_notify_enter(seat, surface);
 		hayward_input_method_relay_set_focus(&seat->im_relay, surface);
-	}
-}
-
-static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
-	struct hayward_seat_workspace *seat_workspace = wl_container_of(listener, seat_workspace, destroy);
-	struct hayward_node *node = data;
-
-	hayward_assert(node->type == N_WORKSPACE, "Expected workspace");
-	struct hayward_workspace *workspace = node->hayward_workspace;
-
-	hayward_assert(workspace == seat_workspace->workspace, "Destroy handler registered for different workspace");
-
-	seat_workspace_destroy(seat_workspace);
-}
-
-static struct hayward_seat_workspace *seat_workspace_from_workspace(
-	struct hayward_seat *seat, struct hayward_workspace *workspace) {
-	struct hayward_seat_workspace *seat_workspace= NULL;
-	wl_list_for_each(seat_workspace, &seat->active_workspace_stack, link) {
-		if (seat_workspace->workspace == workspace) {
-			return seat_workspace;
-		}
-	}
-
-	seat_workspace = calloc(1, sizeof(struct hayward_seat_workspace));
-	if (seat_workspace == NULL) {
-		hayward_log(HAYWARD_ERROR, "could not allocate seat workspace");
-		return NULL;
-	}
-
-	seat_workspace->workspace = workspace;
-	seat_workspace->seat = seat;
-	wl_list_insert(seat->active_workspace_stack.prev, &seat_workspace->link);
-	wl_signal_add(&workspace->node.events.destroy, &seat_workspace->destroy);
-	seat_workspace->destroy.notify = handle_workspace_destroy;
-
-	return seat_workspace;
-}
-
-static void handle_new_node(struct wl_listener *listener, void *data) {
-	struct hayward_seat *seat = wl_container_of(listener, seat, new_node);
-	struct hayward_node *node = data;
-	switch (node->type) {
-	case N_ROOT:
-		break;
-	case N_OUTPUT:
-		break;
-	case N_WORKSPACE:
-		seat_workspace_from_workspace(seat, node->hayward_workspace);
-		break;
-	case N_COLUMN:
-		break;
-	case N_WINDOW:
-		break;
 	}
 }
 
@@ -415,17 +349,6 @@ static void handle_request_set_primary_selection(struct wl_listener *listener,
 	wlr_seat_set_primary_selection(seat->wlr_seat, event->source, event->serial);
 }
 
-static void collect_focus_workspace_iter(struct hayward_workspace *workspace,
-		void *data) {
-	struct hayward_seat *seat = data;
-	struct hayward_seat_workspace *seat_workspace = seat_workspace_from_workspace(seat, workspace);
-	if (!seat_workspace) {
-		return;
-	}
-	wl_list_remove(&seat_workspace->link);
-	wl_list_insert(&seat->active_workspace_stack, &seat_workspace->link);
-}
-
 struct hayward_seat *seat_create(const char *seat_name) {
 	struct hayward_seat *seat = calloc(1, sizeof(struct hayward_seat));
 	if (!seat) {
@@ -451,16 +374,9 @@ struct hayward_seat *seat_create(const char *seat_name) {
 		IDLE_SOURCE_TABLET_TOOL |
 		IDLE_SOURCE_SWITCH;
 
-	wl_list_init(&seat->active_workspace_stack);
-
 	wl_list_init(&seat->devices);
 
-	root_for_each_workspace(collect_focus_workspace_iter, seat);
-
 	seat->deferred_bindings = create_list();
-
-	wl_signal_add(&root->events.new_node, &seat->new_node);
-	seat->new_node.notify = handle_new_node;
 
 	wl_signal_add(&seat->wlr_seat->events.request_start_drag,
 		&seat->request_start_drag);

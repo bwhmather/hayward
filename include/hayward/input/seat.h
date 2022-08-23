@@ -41,15 +41,6 @@ struct hayward_seat_device {
 	struct wl_list link; // hayward_seat::devices
 };
 
-struct hayward_seat_workspace {
-	struct hayward_seat *seat;
-	struct hayward_workspace *workspace;
-
-	struct wl_list link;  // hayward_seat::active_workspace_stack
-
-	struct wl_listener destroy;
-};
-
 struct hayward_drag_icon {
 	struct hayward_seat *seat;
 	struct wlr_drag_icon *wlr_drag_icon;
@@ -77,10 +68,6 @@ struct hayward_seat {
 	// window stack, has focus.
 	bool has_focus;
 
-	// List of workspaces in focus order.  If the seat has a focused window, the
-	// top of the stack will match the workspace for that window.
-	struct wl_list active_workspace_stack;
-
 	// The window that is currently receiving input events.
 	struct hayward_window *focused_window;
 
@@ -106,7 +93,6 @@ struct hayward_seat {
 
 	struct hayward_input_method_relay im_relay;
 
-	struct wl_listener new_node;
 	struct wl_listener request_start_drag;
 	struct wl_listener start_drag;
 	struct wl_listener request_set_selection;
