@@ -581,8 +581,7 @@ static void ipc_get_workspaces_callback(struct hayward_workspace *workspace,
 	json_object *workspace_json = ipc_json_describe_node(&workspace->node);
 	// override the default focused indicator because
 	// it's set differently for the get_workspaces reply
-	struct hayward_seat *seat = input_manager_get_default_seat();
-	struct hayward_workspace *focused_workspace = seat_get_focused_workspace(seat);
+	struct hayward_workspace *focused_workspace = root_get_active_workspace();
 	bool focused = workspace == focused_workspace;
 	json_object_object_del(workspace_json, "focused");
 	json_object_object_add(workspace_json, "focused",

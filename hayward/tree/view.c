@@ -468,8 +468,7 @@ static void view_populate_pid(struct hayward_view *view) {
 }
 
 static bool should_focus(struct hayward_view *view) {
-	struct hayward_seat *seat = input_manager_current_seat();
-	struct hayward_workspace *prev_workspace = seat_get_focused_workspace(seat);
+	struct hayward_workspace *prev_workspace = root_get_active_workspace();
 	struct hayward_workspace *map_workspace = view->window->pending.workspace;
 
 	// View opened "under" fullscreen view should not be given focus.

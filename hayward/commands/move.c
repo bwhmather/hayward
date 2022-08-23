@@ -474,8 +474,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		} else {
 			struct hayward_workspace *workspace = window->pending.workspace;
 			if (!workspace) {
-				struct hayward_seat *seat = config->handler_context.seat;
-				workspace = seat_get_focused_workspace(seat);
+				workspace = root_get_active_workspace();
 			}
 			lx = workspace->pending.x + (workspace->pending.width - window->pending.width) / 2;
 			ly = workspace->pending.y + (workspace->pending.height - window->pending.height) / 2;
@@ -515,8 +514,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 
 	struct hayward_workspace *workspace = window->pending.workspace;
 	if (!workspace) {
-		struct hayward_seat *seat = config->handler_context.seat;
-		workspace = seat_get_focused_workspace(seat);
+		workspace = root_get_active_workspace();
 	}
 
 	switch (lx.unit) {

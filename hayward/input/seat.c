@@ -1039,11 +1039,6 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 	seat->exclusive_client = client;
 }
 
-// TODO deprecated.
-struct hayward_workspace *seat_get_active_workspace_for_output(struct hayward_seat *seat, struct hayward_output *output) {
-	return root_get_active_workspace();
-}
-
 struct hayward_window *seat_get_active_window_for_column(struct hayward_seat *seat, struct hayward_column *column) {
 	return column->pending.active_child;
 }
@@ -1067,7 +1062,7 @@ struct hayward_window *seat_get_active_window_for_workspace(struct hayward_seat 
 // TODO (hayward) deprecated.
 struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat, struct hayward_node *node) {
 	if (node->type == N_ROOT) {
-		struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
+		struct hayward_workspace *workspace = root_get_active_workspace();
 		if (workspace == NULL) {
 			return NULL;
 		}
@@ -1081,9 +1076,7 @@ struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat, struct h
 	}
 
 	if (node->type == N_OUTPUT) {
-		struct hayward_output *output = node->hayward_output;
-
-		struct hayward_workspace *workspace = seat_get_active_workspace_for_output(seat, output);
+		struct hayward_workspace *workspace = root_get_active_workspace();
 		if (workspace == NULL) {
 			return NULL;
 		}
@@ -1128,7 +1121,7 @@ struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat, struct h
 }
 
 struct hayward_node *seat_get_focus(struct hayward_seat *seat) {
-	struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (workspace == NULL) {
 		return NULL;
 	}
@@ -1141,19 +1134,8 @@ struct hayward_node *seat_get_focus(struct hayward_seat *seat) {
 	return &window->node;
 }
 
-struct hayward_workspace *seat_get_focused_workspace(struct hayward_seat *seat) {
-	if (wl_list_empty(&seat->active_workspace_stack)) {
-		return NULL;
-	}
-
-	struct hayward_seat_workspace *seat_workspace =
-		wl_container_of(seat->active_workspace_stack.next, seat_workspace, link);
-
-	return seat_workspace->workspace;
-}
-
 struct hayward_window *seat_get_focused_container(struct hayward_seat *seat) {
-	struct hayward_workspace *workspace = seat_get_focused_workspace(seat);
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (workspace == NULL) {
 		return NULL;
 	}

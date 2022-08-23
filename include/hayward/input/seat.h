@@ -171,22 +171,11 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 
 struct hayward_node *seat_get_focus(struct hayward_seat *seat);
 
-struct hayward_workspace *seat_get_focused_workspace(struct hayward_seat *seat);
-
-// If a scratchpad container is fullscreen global, this can be used to try to
-// determine the last focused workspace. Otherwise, this should yield the same
-// results as seat_get_focused_workspace.
-struct hayward_workspace *seat_get_last_known_workspace(struct hayward_seat *seat);
-
 struct hayward_window *seat_get_focused_container(struct hayward_seat *seat);
 
 // Force focus to a particular surface that is not part of the workspace
 // hierarchy (used for lockscreen)
 void hayward_force_focus(struct wlr_surface *surface);
-
-struct hayward_workspace *seat_get_active_workspace(struct hayward_seat *seat);
-
-struct hayward_workspace *seat_get_active_workspace_for_output(struct hayward_seat *seat, struct hayward_output *output);
 
 struct hayward_window *seat_get_active_window_for_column(struct hayward_seat *seat, struct hayward_column *column);
 
