@@ -499,7 +499,7 @@ void window_move_to_output_from_direction(struct hayward_window *window, struct 
 				column = candidate_column;
 			}
 		}
-		if (workspace->pending.active_column->pending.output == output && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
+		if (workspace->pending.active_column->pending.output == output && move_dir != WLR_DIRECTION_UP && move_dir == WLR_DIRECTION_DOWN) {
 			column = workspace->pending.active_column;
 		}
 		if (column == NULL) {
@@ -512,6 +512,10 @@ void window_move_to_output_from_direction(struct hayward_window *window, struct 
 
 		window_move_to_column_from_direction(window, column, move_dir);
 	}
+}
+
+void window_move_to_output(struct hayward_window *window, struct hayward_output *output) {
+	window_move_to_output_from_direction(window, output, 0);
 }
 
 struct wlr_surface *window_surface_at(struct hayward_window *window, double lx, double ly, double *sx, double *sy) {

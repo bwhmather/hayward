@@ -178,6 +178,7 @@ void window_move_to_column(struct hayward_window *window,
 		struct hayward_column *destination);
 
 void window_move_to_output_from_direction(struct hayward_window *window, struct hayward_output *output, enum wlr_direction move_dir);
+void window_move_to_output(struct hayward_window *window, struct hayward_output *output);
 
 void window_move_to_workspace(struct hayward_window *window, struct hayward_workspace *workspace);
 
