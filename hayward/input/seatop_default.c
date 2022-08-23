@@ -485,9 +485,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	if (config->tiling_drag && (mod_pressed || on_titlebar) &&
 			state == WLR_BUTTON_PRESSED && !is_floating &&
 			window && !window->pending.fullscreen) {
-		// TODO with focus follows mouse, is there ever a situation where this will
-		// actually be triggered.
-		struct hayward_window *focus = seat_get_focused_container(seat);
+		struct hayward_window *focus = root_get_focused_window();
 		if (on_titlebar && focus != window) {
 			root_set_focused_window(window);
 		}

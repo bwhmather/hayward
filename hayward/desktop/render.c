@@ -922,8 +922,7 @@ void output_render(struct hayward_output *output, struct timespec *when,
 
 	render_seatops(output, damage);
 
-	struct hayward_seat *seat = input_manager_current_seat();
-	struct hayward_window *focus = seat_get_focused_container(seat);
+	struct hayward_window *focus = root_get_focused_window();
 	if (focus && focus->view) {
 		render_view_popups(focus->view, output, damage, focus->alpha);
 	}

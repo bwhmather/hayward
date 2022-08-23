@@ -182,7 +182,6 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "Can only move windows");
 	}
 
-	struct hayward_seat *seat = config->handler_context.seat;
 	struct hayward_column *old_parent = window->pending.parent;
 	struct hayward_workspace *old_workspace = window->pending.workspace;
 	struct hayward_output *old_output = window_get_output(window);
@@ -250,7 +249,7 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 			return cmd_results_new(CMD_FAILURE,
 				"Can't find output with name/direction '%s'", argv[1]);
 		}
-		destination = seat_get_focus_inactive(seat, &new_output->node);
+		destination = &new_output->node;
 	} else {
 		return cmd_results_new(CMD_INVALID, expected_syntax);
 	}

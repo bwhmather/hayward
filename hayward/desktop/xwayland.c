@@ -119,12 +119,12 @@ static void unmanaged_handle_request_activate(struct wl_listener *listener, void
 	if (!xsurface->mapped) {
 		return;
 	}
-	struct hayward_seat *seat = input_manager_current_seat();
-	struct hayward_window *focus = seat_get_focused_container(seat);
+	struct hayward_window *focus = root_get_focused_window();
 	if (focus && focus->view && focus->view->pid != xsurface->pid) {
 		return;
 	}
 
+	struct hayward_seat *seat = input_manager_current_seat();
 	seat_set_focus_surface(seat, xsurface->surface, false);
 }
 

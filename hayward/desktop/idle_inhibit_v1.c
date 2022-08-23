@@ -107,12 +107,9 @@ bool hayward_idle_inhibit_v1_is_active(struct hayward_idle_inhibitor_v1 *inhibit
 		struct hayward_view *view = view_from_wlr_surface(inhibitor->wlr_inhibitor->surface);
 		return !view || !view->window || view_is_visible(view);
 	case INHIBIT_IDLE_FOCUS:;
-		struct hayward_seat *seat = NULL;
-		wl_list_for_each(seat, &server.input->seats, link) {
-			struct hayward_window *container = seat_get_focused_container(seat);
-			if (container && container->view && container->view == inhibitor->view) {
-				return true;
-			}
+		struct hayward_window *window = root_get_focused_window();
+		if (window && window->view == inhibitor->view) {
+			return true;
 		}
 		return false;
 	case INHIBIT_IDLE_FULLSCREEN:

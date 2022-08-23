@@ -157,7 +157,7 @@ static bool surface_is_popup(struct wlr_surface *surface) {
 
 struct hayward_window *seat_window_at(struct hayward_seat *seat, double lx, double ly) {
 	struct hayward_window *window;
-	struct hayward_window *focus = seat_get_focused_container(seat);
+	struct hayward_window *focus = root_get_focused_window();
 
 	// Focused view's popups
 	if (focus) {

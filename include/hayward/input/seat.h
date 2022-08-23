@@ -157,31 +157,9 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 
 struct hayward_node *seat_get_focus(struct hayward_seat *seat);
 
-struct hayward_window *seat_get_focused_container(struct hayward_seat *seat);
-
 // Force focus to a particular surface that is not part of the workspace
 // hierarchy (used for lockscreen)
 void hayward_force_focus(struct wlr_surface *surface);
-
-struct hayward_window *seat_get_active_window_for_column(struct hayward_seat *seat, struct hayward_column *column);
-
-struct hayward_window *seat_get_active_tiling_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace);
-
-struct hayward_window *seat_get_active_floating_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace);
-
-struct hayward_window *seat_get_active_window_for_workspace(struct hayward_seat *seat, struct hayward_workspace *workspace);
-
-/**
- * Return the last container to be focused for the seat (or the most recently
- * opened if no container has received focused) that is a child of the given
- * container. The focus-inactive container of the root window is the focused
- * container for the seat (if the seat does have focus). This function can be
- * used to determine what container gets focused next if the focused container
- * is destroyed, or focus moves to a container with children and we need to
- * descend into the next leaf in focus order.
- */
-struct hayward_node *seat_get_focus_inactive(struct hayward_seat *seat,
-		struct hayward_node *node);
 
 void seat_apply_config(struct hayward_seat *seat, struct seat_config *seat_config);
 

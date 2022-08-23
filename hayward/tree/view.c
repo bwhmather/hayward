@@ -1147,8 +1147,7 @@ void view_set_urgent(struct hayward_view *view, bool enable) {
 		return;
 	}
 	if (enable) {
-		struct hayward_seat *seat = input_manager_current_seat();
-		if (seat_get_focused_container(seat) == view->window) {
+		if (root_get_focused_window() == view->window) {
 			return;
 		}
 		clock_gettime(CLOCK_MONOTONIC, &view->urgent);

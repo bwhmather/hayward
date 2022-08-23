@@ -160,37 +160,9 @@ static const struct cmd_handler *find_core_handler(char *line) {
 			handlers, sizeof(handlers));
 }
 
-static void set_config_node(struct hayward_node *node) {
-	config->handler_context.workspace = NULL;
-	config->handler_context.window = NULL;
-
-	if (node == NULL) {
-		return;
-	}
-
-	switch (node->type) {
-	case N_ROOT:
-		break;
-	case N_OUTPUT:
-		break;
-	case N_WORKSPACE:
-		config->handler_context.workspace = node->hayward_workspace;
-		break;
-	case N_COLUMN:
-		config->handler_context.workspace = node->hayward_column->pending.workspace;
-		break;
-	case N_WINDOW:
-		config->handler_context.workspace = node->hayward_window->pending.workspace;
-		config->handler_context.window = node->hayward_window;
-		break;
-	}
-}
-
-list_t *execute_command(char *_exec, struct hayward_seat *seat,
-		struct hayward_window *container) {
+list_t *execute_command(char *_exec, struct hayward_seat *seat, struct hayward_window *window) {
 	char *cmd;
 	char matched_delim = ';';
-	list_t *containers = NULL;
 
 	if (seat == NULL) {
 		// passing a NULL seat means we just pick the default seat
@@ -245,12 +217,14 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat,
 			argv[i] = do_var_replacement(argv[i]);
 		}
 
-
-		if (container) {
-			set_config_node(&container->node);
+		if (window == NULL) {
+			config->handler_context.workspace = root_get_active_workspace();
+			config->handler_context.window = NULL;
 		} else {
-			set_config_node(seat_get_focus_inactive(seat, &root->node));
+			config->handler_context.workspace = window->pending.workspace;
+			config->handler_context.window = window;
 		}
+
 		struct cmd_results *res = handler->handle(argc-1, argv+1);
 		list_add(res_list, res);
 		if (res->status == CMD_INVALID) {
@@ -261,7 +235,6 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat,
 	} while(head);
 cleanup:
 	free(exec);
-	list_free(containers);
 	return res_list;
 }
 
