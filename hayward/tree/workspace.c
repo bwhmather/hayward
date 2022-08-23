@@ -303,15 +303,6 @@ struct hayward_workspace *workspace_by_name(const char *name) {
 	return root_find_workspace(_workspace_by_name, (void*)name);
 }
 
-// TODO replace with root_set_active_workspace
-bool workspace_switch(struct hayward_workspace *workspace) {
-	hayward_assert(workspace != NULL, "Expected workspace");
-
-	root_set_active_workspace(workspace);
-
-	return true;
-}
-
 bool workspace_is_visible(struct hayward_workspace *workspace) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
