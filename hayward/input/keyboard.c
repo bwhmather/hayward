@@ -600,22 +600,7 @@ static void handle_keyboard_group_leave(struct wl_listener *listener,
 		return;
 	}
 
-	// Refocus the focused node, layer surface, or unmanaged surface so that
-	// it picks up the current keyboard state.
-	struct hayward_seat *seat = keyboard->seat_device->hayward_seat;
-	struct hayward_node *focus = seat_get_focus(seat);
-	if (focus) {
-		seat_set_focus(seat, NULL);
-		seat_set_focus(seat, focus);
-	} else if (seat->focused_layer) {
-		struct wlr_layer_surface_v1 *layer = seat->focused_layer;
-		seat_set_focus_layer(seat, NULL);
-		seat_set_focus_layer(seat, layer);
-	} else {
-		struct wlr_surface *unmanaged = seat->wlr_seat->keyboard_state.focused_surface;
-		seat_set_focus_surface(seat, NULL, false);
-		seat_set_focus_surface(seat, unmanaged, false);
-	}
+	// TODO force refocus so that focused layer picks up new keyboard state.
 }
 
 static int handle_keyboard_repeat(void *data) {

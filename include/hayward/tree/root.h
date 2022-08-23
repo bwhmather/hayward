@@ -91,6 +91,7 @@ struct hayward_output *root_get_current_active_output(void);
  * Helper functions that traverse the tree to focus the right window.
  */
 void root_set_focused_window(struct hayward_window *window);
+struct hayward_window *root_get_active_window(void);
 struct hayward_window *root_get_focused_window(void);
 
 void root_commit_focus(void);

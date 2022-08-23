@@ -37,16 +37,20 @@ static bool parse_direction(const char *name,
  *
  *  Node should always be either a workspace or a window.
  */
-static struct hayward_node *get_node_in_output_direction(
-		struct hayward_output *output, enum wlr_direction dir) {
-	struct hayward_workspace *workspace = output_get_active_workspace(output);
-	hayward_assert(workspace, "Expected output to have a workspace");
+static struct hayward_window *get_window_in_output_direction(struct hayward_output *output, enum wlr_direction dir) {
+	hayward_assert(output != NULL, "Expected output");
+
+	struct hayward_workspace *workspace = root_get_active_workspace();
+	hayward_assert(workspace != NULL, "Expected workspace");
+
 	if (workspace->pending.fullscreen) {
-		return &workspace->pending.fullscreen->node;
+		return workspace->pending.fullscreen;
 	}
+
 	struct hayward_column *column = NULL;
 	struct hayward_window *window = NULL;
 
+	// TODO this is completly broken now that one workspace is spread across all outputs.
 	if (workspace->pending.tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
@@ -68,14 +72,10 @@ static struct hayward_node *get_node_in_output_direction(
 		}
 	}
 
-	if (window) {
-		return &window->node;
-	}
-
-	return &workspace->node;
+	return window;
 }
 
-static struct hayward_node *node_get_in_direction_tiling(
+static struct hayward_window *window_get_in_direction_tiling(
 		struct hayward_window *window, struct hayward_seat *seat,
 		enum wlr_direction dir) {
 	struct hayward_window *wrap_candidate = NULL;
@@ -88,7 +88,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 		if (!new_output) {
 			return NULL;
 		}
-		return get_node_in_output_direction(new_output, dir);
+		return get_window_in_output_direction(new_output, dir);
 	}
 
 	// TODO (hayward) this is a manually unrolled recursion over container.  Make it nice.
@@ -111,7 +111,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 				wrap_candidate = siblings->items[0];
 			}
 			if (config->focus_wrapping == WRAP_FORCE) {
-				return &wrap_candidate->node;
+				return wrap_candidate;
 			}
 		}
 	} else {
@@ -127,7 +127,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 		if (desired_idx >= 0 && desired_idx < siblings->length) {
 			struct hayward_column *next_column = siblings->items[desired_idx];
 			struct hayward_window *next_window = next_column->pending.active_child;
-			return &next_window->node;
+			return next_window;
 		}
 
 		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
@@ -139,7 +139,7 @@ static struct hayward_node *node_get_in_direction_tiling(
 			}
 			wrap_candidate = wrap_candidate_column->pending.active_child;
 			if (config->focus_wrapping == WRAP_FORCE) {
-				return &wrap_candidate->node;
+				return wrap_candidate;
 			}
 		}
 	}
@@ -148,18 +148,18 @@ static struct hayward_node *node_get_in_direction_tiling(
 	struct hayward_output *output = window_get_output(window);
 	struct hayward_output *new_output = output_get_in_direction(output, dir);
 	if (config->focus_wrapping != WRAP_WORKSPACE && new_output) {
-		return get_node_in_output_direction(new_output, dir);
+		return get_window_in_output_direction(new_output, dir);
 	}
 
 	// If there is a wrap candidate, return its focus inactive view
 	if (wrap_candidate) {
-		return &wrap_candidate->node;
+		return wrap_candidate;
 	}
 
 	return NULL;
 }
 
-static struct hayward_node *node_get_in_direction_floating(
+static struct hayward_window *window_get_in_direction_floating(
 		struct hayward_window *container, struct hayward_seat *seat,
 		enum wlr_direction dir) {
 	double ref_lx = container->pending.x + container->pending.width / 2;
@@ -191,7 +191,7 @@ static struct hayward_node *node_get_in_direction_floating(
 		}
 	}
 
-	return closest_container ? &closest_container->node : NULL;
+	return closest_container;
 }
 
 static struct cmd_results *focus_mode(struct hayward_workspace *workspace, bool floating) {
@@ -225,7 +225,7 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	struct hayward_output *output = root_get_active_output();
 	hayward_assert(output != NULL, "Expected output");
 
-	struct hayward_window *window = seat_get_focused_container(seat);
+	struct hayward_window *window = root_get_focused_window();
 
 	if (argc == 0) {
 		return cmd_results_new(CMD_INVALID,
@@ -259,22 +259,25 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 			return cmd_results_new(CMD_SUCCESS, NULL);
 		}
 
-		struct hayward_node *node = get_node_in_output_direction(new_output, direction);
-		seat_set_focus(seat, node);
+		window = get_window_in_output_direction(new_output, direction);
+		if (window != NULL) {
+			root_set_focused_window(window);
+		} else {
+			// TODO might make more sense to move this to the root.
+			workspace_set_active_window(workspace, NULL);
+			root_set_active_output(new_output);
+		}
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
-	struct hayward_node *next_focus = NULL;
+	struct hayward_window *next_focus = NULL;
 	if (window_is_floating(window) && !window->pending.fullscreen) {
-		next_focus = node_get_in_direction_floating(window, seat, direction);
+		next_focus = window_get_in_direction_floating(window, seat, direction);
 	} else {
-		next_focus = node_get_in_direction_tiling(window, seat, direction);
+		next_focus = window_get_in_direction_tiling(window, seat, direction);
 	}
 	if (next_focus) {
-		hayward_assert(next_focus->type != N_COLUMN, "Shouldn't focus columns");
-		hayward_assert(next_focus->type != N_WORKSPACE, "Shouldn't focus workspaces");
-		seat_set_focus(seat, next_focus);
-		window_raise_floating(next_focus->hayward_window);
+		root_set_focused_window(next_focus);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

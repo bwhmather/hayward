@@ -337,11 +337,16 @@ struct hayward_output *root_get_current_active_output(void) {
 	return root->current.active_output;
 }
 
-struct hayward_window *root_get_focused_window(void) {
+struct hayward_window *root_get_active_window(void) {
 	struct hayward_workspace *workspace = root_get_active_workspace();
 	hayward_assert(workspace != NULL, "Expected workspace");
 
 	return workspace_get_active_window(workspace);
+}
+
+struct hayward_window *root_get_focused_window(void) {
+	// TODO window can be active without being focused.  Layers and surfaces may take precedence.
+	return root_get_active_window();
 }
 
 void root_set_focused_window(struct hayward_window *window) {

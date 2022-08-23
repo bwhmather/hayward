@@ -303,20 +303,12 @@ struct hayward_workspace *workspace_by_name(const char *name) {
 	return root_find_workspace(_workspace_by_name, (void*)name);
 }
 
+// TODO replace with root_set_active_workspace
 bool workspace_switch(struct hayward_workspace *workspace) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
-	struct hayward_seat *seat = input_manager_current_seat();
+	root_set_active_workspace(workspace);
 
-	hayward_log(HAYWARD_DEBUG, "Switching to workspace %p:%s",
-		(void *) workspace, workspace->name);
-
-	struct hayward_window *active_window = seat_get_active_window_for_workspace(seat, workspace);
-	if (active_window) {
-		seat_set_focus_window(seat, active_window);
-	} else {
-		seat_set_focus_workspace(seat, workspace);
-	}
 	return true;
 }
 

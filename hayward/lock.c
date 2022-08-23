@@ -93,18 +93,6 @@ static void handle_unlock(struct wl_listener *listener, void *data) {
 	wl_list_remove(&server.session_lock.lock_unlock.link);
 	wl_list_remove(&server.session_lock.lock_destroy.link);
 
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		seat_set_exclusive_client(seat, NULL);
-		// copied from seat_set_focus_layer -- deduplicate?
-		struct hayward_node *previous = seat_get_focus_inactive(seat, &root->node);
-		if (previous) {
-			// Hack to get seat to re-focus the return value of get_focus
-			seat_set_focus(seat, NULL);
-			seat_set_focus(seat, previous);
-		}
-	}
-
 	// redraw everything
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct hayward_output *output = root->outputs->items[i];

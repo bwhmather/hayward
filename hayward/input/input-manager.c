@@ -291,12 +291,6 @@ static void handle_inhibit_deactivate(struct wl_listener *listener, void *data) 
 	}
 	wl_list_for_each(seat, &input_manager->seats, link) {
 		seat_set_exclusive_client(seat, NULL);
-		struct hayward_node *previous = seat_get_focus(seat);
-		if (previous) {
-			// Hack to get seat to re-focus the return value of get_focus
-			seat_set_focus(seat, NULL);
-			seat_set_focus(seat, previous);
-		}
 	}
 }
 
@@ -488,13 +482,6 @@ bool input_manager_has_focus(struct hayward_node *node) {
 	}
 
 	return false;
-}
-
-void input_manager_set_focus(struct hayward_node *node) {
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		seat_set_focus(seat, node);
-	}
 }
 
 /**

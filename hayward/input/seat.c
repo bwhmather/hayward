@@ -196,7 +196,6 @@ void hayward_force_focus(struct wlr_surface *surface) {
 
 static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_seat_workspace *seat_workspace = wl_container_of(listener, seat_workspace, destroy);
-	struct hayward_seat *seat = seat_workspace->seat;
 	struct hayward_node *node = data;
 
 	hayward_assert(node->type == N_WORKSPACE, "Expected workspace");
@@ -205,13 +204,6 @@ static void handle_workspace_destroy(struct wl_listener *listener, void *data) {
 	hayward_assert(workspace == seat_workspace->workspace, "Destroy handler registered for different workspace");
 
 	seat_workspace_destroy(seat_workspace);
-
-	// If an unmanaged or layer surface is focused when an output gets
-	// disabled and an empty workspace on the output was focused by the
-	// seat, the seat needs to refocus its focus inactive to update the
-	// value of seat->workspace.
-	struct hayward_node *window_node = seat_get_focus_inactive(seat, &root->node);
-	seat_set_focus(seat, window_node);
 }
 
 static struct hayward_seat_workspace *seat_workspace_from_workspace(
@@ -323,11 +315,7 @@ static void drag_handle_destroy(struct wl_listener *listener, void *data) {
 	// Focus enter isn't sent during drag, so refocus the focused node, layer
 	// surface or unmanaged surface.
 	struct hayward_seat *seat = drag->seat;
-	struct hayward_node *focus = seat_get_focus(seat);
-	if (focus) {
-		seat_set_focus(seat, NULL);
-		seat_set_focus(seat, focus);
-	} else if (seat->focused_layer) {
+	if (seat->focused_layer) {
 		struct wlr_layer_surface_v1 *layer = seat->focused_layer;
 		seat_set_focus_layer(seat, NULL);
 		seat_set_focus_layer(seat, layer);
@@ -495,16 +483,7 @@ struct hayward_seat *seat_create(const char *seat_name) {
 
 	hayward_input_method_relay_init(seat, &seat->im_relay);
 
-	bool first = wl_list_empty(&server.input->seats);
 	wl_list_insert(&server.input->seats, &seat->link);
-
-	if (!first) {
-		// Since this is not the first seat, attempt to set initial focus
-		struct hayward_seat *current_seat = input_manager_current_seat();
-		struct hayward_node *current_focus =
-			seat_get_focus_inactive(current_seat, &root->node);
-		seat_set_focus(seat, current_focus);
-	}
 
 	seatop_begin_default(seat);
 
@@ -962,25 +941,6 @@ static void seat_send_unfocus(struct hayward_node *node, struct hayward_seat *se
 	wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 }
 
-void seat_set_focus(struct hayward_seat *seat, struct hayward_node *node) {
-	if (node == NULL) {
-		seat_set_focus_window(seat, NULL);
-		return;
-	}
-
-	if (node->type == N_WINDOW) {
-		seat_set_focus_window(seat, node->hayward_window);
-		return;
-	}
-
-	if (node->type == N_WORKSPACE) {
-		seat_set_focus_workspace(seat, node->hayward_workspace);
-		return;
-	}
-
-	hayward_abort("Can't focus unknown node type");
-}
-
 void seat_commit_focus(struct hayward_seat *seat) {
 	hayward_assert(seat != NULL, "Expected seat");
 
@@ -1005,29 +965,6 @@ void seat_commit_focus(struct hayward_seat *seat) {
 	seat->has_focus = new_window ? true : false;
 }
 
-/**
- * Sets focus to a particular window.
- * If window is NULL, clears the window focus but leaves the current workspace
- * unchanged.
- *
- * If the focused window has been moved between workspaces, this function
- * should be called to patch up the workspace focus stack.
- */
-void seat_set_focus_window(struct hayward_seat *seat, struct hayward_window *new_window) {
-	root_set_focused_window(new_window);
-}
-
-/**
- * Sets focus to the active window on a workspace, or to the workspace itself
- * if empty.
- */
-void seat_set_focus_workspace(struct hayward_seat *seat,
-		struct hayward_workspace *new_workspace) {
-	hayward_assert(new_workspace != NULL, "Can't set focus to null workspace");
-
-	root_set_active_workspace(new_workspace);
-}
-
 void seat_set_focus_surface(struct hayward_seat *seat,
 		struct wlr_surface *surface, bool unfocus) {
 	if (seat->has_focus && unfocus) {
@@ -1050,13 +987,6 @@ void seat_set_focus_layer(struct hayward_seat *seat,
 		struct wlr_layer_surface_v1 *layer) {
 	if (!layer && seat->focused_layer) {
 		seat->focused_layer = NULL;
-		struct hayward_node *previous = seat_get_focus_inactive(seat, &root->node);
-		if (previous) {
-			// Hack to get seat to re-focus the return value of get_focus
-			seat_set_focus(seat, NULL);
-			seat_set_focus(seat, previous);
-		}
-		return;
 	} else if (!layer || seat->focused_layer == layer) {
 		return;
 	}
@@ -1088,7 +1018,8 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 		struct hayward_node *focus = seat_get_focus(seat);
 		if (node_is_view(focus) && wl_resource_get_client(
 					focus->hayward_window->view->surface->resource) != client) {
-			seat_set_focus(seat, NULL);
+			// TODO
+			root_set_focused_window(NULL);
 		}
 	}
 	if (seat->wlr_seat->pointer_state.focused_client) {

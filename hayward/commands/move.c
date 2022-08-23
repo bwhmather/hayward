@@ -262,7 +262,7 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 	}
 
 	// save focus, in case it needs to be restored
-	struct hayward_node *focus = seat_get_focus(seat);
+	struct hayward_window *focus = root_get_focused_window();
 
 	switch (destination->type) {
 	case N_WORKSPACE:
@@ -287,16 +287,18 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 	ipc_event_window(window, "move");
 
 	// restore focus
-	if (focus == &window->node) {
+	if (focus == window) {
 		focus = NULL;
 		if (old_parent) {
-			focus = seat_get_focus_inactive(seat, &old_parent->node);
+			focus = old_parent->pending.active_child;
 		}
 		if (!focus && old_workspace) {
-			focus = seat_get_focus_inactive(seat, &old_workspace->node);
+			focus = workspace_get_active_window(old_workspace);
 		}
 	}
-	seat_set_focus(seat, focus);
+	if (focus != NULL) {
+		root_set_focused_window(focus);
+	}
 
 	// clean-up, destroying parents if the window was the last child
 	if (old_parent) {
@@ -382,7 +384,7 @@ static struct cmd_results *cmd_move_in_direction(
 	ipc_event_window(window, "move");
 
 	// Hack to re-focus window
-	seat_set_focus_window(config->handler_context.seat, window);
+	root_set_focused_window(window);
 
 	if (old_workspace != new_workspace) {
 		ipc_event_workspace(old_workspace, new_workspace, "focus");

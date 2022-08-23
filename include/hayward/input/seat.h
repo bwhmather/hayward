@@ -154,16 +154,6 @@ void seat_remove_device(struct hayward_seat *seat,
 
 void seat_configure_xcursor(struct hayward_seat *seat);
 
-// TODO (hayward) deprecated.
-void seat_set_focus(struct hayward_seat *seat, struct hayward_node *node);
-
-// TODO deprecated.
-void seat_set_focus_window(struct hayward_seat *seat, struct hayward_window *window);
-
-// TODO (hayward) deprecated.
-void seat_set_focus_workspace(struct hayward_seat *seat,
-		struct hayward_workspace *workspace);
-
 /**
  * Redirects input events to the window or surface currently marked as focused
  * in the tree.

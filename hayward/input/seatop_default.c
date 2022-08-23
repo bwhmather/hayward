@@ -258,7 +258,7 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 
 		// Handle beginning floating move.
 		if (is_floating_or_child && !is_fullscreen_or_child && mod_pressed) {
-			seat_set_focus_window(seat, window);
+			root_set_focused_window(window);
 			seatop_begin_move_floating(seat, window);
 			return;
 		}
@@ -271,7 +271,7 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 		}
 
 		// Handle tapping on a container surface
-		seat_set_focus_window(seat, window);
+		root_set_focused_window(window);
 		seatop_begin_down(seat, window, time_msec, sx, sy);
 	}
 #if HAVE_XWAYLAND
@@ -412,7 +412,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		if (layout == L_STACKED) {
 			window_to_focus = window->pending.parent->pending.active_child;
 		}
-		seat_set_focus_window(seat, window_to_focus);
+		root_set_focused_window(window_to_focus);
 		seatop_begin_resize_tiling(seat, window, edge);   // TODO (hayward) will only ever take a window.
 		return;
 	}
@@ -441,7 +441,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 				image = "sw-resize";
 			}
 			cursor_set_image(seat->cursor, image, NULL);
-			seat_set_focus_window(seat, window);
+			root_set_focused_window(window);
 			seatop_begin_resize_tiling(seat, window, edge);  // TODO (hayward) should only accept windows.
 			return;
 		}
@@ -452,7 +452,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 			state == WLR_BUTTON_PRESSED) {
 		uint32_t btn_move = config->floating_mod_inverse ? BTN_RIGHT : BTN_LEFT;
 		if (button == btn_move && (mod_pressed || on_titlebar)) {
-			seat_set_focus_window(seat, window);
+			root_set_focused_window(window);
 			seatop_begin_move_floating(seat, window);  // TODO (hayward) should only accept windows.
 			return;
 		}
@@ -489,7 +489,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		// actually be triggered.
 		struct hayward_window *focus = seat_get_focused_container(seat);
 		if (on_titlebar && focus != window) {
-			seat_set_focus_window(seat, window);
+			root_set_focused_window(window);
 		}
 
 		// If moving a container by its title bar, use a threshold for the drag
@@ -503,7 +503,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 
 	// Handle mousedown on a container surface
 	if (surface && window && state == WLR_BUTTON_PRESSED) {
-		seat_set_focus_window(seat, window);
+		root_set_focused_window(window);
 		seatop_begin_down(seat, window, time_msec, sx, sy);
 		seat_pointer_notify_button(seat, time_msec, button, WLR_BUTTON_PRESSED);
 		return;
@@ -511,7 +511,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 
 	// Handle clicking a container surface or decorations
 	if (window && state == WLR_BUTTON_PRESSED) {
-		seat_set_focus_window(seat, window);
+		root_set_focused_window(window);
 		transaction_commit_dirty();
 		seat_pointer_notify_button(seat, time_msec, button, state);
 		return;
@@ -555,8 +555,7 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 		}
 		struct hayward_output *hovered_output = wlr_output->data;
 		if (focus && hovered_output != root_get_active_output()) {
-			struct hayward_workspace *workspace = output_get_active_workspace(hovered_output);
-			seat_set_focus(seat, &workspace->node);
+			root_set_active_output(hovered_output);
 			transaction_commit_dirty();
 		}
 		return;
@@ -564,7 +563,7 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 
 	// If a workspace node is hovered (eg. in the gap area), only set focus if
 	// the workspace is on a different output to the previous focus.
-	if (focus && hovered_node->type == N_WORKSPACE) {
+	if (focus && hovered_node->type == N_OUTPUT) {
 		struct wlr_output *wlr_output = wlr_output_layout_output_at(
 				root->output_layout, seat->cursor->cursor->x, seat->cursor->cursor->y);
 		if (wlr_output == NULL) {
@@ -575,7 +574,7 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 		struct hayward_output *focused_output = root_get_active_output();
 
 		if (hovered_output != focused_output) {
-			seat_set_focus(seat, seat_get_focus_inactive(seat, hovered_node));
+			root_set_active_output(hovered_output);
 			transaction_commit_dirty();
 		}
 		return;
@@ -591,7 +590,7 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 		// But if focus_follows_mouse is "always", we do.
 		if (hovered_node != e->previous_node ||
 				config->focus_follows_mouse == FOLLOWS_ALWAYS) {
-			seat_set_focus(seat, hovered_node);
+			root_set_focused_window(hovered_node->hayward_window);
 			transaction_commit_dirty();
 		}
 	}
@@ -769,7 +768,7 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 			}
 
 			struct hayward_window *new_sibling = siblings->items[desired];
-			seat_set_focus_window(seat, new_sibling);
+			root_set_focused_window(new_sibling);
 			transaction_commit_dirty();
 			handled = true;
 		}

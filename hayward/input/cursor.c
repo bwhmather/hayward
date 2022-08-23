@@ -664,14 +664,6 @@ static void handle_touch_down(struct wl_listener *listener, void *data) {
 		&surface, &sx, &sy
 	);
 
-	struct hayward_node *focused_node = NULL;
-	if (output != NULL) {
-	       focused_node = &output->node;
-	}
-	if (window != NULL) {
-		focused_node = &window->node;
-	}
-
 	seat->touch_id = event->touch_id;
 	seat->touch_x = lx;
 	seat->touch_y = ly;
@@ -681,8 +673,10 @@ static void handle_touch_down(struct wl_listener *listener, void *data) {
 			wlr_seat_touch_notify_down(wlr_seat, surface, event->time_msec,
 					event->touch_id, sx, sy);
 
-			if (focused_node) {
-			    seat_set_focus(seat, focused_node);
+			if (window != NULL) {
+				root_set_focused_window(window);
+			} else if (output != NULL) {
+				root_set_active_output(output);
 			}
 		}
 	} else if (!cursor->simulating_pointer_from_touch &&

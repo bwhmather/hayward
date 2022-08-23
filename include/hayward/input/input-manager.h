@@ -38,8 +38,6 @@ struct hayward_input_manager *input_manager_create(struct hayward_server *server
 
 bool input_manager_has_focus(struct hayward_node *node);
 
-void input_manager_set_focus(struct hayward_node *node);
-
 void input_manager_configure_xcursor(void);
 
 void input_manager_apply_input_config(struct input_config *input_config);

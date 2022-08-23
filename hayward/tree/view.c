@@ -338,12 +338,11 @@ void view_set_activated(struct hayward_view *view, bool activated) {
 
 void view_request_activate(struct hayward_view *view) {
 	struct hayward_workspace *workspace = view->window->pending.workspace;
-	struct hayward_seat *seat = input_manager_current_seat();
 
 	switch (config->focus_on_window_activation) {
 	case FOWA_SMART:
 		if (workspace_is_visible(workspace)) {
-			seat_set_focus_window(seat, view->window);
+			root_set_focused_window(view->window);
 		} else {
 			view_set_urgent(view, true);
 		}
@@ -352,7 +351,7 @@ void view_request_activate(struct hayward_view *view) {
 		view_set_urgent(view, true);
 		break;
 	case FOWA_FOCUS:
-		seat_set_focus_window(seat, view->window);
+		root_set_focused_window(view->window);
 		break;
 	case FOWA_NONE:
 		break;
@@ -486,19 +485,12 @@ static bool should_focus(struct hayward_view *view) {
 	return true;
 }
 
-static void handle_foreign_activate_request(
-		struct wl_listener *listener, void *data) {
-	struct hayward_view *view = wl_container_of(
-			listener, view, foreign_activate_request);
-	struct wlr_foreign_toplevel_handle_v1_activated_event *event = data;
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		if (seat->wlr_seat == event->seat) {
-			seat_set_focus_window(seat, view->window);
-			window_raise_floating(view->window);
-			break;
-		}
-	}
+static void handle_foreign_activate_request(struct wl_listener *listener, void *data) {
+	struct hayward_view *view = wl_container_of(listener, view, foreign_activate_request);
+
+	root_set_focused_window(view->window);
+	window_raise_floating(view->window);
+
 	transaction_commit_dirty();
 }
 
@@ -659,7 +651,7 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 #endif
 
 	if (set_focus) {
-		input_manager_set_focus(&view->window->node);
+		root_set_focused_window(view->window);
 	}
 
 	ipc_event_window(view->window, "new");
