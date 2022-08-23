@@ -247,7 +247,7 @@ static void ipc_json_describe_output(struct hayward_output *output,
 	json_object_object_add(object, "adaptive_sync_status",
 		json_object_new_string(adaptive_sync_status));
 
-	struct hayward_workspace *workspace = output_get_active_workspace(output);
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	hayward_assert(workspace, "Expected output to have a workspace");
 
 	json_object_object_add(object, "current_workspace",

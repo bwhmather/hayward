@@ -306,7 +306,7 @@ static void output_for_each_surface(struct hayward_output *output,
 		.view = NULL,
 	};
 
-	struct hayward_workspace *workspace = output_get_active_workspace(output);
+	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (!workspace) {
 		return;
 	}
@@ -366,11 +366,6 @@ void scale_box(struct wlr_box *box, float scale) {
 	box->height = scale_length(box->height, box->y, scale);
 	box->x = round(box->x * scale);
 	box->y = round(box->y * scale);
-}
-
-// TODO deprecated.
-struct hayward_workspace *output_get_active_workspace(struct hayward_output *output) {
-	return root_get_active_workspace();
 }
 
 bool output_has_opaque_overlay_layer_surface(struct hayward_output *output) {

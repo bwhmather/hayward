@@ -268,8 +268,7 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 		window_move_to_workspace(window, destination->hayward_workspace);
 		break;
 	case N_OUTPUT: {
-			struct hayward_output *output = destination->hayward_output;
-			struct hayward_workspace *workspace = output_get_active_workspace(output);
+			struct hayward_workspace *workspace = root_get_active_workspace();
 			hayward_assert(workspace, "Expected output to have a workspace");
 			window_move_to_workspace(window, workspace);
 		}

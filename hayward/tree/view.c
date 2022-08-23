@@ -503,10 +503,7 @@ static void handle_foreign_fullscreen_request(
 
 	if (event->fullscreen && event->output && event->output->data) {
 		struct hayward_output *output = event->output->data;
-		struct hayward_workspace *workspace = output_get_active_workspace(output);
-		if (workspace) {
-			window_move_to_workspace(window, workspace);
-		}
+		window_move_to_output(window, output);
 	}
 
 	window_set_fullscreen(window, event->fullscreen);

@@ -100,8 +100,7 @@ struct hayward_window *seat_column_window_at(struct hayward_seat *seat, struct h
 
 static struct hayward_window *seat_tiling_window_at(struct hayward_seat *seat, double lx, double ly) {
 	for (int i = 0; i < root->outputs->length; i++) {
-		struct hayward_output *output = root->outputs->items[i];
-		struct hayward_workspace *workspace = output_get_active_workspace(output);
+		struct hayward_workspace *workspace = root_get_active_workspace();
 
 		struct wlr_box box;
 		workspace_get_box(workspace, &box);
@@ -126,8 +125,7 @@ static struct hayward_window *seat_floating_window_at(struct hayward_seat *seat,
 	// those at the end of the output list appear on top of floating
 	// containers from other outputs, so iterate the list in reverse.
 	for (int i = root->outputs->length - 1; i >= 0; --i) {
-		struct hayward_output *output = root->outputs->items[i];
-		struct hayward_workspace *workspace = output_get_active_workspace(output);
+		struct hayward_workspace *workspace = root_get_active_workspace();
 
 		// Items at the end of the list are on top, so iterate the list in
 		// reverse.

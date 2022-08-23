@@ -1,7 +1,7 @@
 #include <string.h>
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "hayward/output.h"
+#include "hayward/tree/workspace.h"
 #include "hayward/tree/arrange.h"
 #include "log.h"
 
@@ -19,13 +19,9 @@ struct cmd_results *cmd_titlebar_border_thickness(int argc, char **argv) {
 
 	config->titlebar_border_thickness = value;
 
-	for (int i = 0; i < root->outputs->length; ++i) {
-		struct hayward_output *output = root->outputs->items[i];
-		struct hayward_workspace *workspace = output_get_active_workspace(output);
-		hayward_assert(workspace, "Expected output to have a workspace");
-		arrange_workspace(workspace);
-		output_damage_whole(output);
-	}
+	struct hayward_workspace *workspace = root_get_active_workspace();
+	arrange_workspace(workspace);
+	workspace_damage_whole(workspace);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

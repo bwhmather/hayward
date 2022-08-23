@@ -97,8 +97,6 @@ void output_disable(struct hayward_output *output);
 
 bool output_has_opaque_overlay_layer_surface(struct hayward_output *output);
 
-struct hayward_workspace *output_get_active_workspace(struct hayward_output *output);
-
 void output_render(struct hayward_output *output, struct timespec *when,
 	pixman_region32_t *damage);
 

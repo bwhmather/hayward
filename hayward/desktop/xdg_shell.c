@@ -333,8 +333,7 @@ static void handle_request_fullscreen(struct wl_listener *listener, void *data) 
 	struct hayward_window *window = view->window;
 	struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 	if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
-		struct hayward_output *output = req->fullscreen_output->data;
-		struct hayward_workspace *workspace = output_get_active_workspace(output);
+		struct hayward_workspace *workspace = root_get_active_workspace();
 		if (workspace && window->pending.workspace != workspace) {
 			window_move_to_workspace(window, workspace);
 		}
