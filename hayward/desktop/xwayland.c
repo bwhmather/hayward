@@ -569,8 +569,7 @@ static void handle_request_minimize(struct wl_listener *listener, void *data) {
 	}
 
 	struct wlr_xwayland_minimize_event *e = data;
-	struct hayward_seat *seat = input_manager_current_seat();
-	bool focused = seat_get_focus(seat) == &view->window->node;
+	bool focused = root_get_focused_window() == view->window;
 	wlr_xwayland_surface_set_minimized(xsurface, !focused && e->minimize);
 }
 

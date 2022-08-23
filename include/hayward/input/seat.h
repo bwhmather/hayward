@@ -155,8 +155,6 @@ void seat_set_focus_layer(struct hayward_seat *seat,
 void seat_set_exclusive_client(struct hayward_seat *seat,
 		struct wl_client *client);
 
-struct hayward_node *seat_get_focus(struct hayward_seat *seat);
-
 // Force focus to a particular surface that is not part of the workspace
 // hierarchy (used for lockscreen)
 void hayward_force_focus(struct wlr_surface *surface);

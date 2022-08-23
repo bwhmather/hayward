@@ -473,17 +473,6 @@ struct hayward_input_manager *input_manager_create(struct hayward_server *server
 	return input;
 }
 
-bool input_manager_has_focus(struct hayward_node *node) {
-	struct hayward_seat *seat = NULL;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		if (seat_get_focus(seat) == node) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 /**
  * Re-translate keysyms if a change in the input config could affect them.
  */

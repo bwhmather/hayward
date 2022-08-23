@@ -1601,9 +1601,9 @@ void handle_pointer_constraint(struct wl_listener *listener, void *data) {
 	hayward_constraint->destroy.notify = handle_constraint_destroy;
 	wl_signal_add(&constraint->events.destroy, &hayward_constraint->destroy);
 
-	struct hayward_node *focus = seat_get_focus(seat);
-	if (focus && node_is_view(focus)) {
-		struct wlr_surface *surface = focus->hayward_window->view->surface;
+	struct hayward_window *focus = root_get_focused_window();
+	if (focus != NULL) {
+		struct wlr_surface *surface = focus->view->surface;
 		if (surface == constraint->surface) {
 			hayward_cursor_constrain(seat->cursor, constraint);
 		}

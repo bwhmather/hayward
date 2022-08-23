@@ -883,9 +883,10 @@ void seat_commit_focus(struct hayward_seat *seat) {
 
 void seat_set_focus_surface(struct hayward_seat *seat,
 		struct wlr_surface *surface, bool unfocus) {
-	if (seat->has_focus && unfocus) {
-		struct hayward_node *focus = seat_get_focus(seat);
-		seat_send_unfocus(focus, seat);
+	// TODO TODO TODO
+	struct hayward_window *focused_window = root_get_focused_window();
+	if (focused_window && unfocus) {
+		seat_send_unfocus(&focused_window->node, seat);
 		seat->has_focus = false;
 	}
 
@@ -930,10 +931,9 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 			seat_set_focus_layer(seat, NULL);
 		}
 	}
-	if (seat->has_focus) {
-		struct hayward_node *focus = seat_get_focus(seat);
-		if (node_is_view(focus) && wl_resource_get_client(
-					focus->hayward_window->view->surface->resource) != client) {
+	struct hayward_window *focused_window = root_get_focused_window();
+	if (focused_window) {
+	       	if (wl_resource_get_client(focused_window->view->surface->resource) != client) {
 			// TODO
 			root_set_focused_window(NULL);
 		}
@@ -953,20 +953,6 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 		}
 	}
 	seat->exclusive_client = client;
-}
-
-struct hayward_node *seat_get_focus(struct hayward_seat *seat) {
-	struct hayward_workspace *workspace = root_get_active_workspace();
-	if (workspace == NULL) {
-		return NULL;
-	}
-
-	struct hayward_window *window = workspace_get_active_window(workspace);
-	if (window == NULL) {
-		return &workspace->node;
-	}
-
-	return &window->node;
 }
 
 struct hayward_window *seat_get_focused_container(struct hayward_seat *seat) {

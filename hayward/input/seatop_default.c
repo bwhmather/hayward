@@ -541,7 +541,8 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 
 static void check_focus_follows_mouse(struct hayward_seat *seat,
 		struct seatop_default_event *e, struct hayward_node *hovered_node) {
-	struct hayward_node *focus = seat_get_focus(seat);
+	// TODO make surfaces and layers sticky in the same way as windows.
+	struct hayward_window *focus = root_get_focused_window();
 
 	// This is the case if a layer-shell surface is hovered.
 	// If it's on another output, focus the active workspace there.

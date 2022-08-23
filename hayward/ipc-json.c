@@ -188,15 +188,13 @@ static json_object *ipc_json_create_empty_rect(void) {
 	return ipc_json_create_rect(&empty);
 }
 
-static json_object *ipc_json_create_node(int id, const char* type, char *name,
-		bool focused, struct wlr_box *box) {
+static json_object *ipc_json_create_node(int id, const char* type, char *name, struct wlr_box *box) {
 	json_object *object = json_object_new_object();
 
 	json_object_object_add(object, "id", json_object_new_int(id));
 	json_object_object_add(object, "type", json_object_new_string(type));
 	json_object_object_add(object, "percent", NULL);
 	json_object_object_add(object, "urgent", json_object_new_boolean(false));
-	json_object_object_add(object, "focused", json_object_new_boolean(focused));
 
 	// set default values to be compatible with i3
 	json_object_object_add(object, "border",
@@ -225,6 +223,8 @@ static void ipc_json_describe_output(struct hayward_output *output,
 	json_object_object_add(object, "active", json_object_new_boolean(true));
 	json_object_object_add(object, "dpms",
 			json_object_new_boolean(wlr_output->enabled));
+	bool focused = root_get_active_output() == output;
+	json_object_object_add(object, "focused", json_object_new_boolean(focused));
 	json_object_object_add(object, "primary", json_object_new_boolean(false));
 	json_object_object_add(object, "layout", json_object_new_string("output"));
 	json_object_object_add(object, "make",
@@ -298,6 +298,7 @@ json_object *ipc_json_describe_disabled_output(struct hayward_output *output) {
 
 	json_object *object = json_object_new_object();
 
+	json_object_object_add(object, "focused", json_object_new_boolean(false));
 	json_object_object_add(object, "type", json_object_new_string("output"));
 	json_object_object_add(object, "name",
 			json_object_new_string(wlr_output->name));
@@ -356,6 +357,7 @@ static void ipc_json_describe_workspace(struct hayward_workspace *workspace,
 		num = -1;
 	}
 	json_object_object_add(object, "num", json_object_new_int(num));
+	json_object_object_add(object, "focused", json_object_new_boolean(workspace->pending.focused));
 	json_object_object_add(object, "fullscreen_mode", json_object_new_int(1));
 	json_object_object_add(object, "urgent",
 			json_object_new_boolean(workspace->urgent));
@@ -405,6 +407,8 @@ static void ipc_json_describe_view(struct hayward_window *c, json_object *object
 	const char *app_id = view_get_app_id(c->view);
 	json_object_object_add(object, "app_id",
 			app_id ? json_object_new_string(app_id) : NULL);
+
+	json_object_object_add(object, "focused", json_object_new_boolean(c->pending.focused));
 
 	bool visible = view_is_visible(c->view);
 	json_object_object_add(object, "visible", json_object_new_boolean(visible));
@@ -497,6 +501,7 @@ static void ipc_json_describe_view(struct hayward_window *c, json_object *object
 }
 
 static void ipc_json_describe_column(struct hayward_column *column, json_object *object) {
+	json_object_object_add(object, "focused", json_object_new_boolean(column->pending.focused));
 	json_object_object_add(object, "layout",
 			json_object_new_string(
 				ipc_json_layout_description(column->pending.layout)));
@@ -521,6 +526,7 @@ static void ipc_json_describe_column(struct hayward_column *column, json_object 
 }
 
 static void ipc_json_describe_window(struct hayward_window *window, json_object *object) {
+	json_object_object_add(object, "focused", json_object_new_boolean(window->pending.focused));
 	json_object_object_add(object, "name",
 			window->title ? json_object_new_string(window->title) : NULL);
 	if (window_is_floating(window)) {
@@ -563,8 +569,6 @@ static void ipc_json_describe_window(struct hayward_window *window, json_object 
 }
 
 json_object *ipc_json_describe_node(struct hayward_node *node) {
-	struct hayward_seat *seat = input_manager_get_default_seat();
-	bool focused = seat_get_focus(seat) == node;
 	char *name = node_get_name(node);
 
 	struct wlr_box box;
@@ -582,7 +586,7 @@ json_object *ipc_json_describe_node(struct hayward_node *node) {
 	}
 
 	json_object *object = ipc_json_create_node((int)node->id,
-				ipc_json_node_type_description(node->type), name, focused, &box);
+				ipc_json_node_type_description(node->type), name, &box);
 
 	switch (node->type) {
 	case N_ROOT:
@@ -916,14 +920,11 @@ json_object *ipc_json_describe_seat(struct hayward_seat *seat) {
 	hayward_assert(seat, "Seat must not be null");
 
 	json_object *object = json_object_new_object();
-	struct hayward_node *focus = seat_get_focus(seat);
 
 	json_object_object_add(object, "name",
 		json_object_new_string(seat->wlr_seat->name));
 	json_object_object_add(object, "capabilities",
 		json_object_new_int(seat->wlr_seat->capabilities));
-	json_object_object_add(object, "focus",
-		json_object_new_int(focus ? focus->id : 0));
 
 	json_object *devices = json_object_new_array();
 	struct hayward_seat_device *device = NULL;
