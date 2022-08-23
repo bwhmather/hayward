@@ -218,6 +218,10 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat, struct hayward_w
 		}
 
 		if (window == NULL) {
+			window = root_get_focused_window();
+		}
+
+		if (window == NULL) {
 			config->handler_context.workspace = root_get_active_workspace();
 			config->handler_context.window = NULL;
 		} else {
