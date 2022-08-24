@@ -246,7 +246,7 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 		struct wlr_layer_surface_v1 *layer =
 				wlr_layer_surface_v1_from_wlr_surface(surface);
 		if (layer->current.keyboard_interactive) {
-			seat_set_focus_layer(seat, layer);
+			root_set_focused_layer(layer);
 			transaction_commit_dirty();
 		}
 	} else if (window) {
@@ -389,7 +389,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		struct wlr_layer_surface_v1 *layer =
 			wlr_layer_surface_v1_from_wlr_surface(surface);
 		if (layer->current.keyboard_interactive) {
-			seat_set_focus_layer(seat, layer);
+			root_set_focused_layer(layer);
 			transaction_commit_dirty();
 		}
 		if (state == WLR_BUTTON_PRESSED) {

@@ -367,6 +367,10 @@ void root_set_focused_layer(struct wlr_layer_surface_v1 *layer) {
 	root->pending.focused_layer = layer;
 }
 
+struct wlr_layer_surface_v1 *root_get_focused_layer(void) {
+	return root->pending.focused_layer;
+}
+
 struct wlr_surface *root_get_focused_surface(void) {
 	if (root->pending.focused_layer != NULL) {
 		return root->pending.focused_layer->surface;

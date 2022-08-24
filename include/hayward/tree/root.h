@@ -105,6 +105,8 @@ struct hayward_window *root_get_focused_window(void);
 
 void root_set_focused_layer(struct wlr_layer_surface_v1 *layer);
 
+struct wlr_layer_surface_v1 *root_get_focused_layer(void);
+
 struct wlr_surface *root_get_focused_surface(void);
 
 void root_commit_focus(void);

@@ -36,6 +36,9 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
 
+static void seat_send_focus(struct hayward_seat *seat, struct wlr_surface *surface);
+
+
 static void seat_device_destroy(struct hayward_seat_device *seat_device) {
 	if (!seat_device) {
 		return;
@@ -216,14 +219,8 @@ static void drag_handle_destroy(struct wl_listener *listener, void *data) {
 	// Focus enter isn't sent during drag, so refocus the focused node, layer
 	// surface or unmanaged surface.
 	struct hayward_seat *seat = drag->seat;
-	if (seat->focused_layer) {
-		struct wlr_layer_surface_v1 *layer = seat->focused_layer;
-		seat_set_focus_layer(seat, NULL);
-		seat_set_focus_layer(seat, layer);
-	} else {
-		struct wlr_surface *unmanaged = seat->wlr_seat->keyboard_state.focused_surface;
-		seat_set_focus_surface(seat, NULL);
-		seat_set_focus_surface(seat, unmanaged);
+	if (seat->focused_surface) {
+		seat_send_focus(seat, seat->focused_surface);
 	}
 
 	drag->wlr_drag->data = NULL;
@@ -920,9 +917,10 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 		}
 		return;
 	}
-	if (seat->focused_layer) {
-		if (wl_resource_get_client(seat->focused_layer->resource) != client) {
-			seat_set_focus_layer(seat, NULL);
+	struct wlr_layer_surface_v1 *focused_layer = root_get_focused_layer();
+	if (focused_layer) {
+		if (wl_resource_get_client(focused_layer->resource) != client) {
+			root_set_focused_layer(NULL);
 		}
 	}
 	struct hayward_window *focused_window = root_get_focused_window();

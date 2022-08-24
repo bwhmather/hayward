@@ -228,14 +228,12 @@ void arrange_layers(struct hayward_output *output) {
 		}
 	}
 
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		if (topmost != NULL) {
-			seat_set_focus_layer(seat, topmost->layer_surface);
-		} else if (seat->focused_layer &&
-				!seat->focused_layer->current.keyboard_interactive) {
-			seat_set_focus_layer(seat, NULL);
-		}
+	struct wlr_layer_surface_v1 *current_layer = root_get_focused_layer();
+
+	if (topmost != NULL) {
+		root_set_focused_layer(topmost->layer_surface);
+	} else if (current_layer != NULL && !current_layer->current.keyboard_interactive) {
+		root_set_focused_layer(NULL);
 	}
 }
 
@@ -274,7 +272,7 @@ static void handle_output_destroy(struct wl_listener *listener, void *data) {
 		struct hayward_layer_surface *layer =
 			find_mapped_layer_by_client(client, hayward_layer->layer_surface->output);
 		if (layer) {
-			seat_set_focus_layer(seat, layer->layer_surface);
+			root_set_focused_layer(layer->layer_surface);
 		}
 	}
 
@@ -323,11 +321,8 @@ static void handle_surface_commit(struct wl_listener *listener, void *data) {
 }
 
 static void unmap(struct hayward_layer_surface *hayward_layer) {
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		if (seat->focused_layer == hayward_layer->layer_surface) {
-			seat_set_focus_layer(seat, NULL);
-		}
+	if (root_get_focused_layer() == hayward_layer->layer_surface) {
+		root_set_focused_layer(NULL);
 	}
 
 	cursor_rebase_all();
