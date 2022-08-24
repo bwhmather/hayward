@@ -142,44 +142,11 @@ static void seat_tablet_pads_notify_enter(struct hayward_seat *seat,
 	}
 }
 
-/**
- * If container is a view, set it as active and enable keyboard input.
- * If container is a container, set all child views as active and don't enable
- * keyboard input on any.
- */
-static void seat_send_focus(struct hayward_node *node, struct hayward_seat *seat) {
-	hayward_assert(node_is_view(node), "Can only focus windows");
-
-	if (!seat_is_input_allowed(seat, node->hayward_window->view->surface)) {
-		hayward_log(HAYWARD_DEBUG, "Refusing to set focus, input is inhibited");
-		return;
-	}
-
-	struct hayward_view *view = node->hayward_window->view;
-#if HAVE_XWAYLAND
-	if (view->type == HAYWARD_VIEW_XWAYLAND) {
-		struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
-		wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
-	}
-#endif
-
-	seat_keyboard_notify_enter(seat, view->surface);
-	seat_tablet_pads_notify_enter(seat, view->surface);
-	hayward_input_method_relay_set_focus(&seat->im_relay, view->surface);
-
-	struct wlr_pointer_constraint_v1 *constraint =
-		wlr_pointer_constraints_v1_constraint_for_surface(
-			server.pointer_constraints, view->surface, seat->wlr_seat);
-	hayward_cursor_constrain(seat->cursor, constraint);
-}
-
-void hayward_force_focus(struct wlr_surface *surface) {
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &server.input->seats, link) {
-		seat_keyboard_notify_enter(seat, surface);
-		seat_tablet_pads_notify_enter(seat, surface);
-		hayward_input_method_relay_set_focus(&seat->im_relay, surface);
-	}
+bool seat_is_input_allowed(struct hayward_seat *seat,
+		struct wlr_surface *surface) {
+	struct wl_client *client = wl_resource_get_client(surface->resource);
+	return seat->exclusive_client == client ||
+		(seat->exclusive_client == NULL && !server.session_lock.locked);
 }
 
 static void drag_icon_damage_whole(struct hayward_drag_icon *icon) {
@@ -843,16 +810,37 @@ void seat_configure_xcursor(struct hayward_seat *seat) {
 		seat->cursor->cursor->y);
 }
 
-bool seat_is_input_allowed(struct hayward_seat *seat,
-		struct wlr_surface *surface) {
-	struct wl_client *client = wl_resource_get_client(surface->resource);
-	return seat->exclusive_client == client ||
-		(seat->exclusive_client == NULL && !server.session_lock.locked);
+/**
+ * If container is a view, set it as active and enable keyboard input.
+ * If container is a container, set all child views as active and don't enable
+ * keyboard input on any.
+ */
+static void seat_send_focus(struct hayward_seat *seat, struct wlr_surface *surface) {
+	if (!seat_is_input_allowed(seat, surface)) {
+		hayward_log(HAYWARD_DEBUG, "Refusing to set focus, input is inhibited");
+		return;
+	}
+
+// TODO this needs to go in the xwayland module
+// #if HAVE_XWAYLAND
+//	if (view->type == HAYWARD_VIEW_XWAYLAND) {
+//		struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
+//		wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
+//	}
+// #endif
+
+	seat_keyboard_notify_enter(seat, surface);
+	seat_tablet_pads_notify_enter(seat, surface);
+	hayward_input_method_relay_set_focus(&seat->im_relay, surface);
+
+	struct wlr_pointer_constraint_v1 *constraint =
+		wlr_pointer_constraints_v1_constraint_for_surface(
+			server.pointer_constraints, surface, seat->wlr_seat);
+	hayward_cursor_constrain(seat->cursor, constraint);
 }
 
-// TODO (hayward) deprecated.  Replace with `send_unfocus`.
-// Unfocus the container and any children (eg. when leaving `focus parent`)
-static void seat_send_unfocus(struct hayward_node *node, struct hayward_seat *seat) {
+
+static void seat_send_unfocus(struct hayward_seat *seat, struct wlr_surface *surface) {
 	hayward_cursor_constrain(seat->cursor, NULL);
 	wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 }
@@ -868,17 +856,24 @@ void seat_commit_focus(struct hayward_seat *seat) {
 	}
 
 	if (old_window && new_window != old_window) {
-		// Unfocus the previous window.
-		seat_send_unfocus(&old_window->node, seat);
+		seat_send_unfocus(seat, old_window->view->surface);
 	}
 
 	if (new_window && new_window != old_window) {
-		// Let the client know that it has focus.
-		seat_send_focus(&new_window->node, seat);
+		seat_send_focus(seat, new_window->view->surface);
 	}
 
 	seat->focused_window = new_window;
 	seat->has_focus = new_window ? true : false;
+}
+
+void hayward_force_focus(struct wlr_surface *surface) {
+	struct hayward_seat *seat;
+	wl_list_for_each(seat, &server.input->seats, link) {
+		seat_keyboard_notify_enter(seat, surface);
+		seat_tablet_pads_notify_enter(seat, surface);
+		hayward_input_method_relay_set_focus(&seat->im_relay, surface);
+	}
 }
 
 void seat_set_focus_surface(struct hayward_seat *seat, struct wlr_surface *surface) {
@@ -903,7 +898,7 @@ void seat_set_focus_layer(struct hayward_seat *seat,
 
 	struct hayward_window *focused_window = root_get_focused_window();
 	if (focused_window) {
-		seat_send_unfocus(&focused_window->node, seat);
+		seat_send_unfocus(seat, focused_window->view->surface);
 		seat->has_focus = false;
 	}
 
