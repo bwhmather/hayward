@@ -94,6 +94,8 @@ void root_set_focused_window(struct hayward_window *window);
 struct hayward_window *root_get_active_window(void);
 struct hayward_window *root_get_focused_window(void);
 
+struct wlr_surface *root_get_focused_surface(void);
+
 void root_commit_focus(void);
 
 void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data), void *data);

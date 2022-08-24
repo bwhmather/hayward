@@ -360,6 +360,15 @@ void root_set_focused_window(struct hayward_window *window) {
 	workspace_set_active_window(workspace, window);
 }
 
+struct wlr_surface *root_get_focused_surface(void) {
+	// TODO other surface types should take priority.
+	struct hayward_window *window = root_get_focused_window();
+	if (window == NULL) {
+		return NULL;
+	}
+	return window->view->surface;
+}
+
 static int handle_urgent_timeout(void *data) {
 	struct hayward_view *view = data;
 	view_set_urgent(view, false);
