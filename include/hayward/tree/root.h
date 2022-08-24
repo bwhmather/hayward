@@ -16,6 +16,7 @@ struct hayward_root_state {
 	list_t *workspaces;
 	struct hayward_workspace *active_workspace;
 	struct hayward_output *active_output;
+	struct wlr_layer_surface_v1 *focused_layer;
 };
 
 struct hayward_root {
@@ -43,11 +44,12 @@ struct hayward_root {
 	struct hayward_root_state pending;
 
 	/**
-	 * The nodes that are currently receiving input events.
-	 * These are tracked as we need to notify listeners over IPC when they
-	 * change, as well as do stuff like clearing the urgent flag.
-	 * We don't use the `current` state because this takes some time to
-	 * propagate through the transaction system.
+	 * The nodes that are currently actually receiving input events.  These
+	 * are distinct from the state in the `current` struct, which tracks
+	 * what is to be rendered.  These are updated when a transaction is
+	 * submitted rather than at the end as they need to take effect
+	 * immediately and all transitions need to result in IPC events which
+	 * should not be skipped.
 	 */
 	struct hayward_window *focused_window;
 	struct hayward_workspace *focused_workspace;
@@ -91,8 +93,17 @@ struct hayward_output *root_get_current_active_output(void);
  * Helper functions that traverse the tree to focus the right window.
  */
 void root_set_focused_window(struct hayward_window *window);
+
+/**
+ * The active window is the window that is currently selected.  If the active
+ * window is meant to be receiving input events then it will also be set as the
+ * focused window.  The focused window will be NULL if a layer or other surface
+ * is receiving input events.
+ */
 struct hayward_window *root_get_active_window(void);
 struct hayward_window *root_get_focused_window(void);
+
+void root_set_focused_layer(struct wlr_layer_surface_v1 *layer);
 
 struct wlr_surface *root_get_focused_surface(void);
 

@@ -345,7 +345,9 @@ struct hayward_window *root_get_active_window(void) {
 }
 
 struct hayward_window *root_get_focused_window(void) {
-	// TODO window can be active without being focused.  Layers and surfaces may take precedence.
+	if (root->pending.focused_layer != NULL) {
+		return NULL;
+	}
 	return root_get_active_window();
 }
 
@@ -355,13 +357,21 @@ void root_set_focused_window(struct hayward_window *window) {
 	struct hayward_workspace *workspace = window->pending.workspace;
 	hayward_assert(workspace != NULL, "Expected workspace");
 
-	root_set_active_workspace(workspace);
+	root_set_focused_layer(NULL);
 
+	root_set_active_workspace(workspace);
 	workspace_set_active_window(workspace, window);
 }
 
+void root_set_focused_layer(struct wlr_layer_surface_v1 *layer) {
+	root->pending.focused_layer = layer;
+}
+
 struct wlr_surface *root_get_focused_surface(void) {
-	// TODO other surface types should take priority.
+	if (root->pending.focused_layer != NULL) {
+		return root->pending.focused_layer->surface;
+	}
+
 	struct hayward_window *window = root_get_focused_window();
 	if (window == NULL) {
 		return NULL;
