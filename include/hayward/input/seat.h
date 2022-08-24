@@ -71,9 +71,6 @@ struct hayward_seat {
 	// The surface that is currently receiving input events.
 	struct wlr_surface *focused_surface;
 
-	// If the focused layer is set, views cannot receive keyboard focus.
-	struct wlr_layer_surface_v1 *focused_layer;
-
 	// If exclusive_client is set, no other clients will receive input events.
 	struct wl_client *exclusive_client;
 
@@ -147,9 +144,6 @@ void seat_configure_xcursor(struct hayward_seat *seat);
 void seat_commit_focus(struct hayward_seat *seat);
 
 void seat_set_focus_surface(struct hayward_seat *seat, struct wlr_surface *surface);
-
-void seat_set_focus_layer(struct hayward_seat *seat,
-		struct wlr_layer_surface_v1 *layer);
 
 void seat_set_exclusive_client(struct hayward_seat *seat,
 		struct wl_client *client);

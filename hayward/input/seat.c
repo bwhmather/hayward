@@ -884,27 +884,6 @@ void seat_set_focus_surface(struct hayward_seat *seat, struct wlr_surface *surfa
 	seat_tablet_pads_notify_enter(seat, surface);
 }
 
-void seat_set_focus_layer(struct hayward_seat *seat,
-		struct wlr_layer_surface_v1 *layer) {
-	if (!layer && seat->focused_layer) {
-		seat->focused_layer = NULL;
-	} else if (!layer || seat->focused_layer == layer) {
-		return;
-	}
-	assert(layer->mapped);
-
-	struct hayward_window *focused_window = root_get_focused_window();
-	if (focused_window) {
-		seat_send_unfocus(seat, focused_window->view->surface);
-		seat->has_focus = false;
-	}
-
-	seat_set_focus_surface(seat, layer->surface);
-	if (layer->current.layer >= ZWLR_LAYER_SHELL_V1_LAYER_TOP) {
-		seat->focused_layer = layer;
-	}
-}
-
 void seat_set_exclusive_client(struct hayward_seat *seat,
 		struct wl_client *client) {
 	if (!client) {
