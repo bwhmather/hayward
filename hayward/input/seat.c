@@ -848,23 +848,23 @@ static void seat_send_unfocus(struct hayward_seat *seat, struct wlr_surface *sur
 void seat_commit_focus(struct hayward_seat *seat) {
 	hayward_assert(seat != NULL, "Expected seat");
 
-	struct hayward_window *old_window = seat->focused_window;
-	struct hayward_window *new_window = root_get_focused_window();
+	struct wlr_surface *old_surface = seat->focused_surface;
+	struct wlr_surface *new_surface = root_get_focused_surface();
 
-	if (old_window == new_window) {
+	if (old_surface == new_surface) {
 		return;
 	}
 
-	if (old_window && new_window != old_window) {
-		seat_send_unfocus(seat, old_window->view->surface);
+	if (old_surface && new_surface != old_surface) {
+		seat_send_unfocus(seat, old_surface);
 	}
 
-	if (new_window && new_window != old_window) {
-		seat_send_focus(seat, new_window->view->surface);
+	if (new_surface && new_surface != old_surface) {
+		seat_send_focus(seat, new_surface);
 	}
 
-	seat->focused_window = new_window;
-	seat->has_focus = new_window ? true : false;
+	seat->focused_surface = new_surface;
+	seat->has_focus = new_surface ? true : false;
 }
 
 void hayward_force_focus(struct wlr_surface *surface) {

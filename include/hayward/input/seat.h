@@ -68,8 +68,8 @@ struct hayward_seat {
 	// window stack, has focus.
 	bool has_focus;
 
-	// The window that is currently receiving input events.
-	struct hayward_window *focused_window;
+	// The surface that is currently receiving input events.
+	struct wlr_surface *focused_surface;
 
 	// If the focused layer is set, views cannot receive keyboard focus.
 	struct wlr_layer_surface_v1 *focused_layer;
