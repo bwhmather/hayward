@@ -861,7 +861,6 @@ void seat_commit_focus(struct hayward_seat *seat) {
 	}
 
 	seat->focused_surface = new_surface;
-	seat->has_focus = new_surface ? true : false;
 }
 
 void hayward_force_focus(struct wlr_surface *surface) {

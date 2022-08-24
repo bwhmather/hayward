@@ -64,10 +64,6 @@ struct hayward_seat {
 	struct wlr_seat *wlr_seat;
 	struct hayward_cursor *cursor;
 
-	// True if a window, in particular the window at the top of the active
-	// window stack, has focus.
-	bool has_focus;
-
 	// The surface that is currently receiving input events.
 	struct wlr_surface *focused_surface;
 
