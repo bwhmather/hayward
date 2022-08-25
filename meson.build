@@ -247,14 +247,14 @@ install_data(
 
 if get_option('default-wallpaper')
 	wallpaper_files = files(
-		'assets/Sway_Wallpaper_Blue_768x1024.png',
-		'assets/Sway_Wallpaper_Blue_768x1024_Portrait.png',
-		'assets/Sway_Wallpaper_Blue_1136x640.png',
-		'assets/Sway_Wallpaper_Blue_1136x640_Portrait.png',
-		'assets/Sway_Wallpaper_Blue_1366x768.png',
-		'assets/Sway_Wallpaper_Blue_1920x1080.png',
-		'assets/Sway_Wallpaper_Blue_2048x1536.png',
-		'assets/Sway_Wallpaper_Blue_2048x1536_Portrait.png',
+		'assets/Hayward_Wallpaper_Blue_768x1024.png',
+		'assets/Hayward_Wallpaper_Blue_768x1024_Portrait.png',
+		'assets/Hayward_Wallpaper_Blue_1136x640.png',
+		'assets/Hayward_Wallpaper_Blue_1136x640_Portrait.png',
+		'assets/Hayward_Wallpaper_Blue_1366x768.png',
+		'assets/Hayward_Wallpaper_Blue_1920x1080.png',
+		'assets/Hayward_Wallpaper_Blue_2048x1536.png',
+		'assets/Hayward_Wallpaper_Blue_2048x1536_Portrait.png',
 	)
 	wallpaper_install_dir = join_paths(datadir, 'backgrounds', 'hayward')
 
