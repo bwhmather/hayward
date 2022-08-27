@@ -358,13 +358,24 @@ void root_set_focused_window(struct hayward_window *window) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
 	root_set_focused_layer(NULL);
+	root_set_focused_surface(NULL);
 
 	root_set_active_workspace(workspace);
 	workspace_set_active_window(workspace, window);
 }
 
 void root_set_focused_layer(struct wlr_layer_surface_v1 *layer) {
+	if (layer != NULL) {
+		// Any focused surface would take precedence over the new layer
+		// so we need to clear it first.
+		root_set_focused_surface(NULL);
+	}
+
 	root->pending.focused_layer = layer;
+}
+
+void root_set_focused_surface(struct wlr_surface *surface) {
+	root->pending.focused_surface = surface;
 }
 
 struct wlr_layer_surface_v1 *root_get_focused_layer(void) {
@@ -372,6 +383,10 @@ struct wlr_layer_surface_v1 *root_get_focused_layer(void) {
 }
 
 struct wlr_surface *root_get_focused_surface(void) {
+	if (root->pending.focused_surface != NULL) {
+		return root->pending.focused_surface;
+	}
+
 	if (root->pending.focused_layer != NULL) {
 		return root->pending.focused_layer->surface;
 	}

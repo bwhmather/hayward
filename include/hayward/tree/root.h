@@ -16,7 +16,18 @@ struct hayward_root_state {
 	list_t *workspaces;
 	struct hayward_workspace *active_workspace;
 	struct hayward_output *active_output;
+
+	/**
+	 * An optional layer (top/bottom/side bar) that should receive input
+	 * events.  If set, will take priority over any active window.
+	 */
 	struct wlr_layer_surface_v1 *focused_layer;
+
+	/**
+	 * An optional explicitly focused surface.  If set, will take priority
+	 * over any active window or focused layer.
+	 */
+	struct wlr_surface *focused_surface;
 };
 
 struct hayward_root {
@@ -104,6 +115,13 @@ struct hayward_window *root_get_active_window(void);
 struct hayward_window *root_get_focused_window(void);
 
 void root_set_focused_layer(struct wlr_layer_surface_v1 *layer);
+
+/**
+ * Directly set the WLRoots surface that should receive input events.
+ *
+ * This is mostly used by XWayland to focus unmanaged surfaces.
+ */
+void root_set_focused_surface(struct wlr_surface *surface);
 
 struct wlr_layer_surface_v1 *root_get_focused_layer(void);
 
