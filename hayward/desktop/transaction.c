@@ -575,15 +575,6 @@ static void validate_tree(void) {
 				active_output == active_workspace->pending.active_column->pending.output,
 				"Expected active output to match active column output"
 			);
-		} else {
-			for (int i = 0; i < active_workspace->pending.tiling->length; i++) {
-				struct hayward_column *column = active_workspace->pending.tiling->items[i];
-				hayward_assert(
-					column->pending.output != active_output,
-					"Active output has columns but none are active"
-				);
-			}
-
 		}
 	}
 

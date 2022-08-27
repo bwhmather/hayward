@@ -747,7 +747,6 @@ struct hayward_window *workspace_get_active_tiling_window(struct hayward_workspa
 
 	struct hayward_column *active_column = workspace->pending.active_column;
 	if (active_column == NULL) {
-		hayward_assert(workspace->pending.tiling->length == 0, "Workspace has columns but none are active");
 		return NULL;
 	}
 
