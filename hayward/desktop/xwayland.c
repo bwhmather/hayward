@@ -89,7 +89,7 @@ static void unmanaged_handle_map(struct wl_listener *listener, void *data) {
 		struct hayward_seat *seat = input_manager_current_seat();
 		struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
 		wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
-		seat_set_focus_surface(seat, xsurface->surface);
+		root_set_focused_surface(xsurface->surface);
 	}
 }
 
@@ -108,7 +108,7 @@ static void unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
 		// This seems to handle JetBrains issues.
 		if (xsurface->parent && xsurface->parent->surface
 				&& wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
-			seat_set_focus_surface(seat, xsurface->parent->surface);
+			root_set_focused_surface(xsurface->parent->surface);
 			return;
 		}
 	}
@@ -124,8 +124,7 @@ static void unmanaged_handle_request_activate(struct wl_listener *listener, void
 		return;
 	}
 
-	struct hayward_seat *seat = input_manager_current_seat();
-	seat_set_focus_surface(seat, xsurface->surface);
+	root_set_focused_surface(xsurface->surface);
 }
 
 static void unmanaged_handle_destroy(struct wl_listener *listener, void *data) {
