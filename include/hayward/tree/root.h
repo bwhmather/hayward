@@ -14,20 +14,24 @@ extern struct hayward_root *root;
 
 struct hayward_root_state {
 	list_t *workspaces;
+
+	/**
+	 * An optional explicitly focused surface.   Will only be used if there
+	 * is no active window or layer set.
+	 */
+	struct wlr_surface *focused_surface;
+
 	struct hayward_workspace *active_workspace;
 	struct hayward_output *active_output;
 
 	/**
 	 * An optional layer (top/bottom/side bar) that should receive input
-	 * events.  If set, will take priority over any active window.
+	 * events.  If set, will take priority over any active window or
+	 * explicitly focused surface.
 	 */
 	struct wlr_layer_surface_v1 *focused_layer;
 
-	/**
-	 * An optional explicitly focused surface.  If set, will take priority
-	 * over any active window or focused layer.
-	 */
-	struct wlr_surface *focused_surface;
+
 };
 
 struct hayward_root {
