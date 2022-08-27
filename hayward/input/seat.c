@@ -872,17 +872,6 @@ void hayward_force_focus(struct wlr_surface *surface) {
 	}
 }
 
-void seat_set_focus_surface(struct hayward_seat *seat, struct wlr_surface *surface) {
-	if (surface) {
-		seat_keyboard_notify_enter(seat, surface);
-	} else {
-		wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
-	}
-
-	hayward_input_method_relay_set_focus(&seat->im_relay, surface);
-	seat_tablet_pads_notify_enter(seat, surface);
-}
-
 void seat_set_exclusive_client(struct hayward_seat *seat,
 		struct wl_client *client) {
 	if (!client) {
