@@ -420,6 +420,7 @@ void root_commit_focus(void) {
 
 	if (old_window && new_window != old_window) {
 		view_close_popups(old_window->view);
+		view_set_activated(old_window->view, false);
 
 		node_set_dirty(&old_window->node);
 		if (window_is_tiling(old_window)) {
@@ -429,6 +430,8 @@ void root_commit_focus(void) {
 
 	if (new_window && new_window != old_window) {
 		struct hayward_view *view = new_window->view;
+
+		view_set_activated(view, true);
 
 		// If window was marked as urgent, i.e. requiring attention,
 		// then we usually want to clear the mark when it is focused.
@@ -457,6 +460,9 @@ void root_commit_focus(void) {
 			node_set_dirty(&new_window->pending.parent->node);
 		}
 	}
+
+	root->focused_workspace = new_workspace;
+	root->focused_window = new_window;
 
 	// Emit ipc events
 	if (new_window != old_window) {
