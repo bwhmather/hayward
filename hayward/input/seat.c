@@ -818,14 +818,6 @@ static void seat_send_focus(struct hayward_seat *seat, struct wlr_surface *surfa
 		return;
 	}
 
-// TODO this needs to go in the xwayland module
-// #if HAVE_XWAYLAND
-//	if (view->type == HAYWARD_VIEW_XWAYLAND) {
-//		struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
-//		wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
-//	}
-// #endif
-
 	seat_keyboard_notify_enter(seat, surface);
 	seat_tablet_pads_notify_enter(seat, surface);
 	hayward_input_method_relay_set_focus(&seat->im_relay, surface);
