@@ -561,6 +561,10 @@ void workspace_remove_floating(struct hayward_workspace *workspace, struct haywa
 		window_reconcile_floating(workspace_get_active_floating_window(workspace), workspace);
 	}
 
+	if (window->pending.output && window->pending.fullscreen) {
+		output_reconcile(window->pending.output);
+	}
+
 	window_reconcile_detached(window);
 }
 
@@ -849,6 +853,33 @@ struct hayward_output *workspace_get_current_active_output(struct hayward_worksp
 	}
 
 	return NULL;
+}
+
+
+
+static bool is_fullscreen_window_for_output(
+	struct hayward_window *window, void *data
+) {
+	struct hayward_output *output = data;
+
+	if (window->pending.output != output) {
+		return false;
+	}
+
+	if (!window->pending.fullscreen) {
+		return false;
+	}
+
+	return true;
+}
+
+struct hayward_window *workspace_get_fullscreen_window_for_output(
+	struct hayward_workspace *workspace, struct hayward_output *output
+) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+	hayward_assert(output != NULL, "Expected output");
+
+	return workspace_find_window(workspace, is_fullscreen_window_for_output, output);
 }
 
 void workspace_damage_whole(struct hayward_workspace *workspace) {

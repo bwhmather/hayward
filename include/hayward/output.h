@@ -14,6 +14,11 @@ struct hayward_window;
 struct hayward_output_state {
 	int x, y;
 	int width, height;
+
+	// Cached reference to the first fullscreen window on the active
+	// workspace for this output.  Null if no active workspace or no
+	// fullscreen window on this output.
+	struct hayward_window *fullscreen_window;
 };
 
 struct hayward_output {
@@ -67,6 +72,8 @@ struct hayward_output *output_from_wlr_output(struct wlr_output *output);
 
 struct hayward_output *output_get_in_direction(struct hayward_output *reference,
 		enum wlr_direction direction);
+
+void output_reconcile(struct hayward_output *output);
 
 typedef void (*hayward_surface_iterator_func_t)(struct hayward_output *output,
 	struct hayward_view *view, struct wlr_surface *surface, struct wlr_box *box,

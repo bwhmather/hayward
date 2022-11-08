@@ -43,8 +43,8 @@ static struct hayward_window *get_window_in_output_direction(struct hayward_outp
 	struct hayward_workspace *workspace = root_get_active_workspace();
 	hayward_assert(workspace != NULL, "Expected workspace");
 
-	if (workspace->pending.fullscreen) {
-		return workspace->pending.fullscreen;
+	if (output->pending.fullscreen_window) {
+		return output->pending.fullscreen_window;
 	}
 
 	struct hayward_column *column = NULL;

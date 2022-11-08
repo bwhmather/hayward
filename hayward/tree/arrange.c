@@ -280,8 +280,8 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 	node_set_dirty(&workspace->node);
 	hayward_log(HAYWARD_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
 			workspace->pending.x, workspace->pending.y);
-	if (workspace->pending.fullscreen) {
-		struct hayward_window *fs = workspace->pending.fullscreen;
+	if (output->pending.fullscreen_window) {
+		struct hayward_window *fs = output->pending.fullscreen_window;
 		fs->pending.x = output->lx;
 		fs->pending.y = output->ly;
 		fs->pending.width = output->width;

@@ -286,17 +286,18 @@ void seat_get_target_at(
 #endif
 
 	// Check for fullscreen windows.
-	// TODO fullscreen windows should be attached to the output, not the workspace.
 	struct hayward_workspace *workspace = root_get_active_workspace();
 	if (!workspace) {
 		return;
 	}
 
-	if (workspace->pending.fullscreen) {
+	struct hayward_window *fullscreen_window = output->pending.fullscreen_window;
+
+	if (fullscreen_window != NULL) {
 		// Try transient containers
 		for (int i = 0; i < workspace->pending.floating->length; ++i) {
 			struct hayward_window *floater = workspace->pending.floating->items[i];
-			if (window_is_transient_for(floater, workspace->pending.fullscreen)) {
+			if (window_is_transient_for(floater, fullscreen_window)) {
 				if ((*surface_out = window_surface_at(floater, lx, ly, sx_out, sy_out))) {
 					*window_out = floater;
 					return;
@@ -304,9 +305,9 @@ void seat_get_target_at(
 			}
 		}
 		// Try fullscreen container
-		*surface_out = window_surface_at(workspace->pending.fullscreen, lx, ly, sx_out, sy_out);
+		*surface_out = window_surface_at(fullscreen_window, lx, ly, sx_out, sy_out);
 		if (*surface_out != NULL) {
-			*window_out = workspace->pending.fullscreen;
+			*window_out = fullscreen_window;
 			return;
 		}
 		return;

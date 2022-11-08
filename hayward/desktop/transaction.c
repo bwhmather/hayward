@@ -107,7 +107,6 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 		struct hayward_transaction_instruction *instruction) {
 	struct hayward_workspace_state *state = &instruction->workspace_state;
 
-	state->fullscreen = workspace->pending.fullscreen;
 	state->x = workspace->pending.x;
 	state->y = workspace->pending.y;
 	state->width = workspace->pending.width;

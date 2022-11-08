@@ -299,6 +299,8 @@ static void output_for_each_surface(struct hayward_output *output,
 		goto overlay;
 	}
 
+	struct hayward_workspace *workspace = root_get_current_active_workspace();
+
 	struct surface_iterator_data data = {
 		.user_iterator = iterator,
 		.user_data = user_data,
@@ -306,25 +308,18 @@ static void output_for_each_surface(struct hayward_output *output,
 		.view = NULL,
 	};
 
-	struct hayward_workspace *workspace = root_get_active_workspace();
-	if (!workspace) {
-		return;
-	}
-	struct hayward_window *fullscreen_window = workspace->current.fullscreen;
-		fullscreen_window = workspace->current.fullscreen;
+	struct hayward_window *fullscreen_window = output->current.fullscreen_window;
 	if (fullscreen_window) {
 		for_each_surface_container_iterator(fullscreen_window, &data);
 
-		// TODO: Show transient containers for fullscreen global
-		if (fullscreen_window == workspace->current.fullscreen) {
-			for (int i = 0; i < workspace->current.floating->length; ++i) {
-				struct hayward_window *floater =
-					workspace->current.floating->items[i];
-				if (window_is_transient_for(floater, fullscreen_window)) {
-					for_each_surface_container_iterator(floater, &data);
-				}
+		for (int i = 0; i < workspace->current.floating->length; ++i) {
+			struct hayward_window *floater =
+				workspace->current.floating->items[i];
+			if (window_is_transient_for(floater, fullscreen_window)) {
+				for_each_surface_container_iterator(floater, &data);
 			}
 		}
+
 #if HAVE_XWAYLAND
 		output_unmanaged_for_each_surface(output, &root->xwayland_unmanaged,
 			iterator, user_data);
@@ -500,12 +495,12 @@ static int output_repaint_timer_handler(void *data) {
 
 	output->wlr_output->frame_pending = false;
 
-	struct hayward_workspace *workspace = root_get_active_workspace();
+	struct hayward_workspace *workspace = root_get_current_active_workspace();
 	if (workspace == NULL) {
 		return 0;
 	}
 
-	struct hayward_window *fullscreen_window = workspace->current.fullscreen;
+	struct hayward_window *fullscreen_window = output->current.fullscreen_window;
 
 	if (fullscreen_window && !debug.noscanout) {
 		// Try to scan-out the fullscreen view

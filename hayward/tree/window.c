@@ -75,12 +75,6 @@ void window_destroy(struct hayward_window *window) {
 void window_begin_destroy(struct hayward_window *window) {
 	ipc_event_window(window, "close");
 
-	// The workspace must have the fullscreen pointer cleared so that the
-	// seat code can find an appropriate new focus.
-	if (window->pending.fullscreen && window->pending.workspace) {
-		window->pending.workspace->pending.fullscreen = NULL;
-	}
-
 	wl_signal_emit(&window->node.events.destroy, &window->node);
 
 	window_end_mouse_operation(window);
@@ -101,10 +95,6 @@ void window_detach(struct hayward_window *window) {
 		return;
 	}
 
-	if (window->pending.fullscreen) {
-		window->pending.workspace->pending.fullscreen = NULL;
-	}
-
 	if (column != NULL) {
 		column_remove_child(column, window);
 	} else {
@@ -117,10 +107,8 @@ void window_reconcile_floating(struct hayward_window *window, struct hayward_wor
 	hayward_assert(workspace != NULL, "Expected workspace");
 
 	window->pending.workspace = workspace;
-	if (window->pending.output == NULL) {
-		window->pending.output = root_get_active_output();
-	}
 	window->pending.parent = NULL;
+	window->pending.output = window_get_effective_output(window);
 
 	window->pending.focused = workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
 }
@@ -569,14 +557,17 @@ bool window_contains_point(struct hayward_window *window, double lx, double ly) 
 }
 
 struct hayward_window *window_obstructing_fullscreen_window(struct hayward_window *window) {
+	struct hayward_output *output = window->pending.output;
 
-	struct hayward_workspace *workspace = window->pending.workspace;
-
-	if (workspace && workspace->pending.fullscreen && !window_is_fullscreen(window)) {
-		if (window_is_transient_for(window, workspace->pending.fullscreen)) {
+	if (
+		output != NULL &&
+		output->pending.fullscreen_window != NULL &&
+		!window_is_fullscreen(window)
+	) {
+		if (window_is_transient_for(window, output->pending.fullscreen_window)) {
 			return NULL;
 		}
-		return workspace->pending.fullscreen;
+		return output->pending.fullscreen_window;
 	}
 
 	return NULL;
@@ -678,30 +669,12 @@ static void set_fullscreen(struct hayward_window *window, bool enable) {
 	wlr_drm_format_set_finish(&scanout_formats);
 }
 
-static void window_fullscreen_enable(struct hayward_window *window) {
-	hayward_assert(window->pending.workspace, "Window must be attached to a workspace");
-
-	if (window->pending.fullscreen) {
-		return;
-	}
-
-	set_fullscreen(window, true);
-
-	window->pending.fullscreen = true;
-
-	window->saved_x = window->pending.x;
-	window->saved_y = window->pending.y;
-	window->saved_width = window->pending.width;
-	window->saved_height = window->pending.height;
-
-	window->pending.workspace->pending.fullscreen = window;
-
-	window_end_mouse_operation(window);
-	ipc_event_window(window, "fullscreen_mode");
-}
-
 static void window_fullscreen_disable(struct hayward_window *window) {
-	hayward_assert(window->pending.workspace, "Window must be attached to a workspace");
+	struct hayward_workspace *workspace = window->pending.workspace;
+	hayward_assert(workspace != NULL, "Window must be attached to a workspace");
+
+	struct hayward_output *output = window->pending.output;
+	hayward_assert(window->pending.output, "Window must have an associated output");
 
 	if (!window->pending.fullscreen) {
 		return;
@@ -725,6 +698,46 @@ static void window_fullscreen_disable(struct hayward_window *window) {
 
 	window->pending.fullscreen = false;
 
+	if (workspace->pending.focused) {
+		output_reconcile(output);
+	}
+
+	window_end_mouse_operation(window);
+	ipc_event_window(window, "fullscreen_mode");
+}
+
+static void window_fullscreen_enable(struct hayward_window *window) {
+	hayward_assert(window != NULL, "Expected window");
+
+	struct hayward_workspace *workspace = window->pending.workspace;
+	hayward_assert(workspace != NULL, "Window must be attached to a workspace");
+
+	struct hayward_output *output = window->pending.output;
+	hayward_assert(window->pending.output, "Window must have an associated output");
+
+	if (window->pending.fullscreen) {
+		return;
+	}
+
+	// Disable previous fullscreen window for output and workspace.
+	struct hayward_window *previous = workspace_get_fullscreen_window_for_output(workspace, output);
+	if (previous != NULL) {
+		window_fullscreen_disable(previous);
+	}
+
+	set_fullscreen(window, true);
+
+	window->pending.fullscreen = true;
+
+	window->saved_x = window->pending.x;
+	window->saved_y = window->pending.y;
+	window->saved_width = window->pending.width;
+	window->saved_height = window->pending.height;
+
+	if (workspace->pending.focused) {
+		output_reconcile(output);
+	}
+
 	window_end_mouse_operation(window);
 	ipc_event_window(window, "fullscreen_mode");
 }
@@ -739,14 +752,34 @@ void window_set_fullscreen(struct hayward_window *window, bool enabled) {
 
 
 void window_handle_fullscreen_reparent(struct hayward_window *window) {
-	if (!window->pending.fullscreen || !window->pending.workspace ||
-			window->pending.workspace->pending.fullscreen == window) {
+	struct hayward_workspace *workspace = window->pending.workspace;
+	struct hayward_output *output = window->pending.output;
+
+	if (!window->pending.fullscreen) {
 		return;
 	}
-	if (window->pending.workspace->pending.fullscreen) {
-		window_fullscreen_disable(window->pending.workspace->pending.fullscreen);
+
+	if (!workspace) {
+		return;
 	}
-	window->pending.workspace->pending.fullscreen = window;
+
+	if (!output) {
+		return;
+	}
+
+	// Temporarily mark window as not fullscreen so that we can check the
+	// previous fullscreen window for the workspace.
+	window->pending.fullscreen = false;
+	struct hayward_window *previous = workspace_get_fullscreen_window_for_output(workspace, output);
+	window->pending.fullscreen = true;
+
+	if (previous) {
+		window_fullscreen_disable(previous);
+	}
+
+	if (workspace->pending.focused) {
+		output_reconcile(output);
+	}
 
 	arrange_workspace(window->pending.workspace);
 }

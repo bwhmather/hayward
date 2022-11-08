@@ -468,16 +468,23 @@ static void view_populate_pid(struct hayward_view *view) {
 }
 
 static bool should_focus(struct hayward_view *view) {
-	struct hayward_workspace *prev_workspace = root_get_active_workspace();
+	struct hayward_workspace *active_workspace = root_get_active_workspace();
 	struct hayward_workspace *map_workspace = view->window->pending.workspace;
+	struct hayward_output *map_output = view->window->pending.output;
+	hayward_assert(map_output != NULL, "Expected output");
 
-	// View opened "under" fullscreen view should not be given focus.
-	if (!map_workspace || map_workspace->pending.fullscreen) {
+	// Views cannot be focused if not mapped.
+	if (map_workspace == NULL) {
 		return false;
 	}
 
-	// Views can only take focus if they are mapped into the active workspace
-	if (prev_workspace != map_workspace) {
+	// Views can only take focus if they are mapped into the active workspace.
+	if (map_workspace != active_workspace) {
+		return false;
+	}
+
+	// View opened "under" fullscreen view should not be given focus.
+	if (map_output->pending.fullscreen_window != NULL) {
 		return false;
 	}
 
@@ -613,10 +620,10 @@ void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
 	}
 
 	if (config->popup_during_fullscreen == POPUP_LEAVE &&
-			view->window->pending.workspace &&
-			view->window->pending.workspace->pending.fullscreen &&
-			view->window->pending.workspace->pending.fullscreen->view) {
-		struct hayward_window *fs = view->window->pending.workspace->pending.fullscreen;
+			view->window->pending.output &&
+			view->window->pending.output->pending.fullscreen_window &&
+			view->window->pending.output->pending.fullscreen_window->view) {
+		struct hayward_window *fs = view->window->pending.output->pending.fullscreen_window;
 		if (view_is_transient_for(view, fs->view)) {
 			window_set_fullscreen(fs, false);
 		}
@@ -1116,6 +1123,11 @@ bool view_is_visible(struct hayward_view *view) {
 		return false;
 	}
 
+	struct hayward_output *output = view->window->pending.output;
+	if (!output) {
+		return false;
+	}
+
 	if (!window_is_sticky(view->window) && workspace &&
 			!workspace_is_visible(workspace)) {
 		return false;
@@ -1131,7 +1143,7 @@ bool view_is_visible(struct hayward_view *view) {
 	}
 
 	// Check view isn't hidden by another fullscreen view
-	struct hayward_window *fs = workspace->pending.fullscreen;
+	struct hayward_window *fs = output->pending.fullscreen_window;
 	if (fs && !window_is_fullscreen(view->window) &&
 			!window_is_transient_for(view->window, fs)) {
 		return false;

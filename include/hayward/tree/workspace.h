@@ -14,7 +14,6 @@ enum hayward_focus_mode {
 struct hayward_view;
 
 struct hayward_workspace_state {
-	struct hayward_window *fullscreen;
 	double x, y;
 	int width, height;
 	list_t *floating;           // struct hayward_window
@@ -120,6 +119,17 @@ void workspace_set_active_window(struct hayward_workspace *workspace, struct hay
 
 struct hayward_output *workspace_get_active_output(struct hayward_workspace *workspace);
 struct hayward_output *workspace_get_current_active_output(struct hayward_workspace *workspace);
+
+/**
+ * Traverses all windows on the workspace to find the first fullscreen window on
+ * the requested output.
+ *
+ * If the workspace is active, the result of this function will be cached on
+ * output->pending.fullscreen_window.
+ */
+struct hayward_window *workspace_get_fullscreen_window_for_output(
+	struct hayward_workspace *workspace, struct hayward_output *output
+);
 
 void workspace_damage_whole(struct hayward_workspace *workspace);
 

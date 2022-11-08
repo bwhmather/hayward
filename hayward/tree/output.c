@@ -179,6 +179,17 @@ struct hayward_output *output_from_wlr_output(struct wlr_output *output) {
 	return output->data;
 }
 
+void output_reconcile(struct hayward_output *output) {
+	hayward_assert(output != NULL, "Expected output");
+
+	struct hayward_workspace *workspace = root_get_active_workspace();
+	if (workspace == NULL) {
+		output->pending.fullscreen_window = NULL;
+	}
+
+	output->pending.fullscreen_window = workspace_get_fullscreen_window_for_output(workspace, output);
+}
+
 struct hayward_output *output_get_in_direction(struct hayward_output *reference,
 		enum wlr_direction direction) {
 	hayward_assert(direction, "got invalid direction: %d", direction);

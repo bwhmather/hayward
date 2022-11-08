@@ -795,12 +795,12 @@ void output_render(struct hayward_output *output, struct timespec *when,
 	struct wlr_output *wlr_output = output->wlr_output;
 	struct wlr_renderer *renderer = output->server->renderer;
 
-	struct hayward_workspace *workspace = root_get_active_workspace();
+	struct hayward_workspace *workspace = root_get_current_active_workspace();
 	if (workspace == NULL) {
 		return;
 	}
 
-	struct hayward_window *fullscreen_container = workspace->current.fullscreen;
+	struct hayward_window *fullscreen_window = output->current.fullscreen_window;
 
 	wlr_renderer_begin(renderer, wlr_output->width, wlr_output->height);
 
@@ -858,7 +858,7 @@ void output_render(struct hayward_output *output, struct timespec *when,
 		goto render_overlay;
 	}
 
-	if (fullscreen_container) {
+	if (fullscreen_window) {
 		float clear_color[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
 		int nrects;
@@ -868,21 +868,21 @@ void output_render(struct hayward_output *output, struct timespec *when,
 			wlr_renderer_clear(renderer, clear_color);
 		}
 
-		if (fullscreen_container->view) {
-			if (!wl_list_empty(&fullscreen_container->view->saved_buffers)) {
-				render_saved_view(fullscreen_container->view, output, damage, 1.0f);
-			} else if (fullscreen_container->view->surface) {
-				render_view_toplevels(fullscreen_container->view,
+		if (fullscreen_window->view) {
+			if (!wl_list_empty(&fullscreen_window->view->saved_buffers)) {
+				render_saved_view(fullscreen_window->view, output, damage, 1.0f);
+			} else if (fullscreen_window->view->surface) {
+				render_view_toplevels(fullscreen_window->view,
 						output, damage, 1.0f);
 			}
 		} else {
-			render_view(output, damage, fullscreen_container, &config->border_colors.focused);
+			render_view(output, damage, fullscreen_window, &config->border_colors.focused);
 		}
 
 		for (int i = 0; i < workspace->current.floating->length; ++i) {
 			struct hayward_window *floater =
 				workspace->current.floating->items[i];
-			if (window_is_transient_for(floater, fullscreen_container)) {
+			if (window_is_transient_for(floater, fullscreen_window)) {
 				render_floating_window(output, damage, floater);
 			}
 		}
