@@ -415,7 +415,6 @@ int main(int argc, char **argv) {
 	}
 
 	// TODO this probably shouldn't live here
-	// char *workspace_name = workspace_next_name("TODO-output");
 	char *workspace_name = "0";
 	struct hayward_workspace *workspace = workspace_create(workspace_name);
 	// free(workspace_name);
