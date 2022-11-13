@@ -55,8 +55,6 @@ void workspace_begin_destroy(struct hayward_workspace *workspace);
 
 void workspace_consider_destroy(struct hayward_workspace *workspace);
 
-struct hayward_workspace *workspace_by_number(const char* name);
-
 struct hayward_workspace *workspace_by_name(const char*);
 
 bool workspace_is_visible(struct hayward_workspace *workspace);

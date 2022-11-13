@@ -200,7 +200,7 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 		} else {
 			if (strcasecmp(argv[1], "number") == 0) {
 				// move [window] [to] "workspace number x"
-				if (argc < 3) {
+				if (argc != 3) {
 					return cmd_results_new(CMD_INVALID, expected_syntax);
 				}
 				if (!isdigit(argv[2][0])) {
@@ -208,7 +208,7 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 							"Invalid workspace number '%s'", argv[2]);
 				}
 				workspace_name = join_args(argv + 2, argc - 2);
-				workspace = workspace_by_number(workspace_name);
+				workspace = workspace_by_name(workspace_name);
 			} else {
 				workspace_name = join_args(argv + 1, argc - 1);
 				workspace = workspace_by_name(workspace_name);

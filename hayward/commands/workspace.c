@@ -150,7 +150,7 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 
 		struct hayward_workspace *workspace = NULL;
 		if (strcasecmp(argv[0], "number") == 0) {
-			if (argc < 2) {
+			if (argc != 2) {
 				return cmd_results_new(CMD_INVALID,
 						"Expected workspace number");
 			}
@@ -158,10 +158,8 @@ struct cmd_results *cmd_workspace(int argc, char **argv) {
 				return cmd_results_new(CMD_INVALID,
 						"Invalid workspace number '%s'", argv[1]);
 			}
-			if (!(workspace = workspace_by_number(argv[1]))) {
-				char *name = join_args(argv + 1, argc - 1);
-				workspace = workspace_create(name);
-				free(name);
+			if (!(workspace = workspace_by_name(argv[1]))) {
+				workspace = workspace_create(argv[1]);
 			}
 		} else {
 			char *name = join_args(argv, argc);

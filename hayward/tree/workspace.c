@@ -116,21 +116,6 @@ void workspace_consider_destroy(struct hayward_workspace *workspace) {
 	workspace_begin_destroy(workspace);
 }
 
-static bool _workspace_by_number(struct hayward_workspace *workspace, void *data) {
-	char *name = data;
-	char *workspace_name = workspace->name;
-	while (isdigit(*name)) {
-		if (*name++ != *workspace_name++) {
-			return false;
-		}
-	}
-	return !isdigit(*workspace_name);
-}
-
-struct hayward_workspace *workspace_by_number(const char* name) {
-	return root_find_workspace(_workspace_by_number, (void *) name);
-}
-
 static bool _workspace_by_name(struct hayward_workspace *workspace, void *data) {
 	return strcasecmp(workspace->name, data) == 0;
 }
