@@ -102,6 +102,16 @@ void window_detach(struct hayward_window *window) {
 	}
 }
 
+bool window_is_attached(struct hayward_window *window) {
+	hayward_assert(window != NULL, "Expected window");
+
+	if (window->pending.workspace == NULL) {
+		return false;
+	}
+
+	return true;
+}
+
 void window_reconcile_floating(struct hayward_window *window, struct hayward_workspace *workspace) {
 	hayward_assert(window != NULL, "Expected window");
 	hayward_assert(workspace != NULL, "Expected workspace");
@@ -246,9 +256,7 @@ void window_update_title_textures(struct hayward_window *window) {
 
 bool window_is_floating(struct hayward_window *window) {
 	hayward_assert(window != NULL, "Expected window");
-
-	struct hayward_workspace *workspace = window->pending.workspace;
-	hayward_assert(workspace != NULL, "Window not attached to workspace");
+	hayward_assert(window_is_attached(window), "Window not attached to workspace");
 
 	if (!window->pending.parent) {
 		return true;
@@ -259,9 +267,7 @@ bool window_is_floating(struct hayward_window *window) {
 
 bool window_is_current_floating(struct hayward_window *window) {
 	hayward_assert(window != NULL, "Expected window");
-
-	struct hayward_workspace *workspace = window->current.workspace;
-	hayward_assert(workspace != NULL, "Window not attached to workspace");
+	hayward_assert(window_is_attached(window), "Window not attached to workspace");
 
 	if (!window->current.parent) {
 		// hayward_assert(list_find(workspace->pending.floating, window) != -1, "Window missing from parent list");

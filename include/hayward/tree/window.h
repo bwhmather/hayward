@@ -121,6 +121,7 @@ void window_destroy(struct hayward_window *window);
 void window_begin_destroy(struct hayward_window *window);
 
 void window_detach(struct hayward_window *window);
+bool window_is_attached(struct hayward_window *window);
 
 /**
  * These functions will cached back links and internal state to match canonical
