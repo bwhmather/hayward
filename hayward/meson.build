@@ -184,11 +184,11 @@ hayward_sources = files(
 	'commands/output/transform.c',
 
 	'tree/arrange.c',
-        'tree/column.c',
+	'tree/column.c',
 	'tree/node.c',
 	'tree/root.c',
 	'tree/view.c',
-        'tree/window.c',
+	'tree/window.c',
 	'tree/workspace.c',
 	'tree/output.c',
 )
@@ -225,3 +225,31 @@ executable(
 	link_with: [lib_hayward_common],
 	install: true
 )
+
+test_suites = {
+	'lint': [
+		'imports',
+	],
+}
+
+pymod = import('python')
+python = pymod.find_installation('python3')
+
+foreach suite, tests : test_suites
+	foreach test_name : tests
+		test(
+			suite + '-' + test_name,
+			python,
+			args: [
+				meson.current_source_dir() +
+				'/tests/' + suite +
+				'/test_' + test_name.replace('-', '_') + '.py',
+			],
+			env: {
+				'MESON_BUILD_ROOT': meson.project_build_root(),
+				'MESON_SOURCE_ROOT': meson.project_source_root(),
+			},
+			timeout: 100,
+		)
+	endforeach
+endforeach
