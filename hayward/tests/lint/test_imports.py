@@ -50,7 +50,8 @@ class TestSourceMatchesHeader(unittest.TestCase):
                 src_defs = [
                     node.spelling
                     for node in src.cursor.get_children()
-                    if node.is_definition()
+                    if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
+                    and node.is_definition()
                     and node.storage_class != clang.cindex.StorageClass.STATIC
                     and node.location.file.name == src.spelling
                 ]
