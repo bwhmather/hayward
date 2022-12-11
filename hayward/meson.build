@@ -96,7 +96,6 @@ hayward_sources = files(
 	'commands/sticky.c',
 	'commands/haywardbg_command.c',
 	'commands/haywardnag_command.c',
-	'commands/swap.c',
 	'commands/tiling_drag.c',
 	'commands/tiling_drag_threshold.c',
 	'commands/title_align.c',

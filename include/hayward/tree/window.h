@@ -254,8 +254,6 @@ struct hayward_window *window_get_next_sibling(struct hayward_window *window);
 enum hayward_column_layout window_parent_layout(struct hayward_window *window);
 enum hayward_column_layout window_current_parent_layout(struct hayward_window *window);
 
-void window_swap(struct hayward_window *window1, struct hayward_window *window2);
-
 /**
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.

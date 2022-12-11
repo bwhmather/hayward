@@ -118,7 +118,6 @@ static const struct cmd_handler command_handlers[] = {
 	{ "resize", cmd_resize },
 	{ "shortcuts_inhibitor", cmd_shortcuts_inhibitor },
 	{ "sticky", cmd_sticky },
-	{ "swap", cmd_swap },
 	{ "title_format", cmd_title_format },
 	{ "urgent", cmd_urgent },
 };
