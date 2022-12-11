@@ -249,14 +249,11 @@ static void finalize_move(struct hayward_seat *seat) {
 			workspace_insert_tiling(target_workspace, target_output, new_column, new_column_index);
 
 			window_move_to_column(moving_window, new_column);
-		} else if (target_edge == WLR_EDGE_TOP || target_edge == WLR_EDGE_BOTTOM) {
+		} else {
 			// TODO (hayward) fix different level of abstraction.
 			window_detach(moving_window);
 			column_add_sibling(target_window, moving_window, target_edge != WLR_EDGE_TOP);
 			ipc_event_window(moving_window, "move");
-		} else {
-			// TODO not sure if I like this behaviour.  Should probably be the same as WLR_EDGE_BOTTOM.
-			window_swap(target_window, moving_window);
 		}
 	}
 
