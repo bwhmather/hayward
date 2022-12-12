@@ -45,8 +45,6 @@ struct hayward_workspace {
 
 struct workspace_config *workspace_find_config(const char *workspace_name);
 
-struct hayward_output *workspace_get_initial_output(const char *name);
-
 struct hayward_workspace *workspace_create(const char *name);
 
 void workspace_destroy(struct hayward_workspace *workspace);
@@ -88,11 +86,8 @@ void workspace_add_floating(struct hayward_workspace *workspace,
 
 void workspace_remove_floating(struct hayward_workspace *workspace, struct hayward_window *window);
 
-void workspace_add_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column);
 void workspace_insert_tiling(struct hayward_workspace *workspace, struct hayward_output *output, struct hayward_column *column, int index);
 void workspace_remove_tiling(struct hayward_workspace *workspace, struct hayward_column *column);
-
-void workspace_remove_gaps(struct hayward_workspace *workspace);
 
 void workspace_add_gaps(struct hayward_workspace *workspace);
 

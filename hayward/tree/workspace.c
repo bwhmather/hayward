@@ -237,52 +237,6 @@ void workspace_detect_urgent(struct hayward_workspace *workspace) {
 	}
 }
 
-void workspace_for_each_window(struct hayward_workspace *workspace, void (*f)(struct hayward_window *window, void *data), void *data) {
-	hayward_assert(workspace != NULL, "Expected workspace");
-
-	// Tiling
-	for (int i = 0; i < workspace->pending.tiling->length; ++i) {
-		struct hayward_column *column = workspace->pending.tiling->items[i];
-		column_for_each_child(column, f, data);
-	}
-	// Floating
-	for (int i = 0; i < workspace->pending.floating->length; ++i) {
-		struct hayward_window *window = workspace->pending.floating->items[i];
-		f(window, data);
-	}
-}
-
-void workspace_for_each_column(struct hayward_workspace *workspace, void (*f)(struct hayward_column *column, void *data), void *data) {
-	hayward_assert(workspace != NULL, "Expected workspace");
-
-	for (int i = 0; i < workspace->pending.tiling->length; ++i) {
-		struct hayward_column *column = workspace->pending.tiling->items[i];
-		f(column, data);
-	}
-}
-
-struct hayward_window *workspace_find_window(struct hayward_workspace *workspace,
-		bool (*test)(struct hayward_window *window, void *data), void *data) {
-	hayward_assert(workspace != NULL, "Expected workspace");
-
-	struct hayward_window *result = NULL;
-	// Tiling
-	for (int i = 0; i < workspace->pending.tiling->length; ++i) {
-		struct hayward_column *child = workspace->pending.tiling->items[i];
-		if ((result = column_find_child(child, test, data))) {
-			return result;
-		}
-	}
-	// Floating
-	for (int i = 0; i < workspace->pending.floating->length; ++i) {
-		struct hayward_window *child = workspace->pending.floating->items[i];
-		if (test(child, data)) {
-			return child;
-		}
-	}
-	return NULL;
-}
-
 void workspace_detach(struct hayward_workspace *workspace) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
@@ -453,7 +407,7 @@ void workspace_remove_tiling(struct hayward_workspace *workspace, struct hayward
 	node_set_dirty(&column->node);
 }
 
-bool workspace_has_single_visible_container(struct hayward_workspace *workspace) {
+static bool workspace_has_single_visible_container(struct hayward_workspace *workspace) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
 	if (workspace->pending.tiling->length != 1) {
@@ -567,6 +521,29 @@ size_t workspace_num_sticky_containers(struct hayward_workspace *workspace) {
 	return count;
 }
 
+struct hayward_output *workspace_get_active_output(struct hayward_workspace *workspace) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	struct hayward_column *active_column = workspace->pending.active_column;
+	if (active_column != NULL) {
+		return active_column->pending.output;
+	}
+
+	return NULL;
+}
+
+struct hayward_output *workspace_get_current_active_output(struct hayward_workspace *workspace) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	struct hayward_column *active_column = workspace->current.active_column;
+
+	if (active_column != NULL) {
+		return active_column->current.output;
+	}
+
+	return NULL;
+}
+
 struct hayward_window *workspace_get_active_tiling_window(struct hayward_workspace *workspace) {
 	hayward_assert(workspace != NULL, "Expected workspace");
 
@@ -653,31 +630,6 @@ void workspace_set_active_window(struct hayward_workspace *workspace, struct hay
 	arrange_workspace(workspace);
 }
 
-struct hayward_output *workspace_get_active_output(struct hayward_workspace *workspace) {
-	hayward_assert(workspace != NULL, "Expected workspace");
-
-	struct hayward_column *active_column = workspace->pending.active_column;
-	if (active_column != NULL) {
-		return active_column->pending.output;
-	}
-
-	return NULL;
-}
-
-struct hayward_output *workspace_get_current_active_output(struct hayward_workspace *workspace) {
-	hayward_assert(workspace != NULL, "Expected workspace");
-
-	struct hayward_column *active_column = workspace->current.active_column;
-
-	if (active_column != NULL) {
-		return active_column->current.output;
-	}
-
-	return NULL;
-}
-
-
-
 static bool is_fullscreen_window_for_output(
 	struct hayward_window *window, void *data
 ) {
@@ -701,6 +653,52 @@ struct hayward_window *workspace_get_fullscreen_window_for_output(
 	hayward_assert(output != NULL, "Expected output");
 
 	return workspace_find_window(workspace, is_fullscreen_window_for_output, output);
+}
+
+void workspace_for_each_window(struct hayward_workspace *workspace, void (*f)(struct hayward_window *window, void *data), void *data) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	// Tiling
+	for (int i = 0; i < workspace->pending.tiling->length; ++i) {
+		struct hayward_column *column = workspace->pending.tiling->items[i];
+		column_for_each_child(column, f, data);
+	}
+	// Floating
+	for (int i = 0; i < workspace->pending.floating->length; ++i) {
+		struct hayward_window *window = workspace->pending.floating->items[i];
+		f(window, data);
+	}
+}
+
+void workspace_for_each_column(struct hayward_workspace *workspace, void (*f)(struct hayward_column *column, void *data), void *data) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	for (int i = 0; i < workspace->pending.tiling->length; ++i) {
+		struct hayward_column *column = workspace->pending.tiling->items[i];
+		f(column, data);
+	}
+}
+
+struct hayward_window *workspace_find_window(struct hayward_workspace *workspace,
+		bool (*test)(struct hayward_window *window, void *data), void *data) {
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	struct hayward_window *result = NULL;
+	// Tiling
+	for (int i = 0; i < workspace->pending.tiling->length; ++i) {
+		struct hayward_column *child = workspace->pending.tiling->items[i];
+		if ((result = column_find_child(child, test, data))) {
+			return result;
+		}
+	}
+	// Floating
+	for (int i = 0; i < workspace->pending.floating->length; ++i) {
+		struct hayward_window *child = workspace->pending.floating->items[i];
+		if (test(child, data)) {
+			return child;
+		}
+	}
+	return NULL;
 }
 
 void workspace_damage_whole(struct hayward_workspace *workspace) {
