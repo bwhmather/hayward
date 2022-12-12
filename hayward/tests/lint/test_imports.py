@@ -1,4 +1,5 @@
 import functools
+import itertools
 import json
 import os
 import pathlib
@@ -33,6 +34,14 @@ def enumerate_source_files():
     files = [
         source_file.relative_to(SOURCE_ROOT)
         for source_file in HAYWARD_ROOT.glob("**/*.c")
+    ]
+    yield from sorted(files)
+
+
+def enumerate_header_files():
+    files = [
+        source_file.relative_to(SOURCE_ROOT)
+        for source_file in HAYWARD_INCLUDE_ROOT.glob("**/*.h")
     ]
     yield from sorted(files)
 
@@ -79,8 +88,8 @@ def parse_source_file(source_path):
     return INDEX.parse(SOURCE_ROOT / source_path, args=args)
 
 
-class TestSourceMatchesHeader(unittest.TestCase):
-    def test_source_matches_header_order(self):
+class DeclarationOrderTestCase(unittest.TestCase):
+    def test_source_and_header_orders_match(self):
         for source_path in enumerate_source_files():
             with self.subTest(file=source_path):
                 header_path = resolve_header_path(source_path)
@@ -106,6 +115,48 @@ class TestSourceMatchesHeader(unittest.TestCase):
                 ]
                 self.assertEqual(set(header_decls), set(source_defs))
                 self.assertEqual(header_decls, source_defs)
+
+    def test_tree_header_orders_match(self):
+        header_paths = [
+            header_path
+            for header_path in enumerate_header_files()
+            if header_path.is_relative_to("include/hayward/tree")
+        ]
+
+        decls = {}
+
+        for header_path in header_paths:
+            header = parse_header_file(header_path)
+            prefix = header_path.stem
+
+            header_decls = [
+                node.spelling
+                for node in header.cursor.get_children()
+                if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
+                and node.location.file.name == header.spelling
+            ]
+
+            header_decls = [
+                name[len(prefix) + 1 :]
+                for name in header_decls
+                if name.startswith(f"{prefix}_")
+            ]
+
+            decls[header_path] = header_decls
+
+        for header_a_path, header_b_path in itertools.combinations(header_paths, 2):
+            with self.subTest(header_a=header_a_path, header_b=header_b_path):
+                header_a_decls = decls[header_a_path]
+                header_b_decls = decls[header_b_path]
+
+                header_a_decls = [
+                    name for name in header_a_decls if name in header_b_decls
+                ]
+                header_b_decls = [
+                    name for name in header_b_decls if name in header_a_decls
+                ]
+
+                self.assertEqual(header_a_decls, header_b_decls)
 
 
 if __name__ == "__main__":
