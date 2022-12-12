@@ -66,16 +66,17 @@ struct hayward_column {
 
 struct hayward_column *column_create(void);
 
-void column_detach(struct hayward_column *column);
-
-void column_reconcile(struct hayward_column *column, struct hayward_workspace *workspace, struct hayward_output *output);
-void column_reconcile_detached(struct hayward_column *column);
-
 void column_destroy(struct hayward_column *column);
 
 void column_begin_destroy(struct hayward_column *column);
 
 void column_consider_destroy(struct hayward_column *container);
+
+void column_detach(struct hayward_column *column);
+
+void column_reconcile(struct hayward_column *column, struct hayward_workspace *workspace, struct hayward_output *output);
+void column_reconcile_detached(struct hayward_column *column);
+
 
 /**
  * Search a container's descendants a container based on test criteria. Returns
