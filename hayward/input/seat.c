@@ -906,20 +906,6 @@ void seat_set_exclusive_client(struct hayward_seat *seat,
 	seat->exclusive_client = client;
 }
 
-struct hayward_window *seat_get_focused_container(struct hayward_seat *seat) {
-	struct hayward_workspace *workspace = root_get_active_workspace();
-	if (workspace == NULL) {
-		return NULL;
-	}
-
-	struct hayward_window *window = workspace_get_active_window(workspace);
-	if (window == NULL) {
-		return NULL;
-	}
-
-	return window;
-}
-
 void seat_apply_config(struct hayward_seat *seat,
 		struct seat_config *seat_config) {
 	struct hayward_seat_device *seat_device = NULL;
