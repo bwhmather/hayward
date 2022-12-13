@@ -46,7 +46,7 @@ def enumerate_header_files():
     yield from sorted(files)
 
 
-def resolve_header_path(source_path, /):
+def header_path_for_source_path(source_path, /):
     path = (
         HAYWARD_INCLUDE_ROOT
         / (SOURCE_ROOT / source_path).relative_to(HAYWARD_ROOT).parent
@@ -59,7 +59,7 @@ def resolve_header_path(source_path, /):
     return path
 
 
-def resolve_source_path(header_path, /):
+def source_path_for_header_path(header_path, /):
     path = (
         HAYWARD_ROOT
         / (SOURCE_ROOT / header_path).relative_to(HAYWARD_INCLUDE_ROOT)
@@ -74,7 +74,7 @@ def resolve_source_path(header_path, /):
 
 @functools.lru_cache(maxsize=None)
 def parse_header_file(header_path):
-    source_path = resolve_source_path(header_path)
+    source_path = source_path_for_header_path(header_path)
     if source_path is None:
         source_path = pathlib.Path("hayward/server.c")
 
@@ -92,7 +92,7 @@ class DeclarationOrderTestCase(unittest.TestCase):
     def test_source_and_header_orders_match(self):
         for source_path in enumerate_source_files():
             with self.subTest(file=source_path):
-                header_path = resolve_header_path(source_path)
+                header_path = header_path_for_source_path(source_path)
                 if header_path is None:
                     self.skipTest(f"No header for {source_path}")
 
