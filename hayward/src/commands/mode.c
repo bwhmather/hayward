@@ -4,9 +4,9 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/ipc-server.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 // Must be in order for the bsearch
 static const struct cmd_handler mode_handlers[] = {

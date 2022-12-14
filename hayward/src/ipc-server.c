@@ -29,9 +29,9 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "list.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 static int ipc_socket = -1;
 static struct wl_event_source *ipc_event_source =  NULL;

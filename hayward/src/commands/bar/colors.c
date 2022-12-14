@@ -1,7 +1,7 @@
 #include <string.h>
 #include "hayward/commands.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 // Must be in alphabetical order for bsearch
 static const struct cmd_handler bar_colors_handlers[] = {

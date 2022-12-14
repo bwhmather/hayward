@@ -6,7 +6,7 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 static const char expected_syntax[] =
 	"Expected 'layout stacking|split'";

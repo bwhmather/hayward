@@ -2,8 +2,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include "hayward/commands.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 struct cmd_results *bar_cmd_output(int argc, char **argv) {
 	struct cmd_results *error = NULL;

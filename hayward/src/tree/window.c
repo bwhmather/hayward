@@ -12,8 +12,8 @@
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/render/drm_format_set.h>
 #include "linux-dmabuf-unstable-v1-protocol.h"
-#include "cairo_util.h"
-#include "pango.h"
+#include "hayward-common/cairo_util.h"
+#include "hayward-common/pango.h"
 #include "hayward/config.h"
 #include "hayward/desktop.h"
 #include "hayward/desktop/transaction.h"
@@ -26,9 +26,9 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
 #include "hayward/xdg_decoration.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 struct hayward_window *window_create(struct hayward_view *view) {
 	struct hayward_window *c = calloc(1, sizeof(struct hayward_window));

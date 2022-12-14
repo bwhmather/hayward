@@ -14,8 +14,8 @@
 #include "hayward/tree/workspace.h"
 #include "hayward/tree/column.h"
 #include "hayward/tree/window.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 // Thickness of the dropzone when dragging to the edge of a layout container
 #define DROP_LAYOUT_BORDER 30

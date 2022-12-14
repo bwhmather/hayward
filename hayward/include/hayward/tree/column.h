@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>
-#include "list.h"
+#include "hayward-common/list.h"
 #include "hayward/tree/node.h"
 
 enum hayward_column_layout {

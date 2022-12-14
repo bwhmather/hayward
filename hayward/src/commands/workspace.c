@@ -7,9 +7,9 @@
 #include "hayward/config.h"
 #include "hayward/input/seat.h"
 #include "hayward/tree/workspace.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 static struct workspace_config *workspace_config_find_or_create(char *workspace_name) {
 	struct workspace_config *wsc = workspace_find_config(workspace_name);

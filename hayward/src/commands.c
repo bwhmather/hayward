@@ -11,8 +11,8 @@
 #include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 #include "hayward/tree/view.h"
-#include "stringop.h"
-#include "log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/log.h"
 
 // Returns error object, or NULL if check succeeds.
 struct cmd_results *checkarg(int argc, const char *name, enum expected_args type, int val) {

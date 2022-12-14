@@ -3,8 +3,8 @@
 #include "config.h"
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 struct cmd_results *bar_cmd_tray_output(int argc, char **argv) {
 #if HAVE_TRAY

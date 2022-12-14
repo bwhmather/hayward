@@ -8,8 +8,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/haywardnag.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 static const char *bg_options[] = {
 	"stretch",

@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 #include "hayward/server.h"
 #include "hayward/config.h"
-#include "list.h"
+#include "hayward-common/list.h"
 
 struct hayward_input_device {
 	char *identifier;

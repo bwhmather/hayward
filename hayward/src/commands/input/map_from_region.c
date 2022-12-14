@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"

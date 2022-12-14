@@ -4,7 +4,7 @@
 #include "hayward/config.h"
 #include "hayward/commands.h"
 #include "hayward/input/input-manager.h"
-#include "util.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *input_cmd_pointer_accel(int argc, char **argv) {
 	struct cmd_results *error = NULL;

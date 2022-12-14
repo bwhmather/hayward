@@ -5,9 +5,9 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/cursor.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 static struct cmd_results *binding_add(struct bar_binding *binding,
 		list_t *mode_bindings) {

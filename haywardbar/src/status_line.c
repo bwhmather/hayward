@@ -9,8 +9,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "log.h"
-#include "loop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/loop.h"
 #include "haywardbar/bar.h"
 #include "haywardbar/config.h"
 #include "haywardbar/i3bar.h"

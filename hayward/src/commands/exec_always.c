@@ -10,8 +10,8 @@
 #include "hayward/server.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 struct cmd_results *cmd_exec_validate(int argc, char **argv) {
 	struct cmd_results *error = NULL;

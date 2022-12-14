@@ -2,7 +2,9 @@
 #define _HAYWARD_STRINGOP_H
 
 #include <stdbool.h>
-#include "list.h"
+#include <stddef.h>
+
+#include "hayward-common/list.h"
 
 void strip_whitespace(char *str);
 void strip_quotes(char *str);

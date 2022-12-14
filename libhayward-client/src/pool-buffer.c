@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <wayland-client.h>
 #include "config.h"
-#include "util.h"
+#include "hayward-common/util.h"
 #include "hayward-client/pool-buffer.h"
 
 static int create_pool_file(size_t size, char **name) {

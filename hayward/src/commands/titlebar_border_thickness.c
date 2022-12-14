@@ -3,7 +3,7 @@
 #include "hayward/config.h"
 #include "hayward/tree/workspace.h"
 #include "hayward/tree/arrange.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct cmd_results *cmd_titlebar_border_thickness(int argc, char **argv) {
 	struct cmd_results *error = NULL;

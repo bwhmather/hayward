@@ -4,8 +4,8 @@
 #include "hayward/config.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/workspace.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 #include <math.h>
 
 enum gaps_op {

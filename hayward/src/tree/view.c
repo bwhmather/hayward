@@ -12,8 +12,8 @@
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
 #endif
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 #include "hayward/commands.h"
 #include "hayward/desktop.h"
 #include "hayward/desktop/transaction.h"
@@ -30,8 +30,8 @@
 #include "hayward/tree/workspace.h"
 #include "hayward/config.h"
 #include "hayward/xdg_decoration.h"
-#include "pango.h"
-#include "stringop.h"
+#include "hayward-common/pango.h"
+#include "hayward-common/stringop.h"
 
 void view_init(struct hayward_view *view, enum hayward_view_type type,
 		const struct hayward_view_impl *impl) {

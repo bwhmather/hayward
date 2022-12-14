@@ -1,7 +1,7 @@
 #ifndef _HAYWARD_NODE_H
 #define _HAYWARD_NODE_H
 #include <stdbool.h>
-#include "list.h"
+#include "hayward-common/list.h"
 
 #define MIN_SANE_W 100
 #define MIN_SANE_H 60

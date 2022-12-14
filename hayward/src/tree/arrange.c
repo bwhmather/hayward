@@ -11,8 +11,8 @@
 #include "hayward/output.h"
 #include "hayward/tree/workspace.h"
 #include "hayward/tree/view.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 void arrange_window(struct hayward_window *window) {
 	if (config->reloading) {

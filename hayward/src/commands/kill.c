@@ -1,4 +1,4 @@
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 #include "hayward/tree/window.h"

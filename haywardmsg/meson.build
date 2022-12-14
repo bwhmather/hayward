@@ -2,11 +2,15 @@ haywardmsg_sources = [
 	'src/main.c',
 ]
 
+haywardmsg_deps = [
+	jsonc,
+	hayward_common_dep,
+]
+
 executable(
 	'haywardmsg',
 	haywardmsg_sources,
 	include_directories: [shared_inc],
-	dependencies: [jsonc],
-	link_with: [lib_hayward_common],
+	dependencies: haywardmsg_deps,
 	install: true
 )

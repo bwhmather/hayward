@@ -1,7 +1,7 @@
 #include <stdint.h>
-#include "cairo_util.h"
-#include "log.h"
-#include "pango.h"
+#include "hayward-common/cairo_util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/pango.h"
 #include "hayward-client/pool-buffer.h"
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"

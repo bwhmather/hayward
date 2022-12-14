@@ -1,7 +1,7 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/output.h"
-#include "util.h"
+#include "hayward-common/util.h"
 #include <strings.h>
 
 struct cmd_results *output_cmd_dpms(int argc, char **argv) {

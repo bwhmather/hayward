@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <getopt.h>
 #include "haywardbar/bar.h"
-#include "ipc-client.h"
-#include "log.h"
+#include "hayward-common/ipc-client.h"
+#include "hayward-common/log.h"
 
 static struct haywardbar haywardbar;
 

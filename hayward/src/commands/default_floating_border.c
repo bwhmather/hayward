@@ -1,4 +1,4 @@
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/tree/window.h"

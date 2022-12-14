@@ -18,9 +18,9 @@
 #include "hayward/ipc-server.h"
 #include "hayward/server.h"
 #include "hayward/tree/view.h"
-#include "stringop.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 #define DEFAULT_SEAT "seat0"
 

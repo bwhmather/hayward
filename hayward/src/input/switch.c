@@ -1,7 +1,7 @@
 #include "hayward/config.h"
 #include "hayward/input/switch.h"
 #include <wlr/types/wlr_idle.h>
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct hayward_switch *hayward_switch_create(struct hayward_seat *seat,
 		struct hayward_seat_device *device) {

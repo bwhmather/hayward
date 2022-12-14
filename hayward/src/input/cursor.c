@@ -17,8 +17,8 @@
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/util/region.h>
 #include "config.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 #include "hayward/commands.h"
 #include "hayward/desktop.h"
 #include "hayward/input/cursor.h"

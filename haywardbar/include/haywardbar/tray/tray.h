@@ -12,7 +12,7 @@
 #include <cairo.h>
 #include <stdint.h>
 #include "haywardbar/tray/host.h"
-#include "list.h"
+#include "hayward-common/list.h"
 
 struct haywardbar;
 struct haywardbar_output;

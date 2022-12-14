@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/commands.h"
 #include "hayward/desktop/transaction.h"
 #include "hayward/input/cursor.h"

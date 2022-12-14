@@ -6,7 +6,7 @@
 #include "hayward/input/seat.h"
 #include "hayward/tree/view.h"
 #include "hayward/desktop/transaction.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct seatop_down_event {
 	struct hayward_window *container;

@@ -11,7 +11,7 @@
 #include "hayward/output.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "log.h"
+#include "hayward-common/log.h"
 #if HAVE_XWAYLAND
 #include "hayward/xwayland.h"
 #endif

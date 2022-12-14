@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/config.h"
 #include "hayward/commands.h"
-#include "util.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *input_cmd_xkb_numlock(int argc, char **argv) {
 	struct cmd_results *error = NULL;

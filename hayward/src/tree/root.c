@@ -11,9 +11,9 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
-#include "list.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 struct hayward_root *root;
 

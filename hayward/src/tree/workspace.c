@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
-#include "stringop.h"
+#include "hayward-common/stringop.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/input/cursor.h"
 #include "hayward/input/seat.h"
@@ -17,9 +17,9 @@
 #include "hayward/tree/node.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "list.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 struct workspace_config *workspace_find_config(const char *workspace_name) {
 	for (int i = 0; i < config->workspace_configs->length; ++i) {

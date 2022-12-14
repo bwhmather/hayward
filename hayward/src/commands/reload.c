@@ -6,8 +6,8 @@
 #include "hayward/server.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 static void rebuild_textures_iterator(struct hayward_window *container, void *data) {
 	window_update_title_textures(container);

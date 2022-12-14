@@ -1,8 +1,8 @@
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/commands.h"
 #include "hayward/input/seat.h"
 #include "hayward/input/input-manager.h"
-#include "util.h"
+#include "hayward-common/util.h"
 
 static struct cmd_results *handle_action(struct seat_config *sc,
 		struct hayward_seat *seat, const char *action) {

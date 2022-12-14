@@ -22,10 +22,10 @@
 #if HAVE_TRAY
 #include "haywardbar/tray/tray.h"
 #endif
-#include "ipc-client.h"
-#include "list.h"
-#include "log.h"
-#include "loop.h"
+#include "hayward-common/ipc-client.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/loop.h"
 #include "hayward-client/pool-buffer.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"

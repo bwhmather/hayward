@@ -12,10 +12,10 @@
 #include "hayward/input/cursor.h"
 #include "hayward/input/keyboard.h"
 #include "hayward/ipc-server.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
-#include "util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
 
 int binding_order = 0;
 

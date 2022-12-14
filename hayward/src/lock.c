@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/input/keyboard.h"
 #include "hayward/input/seat.h"
 #include "hayward/output.h"

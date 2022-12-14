@@ -2,7 +2,7 @@
 #define _HAYWARDBAR_TRAY_WATCHER_H
 
 #include "haywardbar/tray/tray.h"
-#include "list.h"
+#include "hayward-common/list.h"
 
 struct haywardbar_watcher {
 	char *interface;

@@ -4,9 +4,9 @@
 #include "hayward/config.h"
 #include "hayward/commands.h"
 #include "hayward/input/input-manager.h"
-#include "log.h"
-#include "stringop.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *input_cmd_calibration_matrix(int argc, char **argv) {
 	struct cmd_results *error = NULL;

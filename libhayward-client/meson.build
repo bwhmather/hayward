@@ -11,9 +11,9 @@ hayward_client_lib = static_library(
 		cairo,
 		pango,
 		pangocairo,
-		wayland_client
+		wayland_client,
+		hayward_common_dep,
 	],
-	link_with: [lib_hayward_common],
 	include_directories: [hayward_client_inc, shared_inc]
 )
 

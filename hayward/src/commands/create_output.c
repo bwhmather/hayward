@@ -7,7 +7,7 @@
 #endif
 #include "hayward/commands.h"
 #include "hayward/server.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 static void create_output(struct wlr_backend *backend, void *data) {
 	bool *done = data;

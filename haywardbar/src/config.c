@@ -4,9 +4,9 @@
 #include "haywardbar/config.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "config.h"
-#include "stringop.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 uint32_t parse_position(const char *position) {
 	uint32_t horiz = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |

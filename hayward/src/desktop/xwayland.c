@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/xwayland.h>
 #include <xcb/xcb_icccm.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/desktop.h"
 #include "hayward/desktop/transaction.h"
 #include "hayward/input/cursor.h"

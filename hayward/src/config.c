@@ -25,12 +25,12 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
-#include "cairo_util.h"
-#include "pango.h"
-#include "stringop.h"
-#include "list.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/cairo_util.h"
+#include "hayward-common/pango.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 struct hayward_config *config = NULL;
 

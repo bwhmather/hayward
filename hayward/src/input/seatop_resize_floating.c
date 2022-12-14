@@ -9,7 +9,7 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
 #include "hayward/tree/window.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct seatop_resize_floating_event {
 	struct hayward_window *window;

@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 #include "haywardbar/tray/watcher.h"
 
 static const char *obj_path = "/StatusNotifierWatcher";

@@ -4,7 +4,7 @@
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_pad.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/input/cursor.h"
 #include "hayward/input/seat.h"
 #include "hayward/input/tablet.h"

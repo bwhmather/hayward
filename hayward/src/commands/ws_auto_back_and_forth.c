@@ -1,7 +1,7 @@
 #include <string.h>
 #include <strings.h>
 #include "hayward/commands.h"
-#include "util.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *cmd_workspace_auto_back_and_forth(int argc, char **argv) {
 	struct cmd_results *error = NULL;

@@ -1,4 +1,4 @@
-lib_hayward_common_sources = [
+hayward_common_sources = [
 	'src/background-image.c',
 	'src/cairo.c',
 	'src/ipc-client.c',
@@ -10,9 +10,11 @@ lib_hayward_common_sources = [
 	'src/util.c'
 ]
 
-lib_hayward_common = static_library(
+hayward_common_inc = include_directories('include')
+
+hayward_common_lib = static_library(
 	'hayward-common',
-	lib_hayward_common_sources,
+	hayward_common_sources,
 	dependencies: [
 		cairo,
 		gdk_pixbuf,
@@ -20,5 +22,10 @@ lib_hayward_common = static_library(
 		pangocairo,
 		wayland_client.partial_dependency(compile_args: true)
 	],
-	include_directories: [shared_inc]
+	include_directories: [hayward_common_inc, shared_inc]
+)
+
+hayward_common_dep = declare_dependency(
+	include_directories : hayward_common_inc,
+	link_with: hayward_common_lib,
 )

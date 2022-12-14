@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 #include "haywardbar/bar.h"
 #include "haywardbar/config.h"
 #include "haywardbar/input.h"

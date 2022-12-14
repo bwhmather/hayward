@@ -2,7 +2,7 @@
 #include "hayward/config.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
-#include "util.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *cmd_smart_borders(int argc, char **argv) {
 	struct cmd_results *error = NULL;

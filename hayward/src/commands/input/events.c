@@ -5,7 +5,7 @@
 #include "hayward/config.h"
 #include "hayward/commands.h"
 #include "hayward/input/input-manager.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 static void toggle_supported_send_events_for_device(struct input_config *ic,
 		struct hayward_input_device *input_device) {

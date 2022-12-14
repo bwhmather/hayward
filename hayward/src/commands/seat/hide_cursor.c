@@ -5,8 +5,8 @@
 #include "hayward/input/seat.h"
 #include "hayward/input/cursor.h"
 #include "hayward/server.h"
-#include "stringop.h"
-#include "util.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *seat_cmd_hide_cursor(int argc, char **argv) {
 	struct cmd_results *error = NULL;

@@ -22,10 +22,10 @@
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
 #include "hayward/ipc-server.h"
-#include "ipc-client.h"
-#include "log.h"
-#include "stringop.h"
-#include "util.h"
+#include "hayward-common/ipc-client.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
 
 static bool terminate_request = false;
 static int exit_value = 0;

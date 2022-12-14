@@ -5,11 +5,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <strings.h>
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 #include "haywardnag/config.h"
 #include "haywardnag/types.h"
-#include "util.h"
+#include "hayward-common/util.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 struct haywardnag_type *haywardnag_type_new(const char *name) {

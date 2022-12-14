@@ -4,9 +4,9 @@
 #include <strings.h>
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 // sort in order of longest->shortest
 static int compare_set_qsort(const void *_l, const void *_r) {

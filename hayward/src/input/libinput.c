@@ -3,7 +3,7 @@
 #include <libudev.h>
 #include <limits.h>
 #include <wlr/backend/libinput.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/config.h"
 #include "hayward/output.h"
 #include "hayward/input/input-manager.h"

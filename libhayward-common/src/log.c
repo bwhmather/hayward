@@ -1,11 +1,12 @@
 #define _POSIX_C_SOURCE 200112L
+#include "hayward-common/log.h"
+
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include "log.h"
 
 static bool colored = true;
 static hayward_log_importance_t log_importance = HAYWARD_ERROR;

@@ -14,8 +14,8 @@
 #include "hayward/input/cursor.h"
 #include "hayward/output.h"
 #include "hayward/tree/root.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 int output_name_cmp(const void *item, const void *data) {
 	const struct output_config *output = item;

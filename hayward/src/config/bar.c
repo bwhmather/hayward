@@ -14,10 +14,10 @@
 #include "hayward/input/keyboard.h"
 #include "hayward/output.h"
 #include "config.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
-#include "util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
 
 void free_bar_binding(struct bar_binding *binding) {
 	if (!binding) {

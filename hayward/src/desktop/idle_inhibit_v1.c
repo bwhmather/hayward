@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <wlr/types/wlr_idle.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/desktop/idle_inhibit_v1.h"
 #include "hayward/input/seat.h"
 #include "hayward/tree/window.h"

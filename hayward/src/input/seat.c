@@ -14,8 +14,8 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include "config.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 #include "hayward/config.h"
 #include "hayward/desktop.h"
 #include "hayward/input/cursor.h"

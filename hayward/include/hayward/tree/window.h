@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output_layout.h>
-#include "list.h"
+#include "hayward-common/list.h"
 #include "hayward/tree/node.h"
 
 enum hayward_window_border {

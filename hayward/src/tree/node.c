@@ -6,7 +6,7 @@
 #include "hayward/tree/node.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 void node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
 	static size_t next_id = 1;

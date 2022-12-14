@@ -1,7 +1,7 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *cmd_force_focus_wrapping(int argc, char **argv) {
 	hayward_log(HAYWARD_INFO, "Warning: force_focus_wrapping is deprecated. "

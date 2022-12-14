@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <wayland-client.h>
 #include "../include/config.h"
-#include "list.h"
-#include "util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/util.h"
 
 struct box_colors {
 	uint32_t border;

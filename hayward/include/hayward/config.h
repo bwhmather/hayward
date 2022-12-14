@@ -10,10 +10,10 @@
 #include <xkbcommon/xkbcommon.h>
 #include <xf86drmMode.h>
 #include "../include/config.h"
-#include "list.h"
+#include "hayward-common/list.h"
 #include "haywardnag.h"
-#include "tree/column.h"
-#include "tree/window.h"
+#include "hayward/tree/column.h"
+#include "hayward/tree/window.h"
 #include "hayward/input/tablet.h"
 #include "hayward/tree/root.h"
 #include "wlr-layer-shell-unstable-v1-protocol.h"

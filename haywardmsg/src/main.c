@@ -13,9 +13,9 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <json.h>
-#include "stringop.h"
-#include "ipc-client.h"
-#include "log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/ipc-client.h"
+#include "hayward-common/log.h"
 
 void hayward_terminate(int exit_code) {
 	exit(exit_code);

@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
 #include <signal.h>
-#include "log.h"
-#include "list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/list.h"
 #include "haywardnag/config.h"
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"

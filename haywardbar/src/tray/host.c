@@ -8,8 +8,8 @@
 #include "haywardbar/tray/host.h"
 #include "haywardbar/tray/item.h"
 #include "haywardbar/tray/tray.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 static const char *watcher_path = "/StatusNotifierWatcher";
 

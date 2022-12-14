@@ -7,10 +7,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/server.h"
 #include "hayward/haywardnag.h"
-#include "util.h"
+#include "hayward-common/util.h"
 
 static void handle_haywardnag_client_destroy(struct wl_listener *listener,
 		void *data) {

@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
-#include "log.h"
-#include "list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/list.h"
 #include "haywardnag/render.h"
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"

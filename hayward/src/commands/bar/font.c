@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 #include "hayward/commands.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 struct cmd_results *bar_cmd_font(int argc, char **argv) {
 	struct cmd_results *error = NULL;

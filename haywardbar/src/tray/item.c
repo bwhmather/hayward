@@ -12,10 +12,10 @@
 #include "haywardbar/tray/icon.h"
 #include "haywardbar/tray/item.h"
 #include "haywardbar/tray/tray.h"
-#include "background-image.h"
-#include "cairo_util.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/background-image.h"
+#include "hayward-common/cairo_util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 // TODO menu

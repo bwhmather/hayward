@@ -4,7 +4,7 @@
 #include "hayward/config.h"
 #include "hayward/commands.h"
 #include "hayward/input/input-manager.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct cmd_results *input_cmd_map_to_output(int argc, char **argv) {
 	struct cmd_results *error = NULL;

@@ -16,8 +16,8 @@
 #include "hayward/tree/node.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 struct hayward_transaction {
 	struct wl_event_source *timer;

@@ -209,6 +209,7 @@ hayward_deps = [
 	wlroots,
 	xkbcommon,
 	xcb_icccm,
+	hayward_common_dep,
 ]
 
 if have_xwayland
@@ -223,7 +224,6 @@ executable(
 	hayward_sources,
 	include_directories: [hayward_inc, shared_inc],
 	dependencies: hayward_deps,
-	link_with: [lib_hayward_common],
 	install: true
 )
 

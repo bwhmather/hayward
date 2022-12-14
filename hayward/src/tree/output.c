@@ -9,8 +9,8 @@
 #include "hayward/output.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/workspace.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 enum wlr_direction opposite_direction(enum wlr_direction d) {
 	switch (d) {

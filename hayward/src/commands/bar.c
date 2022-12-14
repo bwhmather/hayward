@@ -5,7 +5,7 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/ipc-server.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 // Must be in alphabetical order for bsearch
 static const struct cmd_handler bar_handlers[] = {

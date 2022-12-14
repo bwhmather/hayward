@@ -3,7 +3,7 @@
 #include "config.h"
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct cmd_results *bar_cmd_workspace_min_width(int argc, char **argv) {
 	struct cmd_results *error = NULL;

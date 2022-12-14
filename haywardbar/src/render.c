@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "cairo_util.h"
-#include "pango.h"
+#include "hayward-common/cairo_util.h"
+#include "hayward-common/pango.h"
 #include "hayward-client/pool-buffer.h"
 #include "haywardbar/bar.h"
 #include "haywardbar/config.h"
@@ -14,7 +14,7 @@
 #include "haywardbar/ipc.h"
 #include "haywardbar/render.h"
 #include "haywardbar/status_line.h"
-#include "log.h"
+#include "hayward-common/log.h"
 #if HAVE_TRAY
 #include "haywardbar/tray/tray.h"
 #endif

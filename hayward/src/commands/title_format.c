@@ -3,8 +3,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/tree/view.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 struct cmd_results *cmd_title_format(int argc, char **argv) {
 	struct cmd_results *error = NULL;

@@ -3,7 +3,7 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/cursor.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 static struct cmd_results *tray_bind(int argc, char **argv, bool code) {
 #if HAVE_TRAY

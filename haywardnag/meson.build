@@ -20,7 +20,7 @@ executable(
 		wayland_client,
 		wayland_cursor,
 		hayward_client_dep,
+		hayward_common_dep,
 	],
-	link_with: [lib_hayward_common],
 	install: true
 )

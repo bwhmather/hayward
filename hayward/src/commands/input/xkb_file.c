@@ -3,8 +3,8 @@
 #include <errno.h>
 #include "hayward/config.h"
 #include "hayward/commands.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 struct cmd_results *input_cmd_xkb_file(int argc, char **argv) {
 	struct cmd_results *error = NULL;

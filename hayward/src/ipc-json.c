@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_output.h>
 #include <xkbcommon/xkbcommon.h>
 #include "config.h"
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/config.h"
 #include "hayward/ipc-json.h"
 #include "hayward/tree/view.h"

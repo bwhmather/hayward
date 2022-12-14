@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "haywardbar/tray/tray.h"
-#include "list.h"
+#include "hayward-common/list.h"
 
 struct haywardbar_output;
 

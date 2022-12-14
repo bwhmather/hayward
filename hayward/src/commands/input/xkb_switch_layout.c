@@ -4,7 +4,7 @@
 #include "hayward/config.h"
 #include "hayward/commands.h"
 #include "hayward/input/input-manager.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct xkb_switch_layout_action {
 	struct wlr_keyboard *keyboard;

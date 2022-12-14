@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward-common/util.h"
+
 #include <ctype.h>
 #include <fcntl.h>
 #include <math.h>
@@ -7,8 +9,8 @@
 #include <string.h>
 #include <strings.h>
 #include <wayland-server-protocol.h>
-#include "log.h"
-#include "util.h"
+
+#include "hayward-common/log.h"
 
 int wrap(int i, int max) {
 	return ((i % max) + max) % max;

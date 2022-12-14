@@ -1,10 +1,12 @@
+#include "hayward-common/background-image.h"
+
 #include <assert.h>
-#include "background-image.h"
-#include "cairo_util.h"
-#include "log.h"
 #if HAVE_GDK_PIXBUF
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #endif
+
+#include "hayward-common/cairo_util.h"
+#include "hayward-common/log.h"
 
 enum background_mode parse_background_mode(const char *mode) {
 	if (strcmp(mode, "stretch") == 0) {

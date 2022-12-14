@@ -10,9 +10,9 @@
 #include <wordexp.h>
 #include "haywardbar/tray/icon.h"
 #include "config.h"
-#include "list.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 static int cmp_id(const void *item, const void *cmp_to) {
 	return strcmp(item, cmp_to);

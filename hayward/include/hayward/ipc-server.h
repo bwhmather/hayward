@@ -4,7 +4,7 @@
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/tree/window.h"
-#include "ipc.h"
+#include "hayward-common/ipc.h"
 
 struct hayward_server;
 

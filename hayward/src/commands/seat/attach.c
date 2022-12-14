@@ -2,7 +2,7 @@
 #include <string.h>
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "stringop.h"
+#include "hayward-common/stringop.h"
 
 struct cmd_results *seat_cmd_attach(int argc, char **argv) {
 	struct cmd_results *error = NULL;

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <strings.h>
 #include "hayward/commands.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct cmd_results *bar_cmd_position(int argc, char **argv) {
 	struct cmd_results *error = NULL;

@@ -4,7 +4,7 @@
 #include <float.h>
 #include "hayward/config.h"
 #include "hayward/input/keyboard.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct input_config *new_input_config(const char* identifier) {
 	struct input_config *input = calloc(1, sizeof(struct input_config));

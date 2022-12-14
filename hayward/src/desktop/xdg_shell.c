@@ -5,7 +5,7 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/edges.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/decoration.h"
 #include "hayward/desktop.h"
 #include "hayward/desktop/transaction.h"

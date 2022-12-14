@@ -2,7 +2,7 @@
 #define _HAYWARDNAG_HAYWARDNAG_H
 #include <stdint.h>
 #include <strings.h>
-#include "list.h"
+#include "hayward-common/list.h"
 #include "hayward-client/pool-buffer.h"
 #include "haywardnag/types.h"
 

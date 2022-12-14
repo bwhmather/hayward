@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/input/seat.h"
 #include "hayward/input/text_input.h"
 

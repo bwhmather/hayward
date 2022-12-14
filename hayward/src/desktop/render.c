@@ -14,7 +14,7 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/util/region.h>
-#include "log.h"
+#include "hayward-common/log.h"
 #include "config.h"
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"

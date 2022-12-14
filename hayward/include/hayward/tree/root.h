@@ -7,7 +7,7 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/node.h"
 #include "config.h"
-#include "list.h"
+#include "hayward-common/list.h"
 #include <ctype.h>
 
 extern struct hayward_root *root;

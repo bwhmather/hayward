@@ -1,8 +1,8 @@
 #include <string.h>
 #include "hayward/commands.h"
 #include "hayward/input/keyboard.h"
-#include "log.h"
-#include "stringop.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
 
 struct cmd_results *bar_cmd_modifier(int argc, char **argv) {
 	struct cmd_results *error = NULL;

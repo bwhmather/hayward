@@ -14,7 +14,7 @@
 #include "hayward/input/seat.h"
 #include "hayward/input/cursor.h"
 #include "hayward/ipc-server.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 static struct modifier_key {
 	char *name;

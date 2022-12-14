@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200112L
+#include "hayward-common/loop.h"
+
 #include <limits.h>
 #include <string.h>
 #include <stdbool.h>
@@ -7,9 +9,9 @@
 #include <poll.h>
 #include <time.h>
 #include <unistd.h>
-#include "list.h"
-#include "log.h"
-#include "loop.h"
+
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 struct loop_fd_event {
 	void (*callback)(int fd, short mask, void *data);

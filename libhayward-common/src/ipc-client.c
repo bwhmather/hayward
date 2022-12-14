@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward-common/ipc-client.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -6,8 +8,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include "ipc-client.h"
-#include "log.h"
+
+#include "hayward-common/log.h"
 
 static const char ipc_magic[] = {'i', '3', '-', 'i', 'p', 'c'};
 

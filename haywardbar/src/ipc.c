@@ -12,11 +12,11 @@
 #include "haywardbar/tray/tray.h"
 #endif
 #include "config.h"
-#include "ipc-client.h"
-#include "list.h"
-#include "log.h"
-#include "loop.h"
-#include "util.h"
+#include "hayward-common/ipc-client.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/loop.h"
+#include "hayward-common/util.h"
 
 void ipc_send_workspace_command(struct haywardbar *bar, const char *ws) {
 	uint32_t size = strlen("workspace \"\"") + strlen(ws);

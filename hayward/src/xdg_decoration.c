@@ -4,7 +4,7 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
 #include "hayward/xdg_decoration.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 static void xdg_decoration_handle_destroy(struct wl_listener *listener,
 		void *data) {

@@ -1,7 +1,7 @@
 #ifndef _HAYWARDNAG_CONFIG_H
 #define _HAYWARDNAG_CONFIG_H
 #include "haywardnag/haywardnag.h"
-#include "list.h"
+#include "hayward-common/list.h"
 
 int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardnag,
 		list_t *types, struct haywardnag_type *type, char **config, bool *debug);

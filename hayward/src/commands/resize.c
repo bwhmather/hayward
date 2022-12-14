@@ -10,8 +10,8 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 #define AXIS_HORIZONTAL (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)
 #define AXIS_VERTICAL   (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)

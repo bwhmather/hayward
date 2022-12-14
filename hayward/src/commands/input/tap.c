@@ -3,8 +3,8 @@
 #include "hayward/config.h"
 #include "hayward/commands.h"
 #include "hayward/input/input-manager.h"
-#include "log.h"
-#include "util.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *input_cmd_tap(int argc, char **argv) {
 	struct cmd_results *error = NULL;

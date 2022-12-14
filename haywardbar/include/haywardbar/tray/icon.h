@@ -1,7 +1,7 @@
 #ifndef _HAYWARDBAR_TRAY_ICON_H
 #define _HAYWARDBAR_TRAY_ICON_H
 
-#include "list.h"
+#include "hayward-common/list.h"
 
 struct icon_theme_subdir {
 	char *name;

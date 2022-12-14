@@ -1,8 +1,8 @@
 #include "hayward/config.h"
-#include "log.h"
+#include "hayward-common/log.h"
 #include "hayward/commands.h"
 #include "hayward/server.h"
-#include "util.h"
+#include "hayward-common/util.h"
 
 struct cmd_results *cmd_xwayland(int argc, char **argv) {
 	struct cmd_results *error = NULL;

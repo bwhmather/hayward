@@ -4,7 +4,7 @@
 #include "hayward/commands.h"
 #include "hayward/tree/view.h"
 #include "hayward/desktop.h"
-#include "log.h"
+#include "hayward-common/log.h"
 
 struct cmd_results *cmd_opacity(int argc, char **argv) {
 	struct cmd_results *error = NULL;

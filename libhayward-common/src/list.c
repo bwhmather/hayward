@@ -1,8 +1,10 @@
-#include "list.h"
+#include "hayward-common/list.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "log.h"
+
+#include "hayward-common/log.h"
 
 list_t *create_list(void) {
 	list_t *list = malloc(sizeof(list_t));

@@ -9,8 +9,8 @@
 #include "haywardbar/tray/item.h"
 #include "haywardbar/tray/tray.h"
 #include "haywardbar/tray/watcher.h"
-#include "list.h"
-#include "log.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
 
 static int handle_lost_watcher(sd_bus_message *msg,
 		void *data, sd_bus_error *error) {
