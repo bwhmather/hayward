@@ -1,8 +1,10 @@
+lib_hayward_client_sources = [
+	'src/pool-buffer.c',
+]
+
 lib_hayward_client = static_library(
 	'hayward-client',
-	files(
-		'pool-buffer.c',
-	),
+	lib_hayward_client_sources,
 	dependencies: [
 		cairo,
 		pango,

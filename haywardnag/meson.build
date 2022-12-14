@@ -1,13 +1,16 @@
+haywardnag_sources = [
+	'src/config.c',
+	'src/main.c',
+	'src/render.c',
+	'src/haywardnag.c',
+	'src/types.c',
+]
+
 haywardnag_inc = include_directories('include')
 
 executable(
-	'haywardnag', [
-		'config.c',
-		'main.c',
-		'render.c',
-		'haywardnag.c',
-		'types.c',
-	],
+	'haywardnag',
+	haywardnag_sources,
 	include_directories: [haywardnag_inc, shared_inc],
 	dependencies: [
 		cairo,

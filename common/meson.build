@@ -1,16 +1,18 @@
+lib_hayward_common_sources = [
+	'src/background-image.c',
+	'src/cairo.c',
+	'src/ipc-client.c',
+	'src/log.c',
+	'src/loop.c',
+	'src/list.c',
+	'src/pango.c',
+	'src/stringop.c',
+	'src/util.c'
+]
+
 lib_hayward_common = static_library(
 	'hayward-common',
-	files(
-		'background-image.c',
-		'cairo.c',
-		'ipc-client.c',
-		'log.c',
-		'loop.c',
-		'list.c',
-		'pango.c',
-		'stringop.c',
-		'util.c'
-	),
+	lib_hayward_common_sources,
 	dependencies: [
 		cairo,
 		gdk_pixbuf,

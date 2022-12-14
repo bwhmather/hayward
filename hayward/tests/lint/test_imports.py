@@ -11,7 +11,7 @@ import clang.cindex
 SOURCE_ROOT = pathlib.Path(os.environ["MESON_SOURCE_ROOT"]).resolve()
 BUILD_ROOT = pathlib.Path(os.environ["MESON_BUILD_ROOT"]).resolve()
 
-HAYWARD_ROOT = SOURCE_ROOT / pathlib.Path("hayward")
+HAYWARD_ROOT = SOURCE_ROOT / pathlib.Path("hayward/src")
 HAYWARD_INCLUDE_ROOT = SOURCE_ROOT / pathlib.Path("hayward/include/hayward")
 
 
@@ -76,7 +76,7 @@ def source_path_for_header_path(header_path, /):
 def parse_header_file(header_path):
     source_path = source_path_for_header_path(header_path)
     if source_path is None:
-        source_path = pathlib.Path("hayward/server.c")
+        source_path = pathlib.Path("hayward/src/server.c")
 
     args = CPP_ARGS[SOURCE_ROOT / source_path]
     return INDEX.parse(SOURCE_ROOT / header_path, args=args)
@@ -130,7 +130,7 @@ class DeclarationOrderTestCase(unittest.TestCase):
         header_paths = [
             header_path
             for header_path in enumerate_header_files()
-            if header_path.is_relative_to("include/hayward/tree")
+            if header_path.is_relative_to("hayward/include/hayward/tree")
         ]
 
         decls = {}

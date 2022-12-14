@@ -1,10 +1,23 @@
-tray_files = have_tray ? [
-	'tray/host.c',
-	'tray/icon.c',
-	'tray/item.c',
-	'tray/tray.c',
-	'tray/watcher.c'
-] : []
+haywardbar_sources = [
+	'src/bar.c',
+	'src/config.c',
+	'src/i3bar.c',
+	'src/input.c',
+	'src/ipc.c',
+	'src/main.c',
+	'src/render.c',
+	'src/status_line.c',
+]
+
+if have_tray
+	haywardbar_sources += [
+		'src/tray/host.c',
+		'src/tray/icon.c',
+		'src/tray/item.c',
+		'src/tray/tray.c',
+		'src/tray/watcher.c'
+	]
+endif
 
 haywardbar_deps = [
 	cairo,
@@ -25,17 +38,8 @@ endif
 haywardbar_inc = include_directories('include')
 
 executable(
-	'haywardbar', [
-		'bar.c',
-		'config.c',
-		'i3bar.c',
-		'input.c',
-		'ipc.c',
-		'main.c',
-		'render.c',
-		'status_line.c',
-		tray_files
-	],
+	'haywardbar',
+	haywardbar_sources,
 	include_directories: [haywardbar_inc, shared_inc],
 	dependencies: haywardbar_deps,
 	link_with: [lib_hayward_common, lib_hayward_client],
