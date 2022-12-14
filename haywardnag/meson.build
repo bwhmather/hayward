@@ -1,3 +1,5 @@
+haywardnag_inc = include_directories('include')
+
 executable(
 	'haywardnag', [
 		'config.c',
@@ -6,7 +8,7 @@ executable(
 		'haywardnag.c',
 		'types.c',
 	],
-	include_directories: [hayward_inc],
+	include_directories: [haywardnag_inc, shared_inc],
 	dependencies: [
 		cairo,
 		client_protos,

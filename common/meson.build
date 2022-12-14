@@ -18,5 +18,5 @@ lib_hayward_common = static_library(
 		pangocairo,
 		wayland_client.partial_dependency(compile_args: true)
 	],
-	include_directories: hayward_inc
+	include_directories: [shared_inc]
 )

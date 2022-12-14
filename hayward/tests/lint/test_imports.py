@@ -12,7 +12,7 @@ SOURCE_ROOT = pathlib.Path(os.environ["MESON_SOURCE_ROOT"]).resolve()
 BUILD_ROOT = pathlib.Path(os.environ["MESON_BUILD_ROOT"]).resolve()
 
 HAYWARD_ROOT = SOURCE_ROOT / pathlib.Path("hayward")
-HAYWARD_INCLUDE_ROOT = SOURCE_ROOT / pathlib.Path("include/hayward")
+HAYWARD_INCLUDE_ROOT = SOURCE_ROOT / pathlib.Path("hayward/include/hayward")
 
 
 _raw_commands = json.loads((BUILD_ROOT / "compile_commands.json").read_text())

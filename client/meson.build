@@ -10,5 +10,5 @@ lib_hayward_client = static_library(
 		wayland_client
 	],
 	link_with: [lib_hayward_common],
-	include_directories: hayward_inc
+	include_directories: [shared_inc]
 )

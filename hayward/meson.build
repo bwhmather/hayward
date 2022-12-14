@@ -216,10 +216,12 @@ if have_xwayland
 	hayward_deps += xcb
 endif
 
+hayward_inc = include_directories('include')
+
 executable(
 	'hayward',
 	hayward_sources,
-	include_directories: [hayward_inc],
+	include_directories: [hayward_inc, shared_inc],
 	dependencies: hayward_deps,
 	link_with: [lib_hayward_common],
 	install: true

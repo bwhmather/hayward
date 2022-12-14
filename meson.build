@@ -209,8 +209,7 @@ else
 	)
 endif
 
-
-hayward_inc = include_directories('include')
+shared_inc = include_directories('include')
 
 subdir('include')
 subdir('protocols')
