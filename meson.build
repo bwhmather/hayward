@@ -213,12 +213,12 @@ shared_inc = include_directories('include')
 
 subdir('include')
 subdir('protocols')
-subdir('common')
+subdir('libhayward-common')
 subdir('hayward')
 subdir('haywardmsg')
 
 if get_option('haywardbar') or get_option('haywardnag')
-	subdir('client')
+	subdir('libhayward-client')
 endif
 if get_option('haywardbar')
 	subdir('haywardbar')
