@@ -88,6 +88,14 @@ def parse_source_file(source_path):
     return INDEX.parse(SOURCE_ROOT / source_path, args=args)
 
 
+def normalize_clang_path(path):
+    path = pathlib.Path(path)
+    if not path.is_absolute():
+        path = BUILD_ROOT / path
+    path = path.resolve()
+    return path
+
+
 class DeclarationOrderTestCase(unittest.TestCase):
     def test_source_and_header_orders_match(self):
         for source_path in enumerate_source_files():
@@ -103,7 +111,8 @@ class DeclarationOrderTestCase(unittest.TestCase):
                     node.spelling
                     for node in header.cursor.get_children()
                     if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
-                    and node.location.file.name == header.spelling
+                    and normalize_clang_path(node.location.file.name)
+                    == normalize_clang_path(header.spelling)
                 ]
                 source_defs = [
                     node.spelling
@@ -111,7 +120,8 @@ class DeclarationOrderTestCase(unittest.TestCase):
                     if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
                     and node.is_definition()
                     and node.storage_class != clang.cindex.StorageClass.STATIC
-                    and node.location.file.name == source.spelling
+                    and normalize_clang_path(node.location.file.name)
+                    == normalize_clang_path(source.spelling)
                 ]
                 self.assertEqual(set(header_decls), set(source_defs))
                 self.assertEqual(header_decls, source_defs)
