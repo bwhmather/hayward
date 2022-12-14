@@ -10,8 +10,8 @@
 #include <unistd.h>
 #include <wayland-client.h>
 #include "config.h"
-#include "pool-buffer.h"
 #include "util.h"
+#include "hayward-client/pool-buffer.h"
 
 static int create_pool_file(size_t size, char **name) {
 	static const char template[] = "hayward-client-XXXXXX";

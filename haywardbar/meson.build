@@ -29,7 +29,8 @@ haywardbar_deps = [
 	pangocairo,
 	rt,
 	wayland_client,
-	wayland_cursor
+	wayland_cursor,
+	hayward_client_dep,
 ]
 if have_tray
 	haywardbar_deps += sdbus
@@ -42,6 +43,6 @@ executable(
 	haywardbar_sources,
 	include_directories: [haywardbar_inc, shared_inc],
 	dependencies: haywardbar_deps,
-	link_with: [lib_hayward_common, lib_hayward_client],
+	link_with: [lib_hayward_common],
 	install: true
 )

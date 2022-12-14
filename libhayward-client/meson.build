@@ -1,10 +1,12 @@
-lib_hayward_client_sources = [
+hayward_client_sources = [
 	'src/pool-buffer.c',
 ]
 
-lib_hayward_client = static_library(
+hayward_client_inc = include_directories('include')
+
+hayward_client_lib = static_library(
 	'hayward-client',
-	lib_hayward_client_sources,
+	hayward_client_sources,
 	dependencies: [
 		cairo,
 		pango,
@@ -12,5 +14,10 @@ lib_hayward_client = static_library(
 		wayland_client
 	],
 	link_with: [lib_hayward_common],
-	include_directories: [shared_inc]
+	include_directories: [hayward_client_inc, shared_inc]
+)
+
+hayward_client_dep = declare_dependency(
+	include_directories : hayward_client_inc,
+	link_with: hayward_client_lib,
 )

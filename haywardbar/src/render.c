@@ -7,7 +7,7 @@
 #include <string.h>
 #include "cairo_util.h"
 #include "pango.h"
-#include "pool-buffer.h"
+#include "hayward-client/pool-buffer.h"
 #include "haywardbar/bar.h"
 #include "haywardbar/config.h"
 #include "haywardbar/i3bar.h"

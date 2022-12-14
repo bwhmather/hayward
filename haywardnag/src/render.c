@@ -2,7 +2,7 @@
 #include "cairo_util.h"
 #include "log.h"
 #include "pango.h"
-#include "pool-buffer.h"
+#include "hayward-client/pool-buffer.h"
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"

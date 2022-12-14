@@ -19,7 +19,8 @@ executable(
 		pangocairo,
 		wayland_client,
 		wayland_cursor,
+		hayward_client_dep,
 	],
-	link_with: [lib_hayward_common, lib_hayward_client],
+	link_with: [lib_hayward_common],
 	install: true
 )

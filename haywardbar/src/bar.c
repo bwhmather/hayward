@@ -26,7 +26,7 @@
 #include "list.h"
 #include "log.h"
 #include "loop.h"
-#include "pool-buffer.h"
+#include "hayward-client/pool-buffer.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 
