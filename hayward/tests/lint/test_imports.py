@@ -100,6 +100,12 @@ class DeclarationOrderTestCase(unittest.TestCase):
     def test_source_and_header_orders_match(self):
         for source_path in enumerate_source_files():
             with self.subTest(file=source_path):
+                if source_path.match("hayward/src/commands.c"):
+                    self.skipTest("Command modules share a single header")
+
+                if source_path.is_relative_to("hayward/src/commands"):
+                    self.skipTest("Command modules share a single header")
+
                 header_path = header_path_for_source_path(source_path)
                 if header_path is None:
                     self.skipTest(f"No header for {source_path}")
@@ -167,6 +173,39 @@ class DeclarationOrderTestCase(unittest.TestCase):
                 ]
 
                 self.assertEqual(header_a_decls, header_b_decls)
+
+    def test_commands_and_headers_match(self):
+        source_paths = [pathlib.Path("hayward/src/commands.c")]
+        source_paths += [
+            source_path
+            for source_path in enumerate_source_files()
+            if source_path.is_relative_to("hayward/src/commands")
+        ]
+
+        source_defs = []
+        for source_path in source_paths:
+            source = parse_source_file(source_path)
+            source_defs += [
+                node.spelling
+                for node in source.cursor.get_children()
+                if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
+                and node.is_definition()
+                and node.storage_class != clang.cindex.StorageClass.STATIC
+                and normalize_clang_path(node.location.file.name)
+                == normalize_clang_path(source.spelling)
+            ]
+
+        header_path = pathlib.Path("hayward/include/hayward/commands.h")
+        header = parse_header_file(header_path)
+        header_decls = [
+            node.spelling
+            for node in header.cursor.get_children()
+            if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
+            and normalize_clang_path(node.location.file.name)
+            == normalize_clang_path(header.spelling)
+        ]
+
+        self.assertEqual(set(header_decls), set(source_defs))
 
 
 if __name__ == "__main__":
