@@ -38,6 +38,67 @@
 
 static void seat_send_focus(struct hayward_seat *seat, struct wlr_surface *surface);
 
+static void handle_request_start_drag(struct wl_listener *listener, void *data);
+static void handle_start_drag(struct wl_listener *listener, void *data);
+static void handle_request_set_selection(struct wl_listener *listener, void *data);
+static void handle_request_set_primary_selection(struct wl_listener *listener, void *data);
+
+struct hayward_seat *seat_create(const char *seat_name) {
+	struct hayward_seat *seat = calloc(1, sizeof(struct hayward_seat));
+	if (!seat) {
+		return NULL;
+	}
+
+	seat->wlr_seat = wlr_seat_create(server.wl_display, seat_name);
+	hayward_assert(seat->wlr_seat, "could not allocate seat");
+	seat->wlr_seat->data = seat;
+
+	seat->cursor = hayward_cursor_create(seat);
+	if (!seat->cursor) {
+		wlr_seat_destroy(seat->wlr_seat);
+		free(seat);
+		return NULL;
+	}
+
+	seat->idle_inhibit_sources = seat->idle_wake_sources =
+		IDLE_SOURCE_KEYBOARD |
+		IDLE_SOURCE_POINTER |
+		IDLE_SOURCE_TOUCH |
+		IDLE_SOURCE_TABLET_PAD |
+		IDLE_SOURCE_TABLET_TOOL |
+		IDLE_SOURCE_SWITCH;
+
+	wl_list_init(&seat->devices);
+
+	seat->deferred_bindings = create_list();
+
+	wl_signal_add(&seat->wlr_seat->events.request_start_drag,
+		&seat->request_start_drag);
+	seat->request_start_drag.notify = handle_request_start_drag;
+
+	wl_signal_add(&seat->wlr_seat->events.start_drag, &seat->start_drag);
+	seat->start_drag.notify = handle_start_drag;
+
+	wl_signal_add(&seat->wlr_seat->events.request_set_selection,
+		&seat->request_set_selection);
+	seat->request_set_selection.notify = handle_request_set_selection;
+
+	wl_signal_add(&seat->wlr_seat->events.request_set_primary_selection,
+		&seat->request_set_primary_selection);
+	seat->request_set_primary_selection.notify =
+		handle_request_set_primary_selection;
+
+	wl_list_init(&seat->keyboard_groups);
+	wl_list_init(&seat->keyboard_shortcuts_inhibitors);
+
+	hayward_input_method_relay_init(seat, &seat->im_relay);
+
+	wl_list_insert(&server.input->seats, &seat->link);
+
+	seatop_begin_default(seat);
+
+	return seat;
+}
 
 static void seat_device_destroy(struct hayward_seat_device *seat_device) {
 	if (!seat_device) {
@@ -311,63 +372,6 @@ static void handle_request_set_primary_selection(struct wl_listener *listener,
 		wl_container_of(listener, seat, request_set_primary_selection);
 	struct wlr_seat_request_set_primary_selection_event *event = data;
 	wlr_seat_set_primary_selection(seat->wlr_seat, event->source, event->serial);
-}
-
-struct hayward_seat *seat_create(const char *seat_name) {
-	struct hayward_seat *seat = calloc(1, sizeof(struct hayward_seat));
-	if (!seat) {
-		return NULL;
-	}
-
-	seat->wlr_seat = wlr_seat_create(server.wl_display, seat_name);
-	hayward_assert(seat->wlr_seat, "could not allocate seat");
-	seat->wlr_seat->data = seat;
-
-	seat->cursor = hayward_cursor_create(seat);
-	if (!seat->cursor) {
-		wlr_seat_destroy(seat->wlr_seat);
-		free(seat);
-		return NULL;
-	}
-
-	seat->idle_inhibit_sources = seat->idle_wake_sources =
-		IDLE_SOURCE_KEYBOARD |
-		IDLE_SOURCE_POINTER |
-		IDLE_SOURCE_TOUCH |
-		IDLE_SOURCE_TABLET_PAD |
-		IDLE_SOURCE_TABLET_TOOL |
-		IDLE_SOURCE_SWITCH;
-
-	wl_list_init(&seat->devices);
-
-	seat->deferred_bindings = create_list();
-
-	wl_signal_add(&seat->wlr_seat->events.request_start_drag,
-		&seat->request_start_drag);
-	seat->request_start_drag.notify = handle_request_start_drag;
-
-	wl_signal_add(&seat->wlr_seat->events.start_drag, &seat->start_drag);
-	seat->start_drag.notify = handle_start_drag;
-
-	wl_signal_add(&seat->wlr_seat->events.request_set_selection,
-		&seat->request_set_selection);
-	seat->request_set_selection.notify = handle_request_set_selection;
-
-	wl_signal_add(&seat->wlr_seat->events.request_set_primary_selection,
-		&seat->request_set_primary_selection);
-	seat->request_set_primary_selection.notify =
-		handle_request_set_primary_selection;
-
-	wl_list_init(&seat->keyboard_groups);
-	wl_list_init(&seat->keyboard_shortcuts_inhibitors);
-
-	hayward_input_method_relay_init(seat, &seat->im_relay);
-
-	wl_list_insert(&server.input->seats, &seat->link);
-
-	seatop_begin_default(seat);
-
-	return seat;
 }
 
 static void seat_update_capabilities(struct hayward_seat *seat) {
@@ -954,12 +958,6 @@ void seat_pointer_notify_button(struct hayward_seat *seat, uint32_t time_msec,
 			time_msec, button, state);
 }
 
-void seatop_unref(struct hayward_seat *seat, struct hayward_window *container) {
-	if (seat->seatop_impl->unref) {
-		seat->seatop_impl->unref(seat, container);
-	}
-}
-
 void seatop_button(struct hayward_seat *seat, uint32_t time_msec,
 		struct wlr_input_device *device, uint32_t button,
 		enum wlr_button_state state) {
@@ -1011,6 +1009,12 @@ void seatop_end(struct hayward_seat *seat) {
 	free(seat->seatop_data);
 	seat->seatop_data = NULL;
 	seat->seatop_impl = NULL;
+}
+
+void seatop_unref(struct hayward_seat *seat, struct hayward_window *container) {
+	if (seat->seatop_impl->unref) {
+		seat->seatop_impl->unref(seat, container);
+	}
 }
 
 void seatop_render(struct hayward_seat *seat, struct hayward_output *output,

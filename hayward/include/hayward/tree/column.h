@@ -85,15 +85,8 @@ void column_reconcile_detached(struct hayward_column *column);
 struct hayward_window *column_find_child(struct hayward_column *container,
 		bool (*test)(struct hayward_window *view, void *data), void *data);
 
-void column_add_child(struct hayward_column *parent,
-		struct hayward_window *child);
-
 void column_insert_child(struct hayward_column *parent,
 		struct hayward_window *child, int i);
-
-void column_remove_child(struct hayward_column *parent, struct hayward_window *child);
-
-void column_set_active_child(struct hayward_column *column, struct hayward_window *window);
 
 /**
  * Side should be 0 to add before, or 1 to add after.
@@ -101,6 +94,12 @@ void column_set_active_child(struct hayward_column *column, struct hayward_windo
 void column_add_sibling(struct hayward_window *parent,
 		struct hayward_window *child, bool after);
 
+void column_add_child(struct hayward_column *parent,
+		struct hayward_window *child);
+
+void column_remove_child(struct hayward_column *parent, struct hayward_window *child);
+
+void column_set_active_child(struct hayward_column *column, struct hayward_window *window);
 
 void column_for_each_child(struct hayward_column *column,
 		void (*f)(struct hayward_window *window, void *data), void *data);

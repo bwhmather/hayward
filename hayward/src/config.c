@@ -84,82 +84,6 @@ static void free_mode(struct hayward_mode *mode) {
 	free(mode);
 }
 
-void free_config(struct hayward_config *config) {
-	if (!config) {
-		return;
-	}
-
-	memset(&config->handler_context, 0, sizeof(config->handler_context));
-
-	// TODO: handle all currently unhandled lists as we add implementations
-	if (config->symbols) {
-		for (int i = 0; i < config->symbols->length; ++i) {
-			free_hayward_variable(config->symbols->items[i]);
-		}
-		list_free(config->symbols);
-	}
-	if (config->modes) {
-		for (int i = 0; i < config->modes->length; ++i) {
-			free_mode(config->modes->items[i]);
-		}
-		list_free(config->modes);
-	}
-	if (config->bars) {
-		for (int i = 0; i < config->bars->length; ++i) {
-			free_bar_config(config->bars->items[i]);
-		}
-		list_free(config->bars);
-	}
-	list_free(config->cmd_queue);
-	if (config->workspace_configs) {
-		for (int i = 0; i < config->workspace_configs->length; i++) {
-			free_workspace_config(config->workspace_configs->items[i]);
-		}
-		list_free(config->workspace_configs);
-	}
-	if (config->output_configs) {
-		for (int i = 0; i < config->output_configs->length; i++) {
-			free_output_config(config->output_configs->items[i]);
-		}
-		list_free(config->output_configs);
-	}
-	if (config->haywardbg_client != NULL) {
-		wl_client_destroy(config->haywardbg_client);
-	}
-	if (config->input_configs) {
-		for (int i = 0; i < config->input_configs->length; i++) {
-			free_input_config(config->input_configs->items[i]);
-		}
-		list_free(config->input_configs);
-	}
-	if (config->input_type_configs) {
-		for (int i = 0; i < config->input_type_configs->length; i++) {
-			free_input_config(config->input_type_configs->items[i]);
-		}
-		list_free(config->input_type_configs);
-	}
-	if (config->seat_configs) {
-		for (int i = 0; i < config->seat_configs->length; i++) {
-			free_seat_config(config->seat_configs->items[i]);
-		}
-		list_free(config->seat_configs);
-	}
-	list_free(config->no_focus);
-	list_free(config->active_bar_modifiers);
-	list_free_items_and_destroy(config->config_chain);
-	free(config->floating_scroll_up_cmd);
-	free(config->floating_scroll_down_cmd);
-	free(config->floating_scroll_left_cmd);
-	free(config->floating_scroll_right_cmd);
-	free(config->font);
-	free(config->haywardbg_command);
-	free(config->haywardnag_command);
-	free((char *)config->current_config_path);
-	free((char *)config->current_config);
-	keysym_translation_state_destroy(config->keysym_translation_state);
-	free(config);
-}
-
 static void destroy_removed_seats(struct hayward_config *old_config,
 		struct hayward_config *new_config) {
 	struct seat_config *seat_config;
@@ -655,45 +579,6 @@ cleanup:
 	free(wd);
 }
 
-void run_deferred_commands(void) {
-	if (!config->cmd_queue->length) {
-		return;
-	}
-	hayward_log(HAYWARD_DEBUG, "Running deferred commands");
-	while (config->cmd_queue->length) {
-		char *line = config->cmd_queue->items[0];
-		list_t *res_list = execute_command(line, NULL, NULL);
-		for (int i = 0; i < res_list->length; ++i) {
-			struct cmd_results *res = res_list->items[i];
-			if (res->status != CMD_SUCCESS) {
-				hayward_log(HAYWARD_ERROR, "Error on line '%s': %s",
-						line, res->error);
-			}
-			free_cmd_results(res);
-		}
-		list_del(config->cmd_queue, 0);
-		list_free(res_list);
-		free(line);
-	}
-}
-
-void run_deferred_bindings(void) {
-	struct hayward_seat *seat;
-	wl_list_for_each(seat, &(server.input->seats), link) {
-		if (!seat->deferred_bindings->length) {
-			continue;
-		}
-		hayward_log(HAYWARD_DEBUG, "Running deferred bindings for seat %s",
-				seat->wlr_seat->name);
-		while (seat->deferred_bindings->length) {
-			struct hayward_binding *binding = seat->deferred_bindings->items[0];
-			seat_execute_command(seat, binding);
-			list_del(seat->deferred_bindings, 0);
-			free_hayward_binding(binding);
-		}
-	}
-}
-
 // get line, with backslash continuation
 static ssize_t getline_with_cont(char **lineptr, size_t *line_size, FILE *file,
 		int *nlines) {
@@ -900,6 +785,45 @@ bool read_config(FILE *file, struct hayward_config *config,
 	return success;
 }
 
+void run_deferred_commands(void) {
+	if (!config->cmd_queue->length) {
+		return;
+	}
+	hayward_log(HAYWARD_DEBUG, "Running deferred commands");
+	while (config->cmd_queue->length) {
+		char *line = config->cmd_queue->items[0];
+		list_t *res_list = execute_command(line, NULL, NULL);
+		for (int i = 0; i < res_list->length; ++i) {
+			struct cmd_results *res = res_list->items[i];
+			if (res->status != CMD_SUCCESS) {
+				hayward_log(HAYWARD_ERROR, "Error on line '%s': %s",
+						line, res->error);
+			}
+			free_cmd_results(res);
+		}
+		list_del(config->cmd_queue, 0);
+		list_free(res_list);
+		free(line);
+	}
+}
+
+void run_deferred_bindings(void) {
+	struct hayward_seat *seat;
+	wl_list_for_each(seat, &(server.input->seats), link) {
+		if (!seat->deferred_bindings->length) {
+			continue;
+		}
+		hayward_log(HAYWARD_DEBUG, "Running deferred bindings for seat %s",
+				seat->wlr_seat->name);
+		while (seat->deferred_bindings->length) {
+			struct hayward_binding *binding = seat->deferred_bindings->items[0];
+			seat_execute_command(seat, binding);
+			list_del(seat->deferred_bindings, 0);
+			free_hayward_binding(binding);
+		}
+	}
+}
+
 void config_add_haywardnag_warning(char *fmt, ...) {
 	if (config->reading && !config->validating) {
 		va_list args;
@@ -922,6 +846,82 @@ void config_add_haywardnag_warning(char *fmt, ...) {
 			config->current_config_line_number, config->current_config_path,
 			config->current_config_line, temp);
 	}
+}
+
+void free_config(struct hayward_config *config) {
+	if (!config) {
+		return;
+	}
+
+	memset(&config->handler_context, 0, sizeof(config->handler_context));
+
+	// TODO: handle all currently unhandled lists as we add implementations
+	if (config->symbols) {
+		for (int i = 0; i < config->symbols->length; ++i) {
+			free_hayward_variable(config->symbols->items[i]);
+		}
+		list_free(config->symbols);
+	}
+	if (config->modes) {
+		for (int i = 0; i < config->modes->length; ++i) {
+			free_mode(config->modes->items[i]);
+		}
+		list_free(config->modes);
+	}
+	if (config->bars) {
+		for (int i = 0; i < config->bars->length; ++i) {
+			free_bar_config(config->bars->items[i]);
+		}
+		list_free(config->bars);
+	}
+	list_free(config->cmd_queue);
+	if (config->workspace_configs) {
+		for (int i = 0; i < config->workspace_configs->length; i++) {
+			free_workspace_config(config->workspace_configs->items[i]);
+		}
+		list_free(config->workspace_configs);
+	}
+	if (config->output_configs) {
+		for (int i = 0; i < config->output_configs->length; i++) {
+			free_output_config(config->output_configs->items[i]);
+		}
+		list_free(config->output_configs);
+	}
+	if (config->haywardbg_client != NULL) {
+		wl_client_destroy(config->haywardbg_client);
+	}
+	if (config->input_configs) {
+		for (int i = 0; i < config->input_configs->length; i++) {
+			free_input_config(config->input_configs->items[i]);
+		}
+		list_free(config->input_configs);
+	}
+	if (config->input_type_configs) {
+		for (int i = 0; i < config->input_type_configs->length; i++) {
+			free_input_config(config->input_type_configs->items[i]);
+		}
+		list_free(config->input_type_configs);
+	}
+	if (config->seat_configs) {
+		for (int i = 0; i < config->seat_configs->length; i++) {
+			free_seat_config(config->seat_configs->items[i]);
+		}
+		list_free(config->seat_configs);
+	}
+	list_free(config->no_focus);
+	list_free(config->active_bar_modifiers);
+	list_free_items_and_destroy(config->config_chain);
+	free(config->floating_scroll_up_cmd);
+	free(config->floating_scroll_down_cmd);
+	free(config->floating_scroll_left_cmd);
+	free(config->floating_scroll_right_cmd);
+	free(config->font);
+	free(config->haywardbg_command);
+	free(config->haywardnag_command);
+	free((char *)config->current_config_path);
+	free((char *)config->current_config);
+	keysym_translation_state_destroy(config->keysym_translation_state);
+	free(config);
 }
 
 char *do_var_replacement(char *str) {

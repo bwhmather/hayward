@@ -119,14 +119,21 @@ struct hayward_seat *seat_create(const char *seat_name);
 
 void seat_destroy(struct hayward_seat *seat);
 
-void seat_add_device(struct hayward_seat *seat,
-		struct hayward_input_device *device);
+void seat_idle_notify_activity(struct hayward_seat *seat,
+		enum hayward_input_idle_source source);
+
+bool seat_is_input_allowed(struct hayward_seat *seat, struct wlr_surface *surface);
+
+void drag_icon_update_position(struct hayward_drag_icon *icon);
 
 void seat_configure_device(struct hayward_seat *seat,
 		struct hayward_input_device *device);
 
 void seat_reset_device(struct hayward_seat *seat,
 		struct hayward_input_device *input_device);
+
+void seat_add_device(struct hayward_seat *seat,
+		struct hayward_input_device *device);
 
 void seat_remove_device(struct hayward_seat *seat,
 		struct hayward_input_device *device);
@@ -139,26 +146,18 @@ void seat_configure_xcursor(struct hayward_seat *seat);
  */
 void seat_commit_focus(struct hayward_seat *seat);
 
-
-void seat_set_exclusive_client(struct hayward_seat *seat,
-		struct wl_client *client);
-
 // Force focus to a particular surface that is not part of the workspace
 // hierarchy (used for lockscreen)
 void hayward_force_focus(struct wlr_surface *surface);
+
+void seat_set_exclusive_client(struct hayward_seat *seat,
+		struct wl_client *client);
 
 void seat_apply_config(struct hayward_seat *seat, struct seat_config *seat_config);
 
 struct seat_config *seat_get_config(struct hayward_seat *seat);
 
 struct seat_config *seat_get_config_by_name(const char *name);
-
-void seat_idle_notify_activity(struct hayward_seat *seat,
-		enum hayward_input_idle_source source);
-
-bool seat_is_input_allowed(struct hayward_seat *seat, struct wlr_surface *surface);
-
-void drag_icon_update_position(struct hayward_drag_icon *icon);
 
 enum wlr_edges find_resize_edge(struct hayward_window *cont,
 		struct wlr_surface *surface, struct hayward_cursor *cursor);

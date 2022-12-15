@@ -68,6 +68,90 @@ int get_modifier_names(const char **names, uint32_t modifier_masks) {
 	return length;
 }
 
+static void handle_xkb_context_log(struct xkb_context *context,
+		enum xkb_log_level level, const char *format, va_list args) {
+	va_list args_copy;
+	va_copy(args_copy, args);
+	size_t length = vsnprintf(NULL, 0, format, args_copy) + 1;
+	va_end(args_copy);
+
+	char *error = malloc(length);
+	if (!error) {
+		hayward_log(HAYWARD_ERROR, "Failed to allocate libxkbcommon log message");
+		return;
+	}
+
+	va_copy(args_copy, args);
+	vsnprintf(error, length, format, args_copy);
+	va_end(args_copy);
+
+	if (error[length - 2] == '\n') {
+		error[length - 2] = '\0';
+	}
+
+	hayward_log_importance_t importance = HAYWARD_DEBUG;
+	if (level <= XKB_LOG_LEVEL_ERROR) { // Critical and Error
+		importance = HAYWARD_ERROR;
+	} else if (level <= XKB_LOG_LEVEL_INFO) { // Warning and Info
+		importance = HAYWARD_INFO;
+	}
+	hayward_log(importance, "[xkbcommon] %s", error);
+
+	char **data = xkb_context_get_user_data(context);
+	if (importance == HAYWARD_ERROR && data && !*data) {
+		*data = error;
+	} else {
+		free(error);
+	}
+}
+
+struct xkb_keymap *hayward_keyboard_compile_keymap(struct input_config *ic,
+		char **error) {
+	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+	hayward_assert(context, "cannot create XKB context");
+	xkb_context_set_user_data(context, error);
+	xkb_context_set_log_fn(context, handle_xkb_context_log);
+
+	struct xkb_keymap *keymap = NULL;
+
+	if (ic && ic->xkb_file) {
+		FILE *keymap_file = fopen(ic->xkb_file, "r");
+		if (!keymap_file) {
+			hayward_log_errno(HAYWARD_ERROR, "cannot read xkb file %s", ic->xkb_file);
+			if (error) {
+				size_t len = snprintf(NULL, 0, "cannot read xkb file %s: %s",
+						ic->xkb_file, strerror(errno)) + 1;
+				*error = malloc(len);
+				if (*error) {
+					snprintf(*error, len, "cannot read xkb_file %s: %s",
+							ic->xkb_file, strerror(errno));
+				}
+			}
+			goto cleanup;
+		}
+
+		keymap = xkb_keymap_new_from_file(context, keymap_file,
+					XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+
+		if (fclose(keymap_file) != 0) {
+			hayward_log_errno(HAYWARD_ERROR, "Failed to close xkb file %s",
+					ic->xkb_file);
+		}
+	} else {
+		struct xkb_rule_names rules = {0};
+		if (ic) {
+			input_config_fill_rule_names(ic, &rules);
+		}
+		keymap = xkb_keymap_new_from_names(context, &rules,
+			XKB_KEYMAP_COMPILE_NO_FLAGS);
+	}
+
+cleanup:
+	xkb_context_set_user_data(context, NULL);
+	xkb_context_unref(context);
+	return keymap;
+}
+
 /**
  * Remove all key ids associated to a keycode from the list of pressed keys
  */
@@ -322,16 +406,6 @@ static size_t keyboard_keysyms_raw(struct hayward_keyboard *keyboard,
 		device->keyboard->xkb_state, keycode);
 	return xkb_keymap_key_get_syms_by_level(device->keyboard->keymap,
 		keycode, layout_index, 0, keysyms);
-}
-
-void hayward_keyboard_disarm_key_repeat(struct hayward_keyboard *keyboard) {
-	if (!keyboard) {
-		return;
-	}
-	keyboard->repeat_binding = NULL;
-	if (wl_event_source_timer_update(keyboard->key_repeat_source, 0) < 0) {
-		hayward_log(HAYWARD_DEBUG, "failed to disarm key repeat timer");
-	}
 }
 
 struct key_info {
@@ -706,90 +780,6 @@ struct hayward_keyboard *hayward_keyboard_create(struct hayward_seat *seat,
 	return keyboard;
 }
 
-static void handle_xkb_context_log(struct xkb_context *context,
-		enum xkb_log_level level, const char *format, va_list args) {
-	va_list args_copy;
-	va_copy(args_copy, args);
-	size_t length = vsnprintf(NULL, 0, format, args_copy) + 1;
-	va_end(args_copy);
-
-	char *error = malloc(length);
-	if (!error) {
-		hayward_log(HAYWARD_ERROR, "Failed to allocate libxkbcommon log message");
-		return;
-	}
-
-	va_copy(args_copy, args);
-	vsnprintf(error, length, format, args_copy);
-	va_end(args_copy);
-
-	if (error[length - 2] == '\n') {
-		error[length - 2] = '\0';
-	}
-
-	hayward_log_importance_t importance = HAYWARD_DEBUG;
-	if (level <= XKB_LOG_LEVEL_ERROR) { // Critical and Error
-		importance = HAYWARD_ERROR;
-	} else if (level <= XKB_LOG_LEVEL_INFO) { // Warning and Info
-		importance = HAYWARD_INFO;
-	}
-	hayward_log(importance, "[xkbcommon] %s", error);
-
-	char **data = xkb_context_get_user_data(context);
-	if (importance == HAYWARD_ERROR && data && !*data) {
-		*data = error;
-	} else {
-		free(error);
-	}
-}
-
-struct xkb_keymap *hayward_keyboard_compile_keymap(struct input_config *ic,
-		char **error) {
-	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-	hayward_assert(context, "cannot create XKB context");
-	xkb_context_set_user_data(context, error);
-	xkb_context_set_log_fn(context, handle_xkb_context_log);
-
-	struct xkb_keymap *keymap = NULL;
-
-	if (ic && ic->xkb_file) {
-		FILE *keymap_file = fopen(ic->xkb_file, "r");
-		if (!keymap_file) {
-			hayward_log_errno(HAYWARD_ERROR, "cannot read xkb file %s", ic->xkb_file);
-			if (error) {
-				size_t len = snprintf(NULL, 0, "cannot read xkb file %s: %s",
-						ic->xkb_file, strerror(errno)) + 1;
-				*error = malloc(len);
-				if (*error) {
-					snprintf(*error, len, "cannot read xkb_file %s: %s",
-							ic->xkb_file, strerror(errno));
-				}
-			}
-			goto cleanup;
-		}
-
-		keymap = xkb_keymap_new_from_file(context, keymap_file,
-					XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
-
-		if (fclose(keymap_file) != 0) {
-			hayward_log_errno(HAYWARD_ERROR, "Failed to close xkb file %s",
-					ic->xkb_file);
-		}
-	} else {
-		struct xkb_rule_names rules = {0};
-		if (ic) {
-			input_config_fill_rule_names(ic, &rules);
-		}
-		keymap = xkb_keymap_new_from_names(context, &rules,
-			XKB_KEYMAP_COMPILE_NO_FLAGS);
-	}
-
-cleanup:
-	xkb_context_set_user_data(context, NULL);
-	xkb_context_unref(context);
-	return keymap;
-}
-
 static bool repeat_info_match(struct hayward_keyboard *a, struct wlr_keyboard *b) {
 	return a->repeat_rate == b->repeat_info.rate &&
 		a->repeat_delay == b->repeat_info.delay;
@@ -1105,4 +1095,14 @@ void hayward_keyboard_destroy(struct hayward_keyboard *keyboard) {
 	hayward_keyboard_disarm_key_repeat(keyboard);
 	wl_event_source_remove(keyboard->key_repeat_source);
 	free(keyboard);
+}
+
+void hayward_keyboard_disarm_key_repeat(struct hayward_keyboard *keyboard) {
+	if (!keyboard) {
+		return;
+	}
+	keyboard->repeat_binding = NULL;
+	if (wl_event_source_timer_update(keyboard->key_repeat_source, 0) < 0) {
+		hayward_log(HAYWARD_DEBUG, "failed to disarm key repeat timer");
+	}
 }

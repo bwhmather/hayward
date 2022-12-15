@@ -171,6 +171,13 @@ json_object *ipc_json_get_version(void) {
 	return version;
 }
 
+json_object *ipc_json_get_binding_mode(void) {
+	json_object *current_mode = json_object_new_object();
+	json_object_object_add(current_mode, "name",
+			json_object_new_string(config->current_mode->name));
+	return current_mode;
+}
+
 static json_object *ipc_json_create_rect(struct wlr_box *box) {
 	json_object *rect = json_object_new_object();
 
@@ -1167,11 +1174,4 @@ json_object *ipc_json_describe_bar_config(struct bar_config *bar) {
 			json_object_new_int(bar->tray_padding));
 #endif
 	return json;
-}
-
-json_object *ipc_json_get_binding_mode(void) {
-	json_object *current_mode = json_object_new_object();
-	json_object_object_add(current_mode, "name",
-			json_object_new_string(config->current_mode->name));
-	return current_mode;
 }

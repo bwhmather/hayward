@@ -221,6 +221,13 @@ struct hayward_xdg_popup {
 	struct wl_listener destroy;
 };
 
+void view_init(struct hayward_view *view, enum hayward_view_type type,
+	const struct hayward_view_impl *impl);
+
+void view_destroy(struct hayward_view *view);
+
+void view_begin_destroy(struct hayward_view *view);
+
 const char *view_get_title(struct hayward_view *view);
 
 const char *view_get_app_id(struct hayward_view *view);
@@ -298,15 +305,6 @@ void view_for_each_surface(struct hayward_view *view,
  */
 void view_for_each_popup_surface(struct hayward_view *view,
 	wlr_surface_iterator_func_t iterator, void *user_data);
-
-// view implementation
-
-void view_init(struct hayward_view *view, enum hayward_view_type type,
-	const struct hayward_view_impl *impl);
-
-void view_destroy(struct hayward_view *view);
-
-void view_begin_destroy(struct hayward_view *view);
 
 /**
  * Map a view, ie. make it visible in the tree.

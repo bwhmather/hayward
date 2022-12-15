@@ -337,6 +337,19 @@ struct hayward_output *root_get_current_active_output(void) {
 	return root->current.active_output;
 }
 
+void root_set_focused_window(struct hayward_window *window) {
+	hayward_assert(window != NULL, "Expected window");
+
+	struct hayward_workspace *workspace = window->pending.workspace;
+	hayward_assert(workspace != NULL, "Expected workspace");
+
+	root_set_focused_layer(NULL);
+	root_set_focused_surface(NULL);
+
+	root_set_active_workspace(workspace);
+	workspace_set_active_window(workspace, window);
+}
+
 struct hayward_window *root_get_active_window(void) {
 	struct hayward_workspace *workspace = root_get_active_workspace();
 	hayward_assert(workspace != NULL, "Expected workspace");
@@ -349,19 +362,6 @@ struct hayward_window *root_get_focused_window(void) {
 		return NULL;
 	}
 	return root_get_active_window();
-}
-
-void root_set_focused_window(struct hayward_window *window) {
-	hayward_assert(window != NULL, "Expected window");
-
-	struct hayward_workspace *workspace = window->pending.workspace;
-	hayward_assert(workspace != NULL, "Expected workspace");
-
-	root_set_focused_layer(NULL);
-	root_set_focused_surface(NULL);
-
-	root_set_active_workspace(workspace);
-	workspace_set_active_window(workspace, window);
 }
 
 void root_set_focused_layer(struct wlr_layer_surface_v1 *layer) {
