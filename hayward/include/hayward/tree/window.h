@@ -10,10 +10,10 @@
 #include "hayward/tree/node.h"
 
 enum hayward_window_border {
-	B_NONE,
-	B_PIXEL,
-	B_NORMAL,
-	B_CSD,
+    B_NONE,
+    B_PIXEL,
+    B_NORMAL,
+    B_CSD,
 };
 
 struct hayward_seat;
@@ -23,97 +23,97 @@ struct hayward_workspace;
 struct hayward_view;
 
 struct hayward_window_state {
-	double x, y;
-	double width, height;
+    double x, y;
+    double width, height;
 
-	bool fullscreen;
+    bool fullscreen;
 
-	// Cached backlink to workspace containing the floating window or
-	// column containing the child window.  Should only be updated by
-	// calling one of the `window_reconcile_` functions.
-	struct hayward_workspace *workspace;
+    // Cached backlink to workspace containing the floating window or
+    // column containing the child window.  Should only be updated by
+    // calling one of the `window_reconcile_` functions.
+    struct hayward_workspace *workspace;
 
-	// Cached backlink to the primary output of the window.  If the window
-	// is tiling then this will simply be the output of the column.  If the
-	// window is floating then it will be the closest output to the centre
-	// of the window.  Should only be updated by calling one of the
-	// `window_reconcile_` functions.
-	struct hayward_output *output;
+    // Cached backlink to the primary output of the window.  If the window
+    // is tiling then this will simply be the output of the column.  If the
+    // window is floating then it will be the closest output to the centre
+    // of the window.  Should only be updated by calling one of the
+    // `window_reconcile_` functions.
+    struct hayward_output *output;
 
-	// Cached backlink to the column containing the window.  Null if window
-	// is not part of a column.  Should only be updated by calling one of
-	// the `window_reconcile_` functions.
-	struct hayward_column *parent;
+    // Cached backlink to the column containing the window.  Null if window
+    // is not part of a column.  Should only be updated by calling one of
+    // the `window_reconcile_` functions.
+    struct hayward_column *parent;
 
-	// Cached flag indicating whether the window is focused.  Should only
-	// be updated by calling one of the `window_reconcile_` functions.
-	bool focused;
+    // Cached flag indicating whether the window is focused.  Should only
+    // be updated by calling one of the `window_reconcile_` functions.
+    bool focused;
 
-	enum hayward_window_border border;
-	int border_thickness;
-	bool border_top;
-	bool border_bottom;
-	bool border_left;
-	bool border_right;
+    enum hayward_window_border border;
+    int border_thickness;
+    bool border_top;
+    bool border_bottom;
+    bool border_left;
+    bool border_right;
 
-	// These are in layout coordinates.
-	double content_x, content_y;
-	double content_width, content_height;
+    // These are in layout coordinates.
+    double content_x, content_y;
+    double content_width, content_height;
 };
 
 struct hayward_window {
-	struct hayward_node node;
-	struct hayward_view *view;
+    struct hayward_node node;
+    struct hayward_view *view;
 
-	struct hayward_window_state current;
-	struct hayward_window_state pending;
+    struct hayward_window_state current;
+    struct hayward_window_state pending;
 
-	char *title;		   // The view's title (unformatted)
-	char *formatted_title; // The title displayed in the title bar
+    char *title;           // The view's title (unformatted)
+    char *formatted_title; // The title displayed in the title bar
 
-	// Whether stickiness has been enabled on this window. Use
-	// `window_is_sticky_[or_child]` rather than accessing this field
-	// directly; it'll also check that the window is floating.
-	bool is_sticky;
+    // Whether stickiness has been enabled on this window. Use
+    // `window_is_sticky_[or_child]` rather than accessing this field
+    // directly; it'll also check that the window is floating.
+    bool is_sticky;
 
-	// For C_ROOT, this has no meaning
-	// For other types, this is the position in layout coordinates
-	// Includes borders
-	double saved_x, saved_y;
-	double saved_width, saved_height;
+    // For C_ROOT, this has no meaning
+    // For other types, this is the position in layout coordinates
+    // Includes borders
+    double saved_x, saved_y;
+    double saved_width, saved_height;
 
-	// Used when the view changes to CSD unexpectedly. This will be a non-B_CSD
-	// border which we use to restore when the view returns to SSD.
-	enum hayward_window_border saved_border;
+    // Used when the view changes to CSD unexpectedly. This will be a non-B_CSD
+    // border which we use to restore when the view returns to SSD.
+    enum hayward_window_border saved_border;
 
-	// The share of the space of parent window this window occupies
-	double width_fraction;
-	double height_fraction;
+    // The share of the space of parent window this window occupies
+    double width_fraction;
+    double height_fraction;
 
-	// The share of space of the parent window that all children occupy
-	// Used for doing the resize calculations
-	double child_total_width;
-	double child_total_height;
+    // The share of space of the parent window that all children occupy
+    // Used for doing the resize calculations
+    double child_total_width;
+    double child_total_height;
 
-	// In most cases this is the same as the content x and y, but if the view
-	// refuses to resize to the content dimensions then it can be smaller.
-	// These are in layout coordinates.
-	double surface_x, surface_y;
+    // In most cases this is the same as the content x and y, but if the view
+    // refuses to resize to the content dimensions then it can be smaller.
+    // These are in layout coordinates.
+    double surface_x, surface_y;
 
-	// Outputs currently being intersected
-	list_t *outputs; // struct hayward_output
+    // Outputs currently being intersected
+    list_t *outputs; // struct hayward_output
 
-	float alpha;
+    float alpha;
 
-	struct wlr_texture *title_focused;
-	struct wlr_texture *title_focused_inactive;
-	struct wlr_texture *title_focused_tab_title;
-	struct wlr_texture *title_unfocused;
-	struct wlr_texture *title_urgent;
+    struct wlr_texture *title_focused;
+    struct wlr_texture *title_focused_inactive;
+    struct wlr_texture *title_focused_tab_title;
+    struct wlr_texture *title_unfocused;
+    struct wlr_texture *title_urgent;
 
-	struct {
-		struct wl_signal destroy;
-	} events;
+    struct {
+        struct wl_signal destroy;
+    } events;
 };
 
 struct hayward_window *window_create(struct hayward_view *view);
@@ -130,10 +130,10 @@ bool window_is_attached(struct hayward_window *window);
  * canonical values on parent.
  */
 void window_reconcile_floating(
-	struct hayward_window *window, struct hayward_workspace *workspace
+    struct hayward_window *window, struct hayward_workspace *workspace
 );
 void window_reconcile_tiling(
-	struct hayward_window *window, struct hayward_column *column
+    struct hayward_window *window, struct hayward_column *column
 );
 void window_reconcile_detached(struct hayward_window *window);
 
@@ -168,8 +168,8 @@ bool window_is_tiling(struct hayward_window *window);
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_column_from_direction(
-	struct hayward_window *window, struct hayward_column *column,
-	enum wlr_direction move_dir
+    struct hayward_window *window, struct hayward_column *column,
+    enum wlr_direction move_dir
 );
 
 /**
@@ -185,27 +185,27 @@ void window_move_to_column_from_direction(
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void window_move_to_column(
-	struct hayward_window *window, struct hayward_column *destination
+    struct hayward_window *window, struct hayward_column *destination
 );
 
 void window_move_to_workspace(
-	struct hayward_window *window, struct hayward_workspace *workspace
+    struct hayward_window *window, struct hayward_workspace *workspace
 );
 
 void window_move_to_output_from_direction(
-	struct hayward_window *window, struct hayward_output *output,
-	enum wlr_direction move_dir
+    struct hayward_window *window, struct hayward_output *output,
+    enum wlr_direction move_dir
 );
 void window_move_to_output(
-	struct hayward_window *window, struct hayward_output *output
+    struct hayward_window *window, struct hayward_output *output
 );
 
 struct wlr_surface *window_surface_at(
-	struct hayward_window *window, double lx, double ly, double *sx, double *sy
+    struct hayward_window *window, double lx, double ly, double *sx, double *sy
 );
 
 bool window_contents_contain_point(
-	struct hayward_window *window, double lx, double ly
+    struct hayward_window *window, double lx, double ly
 );
 
 bool window_contains_point(struct hayward_window *window, double lx, double ly);
@@ -226,7 +226,7 @@ void window_set_fullscreen(struct hayward_window *window, bool enabled);
 void window_handle_fullscreen_reparent(struct hayward_window *window);
 
 void floating_calculate_constraints(
-	int *min_width, int *max_width, int *min_height, int *max_height
+    int *min_width, int *max_width, int *min_height, int *max_height
 );
 
 void window_floating_resize_and_center(struct hayward_window *window);
@@ -237,7 +237,7 @@ void window_floating_set_default_size(struct hayward_window *window);
  * Move a floating window to a new layout-local position.
  */
 void window_floating_move_to(
-	struct hayward_window *window, double lx, double ly
+    struct hayward_window *window, double lx, double ly
 );
 
 /**
@@ -258,7 +258,7 @@ void window_set_resizing(struct hayward_window *window, bool resizing);
 void window_set_geometry_from_content(struct hayward_window *window);
 
 bool window_is_transient_for(
-	struct hayward_window *child, struct hayward_window *ancestor
+    struct hayward_window *child, struct hayward_window *ancestor
 );
 
 void window_raise_floating(struct hayward_window *window);

@@ -6,15 +6,15 @@
 #include <wayland-server-protocol.h>
 
 enum movement_unit {
-	MOVEMENT_UNIT_PX,
-	MOVEMENT_UNIT_PPT,
-	MOVEMENT_UNIT_DEFAULT,
-	MOVEMENT_UNIT_INVALID,
+    MOVEMENT_UNIT_PX,
+    MOVEMENT_UNIT_PPT,
+    MOVEMENT_UNIT_DEFAULT,
+    MOVEMENT_UNIT_INVALID,
 };
 
 struct movement_amount {
-	int amount;
-	enum movement_unit unit;
+    int amount;
+    enum movement_unit unit;
 };
 
 /*
@@ -27,7 +27,7 @@ enum movement_unit parse_movement_unit(const char *unit);
  * Returns the number of arguments consumed.
  */
 int parse_movement_amount(
-	int argc, char **argv, struct movement_amount *amount
+    int argc, char **argv, struct movement_amount *amount
 );
 
 /**

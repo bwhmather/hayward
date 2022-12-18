@@ -10,79 +10,79 @@
 #include "../include/config.h"
 
 struct box_colors {
-	uint32_t border;
-	uint32_t background;
-	uint32_t text;
+    uint32_t border;
+    uint32_t background;
+    uint32_t text;
 };
 
 struct config_output {
-	struct wl_list link; // haywardbar_config::outputs
-	char *name;
+    struct wl_list link; // haywardbar_config::outputs
+    char *name;
 };
 
 struct haywardbar_binding {
-	uint32_t button;
-	char *command;
-	bool release;
+    uint32_t button;
+    char *command;
+    bool release;
 };
 
 struct haywardbar_config {
-	char *status_command;
-	bool pango_markup;
-	uint32_t position; // zwlr_layer_surface_v1_anchor
-	char *font;
-	char *sep_symbol;
-	char *mode;
-	char *hidden_state;
-	char *modifier;
-	bool strip_workspace_numbers;
-	bool strip_workspace_name;
-	bool binding_mode_indicator;
-	bool wrap_scroll;
-	bool workspace_buttons;
-	uint32_t workspace_min_width;
-	list_t *bindings;
-	struct wl_list outputs; // config_output::link
-	int height;
-	int status_padding;
-	int status_edge_padding;
-	struct {
-		int top;
-		int right;
-		int bottom;
-		int left;
-	} gaps;
+    char *status_command;
+    bool pango_markup;
+    uint32_t position; // zwlr_layer_surface_v1_anchor
+    char *font;
+    char *sep_symbol;
+    char *mode;
+    char *hidden_state;
+    char *modifier;
+    bool strip_workspace_numbers;
+    bool strip_workspace_name;
+    bool binding_mode_indicator;
+    bool wrap_scroll;
+    bool workspace_buttons;
+    uint32_t workspace_min_width;
+    list_t *bindings;
+    struct wl_list outputs; // config_output::link
+    int height;
+    int status_padding;
+    int status_edge_padding;
+    struct {
+        int top;
+        int right;
+        int bottom;
+        int left;
+    } gaps;
 
-	struct {
-		uint32_t background;
-		uint32_t statusline;
-		uint32_t separator;
+    struct {
+        uint32_t background;
+        uint32_t statusline;
+        uint32_t separator;
 
-		uint32_t focused_background;
-		uint32_t focused_statusline;
-		uint32_t focused_separator;
+        uint32_t focused_background;
+        uint32_t focused_statusline;
+        uint32_t focused_separator;
 
-		struct box_colors focused_workspace;
-		struct box_colors active_workspace;
-		struct box_colors inactive_workspace;
-		struct box_colors urgent_workspace;
-		struct box_colors binding_mode;
-	} colors;
+        struct box_colors focused_workspace;
+        struct box_colors active_workspace;
+        struct box_colors inactive_workspace;
+        struct box_colors urgent_workspace;
+        struct box_colors binding_mode;
+    } colors;
 
 #if HAVE_TRAY
-	char *icon_theme;
-	struct wl_list tray_bindings; // struct tray_binding::link
-	bool tray_hidden;
-	list_t *tray_outputs; // char *
-	int tray_padding;
+    char *icon_theme;
+    struct wl_list tray_bindings; // struct tray_binding::link
+    bool tray_hidden;
+    list_t *tray_outputs; // char *
+    int tray_padding;
 #endif
 };
 
 #if HAVE_TRAY
 struct tray_binding {
-	uint32_t button;
-	char *command;
-	struct wl_list link; // struct tray_binding::link
+    uint32_t button;
+    char *command;
+    struct wl_list link; // struct tray_binding::link
 };
 
 void free_tray_binding(struct tray_binding *binding);

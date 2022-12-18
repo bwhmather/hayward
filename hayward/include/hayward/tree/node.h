@@ -15,44 +15,44 @@ struct hayward_transaction_instruction;
 struct wlr_box;
 
 enum hayward_node_type {
-	N_ROOT,
-	N_OUTPUT,
-	N_WORKSPACE,
-	N_COLUMN,
-	N_WINDOW,
+    N_ROOT,
+    N_OUTPUT,
+    N_WORKSPACE,
+    N_COLUMN,
+    N_WINDOW,
 };
 
 struct hayward_node {
-	enum hayward_node_type type;
-	union {
-		struct hayward_root *hayward_root;
-		struct hayward_output *hayward_output;
-		struct hayward_workspace *hayward_workspace;
-		struct hayward_column *hayward_column;
-		struct hayward_window *hayward_window;
-	};
+    enum hayward_node_type type;
+    union {
+        struct hayward_root *hayward_root;
+        struct hayward_output *hayward_output;
+        struct hayward_workspace *hayward_workspace;
+        struct hayward_column *hayward_column;
+        struct hayward_window *hayward_window;
+    };
 
-	/**
-	 * A unique ID to identify this node.
-	 * Primarily used in the get_tree JSON output.
-	 */
-	size_t id;
+    /**
+     * A unique ID to identify this node.
+     * Primarily used in the get_tree JSON output.
+     */
+    size_t id;
 
-	struct hayward_transaction_instruction *instruction;
-	size_t ntxnrefs;
-	bool destroying;
+    struct hayward_transaction_instruction *instruction;
+    size_t ntxnrefs;
+    bool destroying;
 
-	// If true, indicates that the container has pending state that differs from
-	// the current.
-	bool dirty;
+    // If true, indicates that the container has pending state that differs from
+    // the current.
+    bool dirty;
 
-	struct {
-		struct wl_signal destroy;
-	} events;
+    struct {
+        struct wl_signal destroy;
+    } events;
 };
 
 void node_init(
-	struct hayward_node *node, enum hayward_node_type type, void *thing
+    struct hayward_node *node, enum hayward_node_type type, void *thing
 );
 
 const char *node_type_to_str(enum hayward_node_type type);
@@ -74,7 +74,7 @@ struct hayward_node *node_get_parent(struct hayward_node *node);
 list_t *node_get_children(struct hayward_node *node);
 
 bool node_has_ancestor(
-	struct hayward_node *node, struct hayward_node *ancestor
+    struct hayward_node *node, struct hayward_node *ancestor
 );
 
 #endif

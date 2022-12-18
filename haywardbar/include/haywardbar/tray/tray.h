@@ -21,19 +21,19 @@ struct haywardbar_output;
 struct haywardbar_watcher;
 
 struct haywardbar_tray {
-	struct haywardbar *bar;
+    struct haywardbar *bar;
 
-	int fd;
-	sd_bus *bus;
+    int fd;
+    sd_bus *bus;
 
-	struct haywardbar_host host_xdg;
-	struct haywardbar_host host_kde;
-	list_t *items; // struct haywardbar_sni *
-	struct haywardbar_watcher *watcher_xdg;
-	struct haywardbar_watcher *watcher_kde;
+    struct haywardbar_host host_xdg;
+    struct haywardbar_host host_kde;
+    list_t *items; // struct haywardbar_sni *
+    struct haywardbar_watcher *watcher_xdg;
+    struct haywardbar_watcher *watcher_kde;
 
-	list_t *basedirs; // char *
-	list_t *themes;	  // struct haywardbar_theme *
+    list_t *basedirs; // char *
+    list_t *themes;   // struct haywardbar_theme *
 };
 
 struct haywardbar_tray *create_tray(struct haywardbar *bar);

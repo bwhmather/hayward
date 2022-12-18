@@ -8,35 +8,35 @@
 #include "bar.h"
 
 enum status_protocol {
-	PROTOCOL_UNDEF,
-	PROTOCOL_ERROR,
-	PROTOCOL_TEXT,
-	PROTOCOL_I3BAR,
+    PROTOCOL_UNDEF,
+    PROTOCOL_ERROR,
+    PROTOCOL_TEXT,
+    PROTOCOL_I3BAR,
 };
 
 struct status_line {
-	struct haywardbar *bar;
+    struct haywardbar *bar;
 
-	pid_t pid;
-	int read_fd, write_fd;
-	FILE *read, *write;
+    pid_t pid;
+    int read_fd, write_fd;
+    FILE *read, *write;
 
-	enum status_protocol protocol;
-	const char *text;
-	struct wl_list blocks; // i3bar_block::link
+    enum status_protocol protocol;
+    const char *text;
+    struct wl_list blocks; // i3bar_block::link
 
-	int stop_signal;
-	int cont_signal;
+    int stop_signal;
+    int cont_signal;
 
-	bool click_events;
-	bool float_event_coords;
-	bool clicked;
-	char *buffer;
-	size_t buffer_size;
-	size_t buffer_index;
-	bool started;
-	bool expecting_comma;
-	json_tokener *tokener;
+    bool click_events;
+    bool float_event_coords;
+    bool clicked;
+    char *buffer;
+    size_t buffer_size;
+    size_t buffer_index;
+    bool started;
+    bool expecting_comma;
+    json_tokener *tokener;
 };
 
 struct status_line *status_line_init(char *cmd);

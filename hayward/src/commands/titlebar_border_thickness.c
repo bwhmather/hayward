@@ -8,24 +8,24 @@
 #include "hayward/tree/workspace.h"
 
 struct cmd_results *cmd_titlebar_border_thickness(int argc, char **argv) {
-	struct cmd_results *error = NULL;
-	if ((error =
-			 checkarg(argc, "titlebar_border_thickness", EXPECTED_EQUAL_TO, 1)
-		)) {
-		return error;
-	}
+    struct cmd_results *error = NULL;
+    if ((error =
+             checkarg(argc, "titlebar_border_thickness", EXPECTED_EQUAL_TO, 1)
+        )) {
+        return error;
+    }
 
-	char *inv;
-	int value = strtol(argv[0], &inv, 10);
-	if (*inv != '\0' || value < 0 || value > config->titlebar_v_padding) {
-		return cmd_results_new(CMD_FAILURE, "Invalid size specified");
-	}
+    char *inv;
+    int value = strtol(argv[0], &inv, 10);
+    if (*inv != '\0' || value < 0 || value > config->titlebar_v_padding) {
+        return cmd_results_new(CMD_FAILURE, "Invalid size specified");
+    }
 
-	config->titlebar_border_thickness = value;
+    config->titlebar_border_thickness = value;
 
-	struct hayward_workspace *workspace = root_get_active_workspace();
-	arrange_workspace(workspace);
-	workspace_damage_whole(workspace);
+    struct hayward_workspace *workspace = root_get_active_workspace();
+    arrange_workspace(workspace);
+    workspace_damage_whole(workspace);
 
-	return cmd_results_new(CMD_SUCCESS, NULL);
+    return cmd_results_new(CMD_SUCCESS, NULL);
 }

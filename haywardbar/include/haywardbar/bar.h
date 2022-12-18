@@ -18,76 +18,76 @@ struct haywardbar_workspace;
 struct loop;
 
 struct haywardbar {
-	char *id;
-	char *mode;
-	bool mode_pango_markup;
+    char *id;
+    char *mode;
+    bool mode_pango_markup;
 
-	// only relevant when bar is in "hide" mode
-	bool visible_by_modifier;
-	bool visible_by_urgency;
-	bool visible_by_mode;
-	bool visible;
+    // only relevant when bar is in "hide" mode
+    bool visible_by_modifier;
+    bool visible_by_urgency;
+    bool visible_by_mode;
+    bool visible;
 
-	struct wl_display *display;
-	struct wl_compositor *compositor;
-	struct zwlr_layer_shell_v1 *layer_shell;
-	struct zxdg_output_manager_v1 *xdg_output_manager;
-	struct wl_shm *shm;
+    struct wl_display *display;
+    struct wl_compositor *compositor;
+    struct zwlr_layer_shell_v1 *layer_shell;
+    struct zxdg_output_manager_v1 *xdg_output_manager;
+    struct wl_shm *shm;
 
-	struct haywardbar_config *config;
-	struct status_line *status;
+    struct haywardbar_config *config;
+    struct status_line *status;
 
-	struct loop *eventloop;
+    struct loop *eventloop;
 
-	int ipc_event_socketfd;
-	int ipc_socketfd;
+    int ipc_event_socketfd;
+    int ipc_socketfd;
 
-	struct wl_list outputs;		   // haywardbar_output::link
-	struct wl_list unused_outputs; // haywardbar_output::link
-	struct wl_list seats;		   // haywardbar_seat::link
+    struct wl_list outputs;        // haywardbar_output::link
+    struct wl_list unused_outputs; // haywardbar_output::link
+    struct wl_list seats;          // haywardbar_seat::link
 
 #if HAVE_TRAY
-	struct haywardbar_tray *tray;
+    struct haywardbar_tray *tray;
 #endif
 
-	bool running;
+    bool running;
 };
 
 struct haywardbar_output {
-	struct wl_list link; // haywardbar::outputs
-	struct haywardbar *bar;
-	struct wl_output *output;
-	struct zxdg_output_v1 *xdg_output;
-	struct wl_surface *surface;
-	struct zwlr_layer_surface_v1 *layer_surface;
-	uint32_t wl_name;
+    struct wl_list link; // haywardbar::outputs
+    struct haywardbar *bar;
+    struct wl_output *output;
+    struct zxdg_output_v1 *xdg_output;
+    struct wl_surface *surface;
+    struct zwlr_layer_surface_v1 *layer_surface;
+    uint32_t wl_name;
 
-	struct wl_list workspaces; // haywardbar_workspace::link
-	struct wl_list hotspots;   // haywardbar_hotspot::link
+    struct wl_list workspaces; // haywardbar_workspace::link
+    struct wl_list hotspots;   // haywardbar_hotspot::link
 
-	char *name;
-	char *identifier;
-	bool focused;
+    char *name;
+    char *identifier;
+    bool focused;
 
-	uint32_t width, height;
-	int32_t scale;
-	enum wl_output_subpixel subpixel;
-	struct pool_buffer buffers[2];
-	struct pool_buffer *current_buffer;
-	bool dirty;
-	bool frame_scheduled;
+    uint32_t width, height;
+    int32_t scale;
+    enum wl_output_subpixel subpixel;
+    struct pool_buffer buffers[2];
+    struct pool_buffer *current_buffer;
+    bool dirty;
+    bool frame_scheduled;
 
-	uint32_t output_height, output_width, output_x, output_y;
+    uint32_t output_height, output_width, output_x, output_y;
 };
 
 struct haywardbar_workspace {
-	struct wl_list link; // haywardbar_output::workspaces
-	int num;
-	char *name;
-	char *label;
-	bool focused;
-	bool visible;
-	bool urgent;
+    struct wl_list link; // haywardbar_output::workspaces
+    int num;
+    char *name;
+    char *label;
+    bool focused;
+    bool visible;
+    bool urgent;
 };
 
 bool bar_setup(struct haywardbar *bar, const char *socket_path);

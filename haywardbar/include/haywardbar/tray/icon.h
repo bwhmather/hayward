@@ -4,24 +4,24 @@
 #include "hayward-common/list.h"
 
 struct icon_theme_subdir {
-	char *name;
-	int size;
+    char *name;
+    int size;
 
-	enum { THRESHOLD, SCALABLE, FIXED } type;
+    enum { THRESHOLD, SCALABLE, FIXED } type;
 
-	int max_size;
-	int min_size;
-	int threshold;
+    int max_size;
+    int min_size;
+    int threshold;
 };
 
 struct icon_theme {
-	char *name;
-	char *comment;
-	list_t *inherits;	 // char *
-	list_t *directories; // char *
+    char *name;
+    char *comment;
+    list_t *inherits;    // char *
+    list_t *directories; // char *
 
-	char *dir;
-	list_t *subdirs; // struct icon_theme_subdir *
+    char *dir;
+    list_t *subdirs; // struct icon_theme_subdir *
 };
 
 void init_themes(list_t **themes, list_t **basedirs);
@@ -35,8 +35,8 @@ void finish_themes(list_t *themes, list_t *basedirs);
  * found.
  */
 char *find_icon(
-	list_t *themes, list_t *basedirs, char *name, int size, char *theme,
-	int *min_size, int *max_size
+    list_t *themes, list_t *basedirs, char *name, int size, char *theme,
+    int *min_size, int *max_size
 );
 
 #endif

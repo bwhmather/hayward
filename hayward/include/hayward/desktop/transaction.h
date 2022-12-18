@@ -28,7 +28,7 @@ struct hayward_view;
  * When all views in the transaction are ready, the layout will be applied.
  */
 void transaction_notify_view_ready_by_serial(
-	struct hayward_view *view, uint32_t serial
+    struct hayward_view *view, uint32_t serial
 );
 
 /**
@@ -38,7 +38,7 @@ void transaction_notify_view_ready_by_serial(
  * This is used by xwayland views, as they don't have serials.
  */
 void transaction_notify_view_ready_by_geometry(
-	struct hayward_view *view, double x, double y, int width, int height
+    struct hayward_view *view, double x, double y, int width, int height
 );
 
 /**

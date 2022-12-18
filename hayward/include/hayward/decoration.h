@@ -4,11 +4,11 @@
 #include <wlr/types/wlr_server_decoration.h>
 
 struct hayward_server_decoration {
-	struct wlr_server_decoration *wlr_server_decoration;
-	struct wl_list link;
+    struct wlr_server_decoration *wlr_server_decoration;
+    struct wl_list link;
 
-	struct wl_listener destroy;
-	struct wl_listener mode;
+    struct wl_listener destroy;
+    struct wl_listener mode;
 };
 
 struct hayward_server_decoration *

@@ -10,32 +10,32 @@ struct hayward_window;
 typedef struct cmd_results *hayward_cmd(int argc, char **argv);
 
 struct cmd_handler {
-	char *command;
-	hayward_cmd *handle;
+    char *command;
+    hayward_cmd *handle;
 };
 
 /**
  * Indicates the result of a command's execution.
  */
 enum cmd_status {
-	CMD_SUCCESS, /**< The command was successful */
-	CMD_FAILURE, /**< The command resulted in an error */
-	CMD_INVALID, /**< Unknown command or parser error */
-	CMD_DEFER,	 /**< Command execution deferred */
-	CMD_BLOCK,
-	CMD_BLOCK_COMMANDS,
-	CMD_BLOCK_END
+    CMD_SUCCESS, /**< The command was successful */
+    CMD_FAILURE, /**< The command resulted in an error */
+    CMD_INVALID, /**< Unknown command or parser error */
+    CMD_DEFER,   /**< Command execution deferred */
+    CMD_BLOCK,
+    CMD_BLOCK_COMMANDS,
+    CMD_BLOCK_END
 };
 
 /**
  * Stores the result of executing a command.
  */
 struct cmd_results {
-	enum cmd_status status;
-	/**
-	 * Human friendly error message, or NULL on success
-	 */
-	char *error;
+    enum cmd_status status;
+    /**
+     * Human friendly error message, or NULL on success
+     */
+    char *error;
 };
 
 enum expected_args { EXPECTED_AT_LEAST, EXPECTED_AT_MOST, EXPECTED_EQUAL_TO };
@@ -44,7 +44,7 @@ struct cmd_results *
 checkarg(int argc, const char *name, enum expected_args type, int val);
 
 const struct cmd_handler *find_handler(
-	char *line, const struct cmd_handler *cmd_handlers, size_t handlers_size
+    char *line, const struct cmd_handler *cmd_handlers, size_t handlers_size
 );
 
 /**
@@ -55,7 +55,7 @@ const struct cmd_handler *find_handler(
  * If `container` is NULL then it'll run on the currently focused container.
  */
 list_t *execute_command(
-	char *command, struct hayward_seat *seat, struct hayward_window *container
+    char *command, struct hayward_seat *seat, struct hayward_window *container
 );
 /**
  * Parse and handles a command during config file loading.
@@ -67,8 +67,8 @@ struct cmd_results *config_command(char *command, char **new_block);
  * Parse and handle a sub command
  */
 struct cmd_results *config_subcommand(
-	char **argv, int argc, const struct cmd_handler *handlers,
-	size_t handlers_size
+    char **argv, int argc, const struct cmd_handler *handlers,
+    size_t handlers_size
 );
 /*
  * Parses a command policy rule.
@@ -91,7 +91,7 @@ void free_cmd_results(struct cmd_results *results);
 char *cmd_results_to_json(list_t *res_list);
 
 void window_resize_tiled(
-	struct hayward_window *window, uint32_t axis, int amount
+    struct hayward_window *window, uint32_t axis, int amount
 );
 
 /**

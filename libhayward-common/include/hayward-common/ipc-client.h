@@ -15,9 +15,9 @@
  * encoded payload string.
  */
 struct ipc_response {
-	uint32_t size;
-	uint32_t type;
-	char *payload;
+    uint32_t size;
+    uint32_t type;
+    char *payload;
 };
 
 /**
@@ -33,7 +33,7 @@ int ipc_open_socket(const char *socket_path);
  * the length of the buffer returned from hayward.
  */
 char *ipc_single_command(
-	int socketfd, uint32_t type, const char *payload, uint32_t *len
+    int socketfd, uint32_t type, const char *payload, uint32_t *len
 );
 /**
  * Receives a single IPC response and returns an ipc_response.
