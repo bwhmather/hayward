@@ -5,7 +5,7 @@
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_text_input_v3.h>
 
-#include "hayward/input/seat.h"
+struct hayward_seat;
 
 /**
  * The relay structure manages the relationship between text-input and

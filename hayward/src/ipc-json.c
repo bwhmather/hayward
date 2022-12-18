@@ -464,14 +464,14 @@ window_get_deco_rect(struct hayward_window *window, struct wlr_box *deco_rect) {
         deco_rect->width = window->pending.width;
         deco_rect->height = window_titlebar_height();
     } else {
-        enum hayward_column_layout parent_layout = window_parent_layout(window);
+        struct hayward_column *parent = window->pending.parent;
 
-        deco_rect->x = window->pending.x - window->pending.parent->pending.x;
-        deco_rect->y = window->pending.y - window->pending.parent->pending.y;
+        deco_rect->x = window->pending.x - parent->pending.x;
+        deco_rect->y = window->pending.y - parent->pending.y;
         deco_rect->width = window->pending.width;
         deco_rect->height = window_titlebar_height();
 
-        if (parent_layout == L_STACKED) {
+        if (parent->pending.layout == L_STACKED) {
             if (!window->view) {
                 size_t siblings = window_get_siblings(window)->length;
                 deco_rect->y -= deco_rect->height * siblings;
@@ -718,7 +718,7 @@ ipc_json_describe_node(struct hayward_node *node) {
         window_get_deco_rect(node->hayward_window, &deco_rect);
         size_t count = 1;
         if (node->hayward_window->pending.parent != NULL &&
-            window_parent_layout(node->hayward_window) == L_STACKED) {
+            node->hayward_window->pending.parent->pending.layout == L_STACKED) {
             count = window_get_siblings(node->hayward_window)->length;
         }
         box.y += deco_rect.height * count;

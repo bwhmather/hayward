@@ -437,9 +437,9 @@ handle_button(
         // hidden tab, we'd change the active tab when the user
         // probably just wanted to resize.
         struct hayward_window *window_to_focus = window;
-        enum hayward_column_layout layout = window_parent_layout(window);
-        if (layout == L_STACKED) {
-            window_to_focus = window->pending.parent->pending.active_child;
+        struct hayward_column *parent = window->pending.parent;
+        if (parent->pending.layout == L_STACKED) {
+            window_to_focus = parent->pending.active_child;
         }
         root_set_focused_window(window_to_focus);
         seatop_begin_resize_tiling(

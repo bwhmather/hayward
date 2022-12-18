@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "hayward/config.h"
 #include "hayward/tree/column.h"
 #include "hayward/tree/node.h"
 #include "hayward/tree/window.h"

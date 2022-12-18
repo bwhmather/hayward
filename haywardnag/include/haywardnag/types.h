@@ -1,6 +1,11 @@
 #ifndef _HAYWARDNAG_TYPES_H
 #define _HAYWARDNAG_TYPES_H
 
+#include <stdint.h>
+#include <sys/types.h>
+
+#include "hayward-common/list.h"
+
 struct haywardnag_type {
     char *name;
 

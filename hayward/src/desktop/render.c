@@ -455,7 +455,7 @@ render_view(
     if (state->border_bottom) {
         if (!window_is_current_floating(window) &&
             window_get_current_siblings(window)->length == 1 &&
-            window_current_parent_layout(window) == L_SPLIT) {
+            window->current.parent->current.layout == L_SPLIT) {
             memcpy(&color, colors->indicator, sizeof(float) * 4);
         } else {
             memcpy(&color, colors->child_border, sizeof(float) * 4);

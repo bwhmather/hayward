@@ -1,6 +1,8 @@
 #ifndef _HAYWARD_IPC_H
 #define _HAYWARD_IPC_H
 
+#include <stdint.h>
+
 #define event_mask(ev) (1 << (ev & 0x7F))
 
 typedef uint32_t ipc_command_type;

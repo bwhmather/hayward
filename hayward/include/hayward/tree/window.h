@@ -316,11 +316,6 @@ window_get_previous_sibling(struct hayward_window *window);
 struct hayward_window *
 window_get_next_sibling(struct hayward_window *window);
 
-enum hayward_column_layout
-window_parent_layout(struct hayward_window *window);
-enum hayward_column_layout
-window_current_parent_layout(struct hayward_window *window);
-
 /**
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.

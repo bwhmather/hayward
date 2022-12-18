@@ -227,16 +227,15 @@ view_ancestor_is_only_visible(struct hayward_view *view) {
 static bool
 view_is_only_visible(struct hayward_view *view) {
     struct hayward_window *window = view->window;
+    struct hayward_column *column = window->pending.parent;
 
-    enum hayward_column_layout layout = window_parent_layout(window);
-    if (layout != L_STACKED) {
+    if (column->pending.layout != L_STACKED) {
         list_t *siblings = window_get_siblings(window);
         if (siblings && siblings->length > 1) {
             return false;
         }
     }
 
-    struct hayward_column *column = window->pending.parent;
     list_t *siblings = column_get_siblings(column);
     if (siblings && siblings->length > 1) {
         return false;
@@ -308,8 +307,8 @@ view_autoconfigure(struct hayward_view *view) {
         // the title, bar, and disable any top border because we'll
         // always have the title bar.
         list_t *siblings = window_get_siblings(window);
-        enum hayward_column_layout layout = window_parent_layout(window);
-        if (layout == L_STACKED) {
+        struct hayward_column *parent = window->pending.parent;
+        if (parent->pending.layout == L_STACKED) {
             y_offset =
                 window_titlebar_height() * (1 + list_find(siblings, window));
             y_allocation -= window_titlebar_height() * siblings->length;
