@@ -16,6 +16,6 @@ IncludeCategories:
     SortPriority: 1
   - Regex: '"hayward-.*/'
     SortPriority: 2
-  - Regex: '"hayward/'
+  - Regex: '"hayward-common/'
     SortPriority: 3
 

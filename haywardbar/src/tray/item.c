@@ -19,6 +19,7 @@
 #include "haywardbar/tray/host.h"
 #include "haywardbar/tray/icon.h"
 #include "haywardbar/tray/tray.h"
+
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 // TODO menu

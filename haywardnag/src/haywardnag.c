@@ -14,6 +14,7 @@
 
 #include "haywardnag/render.h"
 #include "haywardnag/types.h"
+
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 static void

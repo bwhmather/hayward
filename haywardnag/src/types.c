@@ -13,6 +13,7 @@
 #include "hayward-common/util.h"
 
 #include "haywardnag/config.h"
+
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 struct haywardnag_type *

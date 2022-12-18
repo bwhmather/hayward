@@ -14,13 +14,14 @@
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 
-#include "config.h"
 #include "haywardbar/config.h"
 #include "haywardbar/i3bar.h"
 #include "haywardbar/input.h"
 #include "haywardbar/ipc.h"
 #include "haywardbar/render.h"
 #include "haywardbar/status_line.h"
+
+#include "config.h"
 #if HAVE_TRAY
 #include "haywardbar/tray/tray.h"
 #endif

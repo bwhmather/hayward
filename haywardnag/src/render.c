@@ -7,6 +7,7 @@
 
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"
+
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 static uint32_t
