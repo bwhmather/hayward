@@ -2,10 +2,12 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hayward/config.h"
-#include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
+
 #include "hayward-common/util.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/input/input-manager.h"
 
 struct cmd_results *input_cmd_scroll_factor(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -19,11 +21,13 @@ struct cmd_results *input_cmd_scroll_factor(int argc, char **argv) {
 
 	float scroll_factor = parse_float(argv[0]);
 	if (isnan(scroll_factor)) {
-		return cmd_results_new(CMD_INVALID,
-			"Invalid scroll factor; expected float.");
+		return cmd_results_new(
+			CMD_INVALID, "Invalid scroll factor; expected float."
+		);
 	} else if (scroll_factor < 0) {
-		return cmd_results_new(CMD_INVALID,
-			"Scroll factor cannot be negative.");
+		return cmd_results_new(
+			CMD_INVALID, "Scroll factor cannot be negative."
+		);
 	}
 	ic->scroll_factor = scroll_factor;
 

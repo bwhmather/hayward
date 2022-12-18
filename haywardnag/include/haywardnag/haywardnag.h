@@ -2,8 +2,10 @@
 #define _HAYWARDNAG_HAYWARDNAG_H
 #include <stdint.h>
 #include <strings.h>
-#include "hayward-common/list.h"
+
 #include "hayward-client/pool-buffer.h"
+#include "hayward-common/list.h"
+
 #include "haywardnag/types.h"
 
 #define HAYWARDNAG_MAX_HEIGHT 500
@@ -79,8 +81,8 @@ struct haywardnag {
 	struct wl_compositor *compositor;
 	struct wl_seat *seat;
 	struct wl_shm *shm;
-	struct wl_list outputs;  // haywardnag_output::link
-	struct wl_list seats;  // haywardnag_seat::link
+	struct wl_list outputs; // haywardnag_output::link
+	struct wl_list seats;	// haywardnag_seat::link
 	struct haywardnag_output *output;
 	struct zwlr_layer_shell_v1 *layer_shell;
 	struct zwlr_layer_surface_v1 *layer_surface;

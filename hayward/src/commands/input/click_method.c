@@ -1,9 +1,11 @@
 #include <string.h>
 #include <strings.h>
+
+#include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
-#include "hayward-common/log.h"
 
 struct cmd_results *input_cmd_click_method(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -22,8 +24,10 @@ struct cmd_results *input_cmd_click_method(int argc, char **argv) {
 	} else if (strcasecmp(argv[0], "clickfinger") == 0) {
 		ic->click_method = LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-			"Expected 'click_method <none|button_areas|clickfinger>'");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Expected 'click_method <none|button_areas|clickfinger>'"
+		);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

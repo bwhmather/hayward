@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <wlr/types/wlr_compositor.h>
+
 #include "hayward-common/list.h"
+
 #include "hayward/tree/node.h"
 
 enum hayward_column_layout {
@@ -28,7 +30,7 @@ struct hayward_column_state {
 	// window.  Should only be updated using the reconciliation functions.
 	bool focused;
 
-	list_t *children;                 // struct hayward_window
+	list_t *children; // struct hayward_window
 
 	struct hayward_window *active_child;
 };
@@ -63,7 +65,6 @@ struct hayward_column {
 	} events;
 };
 
-
 struct hayward_column *column_create(void);
 
 void column_destroy(struct hayward_column *column);
@@ -74,35 +75,48 @@ void column_consider_destroy(struct hayward_column *container);
 
 void column_detach(struct hayward_column *column);
 
-void column_reconcile(struct hayward_column *column, struct hayward_workspace *workspace, struct hayward_output *output);
+void column_reconcile(
+	struct hayward_column *column, struct hayward_workspace *workspace,
+	struct hayward_output *output
+);
 void column_reconcile_detached(struct hayward_column *column);
-
 
 /**
  * Search a container's descendants a container based on test criteria. Returns
  * the first container that passes the test.
  */
-struct hayward_window *column_find_child(struct hayward_column *container,
-		bool (*test)(struct hayward_window *view, void *data), void *data);
+struct hayward_window *column_find_child(
+	struct hayward_column *container,
+	bool (*test)(struct hayward_window *view, void *data), void *data
+);
 
-void column_insert_child(struct hayward_column *parent,
-		struct hayward_window *child, int i);
+void column_insert_child(
+	struct hayward_column *parent, struct hayward_window *child, int i
+);
 
 /**
  * Side should be 0 to add before, or 1 to add after.
  */
-void column_add_sibling(struct hayward_window *parent,
-		struct hayward_window *child, bool after);
+void column_add_sibling(
+	struct hayward_window *parent, struct hayward_window *child, bool after
+);
 
-void column_add_child(struct hayward_column *parent,
-		struct hayward_window *child);
+void column_add_child(
+	struct hayward_column *parent, struct hayward_window *child
+);
 
-void column_remove_child(struct hayward_column *parent, struct hayward_window *child);
+void column_remove_child(
+	struct hayward_column *parent, struct hayward_window *child
+);
 
-void column_set_active_child(struct hayward_column *column, struct hayward_window *window);
+void column_set_active_child(
+	struct hayward_column *column, struct hayward_window *window
+);
 
-void column_for_each_child(struct hayward_column *column,
-		void (*f)(struct hayward_window *window, void *data), void *data);
+void column_for_each_child(
+	struct hayward_column *column,
+	void (*f)(struct hayward_window *window, void *data), void *data
+);
 
 /**
  * Get a column's box in layout coordinates.
@@ -117,7 +131,8 @@ int column_sibling_index(struct hayward_column *child);
 
 list_t *column_get_current_siblings(struct hayward_column *column);
 
-struct hayward_column *column_get_previous_sibling(struct hayward_column *column);
+struct hayward_column *column_get_previous_sibling(struct hayward_column *column
+);
 struct hayward_column *column_get_next_sibling(struct hayward_column *column);
 
 /**
@@ -125,7 +140,8 @@ struct hayward_column *column_get_next_sibling(struct hayward_column *column);
  * This is the most recently entered output.
  * If the container is not on any output, return NULL.
  */
-struct hayward_output *column_get_effective_output(struct hayward_column *column);
+struct hayward_output *column_get_effective_output(struct hayward_column *column
+);
 
 void column_discover_outputs(struct hayward_column *column);
 

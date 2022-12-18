@@ -1,14 +1,18 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/tree/node.h"
+
+#include "hayward-common/log.h"
+
 #include "hayward/output.h"
 #include "hayward/server.h"
 #include "hayward/tree/column.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/node.h"
 #include "hayward/tree/root.h"
+#include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/log.h"
 
-void node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
+void node_init(
+	struct hayward_node *node, enum hayward_node_type type, void *thing
+) {
 	static size_t next_id = 1;
 	node->id = next_id++;
 	node->type = type;
@@ -41,9 +45,7 @@ void node_set_dirty(struct hayward_node *node) {
 }
 
 // TODO (hayward) rename to node_is_window.
-bool node_is_view(struct hayward_node *node) {
-	return node->type == N_WINDOW;
-}
+bool node_is_view(struct hayward_node *node) { return node->type == N_WINDOW; }
 
 char *node_get_name(struct hayward_node *node) {
 	switch (node->type) {
@@ -90,21 +92,21 @@ struct hayward_node *node_get_parent(struct hayward_node *node) {
 	case N_WORKSPACE:
 		return &root->node;
 	case N_COLUMN: {
-			struct hayward_column *column = node->hayward_column;
-			if (column->pending.workspace) {
-				return &column->pending.workspace->node;
-			}
+		struct hayward_column *column = node->hayward_column;
+		if (column->pending.workspace) {
+			return &column->pending.workspace->node;
 		}
+	}
 		return NULL;
 	case N_WINDOW: {
-			struct hayward_window *window = node->hayward_window;
-			if (window->pending.parent) {
-				return &window->pending.parent->node;
-			}
-			if (window->pending.workspace) {
-				return &window->pending.workspace->node;
-			}
+		struct hayward_window *window = node->hayward_window;
+		if (window->pending.parent) {
+			return &window->pending.parent->node;
 		}
+		if (window->pending.workspace) {
+			return &window->pending.workspace->node;
+		}
+	}
 		return NULL;
 	}
 	return NULL;
@@ -126,7 +128,9 @@ list_t *node_get_children(struct hayward_node *node) {
 	return NULL;
 }
 
-bool node_has_ancestor(struct hayward_node *node, struct hayward_node *ancestor) {
+bool node_has_ancestor(
+	struct hayward_node *node, struct hayward_node *ancestor
+) {
 	struct hayward_node *parent = node_get_parent(node);
 	while (parent) {
 		if (parent == ancestor) {

@@ -3,9 +3,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <wayland-client.h>
-#include "../include/config.h"
+
 #include "hayward-common/list.h"
 #include "hayward-common/util.h"
+
+#include "../include/config.h"
 
 struct box_colors {
 	uint32_t border;

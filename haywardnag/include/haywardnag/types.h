@@ -37,7 +37,9 @@ struct haywardnag_type *haywardnag_type_get(list_t *types, char *name);
 
 struct haywardnag_type *haywardnag_type_clone(struct haywardnag_type *type);
 
-void haywardnag_type_merge(struct haywardnag_type *dest, struct haywardnag_type *src);
+void haywardnag_type_merge(
+	struct haywardnag_type *dest, struct haywardnag_type *src
+);
 
 void haywardnag_type_free(struct haywardnag_type *type);
 

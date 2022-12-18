@@ -1,14 +1,17 @@
 #ifndef _HAYWARD_ROOT_H
 #define _HAYWARD_ROOT_H
+#include <ctype.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/types/wlr_output_layout.h>
 #include <wlr/render/wlr_texture.h>
-#include "hayward/tree/window.h"
-#include "hayward/tree/node.h"
-#include "config.h"
+#include <wlr/types/wlr_output_layout.h>
+
 #include "hayward-common/list.h"
-#include <ctype.h>
+
+#include "hayward/tree/node.h"
+#include "hayward/tree/window.h"
+
+#include "config.h"
 
 extern struct hayward_root *root;
 
@@ -30,8 +33,6 @@ struct hayward_root_state {
 	 * explicitly focused surface.
 	 */
 	struct wlr_layer_surface_v1 *focused_layer;
-
-
 };
 
 struct hayward_root {
@@ -85,7 +86,8 @@ void root_record_workspace_pid(pid_t pid);
 void root_remove_workspace_pid(pid_t pid);
 
 struct hayward_output *root_find_output(
-		bool (*test)(struct hayward_output *output, void *data), void *data);
+	bool (*test)(struct hayward_output *output, void *data), void *data
+);
 
 void root_get_box(struct hayward_root *root, struct wlr_box *box);
 
@@ -133,12 +135,20 @@ struct wlr_surface *root_get_focused_surface(void);
 
 void root_commit_focus(void);
 
-void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data), void *data);
+void root_for_each_workspace(
+	void (*f)(struct hayward_workspace *workspace, void *data), void *data
+);
 
-void root_for_each_window(void (*f)(struct hayward_window *window, void *data), void *data);
+void root_for_each_window(
+	void (*f)(struct hayward_window *window, void *data), void *data
+);
 
-struct hayward_workspace *root_find_workspace(bool (*test)(struct hayward_workspace *workspace, void *data), void *data);
+struct hayward_workspace *root_find_workspace(
+	bool (*test)(struct hayward_workspace *workspace, void *data), void *data
+);
 
-struct hayward_window *root_find_window(bool (*test)(struct hayward_window *window, void *data), void *data);
+struct hayward_window *root_find_window(
+	bool (*test)(struct hayward_window *window, void *data), void *data
+);
 
 #endif

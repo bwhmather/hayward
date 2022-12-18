@@ -1,15 +1,19 @@
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
-#include <wlr/backend/libinput.h>
-#include <wlr/types/wlr_tablet_v2.h>
-#include <wlr/types/wlr_tablet_tool.h>
-#include <wlr/types/wlr_tablet_pad.h>
-#include "hayward-common/log.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
 #include "hayward/input/tablet.h"
 
-static void handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {
+#include <stdlib.h>
+#include <wlr/backend/libinput.h>
+#include <wlr/types/wlr_tablet_pad.h>
+#include <wlr/types/wlr_tablet_tool.h>
+#include <wlr/types/wlr_tablet_v2.h>
+
+#include "hayward-common/log.h"
+
+#include "hayward/input/cursor.h"
+#include "hayward/input/seat.h"
+
+static void
+handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_tablet_pad *pad =
 		wl_container_of(listener, pad, tablet_destroy);
 
@@ -19,24 +23,29 @@ static void handle_pad_tablet_destroy(struct wl_listener *listener, void *data) 
 	wl_list_init(&pad->tablet_destroy.link);
 }
 
-static void attach_tablet_pad(struct hayward_tablet_pad *tablet_pad,
-		struct hayward_tablet *tablet) {
-	hayward_log(HAYWARD_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
+static void attach_tablet_pad(
+	struct hayward_tablet_pad *tablet_pad, struct hayward_tablet *tablet
+) {
+	hayward_log(
+		HAYWARD_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
 		tablet_pad->seat_device->input_device->wlr_device->name,
-		tablet->seat_device->input_device->wlr_device->name);
+		tablet->seat_device->input_device->wlr_device->name
+	);
 
 	tablet_pad->tablet = tablet;
 
 	wl_list_remove(&tablet_pad->tablet_destroy.link);
 	tablet_pad->tablet_destroy.notify = handle_pad_tablet_destroy;
-	wl_signal_add(&tablet->seat_device->input_device->wlr_device->events.destroy,
-		&tablet_pad->tablet_destroy);
+	wl_signal_add(
+		&tablet->seat_device->input_device->wlr_device->events.destroy,
+		&tablet_pad->tablet_destroy
+	);
 }
 
-struct hayward_tablet *hayward_tablet_create(struct hayward_seat *seat,
-		struct hayward_seat_device *device) {
-	struct hayward_tablet *tablet =
-		calloc(1, sizeof(struct hayward_tablet));
+struct hayward_tablet *hayward_tablet_create(
+	struct hayward_seat *seat, struct hayward_seat_device *device
+) {
+	struct hayward_tablet *tablet = calloc(1, sizeof(struct hayward_tablet));
 	hayward_assert(tablet, "could not allocate hayward tablet for seat");
 
 	wl_list_insert(&seat->cursor->tablets, &tablet->link);
@@ -68,7 +77,8 @@ void hayward_configure_tablet(struct hayward_tablet *tablet) {
 	}
 
 	struct libinput_device_group *group =
-		libinput_device_get_device_group(wlr_libinput_get_device_handle(device));
+		libinput_device_get_device_group(wlr_libinput_get_device_handle(device)
+		);
 	struct hayward_tablet_pad *tablet_pad;
 	wl_list_for_each(tablet_pad, &seat->cursor->tablet_pads, link) {
 		struct wlr_input_device *pad_device =
@@ -78,7 +88,9 @@ void hayward_configure_tablet(struct hayward_tablet *tablet) {
 		}
 
 		struct libinput_device_group *pad_group =
-			libinput_device_get_device_group(wlr_libinput_get_device_handle(pad_device));
+			libinput_device_get_device_group(
+				wlr_libinput_get_device_handle(pad_device)
+			);
 
 		if (pad_group == group) {
 			attach_tablet_pad(tablet_pad, tablet);
@@ -95,7 +107,8 @@ void hayward_tablet_destroy(struct hayward_tablet *tablet) {
 	free(tablet);
 }
 
-static void handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
+static void
+handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
 	struct hayward_tablet_tool *tool =
 		wl_container_of(listener, tool, set_cursor);
 	struct wlr_tablet_v2_event_cursor *event = data;
@@ -113,16 +126,21 @@ static void handle_tablet_tool_set_cursor(struct wl_listener *listener, void *da
 
 	// TODO: check cursor mode
 	if (focused_client == NULL ||
-			event->seat_client->client != focused_client) {
-		hayward_log(HAYWARD_DEBUG, "denying request to set cursor from unfocused client");
+		event->seat_client->client != focused_client) {
+		hayward_log(
+			HAYWARD_DEBUG, "denying request to set cursor from unfocused client"
+		);
 		return;
 	}
 
-	cursor_set_image_surface(cursor, event->surface, event->hotspot_x,
-			event->hotspot_y, focused_client);
+	cursor_set_image_surface(
+		cursor, event->surface, event->hotspot_x, event->hotspot_y,
+		focused_client
+	);
 }
 
-static void handle_tablet_tool_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_tablet_tool_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_tablet_tool *tool =
 		wl_container_of(listener, tool, tool_destroy);
 
@@ -132,8 +150,9 @@ static void handle_tablet_tool_destroy(struct wl_listener *listener, void *data)
 	free(tool);
 }
 
-void hayward_tablet_tool_configure(struct hayward_tablet *tablet,
-		struct wlr_tablet_tool *wlr_tool) {
+void hayward_tablet_tool_configure(
+	struct hayward_tablet *tablet, struct wlr_tablet_tool *wlr_tool
+) {
 	struct hayward_tablet_tool *tool =
 		calloc(1, sizeof(struct hayward_tablet_tool));
 	hayward_assert(tool, "could not allocate hayward tablet tool for tablet");
@@ -146,8 +165,8 @@ void hayward_tablet_tool_configure(struct hayward_tablet *tablet,
 	default:
 		tool->mode = HAYWARD_TABLET_TOOL_MODE_ABSOLUTE;
 
-		struct input_config *ic = input_device_get_config(
-			tablet->seat_device->input_device);
+		struct input_config *ic =
+			input_device_get_config(tablet->seat_device->input_device);
 		if (!ic) {
 			break;
 		}
@@ -163,22 +182,20 @@ void hayward_tablet_tool_configure(struct hayward_tablet *tablet,
 
 	tool->seat = tablet->seat_device->hayward_seat;
 	tool->tablet = tablet;
-	tool->tablet_v2_tool =
-		wlr_tablet_tool_create(server.tablet_v2,
-			tablet->seat_device->hayward_seat->wlr_seat, wlr_tool);
+	tool->tablet_v2_tool = wlr_tablet_tool_create(
+		server.tablet_v2, tablet->seat_device->hayward_seat->wlr_seat, wlr_tool
+	);
 
 	tool->tool_destroy.notify = handle_tablet_tool_destroy;
 	wl_signal_add(&wlr_tool->events.destroy, &tool->tool_destroy);
 
 	tool->set_cursor.notify = handle_tablet_tool_set_cursor;
-	wl_signal_add(&tool->tablet_v2_tool->events.set_cursor,
-		&tool->set_cursor);
+	wl_signal_add(&tool->tablet_v2_tool->events.set_cursor, &tool->set_cursor);
 
 	wlr_tool->data = tool;
 }
 
-static void handle_tablet_pad_attach(struct wl_listener *listener,
-		void *data) {
+static void handle_tablet_pad_attach(struct wl_listener *listener, void *data) {
 	struct hayward_tablet_pad *pad = wl_container_of(listener, pad, attach);
 	struct wlr_tablet_tool *wlr_tool = data;
 	struct hayward_tablet_tool *tool = wlr_tool->data;
@@ -198,10 +215,10 @@ static void handle_tablet_pad_ring(struct wl_listener *listener, void *data) {
 		return;
 	}
 
-	wlr_tablet_v2_tablet_pad_notify_ring(pad->tablet_v2_pad,
-		event->ring, event->position,
-		event->source == WLR_TABLET_PAD_RING_SOURCE_FINGER,
-		event->time_msec);
+	wlr_tablet_v2_tablet_pad_notify_ring(
+		pad->tablet_v2_pad, event->ring, event->position,
+		event->source == WLR_TABLET_PAD_RING_SOURCE_FINGER, event->time_msec
+	);
 }
 
 static void handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
@@ -212,10 +229,10 @@ static void handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
 		return;
 	}
 
-	wlr_tablet_v2_tablet_pad_notify_strip(pad->tablet_v2_pad,
-		event->strip, event->position,
-		event->source == WLR_TABLET_PAD_STRIP_SOURCE_FINGER,
-		event->time_msec);
+	wlr_tablet_v2_tablet_pad_notify_strip(
+		pad->tablet_v2_pad, event->strip, event->position,
+		event->source == WLR_TABLET_PAD_STRIP_SOURCE_FINGER, event->time_msec
+	);
 }
 
 static void handle_tablet_pad_button(struct wl_listener *listener, void *data) {
@@ -226,16 +243,19 @@ static void handle_tablet_pad_button(struct wl_listener *listener, void *data) {
 		return;
 	}
 
-	wlr_tablet_v2_tablet_pad_notify_mode(pad->tablet_v2_pad,
-		event->group, event->mode, event->time_msec);
+	wlr_tablet_v2_tablet_pad_notify_mode(
+		pad->tablet_v2_pad, event->group, event->mode, event->time_msec
+	);
 
-	wlr_tablet_v2_tablet_pad_notify_button(pad->tablet_v2_pad,
-		event->button, event->time_msec,
-		(enum zwp_tablet_pad_v2_button_state)event->state);
+	wlr_tablet_v2_tablet_pad_notify_button(
+		pad->tablet_v2_pad, event->button, event->time_msec,
+		(enum zwp_tablet_pad_v2_button_state)event->state
+	);
 }
 
-struct hayward_tablet_pad *hayward_tablet_pad_create(struct hayward_seat *seat,
-		struct hayward_seat_device *device) {
+struct hayward_tablet_pad *hayward_tablet_pad_create(
+	struct hayward_seat *seat, struct hayward_seat_device *device
+) {
 	struct hayward_tablet_pad *tablet_pad =
 		calloc(1, sizeof(struct hayward_tablet_pad));
 	hayward_assert(tablet_pad, "could not allocate hayward tablet");
@@ -265,8 +285,9 @@ void hayward_configure_tablet_pad(struct hayward_tablet_pad *tablet_pad) {
 
 	wl_list_remove(&tablet_pad->attach.link);
 	tablet_pad->attach.notify = handle_tablet_pad_attach;
-	wl_signal_add(&device->tablet_pad->events.attach_tablet,
-		&tablet_pad->attach);
+	wl_signal_add(
+		&device->tablet_pad->events.attach_tablet, &tablet_pad->attach
+	);
 
 	wl_list_remove(&tablet_pad->button.link);
 	tablet_pad->button.notify = handle_tablet_pad_button;
@@ -287,7 +308,8 @@ void hayward_configure_tablet_pad(struct hayward_tablet_pad *tablet_pad) {
 	}
 
 	struct libinput_device_group *group =
-		libinput_device_get_device_group(wlr_libinput_get_device_handle(device));
+		libinput_device_get_device_group(wlr_libinput_get_device_handle(device)
+		);
 	struct hayward_tablet *tool;
 	wl_list_for_each(tool, &seat->cursor->tablets, link) {
 		struct wlr_input_device *tablet =
@@ -297,7 +319,9 @@ void hayward_configure_tablet_pad(struct hayward_tablet_pad *tablet_pad) {
 		}
 
 		struct libinput_device_group *tablet_group =
-			libinput_device_get_device_group(wlr_libinput_get_device_handle(tablet));
+			libinput_device_get_device_group(
+				wlr_libinput_get_device_handle(tablet)
+			);
 
 		if (tablet_group == group) {
 			attach_tablet_pad(tablet_pad, tool);
@@ -322,20 +346,22 @@ void hayward_tablet_pad_destroy(struct hayward_tablet_pad *tablet_pad) {
 	free(tablet_pad);
 }
 
-static void handle_pad_tablet_surface_destroy(struct wl_listener *listener,
-		void *data) {
+static void
+handle_pad_tablet_surface_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_tablet_pad *tablet_pad =
 		wl_container_of(listener, tablet_pad, surface_destroy);
 
-	wlr_tablet_v2_tablet_pad_notify_leave(tablet_pad->tablet_v2_pad,
-		tablet_pad->current_surface);
+	wlr_tablet_v2_tablet_pad_notify_leave(
+		tablet_pad->tablet_v2_pad, tablet_pad->current_surface
+	);
 	wl_list_remove(&tablet_pad->surface_destroy.link);
 	wl_list_init(&tablet_pad->surface_destroy.link);
 	tablet_pad->current_surface = NULL;
 }
 
-void hayward_tablet_pad_notify_enter(struct hayward_tablet_pad *tablet_pad,
-		struct wlr_surface *surface) {
+void hayward_tablet_pad_notify_enter(
+	struct hayward_tablet_pad *tablet_pad, struct wlr_surface *surface
+) {
 	if (!tablet_pad || !tablet_pad->tablet) {
 		return;
 	}
@@ -346,19 +372,23 @@ void hayward_tablet_pad_notify_enter(struct hayward_tablet_pad *tablet_pad,
 
 	/* Leave current surface */
 	if (tablet_pad->current_surface) {
-		wlr_tablet_v2_tablet_pad_notify_leave(tablet_pad->tablet_v2_pad,
-			tablet_pad->current_surface);
+		wlr_tablet_v2_tablet_pad_notify_leave(
+			tablet_pad->tablet_v2_pad, tablet_pad->current_surface
+		);
 		wl_list_remove(&tablet_pad->surface_destroy.link);
 		wl_list_init(&tablet_pad->surface_destroy.link);
 		tablet_pad->current_surface = NULL;
 	}
 
-	if (!wlr_surface_accepts_tablet_v2(tablet_pad->tablet->tablet_v2, surface)) {
+	if (!wlr_surface_accepts_tablet_v2(
+			tablet_pad->tablet->tablet_v2, surface
+		)) {
 		return;
 	}
 
-	wlr_tablet_v2_tablet_pad_notify_enter(tablet_pad->tablet_v2_pad,
-		tablet_pad->tablet->tablet_v2, surface);
+	wlr_tablet_v2_tablet_pad_notify_enter(
+		tablet_pad->tablet_v2_pad, tablet_pad->tablet->tablet_v2, surface
+	);
 
 	tablet_pad->current_surface = surface;
 	wl_list_remove(&tablet_pad->surface_destroy.link);

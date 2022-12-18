@@ -1,8 +1,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/output.h"
-#include "hayward/tree/window.h"
 #include "hayward/tree/root.h"
+#include "hayward/tree/window.h"
 
 struct cmd_results *cmd_title_align(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -17,8 +17,9 @@ struct cmd_results *cmd_title_align(int argc, char **argv) {
 	} else if (strcmp(argv[0], "right") == 0) {
 		config->title_align = ALIGN_RIGHT;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-				"Expected 'title_align left|center|right'");
+		return cmd_results_new(
+			CMD_INVALID, "Expected 'title_align left|center|right'"
+		);
 	}
 
 	for (int i = 0; i < root->outputs->length; ++i) {

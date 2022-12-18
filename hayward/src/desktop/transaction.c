@@ -1,27 +1,30 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/desktop/transaction.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <wlr/types/wlr_buffer.h>
+
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+
 #include "hayward/config.h"
 #include "hayward/desktop.h"
 #include "hayward/desktop/idle_inhibit_v1.h"
-#include "hayward/desktop/transaction.h"
 #include "hayward/input/cursor.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/output.h"
 #include "hayward/tree/column.h"
-#include "hayward/tree/window.h"
 #include "hayward/tree/node.h"
 #include "hayward/tree/view.h"
+#include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
 
 struct hayward_transaction {
 	struct wl_event_source *timer;
-	list_t *instructions;   // struct hayward_transaction_instruction *
+	list_t *instructions; // struct hayward_transaction_instruction *
 	size_t num_waiting;
 	size_t num_configures;
 	struct timespec commit_time;
@@ -89,7 +92,10 @@ static void transaction_destroy(struct hayward_transaction *transaction) {
 	free(transaction);
 }
 
-static void copy_root_state(struct hayward_root *root, struct hayward_transaction_instruction *instruction) {
+static void copy_root_state(
+	struct hayward_root *root,
+	struct hayward_transaction_instruction *instruction
+) {
 	struct hayward_root_state *state = &instruction->root_state;
 	if (state->workspaces) {
 		state->workspaces->length = 0;
@@ -100,11 +106,15 @@ static void copy_root_state(struct hayward_root *root, struct hayward_transactio
 	state->active_workspace = root->pending.active_workspace;
 }
 
-static void copy_output_state(struct hayward_output *output, struct hayward_transaction_instruction *instruction) {
-}
+static void copy_output_state(
+	struct hayward_output *output,
+	struct hayward_transaction_instruction *instruction
+) {}
 
-static void copy_workspace_state(struct hayward_workspace *workspace,
-		struct hayward_transaction_instruction *instruction) {
+static void copy_workspace_state(
+	struct hayward_workspace *workspace,
+	struct hayward_transaction_instruction *instruction
+) {
 	struct hayward_workspace_state *state = &instruction->workspace_state;
 
 	state->x = workspace->pending.x;
@@ -131,8 +141,10 @@ static void copy_workspace_state(struct hayward_workspace *workspace,
 	state->focus_mode = workspace->pending.focus_mode;
 }
 
-static void copy_column_state(struct hayward_column *column,
-		struct hayward_transaction_instruction *instruction) {
+static void copy_column_state(
+	struct hayward_column *column,
+	struct hayward_transaction_instruction *instruction
+) {
 	struct hayward_column_state *state = &instruction->column_state;
 
 	if (state->children) {
@@ -151,15 +163,19 @@ static void copy_column_state(struct hayward_column *column,
 	state->active_child = column->pending.active_child;
 }
 
-static void copy_window_state(struct hayward_window *window,
-		struct hayward_transaction_instruction *instruction) {
+static void copy_window_state(
+	struct hayward_window *window,
+	struct hayward_transaction_instruction *instruction
+) {
 	struct hayward_window_state *state = &instruction->window_state;
 
 	memcpy(state, &window->pending, sizeof(struct hayward_window_state));
 }
 
-static void transaction_add_node(struct hayward_transaction *transaction,
-		struct hayward_node *node, bool server_request) {
+static void transaction_add_node(
+	struct hayward_transaction *transaction, struct hayward_node *node,
+	bool server_request
+) {
 	struct hayward_transaction_instruction *instruction = NULL;
 
 	// Check if we have an instruction for this node already, in which case we
@@ -208,7 +224,8 @@ static void transaction_add_node(struct hayward_transaction *transaction,
 	}
 }
 
-static void apply_root_state(struct hayward_root *root, struct hayward_root_state *state) {
+static void
+apply_root_state(struct hayward_root *root, struct hayward_root_state *state) {
 	if (root->current.active_workspace != NULL) {
 		workspace_damage_whole(root->current.active_workspace);
 	}
@@ -219,15 +236,17 @@ static void apply_root_state(struct hayward_root *root, struct hayward_root_stat
 	}
 }
 
-static void apply_output_state(struct hayward_output *output,
-		struct hayward_output_state *state) {
+static void apply_output_state(
+	struct hayward_output *output, struct hayward_output_state *state
+) {
 	output_damage_whole(output);
 	memcpy(&output->current, state, sizeof(struct hayward_output_state));
 	output_damage_whole(output);
 }
 
-static void apply_workspace_state(struct hayward_workspace *workspace,
-		struct hayward_workspace_state *state) {
+static void apply_workspace_state(
+	struct hayward_workspace *workspace, struct hayward_workspace_state *state
+) {
 	workspace_damage_whole(workspace);
 	list_free(workspace->current.floating);
 	list_free(workspace->current.tiling);
@@ -235,7 +254,9 @@ static void apply_workspace_state(struct hayward_workspace *workspace,
 	workspace_damage_whole(workspace);
 }
 
-static void apply_column_state(struct hayward_column *column, struct hayward_column_state *state) {
+static void apply_column_state(
+	struct hayward_column *column, struct hayward_column_state *state
+) {
 	// Damage the old location
 	desktop_damage_column(column);
 
@@ -256,8 +277,9 @@ static void apply_column_state(struct hayward_column *column, struct hayward_col
 	}
 }
 
-static void apply_window_state(struct hayward_window *window,
-		struct hayward_window_state *state) {
+static void apply_window_state(
+	struct hayward_window *window, struct hayward_window_state *state
+) {
 	struct hayward_view *view = window->view;
 	// Damage the old location
 	desktop_damage_window(window);
@@ -311,15 +333,19 @@ static void apply_window_state(struct hayward_window *window,
  * Apply a transaction to the "current" state of the tree.
  */
 static void transaction_apply(struct hayward_transaction *transaction) {
-	hayward_log(HAYWARD_DEBUG, "Applying transaction %p", (void *) transaction);
+	hayward_log(HAYWARD_DEBUG, "Applying transaction %p", (void *)transaction);
 	if (debug.txn_timings) {
 		struct timespec now;
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		struct timespec *commit = &transaction->commit_time;
 		float ms = (now.tv_sec - commit->tv_sec) * 1000 +
 			(now.tv_nsec - commit->tv_nsec) / 1000000.0;
-		hayward_log(HAYWARD_DEBUG, "Transaction %p: %.1fms waiting "
-				"(%.1f frames if 60Hz)", (void *) transaction, ms, ms / (1000.0f / 60));
+		hayward_log(
+			HAYWARD_DEBUG,
+			"Transaction %p: %.1fms waiting "
+			"(%.1f frames if 60Hz)",
+			(void *)transaction, ms, ms / (1000.0f / 60)
+		);
 	}
 
 	// Apply the instruction state to the node's current state
@@ -333,19 +359,24 @@ static void transaction_apply(struct hayward_transaction *transaction) {
 			apply_root_state(node->hayward_root, &instruction->root_state);
 			break;
 		case N_OUTPUT:
-			apply_output_state(node->hayward_output, &instruction->output_state);
+			apply_output_state(
+				node->hayward_output, &instruction->output_state
+			);
 			break;
 		case N_WORKSPACE:
-			apply_workspace_state(node->hayward_workspace,
-					&instruction->workspace_state);
+			apply_workspace_state(
+				node->hayward_workspace, &instruction->workspace_state
+			);
 			break;
 		case N_COLUMN:
-			apply_column_state(node->hayward_column,
-					&instruction->column_state);
+			apply_column_state(
+				node->hayward_column, &instruction->column_state
+			);
 			break;
 		case N_WINDOW:
-			apply_window_state(node->hayward_window,
-					&instruction->window_state);
+			apply_window_state(
+				node->hayward_window, &instruction->window_state
+			);
 		}
 
 		node->instruction = NULL;
@@ -377,15 +408,19 @@ static void transaction_progress(void) {
 
 static int handle_timeout(void *data) {
 	struct hayward_transaction *transaction = data;
-	hayward_log(HAYWARD_DEBUG, "Transaction %p timed out (%zi waiting)",
-			(void *) transaction, transaction->num_waiting);
+	hayward_log(
+		HAYWARD_DEBUG, "Transaction %p timed out (%zi waiting)",
+		(void *)transaction, transaction->num_waiting
+	);
 	transaction->num_waiting = 0;
 	transaction_progress();
 	return 0;
 }
 
-static bool should_configure(struct hayward_node *node,
-		struct hayward_transaction_instruction *instruction) {
+static bool should_configure(
+	struct hayward_node *node,
+	struct hayward_transaction_instruction *instruction
+) {
 	if (!node_is_view(node)) {
 		return false;
 	}
@@ -406,21 +441,23 @@ static bool should_configure(struct hayward_node *node,
 		// X11 apps will not respond to duplicate configure requests (from their
 		// truncated point of view) and cause transactions to time out.
 		if ((int)cstate->content_x != (int)istate->content_x ||
-				(int)cstate->content_y != (int)istate->content_y) {
+			(int)cstate->content_y != (int)istate->content_y) {
 			return true;
 		}
 	}
 #endif
 	if (cstate->content_width == istate->content_width &&
-			cstate->content_height == istate->content_height) {
+		cstate->content_height == istate->content_height) {
 		return false;
 	}
 	return true;
 }
 
 static void transaction_commit(struct hayward_transaction *transaction) {
-	hayward_log(HAYWARD_DEBUG, "Transaction %p committing with %i instructions",
-			(void *) transaction, transaction->instructions->length);
+	hayward_log(
+		HAYWARD_DEBUG, "Transaction %p committing with %i instructions",
+		(void *)transaction, transaction->instructions->length
+	);
 	transaction->num_waiting = 0;
 	for (int i = 0; i < transaction->instructions->length; ++i) {
 		struct hayward_transaction_instruction *instruction =
@@ -429,11 +466,12 @@ static void transaction_commit(struct hayward_transaction *transaction) {
 		bool hidden = node_is_view(node) && !node->destroying &&
 			!view_is_visible(node->hayward_window->view);
 		if (should_configure(node, instruction)) {
-			instruction->serial = view_configure(node->hayward_window->view,
-					instruction->window_state.content_x,
-					instruction->window_state.content_y,
-					instruction->window_state.content_width,
-					instruction->window_state.content_height);
+			instruction->serial = view_configure(
+				node->hayward_window->view, instruction->window_state.content_x,
+				instruction->window_state.content_y,
+				instruction->window_state.content_width,
+				instruction->window_state.content_height
+			);
 			if (!hidden) {
 				instruction->waiting = true;
 				++transaction->num_waiting;
@@ -446,14 +484,16 @@ static void transaction_commit(struct hayward_transaction *transaction) {
 			struct timespec now;
 			clock_gettime(CLOCK_MONOTONIC, &now);
 			wlr_surface_send_frame_done(
-					node->hayward_window->view->surface, &now);
+				node->hayward_window->view->surface, &now
+			);
 		}
 		if (!hidden && node_is_view(node) &&
-				wl_list_empty(&node->hayward_window->view->saved_buffers)) {
+			wl_list_empty(&node->hayward_window->view->saved_buffers)) {
 			view_save_buffer(node->hayward_window->view);
-			memcpy(&node->hayward_window->view->saved_geometry,
-					&node->hayward_window->view->geometry,
-					sizeof(struct wlr_box));
+			memcpy(
+				&node->hayward_window->view->saved_geometry,
+				&node->hayward_window->view->geometry, sizeof(struct wlr_box)
+			);
 		}
 		node->instruction = instruction;
 	}
@@ -471,14 +511,19 @@ static void transaction_commit(struct hayward_transaction *transaction) {
 
 	if (transaction->num_waiting) {
 		// Set up a timer which the views must respond within
-		transaction->timer = wl_event_loop_add_timer(server.wl_event_loop,
-				handle_timeout, transaction);
+		transaction->timer = wl_event_loop_add_timer(
+			server.wl_event_loop, handle_timeout, transaction
+		);
 		if (transaction->timer) {
-			wl_event_source_timer_update(transaction->timer,
-					server.txn_timeout_ms);
+			wl_event_source_timer_update(
+				transaction->timer, server.txn_timeout_ms
+			);
 		} else {
-			hayward_log_errno(HAYWARD_ERROR, "Unable to create transaction timer "
-					"(some imperfect frames might be rendered)");
+			hayward_log_errno(
+				HAYWARD_ERROR,
+				"Unable to create transaction timer "
+				"(some imperfect frames might be rendered)"
+			);
 			transaction->num_waiting = 0;
 		}
 	}
@@ -495,8 +540,8 @@ static void transaction_commit_pending(void) {
 	transaction_progress();
 }
 
-static void set_instruction_ready(
-		struct hayward_transaction_instruction *instruction) {
+static void
+set_instruction_ready(struct hayward_transaction_instruction *instruction) {
 	struct hayward_transaction *transaction = instruction->transaction;
 	hayward_assert(node_is_view(instruction->node), "Expected view");
 
@@ -506,17 +551,21 @@ static void set_instruction_ready(
 		struct timespec *start = &transaction->commit_time;
 		float ms = (now.tv_sec - start->tv_sec) * 1000 +
 			(now.tv_nsec - start->tv_nsec) / 1000000.0;
-		hayward_log(HAYWARD_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
-				(void *) transaction,
-				transaction->num_configures - transaction->num_waiting + 1,
-				transaction->num_configures, ms,
-				instruction->node->hayward_window->title);
+		hayward_log(
+			HAYWARD_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
+			(void *)transaction,
+			transaction->num_configures - transaction->num_waiting + 1,
+			transaction->num_configures, ms,
+			instruction->node->hayward_window->title
+		);
 	}
 
 	// If the transaction has timed out then its num_waiting will be 0 already.
 	if (instruction->waiting && transaction->num_waiting > 0 &&
-			--transaction->num_waiting == 0) {
-		hayward_log(HAYWARD_DEBUG, "Transaction %p is ready", (void *) transaction);
+		--transaction->num_waiting == 0) {
+		hayward_log(
+			HAYWARD_DEBUG, "Transaction %p is ready", (void *)transaction
+		);
 		wl_event_source_timer_update(transaction->timer, 0);
 	}
 
@@ -524,8 +573,9 @@ static void set_instruction_ready(
 	transaction_progress();
 }
 
-void transaction_notify_view_ready_by_serial(struct hayward_view *view,
-		uint32_t serial) {
+void transaction_notify_view_ready_by_serial(
+	struct hayward_view *view, uint32_t serial
+) {
 	struct hayward_transaction_instruction *instruction =
 		view->window->node.instruction;
 	if (instruction != NULL && instruction->serial == serial) {
@@ -533,15 +583,16 @@ void transaction_notify_view_ready_by_serial(struct hayward_view *view,
 	}
 }
 
-void transaction_notify_view_ready_by_geometry(struct hayward_view *view,
-		double x, double y, int width, int height) {
+void transaction_notify_view_ready_by_geometry(
+	struct hayward_view *view, double x, double y, int width, int height
+) {
 	struct hayward_transaction_instruction *instruction =
 		view->window->node.instruction;
 	if (instruction != NULL &&
-			(int)instruction->window_state.content_x == (int)x &&
-			(int)instruction->window_state.content_y == (int)y &&
-			instruction->window_state.content_width == width &&
-			instruction->window_state.content_height == height) {
+		(int)instruction->window_state.content_x == (int)x &&
+		(int)instruction->window_state.content_y == (int)y &&
+		instruction->window_state.content_width == width &&
+		instruction->window_state.content_height == height) {
 		set_instruction_ready(instruction);
 	}
 }
@@ -552,26 +603,40 @@ static void validate_tree(void) {
 	// Validate that there is at least one workspace.
 	struct hayward_workspace *active_workspace = root->pending.active_workspace;
 	hayward_assert(active_workspace != NULL, "No active workspace");
-	hayward_assert(list_find(root->pending.workspaces, active_workspace) != -1, "Active workspace missing from workspaces list");
+	hayward_assert(
+		list_find(root->pending.workspaces, active_workspace) != -1,
+		"Active workspace missing from workspaces list"
+	);
 
 	// Validate that there is at least one output.
 	struct hayward_output *active_output = root->pending.active_output;
 	hayward_assert(active_output != NULL, "No active output");
 	if (root->outputs->length == 0) {
-		hayward_assert(active_output == root->fallback_output, "Expected fallback output to be active");
+		hayward_assert(
+			active_output == root->fallback_output,
+			"Expected fallback output to be active"
+		);
 	} else {
-		hayward_assert(list_find(root->outputs, active_output) != -1, "Expected active output to be in outputs list");
+		hayward_assert(
+			list_find(root->outputs, active_output) != -1,
+			"Expected active output to be in outputs list"
+		);
 	}
 
 	// Validate that the fallback output exists but is not in the outputs list.
 	hayward_assert(root->fallback_output != NULL, "Missing fallback output");
-	hayward_assert(list_find(root->outputs, root->fallback_output) == -1, "Fallback output present in outputs list");
+	hayward_assert(
+		list_find(root->outputs, root->fallback_output) == -1,
+		"Fallback output present in outputs list"
+	);
 
-	// Validate that the correct output is focused if workspace is in tiling mode.
+	// Validate that the correct output is focused if workspace is in tiling
+	// mode.
 	if (active_workspace->pending.focus_mode == F_TILING) {
 		if (active_workspace->pending.active_column) {
 			hayward_assert(
-				active_output == active_workspace->pending.active_column->pending.output,
+				active_output ==
+					active_workspace->pending.active_column->pending.output,
 				"Expected active output to match active column output"
 			);
 		}
@@ -579,31 +644,58 @@ static void validate_tree(void) {
 
 	// Recursively validate each workspace.
 	for (int i = 0; i < root->pending.workspaces->length; i++) {
-		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		struct hayward_workspace *workspace =
+			root->pending.workspaces->items[i];
 		hayward_assert(workspace != NULL, "Null workspace in workspaces list");
 
 		// Validate floating windows.
 		for (int j = 0; j < workspace->pending.floating->length; j++) {
-			struct hayward_window *window = workspace->pending.floating->items[j];
+			struct hayward_window *window =
+				workspace->pending.floating->items[j];
 			hayward_assert(window != NULL, "NULL window in floating list");
 
-			hayward_assert(window->pending.workspace == workspace, "Window workspace does not match expected");
-			hayward_assert(list_find(root->outputs, window->pending.output) != -1, "Window output missing from list");
-			hayward_assert(window->pending.parent == NULL, "Floating window has parent column");
+			hayward_assert(
+				window->pending.workspace == workspace,
+				"Window workspace does not match expected"
+			);
+			hayward_assert(
+				list_find(root->outputs, window->pending.output) != -1,
+				"Window output missing from list"
+			);
+			hayward_assert(
+				window->pending.parent == NULL,
+				"Floating window has parent column"
+			);
 		}
 
 		for (int j = 0; j < workspace->pending.tiling->length; j++) {
 			struct hayward_column *column = workspace->pending.tiling->items[j];
 
-			hayward_assert(column->pending.workspace == workspace, "Column workspace does not match expected");
-			hayward_assert(list_find(root->outputs, column->pending.output) != -1, "Columm output missing from list");
+			hayward_assert(
+				column->pending.workspace == workspace,
+				"Column workspace does not match expected"
+			);
+			hayward_assert(
+				list_find(root->outputs, column->pending.output) != -1,
+				"Columm output missing from list"
+			);
 
 			for (int k = 0; k < column->pending.children->length; k++) {
-				struct hayward_window *window = column->pending.children->items[k];
+				struct hayward_window *window =
+					column->pending.children->items[k];
 
-				hayward_assert(window->pending.parent == column, "Tiling window parent link broken");
-				hayward_assert(window->pending.workspace == workspace, "Window workspace does not match parent");
-				hayward_assert(window->pending.output == column->pending.output, "Window output does not match parent");
+				hayward_assert(
+					window->pending.parent == column,
+					"Tiling window parent link broken"
+				);
+				hayward_assert(
+					window->pending.workspace == workspace,
+					"Window workspace does not match parent"
+				);
+				hayward_assert(
+					window->pending.output == column->pending.output,
+					"Window output does not match parent"
+				);
 			}
 		}
 	}
@@ -620,7 +712,6 @@ static void _transaction_commit_dirty(bool server_request) {
 	wl_list_for_each(seat, &server.input->seats, link) {
 		seat_commit_focus(seat);
 	}
-
 
 	if (!server.dirty_nodes->length) {
 		return;
@@ -643,10 +734,6 @@ static void _transaction_commit_dirty(bool server_request) {
 	transaction_commit_pending();
 }
 
-void transaction_commit_dirty(void) {
-	_transaction_commit_dirty(true);
-}
+void transaction_commit_dirty(void) { _transaction_commit_dirty(true); }
 
-void transaction_commit_dirty_client(void) {
-	_transaction_commit_dirty(false);
-}
+void transaction_commit_dirty_client(void) { _transaction_commit_dirty(false); }

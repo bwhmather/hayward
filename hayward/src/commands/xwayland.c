@@ -1,8 +1,9 @@
-#include "hayward/config.h"
 #include "hayward-common/log.h"
-#include "hayward/commands.h"
-#include "hayward/server.h"
 #include "hayward-common/util.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/server.h"
 
 struct cmd_results *cmd_xwayland(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -21,13 +22,17 @@ struct cmd_results *cmd_xwayland(int argc, char **argv) {
 	}
 
 	if (config->reloading && config->xwayland != xwayland) {
-		return cmd_results_new(CMD_FAILURE,
-				"xwayland can only be enabled/disabled at launch");
+		return cmd_results_new(
+			CMD_FAILURE, "xwayland can only be enabled/disabled at launch"
+		);
 	}
 	config->xwayland = xwayland;
 #else
-	hayward_log(HAYWARD_INFO, "Ignoring `xwayland` command, "
-		"hayward hasn't been built with Xwayland support");
+	hayward_log(
+		HAYWARD_INFO,
+		"Ignoring `xwayland` command, "
+		"hayward hasn't been built with Xwayland support"
+	);
 #endif
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

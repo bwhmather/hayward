@@ -1,4 +1,5 @@
 #include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/tree/window.h"
@@ -16,8 +17,11 @@ struct cmd_results *cmd_default_border(int argc, char **argv) {
 	} else if (strcmp(argv[0], "pixel") == 0) {
 		config->border = B_PIXEL;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-				"Expected 'default_border <none|normal|pixel>' or 'default_border <normal|pixel> <px>'");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Expected 'default_border <none|normal|pixel>' or 'default_border "
+			"<normal|pixel> <px>'"
+		);
 	}
 	if (argc == 2) {
 		config->border_thickness = atoi(argv[1]);

@@ -4,7 +4,8 @@
 #include "hayward/tree/view.h"
 
 struct cmd_results *cmd_hide_edge_borders(int argc, char **argv) {
-	const char *expected_syntax = "Expected 'hide_edge_borders [--i3] "
+	const char *expected_syntax =
+		"Expected 'hide_edge_borders [--i3] "
 		"none|vertical|horizontal|both|smart|smart_no_gaps";
 
 	struct cmd_results *error = NULL;

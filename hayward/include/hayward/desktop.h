@@ -4,8 +4,9 @@ struct hayward_column;
 struct hayward_window;
 struct hayward_view;
 
-void desktop_damage_surface(struct wlr_surface *surface, double lx, double ly,
-	bool whole);
+void desktop_damage_surface(
+	struct wlr_surface *surface, double lx, double ly, bool whole
+);
 
 void desktop_damage_column(struct hayward_column *column);
 

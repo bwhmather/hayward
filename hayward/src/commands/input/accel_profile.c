@@ -1,7 +1,8 @@
 #include <string.h>
 #include <strings.h>
-#include "hayward/config.h"
+
 #include "hayward/commands.h"
+#include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 
 struct cmd_results *input_cmd_accel_profile(int argc, char **argv) {
@@ -19,8 +20,9 @@ struct cmd_results *input_cmd_accel_profile(int argc, char **argv) {
 	} else if (strcasecmp(argv[0], "flat") == 0) {
 		ic->accel_profile = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-				"Expected 'accel_profile <adaptive|flat>'");
+		return cmd_results_new(
+			CMD_INVALID, "Expected 'accel_profile <adaptive|flat>'"
+		);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

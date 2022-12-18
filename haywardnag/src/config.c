@@ -2,13 +2,15 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <wordexp.h>
 #include <unistd.h>
-#include "hayward-common/log.h"
+#include <wordexp.h>
+
 #include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
+
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"
-#include "hayward-common/util.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 static char *read_and_trim_stdin(void) {
@@ -47,8 +49,10 @@ freebuf:
 	return NULL;
 }
 
-int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardnag,
-		list_t *types, struct haywardnag_type *type, char **config, bool *debug) {
+int haywardnag_parse_options(
+	int argc, char **argv, struct haywardnag *haywardnag, list_t *types,
+	struct haywardnag_type *type, char **config, bool *debug
+) {
 	enum type_options {
 		TO_COLOR_BACKGROUND = 256,
 		TO_COLOR_BORDER,
@@ -102,30 +106,31 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 		{"button-margin-right", required_argument, NULL, TO_MARGIN_BTN_RIGHT},
 		{"button-padding", required_argument, NULL, TO_PADDING_BTN},
 
-		{0, 0, 0, 0}
-	};
+		{0, 0, 0, 0}};
 
 	const char *usage =
 		"Usage: haywardnag [options...]\n"
 		"\n"
 		"  -b, --button <text> <action>  Create a button with text that "
-			"executes action in a terminal when pressed. Multiple buttons can "
-			"be defined.\n"
+		"executes action in a terminal when pressed. Multiple buttons can "
+		"be defined.\n"
 		"  -B, --button-no-terminal <text> <action>  Like --button, but does"
-			"not run the action in a terminal.\n"
-		"  -z, --button-dismiss <text> <action>  Create a button with text that "
-			"dismisses haywardnag, and executes action in a terminal when pressed. "
-			"Multiple buttons can be defined.\n"
+		"not run the action in a terminal.\n"
+		"  -z, --button-dismiss <text> <action>  Create a button with text "
+		"that "
+		"dismisses haywardnag, and executes action in a terminal when pressed. "
+		"Multiple buttons can be defined.\n"
 		"  -Z, --button-dismiss-no-terminal <text> <action>  Like "
-			"--button-dismiss, but does not run the action in a terminal.\n"
+		"--button-dismiss, but does not run the action in a terminal.\n"
 		"  -c, --config <path>             Path to config file.\n"
 		"  -d, --debug                     Enable debugging.\n"
 		"  -e, --edge top|bottom           Set the edge to use.\n"
 		"  -y, --layer overlay|top|bottom|background\n"
-	    "                                  Set the layer to use.\n"
+		"                                  Set the layer to use.\n"
 		"  -f, --font <font>               Set the font to use.\n"
 		"  -h, --help                      Show help message and quit.\n"
-		"  -l, --detailed-message          Read a detailed message from stdin.\n"
+		"  -l, --detailed-message          Read a detailed message from "
+		"stdin.\n"
 		"  -L, --detailed-button <text>    Set the text of the detail button.\n"
 		"  -m, --message <msg>             Set the message text.\n"
 		"  -o, --output <output>           Set the output to use.\n"
@@ -146,13 +151,17 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 		"  --details-background RRGGBB[AA] Details background color.\n"
 		"  --button-border-size size       Thickness for the button border.\n"
 		"  --button-gap gap                Size of the gap between buttons\n"
-		"  --button-dismiss-gap gap        Size of the gap for dismiss button.\n"
-		"  --button-margin-right margin    Margin from dismiss button to edge.\n"
+		"  --button-dismiss-gap gap        Size of the gap for dismiss "
+		"button.\n"
+		"  --button-margin-right margin    Margin from dismiss button to "
+		"edge.\n"
 		"  --button-padding padding        Padding for the button text.\n";
 
 	optind = 1;
 	while (1) {
-		int c = getopt_long(argc, argv, "b:B:z:Z:c:de:y:f:hlL:m:o:s:t:v", opts, NULL);
+		int c = getopt_long(
+			argc, argv, "b:B:z:Z:c:de:y:f:hlL:m:o:s:t:v", opts, NULL
+		);
 		if (c == -1) {
 			break;
 		}
@@ -166,7 +175,8 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 					fprintf(stderr, "Missing action for button %s\n", optarg);
 					return EXIT_FAILURE;
 				}
-				struct haywardnag_button *button = calloc(sizeof(struct haywardnag_button), 1);
+				struct haywardnag_button *button =
+					calloc(sizeof(struct haywardnag_button), 1);
 				if (!button) {
 					perror("calloc");
 					return EXIT_FAILURE;
@@ -193,13 +203,13 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 		case 'e': // Edge
 			if (type) {
 				if (strcmp(optarg, "top") == 0) {
-					type->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP
-						| ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
-						| ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+					type->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
+						ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+						ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 				} else if (strcmp(optarg, "bottom") == 0) {
-					type->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM
-						| ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
-						| ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+					type->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM |
+						ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+						ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 				} else {
 					fprintf(stderr, "Invalid edge: %s\n", optarg);
 					return EXIT_FAILURE;
@@ -217,9 +227,12 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 				} else if (strcmp(optarg, "overlay") == 0) {
 					type->layer = ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY;
 				} else {
-					fprintf(stderr, "Invalid layer: %s\n"
-							"Usage: --layer overlay|top|bottom|background\n",
-							optarg);
+					fprintf(
+						stderr,
+						"Invalid layer: %s\n"
+						"Usage: --layer overlay|top|bottom|background\n",
+						optarg
+					);
 					return EXIT_FAILURE;
 				}
 			}
@@ -261,7 +274,8 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 			break;
 		case 's': // Dismiss Button Text
 			if (haywardnag) {
-				struct haywardnag_button *button_close = haywardnag->buttons->items[0];
+				struct haywardnag_button *button_close =
+					haywardnag->buttons->items[0];
 				free(button_close->text);
 				button_close->text = strdup(optarg);
 			}
@@ -293,42 +307,42 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 				fprintf(stderr, "Invalid border bottom color: %s", optarg);
 			}
 			break;
-		case TO_COLOR_BUTTON:  // Button background color
+		case TO_COLOR_BUTTON: // Button background color
 			if (type && !parse_color(optarg, &type->button_background)) {
 				fprintf(stderr, "Invalid button background color: %s", optarg);
 			}
 			break;
-		case TO_COLOR_DETAILS:  // Details background color
+		case TO_COLOR_DETAILS: // Details background color
 			if (type && !parse_color(optarg, &type->details_background)) {
 				fprintf(stderr, "Invalid details background color: %s", optarg);
 			}
 			break;
-		case TO_COLOR_TEXT:  // Text color
+		case TO_COLOR_TEXT: // Text color
 			if (type && !parse_color(optarg, &type->text)) {
 				fprintf(stderr, "Invalid text color: %s", optarg);
 			}
 			break;
-		case TO_COLOR_BUTTON_TEXT:  // Button text color
+		case TO_COLOR_BUTTON_TEXT: // Button text color
 			if (type && !parse_color(optarg, &type->button_text)) {
 				fprintf(stderr, "Invalid button text color: %s", optarg);
 			}
 			break;
-		case TO_THICK_BAR_BORDER:  // Bottom border thickness
+		case TO_THICK_BAR_BORDER: // Bottom border thickness
 			if (type) {
 				type->bar_border_thickness = strtol(optarg, NULL, 0);
 			}
 			break;
-		case TO_PADDING_MESSAGE:  // Message padding
+		case TO_PADDING_MESSAGE: // Message padding
 			if (type) {
 				type->message_padding = strtol(optarg, NULL, 0);
 			}
 			break;
-		case TO_THICK_DET_BORDER:  // Details border thickness
+		case TO_THICK_DET_BORDER: // Details border thickness
 			if (type) {
 				type->details_border_thickness = strtol(optarg, NULL, 0);
 			}
 			break;
-		case TO_THICK_BTN_BORDER:  // Button border thickness
+		case TO_THICK_BTN_BORDER: // Button border thickness
 			if (type) {
 				type->button_border_thickness = strtol(optarg, NULL, 0);
 			}
@@ -338,17 +352,17 @@ int haywardnag_parse_options(int argc, char **argv, struct haywardnag *haywardna
 				type->button_gap = strtol(optarg, NULL, 0);
 			}
 			break;
-		case TO_GAP_BTN_DISMISS:  // Gap between dismiss button
+		case TO_GAP_BTN_DISMISS: // Gap between dismiss button
 			if (type) {
 				type->button_gap_close = strtol(optarg, NULL, 0);
 			}
 			break;
-		case TO_MARGIN_BTN_RIGHT:  // Margin on the right side of button area
+		case TO_MARGIN_BTN_RIGHT: // Margin on the right side of button area
 			if (type) {
 				type->button_margin_right = strtol(optarg, NULL, 0);
 			}
 			break;
-		case TO_PADDING_BTN:  // Padding for the button text
+		case TO_PADDING_BTN: // Padding for the button text
 			if (type) {
 				type->button_padding = strtol(optarg, NULL, 0);
 			}
@@ -393,7 +407,9 @@ char *haywardnag_get_config_path(void) {
 	return NULL;
 }
 
-int haywardnag_load_config(char *path, struct haywardnag *haywardnag, list_t *types) {
+int haywardnag_load_config(
+	char *path, struct haywardnag *haywardnag, list_t *types
+) {
 	FILE *config = fopen(path, "r");
 	if (!config) {
 		fprintf(stderr, "Failed to read config. Running without it.\n");
@@ -439,8 +455,9 @@ int haywardnag_load_config(char *path, struct haywardnag *haywardnag, list_t *ty
 			}
 			snprintf(flag, nread + 3, "--%s", line);
 			char *argv[] = {"haywardnag", flag};
-			result = haywardnag_parse_options(2, argv, haywardnag, types, type,
-					NULL, NULL);
+			result = haywardnag_parse_options(
+				2, argv, haywardnag, types, type, NULL, NULL
+			);
 			free(flag);
 			if (result != 0) {
 				break;

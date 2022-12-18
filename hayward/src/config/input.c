@@ -1,12 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
-#include <limits.h>
 #include <float.h>
-#include "hayward/config.h"
-#include "hayward/input/keyboard.h"
+#include <limits.h>
+#include <stdlib.h>
+
 #include "hayward-common/log.h"
 
-struct input_config *new_input_config(const char* identifier) {
+#include "hayward/config.h"
+#include "hayward/input/keyboard.h"
+
+struct input_config *new_input_config(const char *identifier) {
 	struct input_config *input = calloc(1, sizeof(struct input_config));
 	if (!input) {
 		hayward_log(HAYWARD_DEBUG, "Unable to allocate input config");
@@ -132,8 +134,10 @@ void merge_input_config(struct input_config *dst, struct input_config *src) {
 		free(dst->mapped_from_region);
 		dst->mapped_from_region =
 			malloc(sizeof(struct input_config_mapped_from_region));
-		memcpy(dst->mapped_from_region, src->mapped_from_region,
-			sizeof(struct input_config_mapped_from_region));
+		memcpy(
+			dst->mapped_from_region, src->mapped_from_region,
+			sizeof(struct input_config_mapped_from_region)
+		);
 	}
 	if (src->mapped_to) {
 		dst->mapped_to = src->mapped_to;
@@ -144,15 +148,17 @@ void merge_input_config(struct input_config *dst, struct input_config *src) {
 	}
 	if (src->mapped_to_region) {
 		free(dst->mapped_to_region);
-		dst->mapped_to_region =
-			malloc(sizeof(struct wlr_box));
-		memcpy(dst->mapped_to_region, src->mapped_to_region,
-			sizeof(struct wlr_box));
+		dst->mapped_to_region = malloc(sizeof(struct wlr_box));
+		memcpy(
+			dst->mapped_to_region, src->mapped_to_region, sizeof(struct wlr_box)
+		);
 	}
 	if (src->calibration_matrix.configured) {
 		dst->calibration_matrix.configured = src->calibration_matrix.configured;
-		memcpy(dst->calibration_matrix.matrix, src->calibration_matrix.matrix,
-			sizeof(src->calibration_matrix.matrix));
+		memcpy(
+			dst->calibration_matrix.matrix, src->calibration_matrix.matrix,
+			sizeof(src->calibration_matrix.matrix)
+		);
 	}
 	for (int i = 0; i < src->tools->length; i++) {
 		struct input_config_tool *src_tool = src->tools->items[i];
@@ -168,19 +174,21 @@ void merge_input_config(struct input_config *dst, struct input_config *src) {
 		memcpy(dst_tool, src_tool, sizeof(*dst_tool));
 		list_add(dst->tools, dst_tool);
 
-		tool_merge_outer:;
+	tool_merge_outer:;
 	}
 }
 
-static bool validate_xkb_merge(struct input_config *dest,
-		struct input_config *src, char **xkb_error) {
+static bool validate_xkb_merge(
+	struct input_config *dest, struct input_config *src, char **xkb_error
+) {
 	struct input_config *temp = new_input_config("temp");
 	if (dest) {
 		merge_input_config(temp, dest);
 	}
 	merge_input_config(temp, src);
 
-	struct xkb_keymap *keymap = hayward_keyboard_compile_keymap(temp, xkb_error);
+	struct xkb_keymap *keymap =
+		hayward_keyboard_compile_keymap(temp, xkb_error);
 	free_input_config(temp);
 	if (!keymap) {
 		return false;
@@ -190,13 +198,14 @@ static bool validate_xkb_merge(struct input_config *dest,
 	return true;
 }
 
-static bool validate_wildcard_on_all(struct input_config *wildcard,
-		char **error) {
+static bool
+validate_wildcard_on_all(struct input_config *wildcard, char **error) {
 	for (int i = 0; i < config->input_configs->length; i++) {
 		struct input_config *ic = config->input_configs->items[i];
 		if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-			hayward_log(HAYWARD_DEBUG, "Validating xkb merge of * on %s",
-					ic->identifier);
+			hayward_log(
+				HAYWARD_DEBUG, "Validating xkb merge of * on %s", ic->identifier
+			);
 			if (!validate_xkb_merge(ic, wildcard, error)) {
 				return false;
 			}
@@ -205,8 +214,10 @@ static bool validate_wildcard_on_all(struct input_config *wildcard,
 
 	for (int i = 0; i < config->input_type_configs->length; i++) {
 		struct input_config *ic = config->input_type_configs->items[i];
-		hayward_log(HAYWARD_DEBUG, "Validating xkb merge of * config on %s",
-				ic->identifier);
+		hayward_log(
+			HAYWARD_DEBUG, "Validating xkb merge of * config on %s",
+			ic->identifier
+		);
 		if (!validate_xkb_merge(ic, wildcard, error)) {
 			return false;
 		}
@@ -219,20 +230,24 @@ static void merge_wildcard_on_all(struct input_config *wildcard) {
 	for (int i = 0; i < config->input_configs->length; i++) {
 		struct input_config *ic = config->input_configs->items[i];
 		if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-			hayward_log(HAYWARD_DEBUG, "Merging input * config on %s", ic->identifier);
+			hayward_log(
+				HAYWARD_DEBUG, "Merging input * config on %s", ic->identifier
+			);
 			merge_input_config(ic, wildcard);
 		}
 	}
 
 	for (int i = 0; i < config->input_type_configs->length; i++) {
 		struct input_config *ic = config->input_type_configs->items[i];
-		hayward_log(HAYWARD_DEBUG, "Merging input * config on %s", ic->identifier);
+		hayward_log(
+			HAYWARD_DEBUG, "Merging input * config on %s", ic->identifier
+		);
 		merge_input_config(ic, wildcard);
 	}
 }
 
-static bool validate_type_on_existing(struct input_config *type_wildcard,
-		char **error) {
+static bool
+validate_type_on_existing(struct input_config *type_wildcard, char **error) {
 	for (int i = 0; i < config->input_configs->length; i++) {
 		struct input_config *ic = config->input_configs->items[i];
 		if (ic->input_type == NULL) {
@@ -240,8 +255,10 @@ static bool validate_type_on_existing(struct input_config *type_wildcard,
 		}
 
 		if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-			hayward_log(HAYWARD_DEBUG, "Validating merge of %s on %s",
-				type_wildcard->identifier, ic->identifier);
+			hayward_log(
+				HAYWARD_DEBUG, "Validating merge of %s on %s",
+				type_wildcard->identifier, ic->identifier
+			);
 			if (!validate_xkb_merge(ic, type_wildcard, error)) {
 				return false;
 			}
@@ -258,9 +275,10 @@ static void merge_type_on_existing(struct input_config *type_wildcard) {
 		}
 
 		if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-			hayward_log(HAYWARD_DEBUG, "Merging %s top of %s",
-				type_wildcard->identifier,
-				ic->identifier);
+			hayward_log(
+				HAYWARD_DEBUG, "Merging %s top of %s",
+				type_wildcard->identifier, ic->identifier
+			);
 			merge_input_config(ic, type_wildcard);
 		}
 	}
@@ -277,8 +295,7 @@ static const char *set_input_type(struct input_config *ic) {
 	return ic->input_type;
 }
 
-struct input_config *store_input_config(struct input_config *ic,
-		char **error) {
+struct input_config *store_input_config(struct input_config *ic, char **error) {
 	bool wildcard = strcmp(ic->identifier, "*") == 0;
 	if (wildcard && error && !validate_wildcard_on_all(ic, error)) {
 		return NULL;
@@ -289,8 +306,8 @@ struct input_config *store_input_config(struct input_config *ic,
 		return NULL;
 	}
 
-	list_t *config_list = type ? config->input_type_configs
-		: config->input_configs;
+	list_t *config_list =
+		type ? config->input_type_configs : config->input_configs;
 
 	struct input_config *current = NULL;
 	bool new_current = false;
@@ -352,8 +369,9 @@ struct input_config *store_input_config(struct input_config *ic,
 	return ic;
 }
 
-void input_config_fill_rule_names(struct input_config *ic,
-		struct xkb_rule_names *rules) {
+void input_config_fill_rule_names(
+	struct input_config *ic, struct xkb_rule_names *rules
+) {
 	rules->layout = ic->xkb_layout;
 	rules->model = ic->xkb_model;
 	rules->options = ic->xkb_options;

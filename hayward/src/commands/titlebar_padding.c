@@ -1,9 +1,11 @@
 #include <string.h>
+
+#include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "hayward/tree/workspace.h"
 #include "hayward/tree/arrange.h"
-#include "hayward-common/log.h"
+#include "hayward/tree/workspace.h"
 
 struct cmd_results *cmd_titlebar_padding(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -13,7 +15,8 @@ struct cmd_results *cmd_titlebar_padding(int argc, char **argv) {
 
 	char *inv;
 	int h_value = strtol(argv[0], &inv, 10);
-	if (*inv != '\0' || h_value < 0 || h_value < config->titlebar_border_thickness) {
+	if (*inv != '\0' || h_value < 0 ||
+		h_value < config->titlebar_border_thickness) {
 		return cmd_results_new(CMD_FAILURE, "Invalid size specified");
 	}
 
@@ -22,7 +25,8 @@ struct cmd_results *cmd_titlebar_padding(int argc, char **argv) {
 		v_value = h_value;
 	} else {
 		v_value = strtol(argv[1], &inv, 10);
-		if (*inv != '\0' || v_value < 0 || v_value < config->titlebar_border_thickness) {
+		if (*inv != '\0' || v_value < 0 ||
+			v_value < config->titlebar_border_thickness) {
 			return cmd_results_new(CMD_FAILURE, "Invalid size specified");
 		}
 	}

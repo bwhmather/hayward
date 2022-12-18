@@ -1,8 +1,10 @@
 #include <string.h>
-#include "hayward/commands.h"
-#include "hayward/input/keyboard.h"
+
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
+
+#include "hayward/commands.h"
+#include "hayward/input/keyboard.h"
 
 struct cmd_results *bar_cmd_modifier(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -18,13 +20,17 @@ struct cmd_results *bar_cmd_modifier(int argc, char **argv) {
 			if ((tmp_mod = get_modifier_mask_by_name(split->items[i])) > 0) {
 				mod |= tmp_mod;
 			} else if (strcmp(split->items[i], "none") == 0) {
-				error = cmd_results_new(CMD_INVALID,
-						"none cannot be used along with other modifiers");
+				error = cmd_results_new(
+					CMD_INVALID,
+					"none cannot be used along with other modifiers"
+				);
 				list_free_items_and_destroy(split);
 				return error;
 			} else {
-				error = cmd_results_new(CMD_INVALID,
-					"Unknown modifier '%s'", (char *)split->items[i]);
+				error = cmd_results_new(
+					CMD_INVALID, "Unknown modifier '%s'",
+					(char *)split->items[i]
+				);
 				list_free_items_and_destroy(split);
 				return error;
 			}
@@ -32,7 +38,9 @@ struct cmd_results *bar_cmd_modifier(int argc, char **argv) {
 		list_free_items_and_destroy(split);
 	}
 	config->current_bar->modifier = mod;
-	hayward_log(HAYWARD_DEBUG,
-			"Show/Hide the bar when pressing '%s' in hide mode.", argv[0]);
+	hayward_log(
+		HAYWARD_DEBUG, "Show/Hide the bar when pressing '%s' in hide mode.",
+		argv[0]
+	);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

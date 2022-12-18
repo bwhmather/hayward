@@ -2,6 +2,10 @@
 #include <limits.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
+
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
+
 #include "hayward/desktop.h"
 #include "hayward/desktop/transaction.h"
 #include "hayward/input/cursor.h"
@@ -9,13 +13,11 @@
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
 #include "hayward/tree/arrange.h"
+#include "hayward/tree/column.h"
 #include "hayward/tree/node.h"
 #include "hayward/tree/view.h"
-#include "hayward/tree/workspace.h"
-#include "hayward/tree/column.h"
 #include "hayward/tree/window.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include "hayward/tree/workspace.h"
 
 // Thickness of the dropzone when dragging to the edge of a layout container
 #define DROP_LAYOUT_BORDER 30
@@ -35,20 +37,21 @@ struct seatop_move_tiling_event {
 	bool insert_after_target;
 };
 
-static void handle_render(struct hayward_seat *seat,
-		struct hayward_output *output, pixman_region32_t *damage) {
+static void handle_render(
+	struct hayward_seat *seat, struct hayward_output *output,
+	pixman_region32_t *damage
+) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (!e->threshold_reached) {
 		return;
 	}
 
 	if (!e->target_output) {
-	       return;
+		return;
 	}
 
 	float color[4];
-	memcpy(&color, config->border_colors.focused.indicator,
-			sizeof(float) * 4);
+	memcpy(&color, config->border_colors.focused.indicator, sizeof(float) * 4);
 	premultiply_alpha(color, 0.5);
 	struct wlr_box box;
 	memcpy(&box, &e->drop_box, sizeof(struct wlr_box));
@@ -66,8 +69,8 @@ static void handle_motion_prethreshold(struct hayward_seat *seat) {
 	// Get the scaled threshold for the output. Even if the operation goes
 	// across multiple outputs of varying scales, just use the scale for the
 	// output that the cursor is currently on for simplicity.
-	struct wlr_output *wlr_output = wlr_output_layout_output_at(
-			root->output_layout, cx, cy);
+	struct wlr_output *wlr_output =
+		wlr_output_layout_output_at(root->output_layout, cx, cy);
 	double output_scale = wlr_output ? wlr_output->scale : 1;
 	double threshold = config->tiling_drag_threshold * output_scale;
 	threshold *= threshold;
@@ -79,8 +82,8 @@ static void handle_motion_prethreshold(struct hayward_seat *seat) {
 	}
 }
 
-static void resize_box(struct wlr_box *box, enum wlr_edges edge,
-		int thickness) {
+static void
+resize_box(struct wlr_box *box, enum wlr_edges edge, int thickness) {
 	switch (edge) {
 	case WLR_EDGE_TOP:
 		box->height = thickness;
@@ -114,9 +117,8 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 	struct hayward_cursor *cursor = seat->cursor;
 
 	seat_get_target_at(
-		seat, cursor->cursor->x, cursor->cursor->y,
-		&target_output, &target_window,
-		&surface, &sx, &sy
+		seat, cursor->cursor->x, cursor->cursor->y, &target_output,
+		&target_window, &surface, &sx, &sy
 	);
 
 	// Damage the old location
@@ -142,7 +144,8 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 
 	// Deny moving within own workspace if this is the only child
 	if (workspace_num_tiling_views(e->moving_window->pending.workspace) == 1 &&
-			target_window->pending.workspace == e->moving_window->pending.workspace) {
+		target_window->pending.workspace ==
+			e->moving_window->pending.workspace) {
 		e->target_output = NULL;
 		e->target_window = NULL;
 		e->target_edge = WLR_EDGE_NONE;
@@ -168,7 +171,11 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 	}
 
 	// Find the closest edge
-	size_t thickness = fmin(target_window->pending.content_width, target_window->pending.content_height) * 0.3;
+	size_t thickness = fmin(
+						   target_window->pending.content_width,
+						   target_window->pending.content_height
+					   ) *
+		0.3;
 	size_t closest_dist = INT_MAX;
 	size_t dist;
 	e->target_edge = WLR_EDGE_NONE;
@@ -180,11 +187,13 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_LEFT;
 	}
-	if ((dist = target_window->pending.x + target_window->pending.width - cursor->cursor->x) < closest_dist) {
+	if ((dist = target_window->pending.x + target_window->pending.width -
+			 cursor->cursor->x) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_RIGHT;
 	}
-	if ((dist = target_window->pending.y + target_window->pending.height - cursor->cursor->y) < closest_dist) {
+	if ((dist = target_window->pending.y + target_window->pending.height -
+			 cursor->cursor->y) < closest_dist) {
 		closest_dist = dist;
 		e->target_edge = WLR_EDGE_BOTTOM;
 	}
@@ -203,7 +212,8 @@ static void handle_motion_postthreshold(struct hayward_seat *seat) {
 	desktop_damage_box(&e->drop_box);
 }
 
-static void handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
+static void
+handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (e->threshold_reached) {
 		handle_motion_postthreshold(seat);
@@ -236,23 +246,31 @@ static void finalize_move(struct hayward_seat *seat) {
 		window_move_to_workspace(moving_window, target_workspace);
 	} else {
 		if (target_edge == WLR_EDGE_LEFT || target_edge == WLR_EDGE_RIGHT) {
-			struct hayward_column *target_column = target_window->pending.parent;
-			int target_column_index = list_find(target_workspace->pending.tiling, target_column);
+			struct hayward_column *target_column =
+				target_window->pending.parent;
+			int target_column_index =
+				list_find(target_workspace->pending.tiling, target_column);
 
 			struct hayward_column *new_column = column_create();
 			new_column->pending.height = new_column->pending.width = 0;
 			new_column->width_fraction = 0;
 			new_column->pending.layout = L_STACKED;
 
-			int new_column_index = target_edge == WLR_EDGE_LEFT ? target_column_index : target_column_index + 1;
+			int new_column_index = target_edge == WLR_EDGE_LEFT
+				? target_column_index
+				: target_column_index + 1;
 
-			workspace_insert_tiling(target_workspace, target_output, new_column, new_column_index);
+			workspace_insert_tiling(
+				target_workspace, target_output, new_column, new_column_index
+			);
 
 			window_move_to_column(moving_window, new_column);
 		} else {
 			// TODO (hayward) fix different level of abstraction.
 			window_detach(moving_window);
-			column_add_sibling(target_window, moving_window, target_edge != WLR_EDGE_TOP);
+			column_add_sibling(
+				target_window, moving_window, target_edge != WLR_EDGE_TOP
+			);
 			ipc_event_window(moving_window, "move");
 		}
 	}
@@ -267,8 +285,8 @@ static void finalize_move(struct hayward_seat *seat) {
 	list_t *siblings = window_get_siblings(moving_window);
 	if (siblings->length > 1) {
 		int index = list_find(siblings, moving_window);
-		struct hayward_window *sibling = index == 0 ?
-			siblings->items[1] : siblings->items[index - 1];
+		struct hayward_window *sibling =
+			index == 0 ? siblings->items[1] : siblings->items[index - 1];
 		moving_window->pending.width = sibling->pending.width;
 		moving_window->pending.height = sibling->pending.height;
 		moving_window->width_fraction = sibling->width_fraction;
@@ -284,23 +302,27 @@ static void finalize_move(struct hayward_seat *seat) {
 	seatop_begin_default(seat);
 }
 
-static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
-		struct wlr_input_device *device, uint32_t button,
-		enum wlr_button_state state) {
+static void handle_button(
+	struct hayward_seat *seat, uint32_t time_msec,
+	struct wlr_input_device *device, uint32_t button,
+	enum wlr_button_state state
+) {
 	if (seat->cursor->pressed_button_count == 0) {
 		finalize_move(seat);
 	}
 }
 
-static void handle_tablet_tool_tip(struct hayward_seat *seat,
-		struct hayward_tablet_tool *tool, uint32_t time_msec,
-		enum wlr_tablet_tool_tip_state state) {
+static void handle_tablet_tool_tip(
+	struct hayward_seat *seat, struct hayward_tablet_tool *tool,
+	uint32_t time_msec, enum wlr_tablet_tool_tip_state state
+) {
 	if (state == WLR_TABLET_TOOL_TIP_UP) {
 		finalize_move(seat);
 	}
 }
 
-static void handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
+static void
+handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (e->target_window == container) {
 		e->target_output = NULL;
@@ -319,8 +341,9 @@ static const struct hayward_seatop_impl seatop_impl = {
 	.render = handle_render,
 };
 
-void seatop_begin_move_tiling_threshold(struct hayward_seat *seat,
-		struct hayward_window *moving_window) {
+void seatop_begin_move_tiling_threshold(
+	struct hayward_seat *seat, struct hayward_window *moving_window
+) {
 	seatop_end(seat);
 
 	struct seatop_move_tiling_event *e =
@@ -340,8 +363,9 @@ void seatop_begin_move_tiling_threshold(struct hayward_seat *seat,
 	wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }
 
-void seatop_begin_move_tiling(struct hayward_seat *seat,
-		struct hayward_window *container) {
+void seatop_begin_move_tiling(
+	struct hayward_seat *seat, struct hayward_window *container
+) {
 	seatop_begin_move_tiling_threshold(seat, container);
 	struct seatop_move_tiling_event *e = seat->seatop_data;
 	if (e) {

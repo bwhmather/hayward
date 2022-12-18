@@ -1,5 +1,7 @@
 #include <string.h>
+
 #include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/output.h"
@@ -12,7 +14,6 @@ struct cmd_results *output_cmd_scale_filter(int argc, char **argv) {
 	if (!argc) {
 		return cmd_results_new(CMD_INVALID, "Missing scale_filter argument.");
 	}
-
 
 	enum scale_filter_mode scale_filter;
 	if (strcmp(*argv, "linear") == 0) {

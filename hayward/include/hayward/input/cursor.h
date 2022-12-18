@@ -2,10 +2,12 @@
 #define _HAYWARD_INPUT_CURSOR_H
 #include <stdbool.h>
 #include <stdint.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_pointer_gestures_v1.h>
-#include <wlr/types/wlr_compositor.h>
+
 #include "hayward/input/seat.h"
+
 #include "config.h"
 
 #define HAYWARD_CURSOR_PRESSED_BUTTONS_CAP 32
@@ -85,9 +87,10 @@ struct hayward_workspace;
 struct hayward_window;
 
 void seat_get_target_at(
-		struct hayward_seat *seat, double lx, double ly,
-		struct hayward_output **output_out, struct hayward_window **window_out,
-		struct wlr_surface **surface_out, double *sx_out, double *sy_out);
+	struct hayward_seat *seat, double lx, double ly,
+	struct hayward_output **output_out, struct hayward_window **window_out,
+	struct wlr_surface **surface_out, double *sx_out, double *sy_out
+);
 
 /**
  * "Rebase" a cursor on top of whatever view is underneath it.
@@ -96,33 +99,41 @@ void seat_get_target_at(
  */
 void cursor_rebase(struct hayward_cursor *cursor);
 void cursor_rebase_all(void);
-void cursor_update_image(struct hayward_cursor *cursor, struct hayward_node *node);
+void cursor_update_image(
+	struct hayward_cursor *cursor, struct hayward_node *node
+);
 
 int cursor_get_timeout(struct hayward_cursor *cursor);
 
 void cursor_notify_key_press(struct hayward_cursor *cursor);
 
-void cursor_handle_activity_from_idle_source(struct hayward_cursor *cursor,
-		enum hayward_input_idle_source idle_source);
+void cursor_handle_activity_from_idle_source(
+	struct hayward_cursor *cursor, enum hayward_input_idle_source idle_source
+);
 
-void cursor_handle_activity_from_device(struct hayward_cursor *cursor,
-		struct wlr_input_device *device);
+void cursor_handle_activity_from_device(
+	struct hayward_cursor *cursor, struct wlr_input_device *device
+);
 
 void cursor_unhide(struct hayward_cursor *cursor);
 
-void dispatch_cursor_button(struct hayward_cursor *cursor,
-	struct wlr_input_device *device, uint32_t time_msec, uint32_t button,
-	enum wlr_button_state state);
+void dispatch_cursor_button(
+	struct hayward_cursor *cursor, struct wlr_input_device *device,
+	uint32_t time_msec, uint32_t button, enum wlr_button_state state
+);
 
-void dispatch_cursor_axis(struct hayward_cursor *cursor,
-		struct wlr_pointer_axis_event *event);
+void dispatch_cursor_axis(
+	struct hayward_cursor *cursor, struct wlr_pointer_axis_event *event
+);
 
-void cursor_set_image(struct hayward_cursor *cursor, const char *image,
-	struct wl_client *client);
+void cursor_set_image(
+	struct hayward_cursor *cursor, const char *image, struct wl_client *client
+);
 
-void cursor_set_image_surface(struct hayward_cursor *cursor,
-		struct wlr_surface *surface, int32_t hotspot_x, int32_t hotspot_y,
-		struct wl_client *client);
+void cursor_set_image_surface(
+	struct hayward_cursor *cursor, struct wlr_surface *surface,
+	int32_t hotspot_x, int32_t hotspot_y, struct wl_client *client
+);
 
 void hayward_cursor_destroy(struct hayward_cursor *cursor);
 struct hayward_cursor *hayward_cursor_create(struct hayward_seat *seat);
@@ -136,7 +147,8 @@ uint32_t get_mouse_button(const char *name, char **error);
 
 const char *get_mouse_button_name(uint32_t button);
 
-void hayward_cursor_constrain(struct hayward_cursor *cursor,
-	struct wlr_pointer_constraint_v1 *constraint);
+void hayward_cursor_constrain(
+	struct hayward_cursor *cursor, struct wlr_pointer_constraint_v1 *constraint
+);
 
 #endif

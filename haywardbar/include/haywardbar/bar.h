@@ -1,9 +1,11 @@
 #ifndef _HAYWARDBAR_BAR_H
 #define _HAYWARDBAR_BAR_H
 #include <wayland-client.h>
+
+#include "hayward-client/pool-buffer.h"
+
 #include "config.h"
 #include "input.h"
-#include "hayward-client/pool-buffer.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 
@@ -40,9 +42,9 @@ struct haywardbar {
 	int ipc_event_socketfd;
 	int ipc_socketfd;
 
-	struct wl_list outputs; // haywardbar_output::link
+	struct wl_list outputs;		   // haywardbar_output::link
 	struct wl_list unused_outputs; // haywardbar_output::link
-	struct wl_list seats; // haywardbar_seat::link
+	struct wl_list seats;		   // haywardbar_seat::link
 
 #if HAVE_TRAY
 	struct haywardbar_tray *tray;
@@ -61,7 +63,7 @@ struct haywardbar_output {
 	uint32_t wl_name;
 
 	struct wl_list workspaces; // haywardbar_workspace::link
-	struct wl_list hotspots; // haywardbar_hotspot::link
+	struct wl_list hotspots;   // haywardbar_hotspot::link
 
 	char *name;
 	char *identifier;

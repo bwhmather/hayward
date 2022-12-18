@@ -20,7 +20,8 @@ void strip_whitespace(char *str) {
 	memmove(str, &str[start], len + 1 - start);
 
 	if (*str) {
-		for (len -= start + 1; isspace(str[len]); --len) {}
+		for (len -= start + 1; isspace(str[len]); --len) {
+		}
 		str[len + 1] = '\0';
 	}
 }
@@ -29,7 +30,7 @@ void strip_quotes(char *str) {
 	bool in_str = false;
 	bool in_chr = false;
 	bool escaped = false;
-	char *end = strchr(str,0);
+	char *end = strchr(str, 0);
 	while (*str) {
 		if (*str == '\'' && !in_str && !escaped) {
 			in_chr = !in_chr;
@@ -45,8 +46,8 @@ void strip_quotes(char *str) {
 		escaped = false;
 		++str;
 		continue;
-		shift_over:
-		memmove(str, str+1, end-- - str);
+	shift_over:
+		memmove(str, str + 1, end-- - str);
 	}
 	*end = '\0';
 }
@@ -117,8 +118,7 @@ char **split_args(const char *start, int *argc) {
 				in_brackets = false;
 			} else if (*end == '\\') {
 				escaped = !escaped;
-			} else if (*end == '\0' || (!in_string && !in_char && !in_brackets
-						&& !escaped && strchr(whitespace, *end))) {
+			} else if (*end == '\0' || (!in_string && !in_char && !in_brackets && !escaped && strchr(whitespace, *end))) {
 				goto add_token;
 			}
 			if (*end != '\\') {
@@ -126,7 +126,7 @@ char **split_args(const char *start, int *argc) {
 			}
 			++end;
 			continue;
-			add_token:
+		add_token:
 			if (end - start > 0) {
 				char *token = malloc(end - start + 1);
 				strncpy(token, start, end - start + 1);
@@ -204,21 +204,20 @@ int unescape_string(char *string) {
 				string[i - 1] = '?';
 				string[i] = '\0';
 				break;
-			case 'x':
-				{
-					unsigned char c = 0;
-					if (string[i+1] >= '0' && string[i+1] <= '9') {
-						c = string[i+1] - '0';
-						if (string[i+2] >= '0' && string[i+2] <= '9') {
-							c *= 0x10;
-							c += string[i+2] - '0';
-							string[i+2] = '\0';
-						}
-						string[i+1] = '\0';
+			case 'x': {
+				unsigned char c = 0;
+				if (string[i + 1] >= '0' && string[i + 1] <= '9') {
+					c = string[i + 1] - '0';
+					if (string[i + 2] >= '0' && string[i + 2] <= '9') {
+						c *= 0x10;
+						c += string[i + 2] - '0';
+						string[i + 2] = '\0';
 					}
-					string[i] = '\0';
-					string[i - 1] = c;
+					string[i + 1] = '\0';
 				}
+				string[i] = '\0';
+				string[i - 1] = c;
+			}
 			}
 		}
 	}
@@ -229,7 +228,7 @@ int unescape_string(char *string) {
 			shift++;
 			continue;
 		}
-		string[i-shift] = string[i];
+		string[i - shift] = string[i];
 	}
 	string[len - shift] = 0;
 	return len - shift;
@@ -253,7 +252,8 @@ char *join_args(char **argv, int argc) {
 	return res;
 }
 
-static inline char *argsep_next_interesting(const char *src, const char *delim) {
+static inline char *
+argsep_next_interesting(const char *src, const char *delim) {
 	char *special = strpbrk(src, "\"'\\");
 	char *next_delim = strpbrk(src, delim);
 	if (!special) {

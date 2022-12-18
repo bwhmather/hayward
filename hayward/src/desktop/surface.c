@@ -1,12 +1,15 @@
 #define _POSIX_C_SOURCE 200112L
+#include "hayward/surface.h"
+
 #include <stdlib.h>
 #include <time.h>
 #include <wlr/types/wlr_compositor.h>
+
 #include "hayward/server.h"
-#include "hayward/surface.h"
 
 static void handle_destroy(struct wl_listener *listener, void *data) {
-	struct hayward_surface *surface = wl_container_of(listener, surface, destroy);
+	struct hayward_surface *surface =
+		wl_container_of(listener, surface, destroy);
 
 	surface->wlr_surface->data = NULL;
 	wl_list_remove(&surface->destroy.link);
@@ -38,8 +41,9 @@ void handle_compositor_new_surface(struct wl_listener *listener, void *data) {
 	surface->destroy.notify = handle_destroy;
 	wl_signal_add(&wlr_surface->events.destroy, &surface->destroy);
 
-	surface->frame_done_timer = wl_event_loop_add_timer(server.wl_event_loop,
-		surface_frame_done_timer_handler, surface);
+	surface->frame_done_timer = wl_event_loop_add_timer(
+		server.wl_event_loop, surface_frame_done_timer_handler, surface
+	);
 	if (!surface->frame_done_timer) {
 		wl_resource_post_no_memory(wlr_surface->resource);
 	}

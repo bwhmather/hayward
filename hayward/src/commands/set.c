@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include "hayward/commands.h"
-#include "hayward/config.h"
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
 
 // sort in order of longest->shortest
 static int compare_set_qsort(const void *_l, const void *_r) {
@@ -31,7 +33,9 @@ struct cmd_results *cmd_set(int argc, char **argv) {
 	}
 
 	if (argv[0][0] != '$') {
-		return cmd_results_new(CMD_INVALID, "variable '%s' must start with $", argv[0]);
+		return cmd_results_new(
+			CMD_INVALID, "variable '%s' must start with $", argv[0]
+		);
 	}
 
 	struct hayward_variable *var = NULL;

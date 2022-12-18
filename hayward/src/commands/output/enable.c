@@ -12,4 +12,3 @@ struct cmd_results *output_cmd_enable(int argc, char **argv) {
 	config->handler_context.leftovers.argv = argv;
 	return NULL;
 }
-

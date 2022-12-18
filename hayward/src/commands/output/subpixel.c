@@ -1,5 +1,7 @@
 #include <string.h>
+
 #include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/output.h"

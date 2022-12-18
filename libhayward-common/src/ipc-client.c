@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward-common/ipc-client.h"
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -84,7 +84,8 @@ struct ipc_response *ipc_recv_response(int socketfd) {
 
 	size_t total = 0;
 	while (total < IPC_HEADER_SIZE) {
-		ssize_t received = recv(socketfd, data + total, IPC_HEADER_SIZE - total, 0);
+		ssize_t received =
+			recv(socketfd, data + total, IPC_HEADER_SIZE - total, 0);
 		if (received <= 0) {
 			hayward_abort("Unable to receive IPC response");
 		}
@@ -97,7 +98,10 @@ struct ipc_response *ipc_recv_response(int socketfd) {
 	}
 
 	memcpy(&response->size, data + sizeof(ipc_magic), sizeof(uint32_t));
-	memcpy(&response->type, data + sizeof(ipc_magic) + sizeof(uint32_t), sizeof(uint32_t));
+	memcpy(
+		&response->type, data + sizeof(ipc_magic) + sizeof(uint32_t),
+		sizeof(uint32_t)
+	);
 
 	char *payload = malloc(response->size + 1);
 	if (!payload) {
@@ -106,7 +110,8 @@ struct ipc_response *ipc_recv_response(int socketfd) {
 
 	total = 0;
 	while (total < response->size) {
-		ssize_t received = recv(socketfd, payload + total, response->size - total, 0);
+		ssize_t received =
+			recv(socketfd, payload + total, response->size - total, 0);
 		if (received < 0) {
 			hayward_abort("Unable to receive IPC response");
 		}
@@ -128,7 +133,9 @@ void free_ipc_response(struct ipc_response *response) {
 	free(response);
 }
 
-char *ipc_single_command(int socketfd, uint32_t type, const char *payload, uint32_t *len) {
+char *ipc_single_command(
+	int socketfd, uint32_t type, const char *payload, uint32_t *len
+) {
 	char data[IPC_HEADER_SIZE];
 	memcpy(data, ipc_magic, sizeof(ipc_magic));
 	memcpy(data + sizeof(ipc_magic), len, sizeof(*len));

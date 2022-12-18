@@ -1,4 +1,5 @@
 #include <stddef.h>
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 

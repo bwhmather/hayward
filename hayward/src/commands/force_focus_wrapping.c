@@ -1,14 +1,18 @@
-#include "hayward/commands.h"
-#include "hayward/config.h"
 #include "hayward-common/log.h"
 #include "hayward-common/util.h"
 
+#include "hayward/commands.h"
+#include "hayward/config.h"
+
 struct cmd_results *cmd_force_focus_wrapping(int argc, char **argv) {
-	hayward_log(HAYWARD_INFO, "Warning: force_focus_wrapping is deprecated. "
-		"Use focus_wrapping instead.");
+	hayward_log(
+		HAYWARD_INFO,
+		"Warning: force_focus_wrapping is deprecated. "
+		"Use focus_wrapping instead."
+	);
 	if (config->reading) {
 		config_add_haywardnag_warning("force_focus_wrapping is deprecated. "
-			"Use focus_wrapping instead.");
+									  "Use focus_wrapping instead.");
 	}
 
 	struct cmd_results *error =

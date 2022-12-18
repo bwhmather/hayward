@@ -1,11 +1,13 @@
 #include <string.h>
+
+#include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "hayward-common/log.h"
 #include "hayward/output.h"
 
-static enum wl_output_transform invert_rotation_direction(
-		enum wl_output_transform t) {
+static enum wl_output_transform
+invert_rotation_direction(enum wl_output_transform t) {
 	switch (t) {
 	case WL_OUTPUT_TRANSFORM_90:
 		return WL_OUTPUT_TRANSFORM_270;
@@ -29,8 +31,7 @@ struct cmd_results *output_cmd_transform(int argc, char **argv) {
 	}
 
 	enum wl_output_transform transform;
-	if (strcmp(*argv, "normal") == 0 ||
-			strcmp(*argv, "0") == 0) {
+	if (strcmp(*argv, "normal") == 0 || strcmp(*argv, "0") == 0) {
 		transform = WL_OUTPUT_TRANSFORM_NORMAL;
 	} else if (strcmp(*argv, "90") == 0) {
 		transform = WL_OUTPUT_TRANSFORM_90;
@@ -58,26 +59,34 @@ struct cmd_results *output_cmd_transform(int argc, char **argv) {
 	config->handler_context.leftovers.argc = argc - 1;
 	config->handler_context.leftovers.argv = argv + 1;
 	if (argc > 1 &&
-			(strcmp(argv[1], "clockwise") == 0 || strcmp(argv[1], "anticlockwise") == 0)) {
+		(strcmp(argv[1], "clockwise") == 0 ||
+		 strcmp(argv[1], "anticlockwise") == 0)) {
 		if (config->reloading) {
-			return cmd_results_new(CMD_INVALID,
-				"Relative transforms cannot be used in the configuration file");
+			return cmd_results_new(
+				CMD_INVALID,
+				"Relative transforms cannot be used in the configuration file"
+			);
 		}
 		hayward_assert(output->name != NULL, "Output config name not set");
 		if (strcmp(output->name, "*") == 0) {
-			return cmd_results_new(CMD_INVALID,
-				"Cannot apply relative transform to all outputs.");
+			return cmd_results_new(
+				CMD_INVALID, "Cannot apply relative transform to all outputs."
+			);
 		}
 		struct hayward_output *s_output = output_by_name_or_id(output->name);
 		if (s_output == NULL) {
-			return cmd_results_new(CMD_INVALID,
-				"Cannot apply relative transform to unknown output %s", output->name);
+			return cmd_results_new(
+				CMD_INVALID,
+				"Cannot apply relative transform to unknown output %s",
+				output->name
+			);
 		}
 		if (strcmp(argv[1], "anticlockwise") == 0) {
 			transform = invert_rotation_direction(transform);
 		}
 		struct wlr_output *w_output = s_output->wlr_output;
-		transform = wlr_output_transform_compose(w_output->transform, transform);
+		transform =
+			wlr_output_transform_compose(w_output->transform, transform);
 		config->handler_context.leftovers.argv += 1;
 		config->handler_context.leftovers.argc -= 1;
 	}

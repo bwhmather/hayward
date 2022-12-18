@@ -21,9 +21,9 @@ static const char *verbosity_headers_plain[] = {
 
 static const char *verbosity_headers_colour[] = {
 	[HAYWARD_SILENT] = "",
-	[HAYWARD_ERROR ] = "[\x1B[1;31mERROR\x1B[0m]",
-	[HAYWARD_INFO  ] = "[\x1B[1;34mINFO\x1B[0m]",
-	[HAYWARD_DEBUG ] = "[\x1B[1;90mDEBUG\x1B[0m]",
+	[HAYWARD_ERROR] = "[\x1B[1;31mERROR\x1B[0m]",
+	[HAYWARD_INFO] = "[\x1B[1;34mINFO\x1B[0m]",
+	[HAYWARD_DEBUG] = "[\x1B[1;90mDEBUG\x1B[0m]",
 };
 
 static void hayward_print_verbosity_stderr(hayward_log_importance_t verbosity) {
@@ -41,8 +41,9 @@ static void init_start_time(void) {
 	clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
-static void timespec_sub(struct timespec *r, const struct timespec *a,
-		const struct timespec *b) {
+static void timespec_sub(
+	struct timespec *r, const struct timespec *a, const struct timespec *b
+) {
 	const long NSEC_PER_SEC = 1000000000;
 	r->tv_sec = a->tv_sec - b->tv_sec;
 	r->tv_nsec = a->tv_nsec - b->tv_nsec;
@@ -57,18 +58,20 @@ static void hayward_print_timestamp_stderr(void) {
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	timespec_sub(&ts, &ts, &start_time);
 
-	fprintf(stderr, "%02d:%02d:%02d.%03ld ", (int)(ts.tv_sec / 60 / 60),
-		(int)(ts.tv_sec / 60 % 60), (int)(ts.tv_sec % 60),
-		ts.tv_nsec / 1000000);
+	fprintf(
+		stderr, "%02d:%02d:%02d.%03ld ", (int)(ts.tv_sec / 60 / 60),
+		(int)(ts.tv_sec / 60 % 60), (int)(ts.tv_sec % 60), ts.tv_nsec / 1000000
+	);
 }
 
-static void hayward_print_location_stderr(const char *filename, long int lineno, const char *function) {
+static void hayward_print_location_stderr(
+	const char *filename, long int lineno, const char *function
+) {
 	if (function != NULL) {
 		fprintf(stderr, "[%s:%ld:%s] ", filename, lineno, function);
 	} else {
 		fprintf(stderr, "[%s:%ld] ", filename, lineno);
 	}
-
 }
 
 void hayward_log_init(hayward_log_importance_t verbosity) {
@@ -79,7 +82,10 @@ void hayward_log_init(hayward_log_importance_t verbosity) {
 	}
 }
 
-void _hayward_vlog(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) {
+void _hayward_vlog(
+	hayward_log_importance_t verbosity, const char *filename, long int lineno,
+	const char *format, va_list args
+) {
 	init_start_time();
 
 	if (verbosity > log_importance) {
@@ -94,14 +100,20 @@ void _hayward_vlog(hayward_log_importance_t verbosity, const char *filename, lon
 	fprintf(stderr, "\n");
 }
 
-void _hayward_log(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) {
+void _hayward_log(
+	hayward_log_importance_t verbosity, const char *filename, long int lineno,
+	const char *format, ...
+) {
 	va_list args;
 	va_start(args, format);
 	_hayward_vlog(verbosity, filename, lineno, format, args);
 	va_end(args);
 }
 
-void _hayward_vlog_errno(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, va_list args) {
+void _hayward_vlog_errno(
+	hayward_log_importance_t verbosity, const char *filename, long int lineno,
+	const char *format, va_list args
+) {
 	init_start_time();
 
 	if (verbosity > log_importance) {
@@ -116,14 +128,18 @@ void _hayward_vlog_errno(hayward_log_importance_t verbosity, const char *filenam
 	fprintf(stderr, ": %s\n", strerror(errno));
 }
 
-void _hayward_log_errno(hayward_log_importance_t verbosity, const char *filename, long int lineno, const char *format, ...) {
+void _hayward_log_errno(
+	hayward_log_importance_t verbosity, const char *filename, long int lineno,
+	const char *format, ...
+) {
 	va_list args;
 	va_start(args, format);
 	_hayward_vlog(verbosity, filename, lineno, format, args);
 	va_end(args);
 }
 
-noreturn void _hayward_abort(const char *filename, long int lineno, const char *format, ...) {
+noreturn void
+_hayward_abort(const char *filename, long int lineno, const char *format, ...) {
 	va_list args;
 	va_start(args, format);
 	_hayward_vlog(HAYWARD_ERROR, filename, lineno, format, args);
@@ -133,7 +149,10 @@ noreturn void _hayward_abort(const char *filename, long int lineno, const char *
 	exit(1);
 }
 
-void _hayward_assert(bool condition, const char *filename, long int lineno, const char *function, const char *format, ...) {
+void _hayward_assert(
+	bool condition, const char *filename, long int lineno, const char *function,
+	const char *format, ...
+) {
 	if (condition) {
 		return;
 	}
@@ -152,4 +171,3 @@ void _hayward_assert(bool condition, const char *filename, long int lineno, cons
 	raise(SIGABRT);
 	exit(1);
 }
-

@@ -9,10 +9,10 @@
  * A state might contain a new size, or new border settings, or new parent/child
  * relationships.
  *
- * Committing a transaction makes Hayward notify of all the affected clients with
- * their new sizes. We then wait for all the views to respond with their new
- * surface sizes. When all are ready, or when a timeout has passed, we apply the
- * updates all at the same time.
+ * Committing a transaction makes Hayward notify of all the affected clients
+ * with their new sizes. We then wait for all the views to respond with their
+ * new surface sizes. When all are ready, or when a timeout has passed, we apply
+ * the updates all at the same time.
  *
  * When we want to make adjustments to the layout, we change the pending state
  * in containers, mark them as dirty and call transaction_commit_dirty(). This
@@ -27,8 +27,9 @@ struct hayward_view;
  *
  * When all views in the transaction are ready, the layout will be applied.
  */
-void transaction_notify_view_ready_by_serial(struct hayward_view *view,
-		uint32_t serial);
+void transaction_notify_view_ready_by_serial(
+	struct hayward_view *view, uint32_t serial
+);
 
 /**
  * Notify the transaction system that a view is ready for the new layout, but
@@ -36,8 +37,9 @@ void transaction_notify_view_ready_by_serial(struct hayward_view *view,
  *
  * This is used by xwayland views, as they don't have serials.
  */
-void transaction_notify_view_ready_by_geometry(struct hayward_view *view,
-		double x, double y, int width, int height);
+void transaction_notify_view_ready_by_geometry(
+	struct hayward_view *view, double x, double y, int width, int height
+);
 
 /**
  * Find all dirty containers, create and commit a transaction containing them,

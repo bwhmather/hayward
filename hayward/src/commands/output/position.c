@@ -1,4 +1,5 @@
 #include <strings.h>
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
@@ -24,9 +25,12 @@ struct cmd_results *output_cmd_position(int argc, char **argv) {
 		}
 	} else {
 		// Format is 1234 4321 (legacy)
-		argc--; argv++;
+		argc--;
+		argv++;
 		if (!argc) {
-			return cmd_results_new(CMD_INVALID, "Missing position argument (y).");
+			return cmd_results_new(
+				CMD_INVALID, "Missing position argument (y)."
+			);
 		}
 		config->handler_context.output_config->y = strtol(*argv, &end, 10);
 		if (*end) {
@@ -38,4 +42,3 @@ struct cmd_results *output_cmd_position(int argc, char **argv) {
 	config->handler_context.leftovers.argv = argv + 1;
 	return NULL;
 }
-

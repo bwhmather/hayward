@@ -1,13 +1,16 @@
-#include <stdlib.h>
 #include "hayward/decoration.h"
+
+#include <stdlib.h>
+
+#include "hayward-common/log.h"
+
 #include "hayward/desktop/transaction.h"
 #include "hayward/server.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
-#include "hayward-common/log.h"
 
-static void server_decoration_handle_destroy(struct wl_listener *listener,
-		void *data) {
+static void
+server_decoration_handle_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_server_decoration *deco =
 		wl_container_of(listener, deco, destroy);
 	wl_list_remove(&deco->destroy.link);
@@ -16,8 +19,8 @@ static void server_decoration_handle_destroy(struct wl_listener *listener,
 	free(deco);
 }
 
-static void server_decoration_handle_mode(struct wl_listener *listener,
-		void *data) {
+static void
+server_decoration_handle_mode(struct wl_listener *listener, void *data) {
 	struct hayward_server_decoration *deco =
 		wl_container_of(listener, deco, mode);
 	struct hayward_view *view =
@@ -27,7 +30,7 @@ static void server_decoration_handle_mode(struct wl_listener *listener,
 	}
 
 	bool csd = deco->wlr_server_decoration->mode ==
-			WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
+		WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
 	view_update_csd_from_client(view, csd);
 
 	arrange_window(view->window);
@@ -53,8 +56,8 @@ void handle_server_decoration(struct wl_listener *listener, void *data) {
 	wl_list_insert(&server.decorations, &deco->link);
 }
 
-struct hayward_server_decoration *decoration_from_surface(
-		struct wlr_surface *surface) {
+struct hayward_server_decoration *
+decoration_from_surface(struct wlr_surface *surface) {
 	struct hayward_server_decoration *deco;
 	wl_list_for_each(deco, &server.decorations, link) {
 		if (deco->wlr_server_decoration->surface == surface) {

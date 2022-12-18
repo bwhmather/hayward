@@ -1,8 +1,10 @@
 #include <wlr/types/wlr_xdg_activation_v1.h>
+
 #include "hayward/tree/view.h"
 
-void xdg_activation_v1_handle_request_activate(struct wl_listener *listener,
-		void *data) {
+void xdg_activation_v1_handle_request_activate(
+	struct wl_listener *listener, void *data
+) {
 	const struct wlr_xdg_activation_v1_request_activate_event *event = data;
 
 	if (!wlr_surface_is_xdg_surface(event->surface)) {

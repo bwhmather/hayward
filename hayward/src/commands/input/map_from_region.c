@@ -2,7 +2,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
+
 #include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
@@ -47,20 +49,24 @@ struct cmd_results *input_cmd_map_from_region(int argc, char **argv) {
 		calloc(1, sizeof(struct input_config_mapped_from_region));
 
 	bool mm1, mm2;
-	if (!parse_coords(argv[0], &ic->mapped_from_region->x1,
-			&ic->mapped_from_region->y1, &mm1)) {
+	if (!parse_coords(
+			argv[0], &ic->mapped_from_region->x1, &ic->mapped_from_region->y1,
+			&mm1
+		)) {
 		free(ic->mapped_from_region);
 		ic->mapped_from_region = NULL;
 		return cmd_results_new(CMD_FAILURE, "Invalid top-left coordinates");
 	}
-	if (!parse_coords(argv[1], &ic->mapped_from_region->x2,
-			&ic->mapped_from_region->y2, &mm2)) {
+	if (!parse_coords(
+			argv[1], &ic->mapped_from_region->x2, &ic->mapped_from_region->y2,
+			&mm2
+		)) {
 		free(ic->mapped_from_region);
 		ic->mapped_from_region = NULL;
 		return cmd_results_new(CMD_FAILURE, "Invalid bottom-right coordinates");
 	}
 	if (ic->mapped_from_region->x1 > ic->mapped_from_region->x2 ||
-			ic->mapped_from_region->y1 > ic->mapped_from_region->y2) {
+		ic->mapped_from_region->y1 > ic->mapped_from_region->y2) {
 		free(ic->mapped_from_region);
 		ic->mapped_from_region = NULL;
 		return cmd_results_new(CMD_FAILURE, "Invalid rectangle");
@@ -68,8 +74,9 @@ struct cmd_results *input_cmd_map_from_region(int argc, char **argv) {
 	if (mm1 != mm2) {
 		free(ic->mapped_from_region);
 		ic->mapped_from_region = NULL;
-		return cmd_results_new(CMD_FAILURE,
-			"Both coordinates must be in the same unit");
+		return cmd_results_new(
+			CMD_FAILURE, "Both coordinates must be in the same unit"
+		);
 	}
 	ic->mapped_from_region->mm = mm1;
 

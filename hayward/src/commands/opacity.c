@@ -1,10 +1,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <strings.h>
-#include "hayward/commands.h"
-#include "hayward/tree/view.h"
-#include "hayward/desktop.h"
+
 #include "hayward-common/log.h"
+
+#include "hayward/commands.h"
+#include "hayward/desktop.h"
+#include "hayward/tree/view.h"
 
 struct cmd_results *cmd_opacity(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -29,8 +31,9 @@ struct cmd_results *cmd_opacity(int argc, char **argv) {
 	} else if (!strcasecmp(argv[0], "minus")) {
 		val = window->alpha - val;
 	} else if (argc > 1 && strcasecmp(argv[0], "set")) {
-		return cmd_results_new(CMD_INVALID,
-				"Expected: set|plus|minus <0..1>: %s", argv[0]);
+		return cmd_results_new(
+			CMD_INVALID, "Expected: set|plus|minus <0..1>: %s", argv[0]
+		);
 	}
 
 	if (val < 0 || val > 1) {

@@ -1,18 +1,18 @@
 #define _POSIX_C_SOURCE 200809L
+#include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <getopt.h>
-#include "haywardbar/bar.h"
+
 #include "hayward-common/ipc-client.h"
 #include "hayward-common/log.h"
 
+#include "haywardbar/bar.h"
+
 static struct haywardbar haywardbar;
 
-void sig_handler(int signal) {
-	haywardbar.running = false;
-}
+void sig_handler(int signal) { haywardbar.running = false; }
 
 int main(int argc, char **argv) {
 	char *socket_path = NULL;
@@ -24,8 +24,7 @@ int main(int argc, char **argv) {
 		{"socket", required_argument, NULL, 's'},
 		{"bar_id", required_argument, NULL, 'b'},
 		{"debug", no_argument, NULL, 'd'},
-		{0, 0, 0, 0}
-	};
+		{0, 0, 0, 0}};
 
 	const char *usage =
 		"Usage: haywardbar [options...]\n"
@@ -36,7 +35,8 @@ int main(int argc, char **argv) {
 		"  -b, --bar_id <id>      Bar ID for which to get the configuration.\n"
 		"  -d, --debug            Enable debugging.\n"
 		"\n"
-		" PLEASE NOTE that haywardbar will be automatically started by hayward as\n"
+		" PLEASE NOTE that haywardbar will be automatically started by hayward "
+		"as\n"
 		" soon as there is a 'bar' configuration block in your config file.\n"
 		" You should never need to start it manually.\n";
 
@@ -74,8 +74,11 @@ int main(int argc, char **argv) {
 	}
 
 	if (!haywardbar.id) {
-		hayward_log(HAYWARD_ERROR, "No bar_id passed. "
-				"Provide --bar_id or let hayward start haywardbar");
+		hayward_log(
+			HAYWARD_ERROR,
+			"No bar_id passed. "
+			"Provide --bar_id or let hayward start haywardbar"
+		);
 		return 1;
 	}
 

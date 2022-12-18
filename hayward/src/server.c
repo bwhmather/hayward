@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/server.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -12,8 +14,8 @@
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_data_control_v1.h>
-#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_drm.h>
+#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_idle.h>
@@ -34,18 +36,20 @@
 #include <wlr/types/wlr_xdg_foreign_v1.h>
 #include <wlr/types/wlr_xdg_foreign_v2.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
-#include "config.h"
+#if HAVE_XWAYLAND
+#include "hayward/xwayland.h"
+#endif
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
+
 #include "hayward/config.h"
 #include "hayward/desktop/idle_inhibit_v1.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/output.h"
-#include "hayward/server.h"
 #include "hayward/tree/root.h"
-#if HAVE_XWAYLAND
-#include "hayward/xwayland.h"
-#endif
+
+#include "config.h"
 
 bool server_privileged_prepare(struct hayward_server *server) {
 	hayward_log(HAYWARD_DEBUG, "Preparing Wayland server initialization");
@@ -91,18 +95,19 @@ bool server_init(struct hayward_server *server) {
 			wlr_linux_dmabuf_v1_create(server->wl_display, server->renderer);
 	}
 
-	server->allocator = wlr_allocator_autocreate(server->backend,
-		server->renderer);
+	server->allocator =
+		wlr_allocator_autocreate(server->backend, server->renderer);
 	if (!server->allocator) {
 		hayward_log(HAYWARD_ERROR, "Failed to create allocator");
 		return false;
 	}
 
-	server->compositor = wlr_compositor_create(server->wl_display,
-		server->renderer);
+	server->compositor =
+		wlr_compositor_create(server->wl_display, server->renderer);
 	server->compositor_new_surface.notify = handle_compositor_new_surface;
-	wl_signal_add(&server->compositor->events.new_surface,
-		&server->compositor_new_surface);
+	wl_signal_add(
+		&server->compositor->events.new_surface, &server->compositor_new_surface
+	);
 
 	wlr_subcompositor_create(server->wl_display);
 
@@ -114,23 +119,28 @@ bool server_init(struct hayward_server *server) {
 	server->new_output.notify = handle_new_output;
 	wl_signal_add(&server->backend->events.new_output, &server->new_output);
 	server->output_layout_change.notify = handle_output_layout_change;
-	wl_signal_add(&root->output_layout->events.change,
-		&server->output_layout_change);
+	wl_signal_add(
+		&root->output_layout->events.change, &server->output_layout_change
+	);
 
 	wlr_xdg_output_manager_v1_create(server->wl_display, root->output_layout);
 
 	server->idle = wlr_idle_create(server->wl_display);
-	server->idle_inhibit_manager_v1 =
-		hayward_idle_inhibit_manager_v1_create(server->wl_display, server->idle);
+	server->idle_inhibit_manager_v1 = hayward_idle_inhibit_manager_v1_create(
+		server->wl_display, server->idle
+	);
 
 	server->layer_shell = wlr_layer_shell_v1_create(server->wl_display);
-	wl_signal_add(&server->layer_shell->events.new_surface,
-		&server->layer_shell_surface);
+	wl_signal_add(
+		&server->layer_shell->events.new_surface, &server->layer_shell_surface
+	);
 	server->layer_shell_surface.notify = handle_layer_shell_surface;
 
-	server->xdg_shell = wlr_xdg_shell_create(server->wl_display, HAYWARD_XDG_SHELL_VERSION);
-	wl_signal_add(&server->xdg_shell->events.new_surface,
-		&server->xdg_shell_surface);
+	server->xdg_shell =
+		wlr_xdg_shell_create(server->wl_display, HAYWARD_XDG_SHELL_VERSION);
+	wl_signal_add(
+		&server->xdg_shell->events.new_surface, &server->xdg_shell_surface
+	);
 	server->xdg_shell_surface.notify = handle_xdg_shell_surface;
 
 	server->tablet_v2 = wlr_tablet_v2_create(server->wl_display);
@@ -139,17 +149,21 @@ bool server_init(struct hayward_server *server) {
 		wlr_server_decoration_manager_create(server->wl_display);
 	wlr_server_decoration_manager_set_default_mode(
 		server->server_decoration_manager,
-		WLR_SERVER_DECORATION_MANAGER_MODE_SERVER);
-	wl_signal_add(&server->server_decoration_manager->events.new_decoration,
-		&server->server_decoration);
+		WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
+	);
+	wl_signal_add(
+		&server->server_decoration_manager->events.new_decoration,
+		&server->server_decoration
+	);
 	server->server_decoration.notify = handle_server_decoration;
 	wl_list_init(&server->decorations);
 
 	server->xdg_decoration_manager =
 		wlr_xdg_decoration_manager_v1_create(server->wl_display);
 	wl_signal_add(
-			&server->xdg_decoration_manager->events.new_toplevel_decoration,
-			&server->xdg_decoration);
+		&server->xdg_decoration_manager->events.new_toplevel_decoration,
+		&server->xdg_decoration
+	);
 	server->xdg_decoration.notify = handle_xdg_decoration;
 	wl_list_init(&server->xdg_decorations);
 
@@ -159,8 +173,10 @@ bool server_init(struct hayward_server *server) {
 	server->pointer_constraints =
 		wlr_pointer_constraints_v1_create(server->wl_display);
 	server->pointer_constraint.notify = handle_pointer_constraint;
-	wl_signal_add(&server->pointer_constraints->events.new_constraint,
-		&server->pointer_constraint);
+	wl_signal_add(
+		&server->pointer_constraints->events.new_constraint,
+		&server->pointer_constraint
+	);
 
 	server->presentation =
 		wlr_presentation_create(server->wl_display, server->backend);
@@ -168,31 +184,38 @@ bool server_init(struct hayward_server *server) {
 	server->output_manager_v1 =
 		wlr_output_manager_v1_create(server->wl_display);
 	server->output_manager_apply.notify = handle_output_manager_apply;
-	wl_signal_add(&server->output_manager_v1->events.apply,
-		&server->output_manager_apply);
+	wl_signal_add(
+		&server->output_manager_v1->events.apply, &server->output_manager_apply
+	);
 	server->output_manager_test.notify = handle_output_manager_test;
-	wl_signal_add(&server->output_manager_v1->events.test,
-		&server->output_manager_test);
+	wl_signal_add(
+		&server->output_manager_v1->events.test, &server->output_manager_test
+	);
 
 	server->output_power_manager_v1 =
 		wlr_output_power_manager_v1_create(server->wl_display);
 	server->output_power_manager_set_mode.notify =
 		handle_output_power_manager_set_mode;
-	wl_signal_add(&server->output_power_manager_v1->events.set_mode,
-		&server->output_power_manager_set_mode);
-	server->input_method = wlr_input_method_manager_v2_create(server->wl_display);
+	wl_signal_add(
+		&server->output_power_manager_v1->events.set_mode,
+		&server->output_power_manager_set_mode
+	);
+	server->input_method =
+		wlr_input_method_manager_v2_create(server->wl_display);
 	server->text_input = wlr_text_input_manager_v3_create(server->wl_display);
 	server->foreign_toplevel_manager =
 		wlr_foreign_toplevel_manager_v1_create(server->wl_display);
 
 	hayward_session_lock_init();
 
-	server->drm_lease_manager=
+	server->drm_lease_manager =
 		wlr_drm_lease_v1_manager_create(server->wl_display, server->backend);
 	if (server->drm_lease_manager) {
 		server->drm_lease_request.notify = handle_drm_lease_request;
-		wl_signal_add(&server->drm_lease_manager->events.request,
-				&server->drm_lease_request);
+		wl_signal_add(
+			&server->drm_lease_manager->events.request,
+			&server->drm_lease_request
+		);
 	} else {
 		hayward_log(HAYWARD_DEBUG, "Failed to create wlr_drm_lease_device_v1");
 		hayward_log(HAYWARD_INFO, "VR will not be available");
@@ -209,11 +232,14 @@ bool server_init(struct hayward_server *server) {
 	wlr_xdg_foreign_v1_create(server->wl_display, foreign_registry);
 	wlr_xdg_foreign_v2_create(server->wl_display, foreign_registry);
 
-	server->xdg_activation_v1 = wlr_xdg_activation_v1_create(server->wl_display);
+	server->xdg_activation_v1 =
+		wlr_xdg_activation_v1_create(server->wl_display);
 	server->xdg_activation_v1_request_activate.notify =
 		xdg_activation_v1_handle_request_activate;
-	wl_signal_add(&server->xdg_activation_v1->events.request_activate,
-		&server->xdg_activation_v1_request_activate);
+	wl_signal_add(
+		&server->xdg_activation_v1->events.request_activate,
+		&server->xdg_activation_v1_request_activate
+	);
 
 	// Avoid using "wayland-0" as display socket
 	char name_candidate[16];
@@ -233,7 +259,9 @@ bool server_init(struct hayward_server *server) {
 
 	server->headless_backend = wlr_headless_backend_create(server->wl_display);
 	if (!server->headless_backend) {
-		hayward_log(HAYWARD_ERROR, "Failed to create secondary headless backend");
+		hayward_log(
+			HAYWARD_ERROR, "Failed to create secondary headless backend"
+		);
 		wlr_backend_destroy(server->backend);
 		return false;
 	} else {
@@ -241,7 +269,7 @@ bool server_init(struct hayward_server *server) {
 	}
 
 	struct wlr_output *wlr_output =
-			wlr_headless_add_output(server->headless_backend, 800, 600);
+		wlr_headless_add_output(server->headless_backend, 800, 600);
 	wlr_output_set_name(wlr_output, "FALLBACK");
 	root->fallback_output = output_create(wlr_output);
 	root->pending.active_output = root->fallback_output;
@@ -272,31 +300,41 @@ void server_fini(struct hayward_server *server) {
 bool server_start(struct hayward_server *server) {
 #if HAVE_XWAYLAND
 	if (config->xwayland != XWAYLAND_MODE_DISABLED) {
-		hayward_log(HAYWARD_DEBUG, "Initializing Xwayland (lazy=%d)",
-				config->xwayland == XWAYLAND_MODE_LAZY);
-		server->xwayland.wlr_xwayland =
-			wlr_xwayland_create(server->wl_display, server->compositor,
-					config->xwayland == XWAYLAND_MODE_LAZY);
+		hayward_log(
+			HAYWARD_DEBUG, "Initializing Xwayland (lazy=%d)",
+			config->xwayland == XWAYLAND_MODE_LAZY
+		);
+		server->xwayland.wlr_xwayland = wlr_xwayland_create(
+			server->wl_display, server->compositor,
+			config->xwayland == XWAYLAND_MODE_LAZY
+		);
 		if (!server->xwayland.wlr_xwayland) {
 			hayward_log(HAYWARD_ERROR, "Failed to start Xwayland");
 			unsetenv("DISPLAY");
 		} else {
-			wl_signal_add(&server->xwayland.wlr_xwayland->events.new_surface,
-				&server->xwayland_surface);
+			wl_signal_add(
+				&server->xwayland.wlr_xwayland->events.new_surface,
+				&server->xwayland_surface
+			);
 			server->xwayland_surface.notify = handle_xwayland_surface;
-			wl_signal_add(&server->xwayland.wlr_xwayland->events.ready,
-				&server->xwayland_ready);
+			wl_signal_add(
+				&server->xwayland.wlr_xwayland->events.ready,
+				&server->xwayland_ready
+			);
 			server->xwayland_ready.notify = handle_xwayland_ready;
 
-			setenv("DISPLAY", server->xwayland.wlr_xwayland->display_name, true);
+			setenv(
+				"DISPLAY", server->xwayland.wlr_xwayland->display_name, true
+			);
 
 			/* xcursor configured by the default seat */
 		}
 	}
 #endif
 
-	hayward_log(HAYWARD_INFO, "Starting backend on wayland display '%s'",
-			server->socket);
+	hayward_log(
+		HAYWARD_INFO, "Starting backend on wayland display '%s'", server->socket
+	);
 	if (!wlr_backend_start(server->backend)) {
 		hayward_log(HAYWARD_ERROR, "Failed to start backend");
 		wlr_backend_destroy(server->backend);
@@ -307,7 +345,9 @@ bool server_start(struct hayward_server *server) {
 }
 
 void server_run(struct hayward_server *server) {
-	hayward_log(HAYWARD_INFO, "Running compositor on wayland display '%s'",
-			server->socket);
+	hayward_log(
+		HAYWARD_INFO, "Running compositor on wayland display '%s'",
+		server->socket
+	);
 	wl_display_run(server->wl_display);
 }

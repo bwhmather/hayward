@@ -8,20 +8,22 @@
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_data_device.h>
-#include <wlr/types/wlr_input_method_v2.h>
-#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
+#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
+#include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
-#include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_server_decoration.h>
+#include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_xdg_shell.h>
-#include "config.h"
+
 #include "hayward-common/list.h"
+
+#include "config.h"
 #if HAVE_XWAYLAND
 #include "hayward/xwayland.h"
 #endif
@@ -134,21 +136,22 @@ struct hayward_server {
 extern struct hayward_server server;
 
 struct hayward_debug {
-	bool noatomic;         // Ignore atomic layout updates
-	bool txn_timings;      // Log verbose messages about transactions
-	bool txn_wait;         // Always wait for the timeout before applying
-	bool noscanout;        // Disable direct scan-out
+	bool noatomic;	  // Ignore atomic layout updates
+	bool txn_timings; // Log verbose messages about transactions
+	bool txn_wait;	  // Always wait for the timeout before applying
+	bool noscanout;	  // Disable direct scan-out
 
 	enum {
-		DAMAGE_DEFAULT,    // Default behaviour
-		DAMAGE_HIGHLIGHT,  // Highlight regions of the screen being damaged
-		DAMAGE_RERENDER,   // Render the full output when any damage occurs
+		DAMAGE_DEFAULT,	  // Default behaviour
+		DAMAGE_HIGHLIGHT, // Highlight regions of the screen being damaged
+		DAMAGE_RERENDER,  // Render the full output when any damage occurs
 	} damage;
 };
 
 extern struct hayward_debug debug;
 
-/* Prepares an unprivileged server_init by performing all privileged operations in advance */
+/* Prepares an unprivileged server_init by performing all privileged operations
+ * in advance */
 bool server_privileged_prepare(struct hayward_server *server);
 bool server_init(struct hayward_server *server);
 void server_fini(struct hayward_server *server);
@@ -170,7 +173,8 @@ void handle_xwayland_surface(struct wl_listener *listener, void *data);
 void handle_server_decoration(struct wl_listener *listener, void *data);
 void handle_xdg_decoration(struct wl_listener *listener, void *data);
 void handle_pointer_constraint(struct wl_listener *listener, void *data);
-void xdg_activation_v1_handle_request_activate(struct wl_listener *listener,
-	void *data);
+void xdg_activation_v1_handle_request_activate(
+	struct wl_listener *listener, void *data
+);
 
 #endif

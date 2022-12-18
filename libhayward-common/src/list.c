@@ -13,14 +13,14 @@ list_t *create_list(void) {
 	}
 	list->capacity = 10;
 	list->length = 0;
-	list->items = malloc(sizeof(void*) * list->capacity);
+	list->items = malloc(sizeof(void *) * list->capacity);
 	return list;
 }
 
 static void list_resize(list_t *list) {
 	if (list->length == list->capacity) {
 		list->capacity *= 2;
-		list->items = realloc(list->items, sizeof(void*) * list->capacity);
+		list->items = realloc(list->items, sizeof(void *) * list->capacity);
 	}
 }
 
@@ -39,14 +39,20 @@ void list_add(list_t *list, void *item) {
 
 void list_insert(list_t *list, int index, void *item) {
 	list_resize(list);
-	memmove(&list->items[index + 1], &list->items[index], sizeof(void*) * (list->length - index));
+	memmove(
+		&list->items[index + 1], &list->items[index],
+		sizeof(void *) * (list->length - index)
+	);
 	list->length++;
 	list->items[index] = item;
 }
 
 void list_del(list_t *list, int index) {
 	list->length--;
-	memmove(&list->items[index], &list->items[index + 1], sizeof(void*) * (list->length - index));
+	memmove(
+		&list->items[index], &list->items[index + 1],
+		sizeof(void *) * (list->length - index)
+	);
 }
 
 void list_cat(list_t *list, list_t *source) {
@@ -55,11 +61,16 @@ void list_cat(list_t *list, list_t *source) {
 	}
 }
 
-void list_qsort(list_t *list, int compare(const void *left, const void *right)) {
+void list_qsort(
+	list_t *list, int compare(const void *left, const void *right)
+) {
 	qsort(list->items, list->length, sizeof(void *), compare);
 }
 
-int list_seq_find(list_t *list, int compare(const void *item, const void *data), const void *data) {
+int list_seq_find(
+	list_t *list, int compare(const void *item, const void *data),
+	const void *data
+) {
 	for (int i = 0; i < list->length; i++) {
 		void *item = list->items[i];
 		if (compare(item, data) == 0) {
@@ -107,7 +118,10 @@ static void list_rotate(list_t *list, int from, int to) {
 	list->items[from] = tmp;
 }
 
-static void list_inplace_merge(list_t *list, int left, int last, int mid, int compare(const void *a, const void *b)) {
+static void list_inplace_merge(
+	list_t *list, int left, int last, int mid,
+	int compare(const void *a, const void *b)
+) {
 	int right = mid + 1;
 
 	if (compare(&list->items[mid], &list->items[right]) <= 0) {
@@ -126,7 +140,9 @@ static void list_inplace_merge(list_t *list, int left, int last, int mid, int co
 	}
 }
 
-static void list_inplace_sort(list_t *list, int first, int last, int compare(const void *a, const void *b)) {
+static void list_inplace_sort(
+	list_t *list, int first, int last, int compare(const void *a, const void *b)
+) {
 	if (first >= last) {
 		return;
 	} else if ((last - first) == 1) {
@@ -157,4 +173,3 @@ void list_free_items_and_destroy(list_t *list) {
 	}
 	list_free(list);
 }
-

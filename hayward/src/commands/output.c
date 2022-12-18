@@ -1,31 +1,34 @@
-#include <strings.h>
-#include "hayward/commands.h"
-#include "hayward/config.h"
 #include "hayward/output.h"
+
+#include <strings.h>
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 
+#include "hayward/commands.h"
+#include "hayward/config.h"
+
 // must be in order for the bsearch
 static const struct cmd_handler output_handlers[] = {
-	{ "adaptive_sync", output_cmd_adaptive_sync },
-	{ "background", output_cmd_background },
-	{ "bg", output_cmd_background },
-	{ "disable", output_cmd_disable },
-	{ "dpms", output_cmd_dpms },
-	{ "enable", output_cmd_enable },
-	{ "max_render_time", output_cmd_max_render_time },
-	{ "mode", output_cmd_mode },
-	{ "modeline", output_cmd_modeline },
-	{ "pos", output_cmd_position },
-	{ "position", output_cmd_position },
-	{ "render_bit_depth", output_cmd_render_bit_depth },
-	{ "res", output_cmd_mode },
-	{ "resolution", output_cmd_mode },
-	{ "scale", output_cmd_scale },
-	{ "scale_filter", output_cmd_scale_filter },
-	{ "subpixel", output_cmd_subpixel },
-	{ "toggle", output_cmd_toggle },
-	{ "transform", output_cmd_transform },
+	{"adaptive_sync", output_cmd_adaptive_sync},
+	{"background", output_cmd_background},
+	{"bg", output_cmd_background},
+	{"disable", output_cmd_disable},
+	{"dpms", output_cmd_dpms},
+	{"enable", output_cmd_enable},
+	{"max_render_time", output_cmd_max_render_time},
+	{"mode", output_cmd_mode},
+	{"modeline", output_cmd_modeline},
+	{"pos", output_cmd_position},
+	{"position", output_cmd_position},
+	{"render_bit_depth", output_cmd_render_bit_depth},
+	{"res", output_cmd_mode},
+	{"resolution", output_cmd_mode},
+	{"scale", output_cmd_scale},
+	{"scale_filter", output_cmd_scale_filter},
+	{"subpixel", output_cmd_subpixel},
+	{"toggle", output_cmd_toggle},
+	{"transform", output_cmd_transform},
 };
 
 struct cmd_results *cmd_output(int argc, char **argv) {
@@ -37,24 +40,28 @@ struct cmd_results *cmd_output(int argc, char **argv) {
 	// The HEADLESS-1 output is a dummy output used when there's no outputs
 	// connected. It should never be configured.
 	if (strcasecmp(argv[0], root->fallback_output->wlr_output->name) == 0) {
-		return cmd_results_new(CMD_FAILURE,
-				"Refusing to configure the no op output");
+		return cmd_results_new(
+			CMD_FAILURE, "Refusing to configure the no op output"
+		);
 	}
 
 	struct output_config *output = NULL;
 	if (strcmp(argv[0], "-") == 0 || strcmp(argv[0], "--") == 0) {
 		if (config->reading) {
-			return cmd_results_new(CMD_FAILURE,
-					"Current output alias (%s) cannot be used in the config",
-					argv[0]);
+			return cmd_results_new(
+				CMD_FAILURE,
+				"Current output alias (%s) cannot be used in the config",
+				argv[0]
+			);
 		}
 		struct hayward_output *hayward_output = root_get_active_output();
 		if (!hayward_output) {
 			return cmd_results_new(CMD_FAILURE, "Unknown output");
 		}
 		if (hayward_output == root->fallback_output) {
-			return cmd_results_new(CMD_FAILURE,
-					"Refusing to configure the no op output");
+			return cmd_results_new(
+				CMD_FAILURE, "Refusing to configure the no op output"
+			);
 		}
 		if (strcmp(argv[0], "-") == 0) {
 			output = new_output_config(hayward_output->wlr_output->name);
@@ -70,7 +77,8 @@ struct cmd_results *cmd_output(int argc, char **argv) {
 		hayward_log(HAYWARD_ERROR, "Failed to allocate output config");
 		return NULL;
 	}
-	argc--; argv++;
+	argc--;
+	argv++;
 
 	config->handler_context.output_config = output;
 
@@ -79,11 +87,13 @@ struct cmd_results *cmd_output(int argc, char **argv) {
 		config->handler_context.leftovers.argv = NULL;
 
 		if (find_handler(*argv, output_handlers, sizeof(output_handlers))) {
-			error = config_subcommand(argv, argc, output_handlers,
-					sizeof(output_handlers));
+			error = config_subcommand(
+				argv, argc, output_handlers, sizeof(output_handlers)
+			);
 		} else {
-			error = cmd_results_new(CMD_INVALID,
-				"Invalid output subcommand: %s.", *argv);
+			error = cmd_results_new(
+				CMD_INVALID, "Invalid output subcommand: %s.", *argv
+			);
 		}
 
 		if (error != NULL) {

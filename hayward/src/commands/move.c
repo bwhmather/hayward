@@ -7,36 +7,40 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
+
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
+
 #include "hayward/commands.h"
 #include "hayward/input/cursor.h"
 #include "hayward/input/seat.h"
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
 #include "hayward/tree/arrange.h"
-#include "hayward/tree/window.h"
 #include "hayward/tree/root.h"
+#include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
 
 static const char expected_syntax[] =
 	"Expected 'move <left|right|up|down> <[px] px>' or "
 	"'move <window> [to] workspace <name>' or "
 	"'move <window|workspace> [to] output <name|direction>'";
 
-static struct hayward_output *output_in_direction(const char *direction_string,
-		struct hayward_output *reference, int ref_lx, int ref_ly) {
+static struct hayward_output *output_in_direction(
+	const char *direction_string, struct hayward_output *reference, int ref_lx,
+	int ref_ly
+) {
 
 	struct {
 		char *name;
 		enum wlr_direction direction;
 	} names[] = {
-		{ "up", WLR_DIRECTION_UP },
-		{ "down", WLR_DIRECTION_DOWN },
-		{ "left", WLR_DIRECTION_LEFT },
-		{ "right", WLR_DIRECTION_RIGHT },
+		{"up", WLR_DIRECTION_UP},
+		{"down", WLR_DIRECTION_DOWN},
+		{"left", WLR_DIRECTION_LEFT},
+		{"right", WLR_DIRECTION_RIGHT},
 	};
 
 	enum wlr_direction direction = 0;
@@ -50,13 +54,15 @@ static struct hayward_output *output_in_direction(const char *direction_string,
 
 	if (reference && direction) {
 		struct wlr_output *target = wlr_output_layout_adjacent_output(
-				root->output_layout, direction, reference->wlr_output,
-				ref_lx, ref_ly);
+			root->output_layout, direction, reference->wlr_output, ref_lx,
+			ref_ly
+		);
 
 		if (!target) {
 			target = wlr_output_layout_farthest_output(
-					root->output_layout, opposite_direction(direction),
-					reference->wlr_output, ref_lx, ref_ly);
+				root->output_layout, opposite_direction(direction),
+				reference->wlr_output, ref_lx, ref_ly
+			);
 		}
 
 		if (target) {
@@ -67,8 +73,10 @@ static struct hayward_output *output_in_direction(const char *direction_string,
 	return output_by_name_or_id(direction_string);
 }
 
-static bool window_move_to_next_output(struct hayward_window *window,
-		struct hayward_output *output, enum wlr_direction move_dir) {
+static bool window_move_to_next_output(
+	struct hayward_window *window, struct hayward_output *output,
+	enum wlr_direction move_dir
+) {
 	struct hayward_output *next_output =
 		output_get_in_direction(output, move_dir);
 	if (!next_output) {
@@ -79,12 +87,14 @@ static bool window_move_to_next_output(struct hayward_window *window,
 }
 
 // Returns true if moved
-static bool window_move_in_direction(struct hayward_window *window,
-		enum wlr_direction move_dir) {
+static bool window_move_in_direction(
+	struct hayward_window *window, enum wlr_direction move_dir
+) {
 	// If moving a fullscreen view, only consider outputs
 	if (window->pending.fullscreen) {
-		return window_move_to_next_output(window,
-				window->pending.parent->pending.output, move_dir);
+		return window_move_to_next_output(
+			window, window->pending.parent->pending.output, move_dir
+		);
 	}
 
 	if (window_is_floating(window)) {
@@ -97,82 +107,96 @@ static bool window_move_in_direction(struct hayward_window *window,
 	}
 
 	struct hayward_column *old_column = window->pending.parent;
-	int old_column_index = list_find(window->pending.workspace->pending.tiling, old_column);
+	int old_column_index =
+		list_find(window->pending.workspace->pending.tiling, old_column);
 
 	switch (move_dir) {
 	case WLR_DIRECTION_UP: {
-			// Move within column.
-			// TODO
-			return false;
-		}
-	case WLR_DIRECTION_DOWN: {
-			// Move within column.
-			// TODO
-			return false;
-		}
-	case WLR_DIRECTION_LEFT: {
-			if (old_column_index == 0) {
-				// Window is already in the left most column.
-				// If window is the only child of this column
-				// then attempt to move it to the next
-				// workspace, otherwise insert a new column to
-				// the left and carry on as before.
-				if (old_column->pending.children->length == 1) {
-					// No other windows.  Move to next
-					// workspace.
-
-					return window_move_to_next_output(window,
-						old_column->pending.output, move_dir);
-				}
-
-				struct hayward_column *new_column = column_create();
-				new_column->pending.height = new_column->pending.width = 0;
-				new_column->width_fraction = 0;
-				new_column->pending.layout = L_STACKED;
-
-				workspace_insert_tiling(window->pending.workspace, old_column->pending.output, new_column, 0);
-				old_column_index += 1;
-			}
-
-			struct hayward_column *new_column = window->pending.workspace->pending.tiling->items[old_column_index - 1];
-			window_move_to_column_from_direction(window, new_column, move_dir);
-
-			return true;
-		}
-	case WLR_DIRECTION_RIGHT: {
-			if (old_column_index == window->pending.workspace->pending.tiling->length - 1) {
-				// Window is already in the right most column.
-				// If window is the only child of this column
-				// then attempt to move it to the next
-				// workspace, otherwise insert a new column to
-				// the right and carry on as before.
-				if (old_column->pending.children->length == 1) {
-					// TODO find then move should be separate calls at this level of abstraction.
-					return window_move_to_next_output(window,
-						old_column->pending.output, move_dir);
-				}
-
-				struct hayward_column *new_column = column_create();
-				new_column->pending.height = new_column->pending.width = 0;
-				new_column->width_fraction = 0;
-				new_column->pending.layout = L_STACKED;
-
-				workspace_insert_tiling(window->pending.workspace, old_column->pending.output, new_column, old_column_index + 1);
-			}
-
-			struct hayward_column *new_column = window->pending.workspace->pending.tiling->items[old_column_index + 1];
-			window_move_to_column_from_direction(window, new_column, move_dir);
-
-			return true;
-		}
+		// Move within column.
+		// TODO
+		return false;
 	}
-	return false;  // TODO unreachable.
+	case WLR_DIRECTION_DOWN: {
+		// Move within column.
+		// TODO
+		return false;
+	}
+	case WLR_DIRECTION_LEFT: {
+		if (old_column_index == 0) {
+			// Window is already in the left most column.
+			// If window is the only child of this column
+			// then attempt to move it to the next
+			// workspace, otherwise insert a new column to
+			// the left and carry on as before.
+			if (old_column->pending.children->length == 1) {
+				// No other windows.  Move to next
+				// workspace.
+
+				return window_move_to_next_output(
+					window, old_column->pending.output, move_dir
+				);
+			}
+
+			struct hayward_column *new_column = column_create();
+			new_column->pending.height = new_column->pending.width = 0;
+			new_column->width_fraction = 0;
+			new_column->pending.layout = L_STACKED;
+
+			workspace_insert_tiling(
+				window->pending.workspace, old_column->pending.output,
+				new_column, 0
+			);
+			old_column_index += 1;
+		}
+
+		struct hayward_column *new_column =
+			window->pending.workspace->pending.tiling
+				->items[old_column_index - 1];
+		window_move_to_column_from_direction(window, new_column, move_dir);
+
+		return true;
+	}
+	case WLR_DIRECTION_RIGHT: {
+		if (old_column_index ==
+			window->pending.workspace->pending.tiling->length - 1) {
+			// Window is already in the right most column.
+			// If window is the only child of this column
+			// then attempt to move it to the next
+			// workspace, otherwise insert a new column to
+			// the right and carry on as before.
+			if (old_column->pending.children->length == 1) {
+				// TODO find then move should be separate calls at this level of
+				// abstraction.
+				return window_move_to_next_output(
+					window, old_column->pending.output, move_dir
+				);
+			}
+
+			struct hayward_column *new_column = column_create();
+			new_column->pending.height = new_column->pending.width = 0;
+			new_column->width_fraction = 0;
+			new_column->pending.layout = L_STACKED;
+
+			workspace_insert_tiling(
+				window->pending.workspace, old_column->pending.output,
+				new_column, old_column_index + 1
+			);
+		}
+
+		struct hayward_column *new_column =
+			window->pending.workspace->pending.tiling
+				->items[old_column_index + 1];
+		window_move_to_column_from_direction(window, new_column, move_dir);
+
+		return true;
+	}
+	}
+	return false; // TODO unreachable.
 }
 
 static struct cmd_results *cmd_move_window(int argc, char **argv) {
 	struct cmd_results *error = NULL;
-	if ((error = checkarg(argc, "move window",
-				EXPECTED_AT_LEAST, 2))) {
+	if ((error = checkarg(argc, "move window", EXPECTED_AT_LEAST, 2))) {
 		return error;
 	}
 
@@ -193,9 +217,9 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 		struct hayward_workspace *workspace = NULL;
 		char *workspace_name = NULL;
 		if (strcasecmp(argv[1], "next") == 0 ||
-				strcasecmp(argv[1], "prev") == 0 ||
-				strcasecmp(argv[1], "next_on_output") == 0 ||
-				strcasecmp(argv[1], "prev_on_output") == 0) {
+			strcasecmp(argv[1], "prev") == 0 ||
+			strcasecmp(argv[1], "next_on_output") == 0 ||
+			strcasecmp(argv[1], "prev_on_output") == 0) {
 			workspace = workspace_by_name(argv[1]);
 		} else {
 			if (strcasecmp(argv[1], "number") == 0) {
@@ -204,8 +228,9 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 					return cmd_results_new(CMD_INVALID, expected_syntax);
 				}
 				if (!isdigit(argv[2][0])) {
-					return cmd_results_new(CMD_INVALID,
-							"Invalid workspace number '%s'", argv[2]);
+					return cmd_results_new(
+						CMD_INVALID, "Invalid workspace number '%s'", argv[2]
+					);
 				}
 				workspace_name = join_args(argv + 2, argc - 2);
 				workspace = workspace_by_name(workspace_name);
@@ -236,18 +261,21 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 		if (old_workspace && !old_workspace->node.destroying) {
 			arrange_workspace(old_workspace);
 		}
-		// TODO (hayward) it should often be possible to get away without rearranging
-		// the entire workspace.
+		// TODO (hayward) it should often be possible to get away without
+		// rearranging the entire workspace.
 		arrange_workspace(workspace);
 
 		return cmd_results_new(CMD_SUCCESS, NULL);
 
 	} else if (strcasecmp(argv[0], "output") == 0) {
-		struct hayward_output *new_output = output_in_direction(argv[1],
-				old_output, window->pending.x, window->pending.y);
+		struct hayward_output *new_output = output_in_direction(
+			argv[1], old_output, window->pending.x, window->pending.y
+		);
 		if (!new_output) {
-			return cmd_results_new(CMD_FAILURE,
-				"Can't find output with name/direction '%s'", argv[1]);
+			return cmd_results_new(
+				CMD_FAILURE, "Can't find output with name/direction '%s'",
+				argv[1]
+			);
 		}
 		destination = &new_output->node;
 	} else {
@@ -255,9 +283,12 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 	}
 
 	if (window_is_sticky(window) && old_output &&
-			node_has_ancestor(destination, &old_output->node)) {
-		return cmd_results_new(CMD_FAILURE, "Can't move sticky "
-				"window to another workspace on the same output");
+		node_has_ancestor(destination, &old_output->node)) {
+		return cmd_results_new(
+			CMD_FAILURE,
+			"Can't move sticky "
+			"window to another workspace on the same output"
+		);
 	}
 
 	// save focus, in case it needs to be restored
@@ -268,11 +299,10 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 		window_move_to_workspace(window, destination->hayward_workspace);
 		break;
 	case N_OUTPUT: {
-			struct hayward_workspace *workspace = root_get_active_workspace();
-			hayward_assert(workspace, "Expected output to have a workspace");
-			window_move_to_workspace(window, workspace);
-		}
-		break;
+		struct hayward_workspace *workspace = root_get_active_workspace();
+		hayward_assert(workspace, "Expected output to have a workspace");
+		window_move_to_workspace(window, workspace);
+	} break;
 	case N_WINDOW:
 		// TODO (hayward)
 	case N_COLUMN:
@@ -316,8 +346,8 @@ static struct cmd_results *cmd_move_window(int argc, char **argv) {
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *cmd_move_in_direction(
-		enum wlr_direction direction, int argc, char **argv) {
+static struct cmd_results *
+cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
 	int move_amt = 10;
 	if (argc) {
 		char *inv;
@@ -329,13 +359,15 @@ static struct cmd_results *cmd_move_in_direction(
 
 	struct hayward_window *window = config->handler_context.window;
 	if (!window) {
-		return cmd_results_new(CMD_FAILURE,
-				"Cannot move workspaces in a direction");
+		return cmd_results_new(
+			CMD_FAILURE, "Cannot move workspaces in a direction"
+		);
 	}
 	if (window_is_floating(window)) {
 		if (window->pending.fullscreen) {
-			return cmd_results_new(CMD_FAILURE,
-					"Cannot move fullscreen floating window");
+			return cmd_results_new(
+				CMD_FAILURE, "Cannot move fullscreen floating window"
+			);
 		}
 		double lx = window->pending.x;
 		double ly = window->pending.y;
@@ -394,8 +426,8 @@ static struct cmd_results *cmd_move_in_direction(
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *cmd_move_to_position_pointer(
-		struct hayward_window *window) {
+static struct cmd_results *
+cmd_move_to_position_pointer(struct hayward_window *window) {
 	struct hayward_seat *seat = config->handler_context.seat;
 	if (!seat->cursor) {
 		return cmd_results_new(CMD_FAILURE, "No cursor device");
@@ -406,8 +438,8 @@ static struct cmd_results *cmd_move_to_position_pointer(
 	double ly = cursor->y - window->pending.height / 2;
 
 	/* Correct target coordinates to be in bounds (on screen). */
-	struct wlr_output *output = wlr_output_layout_output_at(
-			root->output_layout, cursor->x, cursor->y);
+	struct wlr_output *output =
+		wlr_output_layout_output_at(root->output_layout, cursor->x, cursor->y);
 	if (output) {
 		struct wlr_box box;
 		wlr_output_layout_get_box(root->output_layout, output, &box);
@@ -434,8 +466,11 @@ static const char expected_position_syntax[] =
 static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 	struct hayward_window *window = config->handler_context.window;
 	if (!window || !window_is_floating(window)) {
-		return cmd_results_new(CMD_FAILURE, "Only floating windows "
-				"can be moved to an absolute position");
+		return cmd_results_new(
+			CMD_FAILURE,
+			"Only floating windows "
+			"can be moved to an absolute position"
+		);
 	}
 
 	if (!argc) {
@@ -459,7 +494,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		return cmd_results_new(CMD_INVALID, expected_position_syntax);
 	}
 	if (strcmp(argv[0], "cursor") == 0 || strcmp(argv[0], "mouse") == 0 ||
-			strcmp(argv[0], "pointer") == 0) {
+		strcmp(argv[0], "pointer") == 0) {
 		if (absolute) {
 			return cmd_results_new(CMD_INVALID, expected_position_syntax);
 		}
@@ -474,8 +509,10 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 			if (!workspace) {
 				workspace = root_get_active_workspace();
 			}
-			lx = workspace->pending.x + (workspace->pending.width - window->pending.width) / 2;
-			ly = workspace->pending.y + (workspace->pending.height - window->pending.height) / 2;
+			lx = workspace->pending.x +
+				(workspace->pending.width - window->pending.width) / 2;
+			ly = workspace->pending.y +
+				(workspace->pending.height - window->pending.height) / 2;
 		}
 		window_floating_move_to(window, lx, ly);
 		return cmd_results_new(CMD_SUCCESS, NULL);
@@ -485,7 +522,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, expected_position_syntax);
 	}
 
-	struct movement_amount lx = { .amount = 0, .unit = MOVEMENT_UNIT_INVALID };
+	struct movement_amount lx = {.amount = 0, .unit = MOVEMENT_UNIT_INVALID};
 	// X direction
 	int num_consumed_args = parse_movement_amount(argc, argv, &lx);
 	argc -= num_consumed_args;
@@ -498,7 +535,7 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, expected_position_syntax);
 	}
 
-	struct movement_amount ly = { .amount = 0, .unit = MOVEMENT_UNIT_INVALID };
+	struct movement_amount ly = {.amount = 0, .unit = MOVEMENT_UNIT_INVALID};
 	// Y direction
 	num_consumed_args = parse_movement_amount(argc, argv, &ly);
 	argc -= num_consumed_args;
@@ -518,8 +555,9 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 	switch (lx.unit) {
 	case MOVEMENT_UNIT_PPT:
 		if (absolute) {
-			return cmd_results_new(CMD_FAILURE,
-					"Cannot move to absolute positions by ppt");
+			return cmd_results_new(
+				CMD_FAILURE, "Cannot move to absolute positions by ppt"
+			);
 		}
 		// Convert to px
 		lx.amount = workspace->pending.width * lx.amount / 100;
@@ -535,8 +573,9 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 	switch (ly.unit) {
 	case MOVEMENT_UNIT_PPT:
 		if (absolute) {
-			return cmd_results_new(CMD_FAILURE,
-					"Cannot move to absolute positions by ppt");
+			return cmd_results_new(
+				CMD_FAILURE, "Cannot move to absolute positions by ppt"
+			);
 		}
 		// Convert to px
 		ly.amount = workspace->pending.height * ly.amount / 100;
@@ -556,7 +595,8 @@ static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static const char expected_full_syntax[] = "Expected "
+static const char expected_full_syntax[] =
+	"Expected "
 	"'move left|right|up|down [<amount> [px]]'"
 	" or 'move [window] [to] workspace"
 	"  <name>|next|prev|next_on_output|prev_on_output|(number <num>)'"
@@ -571,8 +611,10 @@ struct cmd_results *cmd_move(int argc, char **argv) {
 		return error;
 	}
 	if (!root->outputs->length) {
-		return cmd_results_new(CMD_INVALID,
-				"Can't run this command while there's no outputs connected.");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Can't run this command while there's no outputs connected."
+		);
 	}
 
 	if (strcasecmp(argv[0], "left") == 0) {
@@ -586,11 +628,13 @@ struct cmd_results *cmd_move(int argc, char **argv) {
 	}
 
 	if (argc > 0 && (strcasecmp(argv[0], "window") == 0)) {
-		--argc; ++argv;
+		--argc;
+		++argv;
 	}
 
 	if (argc > 0 && strcasecmp(argv[0], "to") == 0) {
-		--argc;	++argv;
+		--argc;
+		++argv;
 	}
 
 	if (!argc) {
@@ -598,11 +642,9 @@ struct cmd_results *cmd_move(int argc, char **argv) {
 	}
 
 	if (strcasecmp(argv[0], "workspace") == 0 ||
-			strcasecmp(argv[0], "output") == 0) {
+		strcasecmp(argv[0], "output") == 0) {
 		return cmd_move_window(argc, argv);
-	} else if (strcasecmp(argv[0], "position") == 0 ||
-			(argc > 1 && strcasecmp(argv[0], "absolute") == 0 &&
-			strcasecmp(argv[1], "position") == 0)) {
+	} else if (strcasecmp(argv[0], "position") == 0 || (argc > 1 && strcasecmp(argv[0], "absolute") == 0 && strcasecmp(argv[1], "position") == 0)) {
 		return cmd_move_to_position(argc, argv);
 	}
 	return cmd_results_new(CMD_INVALID, expected_full_syntax);

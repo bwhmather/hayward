@@ -1,10 +1,12 @@
 #include <string.h>
+
 #include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/seat.h"
-#include "hayward/tree/window.h"
 #include "hayward/tree/view.h"
+#include "hayward/tree/window.h"
 
 struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -14,8 +16,9 @@ struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {
 
 	struct hayward_window *window = config->handler_context.window;
 	if (!window) {
-		return cmd_results_new(CMD_INVALID,
-				"Only views can have shortcuts inhibitors");
+		return cmd_results_new(
+			CMD_INVALID, "Only views can have shortcuts inhibitors"
+		);
 	}
 
 	struct hayward_view *view = window->view;
@@ -28,21 +31,26 @@ struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {
 		wl_list_for_each(seat, &server.input->seats, link) {
 			struct hayward_keyboard_shortcuts_inhibitor *hayward_inhibitor =
 				keyboard_shortcuts_inhibitor_get_for_surface(
-						seat, view->surface);
+					seat, view->surface
+				);
 			if (!hayward_inhibitor) {
 				continue;
 			}
 
 			wlr_keyboard_shortcuts_inhibitor_v1_deactivate(
-					hayward_inhibitor->inhibitor);
-			hayward_log(HAYWARD_DEBUG, "Deactivated keyboard shortcuts "
-					"inhibitor for seat %s on view",
-					seat->wlr_seat->name);
-
+				hayward_inhibitor->inhibitor
+			);
+			hayward_log(
+				HAYWARD_DEBUG,
+				"Deactivated keyboard shortcuts "
+				"inhibitor for seat %s on view",
+				seat->wlr_seat->name
+			);
 		}
 	} else {
-		return cmd_results_new(CMD_INVALID,
-				"Expected `shortcuts_inhibitor enable|disable`");
+		return cmd_results_new(
+			CMD_INVALID, "Expected `shortcuts_inhibitor enable|disable`"
+		);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

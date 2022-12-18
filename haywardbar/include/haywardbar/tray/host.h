@@ -11,7 +11,9 @@ struct haywardbar_host {
 	char *watcher_interface;
 };
 
-bool init_host(struct haywardbar_host *host, char *protocol, struct haywardbar_tray *tray);
+bool init_host(
+	struct haywardbar_host *host, char *protocol, struct haywardbar_tray *tray
+);
 void finish_host(struct haywardbar_host *host);
 
 #endif

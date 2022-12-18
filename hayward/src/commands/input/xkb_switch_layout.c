@@ -1,10 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <wlr/interfaces/wlr_keyboard.h>
-#include "hayward/config.h"
-#include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
+
 #include "hayward-common/log.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/input/input-manager.h"
 
 struct xkb_switch_layout_action {
 	struct wlr_keyboard *keyboard;
@@ -16,8 +18,10 @@ static void switch_layout(struct wlr_keyboard *kbd, xkb_layout_index_t idx) {
 	if (idx >= num_layouts) {
 		return;
 	}
-	wlr_keyboard_notify_modifiers(kbd, kbd->modifiers.depressed,
-		kbd->modifiers.latched, kbd->modifiers.locked, idx);
+	wlr_keyboard_notify_modifiers(
+		kbd, kbd->modifiers.depressed, kbd->modifiers.latched,
+		kbd->modifiers.locked, idx
+	);
 }
 
 static xkb_layout_index_t get_current_layout_index(struct wlr_keyboard *kbd) {
@@ -26,15 +30,17 @@ static xkb_layout_index_t get_current_layout_index(struct wlr_keyboard *kbd) {
 
 	xkb_layout_index_t layout_idx;
 	for (layout_idx = 0; layout_idx < num_layouts; layout_idx++) {
-		if (xkb_state_layout_index_is_active(kbd->xkb_state,
-				layout_idx, XKB_STATE_LAYOUT_EFFECTIVE)) {
+		if (xkb_state_layout_index_is_active(
+				kbd->xkb_state, layout_idx, XKB_STATE_LAYOUT_EFFECTIVE
+			)) {
 			break;
 		}
 	}
 	return layout_idx;
 }
 
-static xkb_layout_index_t get_layout_relative(struct wlr_keyboard *kbd, int dir) {
+static xkb_layout_index_t
+get_layout_relative(struct wlr_keyboard *kbd, int dir) {
 	xkb_layout_index_t num_layouts = xkb_keymap_num_layouts(kbd->keymap);
 	xkb_layout_index_t idx = get_current_layout_index(kbd);
 	return (idx + num_layouts + dir) % num_layouts;
@@ -74,7 +80,8 @@ struct cmd_results *input_cmd_xkb_switch_layout(int argc, char **argv) {
 
 	struct xkb_switch_layout_action *actions = calloc(
 		wl_list_length(&server.input->devices),
-		sizeof(struct xkb_switch_layout_action));
+		sizeof(struct xkb_switch_layout_action)
+	);
 	size_t actions_len = 0;
 
 	if (!actions) {
@@ -87,21 +94,20 @@ struct cmd_results *input_cmd_xkb_switch_layout(int argc, char **argv) {
 	struct hayward_input_device *dev;
 	wl_list_for_each(dev, &server.input->devices, link) {
 		if (strcmp(ic->identifier, "*") != 0 &&
-				strcmp(ic->identifier, "type:keyboard") != 0 &&
-				strcmp(ic->identifier, dev->identifier) != 0) {
+			strcmp(ic->identifier, "type:keyboard") != 0 &&
+			strcmp(ic->identifier, dev->identifier) != 0) {
 			continue;
 		}
 		if (dev->wlr_device->type != WLR_INPUT_DEVICE_KEYBOARD) {
 			continue;
 		}
 
-		struct xkb_switch_layout_action *action =
-			&actions[actions_len++];
+		struct xkb_switch_layout_action *action = &actions[actions_len++];
 
 		action->keyboard = dev->wlr_device->keyboard;
 		if (relative) {
-			action->layout = get_layout_relative(
-				dev->wlr_device->keyboard, relative);
+			action->layout =
+				get_layout_relative(dev->wlr_device->keyboard, relative);
 		} else {
 			action->layout = layout;
 		}

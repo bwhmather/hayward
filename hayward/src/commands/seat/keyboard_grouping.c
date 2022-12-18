@@ -1,7 +1,9 @@
 #include <string.h>
+
+#include "hayward-common/stringop.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "hayward-common/stringop.h"
 
 struct cmd_results *seat_cmd_keyboard_grouping(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -18,8 +20,9 @@ struct cmd_results *seat_cmd_keyboard_grouping(int argc, char **argv) {
 	} else if (strcmp(argv[0], "smart") == 0) {
 		seat_config->keyboard_grouping = KEYBOARD_GROUP_SMART;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-				"Expected syntax `keyboard_grouping none|smart`");
+		return cmd_results_new(
+			CMD_INVALID, "Expected syntax `keyboard_grouping none|smart`"
+		);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

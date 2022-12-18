@@ -1,8 +1,10 @@
+#include <strings.h>
+
+#include "hayward-common/util.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/output.h"
-#include "hayward-common/util.h"
-#include <strings.h>
 
 struct cmd_results *output_cmd_dpms(int argc, char **argv) {
 	if (!config->handler_context.output_config) {
@@ -18,14 +20,17 @@ struct cmd_results *output_cmd_dpms(int argc, char **argv) {
 
 		const char *oc_name = config->handler_context.output_config->name;
 		if (strcmp(oc_name, "*") == 0) {
-			return cmd_results_new(CMD_INVALID,
-					"Cannot apply toggle to all outputs.");
+			return cmd_results_new(
+				CMD_INVALID, "Cannot apply toggle to all outputs."
+			);
 		}
 
-		struct hayward_output *hayward_output = all_output_by_name_or_id(oc_name);
+		struct hayward_output *hayward_output =
+			all_output_by_name_or_id(oc_name);
 		if (!hayward_output || !hayward_output->wlr_output) {
-			return cmd_results_new(CMD_FAILURE,
-					"Cannot apply toggle to unknown output %s", oc_name);
+			return cmd_results_new(
+				CMD_FAILURE, "Cannot apply toggle to unknown output %s", oc_name
+			);
 		}
 
 		if (hayward_output->enabled && !hayward_output->wlr_output->enabled) {

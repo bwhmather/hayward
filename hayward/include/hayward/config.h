@@ -7,15 +7,18 @@
 #include <wlr/interfaces/wlr_switch.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
-#include <xkbcommon/xkbcommon.h>
 #include <xf86drmMode.h>
-#include "../include/config.h"
+#include <xkbcommon/xkbcommon.h>
+
 #include "hayward-common/list.h"
-#include "haywardnag.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/window.h"
+
 #include "hayward/input/tablet.h"
+#include "hayward/tree/column.h"
 #include "hayward/tree/root.h"
+#include "hayward/tree/window.h"
+
+#include "../include/config.h"
+#include "haywardnag.h"
 #include "wlr-layer-shell-unstable-v1-protocol.h"
 
 // TODO: Refactor this shit
@@ -38,14 +41,15 @@ enum binding_input_type {
 
 enum binding_flags {
 	BINDING_RELEASE = 1 << 0,
-	BINDING_LOCKED = 1 << 1, // keyboard only
-	BINDING_BORDER = 1 << 2, // mouse only; trigger on container border
-	BINDING_CONTENTS = 1 << 3, // mouse only; trigger on container contents
-	BINDING_TITLEBAR = 1 << 4, // mouse only; trigger on container titlebar
-	BINDING_CODE = 1 << 5, // keyboard only; convert keysyms into keycodes
-	BINDING_RELOAD = 1 << 6, // switch only; (re)trigger binding on reload
+	BINDING_LOCKED = 1 << 1,	// keyboard only
+	BINDING_BORDER = 1 << 2,	// mouse only; trigger on container border
+	BINDING_CONTENTS = 1 << 3,	// mouse only; trigger on container contents
+	BINDING_TITLEBAR = 1 << 4,	// mouse only; trigger on container titlebar
+	BINDING_CODE = 1 << 5,		// keyboard only; convert keysyms into keycodes
+	BINDING_RELOAD = 1 << 6,	// switch only; (re)trigger binding on reload
 	BINDING_INHIBITED = 1 << 7, // keyboard only: ignore shortcut inhibitor
-	BINDING_NOREPEAT = 1 << 8, // keyboard only; do not trigger when repeating a held key
+	BINDING_NOREPEAT =
+		1 << 8, // keyboard only; do not trigger when repeating a held key
 };
 
 /**
@@ -219,7 +223,7 @@ enum hayward_input_idle_source {
  */
 struct seat_config {
 	char *name;
-	int fallback; // -1 means not set
+	int fallback;		 // -1 means not set
 	list_t *attachments; // list of seat_attachment configs
 	int hide_cursor_timeout;
 	enum seat_config_hide_cursor_when_typing hide_cursor_when_typing;
@@ -320,8 +324,8 @@ struct bar_config {
 	/**
 	 * One of "dock", "hide", "invisible"
 	 *
-	 * Always visible in dock mode. Visible only when modifier key is held in hide mode.
-	 * Never visible in invisible mode.
+	 * Always visible in dock mode. Visible only when modifier key is held in
+	 * hide mode. Never visible in invisible mode.
 	 */
 	char *mode;
 	/**
@@ -384,7 +388,7 @@ struct bar_config {
 #if HAVE_TRAY
 	char *icon_theme;
 	struct wl_list tray_bindings; // struct tray_binding::link
-	list_t *tray_outputs; // char *
+	list_t *tray_outputs;		  // char *
 	int tray_padding;
 #endif
 };
@@ -412,15 +416,16 @@ struct border_colors {
 };
 
 enum edge_border_types {
-	E_NONE, /**< Don't hide edge borders */
-	E_VERTICAL, /**< hide vertical edge borders */
+	E_NONE,		  /**< Don't hide edge borders */
+	E_VERTICAL,	  /**< hide vertical edge borders */
 	E_HORIZONTAL, /**< hide horizontal edge borders */
-	E_BOTH, /**< hide vertical and horizontal edge borders */
+	E_BOTH,		  /**< hide vertical and horizontal edge borders */
 };
 
 enum edge_border_smart_types {
 	ESMART_OFF,
-	ESMART_ON, /**< hide edges if precisely one window is present in workspace */
+	ESMART_ON, /**< hide edges if precisely one window is present in workspace
+				*/
 	ESMART_NO_GAPS, /**< hide edges if one window and gaps to edge is zero */
 };
 
@@ -579,14 +584,18 @@ bool load_main_config(const char *path, bool is_active, bool validating);
 /**
  * Loads an included config. Can only be used after load_main_config.
  */
-void load_include_configs(const char *path, struct hayward_config *config,
-		struct haywardnag_instance *haywardnag);
+void load_include_configs(
+	const char *path, struct hayward_config *config,
+	struct haywardnag_instance *haywardnag
+);
 
 /**
  * Reads the config from the given FILE.
  */
-bool read_config(FILE *file, struct hayward_config *config,
-		struct haywardnag_instance *haywardnag);
+bool read_config(
+	FILE *file, struct hayward_config *config,
+	struct haywardnag_instance *haywardnag
+);
 
 /**
  * Run the commands that were deferred when reading the config file.
@@ -611,26 +620,28 @@ void free_config(struct hayward_config *config);
 void free_hayward_variable(struct hayward_variable *var);
 
 /**
- * Does variable replacement for a string based on the config's currently loaded variables.
+ * Does variable replacement for a string based on the config's currently loaded
+ * variables.
  */
 char *do_var_replacement(char *str);
 
 int input_identifier_cmp(const void *item, const void *data);
 
-struct input_config *new_input_config(const char* identifier);
+struct input_config *new_input_config(const char *identifier);
 
 void merge_input_config(struct input_config *dst, struct input_config *src);
 
 struct input_config *store_input_config(struct input_config *ic, char **error);
 
-void input_config_fill_rule_names(struct input_config *ic,
-		struct xkb_rule_names *rules);
+void input_config_fill_rule_names(
+	struct input_config *ic, struct xkb_rule_names *rules
+);
 
 void free_input_config(struct input_config *ic);
 
 int seat_name_cmp(const void *item, const void *data);
 
-struct seat_config *new_seat_config(const char* name);
+struct seat_config *new_seat_config(const char *name);
 
 void merge_seat_config(struct seat_config *dst, struct seat_config *src);
 
@@ -640,25 +651,31 @@ void free_seat_config(struct seat_config *ic);
 
 struct seat_attachment_config *seat_attachment_config_new(void);
 
-struct seat_attachment_config *seat_config_get_attachment(
-		struct seat_config *seat_config, char *identifier);
+struct seat_attachment_config *
+seat_config_get_attachment(struct seat_config *seat_config, char *identifier);
 
 struct seat_config *store_seat_config(struct seat_config *seat);
 
 int output_name_cmp(const void *item, const void *data);
 
-void output_get_identifier(char *identifier, size_t len,
-	struct hayward_output *output);
+void output_get_identifier(
+	char *identifier, size_t len, struct hayward_output *output
+);
 
-const char *hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
+const char *
+hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
 
 struct output_config *new_output_config(const char *name);
 
 void merge_output_config(struct output_config *dst, struct output_config *src);
 
-bool apply_output_config(struct output_config *oc, struct hayward_output *output);
+bool apply_output_config(
+	struct output_config *oc, struct hayward_output *output
+);
 
-bool test_output_config(struct output_config *oc, struct hayward_output *output);
+bool test_output_config(
+	struct output_config *oc, struct hayward_output *output
+);
 
 struct output_config *store_output_config(struct output_config *oc);
 
@@ -678,7 +695,9 @@ void free_hayward_binding(struct hayward_binding *sb);
 
 void free_switch_binding(struct hayward_switch_binding *binding);
 
-void seat_execute_command(struct hayward_seat *seat, struct hayward_binding *binding);
+void seat_execute_command(
+	struct hayward_seat *seat, struct hayward_binding *binding
+);
 
 void load_haywardbar(struct bar_config *bar);
 

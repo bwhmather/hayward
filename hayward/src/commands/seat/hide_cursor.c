@@ -1,12 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/seat.h"
-#include "hayward/input/cursor.h"
-#include "hayward/server.h"
+
 #include "hayward-common/stringop.h"
 #include "hayward-common/util.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/input/cursor.h"
+#include "hayward/input/seat.h"
+#include "hayward/server.h"
 
 struct cmd_results *seat_cmd_hide_cursor(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -33,11 +35,14 @@ struct cmd_results *seat_cmd_hide_cursor(int argc, char **argv) {
 		seat_config->hide_cursor_timeout = timeout;
 	} else {
 		if (strcmp(argv[0], "when-typing") != 0) {
-			return cmd_results_new(CMD_INVALID,
-				"Expected 'hide_cursor <timeout>|when-typing [enable|disable]'");
+			return cmd_results_new(
+				CMD_INVALID,
+				"Expected 'hide_cursor <timeout>|when-typing [enable|disable]'"
+			);
 		}
-		seat_config->hide_cursor_when_typing = parse_boolean(argv[1], true) ?
-			HIDE_WHEN_TYPING_ENABLE : HIDE_WHEN_TYPING_DISABLE;
+		seat_config->hide_cursor_when_typing = parse_boolean(argv[1], true)
+			? HIDE_WHEN_TYPING_ENABLE
+			: HIDE_WHEN_TYPING_DISABLE;
 
 		// Invalidate all the caches for this config
 		struct hayward_seat *seat = NULL;

@@ -1,23 +1,29 @@
+#include "haywardbar/tray/tray.h"
+
 #include <cairo.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "haywardbar/config.h"
-#include "haywardbar/bar.h"
-#include "haywardbar/tray/icon.h"
-#include "haywardbar/tray/host.h"
-#include "haywardbar/tray/item.h"
-#include "haywardbar/tray/tray.h"
-#include "haywardbar/tray/watcher.h"
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 
-static int handle_lost_watcher(sd_bus_message *msg,
-		void *data, sd_bus_error *error) {
+#include "haywardbar/bar.h"
+#include "haywardbar/config.h"
+#include "haywardbar/tray/host.h"
+#include "haywardbar/tray/icon.h"
+#include "haywardbar/tray/item.h"
+#include "haywardbar/tray/watcher.h"
+
+static int
+handle_lost_watcher(sd_bus_message *msg, void *data, sd_bus_error *error) {
 	char *service, *old_owner, *new_owner;
 	int ret = sd_bus_message_read(msg, "sss", &service, &old_owner, &new_owner);
 	if (ret < 0) {
-		hayward_log(HAYWARD_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
+		hayward_log(
+			HAYWARD_ERROR, "Failed to parse owner change message: %s",
+			strerror(-ret)
+		);
 		return ret;
 	}
 
@@ -39,7 +45,9 @@ struct haywardbar_tray *create_tray(struct haywardbar *bar) {
 	sd_bus *bus;
 	int ret = sd_bus_open_user(&bus);
 	if (ret < 0) {
-		hayward_log(HAYWARD_ERROR, "Failed to connect to user bus: %s", strerror(-ret));
+		hayward_log(
+			HAYWARD_ERROR, "Failed to connect to user bus: %s", strerror(-ret)
+		);
 		return NULL;
 	}
 
@@ -54,12 +62,15 @@ struct haywardbar_tray *create_tray(struct haywardbar *bar) {
 	tray->watcher_xdg = create_watcher("freedesktop", tray->bus);
 	tray->watcher_kde = create_watcher("kde", tray->bus);
 
-	ret = sd_bus_match_signal(bus, NULL, "org.freedesktop.DBus",
-			"/org/freedesktop/DBus", "org.freedesktop.DBus",
-			"NameOwnerChanged", handle_lost_watcher, tray);
+	ret = sd_bus_match_signal(
+		bus, NULL, "org.freedesktop.DBus", "/org/freedesktop/DBus",
+		"org.freedesktop.DBus", "NameOwnerChanged", handle_lost_watcher, tray
+	);
 	if (ret < 0) {
-		hayward_log(HAYWARD_ERROR, "Failed to subscribe to unregistering events: %s",
-				strerror(-ret));
+		hayward_log(
+			HAYWARD_ERROR, "Failed to subscribe to unregistering events: %s",
+			strerror(-ret)
+		);
 	}
 
 	tray->items = create_list();
@@ -108,7 +119,8 @@ static int cmp_output(const void *item, const void *cmp_to) {
 	return strcmp(item, output->name);
 }
 
-uint32_t render_tray(cairo_t *cairo, struct haywardbar_output *output, double *x) {
+uint32_t
+render_tray(cairo_t *cairo, struct haywardbar_output *output, double *x) {
 	struct haywardbar_config *config = output->bar->config;
 	if (config->tray_outputs) {
 		if (list_seq_find(config->tray_outputs, cmp_output, output) == -1) {

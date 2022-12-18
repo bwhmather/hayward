@@ -1,8 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "hayward/commands.h"
+
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
+
+#include "hayward/commands.h"
 
 struct cmd_results *bar_cmd_font(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -25,7 +27,9 @@ struct cmd_results *bar_cmd_font(int argc, char **argv) {
 	}
 
 	free(font);
-	hayward_log(HAYWARD_DEBUG, "Settings font '%s' for bar: %s",
-			config->current_bar->font, config->current_bar->id);
+	hayward_log(
+		HAYWARD_DEBUG, "Settings font '%s' for bar: %s",
+		config->current_bar->font, config->current_bar->id
+	);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

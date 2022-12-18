@@ -1,21 +1,22 @@
 #include <float.h>
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
+
 #include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
+
 #include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
 #include "hayward/input/cursor.h"
+#include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 #include "hayward/output.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
 
-static bool parse_direction(const char *name,
-		enum wlr_direction *out) {
+static bool parse_direction(const char *name, enum wlr_direction *out) {
 	if (strcasecmp(name, "left") == 0) {
 		*out = WLR_DIRECTION_LEFT;
 	} else if (strcasecmp(name, "right") == 0) {
@@ -37,7 +38,9 @@ static bool parse_direction(const char *name,
  *
  *  Node should always be either a workspace or a window.
  */
-static struct hayward_window *get_window_in_output_direction(struct hayward_output *output, enum wlr_direction dir) {
+static struct hayward_window *get_window_in_output_direction(
+	struct hayward_output *output, enum wlr_direction dir
+) {
 	hayward_assert(output != NULL, "Expected output");
 
 	struct hayward_workspace *workspace = root_get_active_workspace();
@@ -50,12 +53,14 @@ static struct hayward_window *get_window_in_output_direction(struct hayward_outp
 	struct hayward_column *column = NULL;
 	struct hayward_window *window = NULL;
 
-	// TODO this is completly broken now that one workspace is spread across all outputs.
+	// TODO this is completly broken now that one workspace is spread across all
+	// outputs.
 	if (workspace->pending.tiling->length > 0) {
 		switch (dir) {
 		case WLR_DIRECTION_LEFT:
 			// get most right child of new output
-			column = workspace->pending.tiling->items[workspace->pending.tiling->length-1];
+			column = workspace->pending.tiling
+						 ->items[workspace->pending.tiling->length - 1];
 			window = column->pending.active_child;
 			break;
 		case WLR_DIRECTION_RIGHT:
@@ -76,8 +81,9 @@ static struct hayward_window *get_window_in_output_direction(struct hayward_outp
 }
 
 static struct hayward_window *window_get_in_direction_tiling(
-		struct hayward_window *window, struct hayward_seat *seat,
-		enum wlr_direction dir) {
+	struct hayward_window *window, struct hayward_seat *seat,
+	enum wlr_direction dir
+) {
 	struct hayward_window *wrap_candidate = NULL;
 
 	if (window->pending.fullscreen) {
@@ -91,8 +97,8 @@ static struct hayward_window *window_get_in_direction_tiling(
 		return get_window_in_output_direction(new_output, dir);
 	}
 
-	// TODO (hayward) this is a manually unrolled recursion over container.  Make it nice.
-	// Window iteration.
+	// TODO (hayward) this is a manually unrolled recursion over container. Make
+	// it nice. Window iteration.
 	if (dir == WLR_DIRECTION_UP || dir == WLR_DIRECTION_DOWN) {
 		// Try to move up and down within the current column.
 		int current_idx = window_sibling_index(window);
@@ -104,7 +110,8 @@ static struct hayward_window *window_get_in_direction_tiling(
 			return siblings->items[desired_idx];
 		}
 
-		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
+		if (config->focus_wrapping != WRAP_NO && !wrap_candidate &&
+			siblings->length > 1) {
 			if (desired_idx < 0) {
 				wrap_candidate = siblings->items[siblings->length - 1];
 			} else {
@@ -126,11 +133,13 @@ static struct hayward_window *window_get_in_direction_tiling(
 
 		if (desired_idx >= 0 && desired_idx < siblings->length) {
 			struct hayward_column *next_column = siblings->items[desired_idx];
-			struct hayward_window *next_window = next_column->pending.active_child;
+			struct hayward_window *next_window =
+				next_column->pending.active_child;
 			return next_window;
 		}
 
-		if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
+		if (config->focus_wrapping != WRAP_NO && !wrap_candidate &&
+			siblings->length > 1) {
 			struct hayward_column *wrap_candidate_column;
 			if (desired_idx < 0) {
 				wrap_candidate_column = siblings->items[siblings->length - 1];
@@ -160,8 +169,9 @@ static struct hayward_window *window_get_in_direction_tiling(
 }
 
 static struct hayward_window *window_get_in_direction_floating(
-		struct hayward_window *container, struct hayward_seat *seat,
-		enum wlr_direction dir) {
+	struct hayward_window *container, struct hayward_seat *seat,
+	enum wlr_direction dir
+) {
 	double ref_lx = container->pending.x + container->pending.width / 2;
 	double ref_ly = container->pending.y + container->pending.height / 2;
 	double closest_distance = DBL_MAX;
@@ -171,8 +181,10 @@ static struct hayward_window *window_get_in_direction_floating(
 		return NULL;
 	}
 
-	for (int i = 0; i < container->pending.workspace->pending.floating->length; i++) {
-		struct hayward_window *floater = container->pending.workspace->pending.floating->items[i];
+	for (int i = 0; i < container->pending.workspace->pending.floating->length;
+		 i++) {
+		struct hayward_window *floater =
+			container->pending.workspace->pending.floating->items[i];
 		if (floater == container) {
 			continue;
 		}
@@ -194,7 +206,8 @@ static struct hayward_window *window_get_in_direction_floating(
 	return closest_container;
 }
 
-static struct cmd_results *focus_mode(struct hayward_workspace *workspace, bool floating) {
+static struct cmd_results *
+focus_mode(struct hayward_workspace *workspace, bool floating) {
 	struct hayward_window *new_focus = NULL;
 	if (floating) {
 		new_focus = workspace_get_active_floating_window(workspace);
@@ -204,9 +217,10 @@ static struct cmd_results *focus_mode(struct hayward_workspace *workspace, bool 
 	if (new_focus) {
 		workspace_set_active_window(workspace, new_focus);
 	} else {
-		return cmd_results_new(CMD_FAILURE,
-				"Failed to find a %s container in workspace.",
-				floating ? "floating" : "tiling");
+		return cmd_results_new(
+			CMD_FAILURE, "Failed to find a %s container in workspace.",
+			floating ? "floating" : "tiling"
+		);
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -216,8 +230,10 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 		return cmd_results_new(CMD_DEFER, NULL);
 	}
 	if (!root->outputs->length) {
-		return cmd_results_new(CMD_INVALID,
-				"Can't run this command while there are no outputs connected.");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Can't run this command while there are no outputs connected."
+		);
 	}
 	struct hayward_workspace *workspace = config->handler_context.workspace;
 	struct hayward_seat *seat = config->handler_context.seat;
@@ -228,8 +244,10 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 	struct hayward_window *window = root_get_focused_window();
 
 	if (argc == 0) {
-		return cmd_results_new(CMD_INVALID,
-			"Expected 'focus <direction|mode_toggle|floating|tiling>' ");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Expected 'focus <direction|mode_toggle|floating|tiling>' "
+		);
 	}
 
 	if (strcmp(argv[0], "floating") == 0) {
@@ -243,8 +261,10 @@ struct cmd_results *cmd_focus(int argc, char **argv) {
 
 	enum wlr_direction direction = 0;
 	if (!parse_direction(argv[0], &direction)) {
-		return cmd_results_new(CMD_INVALID,
-			"Expected 'focus <direction|mode_toggle|floating|tiling>' ");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Expected 'focus <direction|mode_toggle|floating|tiling>' "
+		);
 	}
 
 	if (!direction) {

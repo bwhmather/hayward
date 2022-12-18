@@ -1,10 +1,14 @@
-#include "hayward/config.h"
 #include "hayward/input/switch.h"
+
 #include <wlr/types/wlr_idle.h>
+
 #include "hayward-common/log.h"
 
-struct hayward_switch *hayward_switch_create(struct hayward_seat *seat,
-		struct hayward_seat_device *device) {
+#include "hayward/config.h"
+
+struct hayward_switch *hayward_switch_create(
+	struct hayward_seat *seat, struct hayward_seat_device *device
+) {
 	struct hayward_switch *switch_device =
 		calloc(1, sizeof(struct hayward_switch));
 	hayward_assert(switch_device, "could not allocate switch");
@@ -17,8 +21,9 @@ struct hayward_switch *hayward_switch_create(struct hayward_seat *seat,
 	return switch_device;
 }
 
-static bool hayward_switch_trigger_test(enum hayward_switch_trigger trigger,
-		enum wlr_switch_state state) {
+static bool hayward_switch_trigger_test(
+	enum hayward_switch_trigger trigger, enum wlr_switch_state state
+) {
 	switch (trigger) {
 	case HAYWARD_SWITCH_TRIGGER_ON:
 		return state == WLR_SWITCH_STATE_ON;
@@ -31,9 +36,9 @@ static bool hayward_switch_trigger_test(enum hayward_switch_trigger trigger,
 }
 
 static void execute_binding(struct hayward_switch *hayward_switch) {
-	struct hayward_seat* seat = hayward_switch->seat_device->hayward_seat;
-	bool input_inhibited = seat->exclusive_client != NULL ||
-		server.session_lock.locked;
+	struct hayward_seat *seat = hayward_switch->seat_device->hayward_seat;
+	bool input_inhibited =
+		seat->exclusive_client != NULL || server.session_lock.locked;
 
 	list_t *bindings = config->current_mode->switch_bindings;
 	struct hayward_switch_binding *matched_binding = NULL;
@@ -42,11 +47,14 @@ static void execute_binding(struct hayward_switch *hayward_switch) {
 		if (binding->type != hayward_switch->type) {
 			continue;
 		}
-		if (!hayward_switch_trigger_test(binding->trigger, hayward_switch->state)) {
+		if (!hayward_switch_trigger_test(
+				binding->trigger, hayward_switch->state
+			)) {
 			continue;
 		}
-		if (config->reloading && (binding->trigger == HAYWARD_SWITCH_TRIGGER_TOGGLE
-				|| (binding->flags & BINDING_RELOAD) == 0)) {
+		if (config->reloading &&
+			(binding->trigger == HAYWARD_SWITCH_TRIGGER_TOGGLE ||
+			 (binding->flags & BINDING_RELOAD) == 0)) {
 			continue;
 		}
 		bool binding_locked = binding->flags & BINDING_LOCKED;
@@ -75,7 +83,7 @@ static void execute_binding(struct hayward_switch *hayward_switch) {
 
 static void handle_switch_toggle(struct wl_listener *listener, void *data) {
 	struct hayward_switch *hayward_switch =
-			wl_container_of(listener, hayward_switch, switch_toggle);
+		wl_container_of(listener, hayward_switch, switch_toggle);
 	struct wlr_switch_toggle_event *event = data;
 	struct hayward_seat *seat = hayward_switch->seat_device->hayward_seat;
 	seat_idle_notify_activity(seat, IDLE_SOURCE_SWITCH);
@@ -83,8 +91,10 @@ static void handle_switch_toggle(struct wl_listener *listener, void *data) {
 	struct wlr_input_device *wlr_device =
 		hayward_switch->seat_device->input_device->wlr_device;
 	char *device_identifier = input_device_get_identifier(wlr_device);
-	hayward_log(HAYWARD_DEBUG, "%s: type %d state %d", device_identifier,
-			event->switch_type, event->switch_state);
+	hayward_log(
+		HAYWARD_DEBUG, "%s: type %d state %d", device_identifier,
+		event->switch_type, event->switch_state
+	);
 	free(device_identifier);
 
 	hayward_switch->type = event->switch_type;
@@ -96,8 +106,10 @@ void hayward_switch_configure(struct hayward_switch *hayward_switch) {
 	struct wlr_input_device *wlr_device =
 		hayward_switch->seat_device->input_device->wlr_device;
 	wl_list_remove(&hayward_switch->switch_toggle.link);
-	wl_signal_add(&wlr_device->switch_device->events.toggle,
-			&hayward_switch->switch_toggle);
+	wl_signal_add(
+		&wlr_device->switch_device->events.toggle,
+		&hayward_switch->switch_toggle
+	);
 	hayward_switch->switch_toggle.notify = handle_switch_toggle;
 	hayward_log(HAYWARD_DEBUG, "Configured switch for device");
 }
@@ -115,7 +127,8 @@ void hayward_switch_retrigger_bindings_for_all(void) {
 	wl_list_for_each(seat, &server.input->seats, link) {
 		struct hayward_seat_device *seat_device;
 		wl_list_for_each(seat_device, &seat->devices, link) {
-			struct hayward_input_device *input_device = seat_device->input_device;
+			struct hayward_input_device *input_device =
+				seat_device->input_device;
 			if (input_device->wlr_device->type != WLR_INPUT_DEVICE_SWITCH) {
 				continue;
 			}

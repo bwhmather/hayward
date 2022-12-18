@@ -1,10 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
+
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/tree/view.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
 
 struct cmd_results *cmd_title_format(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -13,8 +15,9 @@ struct cmd_results *cmd_title_format(int argc, char **argv) {
 	}
 	struct hayward_window *window = config->handler_context.window;
 	if (!window) {
-		return cmd_results_new(CMD_INVALID,
-				"Only views can have a title_format");
+		return cmd_results_new(
+			CMD_INVALID, "Only views can have a title_format"
+		);
 	}
 	struct hayward_view *view = window->view;
 	char *format = join_args(argv, argc);

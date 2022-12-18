@@ -1,7 +1,9 @@
 #include <string.h>
-#include "hayward/commands.h"
+
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
+
+#include "hayward/commands.h"
 
 struct cmd_results *bar_cmd_status_command(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -14,8 +16,10 @@ struct cmd_results *bar_cmd_status_command(int argc, char **argv) {
 	char *new_command = join_args(argv, argc);
 	if (strcmp(new_command, "-") != 0) {
 		config->current_bar->status_command = new_command;
-		hayward_log(HAYWARD_DEBUG, "Feeding bar with status command: %s",
-				config->current_bar->status_command);
+		hayward_log(
+			HAYWARD_DEBUG, "Feeding bar with status command: %s",
+			config->current_bar->status_command
+		);
 	} else {
 		free(new_command);
 	}

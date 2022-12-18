@@ -1,21 +1,23 @@
 #define _POSIX_C_SOURCE 200809L
-#include <linux/input-event-codes.h>
+#include "hayward/input/cursor.h"
 
+#include <linux/input-event-codes.h>
 #include <strings.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_pointer.h>
+
 #include "hayward/commands.h"
-#include "hayward/input/cursor.h"
 
-static struct cmd_results *press_or_release(struct hayward_cursor *cursor,
-		char *action, char *button_str);
+static struct cmd_results *
+press_or_release(struct hayward_cursor *cursor, char *action, char *button_str);
 
-static const char expected_syntax[] = "Expected 'cursor <move> <x> <y>' or "
-					"'cursor <set> <x> <y>' or "
-					"'cursor <press|release> <button[1-9]|event-name-or-code>'";
+static const char expected_syntax[] =
+	"Expected 'cursor <move> <x> <y>' or "
+	"'cursor <set> <x> <y>' or "
+	"'cursor <press|release> <button[1-9]|event-name-or-code>'";
 
-static struct cmd_results *handle_command(struct hayward_cursor *cursor,
-		int argc, char **argv) {
+static struct cmd_results *
+handle_command(struct hayward_cursor *cursor, int argc, char **argv) {
 	if (strcasecmp(argv[0], "move") == 0) {
 		if (argc < 3) {
 			return cmd_results_new(CMD_INVALID, expected_syntax);
@@ -66,8 +68,9 @@ struct cmd_results *seat_cmd_cursor(int argc, char **argv) {
 	if (strcmp(sc->name, "*") != 0) {
 		struct hayward_seat *seat = input_manager_get_seat(sc->name, false);
 		if (!seat) {
-			return cmd_results_new(CMD_FAILURE,
-					"Seat %s does not exist", sc->name);
+			return cmd_results_new(
+				CMD_FAILURE, "Seat %s does not exist", sc->name
+			);
 		}
 		error = handle_command(seat->cursor, argc, argv);
 	} else {
@@ -83,8 +86,9 @@ struct cmd_results *seat_cmd_cursor(int argc, char **argv) {
 	return error ? error : cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *press_or_release(struct hayward_cursor *cursor,
-		char *action, char *button_str) {
+static struct cmd_results *press_or_release(
+	struct hayward_cursor *cursor, char *action, char *button_str
+) {
 	enum wlr_button_state state;
 	uint32_t button;
 	if (strcasecmp(action, "press") == 0) {
@@ -98,27 +102,25 @@ static struct cmd_results *press_or_release(struct hayward_cursor *cursor,
 	char *message = NULL;
 	button = get_mouse_button(button_str, &message);
 	if (message) {
-		struct cmd_results *error =
-			cmd_results_new(CMD_INVALID, message);
+		struct cmd_results *error = cmd_results_new(CMD_INVALID, message);
 		free(message);
 		return error;
-	} else if (button == HAYWARD_SCROLL_UP || button == HAYWARD_SCROLL_DOWN
-			|| button == HAYWARD_SCROLL_LEFT || button == HAYWARD_SCROLL_RIGHT) {
+	} else if (button == HAYWARD_SCROLL_UP || button == HAYWARD_SCROLL_DOWN || button == HAYWARD_SCROLL_LEFT || button == HAYWARD_SCROLL_RIGHT) {
 		// Dispatch axis event
 		enum wlr_axis_orientation orientation =
 			(button == HAYWARD_SCROLL_UP || button == HAYWARD_SCROLL_DOWN)
 			? WLR_AXIS_ORIENTATION_VERTICAL
 			: WLR_AXIS_ORIENTATION_HORIZONTAL;
-		double delta = (button == HAYWARD_SCROLL_UP || button == HAYWARD_SCROLL_LEFT)
-			? -1 : 1;
+		double delta =
+			(button == HAYWARD_SCROLL_UP || button == HAYWARD_SCROLL_LEFT) ? -1
+																		   : 1;
 		struct wlr_pointer_axis_event event = {
 			.pointer = NULL,
 			.time_msec = 0,
 			.source = WLR_AXIS_SOURCE_WHEEL,
 			.orientation = orientation,
 			.delta = delta * 15,
-			.delta_discrete = delta
-		};
+			.delta_discrete = delta};
 		dispatch_cursor_axis(cursor, &event);
 		wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
 		return cmd_results_new(CMD_SUCCESS, NULL);

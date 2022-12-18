@@ -10,14 +10,17 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <wordexp.h>
-#include "hayward/config.h"
-#include "hayward/input/keyboard.h"
-#include "hayward/output.h"
-#include "config.h"
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 #include "hayward-common/util.h"
+
+#include "hayward/config.h"
+#include "hayward/input/keyboard.h"
+#include "hayward/output.h"
+
+#include "config.h"
 
 void free_bar_binding(struct bar_binding *binding) {
 	if (!binding) {
@@ -107,7 +110,7 @@ struct bar_config *default_bar_config(void) {
 	bar->status_edge_padding = 3;
 	bar->workspace_min_width = 0;
 	if (!(bar->mode = strdup("dock"))) {
-	       goto cleanup;
+		goto cleanup;
 	}
 	if (!(bar->hidden_state = strdup("hide"))) {
 		goto cleanup;
@@ -181,8 +184,8 @@ cleanup:
 	return NULL;
 }
 
-static void handle_haywardbar_client_destroy(struct wl_listener *listener,
-		void *data) {
+static void
+handle_haywardbar_client_destroy(struct wl_listener *listener, void *data) {
 	struct bar_config *bar = wl_container_of(listener, bar, client_destroy);
 	wl_list_remove(&bar->client_destroy.link);
 	wl_list_init(&bar->client_destroy.link);
@@ -195,7 +198,8 @@ static void invoke_haywardbar(struct bar_config *bar) {
 		hayward_log_errno(HAYWARD_ERROR, "socketpair failed");
 		return;
 	}
-	if (!hayward_set_cloexec(sockets[0], true) || !hayward_set_cloexec(sockets[1], true)) {
+	if (!hayward_set_cloexec(sockets[0], true) ||
+		!hayward_set_cloexec(sockets[1], true)) {
 		return;
 	}
 
@@ -231,14 +235,16 @@ static void invoke_haywardbar(struct bar_config *bar) {
 			}
 
 			char wayland_socket_str[16];
-			snprintf(wayland_socket_str, sizeof(wayland_socket_str),
-					"%d", sockets[1]);
+			snprintf(
+				wayland_socket_str, sizeof(wayland_socket_str), "%d", sockets[1]
+			);
 			setenv("WAYLAND_SOCKET", wayland_socket_str, true);
 
 			// run custom haywardbar
 			char *const cmd[] = {
-					bar->haywardbar_command ? bar->haywardbar_command : "haywardbar",
-					"-b", bar->id, NULL};
+				bar->haywardbar_command ? bar->haywardbar_command
+										: "haywardbar",
+				"-b", bar->id, NULL};
 			execvp(cmd[0], cmd);
 			_exit(EXIT_FAILURE);
 		}

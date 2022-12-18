@@ -27,14 +27,14 @@ enum background_mode parse_background_mode(const char *mode) {
 }
 
 #if HAVE_GDK_PIXBUF
-static cairo_surface_t* gdk_cairo_image_surface_create_from_pixbuf(
-		const GdkPixbuf *gdkbuf) {
+static cairo_surface_t *
+gdk_cairo_image_surface_create_from_pixbuf(const GdkPixbuf *gdkbuf) {
 	int chan = gdk_pixbuf_get_n_channels(gdkbuf);
 	if (chan < 3) {
 		return NULL;
 	}
 
-	const guint8* gdkpix = gdk_pixbuf_read_pixels(gdkbuf);
+	const guint8 *gdkpix = gdk_pixbuf_read_pixels(gdkbuf);
 	if (!gdkpix) {
 		return NULL;
 	}
@@ -43,21 +43,21 @@ static cairo_surface_t* gdk_cairo_image_surface_create_from_pixbuf(
 	int stride = gdk_pixbuf_get_rowstride(gdkbuf);
 
 	cairo_format_t fmt = (chan == 3) ? CAIRO_FORMAT_RGB24 : CAIRO_FORMAT_ARGB32;
-	cairo_surface_t * cs = cairo_image_surface_create (fmt, w, h);
-	cairo_surface_flush (cs);
-	if ( !cs || cairo_surface_status(cs) != CAIRO_STATUS_SUCCESS) {
+	cairo_surface_t *cs = cairo_image_surface_create(fmt, w, h);
+	cairo_surface_flush(cs);
+	if (!cs || cairo_surface_status(cs) != CAIRO_STATUS_SUCCESS) {
 		return NULL;
 	}
 
 	int cstride = cairo_image_surface_get_stride(cs);
-	unsigned char * cpix = cairo_image_surface_get_data(cs);
+	unsigned char *cpix = cairo_image_surface_get_data(cs);
 
 	if (chan == 3) {
 		int i;
 		for (i = h; i; --i) {
 			const guint8 *gp = gdkpix;
 			unsigned char *cp = cpix;
-			const guint8* end = gp + 3*w;
+			const guint8 *end = gp + 3 * w;
 			while (gp < end) {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
 				cp[0] = gp[2];
@@ -89,14 +89,17 @@ static cairo_surface_t* gdk_cairo_image_surface_create_from_pixbuf(
 		 * ------
 		 * tested as equal to lround(z/255.0) for uint z in [0..0xfe02]
 		 */
-#define PREMUL_ALPHA(x,a,b,z) \
-		G_STMT_START { z = a * b + 0x80; x = (z + (z >> 8)) >> 8; } \
-		G_STMT_END
+#define PREMUL_ALPHA(x, a, b, z)                                               \
+	G_STMT_START {                                                             \
+		z = a * b + 0x80;                                                      \
+		x = (z + (z >> 8)) >> 8;                                               \
+	}                                                                          \
+	G_STMT_END
 		int i;
 		for (i = h; i; --i) {
 			const guint8 *gp = gdkpix;
 			unsigned char *cp = cpix;
-			const guint8* end = gp + 4*w;
+			const guint8 *end = gp + 4 * w;
 			guint z1, z2, z3;
 			while (gp < end) {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
@@ -129,8 +132,9 @@ cairo_surface_t *load_background_image(const char *path) {
 	GError *err = NULL;
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, &err);
 	if (!pixbuf) {
-		hayward_log(HAYWARD_ERROR, "Failed to load background image (%s).",
-				err->message);
+		hayward_log(
+			HAYWARD_ERROR, "Failed to load background image (%s).", err->message
+		);
 		return NULL;
 	}
 	image = gdk_cairo_image_surface_create_from_pixbuf(pixbuf);
@@ -144,30 +148,37 @@ cairo_surface_t *load_background_image(const char *path) {
 	}
 	if (cairo_surface_status(image) != CAIRO_STATUS_SUCCESS) {
 #if !HAVE_GDK_PIXBUF
-		hayward_log(HAYWARD_ERROR, "Failed to read background image: %s."
-				"\nHayward was compiled without gdk_pixbuf support, so only"
-				"\nPNG images can be loaded. This is the likely cause."
-				, cairo_status_to_string(cairo_surface_status(image)));
+		hayward_log(
+			HAYWARD_ERROR,
+			"Failed to read background image: %s."
+			"\nHayward was compiled without gdk_pixbuf support, so only"
+			"\nPNG images can be loaded. This is the likely cause.",
+			cairo_status_to_string(cairo_surface_status(image))
+		);
 #else
-		hayward_log(HAYWARD_ERROR, "Failed to read background image: %s."
-				, cairo_status_to_string(cairo_surface_status(image)));
+		hayward_log(
+			HAYWARD_ERROR, "Failed to read background image: %s.",
+			cairo_status_to_string(cairo_surface_status(image))
+		);
 #endif // HAVE_GDK_PIXBUF
 		return NULL;
 	}
 	return image;
 }
 
-void render_background_image(cairo_t *cairo, cairo_surface_t *image,
-		enum background_mode mode, int buffer_width, int buffer_height) {
+void render_background_image(
+	cairo_t *cairo, cairo_surface_t *image, enum background_mode mode,
+	int buffer_width, int buffer_height
+) {
 	double width = cairo_image_surface_get_width(image);
 	double height = cairo_image_surface_get_height(image);
 
 	cairo_save(cairo);
 	switch (mode) {
 	case BACKGROUND_MODE_STRETCH:
-		cairo_scale(cairo,
-				(double)buffer_width / width,
-				(double)buffer_height / height);
+		cairo_scale(
+			cairo, (double)buffer_width / width, (double)buffer_height / height
+		);
 		cairo_set_source_surface(cairo, image, 0, 0);
 		break;
 	case BACKGROUND_MODE_FILL: {
@@ -177,13 +188,15 @@ void render_background_image(cairo_t *cairo, cairo_surface_t *image,
 		if (window_ratio > bg_ratio) {
 			double scale = (double)buffer_width / width;
 			cairo_scale(cairo, scale, scale);
-			cairo_set_source_surface(cairo, image,
-					0, (double)buffer_height / 2 / scale - height / 2);
+			cairo_set_source_surface(
+				cairo, image, 0, (double)buffer_height / 2 / scale - height / 2
+			);
 		} else {
 			double scale = (double)buffer_height / height;
 			cairo_scale(cairo, scale, scale);
-			cairo_set_source_surface(cairo, image,
-					(double)buffer_width / 2 / scale - width / 2, 0);
+			cairo_set_source_surface(
+				cairo, image, (double)buffer_width / 2 / scale - width / 2, 0
+			);
 		}
 		break;
 	}
@@ -194,20 +207,23 @@ void render_background_image(cairo_t *cairo, cairo_surface_t *image,
 		if (window_ratio > bg_ratio) {
 			double scale = (double)buffer_height / height;
 			cairo_scale(cairo, scale, scale);
-			cairo_set_source_surface(cairo, image,
-					(double)buffer_width / 2 / scale - width / 2, 0);
+			cairo_set_source_surface(
+				cairo, image, (double)buffer_width / 2 / scale - width / 2, 0
+			);
 		} else {
 			double scale = (double)buffer_width / width;
 			cairo_scale(cairo, scale, scale);
-			cairo_set_source_surface(cairo, image,
-					0, (double)buffer_height / 2 / scale - height / 2);
+			cairo_set_source_surface(
+				cairo, image, 0, (double)buffer_height / 2 / scale - height / 2
+			);
 		}
 		break;
 	}
 	case BACKGROUND_MODE_CENTER:
-		cairo_set_source_surface(cairo, image,
-				(double)buffer_width / 2 - width / 2,
-				(double)buffer_height / 2 - height / 2);
+		cairo_set_source_surface(
+			cairo, image, (double)buffer_width / 2 - width / 2,
+			(double)buffer_height / 2 - height / 2
+		);
 		break;
 	case BACKGROUND_MODE_TILE: {
 		cairo_pattern_t *pattern = cairo_pattern_create_for_surface(image);

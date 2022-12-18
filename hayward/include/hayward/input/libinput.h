@@ -2,7 +2,8 @@
 #define _HAYWARD_INPUT_LIBINPUT_H
 #include "hayward/input/input-manager.h"
 
-void hayward_input_configure_libinput_device(struct hayward_input_device *device);
+void hayward_input_configure_libinput_device(struct hayward_input_device *device
+);
 
 void hayward_input_reset_libinput_device(struct hayward_input_device *device);
 

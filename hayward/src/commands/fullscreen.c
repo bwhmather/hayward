@@ -1,14 +1,17 @@
 #include <strings.h>
+
 #include "hayward-common/log.h"
+#include "hayward-common/util.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/tree/arrange.h"
-#include "hayward/tree/window.h"
 #include "hayward/tree/view.h"
+#include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/util.h"
 
-static const char expected_syntax[] = "Expected `fullscreen [enable|disable|toggle]`";
+static const char expected_syntax[] =
+	"Expected `fullscreen [enable|disable|toggle]`";
 
 struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -16,8 +19,10 @@ struct cmd_results *cmd_fullscreen(int argc, char **argv) {
 		return error;
 	}
 	if (!root->outputs->length) {
-		return cmd_results_new(CMD_FAILURE,
-				"Can't run this command while there's no outputs connected.");
+		return cmd_results_new(
+			CMD_FAILURE,
+			"Can't run this command while there's no outputs connected."
+		);
 	}
 	struct hayward_window *window = config->handler_context.window;
 

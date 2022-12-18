@@ -1,14 +1,18 @@
+#include "hayward/desktop/idle_inhibit_v1.h"
+
 #include <stdlib.h>
 #include <wlr/types/wlr_idle.h>
+
 #include "hayward-common/log.h"
-#include "hayward/desktop/idle_inhibit_v1.h"
+
 #include "hayward/input/seat.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/view.h"
 #include "hayward/server.h"
+#include "hayward/tree/view.h"
+#include "hayward/tree/window.h"
 
 struct hayward_idle_inhibit_manager_v1 *hayward_idle_inhibit_manager_v1_create(
-		struct wl_display *wl_display, struct wlr_idle *idle) {
+	struct wl_display *wl_display, struct wlr_idle *idle
+) {
 	struct hayward_idle_inhibit_manager_v1 *manager =
 		calloc(1, sizeof(struct hayward_idle_inhibit_manager_v1));
 	if (!manager) {
@@ -21,8 +25,10 @@ struct hayward_idle_inhibit_manager_v1 *hayward_idle_inhibit_manager_v1_create(
 		return NULL;
 	}
 	manager->idle = idle;
-	wl_signal_add(&manager->wlr_manager->events.new_inhibitor,
-		&manager->new_idle_inhibitor_v1);
+	wl_signal_add(
+		&manager->wlr_manager->events.new_inhibitor,
+		&manager->new_idle_inhibitor_v1
+	);
 	manager->new_idle_inhibitor_v1.notify = handle_idle_inhibitor_v1;
 	wl_list_init(&manager->inhibitors);
 
@@ -30,7 +36,8 @@ struct hayward_idle_inhibit_manager_v1 *hayward_idle_inhibit_manager_v1_create(
 }
 
 void hayward_idle_inhibit_v1_check_active(
-		struct hayward_idle_inhibit_manager_v1 *manager) {
+	struct hayward_idle_inhibit_manager_v1 *manager
+) {
 	struct hayward_idle_inhibitor_v1 *inhibitor;
 	bool inhibited = false;
 	wl_list_for_each(inhibitor, &manager->inhibitors, link) {
@@ -49,12 +56,15 @@ static void destroy_inhibitor(struct hayward_idle_inhibitor_v1 *inhibitor) {
 }
 
 void hayward_idle_inhibit_v1_user_inhibitor_destroy(
-		struct hayward_idle_inhibitor_v1 *inhibitor) {
+	struct hayward_idle_inhibitor_v1 *inhibitor
+) {
 	if (!inhibitor) {
 		return;
 	}
-	hayward_assert(inhibitor->mode != INHIBIT_IDLE_APPLICATION,
-				"User should not be able to destroy application inhibitor");
+	hayward_assert(
+		inhibitor->mode != INHIBIT_IDLE_APPLICATION,
+		"User should not be able to destroy application inhibitor"
+	);
 	destroy_inhibitor(inhibitor);
 }
 
@@ -88,8 +98,9 @@ void handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
 	hayward_idle_inhibit_v1_check_active(manager);
 }
 
-void hayward_idle_inhibit_v1_user_inhibitor_register(struct hayward_view *view,
-		enum hayward_idle_inhibit_mode mode) {
+void hayward_idle_inhibit_v1_user_inhibitor_register(
+	struct hayward_view *view, enum hayward_idle_inhibit_mode mode
+) {
 	struct hayward_idle_inhibitor_v1 *inhibitor =
 		calloc(1, sizeof(struct hayward_idle_inhibitor_v1));
 	if (!inhibitor) {
@@ -107,37 +118,43 @@ void hayward_idle_inhibit_v1_user_inhibitor_register(struct hayward_view *view,
 	hayward_idle_inhibit_v1_check_active(inhibitor->manager);
 }
 
-struct hayward_idle_inhibitor_v1 *hayward_idle_inhibit_v1_user_inhibitor_for_view(
-		struct hayward_view *view) {
+struct hayward_idle_inhibitor_v1 *
+hayward_idle_inhibit_v1_user_inhibitor_for_view(struct hayward_view *view) {
 	struct hayward_idle_inhibitor_v1 *inhibitor;
-	wl_list_for_each(inhibitor, &server.idle_inhibit_manager_v1->inhibitors,
-			link) {
+	wl_list_for_each(
+		inhibitor, &server.idle_inhibit_manager_v1->inhibitors, link
+	) {
 		if (inhibitor->mode != INHIBIT_IDLE_APPLICATION &&
-				inhibitor->view == view) {
+			inhibitor->view == view) {
 			return inhibitor;
 		}
 	}
 	return NULL;
 }
 
-struct hayward_idle_inhibitor_v1 *hayward_idle_inhibit_v1_application_inhibitor_for_view(
-		struct hayward_view *view) {
+struct hayward_idle_inhibitor_v1 *
+hayward_idle_inhibit_v1_application_inhibitor_for_view(struct hayward_view *view
+) {
 	struct hayward_idle_inhibitor_v1 *inhibitor;
-	wl_list_for_each(inhibitor, &server.idle_inhibit_manager_v1->inhibitors,
-			link) {
+	wl_list_for_each(
+		inhibitor, &server.idle_inhibit_manager_v1->inhibitors, link
+	) {
 		if (inhibitor->mode == INHIBIT_IDLE_APPLICATION &&
-				view_from_wlr_surface(inhibitor->wlr_inhibitor->surface) == view) {
+			view_from_wlr_surface(inhibitor->wlr_inhibitor->surface) == view) {
 			return inhibitor;
 		}
 	}
 	return NULL;
 }
 
-bool hayward_idle_inhibit_v1_is_active(struct hayward_idle_inhibitor_v1 *inhibitor) {
+bool hayward_idle_inhibit_v1_is_active(
+	struct hayward_idle_inhibitor_v1 *inhibitor
+) {
 	switch (inhibitor->mode) {
 	case INHIBIT_IDLE_APPLICATION:;
 		// If there is no view associated with the inhibitor, assume visible
-		struct hayward_view *view = view_from_wlr_surface(inhibitor->wlr_inhibitor->surface);
+		struct hayward_view *view =
+			view_from_wlr_surface(inhibitor->wlr_inhibitor->surface);
 		return !view || !view->window || view_is_visible(view);
 	case INHIBIT_IDLE_FOCUS:;
 		struct hayward_window *window = root_get_focused_window();

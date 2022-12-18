@@ -97,6 +97,7 @@ def normalize_clang_path(path):
 
 
 class DeclarationOrderTestCase(unittest.TestCase):
+    maxDiff=2000
     def test_source_and_header_orders_match(self):
         for source_path in enumerate_source_files():
             with self.subTest(file=source_path):
@@ -129,8 +130,9 @@ class DeclarationOrderTestCase(unittest.TestCase):
                     and normalize_clang_path(node.location.file.name)
                     == normalize_clang_path(source.spelling)
                 ]
+
                 self.assertEqual(set(header_decls), set(source_defs))
-                self.assertEqual(header_decls, source_defs)
+                self.assertEqual("\n".join(header_decls), "\n".join(source_defs))
 
     def test_tree_header_orders_match(self):
         header_paths = [

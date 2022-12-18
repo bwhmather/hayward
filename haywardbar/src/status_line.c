@@ -1,20 +1,23 @@
 #define _POSIX_C_SOURCE 200809L
+#include "haywardbar/status_line.h"
+
 #include <assert.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
 #include <json.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include "hayward-common/log.h"
 #include "hayward-common/loop.h"
+
 #include "haywardbar/bar.h"
 #include "haywardbar/config.h"
 #include "haywardbar/i3bar.h"
-#include "haywardbar/status_line.h"
 
 static void status_line_close_fds(struct status_line *status) {
 	if (status->read_fd != -1) {
@@ -41,7 +44,9 @@ bool status_handle_readable(struct status_line *status) {
 		errno = 0;
 		int available_bytes;
 		if (ioctl(status->read_fd, FIONREAD, &available_bytes) == -1) {
-			hayward_log(HAYWARD_ERROR, "Unable to read status command output size");
+			hayward_log(
+				HAYWARD_ERROR, "Unable to read status command output size"
+			);
 			status_error(status, "[error reading from status command]");
 			return true;
 		}
@@ -67,16 +72,17 @@ bool status_handle_readable(struct status_line *status) {
 		// the header must be sent completely the first time round
 		char *newline = strchr(status->buffer, '\n');
 		json_object *header, *version;
-		if (newline != NULL
-				&& (header = json_tokener_parse(status->buffer))
-				&& json_object_object_get_ex(header, "version", &version)
-				&& json_object_get_int(version) == 1) {
+		if (newline != NULL && (header = json_tokener_parse(status->buffer)) &&
+			json_object_object_get_ex(header, "version", &version) &&
+			json_object_get_int(version) == 1) {
 			hayward_log(HAYWARD_DEBUG, "Using i3bar protocol.");
 			status->protocol = PROTOCOL_I3BAR;
 
 			json_object *click_events;
-			if (json_object_object_get_ex(header, "click_events", &click_events)
-					&& json_object_get_boolean(click_events)) {
+			if (json_object_object_get_ex(
+					header, "click_events", &click_events
+				) &&
+				json_object_get_boolean(click_events)) {
 				hayward_log(HAYWARD_DEBUG, "Enabling click events.");
 				status->click_events = true;
 				if (write(status->write_fd, "[\n", 2) != 2) {
@@ -87,20 +93,30 @@ bool status_handle_readable(struct status_line *status) {
 			}
 
 			json_object *float_event_coords;
-			if (json_object_object_get_ex(header, "float_event_coords", &float_event_coords)
-					&& json_object_get_boolean(float_event_coords)) {
-				hayward_log(HAYWARD_DEBUG, "Enabling floating-point coordinates.");
+			if (json_object_object_get_ex(
+					header, "float_event_coords", &float_event_coords
+				) &&
+				json_object_get_boolean(float_event_coords)) {
+				hayward_log(
+					HAYWARD_DEBUG, "Enabling floating-point coordinates."
+				);
 				status->float_event_coords = true;
 			}
 
 			json_object *signal;
 			if (json_object_object_get_ex(header, "stop_signal", &signal)) {
 				status->stop_signal = json_object_get_int(signal);
-				hayward_log(HAYWARD_DEBUG, "Setting stop signal to %d", status->stop_signal);
+				hayward_log(
+					HAYWARD_DEBUG, "Setting stop signal to %d",
+					status->stop_signal
+				);
 			}
 			if (json_object_object_get_ex(header, "cont_signal", &signal)) {
 				status->cont_signal = json_object_get_int(signal);
-				hayward_log(HAYWARD_DEBUG, "Setting cont signal to %d", status->cont_signal);
+				hayward_log(
+					HAYWARD_DEBUG, "Setting cont signal to %d",
+					status->cont_signal
+				);
 			}
 
 			json_object_put(header);
@@ -122,8 +138,8 @@ bool status_handle_readable(struct status_line *status) {
 				status->buffer[read_bytes - 1] = '\0';
 			}
 			errno = 0;
-			read_bytes = getline(&status->buffer,
-					&status->buffer_size, status->read);
+			read_bytes =
+				getline(&status->buffer, &status->buffer_size, status->read);
 			if (errno == EAGAIN) {
 				clearerr(status->read);
 				return true;
@@ -150,12 +166,17 @@ struct status_line *status_line_init(char *cmd) {
 	int pipe_read_fd[2];
 	int pipe_write_fd[2];
 	if (pipe(pipe_read_fd) != 0 || pipe(pipe_write_fd) != 0) {
-		hayward_log(HAYWARD_ERROR, "Unable to create pipes for status_command fork");
+		hayward_log(
+			HAYWARD_ERROR, "Unable to create pipes for status_command fork"
+		);
 		exit(1);
 	}
 
-	assert(!getenv("WAYLAND_SOCKET") && "display must be initialized before "
-		" starting `status-command`; WAYLAND_SOCKET should not be set");
+	assert(
+		!getenv("WAYLAND_SOCKET") &&
+		"display must be initialized before "
+		" starting `status-command`; WAYLAND_SOCKET should not be set"
+	);
 	status->pid = fork();
 	if (status->pid < 0) {
 		hayward_log_errno(HAYWARD_ERROR, "fork failed");
@@ -171,7 +192,12 @@ struct status_line *status_line_init(char *cmd) {
 		close(pipe_write_fd[0]);
 		close(pipe_write_fd[1]);
 
-		char *const _cmd[] = { "sh", "-c", cmd, NULL, };
+		char *const _cmd[] = {
+			"sh",
+			"-c",
+			cmd,
+			NULL,
+		};
 		execvp(_cmd[0], _cmd);
 		exit(1);
 	}

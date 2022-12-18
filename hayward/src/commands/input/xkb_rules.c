@@ -1,7 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/config.h"
-#include "hayward/commands.h"
 #include "hayward-common/log.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
 
 struct cmd_results *input_cmd_xkb_rules(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -15,7 +16,9 @@ struct cmd_results *input_cmd_xkb_rules(int argc, char **argv) {
 
 	ic->xkb_rules = strdup(argv[0]);
 
-	hayward_log(HAYWARD_DEBUG, "set-xkb_rules for config: %s rules: %s",
-			ic->identifier, ic->xkb_rules);
+	hayward_log(
+		HAYWARD_DEBUG, "set-xkb_rules for config: %s rules: %s", ic->identifier,
+		ic->xkb_rules
+	);
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

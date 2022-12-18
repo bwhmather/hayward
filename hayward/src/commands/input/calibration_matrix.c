@@ -1,12 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 #include <strings.h>
-#include "hayward/config.h"
-#include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
+
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 #include "hayward-common/util.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/input/input-manager.h"
 
 struct cmd_results *input_cmd_calibration_matrix(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -23,13 +25,19 @@ struct cmd_results *input_cmd_calibration_matrix(int argc, char **argv) {
 		char *item = argv[i];
 		float x = parse_float(item);
 		if (isnan(x)) {
-			return cmd_results_new(CMD_FAILURE, "calibration_matrix: unable to parse float: %s", item);
+			return cmd_results_new(
+				CMD_FAILURE, "calibration_matrix: unable to parse float: %s",
+				item
+			);
 		}
 		parsed[i] = x;
 	}
 
 	ic->calibration_matrix.configured = true;
-	memcpy(ic->calibration_matrix.matrix, parsed, sizeof(ic->calibration_matrix.matrix));
+	memcpy(
+		ic->calibration_matrix.matrix, parsed,
+		sizeof(ic->calibration_matrix.matrix)
+	);
 
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "haywardbar/bar.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -11,22 +13,23 @@
 #include <unistd.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
+
 #include "config.h"
-#include "haywardbar/bar.h"
 #include "haywardbar/config.h"
 #include "haywardbar/i3bar.h"
 #include "haywardbar/input.h"
 #include "haywardbar/ipc.h"
-#include "haywardbar/status_line.h"
 #include "haywardbar/render.h"
+#include "haywardbar/status_line.h"
 #if HAVE_TRAY
 #include "haywardbar/tray/tray.h"
 #endif
+#include "hayward-client/pool-buffer.h"
 #include "hayward-common/ipc-client.h"
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 #include "hayward-common/loop.h"
-#include "hayward-client/pool-buffer.h"
+
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 
@@ -70,9 +73,10 @@ static void set_output_dirty(struct haywardbar_output *output) {
 	}
 }
 
-static void layer_surface_configure(void *data,
-		struct zwlr_layer_surface_v1 *surface,
-		uint32_t serial, uint32_t width, uint32_t height) {
+static void layer_surface_configure(
+	void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial,
+	uint32_t width, uint32_t height
+) {
 	struct haywardbar_output *output = data;
 	output->width = width;
 	output->height = height;
@@ -80,8 +84,8 @@ static void layer_surface_configure(void *data,
 	set_output_dirty(output);
 }
 
-static void layer_surface_closed(void *_output,
-		struct zwlr_layer_surface_v1 *surface) {
+static void
+layer_surface_closed(void *_output, struct zwlr_layer_surface_v1 *surface) {
 	struct haywardbar_output *output = _output;
 	haywardbar_output_free(output);
 }
@@ -101,12 +105,15 @@ static void add_layer_surface(struct haywardbar_output *output) {
 	bool hidden = strcmp(config->mode, "hide") == 0;
 	bool overlay = !hidden && strcmp(config->mode, "overlay") == 0;
 	output->layer_surface = zwlr_layer_shell_v1_get_layer_surface(
-			bar->layer_shell, output->surface, output->output,
-			hidden || overlay ? ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY :
-			ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM, "panel");
+		bar->layer_shell, output->surface, output->output,
+		hidden || overlay ? ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY
+						  : ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM,
+		"panel"
+	);
 	assert(output->layer_surface);
-	zwlr_layer_surface_v1_add_listener(output->layer_surface,
-			&layer_surface_listener, output);
+	zwlr_layer_surface_v1_add_listener(
+		output->layer_surface, &layer_surface_listener, output
+	);
 
 	if (overlay) {
 		// Empty input region
@@ -134,17 +141,16 @@ void destroy_layer_surface(struct haywardbar_output *output) {
 
 void set_bar_dirty(struct haywardbar *bar) {
 	struct haywardbar_output *output;
-	wl_list_for_each(output, &bar->outputs, link) {
-		set_output_dirty(output);
-	}
+	wl_list_for_each(output, &bar->outputs, link) { set_output_dirty(output); }
 }
 
 bool determine_bar_visibility(struct haywardbar *bar, bool moving_layer) {
 	struct haywardbar_config *config = bar->config;
-	bool visible = !(strcmp(config->mode, "invisible") == 0 ||
-		(strcmp(config->mode, config->hidden_state) == 0 // both "hide"
-			&& !bar->visible_by_modifier && !bar->visible_by_urgency
-			&& !bar->visible_by_mode));
+	bool visible =
+		!(strcmp(config->mode, "invisible") == 0 ||
+		  (strcmp(config->mode, config->hidden_state) == 0 // both "hide"
+		   && !bar->visible_by_modifier && !bar->visible_by_urgency &&
+		   !bar->visible_by_mode));
 
 	// Create/destroy layer surfaces as needed
 	struct haywardbar_output *output;
@@ -165,10 +171,14 @@ bool determine_bar_visibility(struct haywardbar *bar, bool moving_layer) {
 		bar->visible = visible;
 
 		if (bar->status) {
-			hayward_log(HAYWARD_DEBUG, "Sending %s signal to status command",
-					visible ? "cont" : "stop");
-			kill(-bar->status->pid, visible ?
-					bar->status->cont_signal : bar->status->stop_signal);
+			hayward_log(
+				HAYWARD_DEBUG, "Sending %s signal to status command",
+				visible ? "cont" : "stop"
+			);
+			kill(
+				-bar->status->pid,
+				visible ? bar->status->cont_signal : bar->status->stop_signal
+			);
 		}
 	}
 
@@ -183,22 +193,26 @@ static bool bar_uses_output(struct haywardbar_output *output) {
 	struct config_output *coutput;
 	wl_list_for_each(coutput, &output->bar->config->outputs, link) {
 		if (strcmp(coutput->name, output->name) == 0 ||
-				(identifier && strcmp(coutput->name, identifier) == 0)) {
+			(identifier && strcmp(coutput->name, identifier) == 0)) {
 			return true;
 		}
 	}
 	return false;
 }
 
-static void output_geometry(void *data, struct wl_output *wl_output, int32_t x,
-		int32_t y, int32_t width_mm, int32_t height_mm, int32_t subpixel,
-		const char *make, const char *model, int32_t transform) {
+static void output_geometry(
+	void *data, struct wl_output *wl_output, int32_t x, int32_t y,
+	int32_t width_mm, int32_t height_mm, int32_t subpixel, const char *make,
+	const char *model, int32_t transform
+) {
 	struct haywardbar_output *output = data;
 	output->subpixel = subpixel;
 }
 
-static void output_mode(void *data, struct wl_output *wl_output, uint32_t flags,
-		int32_t width, int32_t height, int32_t refresh) {
+static void output_mode(
+	void *data, struct wl_output *wl_output, uint32_t flags, int32_t width,
+	int32_t height, int32_t refresh
+) {
 	// Who cares
 }
 
@@ -207,8 +221,8 @@ static void output_done(void *data, struct wl_output *wl_output) {
 	set_output_dirty(output);
 }
 
-static void output_scale(void *data, struct wl_output *wl_output,
-		int32_t factor) {
+static void
+output_scale(void *data, struct wl_output *wl_output, int32_t factor) {
 	struct haywardbar_output *output = data;
 	output->scale = factor;
 
@@ -232,22 +246,24 @@ static const struct wl_output_listener output_listener = {
 	.scale = output_scale,
 };
 
-static void xdg_output_handle_logical_position(void *data,
-		struct zxdg_output_v1 *xdg_output, int32_t x, int32_t y) {
+static void xdg_output_handle_logical_position(
+	void *data, struct zxdg_output_v1 *xdg_output, int32_t x, int32_t y
+) {
 	struct haywardbar_output *output = data;
 	output->output_x = x;
 	output->output_y = y;
 }
 
-static void xdg_output_handle_logical_size(void *data,
-		struct zxdg_output_v1 *xdg_output, int32_t width, int32_t height) {
+static void xdg_output_handle_logical_size(
+	void *data, struct zxdg_output_v1 *xdg_output, int32_t width, int32_t height
+) {
 	struct haywardbar_output *output = data;
 	output->output_height = height;
 	output->output_width = width;
 }
 
-static void xdg_output_handle_done(void *data,
-		struct zxdg_output_v1 *xdg_output) {
+static void
+xdg_output_handle_done(void *data, struct zxdg_output_v1 *xdg_output) {
 	struct haywardbar_output *output = data;
 	struct haywardbar *bar = output->bar;
 
@@ -275,15 +291,17 @@ static void xdg_output_handle_done(void *data,
 	}
 }
 
-static void xdg_output_handle_name(void *data,
-		struct zxdg_output_v1 *xdg_output, const char *name) {
+static void xdg_output_handle_name(
+	void *data, struct zxdg_output_v1 *xdg_output, const char *name
+) {
 	struct haywardbar_output *output = data;
 	free(output->name);
 	output->name = strdup(name);
 }
 
-static void xdg_output_handle_description(void *data,
-		struct zxdg_output_v1 *xdg_output, const char *description) {
+static void xdg_output_handle_description(
+	void *data, struct zxdg_output_v1 *xdg_output, const char *description
+) {
 	// wlroots currently sets the description to `make model serial (name)`
 	// If this changes in the future, this will need to be modified.
 	struct haywardbar_output *output = data;
@@ -316,19 +334,24 @@ static void add_xdg_output(struct haywardbar_output *output) {
 	}
 	assert(output->bar->xdg_output_manager != NULL);
 	output->xdg_output = zxdg_output_manager_v1_get_xdg_output(
-		output->bar->xdg_output_manager, output->output);
-	zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener,
-		output);
+		output->bar->xdg_output_manager, output->output
+	);
+	zxdg_output_v1_add_listener(
+		output->xdg_output, &xdg_output_listener, output
+	);
 }
 
-static void handle_global(void *data, struct wl_registry *registry,
-		uint32_t name, const char *interface, uint32_t version) {
+static void handle_global(
+	void *data, struct wl_registry *registry, uint32_t name,
+	const char *interface, uint32_t version
+) {
 	struct haywardbar *bar = data;
 	if (strcmp(interface, wl_compositor_interface.name) == 0) {
-		bar->compositor = wl_registry_bind(registry, name,
-				&wl_compositor_interface, 4);
+		bar->compositor =
+			wl_registry_bind(registry, name, &wl_compositor_interface, 4);
 	} else if (strcmp(interface, wl_seat_interface.name) == 0) {
-		struct haywardbar_seat *seat = calloc(1, sizeof(struct haywardbar_seat));
+		struct haywardbar_seat *seat =
+			calloc(1, sizeof(struct haywardbar_seat));
 		if (!seat) {
 			hayward_abort("Failed to allocate haywardbar_seat");
 			return;
@@ -339,14 +362,13 @@ static void handle_global(void *data, struct wl_registry *registry,
 		wl_seat_add_listener(seat->wl_seat, &seat_listener, seat);
 		wl_list_insert(&bar->seats, &seat->link);
 	} else if (strcmp(interface, wl_shm_interface.name) == 0) {
-		bar->shm = wl_registry_bind(registry, name,
-				&wl_shm_interface, 1);
+		bar->shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
 	} else if (strcmp(interface, wl_output_interface.name) == 0) {
 		struct haywardbar_output *output =
 			calloc(1, sizeof(struct haywardbar_output));
 		output->bar = bar;
-		output->output = wl_registry_bind(registry, name,
-				&wl_output_interface, 3);
+		output->output =
+			wl_registry_bind(registry, name, &wl_output_interface, 3);
 		wl_output_add_listener(output->output, &output_listener, output);
 		output->scale = 1;
 		output->wl_name = name;
@@ -357,16 +379,17 @@ static void handle_global(void *data, struct wl_registry *registry,
 			add_xdg_output(output);
 		}
 	} else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
-		bar->layer_shell = wl_registry_bind(
-				registry, name, &zwlr_layer_shell_v1_interface, 1);
+		bar->layer_shell =
+			wl_registry_bind(registry, name, &zwlr_layer_shell_v1_interface, 1);
 	} else if (strcmp(interface, zxdg_output_manager_v1_interface.name) == 0) {
-		bar->xdg_output_manager = wl_registry_bind(registry, name,
-			&zxdg_output_manager_v1_interface, 2);
+		bar->xdg_output_manager = wl_registry_bind(
+			registry, name, &zxdg_output_manager_v1_interface, 2
+		);
 	}
 }
 
-static void handle_global_remove(void *data, struct wl_registry *registry,
-		uint32_t name) {
+static void
+handle_global_remove(void *data, struct wl_registry *registry, uint32_t name) {
 	struct haywardbar *bar = data;
 	struct haywardbar_output *output, *tmp;
 	wl_list_for_each_safe(output, tmp, &bar->outputs, link) {
@@ -412,15 +435,17 @@ bool bar_setup(struct haywardbar *bar, const char *socket_path) {
 	bar->display = wl_display_connect(NULL);
 	if (!bar->display) {
 		hayward_abort("Unable to connect to the compositor. "
-				"If your compositor is running, check or set the "
-				"WAYLAND_DISPLAY environment variable.");
+					  "If your compositor is running, check or set the "
+					  "WAYLAND_DISPLAY environment variable.");
 	}
 
 	struct wl_registry *registry = wl_display_get_registry(bar->display);
 	wl_registry_add_listener(registry, &registry_listener, bar);
 	wl_display_roundtrip(bar->display);
-	assert(bar->compositor && bar->layer_shell && bar->shm &&
-		bar->xdg_output_manager);
+	assert(
+		bar->compositor && bar->layer_shell && bar->shm &&
+		bar->xdg_output_manager
+	);
 
 	// Second roundtrip for xdg-output
 	wl_display_roundtrip(bar->display);
@@ -431,8 +456,7 @@ bool bar_setup(struct haywardbar *bar, const char *socket_path) {
 		if (!pointer) {
 			continue;
 		}
-		pointer->cursor_surface =
-			wl_compositor_create_surface(bar->compositor);
+		pointer->cursor_surface = wl_compositor_create_surface(bar->compositor);
 		assert(pointer->cursor_surface);
 	}
 
@@ -495,16 +519,20 @@ void status_in(int fd, short mask, void *data) {
 }
 
 void bar_run(struct haywardbar *bar) {
-	loop_add_fd(bar->eventloop, wl_display_get_fd(bar->display), POLLIN,
-			display_in, bar);
+	loop_add_fd(
+		bar->eventloop, wl_display_get_fd(bar->display), POLLIN, display_in, bar
+	);
 	loop_add_fd(bar->eventloop, bar->ipc_event_socketfd, POLLIN, ipc_in, bar);
 	if (bar->status) {
-		loop_add_fd(bar->eventloop, bar->status->read_fd, POLLIN,
-				status_in, bar);
+		loop_add_fd(
+			bar->eventloop, bar->status->read_fd, POLLIN, status_in, bar
+		);
 	}
 #if HAVE_TRAY
 	if (bar->tray) {
-		loop_add_fd(bar->eventloop, bar->tray->fd, POLLIN, tray_in, bar->tray->bus);
+		loop_add_fd(
+			bar->eventloop, bar->tray->fd, POLLIN, tray_in, bar->tray->bus
+		);
 	}
 #endif
 	while (bar->running) {
@@ -525,9 +553,7 @@ static void free_outputs(struct wl_list *list) {
 
 static void free_seats(struct wl_list *list) {
 	struct haywardbar_seat *seat, *tmp;
-	wl_list_for_each_safe(seat, tmp, list, link) {
-		haywardbar_seat_free(seat);
-	}
+	wl_list_for_each_safe(seat, tmp, list, link) { haywardbar_seat_free(seat); }
 }
 
 void bar_teardown(struct haywardbar *bar) {

@@ -1,53 +1,53 @@
 #define _XOPEN_SOURCE 700 // for realpath
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "hayward/config.h"
+
+#include <dirent.h>
 #include <libgen.h>
-#include <wordexp.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <signal.h>
 #include <libinput.h>
 #include <limits.h>
-#include <dirent.h>
-#include <strings.h>
 #include <linux/input-event-codes.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <wlr/types/wlr_output.h>
+#include <wordexp.h>
+
+#include "hayward-common/cairo_util.h"
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/pango.h"
+#include "hayward-common/stringop.h"
+#include "hayward-common/util.h"
+
+#include "hayward/commands.h"
+#include "hayward/desktop/transaction.h"
+#include "hayward/haywardnag.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 #include "hayward/input/switch.h"
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/haywardnag.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/pango.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
 
 struct hayward_config *config = NULL;
 
-static struct xkb_state *keysym_translation_state_create(
-		struct xkb_rule_names rules) {
+static struct xkb_state *
+keysym_translation_state_create(struct xkb_rule_names rules) {
 	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-	struct xkb_keymap *xkb_keymap = xkb_keymap_new_from_names(
-		context,
-		&rules,
-		XKB_KEYMAP_COMPILE_NO_FLAGS);
+	struct xkb_keymap *xkb_keymap =
+		xkb_keymap_new_from_names(context, &rules, XKB_KEYMAP_COMPILE_NO_FLAGS);
 
 	xkb_context_unref(context);
 	return xkb_state_new(xkb_keymap);
 }
 
-static void keysym_translation_state_destroy(
-		struct xkb_state *state) {
+static void keysym_translation_state_destroy(struct xkb_state *state) {
 	xkb_keymap_unref(xkb_state_get_keymap(state));
 	xkb_state_unref(state);
 }
@@ -84,8 +84,9 @@ static void free_mode(struct hayward_mode *mode) {
 	free(mode);
 }
 
-static void destroy_removed_seats(struct hayward_config *old_config,
-		struct hayward_config *new_config) {
+static void destroy_removed_seats(
+	struct hayward_config *old_config, struct hayward_config *new_config
+) {
 	struct seat_config *seat_config;
 	struct hayward_seat *seat;
 	int i;
@@ -97,8 +98,10 @@ static void destroy_removed_seats(struct hayward_config *old_config,
 		}
 
 		/* Also destroy seats that aren't present in new config */
-		if (new_config && list_seq_find(new_config->seat_configs,
-				seat_name_cmp, seat_config->name) < 0) {
+		if (new_config &&
+			list_seq_find(
+				new_config->seat_configs, seat_name_cmp, seat_config->name
+			) < 0) {
 			seat = input_manager_get_seat(seat_config->name, false);
 			if (seat) {
 				seat_destroy(seat);
@@ -108,37 +111,55 @@ static void destroy_removed_seats(struct hayward_config *old_config,
 }
 
 static void config_defaults(struct hayward_config *config) {
-	if (!(config->haywardnag_command = strdup("haywardnag"))) goto cleanup;
+	if (!(config->haywardnag_command = strdup("haywardnag")))
+		goto cleanup;
 	config->haywardnag_config_errors = (struct haywardnag_instance){0};
-	config->haywardnag_config_errors.args = "--type error "
-			"--message 'There are errors in your config file' "
-			"--detailed-message "
-			"--button-no-terminal 'Exit hayward' 'haywardmsg exit' "
-			"--button-no-terminal 'Reload hayward' 'haywardmsg reload'";
+	config->haywardnag_config_errors.args =
+		"--type error "
+		"--message 'There are errors in your config file' "
+		"--detailed-message "
+		"--button-no-terminal 'Exit hayward' 'haywardmsg exit' "
+		"--button-no-terminal 'Reload hayward' 'haywardmsg reload'";
 	config->haywardnag_config_errors.detailed = true;
 
-	if (!(config->symbols = create_list())) goto cleanup;
-	if (!(config->modes = create_list())) goto cleanup;
-	if (!(config->bars = create_list())) goto cleanup;
-	if (!(config->workspace_configs = create_list())) goto cleanup;
-	if (!(config->criteria = create_list())) goto cleanup;
-	if (!(config->no_focus = create_list())) goto cleanup;
-	if (!(config->seat_configs = create_list())) goto cleanup;
-	if (!(config->output_configs = create_list())) goto cleanup;
+	if (!(config->symbols = create_list()))
+		goto cleanup;
+	if (!(config->modes = create_list()))
+		goto cleanup;
+	if (!(config->bars = create_list()))
+		goto cleanup;
+	if (!(config->workspace_configs = create_list()))
+		goto cleanup;
+	if (!(config->criteria = create_list()))
+		goto cleanup;
+	if (!(config->no_focus = create_list()))
+		goto cleanup;
+	if (!(config->seat_configs = create_list()))
+		goto cleanup;
+	if (!(config->output_configs = create_list()))
+		goto cleanup;
 
-	if (!(config->input_type_configs = create_list())) goto cleanup;
-	if (!(config->input_configs = create_list())) goto cleanup;
+	if (!(config->input_type_configs = create_list()))
+		goto cleanup;
+	if (!(config->input_configs = create_list()))
+		goto cleanup;
 
-	if (!(config->cmd_queue = create_list())) goto cleanup;
+	if (!(config->cmd_queue = create_list()))
+		goto cleanup;
 
 	if (!(config->current_mode = malloc(sizeof(struct hayward_mode))))
 		goto cleanup;
-	if (!(config->current_mode->name = malloc(sizeof("default")))) goto cleanup;
+	if (!(config->current_mode->name = malloc(sizeof("default"))))
+		goto cleanup;
 	strcpy(config->current_mode->name, "default");
-	if (!(config->current_mode->keysym_bindings = create_list())) goto cleanup;
-	if (!(config->current_mode->keycode_bindings = create_list())) goto cleanup;
-	if (!(config->current_mode->mouse_bindings = create_list())) goto cleanup;
-	if (!(config->current_mode->switch_bindings = create_list())) goto cleanup;
+	if (!(config->current_mode->keysym_bindings = create_list()))
+		goto cleanup;
+	if (!(config->current_mode->keycode_bindings = create_list()))
+		goto cleanup;
+	if (!(config->current_mode->mouse_bindings = create_list()))
+		goto cleanup;
+	if (!(config->current_mode->switch_bindings = create_list()))
+		goto cleanup;
 	list_add(config->modes, config->current_mode);
 
 	config->floating_mod = 0;
@@ -146,11 +167,16 @@ static void config_defaults(struct hayward_config *config) {
 	config->dragging_key = BTN_LEFT;
 	config->resizing_key = BTN_RIGHT;
 
-	if (!(config->floating_scroll_up_cmd = strdup(""))) goto cleanup;
-	if (!(config->floating_scroll_down_cmd = strdup(""))) goto cleanup;
-	if (!(config->floating_scroll_left_cmd = strdup(""))) goto cleanup;
-	if (!(config->floating_scroll_right_cmd = strdup(""))) goto cleanup;
-	if (!(config->font = strdup("monospace 10"))) goto cleanup;
+	if (!(config->floating_scroll_up_cmd = strdup("")))
+		goto cleanup;
+	if (!(config->floating_scroll_down_cmd = strdup("")))
+		goto cleanup;
+	if (!(config->floating_scroll_left_cmd = strdup("")))
+		goto cleanup;
+	if (!(config->floating_scroll_right_cmd = strdup("")))
+		goto cleanup;
+	if (!(config->font = strdup("monospace 10")))
+		goto cleanup;
 	config->urgent_timeout = 500;
 	config->focus_on_window_activation = FOWA_URGENT;
 	config->popup_during_fullscreen = POPUP_SMART;
@@ -187,11 +213,14 @@ static void config_defaults(struct hayward_config *config) {
 	config->gaps_outer.bottom = 0;
 	config->gaps_outer.left = 0;
 
-	if (!(config->active_bar_modifiers = create_list())) goto cleanup;
+	if (!(config->active_bar_modifiers = create_list()))
+		goto cleanup;
 
-	if (!(config->haywardbg_command = strdup("haywardbg"))) goto cleanup;
+	if (!(config->haywardbg_command = strdup("haywardbg")))
+		goto cleanup;
 
-	if (!(config->config_chain = create_list())) goto cleanup;
+	if (!(config->config_chain = create_list()))
+		goto cleanup;
 	config->current_config_path = NULL;
 	config->current_config = NULL;
 
@@ -213,10 +242,14 @@ static void config_defaults(struct hayward_config *config) {
 	color_to_rgba(config->border_colors.focused.child_border, 0x285577FF);
 
 	color_to_rgba(config->border_colors.focused_inactive.border, 0x333333FF);
-	color_to_rgba(config->border_colors.focused_inactive.background, 0x5F676AFF);
+	color_to_rgba(
+		config->border_colors.focused_inactive.background, 0x5F676AFF
+	);
 	color_to_rgba(config->border_colors.focused_inactive.text, 0xFFFFFFFF);
 	color_to_rgba(config->border_colors.focused_inactive.indicator, 0x484E50FF);
-	color_to_rgba(config->border_colors.focused_inactive.child_border, 0x5F676AFF);
+	color_to_rgba(
+		config->border_colors.focused_inactive.child_border, 0x5F676AFF
+	);
 
 	color_to_rgba(config->border_colors.unfocused.border, 0x333333FF);
 	color_to_rgba(config->border_colors.unfocused.background, 0x222222FF);
@@ -240,8 +273,7 @@ static void config_defaults(struct hayward_config *config) {
 
 	// The keysym to keycode translation
 	struct xkb_rule_names rules = {0};
-	config->keysym_translation_state =
-		keysym_translation_state_create(rules);
+	config->keysym_translation_state = keysym_translation_state_create(rules);
 
 	return;
 cleanup:
@@ -285,17 +317,17 @@ static char *get_config_path(void) {
 	};
 
 	struct config_path config_paths[] = {
-		{ .prefix = home, .config_folder = ".hayward"},
-		{ .prefix = config_home, .config_folder = "hayward"},
-		{ .prefix = home, .config_folder = ".i3"},
-		{ .prefix = config_home, .config_folder = "i3"},
-		{ .prefix = SYSCONFDIR, .config_folder = "hayward"},
-		{ .prefix = SYSCONFDIR, .config_folder = "i3"}
-	};
+		{.prefix = home, .config_folder = ".hayward"},
+		{.prefix = config_home, .config_folder = "hayward"},
+		{.prefix = home, .config_folder = ".i3"},
+		{.prefix = config_home, .config_folder = "i3"},
+		{.prefix = SYSCONFDIR, .config_folder = "hayward"},
+		{.prefix = SYSCONFDIR, .config_folder = "i3"}};
 
-	size_t num_config_paths = sizeof(config_paths)/sizeof(config_paths[0]);
+	size_t num_config_paths = sizeof(config_paths) / sizeof(config_paths[0]);
 	for (size_t i = 0; i < num_config_paths; i++) {
-		path = config_path(config_paths[i].prefix, config_paths[i].config_folder);
+		path =
+			config_path(config_paths[i].prefix, config_paths[i].config_folder);
 		if (!path) {
 			continue;
 		}
@@ -310,8 +342,10 @@ static char *get_config_path(void) {
 	return path;
 }
 
-static bool load_config(const char *path, struct hayward_config *config,
-		struct haywardnag_instance *haywardnag) {
+static bool load_config(
+	const char *path, struct hayward_config *config,
+	struct haywardnag_instance *haywardnag
+) {
 	if (path == NULL) {
 		hayward_log(HAYWARD_ERROR, "Unable to find a config file!");
 		return false;
@@ -369,14 +403,18 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 	config_defaults(config);
 	config->validating = validating;
 	if (is_active) {
-		hayward_log(HAYWARD_DEBUG, "Performing configuration file %s",
-			validating ? "validation" : "reload");
+		hayward_log(
+			HAYWARD_DEBUG, "Performing configuration file %s",
+			validating ? "validation" : "reload"
+		);
 		config->reloading = true;
 		config->active = true;
 
 		// xwayland can only be enabled/disabled at launch
-		hayward_log(HAYWARD_DEBUG, "xwayland will remain %s",
-				old_config->xwayland ? "enabled" : "disabled");
+		hayward_log(
+			HAYWARD_DEBUG, "xwayland will remain %s",
+			old_config->xwayland ? "enabled" : "disabled"
+		);
 		config->xwayland = old_config->xwayland;
 
 		if (!config->validating) {
@@ -446,8 +484,8 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 	}
 	*/
 
-	success = success && load_config(path, config,
-			&config->haywardnag_config_errors);
+	success =
+		success && load_config(path, config, &config->haywardnag_config_errors);
 
 	if (validating) {
 		free_config(config);
@@ -467,7 +505,8 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 
 		for (int i = 0; i < config->input_type_configs->length; i++) {
 			input_manager_apply_input_config(
-					config->input_type_configs->items[i]);
+				config->input_type_configs->items[i]
+			);
 		}
 
 		for (int i = 0; i < config->seat_configs->length; i++) {
@@ -492,8 +531,10 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
 	return success;
 }
 
-static bool load_include_config(const char *path, const char *parent_dir,
-		struct hayward_config *config, struct haywardnag_instance *haywardnag) {
+static bool load_include_config(
+	const char *path, const char *parent_dir, struct hayward_config *config,
+	struct haywardnag_instance *haywardnag
+) {
 	// save parent config
 	const char *parent_config = config->current_config_path;
 
@@ -503,8 +544,9 @@ static bool load_include_config(const char *path, const char *parent_dir,
 		len = len + strlen(parent_dir) + 2;
 		full_path = malloc(len * sizeof(char));
 		if (!full_path) {
-			hayward_log(HAYWARD_ERROR,
-				"Unable to allocate full path to included config");
+			hayward_log(
+				HAYWARD_ERROR, "Unable to allocate full path to included config"
+			);
 			return false;
 		}
 		snprintf(full_path, len, "%s/%s", parent_dir, path);
@@ -525,9 +567,10 @@ static bool load_include_config(const char *path, const char *parent_dir,
 	for (j = 0; j < config->config_chain->length; ++j) {
 		char *old_path = config->config_chain->items[j];
 		if (strcmp(real_path, old_path) == 0) {
-			hayward_log(HAYWARD_DEBUG,
-				"%s already included once, won't be included again.",
-				real_path);
+			hayward_log(
+				HAYWARD_DEBUG,
+				"%s already included once, won't be included again.", real_path
+			);
 			free(real_path);
 			return false;
 		}
@@ -549,8 +592,10 @@ static bool load_include_config(const char *path, const char *parent_dir,
 	return true;
 }
 
-void load_include_configs(const char *path, struct hayward_config *config,
-		struct haywardnag_instance *haywardnag) {
+void load_include_configs(
+	const char *path, struct hayward_config *config,
+	struct haywardnag_instance *haywardnag
+) {
 	char *wd = getcwd(NULL, 0);
 	char *parent_path = strdup(config->current_config_path);
 	const char *parent_dir = dirname(parent_path);
@@ -580,13 +625,14 @@ cleanup:
 }
 
 // get line, with backslash continuation
-static ssize_t getline_with_cont(char **lineptr, size_t *line_size, FILE *file,
-		int *nlines) {
+static ssize_t
+getline_with_cont(char **lineptr, size_t *line_size, FILE *file, int *nlines) {
 	char *next_line = NULL;
 	size_t next_line_size = 0;
 	ssize_t nread = getline(lineptr, line_size, file);
 	*nlines = nread == -1 ? 0 : 1;
-	while (nread >= 2 && strcmp(&(*lineptr)[nread - 2], "\\\n") == 0 && (*lineptr)[0] != '#') {
+	while (nread >= 2 && strcmp(&(*lineptr)[nread - 2], "\\\n") == 0 &&
+		   (*lineptr)[0] != '#') {
 		ssize_t next_nread = getline(&next_line, &next_line_size, file);
 		if (next_nread == -1) {
 			break;
@@ -594,7 +640,7 @@ static ssize_t getline_with_cont(char **lineptr, size_t *line_size, FILE *file,
 		(*nlines)++;
 
 		nread += next_nread - 2;
-		if ((ssize_t) *line_size < nread + 1) {
+		if ((ssize_t)*line_size < nread + 1) {
 			*line_size = nread + 1;
 			char *old_ptr = *lineptr;
 			*lineptr = realloc(*lineptr, *line_size);
@@ -634,20 +680,24 @@ static int detect_brace(FILE *file) {
 }
 
 static char *expand_line(const char *block, const char *line, bool add_brace) {
-	int size = (block ? strlen(block) + 1 : 0) + strlen(line)
-		+ (add_brace ? 2 : 0) + 1;
+	int size = (block ? strlen(block) + 1 : 0) + strlen(line) +
+		(add_brace ? 2 : 0) + 1;
 	char *expanded = calloc(1, size);
 	if (!expanded) {
 		hayward_log(HAYWARD_ERROR, "Cannot allocate expanded line buffer");
 		return NULL;
 	}
-	snprintf(expanded, size, "%s%s%s%s", block ? block : "",
-			block ? " " : "", line, add_brace ? " {" : "");
+	snprintf(
+		expanded, size, "%s%s%s%s", block ? block : "", block ? " " : "", line,
+		add_brace ? " {" : ""
+	);
 	return expanded;
 }
 
-bool read_config(FILE *file, struct hayward_config *config,
-		struct haywardnag_instance *haywardnag) {
+bool read_config(
+	FILE *file, struct hayward_config *config,
+	struct haywardnag_instance *haywardnag
+) {
 	bool reading_main_config = false;
 	char *this_config = NULL;
 	size_t config_size = 0;
@@ -665,7 +715,9 @@ bool read_config(FILE *file, struct hayward_config *config,
 
 		config->current_config = this_config = calloc(1, config_size + 1);
 		if (this_config == NULL) {
-			hayward_log(HAYWARD_ERROR, "Unable to allocate buffer for config contents");
+			hayward_log(
+				HAYWARD_ERROR, "Unable to allocate buffer for config contents"
+			);
 			return false;
 		}
 	}
@@ -678,10 +730,13 @@ bool read_config(FILE *file, struct hayward_config *config,
 	list_t *stack = create_list();
 	size_t read = 0;
 	int nlines = 0;
-	while ((nread = getline_with_cont(&line, &line_size, file, &nlines)) != -1) {
+	while ((nread = getline_with_cont(&line, &line_size, file, &nlines)) != -1
+	) {
 		if (reading_main_config) {
 			if (read + nread > config_size) {
-				hayward_log(HAYWARD_ERROR, "Config file changed during reading");
+				hayward_log(
+					HAYWARD_ERROR, "Config file changed during reading"
+				);
 				success = false;
 				break;
 			}
@@ -706,7 +761,9 @@ bool read_config(FILE *file, struct hayward_config *config,
 			brace_detected = detect_brace(file);
 			if (brace_detected > 0) {
 				line_number += brace_detected;
-				hayward_log(HAYWARD_DEBUG, "Detected open brace on line %d", line_number);
+				hayward_log(
+					HAYWARD_DEBUG, "Detected open brace on line %d", line_number
+				);
 			}
 		}
 		char *block = stack->length ? stack->items[0] : NULL;
@@ -725,15 +782,19 @@ bool read_config(FILE *file, struct hayward_config *config,
 		} else {
 			res = config_command(expanded, &new_block);
 		}
-		switch(res->status) {
+		switch (res->status) {
 		case CMD_FAILURE:
 		case CMD_INVALID:
-			hayward_log(HAYWARD_ERROR, "Error on line %i '%s': %s (%s)", line_number,
-				line, res->error, config->current_config_path);
+			hayward_log(
+				HAYWARD_ERROR, "Error on line %i '%s': %s (%s)", line_number,
+				line, res->error, config->current_config_path
+			);
 			if (!config->validating) {
-				haywardnag_log(config->haywardnag_command, haywardnag,
+				haywardnag_log(
+					config->haywardnag_command, haywardnag,
 					"Error on line %i (%s) '%s': %s", line_number,
-					config->current_config_path, line, res->error);
+					config->current_config_path, line, res->error
+				);
 			}
 			success = false;
 			break;
@@ -758,7 +819,9 @@ bool read_config(FILE *file, struct hayward_config *config,
 
 		case CMD_BLOCK_END:
 			if (!block) {
-				hayward_log(HAYWARD_DEBUG, "Unmatched '}' on line %i", line_number);
+				hayward_log(
+					HAYWARD_DEBUG, "Unmatched '}' on line %i", line_number
+				);
 				success = false;
 				break;
 			}
@@ -769,8 +832,9 @@ bool read_config(FILE *file, struct hayward_config *config,
 			hayward_log(HAYWARD_DEBUG, "Exiting block '%s'", block);
 			list_del(stack, 0);
 			free(block);
-			memset(&config->handler_context, 0,
-					sizeof(config->handler_context));
+			memset(
+				&config->handler_context, 0, sizeof(config->handler_context)
+			);
 		default:;
 		}
 		free(new_block);
@@ -796,8 +860,9 @@ void run_deferred_commands(void) {
 		for (int i = 0; i < res_list->length; ++i) {
 			struct cmd_results *res = res_list->items[i];
 			if (res->status != CMD_SUCCESS) {
-				hayward_log(HAYWARD_ERROR, "Error on line '%s': %s",
-						line, res->error);
+				hayward_log(
+					HAYWARD_ERROR, "Error on line '%s': %s", line, res->error
+				);
 			}
 			free_cmd_results(res);
 		}
@@ -813,8 +878,10 @@ void run_deferred_bindings(void) {
 		if (!seat->deferred_bindings->length) {
 			continue;
 		}
-		hayward_log(HAYWARD_DEBUG, "Running deferred bindings for seat %s",
-				seat->wlr_seat->name);
+		hayward_log(
+			HAYWARD_DEBUG, "Running deferred bindings for seat %s",
+			seat->wlr_seat->name
+		);
 		while (seat->deferred_bindings->length) {
 			struct hayward_binding *binding = seat->deferred_bindings->items[0];
 			seat_execute_command(seat, binding);
@@ -833,7 +900,9 @@ void config_add_haywardnag_warning(char *fmt, ...) {
 
 		char *temp = malloc(length + 1);
 		if (!temp) {
-			hayward_log(HAYWARD_ERROR, "Failed to allocate buffer for warning.");
+			hayward_log(
+				HAYWARD_ERROR, "Failed to allocate buffer for warning."
+			);
 			return;
 		}
 
@@ -841,10 +910,12 @@ void config_add_haywardnag_warning(char *fmt, ...) {
 		vsnprintf(temp, length, fmt, args);
 		va_end(args);
 
-		haywardnag_log(config->haywardnag_command, &config->haywardnag_config_errors,
+		haywardnag_log(
+			config->haywardnag_command, &config->haywardnag_config_errors,
 			"Warning on line %i (%s) '%s': %s",
 			config->current_config_line_number, config->current_config_path,
-			config->current_config_line, temp);
+			config->current_config_line, temp
+		);
 	}
 }
 
@@ -951,9 +1022,11 @@ char *do_var_replacement(char *str) {
 				int vvlen = strlen(var->value);
 				char *newstr = malloc(strlen(str) - vnlen + vvlen + 1);
 				if (!newstr) {
-					hayward_log(HAYWARD_ERROR,
+					hayward_log(
+						HAYWARD_ERROR,
 						"Unable to allocate replacement "
-						"during variable expansion");
+						"during variable expansion"
+					);
 					break;
 				}
 				char *newptr = newstr;
@@ -984,19 +1057,20 @@ int workspace_output_cmp_workspace(const void *a, const void *b) {
 	return lenient_strcmp(wsa->workspace, wsb->workspace);
 }
 
-
 void config_update_font_height(void) {
 	int prev_max_height = config->font_height;
 
-	get_text_metrics(config->font, &config->font_height, &config->font_baseline);
+	get_text_metrics(
+		config->font, &config->font_height, &config->font_baseline
+	);
 
 	if (config->font_height != prev_max_height) {
 		arrange_root();
 	}
 }
 
-static void translate_binding_list(list_t *bindings, list_t *bindsyms,
-		list_t *bindcodes) {
+static void
+translate_binding_list(list_t *bindings, list_t *bindsyms, list_t *bindcodes) {
 	for (int i = 0; i < bindings->length; ++i) {
 		struct hayward_binding *binding = bindings->items[i];
 		translate_binding(binding);
@@ -1009,11 +1083,11 @@ static void translate_binding_list(list_t *bindings, list_t *bindsyms,
 			binding_add_translated(binding, bindcodes);
 			break;
 		default:
-			hayward_assert(false, "unexpected translated binding type: %d",
-					binding->type);
+			hayward_assert(
+				false, "unexpected translated binding type: %d", binding->type
+			);
 			break;
 		}
-
 	}
 }
 
@@ -1022,8 +1096,7 @@ void translate_keysyms(struct input_config *input_config) {
 
 	struct xkb_rule_names rules = {0};
 	input_config_fill_rule_names(input_config, &rules);
-	config->keysym_translation_state =
-		keysym_translation_state_create(rules);
+	config->keysym_translation_state = keysym_translation_state_create(rules);
 
 	for (int i = 0; i < config->modes->length; ++i) {
 		struct hayward_mode *mode = config->modes->items[i];
@@ -1041,6 +1114,8 @@ void translate_keysyms(struct input_config *input_config) {
 		mode->keycode_bindings = bindcodes;
 	}
 
-	hayward_log(HAYWARD_DEBUG, "Translated keysyms using config for device '%s'",
-			input_config->identifier);
+	hayward_log(
+		HAYWARD_DEBUG, "Translated keysyms using config for device '%s'",
+		input_config->identifier
+	);
 }

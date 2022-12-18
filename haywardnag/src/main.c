@@ -1,8 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
 #include <signal.h>
-#include "hayward-common/log.h"
+#include <stdlib.h>
+
 #include "hayward-common/list.h"
+#include "hayward-common/log.h"
+
 #include "haywardnag/config.h"
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"
@@ -31,9 +33,10 @@ int main(int argc, char **argv) {
 
 	char *config_path = NULL;
 	bool debug = false;
-	status = haywardnag_parse_options(argc, argv, NULL, NULL, NULL,
-			&config_path, &debug);
-	if (status != 0)  {
+	status = haywardnag_parse_options(
+		argc, argv, NULL, NULL, NULL, &config_path, &debug
+	);
+	if (status != 0) {
 		goto cleanup;
 	}
 	hayward_log_init(debug ? HAYWARD_DEBUG : HAYWARD_ERROR);
@@ -56,15 +59,18 @@ int main(int argc, char **argv) {
 		struct haywardnag_type *type_args = haywardnag_type_new("<args>");
 		list_add(types, type_args);
 
-		status = haywardnag_parse_options(argc, argv, &haywardnag, types,
-				type_args, NULL, NULL);
+		status = haywardnag_parse_options(
+			argc, argv, &haywardnag, types, type_args, NULL, NULL
+		);
 		if (status != 0) {
 			goto cleanup;
 		}
 	}
 
 	if (!haywardnag.message) {
-		hayward_log(HAYWARD_ERROR, "No message passed. Please provide --message/-m");
+		hayward_log(
+			HAYWARD_ERROR, "No message passed. Please provide --message/-m"
+		);
 		status = EXIT_FAILURE;
 		goto cleanup;
 	}
@@ -85,7 +91,7 @@ int main(int argc, char **argv) {
 
 	haywardnag_types_free(types);
 
-	struct haywardnag_button button_close = { 0 };
+	struct haywardnag_button button_close = {0};
 	button_close.text = strdup("X");
 	button_close.type = HAYWARDNAG_ACTION_DISMISS;
 	list_add(haywardnag.buttons, &button_close);

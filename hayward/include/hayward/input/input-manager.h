@@ -5,9 +5,11 @@
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
-#include "hayward/server.h"
-#include "hayward/config.h"
+
 #include "hayward-common/list.h"
+
+#include "hayward/config.h"
+#include "hayward/server.h"
 
 struct hayward_input_device {
 	char *identifier;
@@ -22,7 +24,8 @@ struct hayward_input_manager {
 	struct wl_list seats;
 
 	struct wlr_input_inhibit_manager *inhibit;
-	struct wlr_keyboard_shortcuts_inhibit_manager_v1 *keyboard_shortcuts_inhibit;
+	struct wlr_keyboard_shortcuts_inhibit_manager_v1
+		*keyboard_shortcuts_inhibit;
 	struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard;
 	struct wlr_virtual_pointer_manager_v1 *virtual_pointer;
 
@@ -53,7 +56,8 @@ const char *input_device_get_type(struct hayward_input_device *device);
  */
 void input_manager_verify_fallback_seat(void);
 
-struct hayward_input_manager *input_manager_create(struct hayward_server *server);
+struct hayward_input_manager *input_manager_create(struct hayward_server *server
+);
 
 void input_manager_configure_all_inputs(void);
 
@@ -67,6 +71,7 @@ void input_manager_apply_seat_config(struct seat_config *seat_config);
 
 void input_manager_configure_xcursor(void);
 
-struct input_config *input_device_get_config(struct hayward_input_device *device);
+struct input_config *input_device_get_config(struct hayward_input_device *device
+);
 
 #endif

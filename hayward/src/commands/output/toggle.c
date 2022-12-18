@@ -10,15 +10,17 @@ struct cmd_results *output_cmd_toggle(int argc, char **argv) {
 	struct output_config *oc = config->handler_context.output_config;
 
 	if (strcmp(oc->name, "*") == 0) {
-		return cmd_results_new(CMD_INVALID,
-				"Cannot apply toggle to all outputs.");
+		return cmd_results_new(
+			CMD_INVALID, "Cannot apply toggle to all outputs."
+		);
 	}
 
 	struct hayward_output *hayward_output = all_output_by_name_or_id(oc->name);
 
 	if (hayward_output == NULL) {
-		return cmd_results_new(CMD_FAILURE,
-				"Cannot apply toggle to unknown output %s", oc->name);
+		return cmd_results_new(
+			CMD_FAILURE, "Cannot apply toggle to unknown output %s", oc->name
+		);
 	}
 
 	oc = find_output_config(hayward_output);
@@ -34,4 +36,3 @@ struct cmd_results *output_cmd_toggle(int argc, char **argv) {
 	config->handler_context.leftovers.argv = argv;
 	return NULL;
 }
-

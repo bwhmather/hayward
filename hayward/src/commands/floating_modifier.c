@@ -1,7 +1,8 @@
-#include "strings.h"
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/keyboard.h"
+
+#include "strings.h"
 
 struct cmd_results *cmd_floating_modifier(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -24,8 +25,9 @@ struct cmd_results *cmd_floating_modifier(int argc, char **argv) {
 	} else if (strcasecmp(argv[1], "inverse") == 0) {
 		config->floating_mod_inverse = true;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-				"Usage: floating_modifier <mod> [inverse|normal]");
+		return cmd_results_new(
+			CMD_INVALID, "Usage: floating_modifier <mod> [inverse|normal]"
+		);
 	}
 
 	config->floating_mod = mod;

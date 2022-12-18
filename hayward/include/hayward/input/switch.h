@@ -11,8 +11,9 @@ struct hayward_switch {
 	struct wl_listener switch_toggle;
 };
 
-struct hayward_switch *hayward_switch_create(struct hayward_seat *seat,
-		struct hayward_seat_device *device);
+struct hayward_switch *hayward_switch_create(
+	struct hayward_seat *seat, struct hayward_seat_device *device
+);
 
 void hayward_switch_configure(struct hayward_switch *hayward_switch);
 

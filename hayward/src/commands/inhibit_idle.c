@@ -1,9 +1,10 @@
 #include <string.h>
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/desktop/idle_inhibit_v1.h"
-#include "hayward/tree/window.h"
 #include "hayward/tree/view.h"
+#include "hayward/tree/window.h"
 
 struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -13,8 +14,9 @@ struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {
 
 	struct hayward_window *window = config->handler_context.window;
 	if (!window) {
-		return cmd_results_new(CMD_INVALID,
-				"Only views can have idle inhibitors");
+		return cmd_results_new(
+			CMD_INVALID, "Only views can have idle inhibitors"
+		);
 	}
 
 	bool clear = false;
@@ -30,8 +32,10 @@ struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {
 	} else if (strcmp(argv[0], "visible") == 0) {
 		mode = INHIBIT_IDLE_VISIBLE;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-				"Expected `inhibit_idle focus|fullscreen|open|none|visible`");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Expected `inhibit_idle focus|fullscreen|open|none|visible`"
+		);
 	}
 
 	struct hayward_idle_inhibitor_v1 *inhibitor =
@@ -41,7 +45,8 @@ struct cmd_results *cmd_inhibit_idle(int argc, char **argv) {
 			hayward_idle_inhibit_v1_user_inhibitor_destroy(inhibitor);
 		} else {
 			inhibitor->mode = mode;
-			hayward_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
+			hayward_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1
+			);
 		}
 	} else if (!clear) {
 		hayward_idle_inhibit_v1_user_inhibitor_register(window->view, mode);

@@ -1,10 +1,12 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hayward/config.h"
-#include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
+
 #include "hayward-common/util.h"
+
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/input/input-manager.h"
 
 struct cmd_results *input_cmd_pointer_accel(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -18,9 +20,11 @@ struct cmd_results *input_cmd_pointer_accel(int argc, char **argv) {
 
 	float pointer_accel = parse_float(argv[0]);
 	if (isnan(pointer_accel)) {
-		return cmd_results_new(CMD_INVALID,
-			"Invalid pointer accel; expected float.");
-	} if (pointer_accel < -1 || pointer_accel > 1) {
+		return cmd_results_new(
+			CMD_INVALID, "Invalid pointer accel; expected float."
+		);
+	}
+	if (pointer_accel < -1 || pointer_accel > 1) {
 		return cmd_results_new(CMD_INVALID, "Input out of range [-1, 1]");
 	}
 	ic->pointer_accel = pointer_accel;

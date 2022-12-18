@@ -1,22 +1,25 @@
 #define _POSIX_C_SOURCE 200809
+#include "haywardbar/ipc.h"
+
+#include <json.h>
 #include <limits.h>
 #include <poll.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include <json.h>
+
 #include "haywardbar/config.h"
-#include "haywardbar/ipc.h"
 #include "haywardbar/status_line.h"
 #if HAVE_TRAY
 #include "haywardbar/tray/tray.h"
 #endif
-#include "config.h"
 #include "hayward-common/ipc-client.h"
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 #include "hayward-common/loop.h"
 #include "hayward-common/util.h"
+
+#include "config.h"
 
 void ipc_send_workspace_command(struct haywardbar *bar, const char *ws) {
 	uint32_t size = strlen("workspace \"\"") + strlen(ws);
@@ -53,33 +56,35 @@ char *parse_font(const char *font) {
 	return new_font;
 }
 
-static void ipc_parse_colors(
-		struct haywardbar_config *config, json_object *colors) {
+static void
+ipc_parse_colors(struct haywardbar_config *config, json_object *colors) {
 	struct {
 		const char *name;
 		uint32_t *color;
 	} properties[] = {
-		{ "background", &config->colors.background },
-		{ "statusline", &config->colors.statusline },
-		{ "separator", &config->colors.separator },
-		{ "focused_background", &config->colors.focused_background },
-		{ "focused_statusline", &config->colors.focused_statusline },
-		{ "focused_separator", &config->colors.focused_separator },
-		{ "focused_workspace_border", &config->colors.focused_workspace.border },
-		{ "focused_workspace_bg", &config->colors.focused_workspace.background },
-		{ "focused_workspace_text", &config->colors.focused_workspace.text },
-		{ "active_workspace_border", &config->colors.active_workspace.border },
-		{ "active_workspace_bg", &config->colors.active_workspace.background },
-		{ "active_workspace_text", &config->colors.active_workspace.text },
-		{ "inactive_workspace_border", &config->colors.inactive_workspace.border },
-		{ "inactive_workspace_bg", &config->colors.inactive_workspace.background },
-		{ "inactive_workspace_text", &config->colors.inactive_workspace.text },
-		{ "urgent_workspace_border", &config->colors.urgent_workspace.border },
-		{ "urgent_workspace_bg", &config->colors.urgent_workspace.background },
-		{ "urgent_workspace_text", &config->colors.urgent_workspace.text },
-		{ "binding_mode_border", &config->colors.binding_mode.border },
-		{ "binding_mode_bg", &config->colors.binding_mode.background },
-		{ "binding_mode_text", &config->colors.binding_mode.text },
+		{"background", &config->colors.background},
+		{"statusline", &config->colors.statusline},
+		{"separator", &config->colors.separator},
+		{"focused_background", &config->colors.focused_background},
+		{"focused_statusline", &config->colors.focused_statusline},
+		{"focused_separator", &config->colors.focused_separator},
+		{"focused_workspace_border", &config->colors.focused_workspace.border},
+		{"focused_workspace_bg", &config->colors.focused_workspace.background},
+		{"focused_workspace_text", &config->colors.focused_workspace.text},
+		{"active_workspace_border", &config->colors.active_workspace.border},
+		{"active_workspace_bg", &config->colors.active_workspace.background},
+		{"active_workspace_text", &config->colors.active_workspace.text},
+		{"inactive_workspace_border",
+		 &config->colors.inactive_workspace.border},
+		{"inactive_workspace_bg",
+		 &config->colors.inactive_workspace.background},
+		{"inactive_workspace_text", &config->colors.inactive_workspace.text},
+		{"urgent_workspace_border", &config->colors.urgent_workspace.border},
+		{"urgent_workspace_bg", &config->colors.urgent_workspace.background},
+		{"urgent_workspace_text", &config->colors.urgent_workspace.text},
+		{"binding_mode_border", &config->colors.binding_mode.border},
+		{"binding_mode_bg", &config->colors.binding_mode.background},
+		{"binding_mode_text", &config->colors.binding_mode.text},
 	};
 
 	for (size_t i = 0; i < sizeof(properties) / sizeof(properties[i]); i++) {
@@ -87,21 +92,26 @@ static void ipc_parse_colors(
 		if (json_object_object_get_ex(colors, properties[i].name, &object)) {
 			const char *hexstring = json_object_get_string(object);
 			if (!parse_color(hexstring, properties[i].color)) {
-				hayward_log(HAYWARD_ERROR, "Ignoring invalid %s: %s",
-						properties[i].name, hexstring);
+				hayward_log(
+					HAYWARD_ERROR, "Ignoring invalid %s: %s",
+					properties[i].name, hexstring
+				);
 			}
 		}
 	}
 }
 
-static bool ipc_parse_config(
-		struct haywardbar_config *config, const char *payload) {
+static bool
+ipc_parse_config(struct haywardbar_config *config, const char *payload) {
 	json_object *bar_config = json_tokener_parse(payload);
 	json_object *success;
-	if (json_object_object_get_ex(bar_config, "success", &success)
-			&& !json_object_get_boolean(success)) {
-		hayward_log(HAYWARD_ERROR, "No bar with that ID. Use 'haywardmsg -t "
-				"get_bar_config' to get the available bar configs.");
+	if (json_object_object_get_ex(bar_config, "success", &success) &&
+		!json_object_get_boolean(success)) {
+		hayward_log(
+			HAYWARD_ERROR,
+			"No bar with that ID. Use 'haywardmsg -t "
+			"get_bar_config' to get the available bar configs."
+		);
 		json_object_put(bar_config);
 		return false;
 	}
@@ -131,11 +141,14 @@ static bool ipc_parse_config(
 			struct haywardbar_binding *binding =
 				calloc(1, sizeof(struct haywardbar_binding));
 			binding->button = json_object_get_int(
-					json_object_object_get(bindobj, "event_code"));
+				json_object_object_get(bindobj, "event_code")
+			);
 			binding->command = strdup(json_object_get_string(
-					json_object_object_get(bindobj, "command")));
+				json_object_object_get(bindobj, "command")
+			));
 			binding->release = json_object_get_boolean(
-					json_object_object_get(bindobj, "release"));
+				json_object_object_get(bindobj, "release")
+			);
 			list_add(config->bindings, binding);
 		}
 	}
@@ -205,8 +218,8 @@ static bool ipc_parse_config(
 				}
 				break;
 			}
-			struct config_output *coutput = calloc(
-					1, sizeof(struct config_output));
+			struct config_output *coutput =
+				calloc(1, sizeof(struct config_output));
 			coutput->name = strdup(name);
 			wl_list_insert(&config->outputs, &coutput->link);
 		}
@@ -276,7 +289,8 @@ static bool ipc_parse_config(
 		config->workspace_min_width = json_object_get_int(workspace_min_width);
 	}
 
-	json_object *wrap_scroll = json_object_object_get(bar_config, "wrap_scroll");
+	json_object *wrap_scroll =
+		json_object_object_get(bar_config, "wrap_scroll");
 	if (wrap_scroll) {
 		config->wrap_scroll = json_object_get_boolean(wrap_scroll);
 	}
@@ -286,11 +300,12 @@ static bool ipc_parse_config(
 	if (config->tray_outputs && config->tray_outputs->length) {
 		list_free_items_and_destroy(config->tray_outputs);
 	}
-	if ((json_object_object_get_ex(bar_config, "tray_outputs", &tray_outputs))) {
+	if ((json_object_object_get_ex(bar_config, "tray_outputs", &tray_outputs)
+		)) {
 		config->tray_outputs = create_list();
 		int length = json_object_array_length(tray_outputs);
 		for (int i = 0; i < length; ++i) {
-			json_object *output= json_object_array_get_idx(tray_outputs, i);
+			json_object *output = json_object_array_get_idx(tray_outputs, i);
 			const char *name = json_object_get_string(output);
 			if (strcmp(name, "none") == 0) {
 				config->tray_hidden = true;
@@ -302,26 +317,30 @@ static bool ipc_parse_config(
 		}
 	}
 
-	if ((json_object_object_get_ex(bar_config, "tray_padding", &tray_padding))) {
+	if ((json_object_object_get_ex(bar_config, "tray_padding", &tray_padding)
+		)) {
 		config->tray_padding = json_object_get_int(tray_padding);
 	}
 
 	struct tray_binding *tray_bind = NULL, *tmp_tray_bind = NULL;
-	wl_list_for_each_safe(tray_bind, tmp_tray_bind, &config->tray_bindings,
-			link) {
+	wl_list_for_each_safe(
+		tray_bind, tmp_tray_bind, &config->tray_bindings, link
+	) {
 		wl_list_remove(&tray_bind->link);
 		free_tray_binding(tray_bind);
 	}
-	if ((json_object_object_get_ex(bar_config, "tray_bindings", &tray_bindings))) {
+	if ((json_object_object_get_ex(bar_config, "tray_bindings", &tray_bindings)
+		)) {
 		int length = json_object_array_length(tray_bindings);
 		for (int i = 0; i < length; ++i) {
 			json_object *bind = json_object_array_get_idx(tray_bindings, i);
 			struct tray_binding *binding =
 				calloc(1, sizeof(struct tray_binding));
-			binding->button = json_object_get_int(
-					json_object_object_get(bind, "event_code"));
-			binding->command = strdup(json_object_get_string(
-					json_object_object_get(bind, "command")));
+			binding->button =
+				json_object_get_int(json_object_object_get(bind, "event_code"));
+			binding->command = strdup(
+				json_object_get_string(json_object_object_get(bind, "command"))
+			);
 			wl_list_insert(&config->tray_bindings, &binding->link);
 		}
 	}
@@ -342,8 +361,8 @@ bool ipc_get_workspaces(struct haywardbar *bar) {
 		output->focused = false;
 	}
 	uint32_t len = 0;
-	char *res = ipc_single_command(bar->ipc_socketfd,
-			IPC_GET_WORKSPACES, NULL, &len);
+	char *res =
+		ipc_single_command(bar->ipc_socketfd, IPC_GET_WORKSPACES, NULL, &len);
 	json_object *results = json_tokener_parse(res);
 	if (!results) {
 		free(res);
@@ -406,18 +425,23 @@ bool ipc_get_workspaces(struct haywardbar *bar) {
 	return determine_bar_visibility(bar, false);
 }
 
-void ipc_execute_binding(struct haywardbar *bar, struct haywardbar_binding *bind) {
-	hayward_log(HAYWARD_DEBUG, "Executing binding for button %u (release=%d): `%s`",
-			bind->button, bind->release, bind->command);
+void ipc_execute_binding(
+	struct haywardbar *bar, struct haywardbar_binding *bind
+) {
+	hayward_log(
+		HAYWARD_DEBUG, "Executing binding for button %u (release=%d): `%s`",
+		bind->button, bind->release, bind->command
+	);
 	uint32_t len = strlen(bind->command);
-	free(ipc_single_command(bar->ipc_socketfd,
-			IPC_COMMAND, bind->command, &len));
+	free(ipc_single_command(bar->ipc_socketfd, IPC_COMMAND, bind->command, &len)
+	);
 }
 
 bool ipc_initialize(struct haywardbar *bar) {
 	uint32_t len = strlen(bar->id);
-	char *res = ipc_single_command(bar->ipc_socketfd,
-			IPC_GET_BAR_CONFIG, bar->id, &len);
+	char *res = ipc_single_command(
+		bar->ipc_socketfd, IPC_GET_BAR_CONFIG, bar->id, &len
+	);
 	if (!ipc_parse_config(bar->config, res)) {
 		free(res);
 		return false;
@@ -426,16 +450,19 @@ bool ipc_initialize(struct haywardbar *bar) {
 
 	struct haywardbar_config *config = bar->config;
 	char subscribe[128]; // suitably large buffer
-	len = snprintf(subscribe, 128,
-			"[ \"barconfig_update\" , \"bar_state_update\" %s %s ]",
-			config->binding_mode_indicator ? ", \"mode\"" : "",
-			config->workspace_buttons ? ", \"workspace\"" : "");
-	free(ipc_single_command(bar->ipc_event_socketfd,
-			IPC_SUBSCRIBE, subscribe, &len));
+	len = snprintf(
+		subscribe, 128, "[ \"barconfig_update\" , \"bar_state_update\" %s %s ]",
+		config->binding_mode_indicator ? ", \"mode\"" : "",
+		config->workspace_buttons ? ", \"workspace\"" : ""
+	);
+	free(ipc_single_command(
+		bar->ipc_event_socketfd, IPC_SUBSCRIBE, subscribe, &len
+	));
 	return true;
 }
 
-static bool handle_bar_state_update(struct haywardbar *bar, json_object *event) {
+static bool
+handle_bar_state_update(struct haywardbar *bar, json_object *event) {
 	json_object *json_id;
 	json_object_object_get_ex(event, "id", &json_id);
 	const char *id = json_object_get_string(json_id);
@@ -444,7 +471,9 @@ static bool handle_bar_state_update(struct haywardbar *bar, json_object *event) 
 	}
 
 	json_object *visible_by_modifier;
-	json_object_object_get_ex(event, "visible_by_modifier", &visible_by_modifier);
+	json_object_object_get_ex(
+		event, "visible_by_modifier", &visible_by_modifier
+	);
 	bar->visible_by_modifier = json_object_get_boolean(visible_by_modifier);
 	if (bar->visible_by_modifier) {
 		// If the bar is visible by modifier, clear both visible by mode and
@@ -456,8 +485,9 @@ static bool handle_bar_state_update(struct haywardbar *bar, json_object *event) 
 	return determine_bar_visibility(bar, false);
 }
 
-static bool handle_barconfig_update(struct haywardbar *bar, const char *payload,
-		json_object *json_config) {
+static bool handle_barconfig_update(
+	struct haywardbar *bar, const char *payload, json_object *json_config
+) {
 	json_object *json_id = json_object_object_get(json_config, "id");
 	const char *id = json_object_get_string(json_id);
 	if (strcmp(id, bar->id) != 0) {
@@ -476,7 +506,7 @@ static bool handle_barconfig_update(struct haywardbar *bar, const char *payload,
 		struct config_output *coutput;
 		wl_list_for_each(coutput, &newcfg->outputs, link) {
 			if (strcmp(coutput->name, output->name) == 0 ||
-					strcmp(coutput->name, output->identifier) == 0) {
+				strcmp(coutput->name, output->identifier) == 0) {
 				found = true;
 				break;
 			}
@@ -485,9 +515,8 @@ static bool handle_barconfig_update(struct haywardbar *bar, const char *payload,
 			destroy_layer_surface(output);
 			wl_list_remove(&output->link);
 			wl_list_insert(&bar->unused_outputs, &output->link);
-		} else if (!oldcfg->font || !newcfg->font ||
-				strcmp(oldcfg->font, newcfg->font) != 0) {
-			output->height = 0;  // force update height
+		} else if (!oldcfg->font || !newcfg->font || strcmp(oldcfg->font, newcfg->font) != 0) {
+			output->height = 0; // force update height
 		}
 	}
 	wl_list_for_each_safe(output, tmp_output, &bar->unused_outputs, link) {
@@ -495,7 +524,7 @@ static bool handle_barconfig_update(struct haywardbar *bar, const char *payload,
 		struct config_output *coutput;
 		wl_list_for_each(coutput, &newcfg->outputs, link) {
 			if (strcmp(coutput->name, output->name) == 0 ||
-					strcmp(coutput->name, output->identifier) == 0) {
+				strcmp(coutput->name, output->identifier) == 0) {
 				found = true;
 				break;
 			}
@@ -506,23 +535,26 @@ static bool handle_barconfig_update(struct haywardbar *bar, const char *payload,
 		}
 	}
 
-	if (bar->status && (!newcfg->status_command ||
-				strcmp(newcfg->status_command, oldcfg->status_command) != 0)) {
+	if (bar->status &&
+		(!newcfg->status_command ||
+		 strcmp(newcfg->status_command, oldcfg->status_command) != 0)) {
 		status_line_free(bar->status);
 		bar->status = NULL;
 	}
 	if (!bar->status && newcfg->status_command) {
 		bar->status = status_line_init(newcfg->status_command);
 		bar->status->bar = bar;
-		loop_add_fd(bar->eventloop, bar->status->read_fd, POLLIN,
-				status_in, bar);
+		loop_add_fd(
+			bar->eventloop, bar->status->read_fd, POLLIN, status_in, bar
+		);
 	}
 
 #if HAVE_TRAY
 	if (oldcfg->tray_hidden && !newcfg->tray_hidden) {
 		bar->tray = create_tray(bar);
-		loop_add_fd(bar->eventloop, bar->tray->fd, POLLIN, tray_in,
-				bar->tray->bus);
+		loop_add_fd(
+			bar->eventloop, bar->tray->fd, POLLIN, tray_in, bar->tray->bus
+		);
 	} else if (bar->tray && newcfg->tray_hidden) {
 		loop_remove_fd(bar->eventloop, bar->tray->fd);
 		destroy_tray(bar->tray);
@@ -547,9 +579,9 @@ bool handle_ipc_readable(struct haywardbar *bar) {
 		return false;
 	}
 
-	// The default depth of 32 is too small to represent some nested layouts, but
-	// we can't pass INT_MAX here because json-c (as of this writing) prefaults
-	// all the memory for its stack.
+	// The default depth of 32 is too small to represent some nested layouts,
+	// but we can't pass INT_MAX here because json-c (as of this writing)
+	// prefaults all the memory for its stack.
 	json_tokener *tok = json_tokener_new_ex(JSON_MAX_DEPTH);
 	if (!tok) {
 		hayward_log_errno(HAYWARD_ERROR, "failed to create tokener");
@@ -562,8 +594,10 @@ bool handle_ipc_readable(struct haywardbar *bar) {
 	json_tokener_free(tok);
 
 	if (err != json_tokener_success) {
-		hayward_log(HAYWARD_ERROR, "failed to parse payload as json: %s",
-				json_tokener_error_desc(err));
+		hayward_log(
+			HAYWARD_ERROR, "failed to parse payload as json: %s",
+			json_tokener_error_desc(err)
+		);
 		free_ipc_response(resp);
 		return false;
 	}
@@ -586,8 +620,9 @@ bool handle_ipc_readable(struct haywardbar *bar) {
 			bar_is_dirty = false;
 			break;
 		}
-		if (json_object_object_get_ex(result,
-					"pango_markup", &json_pango_markup)) {
+		if (json_object_object_get_ex(
+				result, "pango_markup", &json_pango_markup
+			)) {
 			bar->mode_pango_markup = json_object_get_boolean(json_pango_markup);
 		}
 		break;

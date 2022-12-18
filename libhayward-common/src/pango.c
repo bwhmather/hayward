@@ -1,5 +1,3 @@
-#include "hayward-common/cairo_util.h"
-
 #include <cairo.h>
 #include <pango/pangocairo.h>
 #include <stdarg.h>
@@ -9,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "hayward-common/cairo_util.h"
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 
@@ -52,8 +51,10 @@ size_t escape_markup_text(const char *src, char *dest) {
 	return length;
 }
 
-PangoLayout *get_pango_layout(cairo_t *cairo, const char *font,
-		const char *text, double scale, bool markup) {
+PangoLayout *get_pango_layout(
+	cairo_t *cairo, const char *font, const char *text, double scale,
+	bool markup
+) {
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
 	PangoAttrList *attrs;
 	if (markup) {
@@ -63,8 +64,10 @@ PangoLayout *get_pango_layout(cairo_t *cairo, const char *font,
 			pango_layout_set_text(layout, buf, -1);
 			free(buf);
 		} else {
-			hayward_log(HAYWARD_ERROR, "pango_parse_markup '%s' -> error %s", text,
-					error->message);
+			hayward_log(
+				HAYWARD_ERROR, "pango_parse_markup '%s' -> error %s", text,
+				error->message
+			);
 			g_error_free(error);
 			markup = false; // fallback to plain text
 		}
@@ -84,8 +87,10 @@ PangoLayout *get_pango_layout(cairo_t *cairo, const char *font,
 	return layout;
 }
 
-void get_text_size(cairo_t *cairo, const char *font, int *width, int *height,
-		int *baseline, double scale, bool markup, const char *fmt, ...) {
+void get_text_size(
+	cairo_t *cairo, const char *font, int *width, int *height, int *baseline,
+	double scale, bool markup, const char *fmt, ...
+) {
 	va_list args;
 	va_start(args, fmt);
 	// Add one since vsnprintf excludes null terminator.
@@ -114,9 +119,11 @@ void get_text_size(cairo_t *cairo, const char *font, int *width, int *height,
 void get_text_metrics(const char *font, int *height, int *baseline) {
 	cairo_t *cairo = cairo_create(NULL);
 	PangoContext *pango = pango_cairo_create_context(cairo);
-	PangoFontDescription *description = pango_font_description_from_string(font);
+	PangoFontDescription *description =
+		pango_font_description_from_string(font);
 	// When passing NULL as a language, pango uses the current locale.
-	PangoFontMetrics *metrics = pango_context_get_metrics(pango, description, NULL);
+	PangoFontMetrics *metrics =
+		pango_context_get_metrics(pango, description, NULL);
 
 	*baseline = pango_font_metrics_get_ascent(metrics) / PANGO_SCALE;
 	*height = *baseline + pango_font_metrics_get_descent(metrics) / PANGO_SCALE;
@@ -127,8 +134,10 @@ void get_text_metrics(const char *font, int *height, int *baseline) {
 	cairo_destroy(cairo);
 }
 
-void render_text(cairo_t *cairo, const char *font,
-		double scale, bool markup, const char *fmt, ...) {
+void render_text(
+	cairo_t *cairo, const char *font, double scale, bool markup,
+	const char *fmt, ...
+) {
 	va_list args;
 	va_start(args, fmt);
 	// Add one since vsnprintf excludes null terminator.

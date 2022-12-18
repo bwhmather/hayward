@@ -5,6 +5,7 @@
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/edges.h>
+
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/input/tablet.h"
@@ -13,21 +14,25 @@
 struct hayward_seat;
 
 struct hayward_seatop_impl {
-	void (*button)(struct hayward_seat *seat, uint32_t time_msec,
-			struct wlr_input_device *device, uint32_t button,
-			enum wlr_button_state state);
+	void (*button
+	)(struct hayward_seat *seat, uint32_t time_msec,
+	  struct wlr_input_device *device, uint32_t button,
+	  enum wlr_button_state state);
 	void (*pointer_motion)(struct hayward_seat *seat, uint32_t time_msec);
-	void (*pointer_axis)(struct hayward_seat *seat,
-			struct wlr_pointer_axis_event *event);
+	void (*pointer_axis
+	)(struct hayward_seat *seat, struct wlr_pointer_axis_event *event);
 	void (*rebase)(struct hayward_seat *seat, uint32_t time_msec);
-	void (*tablet_tool_motion)(struct hayward_seat *seat,
-			struct hayward_tablet_tool *tool, uint32_t time_msec);
-	void (*tablet_tool_tip)(struct hayward_seat *seat, struct hayward_tablet_tool *tool,
-			uint32_t time_msec, enum wlr_tablet_tool_tip_state state);
+	void (*tablet_tool_motion
+	)(struct hayward_seat *seat, struct hayward_tablet_tool *tool,
+	  uint32_t time_msec);
+	void (*tablet_tool_tip
+	)(struct hayward_seat *seat, struct hayward_tablet_tool *tool,
+	  uint32_t time_msec, enum wlr_tablet_tool_tip_state state);
 	void (*end)(struct hayward_seat *seat);
 	void (*unref)(struct hayward_seat *seat, struct hayward_window *container);
-	void (*render)(struct hayward_seat *seat, struct hayward_output *output,
-			pixman_region32_t *damage);
+	void (*render
+	)(struct hayward_seat *seat, struct hayward_output *output,
+	  pixman_region32_t *damage);
 	bool allow_set_cursor;
 };
 
@@ -91,10 +96,10 @@ struct hayward_seat {
 	struct wl_listener request_set_selection;
 	struct wl_listener request_set_primary_selection;
 
-	struct wl_list devices; // hayward_seat_device::link
+	struct wl_list devices;			// hayward_seat_device::link
 	struct wl_list keyboard_groups; // hayward_keyboard_group::link
 	struct wl_list keyboard_shortcuts_inhibitors;
-				// hayward_keyboard_shortcuts_inhibitor::link
+	// hayward_keyboard_shortcuts_inhibitor::link
 
 	struct wl_list link; // input_manager::seats
 };
@@ -119,24 +124,31 @@ struct hayward_seat *seat_create(const char *seat_name);
 
 void seat_destroy(struct hayward_seat *seat);
 
-void seat_idle_notify_activity(struct hayward_seat *seat,
-		enum hayward_input_idle_source source);
+void seat_idle_notify_activity(
+	struct hayward_seat *seat, enum hayward_input_idle_source source
+);
 
-bool seat_is_input_allowed(struct hayward_seat *seat, struct wlr_surface *surface);
+bool seat_is_input_allowed(
+	struct hayward_seat *seat, struct wlr_surface *surface
+);
 
 void drag_icon_update_position(struct hayward_drag_icon *icon);
 
-void seat_configure_device(struct hayward_seat *seat,
-		struct hayward_input_device *device);
+void seat_configure_device(
+	struct hayward_seat *seat, struct hayward_input_device *device
+);
 
-void seat_reset_device(struct hayward_seat *seat,
-		struct hayward_input_device *input_device);
+void seat_reset_device(
+	struct hayward_seat *seat, struct hayward_input_device *input_device
+);
 
-void seat_add_device(struct hayward_seat *seat,
-		struct hayward_input_device *device);
+void seat_add_device(
+	struct hayward_seat *seat, struct hayward_input_device *device
+);
 
-void seat_remove_device(struct hayward_seat *seat,
-		struct hayward_input_device *device);
+void seat_remove_device(
+	struct hayward_seat *seat, struct hayward_input_device *device
+);
 
 void seat_configure_xcursor(struct hayward_seat *seat);
 
@@ -150,59 +162,83 @@ void seat_commit_focus(struct hayward_seat *seat);
 // hierarchy (used for lockscreen)
 void hayward_force_focus(struct wlr_surface *surface);
 
-void seat_set_exclusive_client(struct hayward_seat *seat,
-		struct wl_client *client);
+void seat_set_exclusive_client(
+	struct hayward_seat *seat, struct wl_client *client
+);
 
-void seat_apply_config(struct hayward_seat *seat, struct seat_config *seat_config);
+void seat_apply_config(
+	struct hayward_seat *seat, struct seat_config *seat_config
+);
 
 struct seat_config *seat_get_config(struct hayward_seat *seat);
 
 struct seat_config *seat_get_config_by_name(const char *name);
 
-enum wlr_edges find_resize_edge(struct hayward_window *cont,
-		struct wlr_surface *surface, struct hayward_cursor *cursor);
+enum wlr_edges find_resize_edge(
+	struct hayward_window *cont, struct wlr_surface *surface,
+	struct hayward_cursor *cursor
+);
 
 void seatop_begin_default(struct hayward_seat *seat);
 
-void seatop_begin_down(struct hayward_seat *seat, struct hayward_window *container,
-		uint32_t time_msec, double sx, double sy);
+void seatop_begin_down(
+	struct hayward_seat *seat, struct hayward_window *container,
+	uint32_t time_msec, double sx, double sy
+);
 
-void seatop_begin_down_on_surface(struct hayward_seat *seat,
-		struct wlr_surface *surface, uint32_t time_msec, double sx, double sy);
+void seatop_begin_down_on_surface(
+	struct hayward_seat *seat, struct wlr_surface *surface, uint32_t time_msec,
+	double sx, double sy
+);
 
-void seatop_begin_move_floating(struct hayward_seat *seat,
-		struct hayward_window *container);
+void seatop_begin_move_floating(
+	struct hayward_seat *seat, struct hayward_window *container
+);
 
-void seatop_begin_move_tiling_threshold(struct hayward_seat *seat,
-		struct hayward_window *container);
+void seatop_begin_move_tiling_threshold(
+	struct hayward_seat *seat, struct hayward_window *container
+);
 
-void seatop_begin_move_tiling(struct hayward_seat *seat,
-		struct hayward_window *container);
+void seatop_begin_move_tiling(
+	struct hayward_seat *seat, struct hayward_window *container
+);
 
-void seatop_begin_resize_floating(struct hayward_seat *seat,
-		struct hayward_window *container, enum wlr_edges edge);
+void seatop_begin_resize_floating(
+	struct hayward_seat *seat, struct hayward_window *container,
+	enum wlr_edges edge
+);
 
-void seatop_begin_resize_tiling(struct hayward_seat *seat,
-		struct hayward_window *container, enum wlr_edges edge);
+void seatop_begin_resize_tiling(
+	struct hayward_seat *seat, struct hayward_window *container,
+	enum wlr_edges edge
+);
 
-void seat_pointer_notify_button(struct hayward_seat *seat, uint32_t time_msec,
-		uint32_t button, enum wlr_button_state state);
+void seat_pointer_notify_button(
+	struct hayward_seat *seat, uint32_t time_msec, uint32_t button,
+	enum wlr_button_state state
+);
 
-void seatop_button(struct hayward_seat *seat, uint32_t time_msec,
-		struct wlr_input_device *device, uint32_t button,
-		enum wlr_button_state state);
+void seatop_button(
+	struct hayward_seat *seat, uint32_t time_msec,
+	struct wlr_input_device *device, uint32_t button,
+	enum wlr_button_state state
+);
 
 void seatop_pointer_motion(struct hayward_seat *seat, uint32_t time_msec);
 
-void seatop_pointer_axis(struct hayward_seat *seat,
-		struct wlr_pointer_axis_event *event);
+void seatop_pointer_axis(
+	struct hayward_seat *seat, struct wlr_pointer_axis_event *event
+);
 
-void seatop_tablet_tool_tip(struct hayward_seat *seat,
-		struct hayward_tablet_tool *tool, uint32_t time_msec,
-		enum wlr_tablet_tool_tip_state state);
+void seatop_tablet_tool_tip(
+	struct hayward_seat *seat, struct hayward_tablet_tool *tool,
+	uint32_t time_msec, enum wlr_tablet_tool_tip_state state
+);
 
-void seatop_tablet_tool_motion(struct hayward_seat *seat,
-		struct hayward_tablet_tool *tool, uint32_t time_msec);
+void seatop_tablet_tool_motion(
+	struct hayward_seat *seat, struct hayward_tablet_tool *tool,
+	uint32_t time_msec
+);
 
 void seatop_rebase(struct hayward_seat *seat, uint32_t time_msec);
 
@@ -222,8 +258,10 @@ void seatop_unref(struct hayward_seat *seat, struct hayward_window *container);
  * Instructs a seatop to render anything that it needs to render
  * (eg. dropzone for move-tiling)
  */
-void seatop_render(struct hayward_seat *seat, struct hayward_output *output,
-		pixman_region32_t *damage);
+void seatop_render(
+	struct hayward_seat *seat, struct hayward_output *output,
+	pixman_region32_t *damage
+);
 
 bool seatop_allows_set_cursor(struct hayward_seat *seat);
 
@@ -232,14 +270,17 @@ bool seatop_allows_set_cursor(struct hayward_seat *seat);
  * or NULL if none exists.
  */
 struct hayward_keyboard_shortcuts_inhibitor *
-keyboard_shortcuts_inhibitor_get_for_surface(const struct hayward_seat *seat,
-		const struct wlr_surface *surface);
+keyboard_shortcuts_inhibitor_get_for_surface(
+	const struct hayward_seat *seat, const struct wlr_surface *surface
+);
 
 /**
  * Returns the keyboard shortcuts inhibitor that applies to the currently
  * focused surface of a seat or NULL if none exists.
  */
 struct hayward_keyboard_shortcuts_inhibitor *
-keyboard_shortcuts_inhibitor_get_for_focused_surface(const struct hayward_seat *seat);
+keyboard_shortcuts_inhibitor_get_for_focused_surface(
+	const struct hayward_seat *seat
+);
 
 #endif

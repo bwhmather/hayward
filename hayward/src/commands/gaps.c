@@ -1,19 +1,16 @@
+#include <math.h>
 #include <string.h>
 #include <strings.h>
+
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
-#include <math.h>
 
-enum gaps_op {
-	GAPS_OP_SET,
-	GAPS_OP_ADD,
-	GAPS_OP_SUBTRACT,
-	GAPS_OP_TOGGLE
-};
+enum gaps_op { GAPS_OP_SET, GAPS_OP_ADD, GAPS_OP_SUBTRACT, GAPS_OP_TOGGLE };
 
 struct gaps_data {
 	bool inner;
@@ -63,23 +60,25 @@ static struct cmd_results *gaps_set_defaults(int argc, char **argv) {
 		valid = true;
 		config->gaps_inner = (amount >= 0) ? amount : 0;
 	} else {
-		if (!strcasecmp(argv[0], "outer") || !strcasecmp(argv[0], "vertical")
-				|| !strcasecmp(argv[0], "top")) {
+		if (!strcasecmp(argv[0], "outer") || !strcasecmp(argv[0], "vertical") ||
+			!strcasecmp(argv[0], "top")) {
 			valid = true;
 			config->gaps_outer.top = amount;
 		}
-		if (!strcasecmp(argv[0], "outer") || !strcasecmp(argv[0], "horizontal")
-				|| !strcasecmp(argv[0], "right")) {
+		if (!strcasecmp(argv[0], "outer") ||
+			!strcasecmp(argv[0], "horizontal") ||
+			!strcasecmp(argv[0], "right")) {
 			valid = true;
 			config->gaps_outer.right = amount;
 		}
-		if (!strcasecmp(argv[0], "outer") || !strcasecmp(argv[0], "vertical")
-				|| !strcasecmp(argv[0], "bottom")) {
+		if (!strcasecmp(argv[0], "outer") || !strcasecmp(argv[0], "vertical") ||
+			!strcasecmp(argv[0], "bottom")) {
 			valid = true;
 			config->gaps_outer.bottom = amount;
 		}
-		if (!strcasecmp(argv[0], "outer") || !strcasecmp(argv[0], "horizontal")
-				|| !strcasecmp(argv[0], "left")) {
+		if (!strcasecmp(argv[0], "outer") ||
+			!strcasecmp(argv[0], "horizontal") ||
+			!strcasecmp(argv[0], "left")) {
 			valid = true;
 			config->gaps_outer.left = amount;
 		}
@@ -116,16 +115,24 @@ static void configure_gaps(struct hayward_workspace *workspace, void *_data) {
 		apply_gaps_op(&workspace->gaps_inner, data->operation, data->amount);
 	}
 	if (data->outer.top) {
-		apply_gaps_op(&(workspace->gaps_outer.top), data->operation, data->amount);
+		apply_gaps_op(
+			&(workspace->gaps_outer.top), data->operation, data->amount
+		);
 	}
 	if (data->outer.right) {
-		apply_gaps_op(&(workspace->gaps_outer.right), data->operation, data->amount);
+		apply_gaps_op(
+			&(workspace->gaps_outer.right), data->operation, data->amount
+		);
 	}
 	if (data->outer.bottom) {
-		apply_gaps_op(&(workspace->gaps_outer.bottom), data->operation, data->amount);
+		apply_gaps_op(
+			&(workspace->gaps_outer.bottom), data->operation, data->amount
+		);
 	}
 	if (data->outer.left) {
-		apply_gaps_op(&(workspace->gaps_outer.left), data->operation, data->amount);
+		apply_gaps_op(
+			&(workspace->gaps_outer.left), data->operation, data->amount
+		);
 	}
 
 	// Prevent invalid gaps configurations.
@@ -138,7 +145,8 @@ static void configure_gaps(struct hayward_workspace *workspace, void *_data) {
 
 // gaps inner|outer|horizontal|vertical|top|right|bottom|left current|all
 // set|plus|minus|toggle <px>
-static const char expected_runtime[] = "'gaps inner|outer|horizontal|vertical|"
+static const char expected_runtime[] =
+	"'gaps inner|outer|horizontal|vertical|"
 	"top|right|bottom|left current|all set|plus|minus|toggle <px>'";
 static struct cmd_results *gaps_set_runtime(int argc, char **argv) {
 	struct cmd_results *error = checkarg(argc, "gaps", EXPECTED_EQUAL_TO, 4);
@@ -146,8 +154,10 @@ static struct cmd_results *gaps_set_runtime(int argc, char **argv) {
 		return error;
 	}
 	if (!root->outputs->length) {
-		return cmd_results_new(CMD_INVALID,
-				"Can't run this command while there's no outputs connected.");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Can't run this command while there's no outputs connected."
+		);
 	}
 
 	struct gaps_data data = {0};
@@ -165,7 +175,7 @@ static struct cmd_results *gaps_set_runtime(int argc, char **argv) {
 			!strcasecmp(argv[0], "horizontal") || !strcasecmp(argv[0], "left");
 	}
 	if (!data.inner && !data.outer.top && !data.outer.right &&
-			!data.outer.bottom && !data.outer.left) {
+		!data.outer.bottom && !data.outer.left) {
 		return cmd_results_new(CMD_INVALID, "Expected %s", expected_runtime);
 	}
 
@@ -206,9 +216,8 @@ static struct cmd_results *gaps_set_runtime(int argc, char **argv) {
 }
 
 // gaps inner|outer|<dir>|<side> <px> - sets defaults for workspaces
-// gaps inner|outer|<dir>|<side> current|all set|plus|minus|toggle <px> - runtime only
-// <dir> = horizontal|vertical
-// <side> = top|right|bottom|left
+// gaps inner|outer|<dir>|<side> current|all set|plus|minus|toggle <px> -
+// runtime only <dir> = horizontal|vertical <side> = top|right|bottom|left
 struct cmd_results *cmd_gaps(int argc, char **argv) {
 	struct cmd_results *error = checkarg(argc, "gaps", EXPECTED_AT_LEAST, 2);
 	if (error) {
@@ -226,6 +235,7 @@ struct cmd_results *cmd_gaps(int argc, char **argv) {
 	if (config_loading) {
 		return cmd_results_new(CMD_INVALID, "Expected %s", expected_defaults);
 	}
-	return cmd_results_new(CMD_INVALID, "Expected %s or %s",
-			expected_runtime, expected_defaults);
+	return cmd_results_new(
+		CMD_INVALID, "Expected %s or %s", expected_runtime, expected_defaults
+	);
 }

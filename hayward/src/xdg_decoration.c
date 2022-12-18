@@ -1,13 +1,16 @@
+#include "hayward/xdg_decoration.h"
+
 #include <stdlib.h>
+
+#include "hayward-common/log.h"
+
 #include "hayward/desktop/transaction.h"
 #include "hayward/server.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
-#include "hayward/xdg_decoration.h"
-#include "hayward-common/log.h"
 
-static void xdg_decoration_handle_destroy(struct wl_listener *listener,
-		void *data) {
+static void
+xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_xdg_decoration *deco =
 		wl_container_of(listener, deco, destroy);
 	if (deco->view) {
@@ -19,8 +22,8 @@ static void xdg_decoration_handle_destroy(struct wl_listener *listener,
 	free(deco);
 }
 
-static void xdg_decoration_handle_request_mode(struct wl_listener *listener,
-		void *data) {
+static void
+xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
 	struct hayward_xdg_decoration *deco =
 		wl_container_of(listener, deco, request_mode);
 	struct hayward_view *view = deco->view;
@@ -33,22 +36,20 @@ static void xdg_decoration_handle_request_mode(struct wl_listener *listener,
 	if (view->window) {
 		floating = window_is_floating(view->window);
 		bool csd = false;
-		csd = client_mode ==
-			WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+		csd = client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
 		view_update_csd_from_client(view, csd);
 		arrange_window(view->window);
 		transaction_commit_dirty();
 	} else {
-		floating = view->impl->wants_floating &&
-			view->impl->wants_floating(view);
+		floating =
+			view->impl->wants_floating && view->impl->wants_floating(view);
 	}
 
 	if (floating && client_mode) {
 		mode = client_mode;
 	}
 
-	wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration,
-			mode);
+	wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration, mode);
 }
 
 void handle_xdg_decoration(struct wl_listener *listener, void *data) {
@@ -75,8 +76,8 @@ void handle_xdg_decoration(struct wl_listener *listener, void *data) {
 	xdg_decoration_handle_request_mode(&deco->request_mode, wlr_deco);
 }
 
-struct hayward_xdg_decoration *xdg_decoration_from_surface(
-		struct wlr_surface *surface) {
+struct hayward_xdg_decoration *
+xdg_decoration_from_surface(struct wlr_surface *surface) {
 	struct hayward_xdg_decoration *deco;
 	wl_list_for_each(deco, &server.xdg_decorations, link) {
 		if (deco->wlr_xdg_decoration->surface->surface == surface) {

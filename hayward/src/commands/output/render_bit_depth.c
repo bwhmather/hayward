@@ -1,5 +1,6 @@
 #include <drm_fourcc.h>
 #include <strings.h>
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
@@ -18,12 +19,12 @@ struct cmd_results *output_cmd_render_bit_depth(int argc, char **argv) {
 		config->handler_context.output_config->render_bit_depth =
 			RENDER_BIT_DEPTH_10;
 	} else {
-		return cmd_results_new(CMD_INVALID,
-			"Invalid bit depth. Must be a value in (8|10).");
+		return cmd_results_new(
+			CMD_INVALID, "Invalid bit depth. Must be a value in (8|10)."
+		);
 	}
 
 	config->handler_context.leftovers.argc = argc - 1;
 	config->handler_context.leftovers.argv = argv + 1;
 	return NULL;
 }
-

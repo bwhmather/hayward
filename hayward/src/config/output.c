@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/output.h"
+
 #include <assert.h>
 #include <drm_fourcc.h>
 #include <stdbool.h>
@@ -6,16 +8,17 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/backend/drm.h>
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
-#include "hayward/output.h"
-#include "hayward/tree/root.h"
+#include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_layout.h>
+
 #include "hayward-common/log.h"
 #include "hayward-common/util.h"
+
+#include "hayward/config.h"
+#include "hayward/input/cursor.h"
+#include "hayward/tree/root.h"
 
 int output_name_cmp(const void *item, const void *data) {
 	const struct output_config *output = item;
@@ -24,14 +27,18 @@ int output_name_cmp(const void *item, const void *data) {
 	return strcmp(output->name, name);
 }
 
-void output_get_identifier(char *identifier, size_t len,
-		struct hayward_output *output) {
+void output_get_identifier(
+	char *identifier, size_t len, struct hayward_output *output
+) {
 	struct wlr_output *wlr_output = output->wlr_output;
-	snprintf(identifier, len, "%s %s %s", wlr_output->make, wlr_output->model,
-		wlr_output->serial);
+	snprintf(
+		identifier, len, "%s %s %s", wlr_output->make, wlr_output->model,
+		wlr_output->serial
+	);
 }
 
-const char *hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter) {
+const char *
+hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter) {
 	switch (scale_filter) {
 	case SCALE_FILTER_DEFAULT:
 		return "smart";
@@ -103,7 +110,7 @@ void merge_output_config(struct output_config *dst, struct output_config *src) {
 	if (src->custom_mode != -1) {
 		dst->custom_mode = src->custom_mode;
 	}
-	if (src->drm_mode.type != (uint32_t) -1) {
+	if (src->drm_mode.type != (uint32_t)-1) {
 		memcpy(&dst->drm_mode, &src->drm_mode, sizeof(src->drm_mode));
 	}
 	if (src->transform != -1) {
@@ -139,7 +146,9 @@ static void merge_wildcard_on_all(struct output_config *wildcard) {
 	for (int i = 0; i < config->output_configs->length; i++) {
 		struct output_config *oc = config->output_configs->items[i];
 		if (strcmp(wildcard->name, oc->name) != 0) {
-			hayward_log(HAYWARD_DEBUG, "Merging output * config on %s", oc->name);
+			hayward_log(
+				HAYWARD_DEBUG, "Merging output * config on %s", oc->name
+			);
 			merge_output_config(oc, wildcard);
 		}
 	}
@@ -157,7 +166,9 @@ static void merge_id_on_name(struct output_config *oc) {
 			size_t length = snprintf(NULL, 0, "%s on %s", id, name) + 1;
 			id_on_name = malloc(length);
 			if (!id_on_name) {
-				hayward_log(HAYWARD_ERROR, "Failed to allocate id on name string");
+				hayward_log(
+					HAYWARD_ERROR, "Failed to allocate id on name string"
+				);
 				return;
 			}
 			snprintf(id_on_name, length, "%s on %s", id, name);
@@ -171,14 +182,16 @@ static void merge_id_on_name(struct output_config *oc) {
 
 	int i = list_seq_find(config->output_configs, output_name_cmp, id_on_name);
 	if (i >= 0) {
-		hayward_log(HAYWARD_DEBUG, "Merging on top of existing id on name config");
+		hayward_log(
+			HAYWARD_DEBUG, "Merging on top of existing id on name config"
+		);
 		merge_output_config(config->output_configs->items[i], oc);
 	} else {
 		// If both a name and identifier config, exist generate an id on name
 		int ni = list_seq_find(config->output_configs, output_name_cmp, name);
 		int ii = list_seq_find(config->output_configs, output_name_cmp, id);
-		if ((ni >= 0 && ii >= 0) || (ni >= 0 && strcmp(oc->name, id) == 0)
-				|| (ii >= 0 && strcmp(oc->name, name) == 0)) {
+		if ((ni >= 0 && ii >= 0) || (ni >= 0 && strcmp(oc->name, id) == 0) ||
+			(ii >= 0 && strcmp(oc->name, name) == 0)) {
 			struct output_config *ion_oc = new_output_config(id_on_name);
 			if (ni >= 0) {
 				merge_output_config(ion_oc, config->output_configs->items[ni]);
@@ -188,14 +201,17 @@ static void merge_id_on_name(struct output_config *oc) {
 			}
 			merge_output_config(ion_oc, oc);
 			list_add(config->output_configs, ion_oc);
-			hayward_log(HAYWARD_DEBUG, "Generated id on name output config \"%s\""
+			hayward_log(
+				HAYWARD_DEBUG,
+				"Generated id on name output config \"%s\""
 				" (enabled: %d) (%dx%d@%fHz position %d,%d scale %f "
 				"transform %d) (bg %s %s) (dpms %d) (max render time: %d)",
 				ion_oc->name, ion_oc->enabled, ion_oc->width, ion_oc->height,
 				ion_oc->refresh_rate, ion_oc->x, ion_oc->y, ion_oc->scale,
 				ion_oc->transform, ion_oc->background,
 				ion_oc->background_option, ion_oc->dpms_state,
-				ion_oc->max_render_time);
+				ion_oc->max_render_time
+			);
 		}
 	}
 	free(id_on_name);
@@ -234,19 +250,25 @@ struct output_config *store_output_config(struct output_config *oc) {
 		list_add(config->output_configs, oc);
 	}
 
-	hayward_log(HAYWARD_DEBUG, "Config stored for output %s (enabled: %d) (%dx%d@%fHz "
-		"position %d,%d scale %f subpixel %s transform %d) (bg %s %s) (dpms %d) "
+	hayward_log(
+		HAYWARD_DEBUG,
+		"Config stored for output %s (enabled: %d) (%dx%d@%fHz "
+		"position %d,%d scale %f subpixel %s transform %d) (bg %s %s) (dpms "
+		"%d) "
 		"(max render time: %d)",
-		oc->name, oc->enabled, oc->width, oc->height, oc->refresh_rate,
-		oc->x, oc->y, oc->scale, hayward_wl_output_subpixel_to_string(oc->subpixel),
+		oc->name, oc->enabled, oc->width, oc->height, oc->refresh_rate, oc->x,
+		oc->y, oc->scale, hayward_wl_output_subpixel_to_string(oc->subpixel),
 		oc->transform, oc->background, oc->background_option, oc->dpms_state,
-		oc->max_render_time);
+		oc->max_render_time
+	);
 
 	return oc;
 }
 
-static void set_mode(struct wlr_output *output, int width, int height,
-		float refresh_rate, bool custom) {
+static void set_mode(
+	struct wlr_output *output, int width, int height, float refresh_rate,
+	bool custom
+) {
 	// Not all floating point integers can be represented exactly
 	// as (int)(1000 * mHz / 1000.f)
 	// round() the result to avoid any error
@@ -254,8 +276,9 @@ static void set_mode(struct wlr_output *output, int width, int height,
 
 	if (wl_list_empty(&output->modes) || custom) {
 		hayward_log(HAYWARD_DEBUG, "Assigning custom mode to %s", output->name);
-		wlr_output_set_custom_mode(output, width, height,
-			refresh_rate > 0 ? mhz : 0);
+		wlr_output_set_custom_mode(
+			output, width, height, refresh_rate > 0 ? mhz : 0
+		);
 		return;
 	}
 
@@ -272,11 +295,15 @@ static void set_mode(struct wlr_output *output, int width, int height,
 		}
 	}
 	if (!best) {
-		hayward_log(HAYWARD_ERROR, "Configured mode for %s not available", output->name);
+		hayward_log(
+			HAYWARD_ERROR, "Configured mode for %s not available", output->name
+		);
 		hayward_log(HAYWARD_INFO, "Picking preferred mode instead");
 		best = wlr_output_preferred_mode(output);
 	} else {
-		hayward_log(HAYWARD_DEBUG, "Assigning configured mode to %s", output->name);
+		hayward_log(
+			HAYWARD_DEBUG, "Assigning configured mode to %s", output->name
+		);
 	}
 	wlr_output_set_mode(output, best);
 }
@@ -312,7 +339,7 @@ static bool phys_size_is_aspect_ratio(struct wlr_output *output) {
 #define MM_PER_INCH 25.4
 
 static int compute_default_scale(struct wlr_output *output) {
-	struct wlr_box box = { .width = output->width, .height = output->height };
+	struct wlr_box box = {.width = output->width, .height = output->height};
 	if (output->pending.committed & WLR_OUTPUT_STATE_MODE) {
 		switch (output->pending.mode_type) {
 		case WLR_OUTPUT_STATE_MODE_FIXED:
@@ -346,8 +373,8 @@ static int compute_default_scale(struct wlr_output *output) {
 		return 1;
 	}
 
-	double dpi_x = (double) width / (output->phys_width / MM_PER_INCH);
-	double dpi_y = (double) height / (output->phys_height / MM_PER_INCH);
+	double dpi_x = (double)width / (output->phys_width / MM_PER_INCH);
+	double dpi_y = (double)height / (output->phys_height / MM_PER_INCH);
 	hayward_log(HAYWARD_DEBUG, "Output DPI: %fx%f", dpi_x, dpi_y);
 	if (dpi_x <= HIDPI_DPI_LIMIT || dpi_y <= HIDPI_DPI_LIMIT) {
 		return 1;
@@ -361,20 +388,22 @@ static int compute_default_scale(struct wlr_output *output) {
  * be XRGB8888, as a reliable backup in case the others are not available;
  * the last should be DRM_FORMAT_INVALID, to indicate the end of the list. */
 static const uint32_t *bit_depth_preferences[] = {
-	[RENDER_BIT_DEPTH_8] = (const uint32_t []){
-		DRM_FORMAT_XRGB8888,
-		DRM_FORMAT_INVALID,
-	},
-	[RENDER_BIT_DEPTH_10] = (const uint32_t []){
-		DRM_FORMAT_XRGB2101010,
-		DRM_FORMAT_XBGR2101010,
-		DRM_FORMAT_XRGB8888,
-		DRM_FORMAT_INVALID,
-	},
+	[RENDER_BIT_DEPTH_8] =
+		(const uint32_t[]){
+			DRM_FORMAT_XRGB8888,
+			DRM_FORMAT_INVALID,
+		},
+	[RENDER_BIT_DEPTH_10] =
+		(const uint32_t[]){
+			DRM_FORMAT_XRGB2101010,
+			DRM_FORMAT_XBGR2101010,
+			DRM_FORMAT_XRGB8888,
+			DRM_FORMAT_INVALID,
+		},
 };
 
-static void queue_output_config(struct output_config *oc,
-		struct hayward_output *output) {
+static void
+queue_output_config(struct output_config *oc, struct hayward_output *output) {
 	if (output == root->fallback_output) {
 		return;
 	}
@@ -390,15 +419,18 @@ static void queue_output_config(struct output_config *oc,
 	hayward_log(HAYWARD_DEBUG, "Turning on output %s", wlr_output->name);
 	wlr_output_enable(wlr_output, true);
 
-	if (oc && oc->drm_mode.type != 0 && oc->drm_mode.type != (uint32_t) -1) {
-		hayward_log(HAYWARD_DEBUG, "Set %s modeline",
-			wlr_output->name);
+	if (oc && oc->drm_mode.type != 0 && oc->drm_mode.type != (uint32_t)-1) {
+		hayward_log(HAYWARD_DEBUG, "Set %s modeline", wlr_output->name);
 		set_modeline(wlr_output, &oc->drm_mode);
 	} else if (oc && oc->width > 0 && oc->height > 0) {
-		hayward_log(HAYWARD_DEBUG, "Set %s mode to %dx%d (%f Hz)",
-			wlr_output->name, oc->width, oc->height, oc->refresh_rate);
-		set_mode(wlr_output, oc->width, oc->height,
-			oc->refresh_rate, oc->custom_mode == 1);
+		hayward_log(
+			HAYWARD_DEBUG, "Set %s mode to %dx%d (%f Hz)", wlr_output->name,
+			oc->width, oc->height, oc->refresh_rate
+		);
+		set_mode(
+			wlr_output, oc->width, oc->height, oc->refresh_rate,
+			oc->custom_mode == 1
+		);
 	} else if (!wl_list_empty(&wlr_output->modes)) {
 		hayward_log(HAYWARD_DEBUG, "Set preferred mode");
 		struct wlr_output_mode *preferred_mode =
@@ -406,8 +438,11 @@ static void queue_output_config(struct output_config *oc,
 		wlr_output_set_mode(wlr_output, preferred_mode);
 
 		if (!wlr_output_test(wlr_output)) {
-			hayward_log(HAYWARD_DEBUG, "Preferred mode rejected, "
-				"falling back to another mode");
+			hayward_log(
+				HAYWARD_DEBUG,
+				"Preferred mode rejected, "
+				"falling back to another mode"
+			);
 			struct wlr_output_mode *mode;
 			wl_list_for_each(mode, &wlr_output->modes, link) {
 				if (mode == preferred_mode) {
@@ -422,9 +457,12 @@ static void queue_output_config(struct output_config *oc,
 		}
 	}
 
-	if (oc && (oc->subpixel != WL_OUTPUT_SUBPIXEL_UNKNOWN || config->reloading)) {
-		hayward_log(HAYWARD_DEBUG, "Set %s subpixel to %s", oc->name,
-			hayward_wl_output_subpixel_to_string(oc->subpixel));
+	if (oc &&
+		(oc->subpixel != WL_OUTPUT_SUBPIXEL_UNKNOWN || config->reloading)) {
+		hayward_log(
+			HAYWARD_DEBUG, "Set %s subpixel to %s", oc->name,
+			hayward_wl_output_subpixel_to_string(oc->subpixel)
+		);
 		wlr_output_set_subpixel(wlr_output, oc->subpixel);
 	}
 
@@ -450,13 +488,17 @@ static void queue_output_config(struct output_config *oc,
 		hayward_log(HAYWARD_DEBUG, "Auto-detected output scale: %f", scale);
 	}
 	if (scale != wlr_output->scale) {
-		hayward_log(HAYWARD_DEBUG, "Set %s scale to %f", wlr_output->name, scale);
+		hayward_log(
+			HAYWARD_DEBUG, "Set %s scale to %f", wlr_output->name, scale
+		);
 		wlr_output_set_scale(wlr_output, scale);
 	}
 
 	if (oc && oc->adaptive_sync != -1) {
-		hayward_log(HAYWARD_DEBUG, "Set %s adaptive sync to %d", wlr_output->name,
-			oc->adaptive_sync);
+		hayward_log(
+			HAYWARD_DEBUG, "Set %s adaptive sync to %d", wlr_output->name,
+			oc->adaptive_sync
+		);
 		wlr_output_enable_adaptive_sync(wlr_output, oc->adaptive_sync == 1);
 	}
 
@@ -470,14 +512,20 @@ static void queue_output_config(struct output_config *oc,
 				break;
 			}
 
-			hayward_log(HAYWARD_DEBUG, "Preferred output format 0x%08x "
+			hayward_log(
+				HAYWARD_DEBUG,
+				"Preferred output format 0x%08x "
 				"failed to work, falling back to next in "
-				"list, 0x%08x", fmts[i], fmts[i + 1]);
+				"list, 0x%08x",
+				fmts[i], fmts[i + 1]
+			);
 		}
 	}
 }
 
-bool apply_output_config(struct output_config *oc, struct hayward_output *output) {
+bool apply_output_config(
+	struct output_config *oc, struct hayward_output *output
+) {
 	if (output == root->fallback_output) {
 		return false;
 	}
@@ -498,7 +546,9 @@ bool apply_output_config(struct output_config *oc, struct hayward_output *output
 		// Failed to commit output changes, maybe the output is missing a CRTC.
 		// Leave the output disabled for now and try again when the output gets
 		// the mode we asked for.
-		hayward_log(HAYWARD_ERROR, "Failed to commit output %s", wlr_output->name);
+		hayward_log(
+			HAYWARD_ERROR, "Failed to commit output %s", wlr_output->name
+		);
 		output->enabling = false;
 		return false;
 	}
@@ -521,25 +571,30 @@ bool apply_output_config(struct output_config *oc, struct hayward_output *output
 	if (oc) {
 		enum scale_filter_mode scale_filter_old = output->scale_filter;
 		switch (oc->scale_filter) {
-			case SCALE_FILTER_DEFAULT:
-			case SCALE_FILTER_SMART:
-				output->scale_filter = ceilf(wlr_output->scale) == wlr_output->scale ?
-					SCALE_FILTER_NEAREST : SCALE_FILTER_LINEAR;
-				break;
-			case SCALE_FILTER_LINEAR:
-			case SCALE_FILTER_NEAREST:
-				output->scale_filter = oc->scale_filter;
-				break;
+		case SCALE_FILTER_DEFAULT:
+		case SCALE_FILTER_SMART:
+			output->scale_filter = ceilf(wlr_output->scale) == wlr_output->scale
+				? SCALE_FILTER_NEAREST
+				: SCALE_FILTER_LINEAR;
+			break;
+		case SCALE_FILTER_LINEAR:
+		case SCALE_FILTER_NEAREST:
+			output->scale_filter = oc->scale_filter;
+			break;
 		}
 		if (scale_filter_old != output->scale_filter) {
-			hayward_log(HAYWARD_DEBUG, "Set %s scale_filter to %s", oc->name,
-				hayward_output_scale_filter_to_string(output->scale_filter));
+			hayward_log(
+				HAYWARD_DEBUG, "Set %s scale_filter to %s", oc->name,
+				hayward_output_scale_filter_to_string(output->scale_filter)
+			);
 		}
 	}
 
 	// Find position for it
 	if (oc && (oc->x != -1 || oc->y != -1)) {
-		hayward_log(HAYWARD_DEBUG, "Set %s position to %d, %d", oc->name, oc->x, oc->y);
+		hayward_log(
+			HAYWARD_DEBUG, "Set %s position to %d, %d", oc->name, oc->x, oc->y
+		);
 		wlr_output_layout_add(root->output_layout, wlr_output, oc->x, oc->y);
 	} else {
 		wlr_output_layout_add_auto(root->output_layout, wlr_output);
@@ -558,8 +613,10 @@ bool apply_output_config(struct output_config *oc, struct hayward_output *output
 	}
 
 	if (oc && oc->max_render_time >= 0) {
-		hayward_log(HAYWARD_DEBUG, "Set %s max render time to %d",
-			oc->name, oc->max_render_time);
+		hayward_log(
+			HAYWARD_DEBUG, "Set %s max render time to %d", oc->name,
+			oc->max_render_time
+		);
 		output->max_render_time = oc->max_render_time;
 	}
 
@@ -572,7 +629,9 @@ bool apply_output_config(struct output_config *oc, struct hayward_output *output
 	return true;
 }
 
-bool test_output_config(struct output_config *oc, struct hayward_output *output) {
+bool test_output_config(
+	struct output_config *oc, struct hayward_output *output
+) {
 	if (output == root->fallback_output) {
 		return false;
 	}
@@ -583,8 +642,8 @@ bool test_output_config(struct output_config *oc, struct hayward_output *output)
 	return ok;
 }
 
-static void default_output_config(struct output_config *oc,
-		struct wlr_output *wlr_output) {
+static void
+default_output_config(struct output_config *oc, struct wlr_output *wlr_output) {
 	oc->enabled = 1;
 	struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
 	if (mode != NULL) {
@@ -602,8 +661,8 @@ static void default_output_config(struct output_config *oc,
 	oc->max_render_time = 0;
 }
 
-static struct output_config *get_output_config(char *identifier,
-		struct hayward_output *hayward_output) {
+static struct output_config *
+get_output_config(char *identifier, struct hayward_output *hayward_output) {
 	const char *name = hayward_output->wlr_output->name;
 
 	struct output_config *oc_id_on_name = NULL;
@@ -651,13 +710,16 @@ static struct output_config *get_output_config(char *identifier,
 		result->name = strdup(id_on_name);
 		merge_output_config(result, temp);
 
-		hayward_log(HAYWARD_DEBUG, "Generated output config \"%s\" (enabled: %d)"
+		hayward_log(
+			HAYWARD_DEBUG,
+			"Generated output config \"%s\" (enabled: %d)"
 			" (%dx%d@%fHz position %d,%d scale %f transform %d) (bg %s %s)"
-			" (dpms %d) (max render time: %d)", result->name, result->enabled,
-			result->width, result->height, result->refresh_rate,
-			result->x, result->y, result->scale, result->transform,
-			result->background, result->background_option, result->dpms_state,
-			result->max_render_time);
+			" (dpms %d) (max render time: %d)",
+			result->name, result->enabled, result->width, result->height,
+			result->refresh_rate, result->x, result->y, result->scale,
+			result->transform, result->background, result->background_option,
+			result->dpms_state, result->max_render_time
+		);
 	} else if (oc_name) {
 		// No identifier config, just return a copy of the name config
 		free(result->name);
@@ -705,7 +767,8 @@ void apply_output_config_to_outputs(struct output_config *oc) {
 		char *name = hayward_output->wlr_output->name;
 		output_get_identifier(id, sizeof(id), hayward_output);
 		if (wildcard || !strcmp(name, oc->name) || !strcmp(id, oc->name)) {
-			struct output_config *current = get_output_config(id, hayward_output);
+			struct output_config *current =
+				get_output_config(id, hayward_output);
 			if (!current) {
 				// No stored output config matched, apply oc directly
 				hayward_log(HAYWARD_DEBUG, "Applying oc directly");
@@ -751,8 +814,8 @@ void free_output_config(struct output_config *oc) {
 	free(oc);
 }
 
-static void handle_haywardbg_client_destroy(struct wl_listener *listener,
-		void *data) {
+static void
+handle_haywardbg_client_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_config *hayward_config =
 		wl_container_of(listener, hayward_config, haywardbg_client_destroy);
 	wl_list_remove(&hayward_config->haywardbg_client_destroy.link);
@@ -769,7 +832,8 @@ static bool _spawn_haywardbg(char **command) {
 		hayward_log_errno(HAYWARD_ERROR, "socketpair failed");
 		return false;
 	}
-	if (!hayward_set_cloexec(sockets[0], true) || !hayward_set_cloexec(sockets[1], true)) {
+	if (!hayward_set_cloexec(sockets[0], true) ||
+		!hayward_set_cloexec(sockets[1], true)) {
 		return false;
 	}
 
@@ -780,8 +844,9 @@ static bool _spawn_haywardbg(char **command) {
 	}
 
 	config->haywardbg_client_destroy.notify = handle_haywardbg_client_destroy;
-	wl_client_add_destroy_listener(config->haywardbg_client,
-		&config->haywardbg_client_destroy);
+	wl_client_add_destroy_listener(
+		config->haywardbg_client, &config->haywardbg_client_destroy
+	);
 
 	pid_t pid = fork();
 	if (pid < 0) {
@@ -800,8 +865,9 @@ static bool _spawn_haywardbg(char **command) {
 			}
 
 			char wayland_socket_str[16];
-			snprintf(wayland_socket_str, sizeof(wayland_socket_str),
-				"%d", sockets[1]);
+			snprintf(
+				wayland_socket_str, sizeof(wayland_socket_str), "%d", sockets[1]
+			);
 			setenv("WAYLAND_SOCKET", wayland_socket_str, true);
 
 			execvp(command[0], command);
@@ -845,7 +911,9 @@ bool spawn_haywardbg(void) {
 
 	char **cmd = calloc(length, sizeof(char *));
 	if (!cmd) {
-		hayward_log(HAYWARD_ERROR, "Failed to allocate spawn_haywardbg command");
+		hayward_log(
+			HAYWARD_ERROR, "Failed to allocate spawn_haywardbg command"
+		);
 		return false;
 	}
 

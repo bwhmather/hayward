@@ -2,13 +2,16 @@
 #include <string.h>
 #include <strings.h>
 #include <wlr/backend/libinput.h>
-#include "hayward/config.h"
-#include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
+
 #include "hayward-common/log.h"
 
-static void toggle_supported_send_events_for_device(struct input_config *ic,
-		struct hayward_input_device *input_device) {
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/input/input-manager.h"
+
+static void toggle_supported_send_events_for_device(
+	struct input_config *ic, struct hayward_input_device *input_device
+) {
 	struct wlr_input_device *wlr_device = input_device->wlr_device;
 	if (!wlr_input_device_is_libinput(wlr_device)) {
 		return;
@@ -54,15 +57,18 @@ static int mode_for_name(const char *name) {
 	return -1;
 }
 
-static void toggle_select_send_events_for_device(struct input_config *ic,
-		struct hayward_input_device *input_device, int argc, char **argv) {
+static void toggle_select_send_events_for_device(
+	struct input_config *ic, struct hayward_input_device *input_device,
+	int argc, char **argv
+) {
 	if (!wlr_input_device_is_libinput(input_device->wlr_device)) {
 		return;
 	}
 	// Get the currently set event mode since ic is a new config that will be
 	// merged on the existing later. It should be set to INT_MIN before this.
 	ic->send_events = libinput_device_config_send_events_get_mode(
-			wlr_libinput_get_device_handle(input_device->wlr_device));
+		wlr_libinput_get_device_handle(input_device->wlr_device)
+	);
 
 	int index;
 	for (index = 0; index < argc; ++index) {
@@ -78,7 +84,8 @@ static void toggle_send_events(int argc, char **argv) {
 	struct input_config *ic = config->handler_context.input_config;
 	bool wildcard = strcmp(ic->identifier, "*") == 0;
 	const char *type = strncmp(ic->identifier, "type:", strlen("type:")) == 0
-		? ic->identifier + strlen("type:") : NULL;
+		? ic->identifier + strlen("type:")
+		: NULL;
 	struct hayward_input_device *device = NULL;
 	wl_list_for_each(device, &server.input->devices, link) {
 		if (wildcard || type) {
@@ -125,20 +132,23 @@ struct cmd_results *input_cmd_events(int argc, char **argv) {
 		ic->send_events =
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
 	} else if (config->reading) {
-		return cmd_results_new(CMD_INVALID,
-			"Expected 'events <enabled|disabled|disabled_on_external_mouse>'");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Expected 'events <enabled|disabled|disabled_on_external_mouse>'"
+		);
 	} else if (strcasecmp(argv[0], "toggle") == 0) {
 		for (int i = 1; i < argc; ++i) {
 			if (mode_for_name(argv[i]) == -1) {
-				return cmd_results_new(CMD_INVALID,
-						"Invalid toggle mode %s", argv[i]);
+				return cmd_results_new(
+					CMD_INVALID, "Invalid toggle mode %s", argv[i]
+				);
 			}
 		}
 
 		toggle_send_events(argc - 1, argv + 1);
 
 		if (strcmp(ic->identifier, "*") == 0 ||
-				strncmp(ic->identifier, "type:", strlen("type:")) == 0) {
+			strncmp(ic->identifier, "type:", strlen("type:")) == 0) {
 			// Update the device input configs and then reset the type/wildcard
 			// config send events mode so that is does not override the device
 			// ones. The device ones will be applied when attempting to apply
@@ -146,9 +156,11 @@ struct cmd_results *input_cmd_events(int argc, char **argv) {
 			ic->send_events = INT_MIN;
 		}
 	} else {
-		return cmd_results_new(CMD_INVALID,
+		return cmd_results_new(
+			CMD_INVALID,
 			"Expected 'events <enabled|disabled|disabled_on_external_mouse|"
-			"toggle>'");
+			"toggle>'"
+		);
 	}
 
 	return cmd_results_new(CMD_SUCCESS, NULL);

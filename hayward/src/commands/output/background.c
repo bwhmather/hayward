@@ -1,22 +1,20 @@
 #define _POSIX_C_SOURCE 200809L
+#include <errno.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
-#include <errno.h>
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/haywardnag.h"
+
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/haywardnag.h"
+
 static const char *bg_options[] = {
-	"stretch",
-	"center",
-	"fill",
-	"fit",
-	"tile",
+	"stretch", "center", "fill", "fit", "tile",
 };
 
 static bool validate_color(const char *color) {
@@ -34,25 +32,29 @@ struct cmd_results *output_cmd_background(int argc, char **argv) {
 		return cmd_results_new(CMD_FAILURE, "Missing output config");
 	}
 	if (!argc) {
-		return cmd_results_new(CMD_INVALID,
-			"Missing background file or color specification.");
+		return cmd_results_new(
+			CMD_INVALID, "Missing background file or color specification."
+		);
 	}
 	if (argc < 2) {
-		return cmd_results_new(CMD_INVALID,
-			"Missing background scaling mode or `solid_color`.");
+		return cmd_results_new(
+			CMD_INVALID, "Missing background scaling mode or `solid_color`."
+		);
 	}
 
 	struct output_config *output = config->handler_context.output_config;
 
 	if (strcasecmp(argv[1], "solid_color") == 0) {
 		if (!validate_color(argv[0])) {
-			return cmd_results_new(CMD_INVALID,
-					"Colors should be of the form #RRGGBB");
+			return cmd_results_new(
+				CMD_INVALID, "Colors should be of the form #RRGGBB"
+			);
 		}
 		output->background = strdup(argv[0]);
 		output->background_option = strdup("solid_color");
 		output->background_fallback = NULL;
-		argc -= 2; argv += 2;
+		argc -= 2;
+		argv += 2;
 	} else {
 		bool valid = false;
 		char *mode;
@@ -71,8 +73,9 @@ struct cmd_results *output_cmd_background(int argc, char **argv) {
 			}
 		}
 		if (!valid) {
-			return cmd_results_new(CMD_INVALID,
-				"Missing background scaling mode.");
+			return cmd_results_new(
+				CMD_INVALID, "Missing background scaling mode."
+			);
 		}
 		if (j == 0) {
 			return cmd_results_new(CMD_INVALID, "Missing background file");
@@ -80,8 +83,8 @@ struct cmd_results *output_cmd_background(int argc, char **argv) {
 
 		char *src = join_args(argv, j);
 		if (!expand_path(&src)) {
-			struct cmd_results *cmd_res = cmd_results_new(CMD_INVALID,
-				"Invalid syntax (%s)", src);
+			struct cmd_results *cmd_res =
+				cmd_results_new(CMD_INVALID, "Invalid syntax (%s)", src);
 			free(src);
 			return cmd_res;
 		}
@@ -97,8 +100,9 @@ struct cmd_results *output_cmd_background(int argc, char **argv) {
 			if (!conf) {
 				hayward_log(HAYWARD_ERROR, "Failed to duplicate string");
 				free(src);
-				return cmd_results_new(CMD_FAILURE,
-						"Unable to allocate resources");
+				return cmd_results_new(
+					CMD_FAILURE, "Unable to allocate resources"
+				);
 			}
 
 			char *conf_path = dirname(conf);
@@ -107,11 +111,15 @@ struct cmd_results *output_cmd_background(int argc, char **argv) {
 				free(src);
 				free(conf);
 				hayward_log(HAYWARD_ERROR, "Unable to allocate memory");
-				return cmd_results_new(CMD_FAILURE,
-						"Unable to allocate resources");
+				return cmd_results_new(
+					CMD_FAILURE, "Unable to allocate resources"
+				);
 			}
 
-			snprintf(real_src, strlen(conf_path) + strlen(src) + 2, "%s/%s", conf_path, src);
+			snprintf(
+				real_src, strlen(conf_path) + strlen(src) + 2, "%s/%s",
+				conf_path, src
+			);
 			free(src);
 			free(conf);
 			src = real_src;
@@ -119,26 +127,31 @@ struct cmd_results *output_cmd_background(int argc, char **argv) {
 
 		bool can_access = access(src, F_OK) != -1;
 		if (!can_access) {
-			hayward_log_errno(HAYWARD_ERROR, "Unable to access background file '%s'",
-					src);
-			config_add_haywardnag_warning("Unable to access background file '%s'",
-					src);
+			hayward_log_errno(
+				HAYWARD_ERROR, "Unable to access background file '%s'", src
+			);
+			config_add_haywardnag_warning(
+				"Unable to access background file '%s'", src
+			);
 			free(src);
 		} else {
 			output->background = src;
 			output->background_option = strdup(mode);
 		}
-		argc -= j + 1; argv += j + 1;
+		argc -= j + 1;
+		argv += j + 1;
 
 		output->background_fallback = NULL;
 		if (argc && *argv[0] == '#') {
 			if (!validate_color(argv[0])) {
-				return cmd_results_new(CMD_INVALID,
-						"fallback color should be of the form #RRGGBB");
+				return cmd_results_new(
+					CMD_INVALID, "fallback color should be of the form #RRGGBB"
+				);
 			}
 
 			output->background_fallback = strdup(argv[0]);
-			argc--; argv++;
+			argc--;
+			argv++;
 
 			if (!can_access) {
 				output->background = output->background_fallback;

@@ -1,22 +1,21 @@
 #define _POSIX_C_SOURCE 200809L
 #include <stdbool.h>
 #include <string.h>
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/ipc-server.h"
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 
+#include "hayward/commands.h"
+#include "hayward/config.h"
+#include "hayward/ipc-server.h"
+
 // Must be in order for the bsearch
 static const struct cmd_handler mode_handlers[] = {
-	{ "bindcode", cmd_bindcode },
-	{ "bindswitch", cmd_bindswitch },
-	{ "bindsym", cmd_bindsym },
-	{ "set", cmd_set },
-	{ "unbindcode", cmd_unbindcode },
-	{ "unbindswitch", cmd_unbindswitch },
-	{ "unbindsym", cmd_unbindsym },
+	{"bindcode", cmd_bindcode},		{"bindswitch", cmd_bindswitch},
+	{"bindsym", cmd_bindsym},		{"set", cmd_set},
+	{"unbindcode", cmd_unbindcode}, {"unbindswitch", cmd_unbindswitch},
+	{"unbindsym", cmd_unbindsym},
 };
 
 struct cmd_results *cmd_mode(int argc, char **argv) {
@@ -27,7 +26,8 @@ struct cmd_results *cmd_mode(int argc, char **argv) {
 
 	bool pango = strcmp(*argv, "--pango_markup") == 0;
 	if (pango) {
-		argc--; argv++;
+		argc--;
+		argv++;
 		if (argc == 0) {
 			return cmd_results_new(CMD_FAILURE, "Mode name is missing");
 		}
@@ -71,16 +71,18 @@ struct cmd_results *cmd_mode(int argc, char **argv) {
 	config->current_mode = mode;
 	if (argc == 1) {
 		// trigger IPC mode event
-		hayward_log(HAYWARD_DEBUG, "Switching to mode `%s' (pango=%d)",
-				mode->name, mode->pango);
-		ipc_event_mode(config->current_mode->name,
-				config->current_mode->pango);
+		hayward_log(
+			HAYWARD_DEBUG, "Switching to mode `%s' (pango=%d)", mode->name,
+			mode->pango
+		);
+		ipc_event_mode(config->current_mode->name, config->current_mode->pango);
 		return cmd_results_new(CMD_SUCCESS, NULL);
 	}
 
 	// Create binding
-	struct cmd_results *result = config_subcommand(argv + 1, argc - 1,
-			mode_handlers, sizeof(mode_handlers));
+	struct cmd_results *result = config_subcommand(
+		argv + 1, argc - 1, mode_handlers, sizeof(mode_handlers)
+	);
 	config->current_mode = stored_mode;
 
 	return result;

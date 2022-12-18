@@ -4,6 +4,9 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_xcursor_manager.h>
+
+#include "hayward-common/log.h"
+
 #include "hayward/desktop/transaction.h"
 #include "hayward/input/cursor.h"
 #include "hayward/input/seat.h"
@@ -11,7 +14,6 @@
 #include "hayward/output.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/log.h"
 #if HAVE_XWAYLAND
 #include "hayward/xwayland.h"
 #endif
@@ -26,7 +28,8 @@ struct seatop_default_event {
  * Functions shared by multiple callbacks  /
  *---------------------------------------*/
 
-static bool column_edge_is_external(struct hayward_column *column, enum wlr_edges edge) {
+static bool
+column_edge_is_external(struct hayward_column *column, enum wlr_edges edge) {
 	if (edge == WLR_EDGE_TOP) {
 		return true;
 	}
@@ -35,7 +38,9 @@ static bool column_edge_is_external(struct hayward_column *column, enum wlr_edge
 		return true;
 	}
 
-	hayward_assert(column->pending.workspace, "Column is not attached to a workspace");
+	hayward_assert(
+		column->pending.workspace, "Column is not attached to a workspace"
+	);
 	list_t *columns = column->pending.workspace->pending.tiling;
 	int index = list_find(columns, column);
 	hayward_assert(index >= 0, "Column not found");
@@ -51,7 +56,8 @@ static bool column_edge_is_external(struct hayward_column *column, enum wlr_edge
 	return false;
 }
 
-static bool window_edge_is_external(struct hayward_window *window, enum wlr_edges edge) {
+static bool
+window_edge_is_external(struct hayward_window *window, enum wlr_edges edge) {
 	hayward_assert(window_is_tiling(window), "Expected tiling window");
 
 	if (edge == WLR_EDGE_LEFT || edge == WLR_EDGE_RIGHT) {
@@ -62,7 +68,7 @@ static bool window_edge_is_external(struct hayward_window *window, enum wlr_edge
 
 	if (layout == L_STACKED) {
 		return true;
-       	}
+	}
 
 	list_t *siblings = window_get_siblings(window);
 	int index = list_find(siblings, window);
@@ -79,13 +85,15 @@ static bool window_edge_is_external(struct hayward_window *window, enum wlr_edge
 	return false;
 }
 
-static enum wlr_edges find_edge(struct hayward_window *cont,
-		struct wlr_surface *surface, struct hayward_cursor *cursor) {
+static enum wlr_edges find_edge(
+	struct hayward_window *cont, struct wlr_surface *surface,
+	struct hayward_cursor *cursor
+) {
 	if (!cont->view || (surface && cont->view->surface != surface)) {
 		return WLR_EDGE_NONE;
 	}
 	if (cont->pending.border == B_NONE || !cont->pending.border_thickness ||
-			cont->pending.border == B_CSD) {
+		cont->pending.border == B_CSD) {
 		return WLR_EDGE_NONE;
 	}
 	if (cont->pending.fullscreen) {
@@ -99,10 +107,12 @@ static enum wlr_edges find_edge(struct hayward_window *cont,
 	if (cursor->cursor->y < cont->pending.y + cont->pending.border_thickness) {
 		edge |= WLR_EDGE_TOP;
 	}
-	if (cursor->cursor->x >= cont->pending.x + cont->pending.width - cont->pending.border_thickness) {
+	if (cursor->cursor->x >= cont->pending.x + cont->pending.width -
+			cont->pending.border_thickness) {
 		edge |= WLR_EDGE_RIGHT;
 	}
-	if (cursor->cursor->y >= cont->pending.y + cont->pending.height - cont->pending.border_thickness) {
+	if (cursor->cursor->y >= cont->pending.y + cont->pending.height -
+			cont->pending.border_thickness) {
 		edge |= WLR_EDGE_BOTTOM;
 	}
 
@@ -113,10 +123,13 @@ static enum wlr_edges find_edge(struct hayward_window *cont,
  * If the cursor is over a _resizable_ edge, return the edge.
  * Edges that can't be resized are edges of the workspace.
  */
-enum wlr_edges find_resize_edge(struct hayward_window *cont,
-		struct wlr_surface *surface, struct hayward_cursor *cursor) {
+enum wlr_edges find_resize_edge(
+	struct hayward_window *cont, struct wlr_surface *surface,
+	struct hayward_cursor *cursor
+) {
 	enum wlr_edges edge = find_edge(cont, surface, cursor);
-	if (edge && (!window_is_floating(cont)) && window_edge_is_external(cont, edge)) {
+	if (edge && (!window_is_floating(cont)) &&
+		window_edge_is_external(cont, edge)) {
 		return WLR_EDGE_NONE;
 	}
 	return edge;
@@ -126,26 +139,26 @@ enum wlr_edges find_resize_edge(struct hayward_window *cont,
  * Return the mouse binding which matches modifier, click location, release,
  * and pressed button state, otherwise return null.
  */
-static struct hayward_binding* get_active_mouse_binding(
-		struct seatop_default_event *e, list_t *bindings, uint32_t modifiers,
-		bool release, bool on_titlebar, bool on_border, bool on_content,
-		bool on_workspace, const char *identifier) {
+static struct hayward_binding *get_active_mouse_binding(
+	struct seatop_default_event *e, list_t *bindings, uint32_t modifiers,
+	bool release, bool on_titlebar, bool on_border, bool on_content,
+	bool on_workspace, const char *identifier
+) {
 	uint32_t click_region =
-			((on_titlebar || on_workspace) ? BINDING_TITLEBAR : 0) |
-			((on_border || on_workspace) ? BINDING_BORDER : 0) |
-			((on_content || on_workspace) ? BINDING_CONTENTS : 0);
+		((on_titlebar || on_workspace) ? BINDING_TITLEBAR : 0) |
+		((on_border || on_workspace) ? BINDING_BORDER : 0) |
+		((on_content || on_workspace) ? BINDING_CONTENTS : 0);
 
 	struct hayward_binding *current = NULL;
 	for (int i = 0; i < bindings->length; ++i) {
 		struct hayward_binding *binding = bindings->items[i];
 		if (modifiers ^ binding->modifiers ||
-				e->pressed_button_count != (size_t)binding->keys->length ||
-				release != (binding->flags & BINDING_RELEASE) ||
-				!(click_region & binding->flags) ||
-				(on_workspace &&
-				 (click_region & binding->flags) != click_region) ||
-				(strcmp(binding->input, identifier) != 0 &&
-				 strcmp(binding->input, "*") != 0)) {
+			e->pressed_button_count != (size_t)binding->keys->length ||
+			release != (binding->flags & BINDING_RELEASE) ||
+			!(click_region & binding->flags) ||
+			(on_workspace && (click_region & binding->flags) != click_region) ||
+			(strcmp(binding->input, identifier) != 0 &&
+			 strcmp(binding->input, "*") != 0)) {
 			continue;
 		}
 
@@ -176,8 +189,8 @@ static struct hayward_binding* get_active_mouse_binding(
  * Remove a button (and duplicates) from the sorted list of currently pressed
  * buttons.
  */
-static void state_erase_button(struct seatop_default_event *e,
-		uint32_t button) {
+static void
+state_erase_button(struct seatop_default_event *e, uint32_t button) {
 	size_t j = 0;
 	for (size_t i = 0; i < e->pressed_button_count; ++i) {
 		if (i > j) {
@@ -218,9 +231,10 @@ static void state_add_button(struct seatop_default_event *e, uint32_t button) {
  * Functions used by handle_tablet_tool_tip  /
  *-----------------------------------------*/
 
-static void handle_tablet_tool_tip(struct hayward_seat *seat,
-		struct hayward_tablet_tool *tool, uint32_t time_msec,
-		enum wlr_tablet_tool_tip_state state) {
+static void handle_tablet_tool_tip(
+	struct hayward_seat *seat, struct hayward_tablet_tool *tool,
+	uint32_t time_msec, enum wlr_tablet_tool_tip_state state
+) {
 	if (state == WLR_TABLET_TOOL_TIP_UP) {
 		wlr_tablet_v2_tablet_tool_notify_up(tool->tablet_v2_tool);
 		return;
@@ -233,18 +247,19 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 	double sx, sy;
 
 	seat_get_target_at(
-		seat, cursor->cursor->x, cursor->cursor->y,
-		&output, &window,
-		&surface, &sx, &sy
+		seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface,
+		&sx, &sy
 	);
 
-	hayward_assert(surface,
-			"Expected null-surface tablet input to route through pointer emulation");
+	hayward_assert(
+		surface,
+		"Expected null-surface tablet input to route through pointer emulation"
+	);
 
 	if (wlr_surface_is_layer_surface(surface)) {
 		// Handle tapping a layer surface.
 		struct wlr_layer_surface_v1 *layer =
-				wlr_layer_surface_v1_from_wlr_surface(surface);
+			wlr_layer_surface_v1_from_wlr_surface(surface);
 		if (layer->current.keyboard_interactive) {
 			root_set_focused_layer(layer);
 			transaction_commit_dirty();
@@ -265,7 +280,7 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 
 		// Handle moving a tiled window.
 		if (config->tiling_drag && mod_pressed && !is_floating_or_child &&
-				!window->pending.fullscreen) {
+			!window->pending.fullscreen) {
 			seatop_begin_move_tiling(seat, window);
 			return;
 		}
@@ -278,9 +293,9 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
 	// Handle tapping on an xwayland unmanaged view
 	else if (wlr_surface_is_xwayland_surface(surface)) {
 		struct wlr_xwayland_surface *xsurface =
-				wlr_xwayland_surface_from_wlr_surface(surface);
+			wlr_xwayland_surface_from_wlr_surface(surface);
 		if (xsurface->override_redirect &&
-				wlr_xwayland_or_surface_wants_focus(xsurface)) {
+			wlr_xwayland_or_surface_wants_focus(xsurface)) {
 			struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
 			wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
 			root_set_focused_surface(xsurface->surface);
@@ -297,33 +312,35 @@ static void handle_tablet_tool_tip(struct hayward_seat *seat,
  * Functions used by handle_button  /
  *--------------------------------*/
 
-static bool trigger_pointer_button_binding(struct hayward_seat *seat,
-		struct wlr_input_device *device, uint32_t button,
-		enum wlr_button_state state, uint32_t modifiers,
-		bool on_titlebar, bool on_border, bool on_contents, bool on_workspace) {
+static bool trigger_pointer_button_binding(
+	struct hayward_seat *seat, struct wlr_input_device *device, uint32_t button,
+	enum wlr_button_state state, uint32_t modifiers, bool on_titlebar,
+	bool on_border, bool on_contents, bool on_workspace
+) {
 	// We can reach this for non-pointer devices if we're currently emulating
 	// pointer input for one. Emulated input should not trigger bindings. The
-	// device can be NULL if this is synthetic (e.g. haywardmsg-generated) input.
+	// device can be NULL if this is synthetic (e.g. haywardmsg-generated)
+	// input.
 	if (device && device->type != WLR_INPUT_DEVICE_POINTER) {
 		return false;
 	}
 
 	struct seatop_default_event *e = seat->seatop_data;
 
-	char *device_identifier = device ? input_device_get_identifier(device)
-		: strdup("*");
+	char *device_identifier =
+		device ? input_device_get_identifier(device) : strdup("*");
 	struct hayward_binding *binding = NULL;
 	if (state == WLR_BUTTON_PRESSED) {
 		state_add_button(e, button);
-		binding = get_active_mouse_binding(e,
-			config->current_mode->mouse_bindings, modifiers, false,
-			on_titlebar, on_border, on_contents, on_workspace,
-			device_identifier);
+		binding = get_active_mouse_binding(
+			e, config->current_mode->mouse_bindings, modifiers, false,
+			on_titlebar, on_border, on_contents, on_workspace, device_identifier
+		);
 	} else {
-		binding = get_active_mouse_binding(e,
-			config->current_mode->mouse_bindings, modifiers, true,
-			on_titlebar, on_border, on_contents, on_workspace,
-			device_identifier);
+		binding = get_active_mouse_binding(
+			e, config->current_mode->mouse_bindings, modifiers, true,
+			on_titlebar, on_border, on_contents, on_workspace, device_identifier
+		);
 		state_erase_button(e, button);
 	}
 
@@ -336,9 +353,11 @@ static bool trigger_pointer_button_binding(struct hayward_seat *seat,
 	return false;
 }
 
-static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
-		struct wlr_input_device *device, uint32_t button,
-		enum wlr_button_state state) {
+static void handle_button(
+	struct hayward_seat *seat, uint32_t time_msec,
+	struct wlr_input_device *device, uint32_t button,
+	enum wlr_button_state state
+) {
 	struct hayward_cursor *cursor = seat->cursor;
 
 	// Determine what's under the cursor.
@@ -348,18 +367,19 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	double sx, sy;
 
 	seat_get_target_at(
-		seat, cursor->cursor->x, cursor->cursor->y,
-		&output, &window,
-		&surface, &sx, &sy
+		seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface,
+		&sx, &sy
 	);
 
 	struct hayward_workspace *workspace = root_get_active_workspace();
 
 	bool is_floating = window && window_is_floating(window);
 	bool is_fullscreen = window && window_is_fullscreen(window);
-	enum wlr_edges edge = window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
-	enum wlr_edges resize_edge = window && edge ?
-		find_resize_edge(window, surface, cursor) : WLR_EDGE_NONE;
+	enum wlr_edges edge =
+		window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
+	enum wlr_edges resize_edge = window && edge
+		? find_resize_edge(window, surface, cursor)
+		: WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;
 	bool on_contents = window && !on_border && surface;
 	bool on_workspace = output && !window && !surface;
@@ -369,8 +389,10 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 	uint32_t modifiers = keyboard ? wlr_keyboard_get_modifiers(keyboard) : 0;
 
 	// Handle mouse bindings
-	if (trigger_pointer_button_binding(seat, device, button, state, modifiers,
-			on_titlebar, on_border, on_contents, on_workspace)) {
+	if (trigger_pointer_button_binding(
+			seat, device, button, state, modifiers, on_titlebar, on_border,
+			on_contents, on_workspace
+		)) {
 		return;
 	}
 
@@ -401,7 +423,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 
 	// Handle tiling resize via border
 	if (window && resize_edge && button == BTN_LEFT &&
-			state == WLR_BUTTON_PRESSED && !is_floating) {
+		state == WLR_BUTTON_PRESSED && !is_floating) {
 		// If a resize is triggered on a window within a stacked
 		// column, change focus to the tab which already had inactive
 		// focus -- otherwise, if the user clicked on the title of a
@@ -413,22 +435,27 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 			window_to_focus = window->pending.parent->pending.active_child;
 		}
 		root_set_focused_window(window_to_focus);
-		seatop_begin_resize_tiling(seat, window, edge);   // TODO (hayward) will only ever take a window.
+		seatop_begin_resize_tiling(
+			seat, window, edge
+		); // TODO (hayward) will only ever take a window.
 		return;
 	}
 
 	// Handle tiling resize via mod
 	bool mod_pressed = modifiers & config->floating_mod;
-	if (window && !is_floating && mod_pressed &&
-			state == WLR_BUTTON_PRESSED) {
-		uint32_t btn_resize = config->floating_mod_inverse ?
-			BTN_LEFT : BTN_RIGHT;
+	if (window && !is_floating && mod_pressed && state == WLR_BUTTON_PRESSED) {
+		uint32_t btn_resize =
+			config->floating_mod_inverse ? BTN_LEFT : BTN_RIGHT;
 		if (button == btn_resize) {
 			edge = 0;
-			edge |= cursor->cursor->x > window->pending.x + window->pending.width / 2 ?
-				WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-			edge |= cursor->cursor->y > window->pending.y + window->pending.height / 2 ?
-				WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
+			edge |= cursor->cursor->x >
+					window->pending.x + window->pending.width / 2
+				? WLR_EDGE_RIGHT
+				: WLR_EDGE_LEFT;
+			edge |= cursor->cursor->y >
+					window->pending.y + window->pending.height / 2
+				? WLR_EDGE_BOTTOM
+				: WLR_EDGE_TOP;
 
 			const char *image = NULL;
 			if (edge == (WLR_EDGE_LEFT | WLR_EDGE_TOP)) {
@@ -442,25 +469,29 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 			}
 			cursor_set_image(seat->cursor, image, NULL);
 			root_set_focused_window(window);
-			seatop_begin_resize_tiling(seat, window, edge);  // TODO (hayward) should only accept windows.
+			seatop_begin_resize_tiling(
+				seat, window, edge
+			); // TODO (hayward) should only accept windows.
 			return;
 		}
 	}
 
 	// Handle beginning floating move
 	if (window && is_floating && !is_fullscreen &&
-			state == WLR_BUTTON_PRESSED) {
+		state == WLR_BUTTON_PRESSED) {
 		uint32_t btn_move = config->floating_mod_inverse ? BTN_RIGHT : BTN_LEFT;
 		if (button == btn_move && (mod_pressed || on_titlebar)) {
 			root_set_focused_window(window);
-			seatop_begin_move_floating(seat, window);  // TODO (hayward) should only accept windows.
+			seatop_begin_move_floating(
+				seat, window
+			); // TODO (hayward) should only accept windows.
 			return;
 		}
 	}
 
 	// Handle beginning floating resize
 	if (window && is_floating && !is_fullscreen &&
-			state == WLR_BUTTON_PRESSED) {
+		state == WLR_BUTTON_PRESSED) {
 		// Via border
 		if (button == BTN_LEFT && resize_edge != WLR_EDGE_NONE) {
 			seatop_begin_resize_floating(seat, window, resize_edge);
@@ -468,14 +499,18 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		}
 
 		// Via mod+click
-		uint32_t btn_resize = config->floating_mod_inverse ?
-			BTN_LEFT : BTN_RIGHT;
+		uint32_t btn_resize =
+			config->floating_mod_inverse ? BTN_LEFT : BTN_RIGHT;
 		if (mod_pressed && button == btn_resize) {
 			edge = 0;
-			edge |= cursor->cursor->x > window->pending.x + window->pending.width / 2 ?
-				WLR_EDGE_RIGHT : WLR_EDGE_LEFT;
-			edge |= cursor->cursor->y > window->pending.y + window->pending.height / 2 ?
-				WLR_EDGE_BOTTOM : WLR_EDGE_TOP;
+			edge |= cursor->cursor->x >
+					window->pending.x + window->pending.width / 2
+				? WLR_EDGE_RIGHT
+				: WLR_EDGE_LEFT;
+			edge |= cursor->cursor->y >
+					window->pending.y + window->pending.height / 2
+				? WLR_EDGE_BOTTOM
+				: WLR_EDGE_TOP;
 			seatop_begin_resize_floating(seat, window, edge);
 			return;
 		}
@@ -483,8 +518,8 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 
 	// Handle moving a tiling container
 	if (config->tiling_drag && (mod_pressed || on_titlebar) &&
-			state == WLR_BUTTON_PRESSED && !is_floating &&
-			window && !window->pending.fullscreen) {
+		state == WLR_BUTTON_PRESSED && !is_floating && window &&
+		!window->pending.fullscreen) {
 		struct hayward_window *focus = root_get_focused_window();
 		if (on_titlebar && focus != window) {
 			root_set_focused_window(window);
@@ -521,7 +556,7 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
 		struct wlr_xwayland_surface *xsurface =
 			wlr_xwayland_surface_from_wlr_surface(surface);
 		if (xsurface->override_redirect &&
-				wlr_xwayland_or_surface_wants_focus(xsurface)) {
+			wlr_xwayland_or_surface_wants_focus(xsurface)) {
 			struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
 			wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
 			root_set_focused_surface(xsurface->surface);
@@ -539,8 +574,10 @@ static void handle_button(struct hayward_seat *seat, uint32_t time_msec,
  * Functions used by handle_pointer_motion  /
  *----------------------------------------*/
 
-static void check_focus_follows_mouse(struct hayward_seat *seat,
-		struct seatop_default_event *e, struct hayward_node *hovered_node) {
+static void check_focus_follows_mouse(
+	struct hayward_seat *seat, struct seatop_default_event *e,
+	struct hayward_node *hovered_node
+) {
 	// TODO make surfaces and layers sticky in the same way as windows.
 	struct hayward_window *focus = root_get_focused_window();
 
@@ -548,7 +585,9 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 	// If it's on another output, focus the active workspace there.
 	if (!hovered_node) {
 		struct wlr_output *wlr_output = wlr_output_layout_output_at(
-				root->output_layout, seat->cursor->cursor->x, seat->cursor->cursor->y);
+			root->output_layout, seat->cursor->cursor->x,
+			seat->cursor->cursor->y
+		);
 		if (wlr_output == NULL) {
 			return;
 		}
@@ -564,7 +603,9 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 	// the workspace is on a different output to the previous focus.
 	if (focus && hovered_node->type == N_OUTPUT) {
 		struct wlr_output *wlr_output = wlr_output_layout_output_at(
-				root->output_layout, seat->cursor->cursor->x, seat->cursor->cursor->y);
+			root->output_layout, seat->cursor->cursor->x,
+			seat->cursor->cursor->y
+		);
 		if (wlr_output == NULL) {
 			return;
 		}
@@ -582,20 +623,21 @@ static void check_focus_follows_mouse(struct hayward_seat *seat,
 	// This is where we handle the common case. We don't want to focus inactive
 	// tabs, hence the view_is_visible check.
 	if (node_is_view(hovered_node) &&
-			view_is_visible(hovered_node->hayward_window->view)) {
+		view_is_visible(hovered_node->hayward_window->view)) {
 		// e->previous_node is the node which the cursor was over previously.
 		// If focus_follows_mouse is yes and the cursor got over the view due
 		// to, say, a workspace switch, we don't want to set the focus.
 		// But if focus_follows_mouse is "always", we do.
 		if (hovered_node != e->previous_node ||
-				config->focus_follows_mouse == FOLLOWS_ALWAYS) {
+			config->focus_follows_mouse == FOLLOWS_ALWAYS) {
 			root_set_focused_window(hovered_node->hayward_window);
 			transaction_commit_dirty();
 		}
 	}
 }
 
-static void handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
+static void
+handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct hayward_cursor *cursor = seat->cursor;
 
@@ -604,9 +646,8 @@ static void handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec)
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
-		seat, cursor->cursor->x, cursor->cursor->y,
-		&output, &window,
-		&surface, &sx, &sy
+		seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface,
+		&sx, &sy
 	);
 
 	struct hayward_node *node = NULL;
@@ -640,8 +681,10 @@ static void handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec)
 	e->previous_node = node;
 }
 
-static void handle_tablet_tool_motion(struct hayward_seat *seat,
-		struct hayward_tablet_tool *tool, uint32_t time_msec) {
+static void handle_tablet_tool_motion(
+	struct hayward_seat *seat, struct hayward_tablet_tool *tool,
+	uint32_t time_msec
+) {
 	struct seatop_default_event *e = seat->seatop_data;
 	struct hayward_cursor *cursor = seat->cursor;
 	struct hayward_output *output = NULL;
@@ -649,9 +692,8 @@ static void handle_tablet_tool_motion(struct hayward_seat *seat,
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
-		seat, cursor->cursor->x, cursor->cursor->y,
-		&output, &window,
-		&surface, &sx, &sy
+		seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface,
+		&sx, &sy
 	);
 
 	struct hayward_node *node = NULL;
@@ -667,9 +709,12 @@ static void handle_tablet_tool_motion(struct hayward_seat *seat,
 
 	if (surface) {
 		if (seat_is_input_allowed(seat, surface)) {
-			wlr_tablet_v2_tablet_tool_notify_proximity_in(tool->tablet_v2_tool,
-				tool->tablet->tablet_v2, surface);
-			wlr_tablet_v2_tablet_tool_notify_motion(tool->tablet_v2_tool, sx, sy);
+			wlr_tablet_v2_tablet_tool_notify_proximity_in(
+				tool->tablet_v2_tool, tool->tablet->tablet_v2, surface
+			);
+			wlr_tablet_v2_tablet_tool_notify_motion(
+				tool->tablet_v2_tool, sx, sy
+			);
 		}
 	} else {
 		cursor_update_image(cursor, node);
@@ -702,8 +747,9 @@ static uint32_t wl_axis_to_button(struct wlr_pointer_axis_event *event) {
 	}
 }
 
-static void handle_pointer_axis(struct hayward_seat *seat,
-		struct wlr_pointer_axis_event *event) {
+static void handle_pointer_axis(
+	struct hayward_seat *seat, struct wlr_pointer_axis_event *event
+) {
 	struct hayward_input_device *input_device =
 		event->pointer ? event->pointer->base.data : NULL;
 	struct input_config *ic =
@@ -717,15 +763,15 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	struct wlr_surface *surface = NULL;
 	double sx, sy;
 	seat_get_target_at(
-		seat, cursor->cursor->x, cursor->cursor->y,
-		&output, &window,
-		&surface, &sx, &sy
+		seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface,
+		&sx, &sy
 	);
-	enum wlr_edges edge = window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
+	enum wlr_edges edge =
+		window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
 	bool on_border = edge != WLR_EDGE_NONE;
 	bool on_titlebar = window && !on_border && !surface;
-	bool on_titlebar_border = window && on_border &&
-		cursor->cursor->y < window->pending.content_y;
+	bool on_titlebar_border =
+		window && on_border && cursor->cursor->y < window->pending.content_y;
 	bool on_contents = window && !on_border && surface;
 	bool on_workspace = output && !window && !surface;
 	float scroll_factor =
@@ -744,9 +790,10 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	// Handle mouse bindings - x11 mouse buttons 4-7 - press event
 	struct hayward_binding *binding = NULL;
 	state_add_button(e, button);
-	binding = get_active_mouse_binding(e, config->current_mode->mouse_bindings,
-			modifiers, false, on_titlebar, on_border, on_contents, on_workspace,
-			dev_id);
+	binding = get_active_mouse_binding(
+		e, config->current_mode->mouse_bindings, modifiers, false, on_titlebar,
+		on_border, on_contents, on_workspace, dev_id
+	);
 	if (binding) {
 		seat_execute_command(seat, binding);
 		handled = true;
@@ -774,9 +821,10 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	}
 
 	// Handle mouse bindings - x11 mouse buttons 4-7 - release event
-	binding = get_active_mouse_binding(e, config->current_mode->mouse_bindings,
-			modifiers, true, on_titlebar, on_border, on_contents, on_workspace,
-			dev_id);
+	binding = get_active_mouse_binding(
+		e, config->current_mode->mouse_bindings, modifiers, true, on_titlebar,
+		on_border, on_contents, on_workspace, dev_id
+	);
 	state_erase_button(e, button);
 	if (binding) {
 		seat_execute_command(seat, binding);
@@ -785,9 +833,11 @@ static void handle_pointer_axis(struct hayward_seat *seat,
 	free(dev_id);
 
 	if (!handled) {
-		wlr_seat_pointer_notify_axis(cursor->seat->wlr_seat, event->time_msec,
-			event->orientation, scroll_factor * event->delta,
-			round(scroll_factor * event->delta_discrete), event->source);
+		wlr_seat_pointer_notify_axis(
+			cursor->seat->wlr_seat, event->time_msec, event->orientation,
+			scroll_factor * event->delta,
+			round(scroll_factor * event->delta_discrete), event->source
+		);
 	}
 }
 
@@ -803,9 +853,8 @@ static void handle_rebase(struct hayward_seat *seat, uint32_t time_msec) {
 	struct wlr_surface *surface = NULL;
 	double sx = 0.0, sy = 0.0;
 	seat_get_target_at(
-		seat, cursor->cursor->x, cursor->cursor->y,
-		&output, &window,
-		&surface, &sx, &sy
+		seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface,
+		&sx, &sy
 	);
 
 	e->previous_node = NULL;

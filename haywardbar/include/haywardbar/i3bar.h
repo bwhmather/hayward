@@ -28,8 +28,9 @@ struct i3bar_block {
 
 void i3bar_block_unref(struct i3bar_block *block);
 bool i3bar_handle_readable(struct status_line *status);
-enum hotspot_event_handling i3bar_block_send_click(struct status_line *status,
-		struct i3bar_block *block, double x, double y, double rx, double ry,
-		double w, double h, int scale, uint32_t button);
+enum hotspot_event_handling i3bar_block_send_click(
+	struct status_line *status, struct i3bar_block *block, double x, double y,
+	double rx, double ry, double w, double h, int scale, uint32_t button
+);
 
 #endif

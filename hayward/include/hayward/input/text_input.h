@@ -1,9 +1,10 @@
 #ifndef _HAYWARD_INPUT_TEXT_INPUT_H
 #define _HAYWARD_INPUT_TEXT_INPUT_H
 
-#include <wlr/types/wlr_text_input_v3.h>
-#include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_input_method_v2.h>
+#include <wlr/types/wlr_text_input_v3.h>
+
 #include "hayward/input/seat.h"
 
 /**
@@ -21,7 +22,7 @@
 struct hayward_input_method_relay {
 	struct hayward_seat *seat;
 
-	struct wl_list text_inputs; // hayward_text_input::link
+	struct wl_list text_inputs;				  // hayward_text_input::link
 	struct wlr_input_method_v2 *input_method; // doesn't have to be present
 
 	struct wl_listener text_input_new;
@@ -55,15 +56,19 @@ struct hayward_text_input {
 
 struct hayward_text_input *hayward_text_input_create(
 	struct hayward_input_method_relay *relay,
-	struct wlr_text_input_v3 *text_input);
+	struct wlr_text_input_v3 *text_input
+);
 
-void hayward_input_method_relay_init(struct hayward_seat *seat,
-	struct hayward_input_method_relay *relay);
+void hayward_input_method_relay_init(
+	struct hayward_seat *seat, struct hayward_input_method_relay *relay
+);
 
-void hayward_input_method_relay_finish(struct hayward_input_method_relay *relay);
+void hayward_input_method_relay_finish(struct hayward_input_method_relay *relay
+);
 
 // Updates currently focused surface. Surface must belong to the same seat.
-void hayward_input_method_relay_set_focus(struct hayward_input_method_relay *relay,
-	struct wlr_surface *surface);
+void hayward_input_method_relay_set_focus(
+	struct hayward_input_method_relay *relay, struct wlr_surface *surface
+);
 
 #endif

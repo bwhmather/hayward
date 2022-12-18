@@ -11,7 +11,7 @@ struct hayward_server_decoration {
 	struct wl_listener mode;
 };
 
-struct hayward_server_decoration *decoration_from_surface(
-	struct wlr_surface *surface);
+struct hayward_server_decoration *
+decoration_from_surface(struct wlr_surface *surface);
 
 #endif

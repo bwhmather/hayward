@@ -3,10 +3,12 @@
 #include <string.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
-#include <wlr/types/wlr_output_damage.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_damage.h>
 #include <wlr/types/wlr_subcompositor.h>
+
 #include "hayward-common/log.h"
+
 #include "hayward/desktop/transaction.h"
 #include "hayward/input/cursor.h"
 #include "hayward/input/input-manager.h"
@@ -17,10 +19,11 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/workspace.h"
 
-static void apply_exclusive(struct wlr_box *usable_area,
-		uint32_t anchor, int32_t exclusive,
-		int32_t margin_top, int32_t margin_right,
-		int32_t margin_bottom, int32_t margin_left) {
+static void apply_exclusive(
+	struct wlr_box *usable_area, uint32_t anchor, int32_t exclusive,
+	int32_t margin_top, int32_t margin_right, int32_t margin_bottom,
+	int32_t margin_left
+) {
 	if (exclusive <= 0) {
 		return;
 	}
@@ -34,8 +37,7 @@ static void apply_exclusive(struct wlr_box *usable_area,
 		// Top
 		{
 			.singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP,
-			.anchor_triplet =
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+			.anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP,
 			.positive_axis = &usable_area->y,
@@ -45,8 +47,7 @@ static void apply_exclusive(struct wlr_box *usable_area,
 		// Bottom
 		{
 			.singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
-			.anchor_triplet =
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+			.anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
 			.positive_axis = NULL,
@@ -56,8 +57,7 @@ static void apply_exclusive(struct wlr_box *usable_area,
 		// Left
 		{
 			.singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT,
-			.anchor_triplet =
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+			.anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
 			.positive_axis = &usable_area->x,
@@ -67,8 +67,7 @@ static void apply_exclusive(struct wlr_box *usable_area,
 		// Right
 		{
 			.singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT,
-			.anchor_triplet =
-				ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT |
+			.anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
 				ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
 			.positive_axis = NULL,
@@ -77,8 +76,9 @@ static void apply_exclusive(struct wlr_box *usable_area,
 		},
 	};
 	for (size_t i = 0; i < sizeof(edges) / sizeof(edges[0]); ++i) {
-		if ((anchor  == edges[i].singular_anchor || anchor == edges[i].anchor_triplet)
-				&& exclusive + edges[i].margin > 0) {
+		if ((anchor == edges[i].singular_anchor ||
+			 anchor == edges[i].anchor_triplet) &&
+			exclusive + edges[i].margin > 0) {
 			if (edges[i].positive_axis) {
 				*edges[i].positive_axis += exclusive + edges[i].margin;
 			}
@@ -90,12 +90,15 @@ static void apply_exclusive(struct wlr_box *usable_area,
 	}
 }
 
-static void arrange_layer(struct hayward_output *output, struct wl_list *list,
-		struct wlr_box *usable_area, bool exclusive) {
+static void arrange_layer(
+	struct hayward_output *output, struct wl_list *list,
+	struct wlr_box *usable_area, bool exclusive
+) {
 	struct hayward_layer_surface *hayward_layer;
-	struct wlr_box full_area = { 0 };
-	wlr_output_effective_resolution(output->wlr_output,
-			&full_area.width, &full_area.height);
+	struct wlr_box full_area = {0};
+	wlr_output_effective_resolution(
+		output->wlr_output, &full_area.width, &full_area.height
+	);
 	wl_list_for_each(hayward_layer, list, link) {
 		struct wlr_layer_surface_v1 *layer = hayward_layer->layer_surface;
 		struct wlr_layer_surface_v1_state *state = &layer->current;
@@ -109,12 +112,10 @@ static void arrange_layer(struct hayward_output *output, struct wl_list *list,
 			bounds = *usable_area;
 		}
 		struct wlr_box box = {
-			.width = state->desired_width,
-			.height = state->desired_height
-		};
+			.width = state->desired_width, .height = state->desired_height};
 		// Horizontal axis
-		const uint32_t both_horiz = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
-			| ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+		const uint32_t both_horiz = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+			ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 		if (box.width == 0) {
 			box.x = bounds.x;
 		} else if ((state->anchor & both_horiz) == both_horiz) {
@@ -127,8 +128,8 @@ static void arrange_layer(struct hayward_output *output, struct wl_list *list,
 			box.x = bounds.x + ((bounds.width / 2) - (box.width / 2));
 		}
 		// Vertical axis
-		const uint32_t both_vert = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP
-			| ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
+		const uint32_t both_vert = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
+			ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
 		if (box.height == 0) {
 			box.y = bounds.y;
 		} else if ((state->anchor & both_vert) == both_vert) {
@@ -143,8 +144,8 @@ static void arrange_layer(struct hayward_output *output, struct wl_list *list,
 		// Margin
 		if (box.width == 0) {
 			box.x += state->margin.left;
-			box.width = bounds.width -
-				(state->margin.left + state->margin.right);
+			box.width =
+				bounds.width - (state->margin.left + state->margin.right);
 		} else if ((state->anchor & both_horiz) == both_horiz) {
 			// don't apply margins
 		} else if ((state->anchor & ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT)) {
@@ -154,8 +155,8 @@ static void arrange_layer(struct hayward_output *output, struct wl_list *list,
 		}
 		if (box.height == 0) {
 			box.y += state->margin.top;
-			box.height = bounds.height -
-				(state->margin.top + state->margin.bottom);
+			box.height =
+				bounds.height - (state->margin.top + state->margin.bottom);
 		} else if ((state->anchor & both_vert) == both_vert) {
 			// don't apply margins
 		} else if ((state->anchor & ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP)) {
@@ -163,49 +164,70 @@ static void arrange_layer(struct hayward_output *output, struct wl_list *list,
 		} else if ((state->anchor & ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM)) {
 			box.y -= state->margin.bottom;
 		}
-		hayward_assert(box.width >= 0 && box.height >= 0,
-				"Expected layer surface to have positive size");
+		hayward_assert(
+			box.width >= 0 && box.height >= 0,
+			"Expected layer surface to have positive size"
+		);
 
 		// Apply
 		hayward_layer->geo = box;
-		apply_exclusive(usable_area, state->anchor, state->exclusive_zone,
-				state->margin.top, state->margin.right,
-				state->margin.bottom, state->margin.left);
+		apply_exclusive(
+			usable_area, state->anchor, state->exclusive_zone,
+			state->margin.top, state->margin.right, state->margin.bottom,
+			state->margin.left
+		);
 		wlr_layer_surface_v1_configure(layer, box.width, box.height);
 	}
 }
 
 void arrange_layers(struct hayward_output *output) {
-	struct wlr_box usable_area = { 0 };
-	wlr_output_effective_resolution(output->wlr_output,
-			&usable_area.width, &usable_area.height);
+	struct wlr_box usable_area = {0};
+	wlr_output_effective_resolution(
+		output->wlr_output, &usable_area.width, &usable_area.height
+	);
 
 	// Arrange exclusive surfaces from top->bottom
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-			&usable_area, true);
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			&usable_area, true);
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			&usable_area, true);
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			&usable_area, true);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+		&usable_area, true
+	);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], &usable_area,
+		true
+	);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], &usable_area,
+		true
+	);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+		&usable_area, true
+	);
 
-	if (memcmp(&usable_area, &output->usable_area,
-				sizeof(struct wlr_box)) != 0) {
+	if (memcmp(&usable_area, &output->usable_area, sizeof(struct wlr_box)) !=
+		0) {
 		hayward_log(HAYWARD_DEBUG, "Usable area changed, rearranging output");
 		memcpy(&output->usable_area, &usable_area, sizeof(struct wlr_box));
 		arrange_output(output);
 	}
 
 	// Arrange non-exclusive surfaces from top->bottom
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-			&usable_area, false);
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-			&usable_area, false);
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-			&usable_area, false);
-	arrange_layer(output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-			&usable_area, false);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+		&usable_area, false
+	);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], &usable_area,
+		false
+	);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], &usable_area,
+		false
+	);
+	arrange_layer(
+		output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+		&usable_area, false
+	);
 
 	// Find topmost keyboard interactive layer, if such a layer exists
 	uint32_t layers_above_shell[] = {
@@ -215,10 +237,11 @@ void arrange_layers(struct hayward_output *output) {
 	size_t nlayers = sizeof(layers_above_shell) / sizeof(layers_above_shell[0]);
 	struct hayward_layer_surface *layer, *topmost = NULL;
 	for (size_t i = 0; i < nlayers; ++i) {
-		wl_list_for_each_reverse(layer,
-				&output->layers[layers_above_shell[i]], link) {
+		wl_list_for_each_reverse(
+			layer, &output->layers[layers_above_shell[i]], link
+		) {
 			if (layer->layer_surface->current.keyboard_interactive &&
-					layer->layer_surface->mapped) {
+				layer->layer_surface->mapped) {
 				topmost = layer;
 				break;
 			}
@@ -238,7 +261,8 @@ void arrange_layers(struct hayward_output *output) {
 }
 
 static struct hayward_layer_surface *find_mapped_layer_by_client(
-		struct wl_client *client, struct wlr_output *ignore_output) {
+	struct wl_client *client, struct wlr_output *ignore_output
+) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct hayward_output *output = root->outputs->items[i];
 		if (output->wlr_output == ignore_output) {
@@ -246,11 +270,12 @@ static struct hayward_layer_surface *find_mapped_layer_by_client(
 		}
 		// For now we'll only check the overlay layer
 		struct hayward_layer_surface *lsurface;
-		wl_list_for_each(lsurface,
-				&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], link) {
+		wl_list_for_each(
+			lsurface, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], link
+		) {
 			struct wl_resource *resource = lsurface->layer_surface->resource;
-			if (wl_resource_get_client(resource) == client
-					&& lsurface->layer_surface->mapped) {
+			if (wl_resource_get_client(resource) == client &&
+				lsurface->layer_surface->mapped) {
 				return lsurface;
 			}
 		}
@@ -269,8 +294,9 @@ static void handle_output_destroy(struct wl_listener *listener, void *data) {
 	bool set_focus = seat->exclusive_client == client;
 
 	if (set_focus) {
-		struct hayward_layer_surface *layer =
-			find_mapped_layer_by_client(client, hayward_layer->layer_surface->output);
+		struct hayward_layer_surface *layer = find_mapped_layer_by_client(
+			client, hayward_layer->layer_surface->output
+		);
 		if (layer) {
 			root_set_focused_layer(layer->layer_surface);
 		}
@@ -289,14 +315,15 @@ static void handle_surface_commit(struct wl_listener *listener, void *data) {
 	struct wlr_box old_extent = layer->extent;
 
 	bool layer_changed = false;
-	if (layer_surface->current.committed != 0
-			|| layer->mapped != layer_surface->mapped) {
+	if (layer_surface->current.committed != 0 ||
+		layer->mapped != layer_surface->mapped) {
 		layer->mapped = layer_surface->mapped;
 		layer_changed = layer->layer != layer_surface->current.layer;
 		if (layer_changed) {
 			wl_list_remove(&layer->link);
-			wl_list_insert(&output->layers[layer_surface->current.layer],
-				&layer->link);
+			wl_list_insert(
+				&output->layers[layer_surface->current.layer], &layer->link
+			);
 			layer->layer = layer_surface->current.layer;
 		}
 		arrange_layers(output);
@@ -310,11 +337,13 @@ static void handle_surface_commit(struct wl_listener *listener, void *data) {
 		memcmp(&old_extent, &layer->extent, sizeof(struct wlr_box)) != 0;
 	if (extent_changed || layer_changed) {
 		output_damage_box(output, &old_extent);
-		output_damage_surface(output, layer->geo.x, layer->geo.y,
-			layer_surface->surface, true);
+		output_damage_surface(
+			output, layer->geo.x, layer->geo.y, layer_surface->surface, true
+		);
 	} else {
-		output_damage_surface(output, layer->geo.x, layer->geo.y,
-			layer_surface->surface, false);
+		output_damage_surface(
+			output, layer->geo.x, layer->geo.y, layer_surface->surface, false
+		);
 	}
 
 	transaction_commit_dirty();
@@ -330,23 +359,30 @@ static void unmap(struct hayward_layer_surface *hayward_layer) {
 	struct wlr_output *wlr_output = hayward_layer->layer_surface->output;
 	hayward_assert(wlr_output, "wlr_layer_surface_v1 has null output");
 	struct hayward_output *output = wlr_output->data;
-	output_damage_surface(output, hayward_layer->geo.x, hayward_layer->geo.y,
-		hayward_layer->layer_surface->surface, true);
+	output_damage_surface(
+		output, hayward_layer->geo.x, hayward_layer->geo.y,
+		hayward_layer->layer_surface->surface, true
+	);
 }
 
-static void layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface);
+static void layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface
+);
 
 static void handle_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_layer_surface *hayward_layer =
 		wl_container_of(listener, hayward_layer, destroy);
-	hayward_log(HAYWARD_DEBUG, "Layer surface destroyed (%s)",
-		hayward_layer->layer_surface->namespace);
+	hayward_log(
+		HAYWARD_DEBUG, "Layer surface destroyed (%s)",
+		hayward_layer->layer_surface->namespace
+	);
 	if (hayward_layer->layer_surface->mapped) {
 		unmap(hayward_layer);
 	}
 
 	struct hayward_layer_subsurface *subsurface, *subsurface_tmp;
-	wl_list_for_each_safe(subsurface, subsurface_tmp, &hayward_layer->subsurfaces, link) {
+	wl_list_for_each_safe(
+		subsurface, subsurface_tmp, &hayward_layer->subsurfaces, link
+	) {
 		layer_subsurface_destroy(subsurface);
 	}
 
@@ -370,26 +406,30 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void handle_map(struct wl_listener *listener, void *data) {
-	struct hayward_layer_surface *hayward_layer = wl_container_of(listener,
-			hayward_layer, map);
+	struct hayward_layer_surface *hayward_layer =
+		wl_container_of(listener, hayward_layer, map);
 	struct wlr_output *wlr_output = hayward_layer->layer_surface->output;
 	hayward_assert(wlr_output, "wlr_layer_surface_v1 has null output");
 	struct hayward_output *output = wlr_output->data;
-	output_damage_surface(output, hayward_layer->geo.x, hayward_layer->geo.y,
-		hayward_layer->layer_surface->surface, true);
-	wlr_surface_send_enter(hayward_layer->layer_surface->surface,
-		hayward_layer->layer_surface->output);
+	output_damage_surface(
+		output, hayward_layer->geo.x, hayward_layer->geo.y,
+		hayward_layer->layer_surface->surface, true
+	);
+	wlr_surface_send_enter(
+		hayward_layer->layer_surface->surface,
+		hayward_layer->layer_surface->output
+	);
 	cursor_rebase_all();
 }
 
 static void handle_unmap(struct wl_listener *listener, void *data) {
-	struct hayward_layer_surface *hayward_layer = wl_container_of(
-			listener, hayward_layer, unmap);
+	struct hayward_layer_surface *hayward_layer =
+		wl_container_of(listener, hayward_layer, unmap);
 	unmap(hayward_layer);
 }
 
-static void subsurface_damage(struct hayward_layer_subsurface *subsurface,
-		bool whole) {
+static void
+subsurface_damage(struct hayward_layer_subsurface *subsurface, bool whole) {
 	struct hayward_layer_surface *layer = subsurface->layer_surface;
 	struct wlr_output *wlr_output = layer->layer_surface->output;
 	hayward_assert(wlr_output, "wlr_layer_surface_v1 has null output");
@@ -397,28 +437,30 @@ static void subsurface_damage(struct hayward_layer_subsurface *subsurface,
 	int ox = subsurface->wlr_subsurface->current.x + layer->geo.x;
 	int oy = subsurface->wlr_subsurface->current.y + layer->geo.y;
 	output_damage_surface(
-			output, ox, oy, subsurface->wlr_subsurface->surface, whole);
+		output, ox, oy, subsurface->wlr_subsurface->surface, whole
+	);
 }
 
 static void subsurface_handle_unmap(struct wl_listener *listener, void *data) {
 	struct hayward_layer_subsurface *subsurface =
-			wl_container_of(listener, subsurface, unmap);
+		wl_container_of(listener, subsurface, unmap);
 	subsurface_damage(subsurface, true);
 }
 
 static void subsurface_handle_map(struct wl_listener *listener, void *data) {
 	struct hayward_layer_subsurface *subsurface =
-			wl_container_of(listener, subsurface, map);
+		wl_container_of(listener, subsurface, map);
 	subsurface_damage(subsurface, true);
 }
 
 static void subsurface_handle_commit(struct wl_listener *listener, void *data) {
 	struct hayward_layer_subsurface *subsurface =
-			wl_container_of(listener, subsurface, commit);
+		wl_container_of(listener, subsurface, commit);
 	subsurface_damage(subsurface, false);
 }
 
-static void layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface) {
+static void layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface
+) {
 	wl_list_remove(&subsurface->link);
 	wl_list_remove(&subsurface->map.link);
 	wl_list_remove(&subsurface->unmap.link);
@@ -427,18 +469,19 @@ static void layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface
 	free(subsurface);
 }
 
-static void subsurface_handle_destroy(struct wl_listener *listener,
-		void *data) {
+static void
+subsurface_handle_destroy(struct wl_listener *listener, void *data) {
 	struct hayward_layer_subsurface *subsurface =
-			wl_container_of(listener, subsurface, destroy);
+		wl_container_of(listener, subsurface, destroy);
 	layer_subsurface_destroy(subsurface);
 }
 
 static struct hayward_layer_subsurface *create_subsurface(
-		struct wlr_subsurface *wlr_subsurface,
-		struct hayward_layer_surface *layer_surface) {
+	struct wlr_subsurface *wlr_subsurface,
+	struct hayward_layer_surface *layer_surface
+) {
 	struct hayward_layer_subsurface *subsurface =
-			calloc(1, sizeof(struct hayward_layer_subsurface));
+		calloc(1, sizeof(struct hayward_layer_subsurface));
 	if (subsurface == NULL) {
 		return NULL;
 	}
@@ -461,14 +504,13 @@ static struct hayward_layer_subsurface *create_subsurface(
 
 static void handle_new_subsurface(struct wl_listener *listener, void *data) {
 	struct hayward_layer_surface *hayward_layer_surface =
-			wl_container_of(listener, hayward_layer_surface, new_subsurface);
+		wl_container_of(listener, hayward_layer_surface, new_subsurface);
 	struct wlr_subsurface *wlr_subsurface = data;
 	create_subsurface(wlr_subsurface, hayward_layer_surface);
 }
 
-
-static struct hayward_layer_surface *popup_get_layer(
-		struct hayward_layer_popup *popup) {
+static struct hayward_layer_surface *
+popup_get_layer(struct hayward_layer_popup *popup) {
 	while (popup->parent_type == LAYER_PARENT_POPUP) {
 		popup = popup->parent_popup;
 	}
@@ -515,7 +557,8 @@ static void popup_handle_unmap(struct wl_listener *listener, void *data) {
 }
 
 static void popup_handle_commit(struct wl_listener *listener, void *data) {
-	struct hayward_layer_popup *popup = wl_container_of(listener, popup, commit);
+	struct hayward_layer_popup *popup =
+		wl_container_of(listener, popup, commit);
 	popup_damage(popup, false);
 }
 
@@ -552,8 +595,9 @@ static void popup_unconstrain(struct hayward_layer_popup *popup) {
 
 static void popup_handle_new_popup(struct wl_listener *listener, void *data);
 
-static struct hayward_layer_popup *create_popup(struct wlr_xdg_popup *wlr_popup,
-		enum layer_parent parent_type, void *parent) {
+static struct hayward_layer_popup *create_popup(
+	struct wlr_xdg_popup *wlr_popup, enum layer_parent parent_type, void *parent
+) {
 	struct hayward_layer_popup *popup =
 		calloc(1, sizeof(struct hayward_layer_popup));
 	if (popup == NULL) {
@@ -594,32 +638,33 @@ static void handle_new_popup(struct wl_listener *listener, void *data) {
 	create_popup(wlr_popup, LAYER_PARENT_LAYER, hayward_layer_surface);
 }
 
-struct hayward_layer_surface *layer_from_wlr_layer_surface_v1(
-		struct wlr_layer_surface_v1 *layer_surface) {
+struct hayward_layer_surface *
+layer_from_wlr_layer_surface_v1(struct wlr_layer_surface_v1 *layer_surface) {
 	return layer_surface->data;
 }
 
 void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 	struct wlr_layer_surface_v1 *layer_surface = data;
-	hayward_log(HAYWARD_DEBUG, "new layer surface: namespace %s layer %d anchor %" PRIu32
-			" size %" PRIu32 "x%" PRIu32 " margin %" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",",
-		layer_surface->namespace,
-		layer_surface->pending.layer,
-		layer_surface->pending.anchor,
-		layer_surface->pending.desired_width,
+	hayward_log(
+		HAYWARD_DEBUG,
+		"new layer surface: namespace %s layer %d anchor %" PRIu32
+		" size %" PRIu32 "x%" PRIu32 " margin %" PRIu32 ",%" PRIu32 ",%" PRIu32
+		",%" PRIu32 ",",
+		layer_surface->namespace, layer_surface->pending.layer,
+		layer_surface->pending.anchor, layer_surface->pending.desired_width,
 		layer_surface->pending.desired_height,
-		layer_surface->pending.margin.top,
-		layer_surface->pending.margin.right,
-		layer_surface->pending.margin.bottom,
-		layer_surface->pending.margin.left);
+		layer_surface->pending.margin.top, layer_surface->pending.margin.right,
+		layer_surface->pending.margin.bottom, layer_surface->pending.margin.left
+	);
 
 	if (!layer_surface->output) {
 		// Assign last active output
 		struct hayward_output *output = NULL;
 		if (!root->outputs->length) {
-			hayward_log(HAYWARD_ERROR,
-					"no output to auto-assign layer surface '%s' to",
-					layer_surface->namespace);
+			hayward_log(
+				HAYWARD_ERROR, "no output to auto-assign layer surface '%s' to",
+				layer_surface->namespace
+			);
 			// Note that layer_surface->output can be NULL
 			// here, but none of our destroy callbacks are
 			// registered yet so we don't have to make them
@@ -640,8 +685,9 @@ void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 	wl_list_init(&hayward_layer->subsurfaces);
 
 	hayward_layer->surface_commit.notify = handle_surface_commit;
-	wl_signal_add(&layer_surface->surface->events.commit,
-		&hayward_layer->surface_commit);
+	wl_signal_add(
+		&layer_surface->surface->events.commit, &hayward_layer->surface_commit
+	);
 
 	hayward_layer->destroy.notify = handle_destroy;
 	wl_signal_add(&layer_surface->events.destroy, &hayward_layer->destroy);
@@ -652,8 +698,10 @@ void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 	hayward_layer->new_popup.notify = handle_new_popup;
 	wl_signal_add(&layer_surface->events.new_popup, &hayward_layer->new_popup);
 	hayward_layer->new_subsurface.notify = handle_new_subsurface;
-	wl_signal_add(&layer_surface->surface->events.new_subsurface,
-			&hayward_layer->new_subsurface);
+	wl_signal_add(
+		&layer_surface->surface->events.new_subsurface,
+		&hayward_layer->new_subsurface
+	);
 
 	hayward_layer->layer_surface = layer_surface;
 	layer_surface->data = hayward_layer;
@@ -662,8 +710,9 @@ void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 	hayward_layer->output_destroy.notify = handle_output_destroy;
 	wl_signal_add(&output->events.disable, &hayward_layer->output_destroy);
 
-	wl_list_insert(&output->layers[layer_surface->pending.layer],
-			&hayward_layer->link);
+	wl_list_insert(
+		&output->layers[layer_surface->pending.layer], &hayward_layer->link
+	);
 
 	// Temporarily set the layer's current state to pending
 	// So that we can easily arrange it

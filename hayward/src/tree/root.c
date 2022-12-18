@@ -1,24 +1,27 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/tree/root.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/types/wlr_output_layout.h>
+
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
+
 #include "hayward/desktop/transaction.h"
 #include "hayward/input/seat.h"
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/window.h"
-#include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
 
 struct hayward_root *root;
 
-static void output_layout_handle_change(struct wl_listener *listener,
-		void *data) {
+static void
+output_layout_handle_change(struct wl_listener *listener, void *data) {
 	arrange_root();
 	transaction_commit_dirty();
 }
@@ -42,8 +45,9 @@ struct hayward_root *root_create(void) {
 	root->current.workspaces = create_list();
 
 	root->output_layout_change.notify = output_layout_handle_change;
-	wl_signal_add(&root->output_layout->events.change,
-		&root->output_layout_change);
+	wl_signal_add(
+		&root->output_layout->events.change, &root->output_layout_change
+	);
 	return root;
 }
 
@@ -84,10 +88,10 @@ static pid_t get_parent_pid(pid_t child) {
 
 	if ((stat = fopen(file_name, "r"))) {
 		if (getline(&buffer, &buf_size, stat) != -1) {
-			strtok(buffer, sep); // pid
-			strtok(NULL, sep);   // executable name
-			strtok(NULL, sep);   // state
-			char *token = strtok(NULL, sep);   // parent pid
+			strtok(buffer, sep);			 // pid
+			strtok(NULL, sep);				 // executable name
+			strtok(NULL, sep);				 // state
+			char *token = strtok(NULL, sep); // parent pid
 			parent = strtol(token, NULL, 10);
 		}
 		free(buffer);
@@ -124,9 +128,11 @@ struct hayward_workspace *root_workspace_for_pid(pid_t pid) {
 		wl_list_for_each(_pw, &pid_workspaces, link) {
 			if (pid == _pw->pid) {
 				pw = _pw;
-				hayward_log(HAYWARD_DEBUG,
-						"found pid_workspace for pid %d, workspace %s",
-						pid, pw->workspace);
+				hayward_log(
+					HAYWARD_DEBUG,
+					"found pid_workspace for pid %d, workspace %s", pid,
+					pw->workspace
+				);
 				goto found;
 			}
 		}
@@ -138,9 +144,11 @@ found:
 		workspace = workspace_by_name(pw->workspace);
 
 		if (!workspace) {
-			hayward_log(HAYWARD_DEBUG,
-					"Creating workspace %s for pid %d because it disappeared",
-					pw->workspace, pid);
+			hayward_log(
+				HAYWARD_DEBUG,
+				"Creating workspace %s for pid %d because it disappeared",
+				pw->workspace, pid
+			);
 
 			workspace = workspace_create(pw->workspace);
 		}
@@ -212,7 +220,8 @@ void root_remove_workspace_pid(pid_t pid) {
 }
 
 struct hayward_output *root_find_output(
-		bool (*test)(struct hayward_output *output, void *data), void *data) {
+	bool (*test)(struct hayward_output *output, void *data), void *data
+) {
 	for (int i = 0; i < root->outputs->length; ++i) {
 		struct hayward_output *output = root->outputs->items[i];
 		if (test(output, data)) {
@@ -242,7 +251,6 @@ void root_rename_pid_workspaces(const char *old_name, const char *new_name) {
 		}
 	}
 }
-
 
 void root_add_workspace(struct hayward_workspace *workspace) {
 	list_add(root->pending.workspaces, workspace);
@@ -308,7 +316,8 @@ void root_set_active_workspace(struct hayward_workspace *workspace) {
 		return;
 	}
 
-	struct hayward_output *active_output = workspace_get_active_output(workspace);
+	struct hayward_output *active_output =
+		workspace_get_active_output(workspace);
 	if (active_output != NULL) {
 		root->pending.active_output = active_output;
 	}
@@ -440,14 +449,19 @@ void root_commit_focus(void) {
 		// mark a little bit to let them know that the window was
 		// urgent.
 		if (view_is_urgent(view) && !view->urgent_timer) {
-			if (old_workspace && old_workspace != new_workspace && config->urgent_timeout > 0) {
-				view->urgent_timer = wl_event_loop_add_timer(server.wl_event_loop,
-						handle_urgent_timeout, view);
+			if (old_workspace && old_workspace != new_workspace &&
+				config->urgent_timeout > 0) {
+				view->urgent_timer = wl_event_loop_add_timer(
+					server.wl_event_loop, handle_urgent_timeout, view
+				);
 				if (view->urgent_timer) {
-					wl_event_source_timer_update(view->urgent_timer,
-							config->urgent_timeout);
+					wl_event_source_timer_update(
+						view->urgent_timer, config->urgent_timeout
+					);
 				} else {
-					hayward_log_errno(HAYWARD_ERROR, "Unable to create urgency timer");
+					hayward_log_errno(
+						HAYWARD_ERROR, "Unable to create urgency timer"
+					);
 					handle_urgent_timeout(view);
 				}
 			} else {
@@ -473,24 +487,32 @@ void root_commit_focus(void) {
 	}
 }
 
-
-void root_for_each_workspace(void (*f)(struct hayward_workspace *workspace, void *data), void *data) {
+void root_for_each_workspace(
+	void (*f)(struct hayward_workspace *workspace, void *data), void *data
+) {
 	for (int i = 0; i < root->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		struct hayward_workspace *workspace =
+			root->pending.workspaces->items[i];
 		f(workspace, data);
 	}
 }
 
-void root_for_each_window(void (*f)(struct hayward_window *window, void *data), void *data) {
+void root_for_each_window(
+	void (*f)(struct hayward_window *window, void *data), void *data
+) {
 	for (int i = 0; i < root->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		struct hayward_workspace *workspace =
+			root->pending.workspaces->items[i];
 		workspace_for_each_window(workspace, f, data);
 	}
 }
 
-struct hayward_workspace *root_find_workspace(bool (*test)(struct hayward_workspace *workspace, void *data), void *data) {
+struct hayward_workspace *root_find_workspace(
+	bool (*test)(struct hayward_workspace *workspace, void *data), void *data
+) {
 	for (int i = 0; i < root->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		struct hayward_workspace *workspace =
+			root->pending.workspaces->items[i];
 		if (test(workspace, data)) {
 			return workspace;
 		}
@@ -498,10 +520,13 @@ struct hayward_workspace *root_find_workspace(bool (*test)(struct hayward_worksp
 	return NULL;
 }
 
-struct hayward_window *root_find_window(bool (*test)(struct hayward_window *window, void *data), void *data) {
+struct hayward_window *root_find_window(
+	bool (*test)(struct hayward_window *window, void *data), void *data
+) {
 	struct hayward_window *result = NULL;
 	for (int i = 0; i < root->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		struct hayward_workspace *workspace =
+			root->pending.workspaces->items[i];
 		if ((result = workspace_find_window(workspace, test, data))) {
 			return result;
 		}

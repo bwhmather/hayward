@@ -1,21 +1,25 @@
 #define _POSIX_C_SOURCE 200809
+#include "hayward/commands.h"
+
 #include <ctype.h>
+#include <json.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <stdio.h>
-#include <json.h>
-#include "hayward/commands.h"
+
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 #include "hayward/tree/view.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/log.h"
 
 // Returns error object, or NULL if check succeeds.
-struct cmd_results *checkarg(int argc, const char *name, enum expected_args type, int val) {
+struct cmd_results *
+checkarg(int argc, const char *name, enum expected_args type, int val) {
 	const char *error_name = NULL;
 	switch (type) {
 	case EXPECTED_AT_LEAST:
@@ -33,93 +37,95 @@ struct cmd_results *checkarg(int argc, const char *name, enum expected_args type
 			error_name = "";
 		}
 	}
-	return error_name ?
-		cmd_results_new(CMD_INVALID, "Invalid %s command "
-				"(expected %s%d argument%s, got %d)",
-				name, error_name, val, val != 1 ? "s" : "", argc)
-		: NULL;
+	return error_name ? cmd_results_new(
+							CMD_INVALID,
+							"Invalid %s command "
+							"(expected %s%d argument%s, got %d)",
+							name, error_name, val, val != 1 ? "s" : "", argc
+						)
+					  : NULL;
 }
 
 /* Keep alphabetized */
 static const struct cmd_handler handlers[] = {
-	{ "bar", cmd_bar },
-	{ "bindcode", cmd_bindcode },
-	{ "bindswitch", cmd_bindswitch },
-	{ "bindsym", cmd_bindsym },
-	{ "client.background", cmd_client_noop },
-	{ "client.focused", cmd_client_focused },
-	{ "client.focused_inactive", cmd_client_focused_inactive },
-	{ "client.focused_tab_title", cmd_client_focused_tab_title },
-	{ "client.placeholder", cmd_client_noop },
-	{ "client.unfocused", cmd_client_unfocused },
-	{ "client.urgent", cmd_client_urgent },
-	{ "default_border", cmd_default_border },
-	{ "default_floating_border", cmd_default_floating_border },
-	{ "exec", cmd_exec },
-	{ "exec_always", cmd_exec_always },
-	{ "floating_maximum_size", cmd_floating_maximum_size },
-	{ "floating_minimum_size", cmd_floating_minimum_size },
-	{ "floating_modifier", cmd_floating_modifier },
-	{ "focus", cmd_focus },
-	{ "focus_follows_mouse", cmd_focus_follows_mouse },
-	{ "focus_on_window_activation", cmd_focus_on_window_activation },
-	{ "focus_wrapping", cmd_focus_wrapping },
-	{ "font", cmd_font },
-	{ "force_display_urgency_hint", cmd_force_display_urgency_hint },
-	{ "force_focus_wrapping", cmd_force_focus_wrapping },
-	{ "fullscreen", cmd_fullscreen },
-	{ "gaps", cmd_gaps },
-	{ "hide_edge_borders", cmd_hide_edge_borders },
-	{ "input", cmd_input },
-	{ "mode", cmd_mode },
-	{ "new_float", cmd_new_float },
-	{ "new_window", cmd_new_window },
-	{ "output", cmd_output },
-	{ "popup_during_fullscreen", cmd_popup_during_fullscreen },
-	{ "seat", cmd_seat },
-	{ "set", cmd_set },
-	{ "smart_borders", cmd_smart_borders },
-	{ "smart_gaps", cmd_smart_gaps },
-	{ "tiling_drag", cmd_tiling_drag },
-	{ "tiling_drag_threshold", cmd_tiling_drag_threshold },
-	{ "title_align", cmd_title_align },
-	{ "titlebar_border_thickness", cmd_titlebar_border_thickness },
-	{ "titlebar_padding", cmd_titlebar_padding },
-	{ "unbindcode", cmd_unbindcode },
-	{ "unbindswitch", cmd_unbindswitch },
-	{ "unbindsym", cmd_unbindsym },
-	{ "workspace", cmd_workspace },
-	{ "workspace_auto_back_and_forth", cmd_workspace_auto_back_and_forth },
+	{"bar", cmd_bar},
+	{"bindcode", cmd_bindcode},
+	{"bindswitch", cmd_bindswitch},
+	{"bindsym", cmd_bindsym},
+	{"client.background", cmd_client_noop},
+	{"client.focused", cmd_client_focused},
+	{"client.focused_inactive", cmd_client_focused_inactive},
+	{"client.focused_tab_title", cmd_client_focused_tab_title},
+	{"client.placeholder", cmd_client_noop},
+	{"client.unfocused", cmd_client_unfocused},
+	{"client.urgent", cmd_client_urgent},
+	{"default_border", cmd_default_border},
+	{"default_floating_border", cmd_default_floating_border},
+	{"exec", cmd_exec},
+	{"exec_always", cmd_exec_always},
+	{"floating_maximum_size", cmd_floating_maximum_size},
+	{"floating_minimum_size", cmd_floating_minimum_size},
+	{"floating_modifier", cmd_floating_modifier},
+	{"focus", cmd_focus},
+	{"focus_follows_mouse", cmd_focus_follows_mouse},
+	{"focus_on_window_activation", cmd_focus_on_window_activation},
+	{"focus_wrapping", cmd_focus_wrapping},
+	{"font", cmd_font},
+	{"force_display_urgency_hint", cmd_force_display_urgency_hint},
+	{"force_focus_wrapping", cmd_force_focus_wrapping},
+	{"fullscreen", cmd_fullscreen},
+	{"gaps", cmd_gaps},
+	{"hide_edge_borders", cmd_hide_edge_borders},
+	{"input", cmd_input},
+	{"mode", cmd_mode},
+	{"new_float", cmd_new_float},
+	{"new_window", cmd_new_window},
+	{"output", cmd_output},
+	{"popup_during_fullscreen", cmd_popup_during_fullscreen},
+	{"seat", cmd_seat},
+	{"set", cmd_set},
+	{"smart_borders", cmd_smart_borders},
+	{"smart_gaps", cmd_smart_gaps},
+	{"tiling_drag", cmd_tiling_drag},
+	{"tiling_drag_threshold", cmd_tiling_drag_threshold},
+	{"title_align", cmd_title_align},
+	{"titlebar_border_thickness", cmd_titlebar_border_thickness},
+	{"titlebar_padding", cmd_titlebar_padding},
+	{"unbindcode", cmd_unbindcode},
+	{"unbindswitch", cmd_unbindswitch},
+	{"unbindsym", cmd_unbindsym},
+	{"workspace", cmd_workspace},
+	{"workspace_auto_back_and_forth", cmd_workspace_auto_back_and_forth},
 };
 
 /* Config-time only commands. Keep alphabetized */
 static const struct cmd_handler config_handlers[] = {
-	{ "include", cmd_include },
-	{ "haywardbg_command", cmd_haywardbg_command },
-	{ "haywardnag_command", cmd_haywardnag_command },
-	{ "xwayland", cmd_xwayland },
+	{"include", cmd_include},
+	{"haywardbg_command", cmd_haywardbg_command},
+	{"haywardnag_command", cmd_haywardnag_command},
+	{"xwayland", cmd_xwayland},
 };
 
 /* Runtime-only commands. Keep alphabetized */
 static const struct cmd_handler command_handlers[] = {
-	{ "border", cmd_border },
-	{ "create_output", cmd_create_output },
-	{ "exit", cmd_exit },
-	{ "floating", cmd_floating },
-	{ "fullscreen", cmd_fullscreen },
-	{ "inhibit_idle", cmd_inhibit_idle },
-	{ "kill", cmd_kill },
-	{ "layout", cmd_layout },
-	{ "max_render_time", cmd_max_render_time },
-	{ "move", cmd_move },
-	{ "nop", cmd_nop },
-	{ "opacity", cmd_opacity },
-	{ "reload", cmd_reload },
-	{ "resize", cmd_resize },
-	{ "shortcuts_inhibitor", cmd_shortcuts_inhibitor },
-	{ "sticky", cmd_sticky },
-	{ "title_format", cmd_title_format },
-	{ "urgent", cmd_urgent },
+	{"border", cmd_border},
+	{"create_output", cmd_create_output},
+	{"exit", cmd_exit},
+	{"floating", cmd_floating},
+	{"fullscreen", cmd_fullscreen},
+	{"inhibit_idle", cmd_inhibit_idle},
+	{"kill", cmd_kill},
+	{"layout", cmd_layout},
+	{"max_render_time", cmd_max_render_time},
+	{"move", cmd_move},
+	{"nop", cmd_nop},
+	{"opacity", cmd_opacity},
+	{"reload", cmd_reload},
+	{"resize", cmd_resize},
+	{"shortcuts_inhibitor", cmd_shortcuts_inhibitor},
+	{"sticky", cmd_sticky},
+	{"title_format", cmd_title_format},
+	{"urgent", cmd_urgent},
 };
 
 static int handler_compare(const void *_a, const void *_b) {
@@ -128,21 +134,25 @@ static int handler_compare(const void *_a, const void *_b) {
 	return strcasecmp(a->command, b->command);
 }
 
-const struct cmd_handler *find_handler(char *line,
-		const struct cmd_handler *handlers, size_t handlers_size) {
+const struct cmd_handler *find_handler(
+	char *line, const struct cmd_handler *handlers, size_t handlers_size
+) {
 	if (!handlers || !handlers_size) {
 		return NULL;
 	}
-	const struct cmd_handler query = { .command = line };
-	return bsearch(&query, handlers,
-			handlers_size / sizeof(struct cmd_handler),
-			sizeof(struct cmd_handler), handler_compare);
+	const struct cmd_handler query = {.command = line};
+	return bsearch(
+		&query, handlers, handlers_size / sizeof(struct cmd_handler),
+		sizeof(struct cmd_handler), handler_compare
+	);
 }
 
-static const struct cmd_handler *find_handler_ex(char *line,
-		const struct cmd_handler *config_handlers, size_t config_handlers_size,
-		const struct cmd_handler *command_handlers, size_t command_handlers_size,
-		const struct cmd_handler *handlers, size_t handlers_size) {
+static const struct cmd_handler *find_handler_ex(
+	char *line, const struct cmd_handler *config_handlers,
+	size_t config_handlers_size, const struct cmd_handler *command_handlers,
+	size_t command_handlers_size, const struct cmd_handler *handlers,
+	size_t handlers_size
+) {
 	const struct cmd_handler *handler = NULL;
 	if (config->reading) {
 		handler = find_handler(line, config_handlers, config_handlers_size);
@@ -153,12 +163,15 @@ static const struct cmd_handler *find_handler_ex(char *line,
 }
 
 static const struct cmd_handler *find_core_handler(char *line) {
-	return find_handler_ex(line, config_handlers, sizeof(config_handlers),
-			command_handlers, sizeof(command_handlers),
-			handlers, sizeof(handlers));
+	return find_handler_ex(
+		line, config_handlers, sizeof(config_handlers), command_handlers,
+		sizeof(command_handlers), handlers, sizeof(handlers)
+	);
 }
 
-list_t *execute_command(char *_exec, struct hayward_seat *seat, struct hayward_window *window) {
+list_t *execute_command(
+	char *_exec, struct hayward_seat *seat, struct hayward_window *window
+) {
 	char *cmd;
 	char matched_delim = ';';
 
@@ -179,23 +192,25 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat, struct hayward_w
 	config->handler_context.seat = seat;
 
 	do {
-		for (; isspace(*head); ++head) {}
+		for (; isspace(*head); ++head) {
+		}
 
 		// Split command list
 		cmd = argsep(&head, ";,", &matched_delim);
-		for (; isspace(*cmd); ++cmd) {}
+		for (; isspace(*cmd); ++cmd) {
+		}
 
 		if (strcmp(cmd, "") == 0) {
 			hayward_log(HAYWARD_INFO, "Ignoring empty command.");
 			continue;
 		}
 		hayward_log(HAYWARD_INFO, "Handling command '%s'", cmd);
-		//TODO better handling of argv
+		// TODO better handling of argv
 		int argc;
 		char **argv = split_args(cmd, &argc);
 		if (strcmp(argv[0], "exec") != 0 &&
-				strcmp(argv[0], "exec_always") != 0 &&
-				strcmp(argv[0], "mode") != 0) {
+			strcmp(argv[0], "exec_always") != 0 &&
+			strcmp(argv[0], "mode") != 0) {
 			for (int i = 1; i < argc; ++i) {
 				if (*argv[i] == '\"' || *argv[i] == '\'') {
 					strip_quotes(argv[i]);
@@ -204,8 +219,12 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat, struct hayward_w
 		}
 		const struct cmd_handler *handler = find_core_handler(argv[0]);
 		if (!handler) {
-			list_add(res_list, cmd_results_new(CMD_INVALID,
-					"Unknown/invalid command '%s'", argv[0]));
+			list_add(
+				res_list,
+				cmd_results_new(
+					CMD_INVALID, "Unknown/invalid command '%s'", argv[0]
+				)
+			);
 			free_argv(argc, argv);
 			goto cleanup;
 		}
@@ -227,14 +246,14 @@ list_t *execute_command(char *_exec, struct hayward_seat *seat, struct hayward_w
 			config->handler_context.window = window;
 		}
 
-		struct cmd_results *res = handler->handle(argc-1, argv+1);
+		struct cmd_results *res = handler->handle(argc - 1, argv + 1);
 		list_add(res_list, res);
 		if (res->status == CMD_INVALID) {
 			free_argv(argc, argv);
 			goto cleanup;
 		}
 		free_argv(argc, argv);
-	} while(head);
+	} while (head);
 cleanup:
 	free(exec);
 	return res_list;
@@ -312,13 +331,11 @@ struct cmd_results *config_command(char *exec, char **new_block) {
 
 	// Strip quotes and unescape the string
 	for (int i = handler->handle == cmd_set ? 2 : 1; i < argc; ++i) {
-		if (handler->handle != cmd_exec && handler->handle != cmd_exec_always
-				&& handler->handle != cmd_mode
-				&& handler->handle != cmd_bindsym
-				&& handler->handle != cmd_bindcode
-				&& handler->handle != cmd_bindswitch
-				&& handler->handle != cmd_set
-				&& (*argv[i] == '\"' || *argv[i] == '\'')) {
+		if (handler->handle != cmd_exec && handler->handle != cmd_exec_always &&
+			handler->handle != cmd_mode && handler->handle != cmd_bindsym &&
+			handler->handle != cmd_bindcode &&
+			handler->handle != cmd_bindswitch && handler->handle != cmd_set &&
+			(*argv[i] == '\"' || *argv[i] == '\'')) {
 			strip_quotes(argv[i]);
 		}
 		unescape_string(argv[i]);
@@ -332,23 +349,27 @@ cleanup:
 	return results;
 }
 
-struct cmd_results *config_subcommand(char **argv, int argc,
-		const struct cmd_handler *handlers, size_t handlers_size) {
+struct cmd_results *config_subcommand(
+	char **argv, int argc, const struct cmd_handler *handlers,
+	size_t handlers_size
+) {
 	char *command = join_args(argv, argc);
 	hayward_log(HAYWARD_DEBUG, "Subcommand: %s", command);
 	free(command);
 
-	const struct cmd_handler *handler = find_handler(argv[0], handlers,
-			handlers_size);
+	const struct cmd_handler *handler =
+		find_handler(argv[0], handlers, handlers_size);
 	if (!handler) {
-		return cmd_results_new(CMD_INVALID,
-				"Unknown/invalid command '%s'", argv[0]);
+		return cmd_results_new(
+			CMD_INVALID, "Unknown/invalid command '%s'", argv[0]
+		);
 	}
 	if (handler->handle) {
 		return handler->handle(argc - 1, argv + 1);
 	}
-	return cmd_results_new(CMD_INVALID,
-			"The command '%s' is shimmed, but unimplemented", argv[0]);
+	return cmd_results_new(
+		CMD_INVALID, "The command '%s' is shimmed, but unimplemented", argv[0]
+	);
 }
 
 struct cmd_results *config_commands_command(char *exec) {
@@ -370,8 +391,8 @@ struct cmd_results *config_commands_command(char *exec) {
 
 	const struct cmd_handler *handler = find_handler(cmd, NULL, 0);
 	if (!handler && strcmp(cmd, "*") != 0) {
-		results = cmd_results_new(CMD_INVALID,
-			"Unknown/invalid command '%s'", cmd);
+		results =
+			cmd_results_new(CMD_INVALID, "Unknown/invalid command '%s'", cmd);
 		goto cleanup;
 	}
 
@@ -382,8 +403,8 @@ cleanup:
 	return results;
 }
 
-struct cmd_results *cmd_results_new(enum cmd_status status,
-		const char *format, ...) {
+struct cmd_results *
+cmd_results_new(enum cmd_status status, const char *format, ...) {
 	struct cmd_results *results = malloc(sizeof(struct cmd_results));
 	if (!results) {
 		hayward_log(HAYWARD_ERROR, "Unable to allocate command results");
@@ -417,13 +438,18 @@ char *cmd_results_to_json(list_t *res_list) {
 	for (int i = 0; i < res_list->length; ++i) {
 		struct cmd_results *results = res_list->items[i];
 		json_object *root = json_object_new_object();
-		json_object_object_add(root, "success",
-				json_object_new_boolean(results->status == CMD_SUCCESS));
+		json_object_object_add(
+			root, "success",
+			json_object_new_boolean(results->status == CMD_SUCCESS)
+		);
 		if (results->error) {
-			json_object_object_add(root, "parse_error",
-					json_object_new_boolean(results->status == CMD_INVALID));
 			json_object_object_add(
-					root, "error", json_object_new_string(results->error));
+				root, "parse_error",
+				json_object_new_boolean(results->status == CMD_INVALID)
+			);
+			json_object_object_add(
+				root, "error", json_object_new_string(results->error)
+			);
 		}
 		json_object_array_add(result_array, root);
 	}

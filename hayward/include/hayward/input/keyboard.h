@@ -80,11 +80,12 @@ struct hayward_keyboard_group {
 	struct wl_list link; // hayward_seat::keyboard_groups
 };
 
-struct xkb_keymap *hayward_keyboard_compile_keymap(struct input_config *ic,
-		char **error);
+struct xkb_keymap *
+hayward_keyboard_compile_keymap(struct input_config *ic, char **error);
 
-struct hayward_keyboard *hayward_keyboard_create(struct hayward_seat *seat,
-		struct hayward_seat_device *device);
+struct hayward_keyboard *hayward_keyboard_create(
+	struct hayward_seat *seat, struct hayward_seat_device *device
+);
 
 void hayward_keyboard_configure(struct hayward_keyboard *keyboard);
 

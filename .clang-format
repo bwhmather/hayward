@@ -1,0 +1,20 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Always
+TabWidth: 4
+---
+Language: Cpp
+ColumnLimit: 80
+AlignAfterOpenBracket: BlockIndent
+AlignOperands: DontAlign
+BreakBeforeTernaryOperators: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '\<.+\>'
+    SortPriority: 1
+  - Regex: '"hayward-.*/'
+    SortPriority: 2
+  - Regex: '"hayward/'
+    SortPriority: 3
+

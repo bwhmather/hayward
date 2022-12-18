@@ -1,8 +1,9 @@
+#include "hayward-common/util.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
-#include "hayward-common/util.h"
 
 struct cmd_results *cmd_smart_borders(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -13,8 +14,8 @@ struct cmd_results *cmd_smart_borders(int argc, char **argv) {
 	if (strcmp(argv[0], "no_gaps") == 0) {
 		config->hide_edge_borders_smart = ESMART_NO_GAPS;
 	} else {
-		config->hide_edge_borders_smart = parse_boolean(argv[0], true) ?
-			ESMART_ON : ESMART_OFF;
+		config->hide_edge_borders_smart =
+			parse_boolean(argv[0], true) ? ESMART_ON : ESMART_OFF;
 	}
 
 	arrange_root();

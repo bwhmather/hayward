@@ -1,5 +1,6 @@
-#include "hayward/commands.h"
 #include "hayward-common/util.h"
+
+#include "hayward/commands.h"
 
 struct cmd_results *cmd_tiling_drag(int argc, char **argv) {
 	struct cmd_results *error = NULL;

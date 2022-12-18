@@ -1,18 +1,21 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/tree/arrange.h"
+
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/window.h"
-#include "hayward/output.h"
-#include "hayward/tree/workspace.h"
-#include "hayward/tree/view.h"
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
+
+#include "hayward/output.h"
+#include "hayward/tree/column.h"
+#include "hayward/tree/view.h"
+#include "hayward/tree/window.h"
+#include "hayward/tree/workspace.h"
 
 void arrange_window(struct hayward_window *window) {
 	if (config->reloading) {
@@ -56,8 +59,8 @@ static void arrange_column_split(struct hayward_column *column) {
 			if (current_height_fraction <= 0) {
 				child->height_fraction = 1.0;
 			} else if (children->length > new_children) {
-				child->height_fraction = current_height_fraction /
-					(children->length - new_children);
+				child->height_fraction =
+					current_height_fraction / (children->length - new_children);
 			} else {
 				child->height_fraction = current_height_fraction;
 			}
@@ -72,8 +75,10 @@ static void arrange_column_split(struct hayward_column *column) {
 
 	// Calculate gap size
 	double inner_gap = workspace->gaps_inner;
-	double total_gap = fmin(inner_gap * (children->length - 1),
-		fmax(0, box.height - MIN_SANE_H * children->length));
+	double total_gap = fmin(
+		inner_gap * (children->length - 1),
+		fmax(0, box.height - MIN_SANE_H * children->length)
+	);
 	double child_total_height = box.height - total_gap;
 	inner_gap = floor(total_gap / (children->length - 1));
 
@@ -85,7 +90,8 @@ static void arrange_column_split(struct hayward_column *column) {
 		child->pending.x = box.x;
 		child->pending.y = child_y;
 		child->pending.width = box.width;
-		child->pending.height = round(child->height_fraction * child_total_height);
+		child->pending.height =
+			round(child->height_fraction * child_total_height);
 		child_y += child->pending.height + inner_gap;
 
 		// Make last child use remaining height of parent
@@ -96,7 +102,9 @@ static void arrange_column_split(struct hayward_column *column) {
 }
 
 static void arrange_column_stacked(struct hayward_column *column) {
-	hayward_assert(column->pending.layout == L_STACKED, "Expected stacked column");
+	hayward_assert(
+		column->pending.layout == L_STACKED, "Expected stacked column"
+	);
 
 	struct wlr_box box;
 	column_get_box(column, &box);
@@ -187,8 +195,8 @@ static void arrange_tiling(struct hayward_workspace *workspace) {
 				if (current_width_fraction <= 0) {
 					column->width_fraction = 1.0;
 				} else if (total_columns > new_columns) {
-					column->width_fraction = current_width_fraction /
-						(total_columns - new_columns);
+					column->width_fraction =
+						current_width_fraction / (total_columns - new_columns);
 				} else {
 					column->width_fraction = current_width_fraction;
 				}
@@ -206,8 +214,10 @@ static void arrange_tiling(struct hayward_workspace *workspace) {
 
 		// Calculate gap size.
 		double inner_gap = workspace->gaps_inner;
-		double total_gap = fmin(inner_gap * (total_columns - 1),
-			fmax(0, box.width - MIN_SANE_W * columns->length));
+		double total_gap = fmin(
+			inner_gap * (total_columns - 1),
+			fmax(0, box.width - MIN_SANE_W * columns->length)
+		);
 		double columns_total_width = box.width - total_gap;
 		inner_gap = floor(total_gap / (total_columns - 1));
 
@@ -218,7 +228,8 @@ static void arrange_tiling(struct hayward_workspace *workspace) {
 			column->child_total_width = columns_total_width;
 			column->pending.x = column_x;
 			column->pending.y = box.y;
-			column->pending.width = round(column->width_fraction * columns_total_width);
+			column->pending.width =
+				round(column->width_fraction * columns_total_width);
 			column->pending.height = box.height;
 			column_x += column->pending.width + inner_gap;
 
@@ -235,7 +246,6 @@ static void arrange_tiling(struct hayward_workspace *workspace) {
 	}
 }
 
-
 void arrange_workspace(struct hayward_workspace *workspace) {
 	if (config->reloading) {
 		return;
@@ -248,10 +258,13 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 	}
 
 	struct wlr_box *area = &output->usable_area;
-	hayward_log(HAYWARD_DEBUG, "Usable area for workspace: %dx%d@%d,%d",
-			area->width, area->height, area->x, area->y);
+	hayward_log(
+		HAYWARD_DEBUG, "Usable area for workspace: %dx%d@%d,%d", area->width,
+		area->height, area->x, area->y
+	);
 
-	bool first_arrange = workspace->pending.width == 0 && workspace->pending.height == 0;
+	bool first_arrange =
+		workspace->pending.width == 0 && workspace->pending.height == 0;
 	double prev_x = workspace->pending.x - workspace->current_gaps.left;
 	double prev_y = workspace->pending.y - workspace->current_gaps.top;
 	workspace->pending.width = area->width;
@@ -264,8 +277,12 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 	double diff_y = workspace->pending.y - prev_y;
 	if (!first_arrange && (diff_x != 0 || diff_y != 0)) {
 		for (int i = 0; i < workspace->pending.floating->length; ++i) {
-			struct hayward_window *floater = workspace->pending.floating->items[i];
-			window_floating_move_to(floater, floater->pending.x + diff_x, floater->pending.y + diff_y);
+			struct hayward_window *floater =
+				workspace->pending.floating->items[i];
+			window_floating_move_to(
+				floater, floater->pending.x + diff_x,
+				floater->pending.y + diff_y
+			);
 			double center_x = floater->pending.x + floater->pending.width / 2;
 			double center_y = floater->pending.y + floater->pending.height / 2;
 			struct wlr_box workspace_box;
@@ -278,8 +295,10 @@ void arrange_workspace(struct hayward_workspace *workspace) {
 
 	workspace_add_gaps(workspace);
 	node_set_dirty(&workspace->node);
-	hayward_log(HAYWARD_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
-			workspace->pending.x, workspace->pending.y);
+	hayward_log(
+		HAYWARD_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
+		workspace->pending.x, workspace->pending.y
+	);
 	if (output->pending.fullscreen_window) {
 		struct hayward_window *fs = output->pending.fullscreen_window;
 		fs->pending.x = output->lx;
@@ -298,8 +317,9 @@ void arrange_output(struct hayward_output *output) {
 		return;
 	}
 	struct wlr_box output_box;
-	wlr_output_layout_get_box(root->output_layout,
-		output->wlr_output, &output_box);
+	wlr_output_layout_get_box(
+		root->output_layout, output->wlr_output, &output_box
+	);
 	output->lx = output_box.x;
 	output->ly = output_box.y;
 	output->width = output_box.width;
@@ -323,7 +343,8 @@ void arrange_root(void) {
 	}
 
 	for (int i = 0; i < root->pending.workspaces->length; ++i) {
-		struct hayward_workspace *workspace = root->pending.workspaces->items[i];
+		struct hayward_workspace *workspace =
+			root->pending.workspaces->items[i];
 		arrange_workspace(workspace);
 	}
 }

@@ -1,15 +1,18 @@
 #define _POSIX_C_SOURCE 200809L
+#include "haywardnag/types.h"
+
 #include <getopt.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
-#include "haywardnag/config.h"
-#include "haywardnag/types.h"
 #include "hayward-common/util.h"
+
+#include "haywardnag/config.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 struct haywardnag_type *haywardnag_type_new(const char *name) {
@@ -33,9 +36,8 @@ struct haywardnag_type *haywardnag_type_new(const char *name) {
 void haywardnag_types_add_default(list_t *types) {
 	struct haywardnag_type *type_defaults = haywardnag_type_new("<defaults>");
 	type_defaults->font = strdup("pango:Monospace 10");
-	type_defaults->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP
-		| ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
-		| ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+	type_defaults->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
+		ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
 	type_defaults->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
 	type_defaults->button_background = 0x333333FF;
 	type_defaults->details_background = 0x333333FF;
@@ -85,7 +87,9 @@ struct haywardnag_type *haywardnag_type_get(list_t *types, char *name) {
 	return NULL;
 }
 
-void haywardnag_type_merge(struct haywardnag_type *dest, struct haywardnag_type *src) {
+void haywardnag_type_merge(
+	struct haywardnag_type *dest, struct haywardnag_type *src
+) {
 	if (!dest || !src) {
 		return;
 	}
@@ -126,7 +130,6 @@ void haywardnag_type_merge(struct haywardnag_type *dest, struct haywardnag_type 
 	if (src->button_text > 0) {
 		dest->button_text = src->button_text;
 	}
-
 
 	if (src->border > 0) {
 		dest->border = src->border;

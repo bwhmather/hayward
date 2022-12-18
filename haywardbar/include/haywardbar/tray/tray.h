@@ -11,8 +11,10 @@
 #endif
 #include <cairo.h>
 #include <stdint.h>
-#include "haywardbar/tray/host.h"
+
 #include "hayward-common/list.h"
+
+#include "haywardbar/tray/host.h"
 
 struct haywardbar;
 struct haywardbar_output;
@@ -31,12 +33,13 @@ struct haywardbar_tray {
 	struct haywardbar_watcher *watcher_kde;
 
 	list_t *basedirs; // char *
-	list_t *themes; // struct haywardbar_theme *
+	list_t *themes;	  // struct haywardbar_theme *
 };
 
 struct haywardbar_tray *create_tray(struct haywardbar *bar);
 void destroy_tray(struct haywardbar_tray *tray);
 void tray_in(int fd, short mask, void *data);
-uint32_t render_tray(cairo_t *cairo, struct haywardbar_output *output, double *x);
+uint32_t
+render_tray(cairo_t *cairo, struct haywardbar_output *output, double *x);
 
 #endif

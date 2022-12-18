@@ -1,17 +1,19 @@
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
+#include <signal.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <signal.h>
+
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/server.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
 
 struct cmd_results *cmd_exec_validate(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -28,8 +30,12 @@ struct cmd_results *cmd_exec_process(int argc, char **argv) {
 	struct cmd_results *error = NULL;
 	char *cmd = NULL;
 	if (strcmp(argv[0], "--no-startup-id") == 0) {
-		hayward_log(HAYWARD_INFO, "exec switch '--no-startup-id' not supported, ignored.");
-		--argc; ++argv;
+		hayward_log(
+			HAYWARD_INFO,
+			"exec switch '--no-startup-id' not supported, ignored."
+		);
+		--argc;
+		++argv;
 		if ((error = checkarg(argc, argv[-1], EXPECTED_AT_LEAST, 1))) {
 			return error;
 		}

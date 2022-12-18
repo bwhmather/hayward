@@ -1,6 +1,7 @@
+#include "hayward-common/util.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
-#include "hayward-common/util.h"
 
 struct cmd_results *output_cmd_adaptive_sync(int argc, char **argv) {
 	if (!config->handler_context.output_config) {

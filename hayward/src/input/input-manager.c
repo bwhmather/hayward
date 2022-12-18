@@ -1,26 +1,29 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/input/input-manager.h"
+
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_keyboard_group.h>
 #include <wlr/types/wlr_input_inhibitor.h>
+#include <wlr/types/wlr_keyboard_group.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
+
+#include "hayward-common/list.h"
+#include "hayward-common/log.h"
+#include "hayward-common/stringop.h"
+
 #include "hayward/config.h"
 #include "hayward/input/cursor.h"
-#include "hayward/input/input-manager.h"
 #include "hayward/input/keyboard.h"
 #include "hayward/input/libinput.h"
 #include "hayward/input/seat.h"
 #include "hayward/ipc-server.h"
 #include "hayward/server.h"
 #include "hayward/tree/view.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
 
 #define DEFAULT_SEAT "seat0"
 
@@ -39,7 +42,8 @@ struct hayward_seat *input_manager_get_default_seat(void) {
 	return input_manager_get_seat(DEFAULT_SEAT, true);
 }
 
-struct hayward_seat *input_manager_get_seat(const char *seat_name, bool create) {
+struct hayward_seat *
+input_manager_get_seat(const char *seat_name, bool create) {
 	struct hayward_seat *seat = NULL;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		if (strcmp(seat->wlr_seat->name, seat_name) == 0) {
@@ -50,7 +54,8 @@ struct hayward_seat *input_manager_get_seat(const char *seat_name, bool create) 
 	return create ? seat_create(seat_name) : NULL;
 }
 
-struct hayward_seat *input_manager_hayward_seat_from_wlr_seat(struct wlr_seat *wlr_seat) {
+struct hayward_seat *
+input_manager_hayward_seat_from_wlr_seat(struct wlr_seat *wlr_seat) {
 	struct hayward_seat *seat = NULL;
 
 	wl_list_for_each(seat, &server.input->seats, link) {
@@ -70,7 +75,8 @@ char *input_device_get_identifier(struct wlr_input_device *device) {
 
 	char *p = name;
 	for (; *p; ++p) {
-		// There are in fact input devices with unprintable characters in its name
+		// There are in fact input devices with unprintable characters in its
+		// name
 		if (*p == ' ' || !isprint(*p)) {
 			*p = '_';
 		}
@@ -80,7 +86,9 @@ char *input_device_get_identifier(struct wlr_input_device *device) {
 	int len = snprintf(NULL, 0, fmt, vendor, product, name) + 1;
 	char *identifier = malloc(len);
 	if (!identifier) {
-		hayward_log(HAYWARD_ERROR, "Unable to allocate unique input device name");
+		hayward_log(
+			HAYWARD_ERROR, "Unable to allocate unique input device name"
+		);
 		return NULL;
 	}
 
@@ -91,7 +99,7 @@ char *input_device_get_identifier(struct wlr_input_device *device) {
 
 static bool device_is_touchpad(struct hayward_input_device *device) {
 	if (device->wlr_device->type != WLR_INPUT_DEVICE_POINTER ||
-			!wlr_input_device_is_libinput(device->wlr_device)) {
+		!wlr_input_device_is_libinput(device->wlr_device)) {
 		return false;
 	}
 
@@ -154,8 +162,8 @@ static void apply_input_type_config(struct hayward_input_device *input_device) {
 	}
 }
 
-static struct hayward_input_device *input_hayward_device_from_wlr(
-		struct wlr_input_device *device) {
+static struct hayward_input_device *
+input_hayward_device_from_wlr(struct wlr_input_device *device) {
 	struct hayward_input_device *input_device = NULL;
 	wl_list_for_each(input_device, &server.input->devices, link) {
 		if (input_device->wlr_device == device) {
@@ -169,8 +177,8 @@ static bool input_has_seat_fallback_configuration(void) {
 	struct hayward_seat *seat = NULL;
 	wl_list_for_each(seat, &server.input->seats, link) {
 		struct seat_config *seat_config = seat_get_config(seat);
-		if (seat_config && strcmp(seat_config->name, "*") != 0
-				&& seat_config->fallback != -1) {
+		if (seat_config && strcmp(seat_config->name, "*") != 0 &&
+			seat_config->fallback != -1) {
 			return true;
 		}
 	}
@@ -181,7 +189,9 @@ static bool input_has_seat_fallback_configuration(void) {
 void input_manager_verify_fallback_seat(void) {
 	struct hayward_seat *seat = NULL;
 	if (!input_has_seat_fallback_configuration()) {
-		hayward_log(HAYWARD_DEBUG, "no fallback seat config - creating default");
+		hayward_log(
+			HAYWARD_DEBUG, "no fallback seat config - creating default"
+		);
 		seat = input_manager_get_default_seat();
 		struct seat_config *sc = new_seat_config(seat->wlr_seat->name);
 		sc->fallback = true;
@@ -193,12 +203,14 @@ void input_manager_verify_fallback_seat(void) {
 static void handle_device_destroy(struct wl_listener *listener, void *data) {
 	struct wlr_input_device *device = data;
 
-	struct hayward_input_device *input_device = input_hayward_device_from_wlr(device);
+	struct hayward_input_device *input_device =
+		input_hayward_device_from_wlr(device);
 
 	hayward_assert(input_device, "could not find hayward device");
 
-	hayward_log(HAYWARD_DEBUG, "removing device: '%s'",
-		input_device->identifier);
+	hayward_log(
+		HAYWARD_DEBUG, "removing device: '%s'", input_device->identifier
+	);
 
 	struct hayward_seat *seat = NULL;
 	wl_list_for_each(seat, &server.input->seats, link) {
@@ -227,8 +239,7 @@ static void handle_new_input(struct wl_listener *listener, void *data) {
 	input_device->identifier = input_device_get_identifier(device);
 	wl_list_insert(&input->devices, &input_device->link);
 
-	hayward_log(HAYWARD_DEBUG, "adding device: '%s'",
-		input_device->identifier);
+	hayward_log(HAYWARD_DEBUG, "adding device: '%s'", input_device->identifier);
 
 	apply_input_type_config(input_device);
 
@@ -244,7 +255,9 @@ static void handle_new_input(struct wl_listener *listener, void *data) {
 	wl_list_for_each(seat, &input->seats, link) {
 		struct seat_config *seat_config = seat_get_config(seat);
 		bool has_attachment = seat_config &&
-			(seat_config_get_attachment(seat_config, input_device->identifier) ||
+			(seat_config_get_attachment(
+				 seat_config, input_device->identifier
+			 ) ||
 			 seat_config_get_attachment(seat_config, "*"));
 
 		if (has_attachment) {
@@ -264,26 +277,28 @@ static void handle_new_input(struct wl_listener *listener, void *data) {
 	}
 
 	if (!added) {
-		hayward_log(HAYWARD_DEBUG,
-			"device '%s' is not configured on any seats",
-			input_device->identifier);
+		hayward_log(
+			HAYWARD_DEBUG, "device '%s' is not configured on any seats",
+			input_device->identifier
+		);
 	}
 
 	ipc_event_input("added", input_device);
 }
 
 static void handle_inhibit_activate(struct wl_listener *listener, void *data) {
-	struct hayward_input_manager *input_manager = wl_container_of(
-			listener, input_manager, inhibit_activate);
+	struct hayward_input_manager *input_manager =
+		wl_container_of(listener, input_manager, inhibit_activate);
 	struct hayward_seat *seat;
 	wl_list_for_each(seat, &input_manager->seats, link) {
 		seat_set_exclusive_client(seat, input_manager->inhibit->active_client);
 	}
 }
 
-static void handle_inhibit_deactivate(struct wl_listener *listener, void *data) {
-	struct hayward_input_manager *input_manager = wl_container_of(
-			listener, input_manager, inhibit_deactivate);
+static void
+handle_inhibit_deactivate(struct wl_listener *listener, void *data) {
+	struct hayward_input_manager *input_manager =
+		wl_container_of(listener, input_manager, inhibit_deactivate);
 	struct hayward_seat *seat;
 	if (server.session_lock.locked) {
 		// Don't deactivate the grab of a screenlocker
@@ -295,7 +310,8 @@ static void handle_inhibit_deactivate(struct wl_listener *listener, void *data) 
 }
 
 static void handle_keyboard_shortcuts_inhibitor_destroy(
-		struct wl_listener *listener, void *data) {
+	struct wl_listener *listener, void *data
+) {
 	struct hayward_keyboard_shortcuts_inhibitor *hayward_inhibitor =
 		wl_container_of(listener, hayward_inhibitor, destroy);
 
@@ -308,25 +324,31 @@ static void handle_keyboard_shortcuts_inhibitor_destroy(
 }
 
 static void handle_keyboard_shortcuts_inhibit_new_inhibitor(
-		struct wl_listener *listener, void *data) {
-	struct hayward_input_manager *input_manager =
-		wl_container_of(listener, input_manager,
-				keyboard_shortcuts_inhibit_new_inhibitor);
+	struct wl_listener *listener, void *data
+) {
+	struct hayward_input_manager *input_manager = wl_container_of(
+		listener, input_manager, keyboard_shortcuts_inhibit_new_inhibitor
+	);
 	struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor = data;
 
 	hayward_log(HAYWARD_DEBUG, "Adding keyboard shortcuts inhibitor");
 
 	struct hayward_keyboard_shortcuts_inhibitor *hayward_inhibitor =
 		calloc(1, sizeof(struct hayward_keyboard_shortcuts_inhibitor));
-	hayward_assert(hayward_inhibitor, "could not allocate keyboard shortcuts inhibitor");
+	hayward_assert(
+		hayward_inhibitor, "could not allocate keyboard shortcuts inhibitor"
+	);
 	hayward_inhibitor->inhibitor = inhibitor;
 
-	hayward_inhibitor->destroy.notify = handle_keyboard_shortcuts_inhibitor_destroy;
+	hayward_inhibitor->destroy.notify =
+		handle_keyboard_shortcuts_inhibitor_destroy;
 	wl_signal_add(&inhibitor->events.destroy, &hayward_inhibitor->destroy);
 
 	// attach inhibitor to the seat it applies to
 	struct hayward_seat *seat = inhibitor->seat->data;
-	wl_list_insert(&seat->keyboard_shortcuts_inhibitors, &hayward_inhibitor->link);
+	wl_list_insert(
+		&seat->keyboard_shortcuts_inhibitors, &hayward_inhibitor->link
+	);
 
 	// per-view, seat-agnostic config via criteria
 	struct hayward_view *view = view_from_wlr_surface(inhibitor->surface);
@@ -371,9 +393,9 @@ void handle_virtual_keyboard(struct wl_listener *listener, void *data) {
 	struct wlr_input_device *device = &keyboard->keyboard.base;
 
 	// TODO: Amend protocol to allow NULL seat
-	struct hayward_seat *seat = keyboard->seat ?
-		input_manager_hayward_seat_from_wlr_seat(keyboard->seat) :
-		input_manager_get_default_seat();
+	struct hayward_seat *seat = keyboard->seat
+		? input_manager_hayward_seat_from_wlr_seat(keyboard->seat)
+		: input_manager_get_default_seat();
 
 	struct hayward_input_device *input_device =
 		calloc(1, sizeof(struct hayward_input_device));
@@ -385,8 +407,9 @@ void handle_virtual_keyboard(struct wl_listener *listener, void *data) {
 	input_device->identifier = input_device_get_identifier(device);
 	wl_list_insert(&input_manager->devices, &input_device->link);
 
-	hayward_log(HAYWARD_DEBUG, "adding virtual keyboard: '%s'",
-		input_device->identifier);
+	hayward_log(
+		HAYWARD_DEBUG, "adding virtual keyboard: '%s'", input_device->identifier
+	);
 
 	wl_signal_add(&device->events.destroy, &input_device->device_destroy);
 	input_device->device_destroy.notify = handle_device_destroy;
@@ -401,9 +424,9 @@ void handle_virtual_pointer(struct wl_listener *listener, void *data) {
 	struct wlr_virtual_pointer_v1 *pointer = event->new_pointer;
 	struct wlr_input_device *device = &pointer->pointer.base;
 
-	struct hayward_seat *seat = event->suggested_seat ?
-		input_manager_hayward_seat_from_wlr_seat(event->suggested_seat) :
-		input_manager_get_default_seat();
+	struct hayward_seat *seat = event->suggested_seat
+		? input_manager_hayward_seat_from_wlr_seat(event->suggested_seat)
+		: input_manager_get_default_seat();
 
 	struct hayward_input_device *input_device =
 		calloc(1, sizeof(struct hayward_input_device));
@@ -415,8 +438,9 @@ void handle_virtual_pointer(struct wl_listener *listener, void *data) {
 	input_device->identifier = input_device_get_identifier(device);
 	wl_list_insert(&input_manager->devices, &input_device->link);
 
-	hayward_log(HAYWARD_DEBUG, "adding virtual pointer: '%s'",
-		input_device->identifier);
+	hayward_log(
+		HAYWARD_DEBUG, "adding virtual pointer: '%s'", input_device->identifier
+	);
 
 	wl_signal_add(&device->events.destroy, &input_device->device_destroy);
 	input_device->device_destroy.notify = handle_device_destroy;
@@ -424,12 +448,14 @@ void handle_virtual_pointer(struct wl_listener *listener, void *data) {
 	seat_add_device(seat, input_device);
 
 	if (event->suggested_output) {
-		wlr_cursor_map_input_to_output(seat->cursor->cursor, device,
-			event->suggested_output);
+		wlr_cursor_map_input_to_output(
+			seat->cursor->cursor, device, event->suggested_output
+		);
 	}
 }
 
-struct hayward_input_manager *input_manager_create(struct hayward_server *server) {
+struct hayward_input_manager *input_manager_create(struct hayward_server *server
+) {
 	struct hayward_input_manager *input =
 		calloc(1, sizeof(struct hayward_input_manager));
 	if (!input) {
@@ -442,33 +468,38 @@ struct hayward_input_manager *input_manager_create(struct hayward_server *server
 	input->new_input.notify = handle_new_input;
 	wl_signal_add(&server->backend->events.new_input, &input->new_input);
 
-	input->virtual_keyboard = wlr_virtual_keyboard_manager_v1_create(
-		server->wl_display);
-	wl_signal_add(&input->virtual_keyboard->events.new_virtual_keyboard,
-		&input->virtual_keyboard_new);
+	input->virtual_keyboard =
+		wlr_virtual_keyboard_manager_v1_create(server->wl_display);
+	wl_signal_add(
+		&input->virtual_keyboard->events.new_virtual_keyboard,
+		&input->virtual_keyboard_new
+	);
 	input->virtual_keyboard_new.notify = handle_virtual_keyboard;
 
-	input->virtual_pointer = wlr_virtual_pointer_manager_v1_create(
-		server->wl_display
+	input->virtual_pointer =
+		wlr_virtual_pointer_manager_v1_create(server->wl_display);
+	wl_signal_add(
+		&input->virtual_pointer->events.new_virtual_pointer,
+		&input->virtual_pointer_new
 	);
-	wl_signal_add(&input->virtual_pointer->events.new_virtual_pointer,
-		&input->virtual_pointer_new);
 	input->virtual_pointer_new.notify = handle_virtual_pointer;
 
 	input->inhibit = wlr_input_inhibit_manager_create(server->wl_display);
 	input->inhibit_activate.notify = handle_inhibit_activate;
-	wl_signal_add(&input->inhibit->events.activate,
-			&input->inhibit_activate);
+	wl_signal_add(&input->inhibit->events.activate, &input->inhibit_activate);
 	input->inhibit_deactivate.notify = handle_inhibit_deactivate;
-	wl_signal_add(&input->inhibit->events.deactivate,
-			&input->inhibit_deactivate);
+	wl_signal_add(
+		&input->inhibit->events.deactivate, &input->inhibit_deactivate
+	);
 
 	input->keyboard_shortcuts_inhibit =
 		wlr_keyboard_shortcuts_inhibit_v1_create(server->wl_display);
 	input->keyboard_shortcuts_inhibit_new_inhibitor.notify =
 		handle_keyboard_shortcuts_inhibit_new_inhibitor;
-	wl_signal_add(&input->keyboard_shortcuts_inhibit->events.new_inhibitor,
-			&input->keyboard_shortcuts_inhibit_new_inhibitor);
+	wl_signal_add(
+		&input->keyboard_shortcuts_inhibit->events.new_inhibitor,
+		&input->keyboard_shortcuts_inhibit_new_inhibitor
+	);
 
 	return input;
 }
@@ -490,8 +521,8 @@ static void retranslate_keysyms(struct input_config *input_config) {
 	}
 }
 
-static void input_manager_configure_input(
-		struct hayward_input_device *input_device) {
+static void
+input_manager_configure_input(struct hayward_input_device *input_device) {
 	hayward_input_configure_libinput_device(input_device);
 	struct hayward_seat *seat = NULL;
 	wl_list_for_each(seat, &server.input->seats, link) {
@@ -512,10 +543,12 @@ void input_manager_apply_input_config(struct input_config *input_config) {
 	bool type_wildcard = strncmp(input_config->identifier, "type:", 5) == 0;
 	wl_list_for_each(input_device, &server.input->devices, link) {
 		bool type_matches = type_wildcard &&
-			strcmp(input_device_get_type(input_device), input_config->identifier + 5) == 0;
-		if (strcmp(input_device->identifier, input_config->identifier) == 0
-				|| wildcard
-				|| type_matches) {
+			strcmp(
+				input_device_get_type(input_device),
+				input_config->identifier + 5
+			) == 0;
+		if (strcmp(input_device->identifier, input_config->identifier) == 0 ||
+			wildcard || type_matches) {
 			input_manager_configure_input(input_device);
 		}
 	}
@@ -550,7 +583,9 @@ void input_manager_reset_all_inputs(void) {
 }
 
 void input_manager_apply_seat_config(struct seat_config *seat_config) {
-	hayward_log(HAYWARD_DEBUG, "applying seat config for seat %s", seat_config->name);
+	hayward_log(
+		HAYWARD_DEBUG, "applying seat config for seat %s", seat_config->name
+	);
 	if (strcmp(seat_config->name, "*") == 0) {
 		struct hayward_seat *seat = NULL;
 		wl_list_for_each(seat, &server.input->seats, link) {
@@ -583,8 +618,9 @@ void input_manager_apply_seat_config(struct seat_config *seat_config) {
 				continue;
 			}
 			if (seat_config_get_attachment(seat_config, "*") ||
-					seat_config_get_attachment(seat_config,
-						input_device->identifier)) {
+				seat_config_get_attachment(
+					seat_config, input_device->identifier
+				)) {
 				list_add(seat_list, seat);
 			}
 		}
@@ -625,7 +661,8 @@ void input_manager_configure_xcursor(void) {
 	}
 }
 
-struct input_config *input_device_get_config(struct hayward_input_device *device) {
+struct input_config *input_device_get_config(struct hayward_input_device *device
+) {
 	struct input_config *wildcard_config = NULL;
 	struct input_config *input_config = NULL;
 	for (int i = 0; i < config->input_configs->length; ++i) {

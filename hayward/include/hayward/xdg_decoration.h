@@ -13,7 +13,7 @@ struct hayward_xdg_decoration {
 	struct wl_listener request_mode;
 };
 
-struct hayward_xdg_decoration *xdg_decoration_from_surface(
-	struct wlr_surface *surface);
+struct hayward_xdg_decoration *
+xdg_decoration_from_surface(struct wlr_surface *surface);
 
 #endif

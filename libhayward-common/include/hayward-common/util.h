@@ -1,8 +1,8 @@
 #ifndef _HAYWARD_UTIL_H
 #define _HAYWARD_UTIL_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <wayland-server-protocol.h>
 
 enum movement_unit {
@@ -26,8 +26,9 @@ enum movement_unit parse_movement_unit(const char *unit);
  * Parse arguments such as "10", "10px" or "10 px".
  * Returns the number of arguments consumed.
  */
-int parse_movement_amount(int argc, char **argv,
-		struct movement_amount *amount);
+int parse_movement_amount(
+	int argc, char **argv, struct movement_amount *amount
+);
 
 /**
  * Wrap i into the range [0, max]
@@ -57,7 +58,8 @@ bool parse_boolean(const char *boolean, bool current);
  */
 float parse_float(const char *value);
 
-const char *hayward_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel);
+const char *
+hayward_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel);
 
 bool hayward_set_cloexec(int fd, bool cloexec);
 

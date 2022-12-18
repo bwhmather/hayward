@@ -1,9 +1,12 @@
 #include <strings.h>
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-static void set_tool_mode(struct input_config *ic,
-		enum wlr_tablet_tool_type type, enum hayward_tablet_tool_mode mode) {
+static void set_tool_mode(
+	struct input_config *ic, enum wlr_tablet_tool_type type,
+	enum hayward_tablet_tool_mode mode
+) {
 	for (int i = 0; i < ic->tools->length; i++) {
 		struct input_config_tool *tool = ic->tools->items[i];
 		if (tool->type == type) {
@@ -68,6 +71,7 @@ struct cmd_results *input_cmd_tool_mode(int argc, char **argv) {
 	return cmd_results_new(CMD_SUCCESS, NULL);
 
 invalid_command:
-	return cmd_results_new(CMD_INVALID,
-		"Expected 'tool_mode <tool> <absolute|relative>'");
+	return cmd_results_new(
+		CMD_INVALID, "Expected 'tool_mode <tool> <absolute|relative>'"
+	);
 }

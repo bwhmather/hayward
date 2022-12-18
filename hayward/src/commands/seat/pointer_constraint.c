@@ -1,5 +1,6 @@
 #include <string.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/input/cursor.h"

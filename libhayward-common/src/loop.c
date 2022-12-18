@@ -2,11 +2,11 @@
 #include "hayward-common/loop.h"
 
 #include <limits.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <poll.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -30,7 +30,7 @@ struct loop {
 	int fd_capacity;
 
 	list_t *fd_events; // struct loop_fd_event
-	list_t *timers; // struct loop_timer
+	list_t *timers;	   // struct loop_timer
 };
 
 struct loop *loop_create(void) {
@@ -105,8 +105,10 @@ void loop_poll(struct loop *loop) {
 	}
 }
 
-void loop_add_fd(struct loop *loop, int fd, short mask,
-		void (*callback)(int fd, short mask, void *data), void *data) {
+void loop_add_fd(
+	struct loop *loop, int fd, short mask,
+	void (*callback)(int fd, short mask, void *data), void *data
+) {
 	struct loop_fd_event *event = calloc(1, sizeof(struct loop_fd_event));
 	if (!event) {
 		hayward_log(HAYWARD_ERROR, "Unable to allocate memory for event");
@@ -120,8 +122,8 @@ void loop_add_fd(struct loop *loop, int fd, short mask,
 
 	if (loop->fd_length == loop->fd_capacity) {
 		int capacity = loop->fd_capacity + 10;
-		struct pollfd *tmp = realloc(loop->fds,
-				sizeof(struct pollfd) * capacity);
+		struct pollfd *tmp =
+			realloc(loop->fds, sizeof(struct pollfd) * capacity);
 		if (!tmp) {
 			hayward_log(HAYWARD_ERROR, "Unable to allocate memory for pollfd");
 			return;
@@ -133,8 +135,9 @@ void loop_add_fd(struct loop *loop, int fd, short mask,
 	loop->fds[loop->fd_length++] = pfd;
 }
 
-struct loop_timer *loop_add_timer(struct loop *loop, int ms,
-		void (*callback)(void *data), void *data) {
+struct loop_timer *loop_add_timer(
+	struct loop *loop, int ms, void (*callback)(void *data), void *data
+) {
 	struct loop_timer *timer = calloc(1, sizeof(struct loop_timer));
 	if (!timer) {
 		hayward_log(HAYWARD_ERROR, "Unable to allocate memory for timer");
@@ -165,8 +168,10 @@ bool loop_remove_fd(struct loop *loop, int fd) {
 			list_del(loop->fd_events, i);
 
 			loop->fd_length--;
-			memmove(&loop->fds[i], &loop->fds[i + 1],
-					sizeof(struct pollfd) * (loop->fd_length - i));
+			memmove(
+				&loop->fds[i], &loop->fds[i + 1],
+				sizeof(struct pollfd) * (loop->fd_length - i)
+			);
 
 			return true;
 		}

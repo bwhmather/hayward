@@ -6,15 +6,17 @@
 #include <string.h>
 #include <strings.h>
 #include <wlr/util/edges.h>
+
+#include "hayward-common/log.h"
+#include "hayward-common/util.h"
+
 #include "hayward/commands.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
 
 #define AXIS_HORIZONTAL (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)
-#define AXIS_VERTICAL   (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)
+#define AXIS_VERTICAL (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)
 
 static uint32_t parse_resize_axis(const char *axis) {
 	if (strcasecmp(axis, "width") == 0 || strcasecmp(axis, "horizontal") == 0) {
@@ -42,7 +44,9 @@ static bool is_horizontal(uint32_t axis) {
 	return axis & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
 }
 
-static void window_resize_tiled_horizontal(struct hayward_window *window, uint32_t axis, int amount) {
+static void window_resize_tiled_horizontal(
+	struct hayward_window *window, uint32_t axis, int amount
+) {
 	if (!window) {
 		return;
 	}
@@ -51,19 +55,18 @@ static void window_resize_tiled_horizontal(struct hayward_window *window, uint32
 	struct hayward_column *prev_sibling = NULL;
 	struct hayward_column *next_sibling = NULL;
 	if (axis & WLR_EDGE_LEFT) {
-       		prev_sibling = column_get_previous_sibling(column);
+		prev_sibling = column_get_previous_sibling(column);
 	}
 	if (axis & WLR_EDGE_RIGHT) {
 		next_sibling = column_get_next_sibling(column);
 	}
-
 
 	if (prev_sibling == NULL && next_sibling == NULL) {
 		return;
 	}
 
 	int prev_amount = amount;
-       	int next_amount = amount;
+	int next_amount = amount;
 	if (prev_sibling != NULL && next_sibling != NULL) {
 		prev_amount = ceil((double)amount / 2.0);
 		next_amount = amount - prev_amount;
@@ -72,10 +75,12 @@ static void window_resize_tiled_horizontal(struct hayward_window *window, uint32
 	if (column->pending.width + amount < MIN_SANE_W) {
 		return;
 	}
-	if (prev_sibling != NULL && prev_sibling->pending.width - prev_amount < MIN_SANE_W) {
+	if (prev_sibling != NULL &&
+		prev_sibling->pending.width - prev_amount < MIN_SANE_W) {
 		return;
 	}
-	if (next_sibling != NULL && next_sibling->pending.width - next_amount < MIN_SANE_W) {
+	if (next_sibling != NULL &&
+		next_sibling->pending.width - next_amount < MIN_SANE_W) {
 		return;
 	}
 
@@ -84,21 +89,26 @@ static void window_resize_tiled_horizontal(struct hayward_window *window, uint32
 	list_t *siblings = column_get_siblings(column);
 	for (int i = 0; i < siblings->length; ++i) {
 		struct hayward_window *sibling = siblings->items[i];
-		sibling->width_fraction = sibling->pending.width / sibling->child_total_width;
+		sibling->width_fraction =
+			sibling->pending.width / sibling->child_total_width;
 	}
 
 	column->width_fraction += (double)amount / column->child_total_width;
 	if (prev_sibling != NULL) {
-		prev_sibling->width_fraction -= (double)prev_amount / prev_sibling->child_total_width;
+		prev_sibling->width_fraction -=
+			(double)prev_amount / prev_sibling->child_total_width;
 	}
 	if (next_sibling != NULL) {
-		next_sibling->width_fraction -= (double)next_amount / next_sibling->child_total_width;
+		next_sibling->width_fraction -=
+			(double)next_amount / next_sibling->child_total_width;
 	}
 
 	arrange_workspace(column->pending.workspace);
 }
 
-static void window_resize_tiled_vertical(struct hayward_window *window, uint32_t axis, int amount) {
+static void window_resize_tiled_vertical(
+	struct hayward_window *window, uint32_t axis, int amount
+) {
 	if (!window) {
 		return;
 	}
@@ -111,7 +121,7 @@ static void window_resize_tiled_vertical(struct hayward_window *window, uint32_t
 	struct hayward_window *prev_sibling = NULL;
 	struct hayward_window *next_sibling = NULL;
 	if (axis & WLR_EDGE_TOP) {
-       		prev_sibling = window_get_previous_sibling(window);
+		prev_sibling = window_get_previous_sibling(window);
 	}
 	if (axis & WLR_EDGE_BOTTOM) {
 		next_sibling = window_get_next_sibling(window);
@@ -122,7 +132,7 @@ static void window_resize_tiled_vertical(struct hayward_window *window, uint32_t
 	}
 
 	int prev_amount = amount;
-       	int next_amount = amount;
+	int next_amount = amount;
 	if (prev_sibling != NULL && next_sibling != NULL) {
 		prev_amount = ceil((double)amount / 2.0);
 		next_amount = amount - prev_amount;
@@ -131,10 +141,12 @@ static void window_resize_tiled_vertical(struct hayward_window *window, uint32_t
 	if (window->pending.height + amount < MIN_SANE_W) {
 		return;
 	}
-	if (prev_sibling != NULL && prev_sibling->pending.height - prev_amount < MIN_SANE_W) {
+	if (prev_sibling != NULL &&
+		prev_sibling->pending.height - prev_amount < MIN_SANE_W) {
 		return;
 	}
-	if (next_sibling != NULL && next_sibling->pending.height - next_amount < MIN_SANE_W) {
+	if (next_sibling != NULL &&
+		next_sibling->pending.height - next_amount < MIN_SANE_W) {
 		return;
 	}
 
@@ -143,21 +155,26 @@ static void window_resize_tiled_vertical(struct hayward_window *window, uint32_t
 	list_t *siblings = window_get_siblings(window);
 	for (int i = 0; i < siblings->length; ++i) {
 		struct hayward_window *sibling = siblings->items[i];
-		sibling->height_fraction = sibling->pending.height / sibling->child_total_height;
+		sibling->height_fraction =
+			sibling->pending.height / sibling->child_total_height;
 	}
 
 	window->height_fraction += (double)amount / window->child_total_height;
 	if (prev_sibling != NULL) {
-		prev_sibling->height_fraction -= (double)prev_amount / prev_sibling->child_total_height;
+		prev_sibling->height_fraction -=
+			(double)prev_amount / prev_sibling->child_total_height;
 	}
 	if (next_sibling != NULL) {
-		next_sibling->height_fraction -= (double)next_amount / next_sibling->child_total_height;
+		next_sibling->height_fraction -=
+			(double)next_amount / next_sibling->child_total_height;
 	}
 
 	arrange_column(column);
 }
 
-void window_resize_tiled(struct hayward_window *window, uint32_t axis, int amount) {
+void window_resize_tiled(
+	struct hayward_window *window, uint32_t axis, int amount
+) {
 	if (!window) {
 		return;
 	}
@@ -174,8 +191,8 @@ void window_resize_tiled(struct hayward_window *window, uint32_t axis, int amoun
 /**
  * Implement `resize <grow|shrink>` for a floating container.
  */
-static struct cmd_results *resize_adjust_floating(uint32_t axis,
-		struct movement_amount *amount) {
+static struct cmd_results *
+resize_adjust_floating(uint32_t axis, struct movement_amount *amount) {
 	struct hayward_window *window = config->handler_context.window;
 	int grow_width = 0, grow_height = 0;
 
@@ -187,8 +204,9 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
 
 	// Make sure we're not adjusting beyond floating min/max size
 	int min_width, max_width, min_height, max_height;
-	floating_calculate_constraints(&min_width, &max_width,
-			&min_height, &max_height);
+	floating_calculate_constraints(
+		&min_width, &max_width, &min_height, &max_height
+	);
 	if (window->pending.width + grow_width < min_width) {
 		grow_width = min_width - window->pending.width;
 	} else if (window->pending.width + grow_width > max_width) {
@@ -231,8 +249,8 @@ static struct cmd_results *resize_adjust_floating(uint32_t axis,
 /**
  * Implement `resize <grow|shrink>` for a tiled container.
  */
-static struct cmd_results *resize_adjust_tiled(uint32_t axis,
-		struct movement_amount *amount) {
+static struct cmd_results *
+resize_adjust_tiled(uint32_t axis, struct movement_amount *amount) {
 	struct hayward_window *current = config->handler_context.window;
 
 	if (amount->unit == MOVEMENT_UNIT_DEFAULT) {
@@ -252,7 +270,7 @@ static struct cmd_results *resize_adjust_tiled(uint32_t axis,
 	double old_height = current->height_fraction;
 	window_resize_tiled(current, axis, amount->amount);
 	if (current->width_fraction == old_width &&
-			current->height_fraction == old_height) {
+		current->height_fraction == old_height) {
 		return cmd_results_new(CMD_INVALID, "Cannot resize any further");
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);
@@ -261,37 +279,42 @@ static struct cmd_results *resize_adjust_tiled(uint32_t axis,
 /**
  * Implement `resize set` for a tiled container.
  */
-static struct cmd_results *resize_set_tiled(struct hayward_window *window,
-		struct movement_amount *width, struct movement_amount *height) {
+static struct cmd_results *resize_set_tiled(
+	struct hayward_window *window, struct movement_amount *width,
+	struct movement_amount *height
+) {
 	if (width->amount) {
 		if (width->unit == MOVEMENT_UNIT_PPT ||
-				width->unit == MOVEMENT_UNIT_DEFAULT) {
+			width->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
 			struct hayward_column *parent = window->pending.parent;
 			width->amount = parent->pending.width * width->amount / 100;
 			width->unit = MOVEMENT_UNIT_PX;
 		}
 		if (width->unit == MOVEMENT_UNIT_PX) {
-			window_resize_tiled(window, AXIS_HORIZONTAL,
-					width->amount - window->pending.width);
+			window_resize_tiled(
+				window, AXIS_HORIZONTAL, width->amount - window->pending.width
+			);
 		}
 	}
 
 	if (height->amount) {
 		if (height->unit == MOVEMENT_UNIT_PPT ||
-				height->unit == MOVEMENT_UNIT_DEFAULT) {
+			height->unit == MOVEMENT_UNIT_DEFAULT) {
 			// Convert to px
 			struct hayward_column *parent = window->pending.parent;
 			if (parent->pending.layout != L_SPLIT) {
 				height->amount = parent->pending.height * height->amount / 100;
 			} else {
-				height->amount = window->pending.workspace->pending.height * height->amount / 100;
+				height->amount = window->pending.workspace->pending.height *
+					height->amount / 100;
 			}
 			height->unit = MOVEMENT_UNIT_PX;
 		}
 		if (height->unit == MOVEMENT_UNIT_PX) {
-			window_resize_tiled(window, AXIS_VERTICAL,
-					height->amount - window->pending.height);
+			window_resize_tiled(
+				window, AXIS_VERTICAL, height->amount - window->pending.height
+			);
 		}
 	}
 
@@ -301,17 +324,22 @@ static struct cmd_results *resize_set_tiled(struct hayward_window *window,
 /**
  * Implement `resize set` for a floating container.
  */
-static struct cmd_results *resize_set_floating(struct hayward_window *window,
-		struct movement_amount *width, struct movement_amount *height) {
-	int min_width, max_width, min_height, max_height, grow_width = 0, grow_height = 0;
-	floating_calculate_constraints(&min_width, &max_width,
-			&min_height, &max_height);
+static struct cmd_results *resize_set_floating(
+	struct hayward_window *window, struct movement_amount *width,
+	struct movement_amount *height
+) {
+	int min_width, max_width, min_height, max_height, grow_width = 0,
+													  grow_height = 0;
+	floating_calculate_constraints(
+		&min_width, &max_width, &min_height, &max_height
+	);
 
 	if (width->amount) {
 		switch (width->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			width->amount = window->pending.workspace->pending.width * width->amount / 100;
+			width->amount =
+				window->pending.workspace->pending.width * width->amount / 100;
 			width->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
@@ -331,7 +359,8 @@ static struct cmd_results *resize_set_floating(struct hayward_window *window,
 		switch (height->unit) {
 		case MOVEMENT_UNIT_PPT:
 			// Convert to px
-			height->amount = window->pending.workspace->pending.height * height->amount / 100;
+			height->amount = window->pending.workspace->pending.height *
+				height->amount / 100;
 			height->unit = MOVEMENT_UNIT_PX;
 			// Falls through
 		case MOVEMENT_UNIT_PX:
@@ -369,14 +398,16 @@ static struct cmd_results *cmd_resize_set(int argc, char **argv) {
 	if ((error = checkarg(argc, "resize", EXPECTED_AT_LEAST, 1))) {
 		return error;
 	}
-	const char usage[] = "Expected 'resize set [width] <width> [px|ppt]' or "
+	const char usage[] =
+		"Expected 'resize set [width] <width> [px|ppt]' or "
 		"'resize set height <height> [px|ppt]' or "
 		"'resize set [width] <width> [px|ppt] [height] <height> [px|ppt]'";
 
 	// Width
 	struct movement_amount width = {0};
 	if (argc >= 2 && !strcmp(argv[0], "width") && strcmp(argv[1], "height")) {
-		argc--; argv++;
+		argc--;
+		argv++;
 	}
 	if (strcmp(argv[0], "height")) {
 		int num_consumed_args = parse_movement_amount(argc, argv, &width);
@@ -391,7 +422,8 @@ static struct cmd_results *cmd_resize_set(int argc, char **argv) {
 	struct movement_amount height = {0};
 	if (argc) {
 		if (argc >= 2 && !strcmp(argv[0], "height")) {
-			argc--; argv++;
+			argc--;
+			argv++;
 		}
 		int num_consumed_args = parse_movement_amount(argc, argv, &height);
 		if (argc > num_consumed_args) {
@@ -425,20 +457,22 @@ static struct cmd_results *cmd_resize_set(int argc, char **argv) {
  * args: <direction> <amount> <unit>
  * args: <direction> <amount> <unit> or <amount> <other_unit>
  */
-static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
-		int multiplier) {
+static struct cmd_results *
+cmd_resize_adjust(int argc, char **argv, int multiplier) {
 	const char usage[] = "Expected 'resize grow|shrink <direction> "
-		"[<amount> px|ppt [or <amount> px|ppt]]'";
+						 "[<amount> px|ppt [or <amount> px|ppt]]'";
 	uint32_t axis = parse_resize_axis(*argv);
 	if (axis == WLR_EDGE_NONE) {
 		return cmd_results_new(CMD_INVALID, usage);
 	}
-	--argc; ++argv;
+	--argc;
+	++argv;
 
 	// First amount
 	struct movement_amount first_amount;
 	if (argc) {
-		int num_consumed_args = parse_movement_amount(argc, argv, &first_amount);
+		int num_consumed_args =
+			parse_movement_amount(argc, argv, &first_amount);
 		argc -= num_consumed_args;
 		argv += num_consumed_args;
 		if (first_amount.unit == MOVEMENT_UNIT_INVALID) {
@@ -454,13 +488,15 @@ static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
 		if (strcmp(*argv, "or") != 0) {
 			return cmd_results_new(CMD_INVALID, usage);
 		}
-		--argc; ++argv;
+		--argc;
+		++argv;
 	}
 
 	// Second amount
 	struct movement_amount second_amount;
 	if (argc) {
-		int num_consumed_args = parse_movement_amount(argc, argv, &second_amount);
+		int num_consumed_args =
+			parse_movement_amount(argc, argv, &second_amount);
 		if (argc > num_consumed_args) {
 			return cmd_results_new(CMD_INVALID, usage);
 		}
@@ -488,8 +524,9 @@ static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
 		} else if (second_amount.unit == MOVEMENT_UNIT_DEFAULT) {
 			return resize_adjust_floating(axis, &second_amount);
 		} else {
-			return cmd_results_new(CMD_INVALID,
-					"Floating windows cannot use ppt measurements");
+			return cmd_results_new(
+				CMD_INVALID, "Floating windows cannot use ppt measurements"
+			);
 		}
 	}
 
@@ -509,8 +546,10 @@ static struct cmd_results *cmd_resize_adjust(int argc, char **argv,
 
 struct cmd_results *cmd_resize(int argc, char **argv) {
 	if (!root->outputs->length) {
-		return cmd_results_new(CMD_INVALID,
-				"Can't run this command while there's no outputs connected.");
+		return cmd_results_new(
+			CMD_INVALID,
+			"Can't run this command while there's no outputs connected."
+		);
 	}
 	struct hayward_window *current = config->handler_context.window;
 	if (!current) {
@@ -532,7 +571,8 @@ struct cmd_results *cmd_resize(int argc, char **argv) {
 		return cmd_resize_adjust(argc - 1, &argv[1], -1);
 	}
 
-	const char usage[] = "Expected 'resize <shrink|grow> "
+	const char usage[] =
+		"Expected 'resize <shrink|grow> "
 		"<width|height|up|down|left|right> [<amount>] [px|ppt]'";
 
 	return cmd_results_new(CMD_INVALID, usage);

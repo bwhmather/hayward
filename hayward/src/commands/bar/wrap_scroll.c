@@ -1,8 +1,10 @@
 #include <string.h>
 #include <strings.h>
-#include "hayward/commands.h"
+
 #include "hayward-common/log.h"
 #include "hayward-common/util.h"
+
+#include "hayward/commands.h"
 
 struct cmd_results *bar_cmd_wrap_scroll(int argc, char **argv) {
 	struct cmd_results *error = NULL;
@@ -10,13 +12,17 @@ struct cmd_results *bar_cmd_wrap_scroll(int argc, char **argv) {
 		return error;
 	}
 	config->current_bar->wrap_scroll =
-			parse_boolean(argv[0], config->current_bar->wrap_scroll);
+		parse_boolean(argv[0], config->current_bar->wrap_scroll);
 	if (config->current_bar->wrap_scroll) {
-		hayward_log(HAYWARD_DEBUG, "Enabling wrap scroll on bar: %s",
-			config->current_bar->id);
+		hayward_log(
+			HAYWARD_DEBUG, "Enabling wrap scroll on bar: %s",
+			config->current_bar->id
+		);
 	} else {
-		hayward_log(HAYWARD_DEBUG, "Disabling wrap scroll on bar: %s",
-				config->current_bar->id);
+		hayward_log(
+			HAYWARD_DEBUG, "Disabling wrap scroll on bar: %s",
+			config->current_bar->id
+		);
 	}
 	return cmd_results_new(CMD_SUCCESS, NULL);
 }

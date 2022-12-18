@@ -45,24 +45,28 @@ struct hayward_tablet_pad {
 	struct wl_listener tablet_destroy;
 };
 
-struct hayward_tablet *hayward_tablet_create(struct hayward_seat *seat,
-		struct hayward_seat_device *device);
+struct hayward_tablet *hayward_tablet_create(
+	struct hayward_seat *seat, struct hayward_seat_device *device
+);
 
 void hayward_configure_tablet(struct hayward_tablet *tablet);
 
 void hayward_tablet_destroy(struct hayward_tablet *tablet);
 
-void hayward_tablet_tool_configure(struct hayward_tablet *tablet,
-		struct wlr_tablet_tool *wlr_tool);
+void hayward_tablet_tool_configure(
+	struct hayward_tablet *tablet, struct wlr_tablet_tool *wlr_tool
+);
 
-struct hayward_tablet_pad *hayward_tablet_pad_create(struct hayward_seat *seat,
-		struct hayward_seat_device *device);
+struct hayward_tablet_pad *hayward_tablet_pad_create(
+	struct hayward_seat *seat, struct hayward_seat_device *device
+);
 
 void hayward_configure_tablet_pad(struct hayward_tablet_pad *tablet_pad);
 
 void hayward_tablet_pad_destroy(struct hayward_tablet_pad *tablet_pad);
 
-void hayward_tablet_pad_notify_enter(struct hayward_tablet_pad *tablet_pad,
-		struct wlr_surface *surface);
+void hayward_tablet_pad_notify_enter(
+	struct hayward_tablet_pad *tablet_pad, struct wlr_surface *surface
+);
 
 #endif

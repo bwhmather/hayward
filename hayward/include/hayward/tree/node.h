@@ -1,6 +1,7 @@
 #ifndef _HAYWARD_NODE_H
 #define _HAYWARD_NODE_H
 #include <stdbool.h>
+
 #include "hayward-common/list.h"
 
 #define MIN_SANE_W 100
@@ -50,7 +51,9 @@ struct hayward_node {
 	} events;
 };
 
-void node_init(struct hayward_node *node, enum hayward_node_type type, void *thing);
+void node_init(
+	struct hayward_node *node, enum hayward_node_type type, void *thing
+);
 
 const char *node_type_to_str(enum hayward_node_type type);
 
@@ -70,6 +73,8 @@ struct hayward_node *node_get_parent(struct hayward_node *node);
 
 list_t *node_get_children(struct hayward_node *node);
 
-bool node_has_ancestor(struct hayward_node *node, struct hayward_node *ancestor);
+bool node_has_ancestor(
+	struct hayward_node *node, struct hayward_node *ancestor
+);
 
 #endif

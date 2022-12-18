@@ -4,8 +4,10 @@
 #include <cairo.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "haywardbar/tray/tray.h"
+
 #include "hayward-common/list.h"
+
+#include "haywardbar/tray/tray.h"
 
 struct haywardbar_output;
 
@@ -51,7 +53,9 @@ struct haywardbar_sni {
 
 struct haywardbar_sni *create_sni(char *id, struct haywardbar_tray *tray);
 void destroy_sni(struct haywardbar_sni *sni);
-uint32_t render_sni(cairo_t *cairo, struct haywardbar_output *output, double *x,
-		struct haywardbar_sni *sni);
+uint32_t render_sni(
+	cairo_t *cairo, struct haywardbar_output *output, double *x,
+	struct haywardbar_sni *sni
+);
 
 #endif

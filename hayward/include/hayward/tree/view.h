@@ -2,6 +2,7 @@
 #define _HAYWARD_VIEW_H
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_compositor.h>
+
 #include "config.h"
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
@@ -33,24 +34,28 @@ enum hayward_view_prop {
 };
 
 struct hayward_view_impl {
-	void (*get_constraints)(struct hayward_view *view, double *min_width,
-			double *max_width, double *min_height, double *max_height);
-	const char *(*get_string_prop)(struct hayward_view *view,
-			enum hayward_view_prop prop);
-	uint32_t (*get_int_prop)(struct hayward_view *view, enum hayward_view_prop prop);
-	uint32_t (*configure)(struct hayward_view *view, double lx, double ly,
-			int width, int height);
+	void (*get_constraints
+	)(struct hayward_view *view, double *min_width, double *max_width,
+	  double *min_height, double *max_height);
+	const char *(*get_string_prop
+	)(struct hayward_view *view, enum hayward_view_prop prop);
+	uint32_t (*get_int_prop
+	)(struct hayward_view *view, enum hayward_view_prop prop);
+	uint32_t (*configure
+	)(struct hayward_view *view, double lx, double ly, int width, int height);
 	void (*set_activated)(struct hayward_view *view, bool activated);
 	void (*set_tiled)(struct hayward_view *view, bool tiled);
 	void (*set_fullscreen)(struct hayward_view *view, bool fullscreen);
 	void (*set_resizing)(struct hayward_view *view, bool resizing);
 	bool (*wants_floating)(struct hayward_view *view);
-	void (*for_each_surface)(struct hayward_view *view,
-		wlr_surface_iterator_func_t iterator, void *user_data);
-	void (*for_each_popup_surface)(struct hayward_view *view,
-		wlr_surface_iterator_func_t iterator, void *user_data);
-	bool (*is_transient_for)(struct hayward_view *child,
-			struct hayward_view *ancestor);
+	void (*for_each_surface
+	)(struct hayward_view *view, wlr_surface_iterator_func_t iterator,
+	  void *user_data);
+	void (*for_each_popup_surface
+	)(struct hayward_view *view, wlr_surface_iterator_func_t iterator,
+	  void *user_data);
+	bool (*is_transient_for
+	)(struct hayward_view *child, struct hayward_view *ancestor);
 	void (*close)(struct hayward_view *view);
 	void (*close_popups)(struct hayward_view *view);
 	void (*destroy)(struct hayward_view *view);
@@ -70,7 +75,7 @@ struct hayward_view {
 	const struct hayward_view_impl *impl;
 
 	struct hayward_window *window; // NULL if unmapped and transactions finished
-	struct wlr_surface *surface; // NULL for unmapped views
+	struct wlr_surface *surface;   // NULL for unmapped views
 	struct hayward_xdg_decoration *xdg_decoration;
 
 	pid_t pid;
@@ -221,8 +226,10 @@ struct hayward_xdg_popup {
 	struct wl_listener destroy;
 };
 
-void view_init(struct hayward_view *view, enum hayward_view_type type,
-	const struct hayward_view_impl *impl);
+void view_init(
+	struct hayward_view *view, enum hayward_view_type type,
+	const struct hayward_view_impl *impl
+);
 
 void view_destroy(struct hayward_view *view);
 
@@ -246,11 +253,14 @@ uint32_t view_get_window_type(struct hayward_view *view);
 
 const char *view_get_shell(struct hayward_view *view);
 
-void view_get_constraints(struct hayward_view *view, double *min_width,
-		double *max_width, double *min_height, double *max_height);
+void view_get_constraints(
+	struct hayward_view *view, double *min_width, double *max_width,
+	double *min_height, double *max_height
+);
 
-uint32_t view_configure(struct hayward_view *view, double lx, double ly, int width,
-	int height);
+uint32_t view_configure(
+	struct hayward_view *view, double lx, double ly, int width, int height
+);
 
 bool view_inhibit_idle(struct hayward_view *view);
 
@@ -297,14 +307,18 @@ void view_damage_from(struct hayward_view *view);
 /**
  * Iterate all surfaces of a view (toplevels + popups).
  */
-void view_for_each_surface(struct hayward_view *view,
-	wlr_surface_iterator_func_t iterator, void *user_data);
+void view_for_each_surface(
+	struct hayward_view *view, wlr_surface_iterator_func_t iterator,
+	void *user_data
+);
 
 /**
  * Iterate all popup surfaces of a view.
  */
-void view_for_each_popup_surface(struct hayward_view *view,
-	wlr_surface_iterator_func_t iterator, void *user_data);
+void view_for_each_popup_surface(
+	struct hayward_view *view, wlr_surface_iterator_func_t iterator,
+	void *user_data
+);
 
 /**
  * Map a view, ie. make it visible in the tree.
@@ -315,26 +329,29 @@ void view_for_each_popup_surface(struct hayward_view *view,
  * `decoration` should be set to true if the client prefers CSD. The client's
  * preference may be ignored.
  */
-void view_map(struct hayward_view *view, struct wlr_surface *wlr_surface,
-	bool fullscreen, struct wlr_output *fullscreen_output, bool decoration);
+void view_map(
+	struct hayward_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
+	struct wlr_output *fullscreen_output, bool decoration
+);
 
 void view_unmap(struct hayward_view *view);
 
 void view_update_size(struct hayward_view *view);
 void view_center_surface(struct hayward_view *view);
 
-void view_child_init(struct hayward_view_child *child,
+void view_child_init(
+	struct hayward_view_child *child,
 	const struct hayward_view_child_impl *impl, struct hayward_view *view,
-	struct wlr_surface *surface);
+	struct wlr_surface *surface
+);
 
 void view_child_destroy(struct hayward_view_child *child);
 
-
-struct hayward_view *view_from_wlr_xdg_surface(
-	struct wlr_xdg_surface *xdg_surface);
+struct hayward_view *
+view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface);
 #if HAVE_XWAYLAND
-struct hayward_view *view_from_wlr_xwayland_surface(
-	struct wlr_xwayland_surface *xsurface);
+struct hayward_view *
+view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface);
 #endif
 struct hayward_view *view_from_wlr_surface(struct wlr_surface *surface);
 
@@ -359,6 +376,8 @@ void view_remove_saved_buffer(struct hayward_view *view);
 
 void view_save_buffer(struct hayward_view *view);
 
-bool view_is_transient_for(struct hayward_view *child, struct hayward_view *ancestor);
+bool view_is_transient_for(
+	struct hayward_view *child, struct hayward_view *ancestor
+);
 
 #endif

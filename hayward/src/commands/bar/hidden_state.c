@@ -1,13 +1,15 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 #include <strings.h>
+
+#include "hayward-common/log.h"
+
 #include "hayward/commands.h"
 #include "hayward/config.h"
 #include "hayward/ipc-server.h"
-#include "hayward-common/log.h"
 
-static struct cmd_results *bar_set_hidden_state(struct bar_config *bar,
-		const char *hidden_state) {
+static struct cmd_results *
+bar_set_hidden_state(struct bar_config *bar, const char *hidden_state) {
 	char *old_state = bar->hidden_state;
 	if (strcasecmp("toggle", hidden_state) == 0 && !config->reading) {
 		if (strcasecmp("hide", bar->hidden_state) == 0) {
@@ -20,14 +22,16 @@ static struct cmd_results *bar_set_hidden_state(struct bar_config *bar,
 	} else if (strcasecmp("show", hidden_state) == 0) {
 		bar->hidden_state = strdup("show");
 	} else {
-		return cmd_results_new(CMD_INVALID, "Invalid value %s",	hidden_state);
+		return cmd_results_new(CMD_INVALID, "Invalid value %s", hidden_state);
 	}
 	if (strcmp(old_state, bar->hidden_state) != 0) {
 		if (!config->current_bar) {
 			ipc_event_barconfig_update(bar);
 		}
-		hayward_log(HAYWARD_DEBUG, "Setting hidden_state: '%s' for bar: %s",
-				bar->hidden_state, bar->id);
+		hayward_log(
+			HAYWARD_DEBUG, "Setting hidden_state: '%s' for bar: %s",
+			bar->hidden_state, bar->id
+		);
 	}
 	// free old mode
 	free(old_state);
@@ -43,14 +47,17 @@ struct cmd_results *bar_cmd_hidden_state(int argc, char **argv) {
 		return error;
 	}
 	if (config->reading && argc > 1) {
-		return cmd_results_new(CMD_INVALID,
-				"Unexpected value %s in config mode", argv[1]);
+		return cmd_results_new(
+			CMD_INVALID, "Unexpected value %s in config mode", argv[1]
+		);
 	}
 
 	if (config->current_bar && argc == 2 &&
-			strcmp(config->current_bar->id, argv[1]) != 0) {
-		return cmd_results_new(CMD_INVALID, "Conflicting bar ids: %s and %s",
-				config->current_bar->id, argv[1]);
+		strcmp(config->current_bar->id, argv[1]) != 0) {
+		return cmd_results_new(
+			CMD_INVALID, "Conflicting bar ids: %s and %s",
+			config->current_bar->id, argv[1]
+		);
 	}
 
 	const char *state = argv[0];

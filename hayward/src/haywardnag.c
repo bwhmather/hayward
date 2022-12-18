@@ -1,19 +1,22 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/haywardnag.h"
+
 #include <signal.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include "hayward-common/log.h"
-#include "hayward/server.h"
-#include "hayward/haywardnag.h"
 #include "hayward-common/util.h"
 
-static void handle_haywardnag_client_destroy(struct wl_listener *listener,
-		void *data) {
+#include "hayward/server.h"
+
+static void
+handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {
 	struct haywardnag_instance *haywardnag =
 		wl_container_of(listener, haywardnag, client_destroy);
 	wl_list_remove(&haywardnag->client_destroy.link);
@@ -21,8 +24,9 @@ static void handle_haywardnag_client_destroy(struct wl_listener *listener,
 	haywardnag->client = NULL;
 }
 
-bool haywardnag_spawn(const char *haywardnag_command,
-		struct haywardnag_instance *haywardnag) {
+bool haywardnag_spawn(
+	const char *haywardnag_command, struct haywardnag_instance *haywardnag
+) {
 	if (haywardnag->client != NULL) {
 		wl_client_destroy(haywardnag->client);
 	}
@@ -46,7 +50,8 @@ bool haywardnag_spawn(const char *haywardnag_command,
 		hayward_log_errno(HAYWARD_ERROR, "socketpair failed");
 		goto failed;
 	}
-	if (!hayward_set_cloexec(sockets[0], true) || !hayward_set_cloexec(sockets[1], true)) {
+	if (!hayward_set_cloexec(sockets[0], true) ||
+		!hayward_set_cloexec(sockets[1], true)) {
 		goto failed;
 	}
 
@@ -57,7 +62,9 @@ bool haywardnag_spawn(const char *haywardnag_command,
 	}
 
 	haywardnag->client_destroy.notify = handle_haywardnag_client_destroy;
-	wl_client_add_destroy_listener(haywardnag->client, &haywardnag->client_destroy);
+	wl_client_add_destroy_listener(
+		haywardnag->client, &haywardnag->client_destroy
+	);
 
 	pid_t pid = fork();
 	if (pid < 0) {
@@ -82,13 +89,17 @@ bool haywardnag_spawn(const char *haywardnag_command,
 			}
 
 			char wayland_socket_str[16];
-			snprintf(wayland_socket_str, sizeof(wayland_socket_str),
-					"%d", sockets[1]);
+			snprintf(
+				wayland_socket_str, sizeof(wayland_socket_str), "%d", sockets[1]
+			);
 			setenv("WAYLAND_SOCKET", wayland_socket_str, true);
 
-			size_t length = strlen(haywardnag_command) + strlen(haywardnag->args) + 2;
+			size_t length =
+				strlen(haywardnag_command) + strlen(haywardnag->args) + 2;
 			char *cmd = malloc(length);
-			snprintf(cmd, length, "%s %s", haywardnag_command, haywardnag->args);
+			snprintf(
+				cmd, length, "%s %s", haywardnag_command, haywardnag->args
+			);
 			execlp("sh", "sh", "-c", cmd, NULL);
 			hayward_log_errno(HAYWARD_ERROR, "execlp failed");
 			_exit(EXIT_FAILURE);
@@ -128,18 +139,23 @@ failed:
 	return false;
 }
 
-void haywardnag_log(const char *haywardnag_command, struct haywardnag_instance *haywardnag,
-		const char *fmt, ...) {
+void haywardnag_log(
+	const char *haywardnag_command, struct haywardnag_instance *haywardnag,
+	const char *fmt, ...
+) {
 	if (!haywardnag_command) {
 		return;
 	}
 
 	if (!haywardnag->detailed) {
-		hayward_log(HAYWARD_ERROR, "Attempting to write to non-detailed haywardnag inst");
+		hayward_log(
+			HAYWARD_ERROR, "Attempting to write to non-detailed haywardnag inst"
+		);
 		return;
 	}
 
-	if (haywardnag->client == NULL && !haywardnag_spawn(haywardnag_command, haywardnag)) {
+	if (haywardnag->client == NULL &&
+		!haywardnag_spawn(haywardnag_command, haywardnag)) {
 		return;
 	}
 
@@ -150,7 +166,9 @@ void haywardnag_log(const char *haywardnag_command, struct haywardnag_instance *
 
 	char *temp = malloc(length + 1);
 	if (!temp) {
-		hayward_log(HAYWARD_ERROR, "Failed to allocate buffer for haywardnag log entry.");
+		hayward_log(
+			HAYWARD_ERROR, "Failed to allocate buffer for haywardnag log entry."
+		);
 		return;
 	}
 
@@ -168,4 +186,3 @@ void haywardnag_show(struct haywardnag_instance *haywardnag) {
 		close(haywardnag->fd[1]);
 	}
 }
-
