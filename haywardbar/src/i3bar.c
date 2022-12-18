@@ -15,7 +15,8 @@
 #include "haywardbar/input.h"
 #include "haywardbar/status_line.h"
 
-void i3bar_block_unref(struct i3bar_block *block) {
+void
+i3bar_block_unref(struct i3bar_block *block) {
     if (block == NULL) {
         return;
     }
@@ -31,7 +32,8 @@ void i3bar_block_unref(struct i3bar_block *block) {
     }
 }
 
-static bool i3bar_parse_json_color(json_object *json, uint32_t *color) {
+static bool
+i3bar_parse_json_color(json_object *json, uint32_t *color) {
     if (!json) {
         return false;
     }
@@ -130,7 +132,8 @@ i3bar_parse_json(struct status_line *status, struct json_object *json_array) {
     }
 }
 
-bool i3bar_handle_readable(struct status_line *status) {
+bool
+i3bar_handle_readable(struct status_line *status) {
     while (!status->started) { // look for opening bracket
         for (size_t c = 0; c < status->buffer_index; ++c) {
             if (status->buffer[c] == '[') {
@@ -303,7 +306,8 @@ bool i3bar_handle_readable(struct status_line *status) {
     }
 }
 
-enum hotspot_event_handling i3bar_block_send_click(
+enum hotspot_event_handling
+i3bar_block_send_click(
     struct status_line *status, struct i3bar_block *block, double x, double y,
     double rx, double ry, double w, double h, int scale, uint32_t button
 ) {

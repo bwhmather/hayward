@@ -18,9 +18,13 @@
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 
-void hayward_terminate(int exit_code) { exit(exit_code); }
+void
+hayward_terminate(int exit_code) {
+    exit(exit_code);
+}
 
-static bool success_object(json_object *result) {
+static bool
+success_object(json_object *result) {
     json_object *success;
 
     if (!json_object_object_get_ex(result, "success", &success)) {
@@ -31,7 +35,8 @@ static bool success_object(json_object *result) {
 }
 
 // Iterate results array and return false if any of them failed
-static bool success(json_object *r, bool fallback) {
+static bool
+success(json_object *r, bool fallback) {
     if (!json_object_is_type(r, json_type_array)) {
         if (json_object_is_type(r, json_type_object)) {
             return success_object(r);
@@ -55,7 +60,8 @@ static bool success(json_object *r, bool fallback) {
     return true;
 }
 
-static void pretty_print_cmd(json_object *r) {
+static void
+pretty_print_cmd(json_object *r) {
     if (!success_object(r)) {
         json_object *error;
         if (!json_object_object_get_ex(r, "error", &error)) {
@@ -66,7 +72,8 @@ static void pretty_print_cmd(json_object *r) {
     }
 }
 
-static void pretty_print_workspace(json_object *w) {
+static void
+pretty_print_workspace(json_object *w) {
     json_object *name, *rect, *visible, *output, *urgent, *layout,
         *representation, *focused;
     json_object_object_get_ex(w, "name", &name);
@@ -91,7 +98,8 @@ static void pretty_print_workspace(json_object *w) {
     );
 }
 
-static const char *pretty_type_name(const char *name) {
+static const char *
+pretty_type_name(const char *name) {
     // TODO these constants probably belong in the common lib
     struct {
         const char *a;
@@ -112,7 +120,8 @@ static const char *pretty_type_name(const char *name) {
     return name;
 }
 
-static void pretty_print_input(json_object *i) {
+static void
+pretty_print_input(json_object *i) {
     json_object *id, *name, *type, *product, *vendor, *kbdlayout, *libinput;
     json_object_object_get_ex(i, "identifier", &id);
     json_object_object_get_ex(i, "name", &name);
@@ -150,7 +159,8 @@ static void pretty_print_input(json_object *i) {
     printf("\n");
 }
 
-static void pretty_print_seat(json_object *i) {
+static void
+pretty_print_seat(json_object *i) {
     json_object *name, *capabilities, *devices;
     json_object_object_get_ex(i, "name", &name);
     json_object_object_get_ex(i, "capabilities", &capabilities);
@@ -179,7 +189,8 @@ static void pretty_print_seat(json_object *i) {
     printf("\n");
 }
 
-static void pretty_print_output(json_object *o) {
+static void
+pretty_print_output(json_object *o) {
     json_object *name, *rect, *focused, *active, *ws, *current_mode;
     json_object_object_get_ex(o, "name", &name);
     json_object_object_get_ex(o, "rect", &rect);
@@ -271,19 +282,22 @@ static void pretty_print_output(json_object *o) {
     printf("\n");
 }
 
-static void pretty_print_version(json_object *v) {
+static void
+pretty_print_version(json_object *v) {
     json_object *ver;
     json_object_object_get_ex(v, "human_readable", &ver);
     printf("hayward version %s\n", json_object_get_string(ver));
 }
 
-static void pretty_print_config(json_object *c) {
+static void
+pretty_print_config(json_object *c) {
     json_object *config;
     json_object_object_get_ex(c, "config", &config);
     printf("%s\n", json_object_get_string(config));
 }
 
-static void pretty_print_tree(json_object *obj, int indent) {
+static void
+pretty_print_tree(json_object *obj, int indent) {
     for (int i = 0; i < indent; i++) {
         printf("  ");
     }
@@ -337,7 +351,8 @@ static void pretty_print_tree(json_object *obj, int indent) {
     }
 }
 
-static void pretty_print(int type, json_object *resp) {
+static void
+pretty_print(int type, json_object *resp) {
     switch (type) {
     case IPC_SEND_TICK:
         return;
@@ -390,7 +405,8 @@ static void pretty_print(int type, json_object *resp) {
     }
 }
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv) {
     static bool quiet = false;
     static bool raw = false;
     static bool monitor = false;

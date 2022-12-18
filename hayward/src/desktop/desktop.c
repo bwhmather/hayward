@@ -4,7 +4,8 @@
 #include "hayward/tree/column.h"
 #include "hayward/tree/window.h"
 
-void desktop_damage_surface(
+void
+desktop_damage_surface(
     struct wlr_surface *surface, double lx, double ly, bool whole
 ) {
     for (int i = 0; i < root->outputs->length; ++i) {
@@ -19,28 +20,32 @@ void desktop_damage_surface(
     }
 }
 
-void desktop_damage_window(struct hayward_window *window) {
+void
+desktop_damage_window(struct hayward_window *window) {
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
         output_damage_window(output, window);
     }
 }
 
-void desktop_damage_column(struct hayward_column *column) {
+void
+desktop_damage_column(struct hayward_column *column) {
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
         output_damage_column(output, column);
     }
 }
 
-void desktop_damage_box(struct wlr_box *box) {
+void
+desktop_damage_box(struct wlr_box *box) {
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
         output_damage_box(output, box);
     }
 }
 
-void desktop_damage_view(struct hayward_view *view) {
+void
+desktop_damage_view(struct hayward_view *view) {
     desktop_damage_window(view->window);
     struct wlr_box box = {
         .x = view->window->current.content_x - view->geometry.x,

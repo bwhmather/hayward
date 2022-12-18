@@ -10,7 +10,8 @@
 #include "hayward/commands.h"
 #include "hayward/server.h"
 
-static void create_output(struct wlr_backend *backend, void *data) {
+static void
+create_output(struct wlr_backend *backend, void *data) {
     bool *done = data;
     if (*done) {
         return;
@@ -34,7 +35,8 @@ static void create_output(struct wlr_backend *backend, void *data) {
 /**
  * This command is intended for developer use only.
  */
-struct cmd_results *cmd_create_output(int argc, char **argv) {
+struct cmd_results *
+cmd_create_output(int argc, char **argv) {
     hayward_assert(
         wlr_backend_is_multi(server.backend), "Expected a multi backend"
     );

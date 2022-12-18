@@ -9,6 +9,7 @@ ColumnLimit: 80
 AlignAfterOpenBracket: BlockIndent
 AlignOperands: DontAlign
 BreakBeforeTernaryOperators: true
+AlwaysBreakAfterReturnType: All
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '\<.+\>'

@@ -54,20 +54,23 @@ struct hayward_text_input {
     struct wl_listener text_input_destroy;
 };
 
-struct hayward_text_input *hayward_text_input_create(
+struct hayward_text_input *
+hayward_text_input_create(
     struct hayward_input_method_relay *relay,
     struct wlr_text_input_v3 *text_input
 );
 
-void hayward_input_method_relay_init(
+void
+hayward_input_method_relay_init(
     struct hayward_seat *seat, struct hayward_input_method_relay *relay
 );
 
-void hayward_input_method_relay_finish(struct hayward_input_method_relay *relay
-);
+void
+hayward_input_method_relay_finish(struct hayward_input_method_relay *relay);
 
 // Updates currently focused surface. Surface must belong to the same seat.
-void hayward_input_method_relay_set_focus(
+void
+hayward_input_method_relay_set_focus(
     struct hayward_input_method_relay *relay, struct wlr_surface *surface
 );
 

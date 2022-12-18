@@ -31,7 +31,8 @@ static const struct cmd_handler output_handlers[] = {
     {"transform", output_cmd_transform},
 };
 
-struct cmd_results *cmd_output(int argc, char **argv) {
+struct cmd_results *
+cmd_output(int argc, char **argv) {
     struct cmd_results *error = checkarg(argc, "output", EXPECTED_AT_LEAST, 1);
     if (error != NULL) {
         return error;

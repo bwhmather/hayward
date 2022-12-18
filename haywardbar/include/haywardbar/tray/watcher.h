@@ -13,7 +13,9 @@ struct haywardbar_watcher {
     int version;
 };
 
-struct haywardbar_watcher *create_watcher(char *protocol, sd_bus *bus);
-void destroy_watcher(struct haywardbar_watcher *watcher);
+struct haywardbar_watcher *
+create_watcher(char *protocol, sd_bus *bus);
+void
+destroy_watcher(struct haywardbar_watcher *watcher);
 
 #endif

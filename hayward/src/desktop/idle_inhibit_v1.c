@@ -10,7 +10,8 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/window.h"
 
-struct hayward_idle_inhibit_manager_v1 *hayward_idle_inhibit_manager_v1_create(
+struct hayward_idle_inhibit_manager_v1 *
+hayward_idle_inhibit_manager_v1_create(
     struct wl_display *wl_display, struct wlr_idle *idle
 ) {
     struct hayward_idle_inhibit_manager_v1 *manager =
@@ -35,7 +36,8 @@ struct hayward_idle_inhibit_manager_v1 *hayward_idle_inhibit_manager_v1_create(
     return manager;
 }
 
-void hayward_idle_inhibit_v1_check_active(
+void
+hayward_idle_inhibit_v1_check_active(
     struct hayward_idle_inhibit_manager_v1 *manager
 ) {
     struct hayward_idle_inhibitor_v1 *inhibitor;
@@ -48,14 +50,16 @@ void hayward_idle_inhibit_v1_check_active(
     wlr_idle_set_enabled(manager->idle, NULL, !inhibited);
 }
 
-static void destroy_inhibitor(struct hayward_idle_inhibitor_v1 *inhibitor) {
+static void
+destroy_inhibitor(struct hayward_idle_inhibitor_v1 *inhibitor) {
     wl_list_remove(&inhibitor->link);
     wl_list_remove(&inhibitor->destroy.link);
     hayward_idle_inhibit_v1_check_active(inhibitor->manager);
     free(inhibitor);
 }
 
-void hayward_idle_inhibit_v1_user_inhibitor_destroy(
+void
+hayward_idle_inhibit_v1_user_inhibitor_destroy(
     struct hayward_idle_inhibitor_v1 *inhibitor
 ) {
     if (!inhibitor) {
@@ -68,14 +72,16 @@ void hayward_idle_inhibit_v1_user_inhibitor_destroy(
     destroy_inhibitor(inhibitor);
 }
 
-static void handle_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_idle_inhibitor_v1 *inhibitor =
         wl_container_of(listener, inhibitor, destroy);
     hayward_log(HAYWARD_DEBUG, "Hayward idle inhibitor destroyed");
     destroy_inhibitor(inhibitor);
 }
 
-void handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
+void
+handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
     struct wlr_idle_inhibitor_v1 *wlr_inhibitor = data;
     struct hayward_idle_inhibit_manager_v1 *manager =
         wl_container_of(listener, manager, new_idle_inhibitor_v1);
@@ -98,7 +104,8 @@ void handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
     hayward_idle_inhibit_v1_check_active(manager);
 }
 
-void hayward_idle_inhibit_v1_user_inhibitor_register(
+void
+hayward_idle_inhibit_v1_user_inhibitor_register(
     struct hayward_view *view, enum hayward_idle_inhibit_mode mode
 ) {
     struct hayward_idle_inhibitor_v1 *inhibitor =
@@ -147,9 +154,8 @@ hayward_idle_inhibit_v1_application_inhibitor_for_view(struct hayward_view *view
     return NULL;
 }
 
-bool hayward_idle_inhibit_v1_is_active(
-    struct hayward_idle_inhibitor_v1 *inhibitor
-) {
+bool
+hayward_idle_inhibit_v1_is_active(struct hayward_idle_inhibitor_v1 *inhibitor) {
     switch (inhibitor->mode) {
     case INHIBIT_IDLE_APPLICATION:;
         // If there is no view associated with the inhibitor, assume visible

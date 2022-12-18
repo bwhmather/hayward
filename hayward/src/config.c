@@ -47,12 +47,14 @@ keysym_translation_state_create(struct xkb_rule_names rules) {
     return xkb_state_new(xkb_keymap);
 }
 
-static void keysym_translation_state_destroy(struct xkb_state *state) {
+static void
+keysym_translation_state_destroy(struct xkb_state *state) {
     xkb_keymap_unref(xkb_state_get_keymap(state));
     xkb_state_unref(state);
 }
 
-static void free_mode(struct hayward_mode *mode) {
+static void
+free_mode(struct hayward_mode *mode) {
     if (!mode) {
         return;
     }
@@ -84,7 +86,8 @@ static void free_mode(struct hayward_mode *mode) {
     free(mode);
 }
 
-static void destroy_removed_seats(
+static void
+destroy_removed_seats(
     struct hayward_config *old_config, struct hayward_config *new_config
 ) {
     struct seat_config *seat_config;
@@ -110,7 +113,8 @@ static void destroy_removed_seats(
     }
 }
 
-static void config_defaults(struct hayward_config *config) {
+static void
+config_defaults(struct hayward_config *config) {
     if (!(config->haywardnag_command = strdup("haywardnag")))
         goto cleanup;
     config->haywardnag_config_errors = (struct haywardnag_instance){0};
@@ -280,11 +284,13 @@ cleanup:
     hayward_abort("Unable to allocate config structures");
 }
 
-static bool file_exists(const char *path) {
+static bool
+file_exists(const char *path) {
     return path && access(path, R_OK) != -1;
 }
 
-static char *config_path(const char *prefix, const char *config_folder) {
+static char *
+config_path(const char *prefix, const char *config_folder) {
     if (!prefix || !prefix[0] || !config_folder || !config_folder[0]) {
         return NULL;
     }
@@ -297,7 +303,8 @@ static char *config_path(const char *prefix, const char *config_folder) {
     return path;
 }
 
-static char *get_config_path(void) {
+static char *
+get_config_path(void) {
     char *path = NULL;
     const char *home = getenv("HOME");
     char *config_home_fallback = NULL;
@@ -342,7 +349,8 @@ static char *get_config_path(void) {
     return path;
 }
 
-static bool load_config(
+static bool
+load_config(
     const char *path, struct hayward_config *config,
     struct haywardnag_instance *haywardnag
 ) {
@@ -375,7 +383,8 @@ static bool load_config(
     return config->active || !config->validating || config_load_success;
 }
 
-bool load_main_config(const char *file, bool is_active, bool validating) {
+bool
+load_main_config(const char *file, bool is_active, bool validating) {
     char *path;
     if (file != NULL) {
         path = strdup(file);
@@ -531,7 +540,8 @@ bool load_main_config(const char *file, bool is_active, bool validating) {
     return success;
 }
 
-static bool load_include_config(
+static bool
+load_include_config(
     const char *path, const char *parent_dir, struct hayward_config *config,
     struct haywardnag_instance *haywardnag
 ) {
@@ -592,7 +602,8 @@ static bool load_include_config(
     return true;
 }
 
-void load_include_configs(
+void
+load_include_configs(
     const char *path, struct hayward_config *config,
     struct haywardnag_instance *haywardnag
 ) {
@@ -656,7 +667,8 @@ getline_with_cont(char **lineptr, size_t *line_size, FILE *file, int *nlines) {
     return nread;
 }
 
-static int detect_brace(FILE *file) {
+static int
+detect_brace(FILE *file) {
     int ret = 0;
     int lines = 0;
     long pos = ftell(file);
@@ -679,7 +691,8 @@ static int detect_brace(FILE *file) {
     return ret;
 }
 
-static char *expand_line(const char *block, const char *line, bool add_brace) {
+static char *
+expand_line(const char *block, const char *line, bool add_brace) {
     int size = (block ? strlen(block) + 1 : 0) + strlen(line) +
         (add_brace ? 2 : 0) + 1;
     char *expanded = calloc(1, size);
@@ -694,7 +707,8 @@ static char *expand_line(const char *block, const char *line, bool add_brace) {
     return expanded;
 }
 
-bool read_config(
+bool
+read_config(
     FILE *file, struct hayward_config *config,
     struct haywardnag_instance *haywardnag
 ) {
@@ -849,7 +863,8 @@ bool read_config(
     return success;
 }
 
-void run_deferred_commands(void) {
+void
+run_deferred_commands(void) {
     if (!config->cmd_queue->length) {
         return;
     }
@@ -872,7 +887,8 @@ void run_deferred_commands(void) {
     }
 }
 
-void run_deferred_bindings(void) {
+void
+run_deferred_bindings(void) {
     struct hayward_seat *seat;
     wl_list_for_each(seat, &(server.input->seats), link) {
         if (!seat->deferred_bindings->length) {
@@ -891,7 +907,8 @@ void run_deferred_bindings(void) {
     }
 }
 
-void config_add_haywardnag_warning(char *fmt, ...) {
+void
+config_add_haywardnag_warning(char *fmt, ...) {
     if (config->reading && !config->validating) {
         va_list args;
         va_start(args, fmt);
@@ -919,7 +936,8 @@ void config_add_haywardnag_warning(char *fmt, ...) {
     }
 }
 
-void free_config(struct hayward_config *config) {
+void
+free_config(struct hayward_config *config) {
     if (!config) {
         return;
     }
@@ -995,7 +1013,8 @@ void free_config(struct hayward_config *config) {
     free(config);
 }
 
-char *do_var_replacement(char *str) {
+char *
+do_var_replacement(char *str) {
     int i;
     char *find = str;
     while ((find = strchr(find, '$'))) {
@@ -1052,12 +1071,14 @@ char *do_var_replacement(char *str) {
 // the naming is intentional (albeit long): a workspace_output_cmp function
 // would compare two structs in full, while this method only compares the
 // workspace.
-int workspace_output_cmp_workspace(const void *a, const void *b) {
+int
+workspace_output_cmp_workspace(const void *a, const void *b) {
     const struct workspace_config *wsa = a, *wsb = b;
     return lenient_strcmp(wsa->workspace, wsb->workspace);
 }
 
-void config_update_font_height(void) {
+void
+config_update_font_height(void) {
     int prev_max_height = config->font_height;
 
     get_text_metrics(
@@ -1091,7 +1112,8 @@ translate_binding_list(list_t *bindings, list_t *bindsyms, list_t *bindcodes) {
     }
 }
 
-void translate_keysyms(struct input_config *input_config) {
+void
+translate_keysyms(struct input_config *input_config) {
     keysym_translation_state_destroy(config->keysym_translation_state);
 
     struct xkb_rule_names rules = {0};

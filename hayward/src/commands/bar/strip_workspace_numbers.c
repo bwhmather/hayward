@@ -6,7 +6,8 @@
 
 #include "hayward/commands.h"
 
-struct cmd_results *bar_cmd_strip_workspace_numbers(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_strip_workspace_numbers(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error =
              checkarg(argc, "strip_workspace_numbers", EXPECTED_EQUAL_TO, 1))) {

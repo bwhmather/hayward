@@ -9,7 +9,8 @@
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 
-static bool parse_coords(const char *str, double *x, double *y, bool *mm) {
+static bool
+parse_coords(const char *str, double *x, double *y, bool *mm) {
     *mm = false;
 
     char *end;
@@ -35,7 +36,8 @@ static bool parse_coords(const char *str, double *x, double *y, bool *mm) {
     return true;
 }
 
-struct cmd_results *input_cmd_map_from_region(int argc, char **argv) {
+struct cmd_results *
+input_cmd_map_from_region(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "map_from_region", EXPECTED_EQUAL_TO, 2))) {
         return error;

@@ -85,7 +85,8 @@ window_edge_is_external(struct hayward_window *window, enum wlr_edges edge) {
     return false;
 }
 
-static enum wlr_edges find_edge(
+static enum wlr_edges
+find_edge(
     struct hayward_window *cont, struct wlr_surface *surface,
     struct hayward_cursor *cursor
 ) {
@@ -123,7 +124,8 @@ static enum wlr_edges find_edge(
  * If the cursor is over a _resizable_ edge, return the edge.
  * Edges that can't be resized are edges of the workspace.
  */
-enum wlr_edges find_resize_edge(
+enum wlr_edges
+find_resize_edge(
     struct hayward_window *cont, struct wlr_surface *surface,
     struct hayward_cursor *cursor
 ) {
@@ -139,7 +141,8 @@ enum wlr_edges find_resize_edge(
  * Return the mouse binding which matches modifier, click location, release,
  * and pressed button state, otherwise return null.
  */
-static struct hayward_binding *get_active_mouse_binding(
+static struct hayward_binding *
+get_active_mouse_binding(
     struct seatop_default_event *e, list_t *bindings, uint32_t modifiers,
     bool release, bool on_titlebar, bool on_border, bool on_content,
     bool on_workspace, const char *identifier
@@ -210,7 +213,8 @@ state_erase_button(struct seatop_default_event *e, uint32_t button) {
  * Add a button to the sorted list of currently pressed buttons, if there
  * is space.
  */
-static void state_add_button(struct seatop_default_event *e, uint32_t button) {
+static void
+state_add_button(struct seatop_default_event *e, uint32_t button) {
     if (e->pressed_button_count >= HAYWARD_CURSOR_PRESSED_BUTTONS_CAP) {
         return;
     }
@@ -231,7 +235,8 @@ static void state_add_button(struct seatop_default_event *e, uint32_t button) {
  * Functions used by handle_tablet_tool_tip  /
  *-----------------------------------------*/
 
-static void handle_tablet_tool_tip(
+static void
+handle_tablet_tool_tip(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec, enum wlr_tablet_tool_tip_state state
 ) {
@@ -312,7 +317,8 @@ static void handle_tablet_tool_tip(
  * Functions used by handle_button  /
  *--------------------------------*/
 
-static bool trigger_pointer_button_binding(
+static bool
+trigger_pointer_button_binding(
     struct hayward_seat *seat, struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state, uint32_t modifiers, bool on_titlebar,
     bool on_border, bool on_contents, bool on_workspace
@@ -353,7 +359,8 @@ static bool trigger_pointer_button_binding(
     return false;
 }
 
-static void handle_button(
+static void
+handle_button(
     struct hayward_seat *seat, uint32_t time_msec,
     struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
@@ -574,7 +581,8 @@ static void handle_button(
  * Functions used by handle_pointer_motion  /
  *----------------------------------------*/
 
-static void check_focus_follows_mouse(
+static void
+check_focus_follows_mouse(
     struct hayward_seat *seat, struct seatop_default_event *e,
     struct hayward_node *hovered_node
 ) {
@@ -681,7 +689,8 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     e->previous_node = node;
 }
 
-static void handle_tablet_tool_motion(
+static void
+handle_tablet_tool_motion(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec
 ) {
@@ -735,7 +744,8 @@ static void handle_tablet_tool_motion(
  * Functions used by handle_pointer_axis  /
  *--------------------------------------*/
 
-static uint32_t wl_axis_to_button(struct wlr_pointer_axis_event *event) {
+static uint32_t
+wl_axis_to_button(struct wlr_pointer_axis_event *event) {
     switch (event->orientation) {
     case WLR_AXIS_ORIENTATION_VERTICAL:
         return event->delta < 0 ? HAYWARD_SCROLL_UP : HAYWARD_SCROLL_DOWN;
@@ -747,7 +757,8 @@ static uint32_t wl_axis_to_button(struct wlr_pointer_axis_event *event) {
     }
 }
 
-static void handle_pointer_axis(
+static void
+handle_pointer_axis(
     struct hayward_seat *seat, struct wlr_pointer_axis_event *event
 ) {
     struct hayward_input_device *input_device =
@@ -845,7 +856,8 @@ static void handle_pointer_axis(
  * Functions used by handle_rebase  /
  *--------------------------------*/
 
-static void handle_rebase(struct hayward_seat *seat, uint32_t time_msec) {
+static void
+handle_rebase(struct hayward_seat *seat, uint32_t time_msec) {
     struct seatop_default_event *e = seat->seatop_data;
     struct hayward_cursor *cursor = seat->cursor;
     struct hayward_output *output = NULL;
@@ -885,7 +897,8 @@ static const struct hayward_seatop_impl seatop_impl = {
     .allow_set_cursor = true,
 };
 
-void seatop_begin_default(struct hayward_seat *seat) {
+void
+seatop_begin_default(struct hayward_seat *seat) {
     seatop_end(seat);
 
     struct seatop_default_event *e =

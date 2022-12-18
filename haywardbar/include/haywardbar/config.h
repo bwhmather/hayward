@@ -85,12 +85,17 @@ struct tray_binding {
     struct wl_list link; // struct tray_binding::link
 };
 
-void free_tray_binding(struct tray_binding *binding);
+void
+free_tray_binding(struct tray_binding *binding);
 #endif
 
-struct haywardbar_config *init_config(void);
-void free_config(struct haywardbar_config *config);
-uint32_t parse_position(const char *position);
-void free_binding(struct haywardbar_binding *binding);
+struct haywardbar_config *
+init_config(void);
+void
+free_config(struct haywardbar_config *config);
+uint32_t
+parse_position(const char *position);
+void
+free_binding(struct haywardbar_binding *binding);
 
 #endif

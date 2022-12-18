@@ -12,11 +12,13 @@
 
 static const char *obj_path = "/StatusNotifierWatcher";
 
-static bool using_standard_protocol(struct haywardbar_watcher *watcher) {
+static bool
+using_standard_protocol(struct haywardbar_watcher *watcher) {
     return watcher->interface[strlen("org.")] == 'f'; // freedesktop
 }
 
-static int cmp_id(const void *item, const void *cmp_to) {
+static int
+cmp_id(const void *item, const void *cmp_to) {
     return strcmp(item, cmp_to);
 }
 
@@ -69,7 +71,8 @@ handle_lost_service(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return 0;
 }
 
-static int register_sni(sd_bus_message *msg, void *data, sd_bus_error *error) {
+static int
+register_sni(sd_bus_message *msg, void *data, sd_bus_error *error) {
     char *service_or_path, *id;
     int ret = sd_bus_message_read(msg, "s", &service_or_path);
     if (ret < 0) {
@@ -114,7 +117,8 @@ static int register_sni(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return sd_bus_reply_method_return(msg, "");
 }
 
-static int register_host(sd_bus_message *msg, void *data, sd_bus_error *error) {
+static int
+register_host(sd_bus_message *msg, void *data, sd_bus_error *error) {
     char *service;
     int ret = sd_bus_message_read(msg, "s", &service);
     if (ret < 0) {
@@ -145,7 +149,8 @@ static int register_host(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return sd_bus_reply_method_return(msg, "");
 }
 
-static int get_registered_snis(
+static int
+get_registered_snis(
     sd_bus *bus, const char *obj_path, const char *interface,
     const char *property, sd_bus_message *reply, void *data, sd_bus_error *error
 ) {
@@ -156,7 +161,8 @@ static int get_registered_snis(
     return ret;
 }
 
-static int is_host_registered(
+static int
+is_host_registered(
     sd_bus *bus, const char *obj_path, const char *interface,
     const char *property, sd_bus_message *reply, void *data, sd_bus_error *error
 ) {
@@ -193,7 +199,8 @@ static const sd_bus_vtable watcher_vtable[] = {
     SD_BUS_SIGNAL("StatusNotifierHostRegistered", NULL, 0),
     SD_BUS_VTABLE_END};
 
-struct haywardbar_watcher *create_watcher(char *protocol, sd_bus *bus) {
+struct haywardbar_watcher *
+create_watcher(char *protocol, sd_bus *bus) {
     struct haywardbar_watcher *watcher =
         calloc(1, sizeof(struct haywardbar_watcher));
     if (!watcher) {
@@ -258,7 +265,8 @@ error:
     return NULL;
 }
 
-void destroy_watcher(struct haywardbar_watcher *watcher) {
+void
+destroy_watcher(struct haywardbar_watcher *watcher) {
     if (!watcher) {
         return;
     }

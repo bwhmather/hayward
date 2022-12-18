@@ -44,7 +44,8 @@ ipc_json_node_type_description(enum hayward_node_type node_type) {
     return "none";
 }
 
-static const char *ipc_json_layout_description(enum hayward_column_layout l) {
+static const char *
+ipc_json_layout_description(enum hayward_column_layout l) {
     switch (l) {
     case L_SPLIT:
         return "split";
@@ -54,8 +55,8 @@ static const char *ipc_json_layout_description(enum hayward_column_layout l) {
     hayward_abort("invalid layout");
 }
 
-static const char *ipc_json_border_description(enum hayward_window_border border
-) {
+static const char *
+ipc_json_border_description(enum hayward_window_border border) {
     switch (border) {
     case B_NONE:
         return "none";
@@ -97,7 +98,8 @@ ipc_json_output_transform_description(enum wl_output_transform transform) {
     return NULL;
 }
 
-static const char *ipc_json_output_adaptive_sync_status_description(
+static const char *
+ipc_json_output_adaptive_sync_status_description(
     enum wlr_output_adaptive_sync_status status
 ) {
     switch (status) {
@@ -112,8 +114,8 @@ static const char *ipc_json_output_adaptive_sync_status_description(
 }
 
 #if HAVE_XWAYLAND
-static const char *ipc_json_xwindow_type_description(struct hayward_view *view
-) {
+static const char *
+ipc_json_xwindow_type_description(struct hayward_view *view) {
     struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
     struct hayward_xwayland *xwayland = &server.xwayland;
 
@@ -165,7 +167,8 @@ ipc_json_user_idle_inhibitor_description(enum hayward_idle_inhibit_mode mode) {
     return NULL;
 }
 
-json_object *ipc_json_get_version(void) {
+json_object *
+ipc_json_get_version(void) {
     int major = 0, minor = 0, patch = 0;
     json_object *version = json_object_new_object();
 
@@ -188,7 +191,8 @@ json_object *ipc_json_get_version(void) {
     return version;
 }
 
-json_object *ipc_json_get_binding_mode(void) {
+json_object *
+ipc_json_get_binding_mode(void) {
     json_object *current_mode = json_object_new_object();
     json_object_object_add(
         current_mode, "name", json_object_new_string(config->current_mode->name)
@@ -196,7 +200,8 @@ json_object *ipc_json_get_binding_mode(void) {
     return current_mode;
 }
 
-static json_object *ipc_json_create_rect(struct wlr_box *box) {
+static json_object *
+ipc_json_create_rect(struct wlr_box *box) {
     json_object *rect = json_object_new_object();
 
     json_object_object_add(rect, "x", json_object_new_int(box->x));
@@ -207,13 +212,15 @@ static json_object *ipc_json_create_rect(struct wlr_box *box) {
     return rect;
 }
 
-static json_object *ipc_json_create_empty_rect(void) {
+static json_object *
+ipc_json_create_empty_rect(void) {
     struct wlr_box empty = {0, 0, 0, 0};
 
     return ipc_json_create_rect(&empty);
 }
 
-static json_object *ipc_json_create_node(
+static json_object *
+ipc_json_create_node(
     int id, const char *type, char *name, struct wlr_box *box
 ) {
     json_object *object = json_object_new_object();
@@ -348,7 +355,8 @@ ipc_json_describe_output(struct hayward_output *output, json_object *object) {
     );
 }
 
-json_object *ipc_json_describe_disabled_output(struct hayward_output *output) {
+json_object *
+ipc_json_describe_disabled_output(struct hayward_output *output) {
     struct wlr_output *wlr_output = output->wlr_output;
 
     json_object *object = json_object_new_object();
@@ -403,7 +411,8 @@ json_object *ipc_json_describe_disabled_output(struct hayward_output *output) {
     return object;
 }
 
-static void ipc_json_describe_workspace(
+static void
+ipc_json_describe_workspace(
     struct hayward_workspace *workspace, json_object *object
 ) {
     int num;
@@ -696,7 +705,8 @@ ipc_json_describe_window(struct hayward_window *window, json_object *object) {
     ipc_json_describe_view(window, object);
 }
 
-json_object *ipc_json_describe_node(struct hayward_node *node) {
+json_object *
+ipc_json_describe_node(struct hayward_node *node) {
     char *name = node_get_name(node);
 
     struct wlr_box box;
@@ -738,7 +748,8 @@ json_object *ipc_json_describe_node(struct hayward_node *node) {
     return object;
 }
 
-json_object *ipc_json_describe_node_recursive(struct hayward_node *node) {
+json_object *
+ipc_json_describe_node_recursive(struct hayward_node *node) {
     json_object *object = ipc_json_describe_node(node);
     int i;
 
@@ -791,7 +802,8 @@ json_object *ipc_json_describe_node_recursive(struct hayward_node *node) {
     return object;
 }
 
-static json_object *describe_libinput_device(struct libinput_device *device) {
+static json_object *
+describe_libinput_device(struct libinput_device *device) {
     json_object *object = json_object_new_object();
 
     const char *events = "unknown";
@@ -996,7 +1008,8 @@ static json_object *describe_libinput_device(struct libinput_device *device) {
     return object;
 }
 
-json_object *ipc_json_describe_input(struct hayward_input_device *device) {
+json_object *
+ipc_json_describe_input(struct hayward_input_device *device) {
     hayward_assert(device, "Device must not be null");
 
     json_object *object = json_object_new_object();
@@ -1081,7 +1094,8 @@ json_object *ipc_json_describe_input(struct hayward_input_device *device) {
     return object;
 }
 
-json_object *ipc_json_describe_seat(struct hayward_seat *seat) {
+json_object *
+ipc_json_describe_seat(struct hayward_seat *seat) {
     hayward_assert(seat, "Seat must not be null");
 
     json_object *object = json_object_new_object();
@@ -1106,7 +1120,8 @@ json_object *ipc_json_describe_seat(struct hayward_seat *seat) {
     return object;
 }
 
-static uint32_t event_to_x11_button(uint32_t event) {
+static uint32_t
+event_to_x11_button(uint32_t event) {
     switch (event) {
     case BTN_LEFT:
         return 1;
@@ -1131,7 +1146,8 @@ static uint32_t event_to_x11_button(uint32_t event) {
     }
 }
 
-json_object *ipc_json_describe_bar_config(struct bar_config *bar) {
+json_object *
+ipc_json_describe_bar_config(struct bar_config *bar) {
     hayward_assert(bar, "Bar must not be NULL");
 
     json_object *json = json_object_new_object();

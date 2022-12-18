@@ -39,9 +39,13 @@ struct status_line {
     json_tokener *tokener;
 };
 
-struct status_line *status_line_init(char *cmd);
-void status_error(struct status_line *status, const char *text);
-bool status_handle_readable(struct status_line *status);
-void status_line_free(struct status_line *status);
+struct status_line *
+status_line_init(char *cmd);
+void
+status_error(struct status_line *status, const char *text);
+bool
+status_handle_readable(struct status_line *status);
+void
+status_line_free(struct status_line *status);
 
 #endif

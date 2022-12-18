@@ -8,7 +8,8 @@
 
 #include "config.h"
 
-struct cmd_results *bar_cmd_tray_padding(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_tray_padding(int argc, char **argv) {
 #if HAVE_TRAY
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "tray_padding", EXPECTED_AT_LEAST, 1))) {

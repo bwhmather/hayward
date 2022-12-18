@@ -6,7 +6,8 @@
 #include "hayward/config.h"
 #include "hayward/output.h"
 
-struct cmd_results *output_cmd_dpms(int argc, char **argv) {
+struct cmd_results *
+output_cmd_dpms(int argc, char **argv) {
     if (!config->handler_context.output_config) {
         return cmd_results_new(CMD_FAILURE, "Missing output config");
     }

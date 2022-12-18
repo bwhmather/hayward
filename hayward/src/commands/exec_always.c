@@ -15,7 +15,8 @@
 #include "hayward/tree/root.h"
 #include "hayward/tree/workspace.h"
 
-struct cmd_results *cmd_exec_validate(int argc, char **argv) {
+struct cmd_results *
+cmd_exec_validate(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, argv[-1], EXPECTED_AT_LEAST, 1))) {
         return error;
@@ -26,7 +27,8 @@ struct cmd_results *cmd_exec_validate(int argc, char **argv) {
     return error;
 }
 
-struct cmd_results *cmd_exec_process(int argc, char **argv) {
+struct cmd_results *
+cmd_exec_process(int argc, char **argv) {
     struct cmd_results *error = NULL;
     char *cmd = NULL;
     if (strcmp(argv[0], "--no-startup-id") == 0) {
@@ -103,7 +105,8 @@ struct cmd_results *cmd_exec_process(int argc, char **argv) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-struct cmd_results *cmd_exec_always(int argc, char **argv) {
+struct cmd_results *
+cmd_exec_always(int argc, char **argv) {
     struct cmd_results *error;
     if ((error = cmd_exec_validate(argc, argv))) {
         return error;

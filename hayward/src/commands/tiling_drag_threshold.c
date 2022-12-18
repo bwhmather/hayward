@@ -5,7 +5,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *cmd_tiling_drag_threshold(int argc, char **argv) {
+struct cmd_results *
+cmd_tiling_drag_threshold(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error =
              checkarg(argc, "tiling_drag_threshold", EXPECTED_EQUAL_TO, 1))) {

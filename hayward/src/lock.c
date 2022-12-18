@@ -19,20 +19,23 @@ struct hayward_session_lock_surface {
     struct wl_listener output_commit;
 };
 
-static void handle_surface_map(struct wl_listener *listener, void *data) {
+static void
+handle_surface_map(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, map);
     hayward_force_focus(surf->surface);
     output_damage_whole(surf->output);
 }
 
-static void handle_surface_commit(struct wl_listener *listener, void *data) {
+static void
+handle_surface_commit(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, surface_commit);
     output_damage_surface(surf->output, 0, 0, surf->surface, false);
 }
 
-static void handle_output_mode(struct wl_listener *listener, void *data) {
+static void
+handle_output_mode(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, output_mode);
     wlr_session_lock_surface_v1_configure(
@@ -40,7 +43,8 @@ static void handle_output_mode(struct wl_listener *listener, void *data) {
     );
 }
 
-static void handle_output_commit(struct wl_listener *listener, void *data) {
+static void
+handle_output_commit(struct wl_listener *listener, void *data) {
     struct wlr_output_event_commit *event = data;
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, output_commit);
@@ -53,7 +57,8 @@ static void handle_output_commit(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_surface_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_surface_destroy(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, destroy);
     wl_list_remove(&surf->map.link);
@@ -65,7 +70,8 @@ static void handle_surface_destroy(struct wl_listener *listener, void *data) {
     free(surf);
 }
 
-static void handle_new_surface(struct wl_listener *listener, void *data) {
+static void
+handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_session_lock_surface_v1 *lock_surface = data;
     struct hayward_session_lock_surface *surf = calloc(1, sizeof(*surf));
     if (surf == NULL) {
@@ -94,7 +100,8 @@ static void handle_new_surface(struct wl_listener *listener, void *data) {
     wl_signal_add(&output->wlr_output->events.commit, &surf->output_commit);
 }
 
-static void handle_unlock(struct wl_listener *listener, void *data) {
+static void
+handle_unlock(struct wl_listener *listener, void *data) {
     hayward_log(HAYWARD_DEBUG, "session unlocked");
     server.session_lock.locked = false;
     server.session_lock.lock = NULL;
@@ -110,7 +117,8 @@ static void handle_unlock(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_abandon(struct wl_listener *listener, void *data) {
+static void
+handle_abandon(struct wl_listener *listener, void *data) {
     hayward_log(HAYWARD_INFO, "session lock abandoned");
     server.session_lock.lock = NULL;
 
@@ -130,7 +138,8 @@ static void handle_abandon(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_session_lock(struct wl_listener *listener, void *data) {
+static void
+handle_session_lock(struct wl_listener *listener, void *data) {
     struct wlr_session_lock_v1 *lock = data;
     struct wl_client *client = wl_resource_get_client(lock->resource);
 
@@ -170,7 +179,8 @@ handle_session_lock_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&server.session_lock.manager_destroy.link);
 }
 
-void hayward_session_lock_init(void) {
+void
+hayward_session_lock_init(void) {
     server.session_lock.manager =
         wlr_session_lock_manager_v1_create(server.wl_display);
 

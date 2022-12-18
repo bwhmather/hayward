@@ -8,7 +8,8 @@
 #include "hayward/config.h"
 #include "hayward/input/keyboard.h"
 
-struct input_config *new_input_config(const char *identifier) {
+struct input_config *
+new_input_config(const char *identifier) {
     struct input_config *input = calloc(1, sizeof(struct input_config));
     if (!input) {
         hayward_log(HAYWARD_DEBUG, "Unable to allocate input config");
@@ -47,7 +48,8 @@ struct input_config *new_input_config(const char *identifier) {
     return input;
 }
 
-void merge_input_config(struct input_config *dst, struct input_config *src) {
+void
+merge_input_config(struct input_config *dst, struct input_config *src) {
     if (src->accel_profile != INT_MIN) {
         dst->accel_profile = src->accel_profile;
     }
@@ -178,7 +180,8 @@ void merge_input_config(struct input_config *dst, struct input_config *src) {
     }
 }
 
-static bool validate_xkb_merge(
+static bool
+validate_xkb_merge(
     struct input_config *dest, struct input_config *src, char **xkb_error
 ) {
     struct input_config *temp = new_input_config("temp");
@@ -226,7 +229,8 @@ validate_wildcard_on_all(struct input_config *wildcard, char **error) {
     return true;
 }
 
-static void merge_wildcard_on_all(struct input_config *wildcard) {
+static void
+merge_wildcard_on_all(struct input_config *wildcard) {
     for (int i = 0; i < config->input_configs->length; i++) {
         struct input_config *ic = config->input_configs->items[i];
         if (strcmp(wildcard->identifier, ic->identifier) != 0) {
@@ -267,7 +271,8 @@ validate_type_on_existing(struct input_config *type_wildcard, char **error) {
     return true;
 }
 
-static void merge_type_on_existing(struct input_config *type_wildcard) {
+static void
+merge_type_on_existing(struct input_config *type_wildcard) {
     for (int i = 0; i < config->input_configs->length; i++) {
         struct input_config *ic = config->input_configs->items[i];
         if (ic->input_type == NULL) {
@@ -284,7 +289,8 @@ static void merge_type_on_existing(struct input_config *type_wildcard) {
     }
 }
 
-static const char *set_input_type(struct input_config *ic) {
+static const char *
+set_input_type(struct input_config *ic) {
     struct hayward_input_device *input_device;
     wl_list_for_each(input_device, &server.input->devices, link) {
         if (strcmp(input_device->identifier, ic->identifier) == 0) {
@@ -295,7 +301,8 @@ static const char *set_input_type(struct input_config *ic) {
     return ic->input_type;
 }
 
-struct input_config *store_input_config(struct input_config *ic, char **error) {
+struct input_config *
+store_input_config(struct input_config *ic, char **error) {
     bool wildcard = strcmp(ic->identifier, "*") == 0;
     if (wildcard && error && !validate_wildcard_on_all(ic, error)) {
         return NULL;
@@ -369,7 +376,8 @@ struct input_config *store_input_config(struct input_config *ic, char **error) {
     return ic;
 }
 
-void input_config_fill_rule_names(
+void
+input_config_fill_rule_names(
     struct input_config *ic, struct xkb_rule_names *rules
 ) {
     rules->layout = ic->xkb_layout;
@@ -379,7 +387,8 @@ void input_config_fill_rule_names(
     rules->variant = ic->xkb_variant;
 }
 
-void free_input_config(struct input_config *ic) {
+void
+free_input_config(struct input_config *ic) {
     if (!ic) {
         return;
     }
@@ -397,7 +406,8 @@ void free_input_config(struct input_config *ic) {
     free(ic);
 }
 
-int input_identifier_cmp(const void *item, const void *data) {
+int
+input_identifier_cmp(const void *item, const void *data) {
     const struct input_config *ic = item;
     const char *identifier = data;
     return strcmp(ic->identifier, identifier);

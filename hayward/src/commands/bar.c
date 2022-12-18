@@ -49,12 +49,14 @@ static const struct cmd_handler bar_config_handlers[] = {
 };
 
 // Determines whether the subcommand is valid in any bar handler struct
-static bool is_subcommand(char *name) {
+static bool
+is_subcommand(char *name) {
     return find_handler(name, bar_handlers, sizeof(bar_handlers)) ||
         find_handler(name, bar_config_handlers, sizeof(bar_config_handlers));
 }
 
-struct cmd_results *cmd_bar(int argc, char **argv) {
+struct cmd_results *
+cmd_bar(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "bar", EXPECTED_AT_LEAST, 2))) {
         return error;

@@ -8,7 +8,8 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/window.h"
 
-struct cmd_results *cmd_shortcuts_inhibitor(int argc, char **argv) {
+struct cmd_results *
+cmd_shortcuts_inhibitor(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "shortcuts_inhibitor", EXPECTED_EQUAL_TO, 1))) {
         return error;

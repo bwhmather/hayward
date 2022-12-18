@@ -33,7 +33,8 @@
 
 #include "linux-dmabuf-unstable-v1-protocol.h"
 
-struct hayward_window *window_create(struct hayward_view *view) {
+struct hayward_window *
+window_create(struct hayward_view *view) {
     struct hayward_window *c = calloc(1, sizeof(struct hayward_window));
     if (!c) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_window");
@@ -51,7 +52,8 @@ struct hayward_window *window_create(struct hayward_view *view) {
     return c;
 }
 
-void window_destroy(struct hayward_window *window) {
+void
+window_destroy(struct hayward_window *window) {
     hayward_assert(
         window->node.destroying,
         "Tried to free window which wasn't marked as destroying"
@@ -80,7 +82,8 @@ void window_destroy(struct hayward_window *window) {
     free(window);
 }
 
-void window_begin_destroy(struct hayward_window *window) {
+void
+window_begin_destroy(struct hayward_window *window) {
     ipc_event_window(window, "close");
 
     wl_signal_emit(&window->node.events.destroy, &window->node);
@@ -95,7 +98,8 @@ void window_begin_destroy(struct hayward_window *window) {
     }
 }
 
-void window_detach(struct hayward_window *window) {
+void
+window_detach(struct hayward_window *window) {
     struct hayward_column *column = window->pending.parent;
     struct hayward_workspace *workspace = window->pending.workspace;
 
@@ -110,7 +114,8 @@ void window_detach(struct hayward_window *window) {
     }
 }
 
-bool window_is_attached(struct hayward_window *window) {
+bool
+window_is_attached(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
 
     if (window->pending.workspace == NULL) {
@@ -120,7 +125,8 @@ bool window_is_attached(struct hayward_window *window) {
     return true;
 }
 
-void window_reconcile_floating(
+void
+window_reconcile_floating(
     struct hayward_window *window, struct hayward_workspace *workspace
 ) {
     hayward_assert(window != NULL, "Expected window");
@@ -134,7 +140,8 @@ void window_reconcile_floating(
         workspace_get_active_window(workspace) == window;
 }
 
-void window_reconcile_tiling(
+void
+window_reconcile_tiling(
     struct hayward_window *window, struct hayward_column *column
 ) {
     hayward_assert(window != NULL, "Expected window");
@@ -148,7 +155,8 @@ void window_reconcile_tiling(
         column->pending.focused && window == column->pending.active_child;
 }
 
-void window_reconcile_detached(struct hayward_window *window) {
+void
+window_reconcile_detached(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
 
     window->pending.workspace = NULL;
@@ -158,14 +166,16 @@ void window_reconcile_detached(struct hayward_window *window) {
     window->pending.focused = false;
 }
 
-void window_end_mouse_operation(struct hayward_window *window) {
+void
+window_end_mouse_operation(struct hayward_window *window) {
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
         seatop_unref(seat, window);
     }
 }
 
-static void render_titlebar_text_texture(
+static void
+render_titlebar_text_texture(
     struct hayward_output *output, struct hayward_window *container,
     struct wlr_texture **texture, struct border_colors *class,
     bool pango_markup, char *text
@@ -247,7 +257,8 @@ static void render_titlebar_text_texture(
     cairo_destroy(cairo);
 }
 
-static void update_title_texture(
+static void
+update_title_texture(
     struct hayward_window *window, struct wlr_texture **texture,
     struct border_colors *class
 ) {
@@ -269,7 +280,8 @@ static void update_title_texture(
     );
 }
 
-void window_update_title_textures(struct hayward_window *window) {
+void
+window_update_title_textures(struct hayward_window *window) {
     update_title_texture(
         window, &window->title_focused, &config->border_colors.focused
     );
@@ -290,7 +302,8 @@ void window_update_title_textures(struct hayward_window *window) {
     desktop_damage_window(window);
 }
 
-bool window_is_floating(struct hayward_window *window) {
+bool
+window_is_floating(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
     hayward_assert(
         window_is_attached(window), "Window not attached to workspace"
@@ -303,7 +316,8 @@ bool window_is_floating(struct hayward_window *window) {
     return false;
 }
 
-bool window_is_current_floating(struct hayward_window *window) {
+bool
+window_is_current_floating(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
     hayward_assert(
         window_is_attached(window), "Window not attached to workspace"
@@ -318,7 +332,8 @@ bool window_is_current_floating(struct hayward_window *window) {
     return false;
 }
 
-void window_set_floating(struct hayward_window *window, bool enable) {
+void
+window_set_floating(struct hayward_window *window, bool enable) {
     hayward_assert(window != NULL, "Expected window");
 
     if (window_is_floating(window) == enable) {
@@ -410,15 +425,18 @@ void window_set_floating(struct hayward_window *window, bool enable) {
     ipc_event_window(window, "floating");
 }
 
-bool window_is_fullscreen(struct hayward_window *window) {
+bool
+window_is_fullscreen(struct hayward_window *window) {
     return window->pending.fullscreen;
 }
 
-bool window_is_tiling(struct hayward_window *window) {
+bool
+window_is_tiling(struct hayward_window *window) {
     return window->pending.parent != NULL;
 }
 
-static void window_move_to_column_from_maybe_direction(
+static void
+window_move_to_column_from_maybe_direction(
     struct hayward_window *window, struct hayward_column *column,
     bool has_move_dir, enum wlr_direction move_dir
 ) {
@@ -460,14 +478,16 @@ static void window_move_to_column_from_maybe_direction(
     }
 }
 
-void window_move_to_column_from_direction(
+void
+window_move_to_column_from_direction(
     struct hayward_window *window, struct hayward_column *column,
     enum wlr_direction move_dir
 ) {
     window_move_to_column_from_maybe_direction(window, column, true, move_dir);
 }
 
-void window_move_to_column(
+void
+window_move_to_column(
     struct hayward_window *window, struct hayward_column *column
 ) {
     window_move_to_column_from_maybe_direction(
@@ -475,7 +495,8 @@ void window_move_to_column(
     );
 }
 
-void window_move_to_workspace(
+void
+window_move_to_workspace(
     struct hayward_window *window, struct hayward_workspace *workspace
 ) {
     hayward_assert(window != NULL, "Expected window");
@@ -523,7 +544,8 @@ void window_move_to_workspace(
     }
 }
 
-void window_move_to_output_from_direction(
+void
+window_move_to_output_from_direction(
     struct hayward_window *window, struct hayward_output *output,
     enum wlr_direction move_dir
 ) {
@@ -572,13 +594,15 @@ void window_move_to_output_from_direction(
     }
 }
 
-void window_move_to_output(
+void
+window_move_to_output(
     struct hayward_window *window, struct hayward_output *output
 ) {
     window_move_to_output_from_direction(window, output, 0);
 }
 
-struct wlr_surface *window_surface_at(
+struct wlr_surface *
+window_surface_at(
     struct hayward_window *window, double lx, double ly, double *sx, double *sy
 ) {
     struct hayward_view *view = window->view;
@@ -608,7 +632,8 @@ struct wlr_surface *window_surface_at(
     return NULL;
 }
 
-bool window_contents_contain_point(
+bool
+window_contents_contain_point(
     struct hayward_window *window, double lx, double ly
 ) {
     struct wlr_box box = {
@@ -621,9 +646,8 @@ bool window_contents_contain_point(
     return wlr_box_contains_point(&box, lx, ly);
 }
 
-bool window_contains_point(
-    struct hayward_window *window, double lx, double ly
-) {
+bool
+window_contains_point(struct hayward_window *window, double lx, double ly) {
     struct wlr_box box = {
         .x = window->pending.x,
         .y = window->pending.y,
@@ -651,11 +675,13 @@ window_obstructing_fullscreen_window(struct hayward_window *window) {
     return NULL;
 }
 
-size_t window_titlebar_height(void) {
+size_t
+window_titlebar_height(void) {
     return config->font_height + config->titlebar_v_padding * 2;
 }
 
-static void set_fullscreen(struct hayward_window *window, bool enable) {
+static void
+set_fullscreen(struct hayward_window *window, bool enable) {
     if (window->view->impl->set_fullscreen) {
         window->view->impl->set_fullscreen(window->view, enable);
     }
@@ -666,7 +692,8 @@ static void set_fullscreen(struct hayward_window *window, bool enable) {
     }
 }
 
-static void window_fullscreen_disable(struct hayward_window *window) {
+static void
+window_fullscreen_disable(struct hayward_window *window) {
     struct hayward_workspace *workspace = window->pending.workspace;
     hayward_assert(workspace != NULL, "Window must be attached to a workspace");
 
@@ -706,7 +733,8 @@ static void window_fullscreen_disable(struct hayward_window *window) {
     ipc_event_window(window, "fullscreen_mode");
 }
 
-static void window_fullscreen_enable(struct hayward_window *window) {
+static void
+window_fullscreen_enable(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
 
     struct hayward_workspace *workspace = window->pending.workspace;
@@ -745,7 +773,8 @@ static void window_fullscreen_enable(struct hayward_window *window) {
     ipc_event_window(window, "fullscreen_mode");
 }
 
-void window_set_fullscreen(struct hayward_window *window, bool enabled) {
+void
+window_set_fullscreen(struct hayward_window *window, bool enabled) {
     if (enabled) {
         window_fullscreen_enable(window);
     } else {
@@ -753,7 +782,8 @@ void window_set_fullscreen(struct hayward_window *window, bool enabled) {
     }
 }
 
-void window_handle_fullscreen_reparent(struct hayward_window *window) {
+void
+window_handle_fullscreen_reparent(struct hayward_window *window) {
     struct hayward_workspace *workspace = window->pending.workspace;
     struct hayward_output *output = window->pending.output;
 
@@ -787,7 +817,8 @@ void window_handle_fullscreen_reparent(struct hayward_window *window) {
     arrange_workspace(window->pending.workspace);
 }
 
-void floating_calculate_constraints(
+void
+floating_calculate_constraints(
     int *min_width, int *max_width, int *min_height, int *max_height
 ) {
     if (config->floating_minimum_width == -1) { // no minimum
@@ -826,7 +857,8 @@ void floating_calculate_constraints(
     }
 }
 
-static void floating_natural_resize(struct hayward_window *window) {
+static void
+floating_natural_resize(struct hayward_window *window) {
     int min_width, max_width, min_height, max_height;
     floating_calculate_constraints(
         &min_width, &max_width, &min_height, &max_height
@@ -846,7 +878,8 @@ static void floating_natural_resize(struct hayward_window *window) {
     }
 }
 
-void window_floating_resize_and_center(struct hayward_window *window) {
+void
+window_floating_resize_and_center(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
 
     struct hayward_output *output = window->pending.output;
@@ -899,7 +932,8 @@ void window_floating_resize_and_center(struct hayward_window *window) {
     }
 }
 
-void window_floating_set_default_size(struct hayward_window *window) {
+void
+window_floating_set_default_size(struct hayward_window *window) {
     hayward_assert(
         window->pending.workspace, "Expected a window on a workspace"
     );
@@ -960,9 +994,8 @@ window_floating_find_output(struct hayward_window *window) {
     return closest_output;
 }
 
-void window_floating_move_to(
-    struct hayward_window *window, double lx, double ly
-) {
+void
+window_floating_move_to(struct hayward_window *window, double lx, double ly) {
     hayward_assert(window != NULL, "Expected window");
     hayward_assert(window_is_floating(window), "Expected a floating window");
 
@@ -976,7 +1009,8 @@ void window_floating_move_to(
     node_set_dirty(&window->node);
 }
 
-void window_floating_move_to_center(struct hayward_window *window) {
+void
+window_floating_move_to_center(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
     hayward_assert(window_is_floating(window), "Expected a floating window");
 
@@ -990,20 +1024,22 @@ void window_floating_move_to_center(struct hayward_window *window) {
     window_floating_move_to(window, new_lx, new_ly);
 }
 
-struct hayward_output *window_get_output(struct hayward_window *window) {
+struct hayward_output *
+window_get_output(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
 
     return window->pending.output;
 }
 
-struct hayward_output *window_get_current_output(struct hayward_window *window
-) {
+struct hayward_output *
+window_get_current_output(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
 
     return window->current.output;
 }
 
-void window_get_box(struct hayward_window *window, struct wlr_box *box) {
+void
+window_get_box(struct hayward_window *window, struct wlr_box *box) {
     box->x = window->pending.x;
     box->y = window->pending.y;
     box->width = window->pending.width;
@@ -1014,7 +1050,8 @@ void window_get_box(struct hayward_window *window, struct wlr_box *box) {
  * Indicate to clients in this window that they are participating in (or
  * have just finished) an interactive resize
  */
-void window_set_resizing(struct hayward_window *window, bool resizing) {
+void
+window_set_resizing(struct hayward_window *window, bool resizing) {
     if (!window) {
         return;
     }
@@ -1024,7 +1061,8 @@ void window_set_resizing(struct hayward_window *window, bool resizing) {
     }
 }
 
-void window_set_geometry_from_content(struct hayward_window *window) {
+void
+window_set_geometry_from_content(struct hayward_window *window) {
     hayward_assert(window->view, "Expected a view");
     hayward_assert(window_is_floating(window), "Expected a floating view");
     size_t border_width = 0;
@@ -1045,14 +1083,16 @@ void window_set_geometry_from_content(struct hayward_window *window) {
     node_set_dirty(&window->node);
 }
 
-bool window_is_transient_for(
+bool
+window_is_transient_for(
     struct hayward_window *child, struct hayward_window *ancestor
 ) {
     return config->popup_during_fullscreen == POPUP_SMART && child->view &&
         ancestor->view && view_is_transient_for(child->view, ancestor->view);
 }
 
-void window_raise_floating(struct hayward_window *window) {
+void
+window_raise_floating(struct hayward_window *window) {
     // Bring window to front by putting it at the end of the floating list.
     if (window_is_floating(window) && window->pending.workspace) {
         list_move_to_end(window->pending.workspace->pending.floating, window);
@@ -1060,11 +1100,13 @@ void window_raise_floating(struct hayward_window *window) {
     }
 }
 
-bool window_is_sticky(struct hayward_window *window) {
+bool
+window_is_sticky(struct hayward_window *window) {
     return window->is_sticky && window_is_floating(window);
 }
 
-list_t *window_get_siblings(struct hayward_window *window) {
+list_t *
+window_get_siblings(struct hayward_window *window) {
     if (window_is_tiling(window)) {
         return window->pending.parent->pending.children;
     }
@@ -1074,11 +1116,13 @@ list_t *window_get_siblings(struct hayward_window *window) {
     return NULL;
 }
 
-int window_sibling_index(struct hayward_window *child) {
+int
+window_sibling_index(struct hayward_window *child) {
     return list_find(window_get_siblings(child), child);
 }
 
-list_t *window_get_current_siblings(struct hayward_window *window) {
+list_t *
+window_get_current_siblings(struct hayward_window *window) {
     if (window->current.parent) {
         return window->current.parent->current.children;
     }
@@ -1088,8 +1132,8 @@ list_t *window_get_current_siblings(struct hayward_window *window) {
     return NULL;
 }
 
-struct hayward_window *window_get_previous_sibling(struct hayward_window *window
-) {
+struct hayward_window *
+window_get_previous_sibling(struct hayward_window *window) {
     if (!window->pending.parent) {
         return NULL;
     }
@@ -1104,7 +1148,8 @@ struct hayward_window *window_get_previous_sibling(struct hayward_window *window
     return siblings->items[index - 1];
 }
 
-struct hayward_window *window_get_next_sibling(struct hayward_window *window) {
+struct hayward_window *
+window_get_next_sibling(struct hayward_window *window) {
     if (!window->pending.parent) {
         return NULL;
     }
@@ -1123,7 +1168,8 @@ struct hayward_window *window_get_next_sibling(struct hayward_window *window) {
     return siblings->items[index + 1];
 }
 
-enum hayward_column_layout window_parent_layout(struct hayward_window *window) {
+enum hayward_column_layout
+window_parent_layout(struct hayward_window *window) {
     hayward_assert(window->pending.parent, "Missing parent");
     return window->pending.parent->pending.layout;
 }
@@ -1138,29 +1184,32 @@ window_current_parent_layout(struct hayward_window *window) {
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
  */
-struct hayward_output *window_get_effective_output(struct hayward_window *window
-) {
+struct hayward_output *
+window_get_effective_output(struct hayward_window *window) {
     if (window->outputs->length == 0) {
         return NULL;
     }
     return window->outputs->items[window->outputs->length - 1];
 }
 
-static void surface_send_enter_iterator(
+static void
+surface_send_enter_iterator(
     struct wlr_surface *surface, int x, int y, void *data
 ) {
     struct wlr_output *wlr_output = data;
     wlr_surface_send_enter(surface, wlr_output);
 }
 
-static void surface_send_leave_iterator(
+static void
+surface_send_leave_iterator(
     struct wlr_surface *surface, int x, int y, void *data
 ) {
     struct wlr_output *wlr_output = data;
     wlr_surface_send_leave(surface, wlr_output);
 }
 
-void window_discover_outputs(struct hayward_window *window) {
+void
+window_discover_outputs(struct hayward_window *window) {
     struct wlr_box window_box = {
         .x = window->current.x,
         .y = window->current.y,

@@ -14,7 +14,8 @@
 
 static const char whitespace[] = " \f\n\r\t\v";
 
-void strip_whitespace(char *str) {
+void
+strip_whitespace(char *str) {
     size_t len = strlen(str);
     size_t start = strspn(str, whitespace);
     memmove(str, &str[start], len + 1 - start);
@@ -26,7 +27,8 @@ void strip_whitespace(char *str) {
     }
 }
 
-void strip_quotes(char *str) {
+void
+strip_quotes(char *str) {
     bool in_str = false;
     bool in_chr = false;
     bool escaped = false;
@@ -52,14 +54,16 @@ void strip_quotes(char *str) {
     *end = '\0';
 }
 
-char *lenient_strcat(char *dest, const char *src) {
+char *
+lenient_strcat(char *dest, const char *src) {
     if (dest && src) {
         return strcat(dest, src);
     }
     return dest;
 }
 
-char *lenient_strncat(char *dest, const char *src, size_t len) {
+char *
+lenient_strncat(char *dest, const char *src, size_t len) {
     if (dest && src) {
         return strncat(dest, src, len);
     }
@@ -67,7 +71,8 @@ char *lenient_strncat(char *dest, const char *src, size_t len) {
 }
 
 // strcmp that also handles null pointers.
-int lenient_strcmp(const char *a, const char *b) {
+int
+lenient_strcmp(const char *a, const char *b) {
     if (a == b) {
         return 0;
     } else if (!a) {
@@ -79,7 +84,8 @@ int lenient_strcmp(const char *a, const char *b) {
     }
 }
 
-list_t *split_string(const char *str, const char *delims) {
+list_t *
+split_string(const char *str, const char *delims) {
     list_t *res = create_list();
     char *copy = strdup(str);
 
@@ -92,7 +98,8 @@ list_t *split_string(const char *str, const char *delims) {
     return res;
 }
 
-char **split_args(const char *start, int *argc) {
+char **
+split_args(const char *start, int *argc) {
     *argc = 0;
     int alloc = 2;
     char **argv = malloc(sizeof(char *) * alloc);
@@ -144,14 +151,16 @@ char **split_args(const char *start, int *argc) {
     return argv;
 }
 
-void free_argv(int argc, char **argv) {
+void
+free_argv(int argc, char **argv) {
     while (argc-- > 0) {
         free(argv[argc]);
     }
     free(argv);
 }
 
-int unescape_string(char *string) {
+int
+unescape_string(char *string) {
     /* TODO: More C string escapes */
     int len = strlen(string);
     int i;
@@ -234,7 +243,8 @@ int unescape_string(char *string) {
     return len - shift;
 }
 
-char *join_args(char **argv, int argc) {
+char *
+join_args(char **argv, int argc) {
     hayward_assert(argc > 0, "argc should be positive");
 
     int len = 0, i;
@@ -265,7 +275,8 @@ argsep_next_interesting(const char *src, const char *delim) {
     return (next_delim < special) ? next_delim : special;
 }
 
-char *argsep(char **stringp, const char *delim, char *matched) {
+char *
+argsep(char **stringp, const char *delim, char *matched) {
     char *start = *stringp;
     char *end = start;
     bool in_string = false;
@@ -312,7 +323,8 @@ char *argsep(char **stringp, const char *delim, char *matched) {
     return start;
 }
 
-bool expand_path(char **path) {
+bool
+expand_path(char **path) {
     wordexp_t p = {0};
     while (strstr(*path, "  ")) {
         *path = realloc(*path, strlen(*path) + 2);

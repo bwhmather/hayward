@@ -24,8 +24,10 @@ struct icon_theme {
     list_t *subdirs; // struct icon_theme_subdir *
 };
 
-void init_themes(list_t **themes, list_t **basedirs);
-void finish_themes(list_t *themes, list_t *basedirs);
+void
+init_themes(list_t **themes, list_t **basedirs);
+void
+finish_themes(list_t *themes, list_t *basedirs);
 
 /*
  * Finds an icon of a specified size given a list of themes and base
@@ -34,7 +36,8 @@ void finish_themes(list_t *themes, list_t *basedirs);
  * Returns: path of icon (which should be freed), or NULL if the icon is not
  * found.
  */
-char *find_icon(
+char *
+find_icon(
     list_t *themes, list_t *basedirs, char *name, int size, char *theme,
     int *min_size, int *max_size
 );

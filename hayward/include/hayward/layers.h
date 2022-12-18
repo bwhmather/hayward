@@ -55,7 +55,8 @@ struct hayward_layer_subsurface {
 };
 
 struct hayward_output;
-void arrange_layers(struct hayward_output *output);
+void
+arrange_layers(struct hayward_output *output);
 
 struct hayward_layer_surface *
 layer_from_wlr_layer_surface_v1(struct wlr_layer_surface_v1 *layer_surface);

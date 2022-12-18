@@ -5,7 +5,8 @@
 #include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 
-static struct cmd_results *handle_action(
+static struct cmd_results *
+handle_action(
     struct seat_config *sc, struct hayward_seat *seat, const char *action
 ) {
     struct hayward_keyboard_shortcuts_inhibitor *hayward_inhibitor = NULL;
@@ -65,7 +66,8 @@ static struct cmd_results *handle_action(
 }
 
 // shortcuts_inhibitor [enable|disable|activate|deactivate|toggle]
-struct cmd_results *seat_cmd_shortcuts_inhibitor(int argc, char **argv) {
+struct cmd_results *
+seat_cmd_shortcuts_inhibitor(int argc, char **argv) {
     struct cmd_results *error =
         checkarg(argc, "shortcuts_inhibitor", EXPECTED_EQUAL_TO, 1);
     if (error) {

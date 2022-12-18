@@ -21,7 +21,8 @@
 
 int binding_order = 0;
 
-void free_hayward_binding(struct hayward_binding *binding) {
+void
+free_hayward_binding(struct hayward_binding *binding) {
     if (!binding) {
         return;
     }
@@ -33,7 +34,8 @@ void free_hayward_binding(struct hayward_binding *binding) {
     free(binding);
 }
 
-void free_switch_binding(struct hayward_switch_binding *binding) {
+void
+free_switch_binding(struct hayward_switch_binding *binding) {
     if (!binding) {
         return;
     }
@@ -45,7 +47,8 @@ void free_switch_binding(struct hayward_switch_binding *binding) {
  * Returns true if the bindings have the same switch type and state
  * combinations.
  */
-static bool binding_switch_compare(
+static bool
+binding_switch_compare(
     struct hayward_switch_binding *binding_a,
     struct hayward_switch_binding *binding_b
 ) {
@@ -67,7 +70,8 @@ static bool binding_switch_compare(
  * Note that keyboard layout is not considered, so the bindings might actually
  * not be equivalent on some layouts.
  */
-static bool binding_key_compare(
+static bool
+binding_key_compare(
     struct hayward_binding *binding_a, struct hayward_binding *binding_b
 ) {
     if (strcmp(binding_a->input, binding_b->input) != 0) {
@@ -111,7 +115,8 @@ static bool binding_key_compare(
     return true;
 }
 
-static int key_qsort_cmp(const void *keyp_a, const void *keyp_b) {
+static int
+key_qsort_cmp(const void *keyp_a, const void *keyp_b) {
     uint32_t key_a = **(uint32_t **)keyp_a;
     uint32_t key_b = **(uint32_t **)keyp_b;
     return (key_a < key_b) ? -1 : ((key_a > key_b) ? 1 : 0);
@@ -124,7 +129,8 @@ static int key_qsort_cmp(const void *keyp_a, const void *keyp_b) {
  * the value of *type if the initial type guess was incorrect and if this
  * was the first identified key.
  */
-static struct cmd_results *identify_key(
+static struct cmd_results *
+identify_key(
     const char *name, bool first_key, uint32_t *key_val,
     enum binding_input_type *type
 ) {
@@ -219,7 +225,8 @@ static struct cmd_results *identify_key(
     return NULL;
 }
 
-static struct cmd_results *switch_binding_add(
+static struct cmd_results *
+switch_binding_add(
     struct hayward_switch_binding *binding, const char *bindtype,
     const char *switchcombo, bool warn
 ) {
@@ -257,7 +264,8 @@ static struct cmd_results *switch_binding_add(
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *switch_binding_remove(
+static struct cmd_results *
+switch_binding_remove(
     struct hayward_switch_binding *binding, const char *bindtype,
     const char *switchcombo
 ) {
@@ -299,7 +307,8 @@ binding_upsert(struct hayward_binding *binding, list_t *mode_bindings) {
     return NULL;
 }
 
-static struct cmd_results *binding_add(
+static struct cmd_results *
+binding_add(
     struct hayward_binding *binding, list_t *mode_bindings,
     const char *bindtype, const char *keycombo, bool warn
 ) {
@@ -332,7 +341,8 @@ static struct cmd_results *binding_add(
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *binding_remove(
+static struct cmd_results *
+binding_remove(
     struct hayward_binding *binding, list_t *mode_bindings,
     const char *bindtype, const char *keycombo
 ) {
@@ -631,34 +641,41 @@ cmd_bind_or_unbind_switch(int argc, char **argv, bool unbind) {
     return switch_binding_add(binding, bindtype, argv[0], warn);
 }
 
-struct cmd_results *cmd_bindsym(int argc, char **argv) {
+struct cmd_results *
+cmd_bindsym(int argc, char **argv) {
     return cmd_bindsym_or_bindcode(argc, argv, false, false);
 }
 
-struct cmd_results *cmd_bindcode(int argc, char **argv) {
+struct cmd_results *
+cmd_bindcode(int argc, char **argv) {
     return cmd_bindsym_or_bindcode(argc, argv, true, false);
 }
 
-struct cmd_results *cmd_unbindsym(int argc, char **argv) {
+struct cmd_results *
+cmd_unbindsym(int argc, char **argv) {
     return cmd_bindsym_or_bindcode(argc, argv, false, true);
 }
 
-struct cmd_results *cmd_unbindcode(int argc, char **argv) {
+struct cmd_results *
+cmd_unbindcode(int argc, char **argv) {
     return cmd_bindsym_or_bindcode(argc, argv, true, true);
 }
 
-struct cmd_results *cmd_bindswitch(int argc, char **argv) {
+struct cmd_results *
+cmd_bindswitch(int argc, char **argv) {
     return cmd_bind_or_unbind_switch(argc, argv, false);
 }
 
-struct cmd_results *cmd_unbindswitch(int argc, char **argv) {
+struct cmd_results *
+cmd_unbindswitch(int argc, char **argv) {
     return cmd_bind_or_unbind_switch(argc, argv, true);
 }
 
 /**
  * Execute the command associated to a binding
  */
-void seat_execute_command(
+void
+seat_execute_command(
     struct hayward_seat *seat, struct hayward_binding *binding
 ) {
     if (!config->active) {
@@ -746,7 +763,8 @@ find_keycode(struct xkb_keymap *keymap, xkb_keycode_t keycode, void *data) {
 /**
  * Return the keycode for the specified keysym.
  */
-static struct keycode_matches get_keycode_for_keysym(xkb_keysym_t keysym) {
+static struct keycode_matches
+get_keycode_for_keysym(xkb_keysym_t keysym) {
     struct keycode_matches matches = {
         .keysym = keysym,
         .keycode = XKB_KEYCODE_INVALID,
@@ -760,7 +778,8 @@ static struct keycode_matches get_keycode_for_keysym(xkb_keysym_t keysym) {
     return matches;
 }
 
-bool translate_binding(struct hayward_binding *binding) {
+bool
+translate_binding(struct hayward_binding *binding) {
     if ((binding->flags & BINDING_CODE) == 0) {
         return true;
     }
@@ -818,9 +837,8 @@ error:
     return false;
 }
 
-void binding_add_translated(
-    struct hayward_binding *binding, list_t *mode_bindings
-) {
+void
+binding_add_translated(struct hayward_binding *binding, list_t *mode_bindings) {
     struct hayward_binding *config_binding =
         binding_upsert(binding, mode_bindings);
 

@@ -6,7 +6,8 @@
 
 #include "hayward/commands.h"
 
-struct cmd_results *bar_cmd_font(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_font(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "font", EXPECTED_AT_LEAST, 1))) {
         return error;

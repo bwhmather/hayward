@@ -11,17 +11,20 @@
 
 static struct haywardnag haywardnag;
 
-void sig_handler(int signal) {
+void
+sig_handler(int signal) {
     haywardnag_destroy(&haywardnag);
     exit(EXIT_FAILURE);
 }
 
-void hayward_terminate(int code) {
+void
+hayward_terminate(int code) {
     haywardnag_destroy(&haywardnag);
     exit(code);
 }
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv) {
     int status = EXIT_SUCCESS;
 
     list_t *types = create_list();

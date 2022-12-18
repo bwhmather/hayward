@@ -17,7 +17,8 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
 
-void arrange_window(struct hayward_window *window) {
+void
+arrange_window(struct hayward_window *window) {
     if (config->reloading) {
         return;
     }
@@ -25,7 +26,8 @@ void arrange_window(struct hayward_window *window) {
     node_set_dirty(&window->node);
 }
 
-static void arrange_column_split(struct hayward_column *column) {
+static void
+arrange_column_split(struct hayward_column *column) {
     hayward_assert(column->pending.layout == L_SPLIT, "Expected split column");
 
     struct wlr_box box;
@@ -101,7 +103,8 @@ static void arrange_column_split(struct hayward_column *column) {
     }
 }
 
-static void arrange_column_stacked(struct hayward_column *column) {
+static void
+arrange_column_stacked(struct hayward_column *column) {
     hayward_assert(
         column->pending.layout == L_STACKED, "Expected stacked column"
     );
@@ -119,7 +122,8 @@ static void arrange_column_stacked(struct hayward_column *column) {
     }
 }
 
-void arrange_column(struct hayward_column *column) {
+void
+arrange_column(struct hayward_column *column) {
     if (config->reloading) {
         return;
     }
@@ -145,7 +149,8 @@ void arrange_column(struct hayward_column *column) {
     node_set_dirty(&column->node);
 }
 
-static void arrange_floating(struct hayward_workspace *workspace) {
+static void
+arrange_floating(struct hayward_workspace *workspace) {
     list_t *floating = workspace->pending.floating;
     for (int i = 0; i < floating->length; ++i) {
         struct hayward_window *floater = floating->items[i];
@@ -153,7 +158,8 @@ static void arrange_floating(struct hayward_workspace *workspace) {
     }
 }
 
-static void arrange_tiling(struct hayward_workspace *workspace) {
+static void
+arrange_tiling(struct hayward_workspace *workspace) {
     list_t *columns = workspace->pending.tiling;
     if (!columns->length) {
         return;
@@ -246,7 +252,8 @@ static void arrange_tiling(struct hayward_workspace *workspace) {
     }
 }
 
-void arrange_workspace(struct hayward_workspace *workspace) {
+void
+arrange_workspace(struct hayward_workspace *workspace) {
     if (config->reloading) {
         return;
     }
@@ -312,7 +319,8 @@ void arrange_workspace(struct hayward_workspace *workspace) {
     }
 }
 
-void arrange_output(struct hayward_output *output) {
+void
+arrange_output(struct hayward_output *output) {
     if (config->reloading) {
         return;
     }
@@ -326,7 +334,8 @@ void arrange_output(struct hayward_output *output) {
     output->height = output_box.height;
 }
 
-void arrange_root(void) {
+void
+arrange_root(void) {
     if (config->reloading) {
         return;
     }
@@ -349,7 +358,8 @@ void arrange_root(void) {
     }
 }
 
-void arrange_node(struct hayward_node *node) {
+void
+arrange_node(struct hayward_node *node) {
     switch (node->type) {
     case N_ROOT:
         arrange_root();

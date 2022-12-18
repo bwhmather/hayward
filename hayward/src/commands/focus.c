@@ -16,7 +16,8 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
 
-static bool parse_direction(const char *name, enum wlr_direction *out) {
+static bool
+parse_direction(const char *name, enum wlr_direction *out) {
     if (strcasecmp(name, "left") == 0) {
         *out = WLR_DIRECTION_LEFT;
     } else if (strcasecmp(name, "right") == 0) {
@@ -38,7 +39,8 @@ static bool parse_direction(const char *name, enum wlr_direction *out) {
  *
  *  Node should always be either a workspace or a window.
  */
-static struct hayward_window *get_window_in_output_direction(
+static struct hayward_window *
+get_window_in_output_direction(
     struct hayward_output *output, enum wlr_direction dir
 ) {
     hayward_assert(output != NULL, "Expected output");
@@ -80,7 +82,8 @@ static struct hayward_window *get_window_in_output_direction(
     return window;
 }
 
-static struct hayward_window *window_get_in_direction_tiling(
+static struct hayward_window *
+window_get_in_direction_tiling(
     struct hayward_window *window, struct hayward_seat *seat,
     enum wlr_direction dir
 ) {
@@ -168,7 +171,8 @@ static struct hayward_window *window_get_in_direction_tiling(
     return NULL;
 }
 
-static struct hayward_window *window_get_in_direction_floating(
+static struct hayward_window *
+window_get_in_direction_floating(
     struct hayward_window *container, struct hayward_seat *seat,
     enum wlr_direction dir
 ) {
@@ -225,7 +229,8 @@ focus_mode(struct hayward_workspace *workspace, bool floating) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-struct cmd_results *cmd_focus(int argc, char **argv) {
+struct cmd_results *
+cmd_focus(int argc, char **argv) {
     if (config->reading || !config->active) {
         return cmd_results_new(CMD_DEFER, NULL);
     }

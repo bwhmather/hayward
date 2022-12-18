@@ -75,41 +75,59 @@ struct hayward_root {
     } events;
 };
 
-struct hayward_root *root_create(void);
+struct hayward_root *
+root_create(void);
 
-void root_destroy(struct hayward_root *root);
+void
+root_destroy(struct hayward_root *root);
 
-struct hayward_workspace *root_workspace_for_pid(pid_t pid);
+struct hayward_workspace *
+root_workspace_for_pid(pid_t pid);
 
-void root_record_workspace_pid(pid_t pid);
+void
+root_record_workspace_pid(pid_t pid);
 
-void root_remove_workspace_pid(pid_t pid);
+void
+root_remove_workspace_pid(pid_t pid);
 
-struct hayward_output *root_find_output(
+struct hayward_output *
+root_find_output(
     bool (*test)(struct hayward_output *output, void *data), void *data
 );
 
-void root_get_box(struct hayward_root *root, struct wlr_box *box);
+void
+root_get_box(struct hayward_root *root, struct wlr_box *box);
 
-void root_rename_pid_workspaces(const char *old_name, const char *new_name);
+void
+root_rename_pid_workspaces(const char *old_name, const char *new_name);
 
-void root_add_workspace(struct hayward_workspace *workspace);
-void root_remove_workspace(struct hayward_workspace *workspace);
+void
+root_add_workspace(struct hayward_workspace *workspace);
+void
+root_remove_workspace(struct hayward_workspace *workspace);
 
-void root_sort_workspaces(void);
+void
+root_sort_workspaces(void);
 
-void root_set_active_workspace(struct hayward_workspace *workspace);
-struct hayward_workspace *root_get_active_workspace(void);
-struct hayward_workspace *root_get_current_active_workspace(void);
+void
+root_set_active_workspace(struct hayward_workspace *workspace);
+struct hayward_workspace *
+root_get_active_workspace(void);
+struct hayward_workspace *
+root_get_current_active_workspace(void);
 
-void root_set_active_output(struct hayward_output *output);
-struct hayward_output *root_get_active_output(void);
-struct hayward_output *root_get_current_active_output(void);
+void
+root_set_active_output(struct hayward_output *output);
+struct hayward_output *
+root_get_active_output(void);
+struct hayward_output *
+root_get_current_active_output(void);
 
 /**
  * Helper functions that traverse the tree to focus the right window.
  */
-void root_set_focused_window(struct hayward_window *window);
+void
+root_set_focused_window(struct hayward_window *window);
 
 /**
  * The active window is the window that is currently selected.  If the active
@@ -117,37 +135,48 @@ void root_set_focused_window(struct hayward_window *window);
  * focused window.  The focused window will be NULL if a layer or other surface
  * is receiving input events.
  */
-struct hayward_window *root_get_active_window(void);
-struct hayward_window *root_get_focused_window(void);
+struct hayward_window *
+root_get_active_window(void);
+struct hayward_window *
+root_get_focused_window(void);
 
-void root_set_focused_layer(struct wlr_layer_surface_v1 *layer);
+void
+root_set_focused_layer(struct wlr_layer_surface_v1 *layer);
 
 /**
  * Directly set the WLRoots surface that should receive input events.
  *
  * This is mostly used by XWayland to focus unmanaged surfaces.
  */
-void root_set_focused_surface(struct wlr_surface *surface);
+void
+root_set_focused_surface(struct wlr_surface *surface);
 
-struct wlr_layer_surface_v1 *root_get_focused_layer(void);
+struct wlr_layer_surface_v1 *
+root_get_focused_layer(void);
 
-struct wlr_surface *root_get_focused_surface(void);
+struct wlr_surface *
+root_get_focused_surface(void);
 
-void root_commit_focus(void);
+void
+root_commit_focus(void);
 
-void root_for_each_workspace(
+void
+root_for_each_workspace(
     void (*f)(struct hayward_workspace *workspace, void *data), void *data
 );
 
-void root_for_each_window(
+void
+root_for_each_window(
     void (*f)(struct hayward_window *window, void *data), void *data
 );
 
-struct hayward_workspace *root_find_workspace(
+struct hayward_workspace *
+root_find_workspace(
     bool (*test)(struct hayward_workspace *workspace, void *data), void *data
 );
 
-struct hayward_window *root_find_window(
+struct hayward_window *
+root_find_window(
     bool (*test)(struct hayward_window *window, void *data), void *data
 );
 

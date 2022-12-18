@@ -51,7 +51,8 @@
 
 #include "config.h"
 
-bool server_privileged_prepare(struct hayward_server *server) {
+bool
+server_privileged_prepare(struct hayward_server *server) {
     hayward_log(HAYWARD_DEBUG, "Preparing Wayland server initialization");
     server->wl_display = wl_display_create();
     server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
@@ -64,7 +65,8 @@ bool server_privileged_prepare(struct hayward_server *server) {
     return true;
 }
 
-static void handle_drm_lease_request(struct wl_listener *listener, void *data) {
+static void
+handle_drm_lease_request(struct wl_listener *listener, void *data) {
     /* We only offer non-desktop outputs, but in the future we might want to do
      * more logic here. */
 
@@ -78,7 +80,8 @@ static void handle_drm_lease_request(struct wl_listener *listener, void *data) {
 
 #define HAYWARD_XDG_SHELL_VERSION 2
 
-bool server_init(struct hayward_server *server) {
+bool
+server_init(struct hayward_server *server) {
     hayward_log(HAYWARD_DEBUG, "Initializing Wayland server");
 
     server->renderer = wlr_renderer_autocreate(server->backend);
@@ -287,7 +290,8 @@ bool server_init(struct hayward_server *server) {
     return true;
 }
 
-void server_fini(struct hayward_server *server) {
+void
+server_fini(struct hayward_server *server) {
     // TODO: free hayward-specific resources
 #if HAVE_XWAYLAND
     wlr_xwayland_destroy(server->xwayland.wlr_xwayland);
@@ -297,7 +301,8 @@ void server_fini(struct hayward_server *server) {
     list_free(server->dirty_nodes);
 }
 
-bool server_start(struct hayward_server *server) {
+bool
+server_start(struct hayward_server *server) {
 #if HAVE_XWAYLAND
     if (config->xwayland != XWAYLAND_MODE_DISABLED) {
         hayward_log(
@@ -344,7 +349,8 @@ bool server_start(struct hayward_server *server) {
     return true;
 }
 
-void server_run(struct hayward_server *server) {
+void
+server_run(struct hayward_server *server) {
     hayward_log(
         HAYWARD_INFO, "Running compositor on wayland display '%s'",
         server->socket

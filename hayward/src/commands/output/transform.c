@@ -22,7 +22,8 @@ invert_rotation_direction(enum wl_output_transform t) {
     }
 }
 
-struct cmd_results *output_cmd_transform(int argc, char **argv) {
+struct cmd_results *
+output_cmd_transform(int argc, char **argv) {
     if (!config->handler_context.output_config) {
         return cmd_results_new(CMD_FAILURE, "Missing output config");
     }

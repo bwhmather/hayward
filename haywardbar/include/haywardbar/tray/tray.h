@@ -36,9 +36,12 @@ struct haywardbar_tray {
     list_t *themes;   // struct haywardbar_theme *
 };
 
-struct haywardbar_tray *create_tray(struct haywardbar *bar);
-void destroy_tray(struct haywardbar_tray *tray);
-void tray_in(int fd, short mask, void *data);
+struct haywardbar_tray *
+create_tray(struct haywardbar *bar);
+void
+destroy_tray(struct haywardbar_tray *tray);
+void
+tray_in(int fd, short mask, void *data);
 uint32_t
 render_tray(cairo_t *cairo, struct haywardbar_output *output, double *x);
 

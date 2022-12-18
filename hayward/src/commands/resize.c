@@ -18,7 +18,8 @@
 #define AXIS_HORIZONTAL (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)
 #define AXIS_VERTICAL (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)
 
-static uint32_t parse_resize_axis(const char *axis) {
+static uint32_t
+parse_resize_axis(const char *axis) {
     if (strcasecmp(axis, "width") == 0 || strcasecmp(axis, "horizontal") == 0) {
         return AXIS_HORIZONTAL;
     }
@@ -40,11 +41,13 @@ static uint32_t parse_resize_axis(const char *axis) {
     return WLR_EDGE_NONE;
 }
 
-static bool is_horizontal(uint32_t axis) {
+static bool
+is_horizontal(uint32_t axis) {
     return axis & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
 }
 
-static void window_resize_tiled_horizontal(
+static void
+window_resize_tiled_horizontal(
     struct hayward_window *window, uint32_t axis, int amount
 ) {
     if (!window) {
@@ -106,7 +109,8 @@ static void window_resize_tiled_horizontal(
     arrange_workspace(column->pending.workspace);
 }
 
-static void window_resize_tiled_vertical(
+static void
+window_resize_tiled_vertical(
     struct hayward_window *window, uint32_t axis, int amount
 ) {
     if (!window) {
@@ -172,9 +176,8 @@ static void window_resize_tiled_vertical(
     arrange_column(column);
 }
 
-void window_resize_tiled(
-    struct hayward_window *window, uint32_t axis, int amount
-) {
+void
+window_resize_tiled(struct hayward_window *window, uint32_t axis, int amount) {
     if (!window) {
         return;
     }
@@ -279,7 +282,8 @@ resize_adjust_tiled(uint32_t axis, struct movement_amount *amount) {
 /**
  * Implement `resize set` for a tiled container.
  */
-static struct cmd_results *resize_set_tiled(
+static struct cmd_results *
+resize_set_tiled(
     struct hayward_window *window, struct movement_amount *width,
     struct movement_amount *height
 ) {
@@ -324,7 +328,8 @@ static struct cmd_results *resize_set_tiled(
 /**
  * Implement `resize set` for a floating container.
  */
-static struct cmd_results *resize_set_floating(
+static struct cmd_results *
+resize_set_floating(
     struct hayward_window *window, struct movement_amount *width,
     struct movement_amount *height
 ) {
@@ -393,7 +398,8 @@ static struct cmd_results *resize_set_floating(
  *     : height <height> [px|ppt]
  *     : [width] <width> [px|ppt] [height] <height> [px|ppt]
  */
-static struct cmd_results *cmd_resize_set(int argc, char **argv) {
+static struct cmd_results *
+cmd_resize_set(int argc, char **argv) {
     struct cmd_results *error;
     if ((error = checkarg(argc, "resize", EXPECTED_AT_LEAST, 1))) {
         return error;
@@ -544,7 +550,8 @@ cmd_resize_adjust(int argc, char **argv, int multiplier) {
     }
 }
 
-struct cmd_results *cmd_resize(int argc, char **argv) {
+struct cmd_results *
+cmd_resize(int argc, char **argv) {
     if (!root->outputs->length) {
         return cmd_results_new(
             CMD_INVALID,

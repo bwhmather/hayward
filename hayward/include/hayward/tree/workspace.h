@@ -44,72 +44,93 @@ struct hayward_workspace {
     struct hayward_workspace_state pending;
 };
 
-struct workspace_config *workspace_find_config(const char *workspace_name);
+struct workspace_config *
+workspace_find_config(const char *workspace_name);
 
-struct hayward_workspace *workspace_create(const char *name);
+struct hayward_workspace *
+workspace_create(const char *name);
 
-void workspace_destroy(struct hayward_workspace *workspace);
+void
+workspace_destroy(struct hayward_workspace *workspace);
 
-void workspace_begin_destroy(struct hayward_workspace *workspace);
+void
+workspace_begin_destroy(struct hayward_workspace *workspace);
 
-void workspace_consider_destroy(struct hayward_workspace *workspace);
+void
+workspace_consider_destroy(struct hayward_workspace *workspace);
 
-struct hayward_workspace *workspace_by_name(const char *);
+struct hayward_workspace *
+workspace_by_name(const char *);
 
-bool workspace_is_visible(struct hayward_workspace *workspace);
+bool
+workspace_is_visible(struct hayward_workspace *workspace);
 
-bool workspace_is_empty(struct hayward_workspace *workspace);
+bool
+workspace_is_empty(struct hayward_workspace *workspace);
 
-void workspace_output_raise_priority(
+void
+workspace_output_raise_priority(
     struct hayward_workspace *workspace, struct hayward_output *old_output,
     struct hayward_output *new_output
 );
 
-void workspace_output_add_priority(
+void
+workspace_output_add_priority(
     struct hayward_workspace *workspace, struct hayward_output *output
 );
 
-struct hayward_output *workspace_output_get_highest_available(
+struct hayward_output *
+workspace_output_get_highest_available(
     struct hayward_workspace *workspace, struct hayward_output *exclude
 );
 
-void workspace_detect_urgent(struct hayward_workspace *workspace);
+void
+workspace_detect_urgent(struct hayward_workspace *workspace);
 
 /**
  * Wrap the workspace's tiling children in a new container.
  * The new container will be the only direct tiling child of the workspace.
  * The new container is returned.
  */
-void workspace_detach(struct hayward_workspace *workspace);
+void
+workspace_detach(struct hayward_workspace *workspace);
 
-void workspace_reconcile(struct hayward_workspace *workspace);
-void workspace_reconcile_detached(struct hayward_workspace *workspace);
+void
+workspace_reconcile(struct hayward_workspace *workspace);
+void
+workspace_reconcile_detached(struct hayward_workspace *workspace);
 
-void workspace_add_floating(
+void
+workspace_add_floating(
     struct hayward_workspace *workspace, struct hayward_window *container
 );
 
-void workspace_remove_floating(
+void
+workspace_remove_floating(
     struct hayward_workspace *workspace, struct hayward_window *window
 );
 
-void workspace_insert_tiling(
+void
+workspace_insert_tiling(
     struct hayward_workspace *workspace, struct hayward_output *output,
     struct hayward_column *column, int index
 );
-void workspace_remove_tiling(
+void
+workspace_remove_tiling(
     struct hayward_workspace *workspace, struct hayward_column *column
 );
 
-void workspace_add_gaps(struct hayward_workspace *workspace);
+void
+workspace_add_gaps(struct hayward_workspace *workspace);
 
-void workspace_get_box(
-    struct hayward_workspace *workspace, struct wlr_box *box
-);
+void
+workspace_get_box(struct hayward_workspace *workspace, struct wlr_box *box);
 
-size_t workspace_num_tiling_views(struct hayward_workspace *workspace);
+size_t
+workspace_num_tiling_views(struct hayward_workspace *workspace);
 
-size_t workspace_num_sticky_containers(struct hayward_workspace *workspace);
+size_t
+workspace_num_sticky_containers(struct hayward_workspace *workspace);
 
 struct hayward_output *
 workspace_get_active_output(struct hayward_workspace *workspace);
@@ -123,7 +144,8 @@ workspace_get_active_floating_window(struct hayward_workspace *workspace);
 struct hayward_window *
 workspace_get_active_window(struct hayward_workspace *workspace);
 
-void workspace_set_active_window(
+void
+workspace_set_active_window(
     struct hayward_workspace *workspace, struct hayward_window *window
 );
 
@@ -134,24 +156,29 @@ void workspace_set_active_window(
  * If the workspace is active, the result of this function will be cached on
  * output->pending.fullscreen_window.
  */
-struct hayward_window *workspace_get_fullscreen_window_for_output(
+struct hayward_window *
+workspace_get_fullscreen_window_for_output(
     struct hayward_workspace *workspace, struct hayward_output *output
 );
 
-void workspace_for_each_window(
+void
+workspace_for_each_window(
     struct hayward_workspace *workspace,
     void (*f)(struct hayward_window *container, void *data), void *data
 );
-void workspace_for_each_column(
+void
+workspace_for_each_column(
     struct hayward_workspace *workspace,
     void (*f)(struct hayward_column *container, void *data), void *data
 );
 
-struct hayward_window *workspace_find_window(
+struct hayward_window *
+workspace_find_window(
     struct hayward_workspace *workspace,
     bool (*test)(struct hayward_window *window, void *data), void *data
 );
 
-void workspace_damage_whole(struct hayward_workspace *workspace);
+void
+workspace_damage_whole(struct hayward_workspace *workspace);
 
 #endif

@@ -7,7 +7,8 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/workspace.h"
 
-struct cmd_results *cmd_titlebar_padding(int argc, char **argv) {
+struct cmd_results *
+cmd_titlebar_padding(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "titlebar_padding", EXPECTED_AT_LEAST, 1))) {
         return error;

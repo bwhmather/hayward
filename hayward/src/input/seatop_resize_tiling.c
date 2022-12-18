@@ -69,7 +69,8 @@ window_get_resize_sibling(struct hayward_window *window, uint32_t edge) {
     return siblings->items[index];
 }
 
-static void handle_button(
+static void
+handle_button(
     struct hayward_seat *seat, uint32_t time_msec,
     struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
@@ -145,7 +146,8 @@ static const struct hayward_seatop_impl seatop_impl = {
     .unref = handle_unref,
 };
 
-void seatop_begin_resize_tiling(
+void
+seatop_begin_resize_tiling(
     struct hayward_seat *seat, struct hayward_window *container,
     enum wlr_edges edge
 ) {

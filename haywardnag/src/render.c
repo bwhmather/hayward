@@ -9,7 +9,8 @@
 #include "haywardnag/types.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
-static uint32_t render_message(cairo_t *cairo, struct haywardnag *haywardnag) {
+static uint32_t
+render_message(cairo_t *cairo, struct haywardnag *haywardnag) {
     int text_width, text_height;
     get_text_size(
         cairo, haywardnag->type->font, &text_width, &text_height, NULL, 1, true,
@@ -33,7 +34,8 @@ static uint32_t render_message(cairo_t *cairo, struct haywardnag *haywardnag) {
     return ideal_surface_height;
 }
 
-static void render_details_scroll_button(
+static void
+render_details_scroll_button(
     cairo_t *cairo, struct haywardnag *haywardnag,
     struct haywardnag_button *button
 ) {
@@ -65,7 +67,8 @@ static void render_details_scroll_button(
     render_text(cairo, haywardnag->type->font, 1, true, "%s", button->text);
 }
 
-static int get_detailed_scroll_button_width(
+static int
+get_detailed_scroll_button_width(
     cairo_t *cairo, struct haywardnag *haywardnag
 ) {
     int up_width, down_width, temp_height;
@@ -194,7 +197,8 @@ render_detailed(cairo_t *cairo, struct haywardnag *haywardnag, uint32_t y) {
     return ideal_height;
 }
 
-static uint32_t render_button(
+static uint32_t
+render_button(
     cairo_t *cairo, struct haywardnag *haywardnag, int button_index, int *x
 ) {
     struct haywardnag_button *button = haywardnag->buttons->items[button_index];
@@ -239,7 +243,8 @@ static uint32_t render_button(
     return ideal_surface_height;
 }
 
-static uint32_t render_to_cairo(cairo_t *cairo, struct haywardnag *haywardnag) {
+static uint32_t
+render_to_cairo(cairo_t *cairo, struct haywardnag *haywardnag) {
     uint32_t max_height = 0;
 
     cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
@@ -277,7 +282,8 @@ static uint32_t render_to_cairo(cairo_t *cairo, struct haywardnag *haywardnag) {
     return max_height;
 }
 
-void render_frame(struct haywardnag *haywardnag) {
+void
+render_frame(struct haywardnag *haywardnag) {
     if (!haywardnag->run_display) {
         return;
     }

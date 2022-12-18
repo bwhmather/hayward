@@ -7,11 +7,13 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
 
-static void close_window_iterator(struct hayward_window *window, void *data) {
+static void
+close_window_iterator(struct hayward_window *window, void *data) {
     view_close(window->view);
 }
 
-struct cmd_results *cmd_kill(int argc, char **argv) {
+struct cmd_results *
+cmd_kill(int argc, char **argv) {
     if (!root->outputs->length) {
         return cmd_results_new(
             CMD_INVALID,

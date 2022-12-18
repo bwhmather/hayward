@@ -73,12 +73,16 @@ struct haywardbar_seat {
 
 extern const struct wl_seat_listener seat_listener;
 
-void update_cursor(struct haywardbar_seat *seat);
+void
+update_cursor(struct haywardbar_seat *seat);
 
-uint32_t event_to_x11_button(uint32_t event);
+uint32_t
+event_to_x11_button(uint32_t event);
 
-void free_hotspots(struct wl_list *list);
+void
+free_hotspots(struct wl_list *list);
 
-void haywardbar_seat_free(struct haywardbar_seat *seat);
+void
+haywardbar_seat_free(struct haywardbar_seat *seat);
 
 #endif

@@ -5,7 +5,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *seat_cmd_keyboard_grouping(int argc, char **argv) {
+struct cmd_results *
+seat_cmd_keyboard_grouping(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "keyboard_grouping", EXPECTED_EQUAL_TO, 1))) {
         return error;

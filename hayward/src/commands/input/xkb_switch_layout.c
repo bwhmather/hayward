@@ -13,7 +13,8 @@ struct xkb_switch_layout_action {
     xkb_layout_index_t layout;
 };
 
-static void switch_layout(struct wlr_keyboard *kbd, xkb_layout_index_t idx) {
+static void
+switch_layout(struct wlr_keyboard *kbd, xkb_layout_index_t idx) {
     xkb_layout_index_t num_layouts = xkb_keymap_num_layouts(kbd->keymap);
     if (idx >= num_layouts) {
         return;
@@ -24,7 +25,8 @@ static void switch_layout(struct wlr_keyboard *kbd, xkb_layout_index_t idx) {
     );
 }
 
-static xkb_layout_index_t get_current_layout_index(struct wlr_keyboard *kbd) {
+static xkb_layout_index_t
+get_current_layout_index(struct wlr_keyboard *kbd) {
     xkb_layout_index_t num_layouts = xkb_keymap_num_layouts(kbd->keymap);
     assert(num_layouts > 0);
 
@@ -46,7 +48,8 @@ get_layout_relative(struct wlr_keyboard *kbd, int dir) {
     return (idx + num_layouts + dir) % num_layouts;
 }
 
-struct cmd_results *input_cmd_xkb_switch_layout(int argc, char **argv) {
+struct cmd_results *
+input_cmd_xkb_switch_layout(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "xkb_switch_layout", EXPECTED_EQUAL_TO, 1))) {
         return error;

@@ -7,7 +7,8 @@
 
 struct hayward_window;
 
-typedef struct cmd_results *hayward_cmd(int argc, char **argv);
+typedef struct cmd_results *
+hayward_cmd(int argc, char **argv);
 
 struct cmd_handler {
     char *command;
@@ -43,7 +44,8 @@ enum expected_args { EXPECTED_AT_LEAST, EXPECTED_AT_MOST, EXPECTED_EQUAL_TO };
 struct cmd_results *
 checkarg(int argc, const char *name, enum expected_args type, int val);
 
-const struct cmd_handler *find_handler(
+const struct cmd_handler *
+find_handler(
     char *line, const struct cmd_handler *cmd_handlers, size_t handlers_size
 );
 
@@ -54,7 +56,8 @@ const struct cmd_handler *find_handler(
  * all matching containers. Otherwise, it'll run on the `container` container.
  * If `container` is NULL then it'll run on the currently focused container.
  */
-list_t *execute_command(
+list_t *
+execute_command(
     char *command, struct hayward_seat *seat, struct hayward_window *container
 );
 /**
@@ -62,18 +65,21 @@ list_t *execute_command(
  *
  * Do not use this under normal conditions.
  */
-struct cmd_results *config_command(char *command, char **new_block);
+struct cmd_results *
+config_command(char *command, char **new_block);
 /**
  * Parse and handle a sub command
  */
-struct cmd_results *config_subcommand(
+struct cmd_results *
+config_subcommand(
     char **argv, int argc, const struct cmd_handler *handlers,
     size_t handlers_size
 );
 /*
  * Parses a command policy rule.
  */
-struct cmd_results *config_commands_command(char *exec);
+struct cmd_results *
+config_commands_command(char *exec);
 /**
  * Allocates a cmd_results object.
  */
@@ -82,17 +88,18 @@ cmd_results_new(enum cmd_status status, const char *error, ...);
 /**
  * Frees a cmd_results object.
  */
-void free_cmd_results(struct cmd_results *results);
+void
+free_cmd_results(struct cmd_results *results);
 /**
  * Serializes a list of cmd_results to a JSON string.
  *
  * Free the JSON string later on.
  */
-char *cmd_results_to_json(list_t *res_list);
+char *
+cmd_results_to_json(list_t *res_list);
 
-void window_resize_tiled(
-    struct hayward_window *window, uint32_t axis, int amount
-);
+void
+window_resize_tiled(struct hayward_window *window, uint32_t axis, int amount);
 
 /**
  * Handlers shared by exec and exec_always.

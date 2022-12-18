@@ -3,7 +3,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *cmd_popup_during_fullscreen(int argc, char **argv) {
+struct cmd_results *
+cmd_popup_during_fullscreen(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error =
              checkarg(argc, "popup_during_fullscreen", EXPECTED_EQUAL_TO, 1))) {

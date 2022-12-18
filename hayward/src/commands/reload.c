@@ -16,7 +16,8 @@ rebuild_textures_iterator(struct hayward_window *container, void *data) {
     window_update_title_textures(container);
 }
 
-static void do_reload(void *data) {
+static void
+do_reload(void *data) {
     // store bar ids to check against new bars for barconfig_update events
     list_t *bar_ids = create_list();
     for (int i = 0; i < config->bars->length; ++i) {
@@ -55,7 +56,8 @@ static void do_reload(void *data) {
     arrange_root();
 }
 
-struct cmd_results *cmd_reload(int argc, char **argv) {
+struct cmd_results *
+cmd_reload(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "reload", EXPECTED_EQUAL_TO, 0))) {
         return error;

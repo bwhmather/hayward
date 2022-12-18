@@ -38,7 +38,8 @@ bar_set_hidden_state(struct bar_config *bar, const char *hidden_state) {
     return NULL;
 }
 
-struct cmd_results *bar_cmd_hidden_state(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_hidden_state(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "hidden_state", EXPECTED_AT_LEAST, 1))) {
         return error;

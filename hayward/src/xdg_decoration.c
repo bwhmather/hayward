@@ -52,7 +52,8 @@ xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
     wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration, mode);
 }
 
-void handle_xdg_decoration(struct wl_listener *listener, void *data) {
+void
+handle_xdg_decoration(struct wl_listener *listener, void *data) {
     struct wlr_xdg_toplevel_decoration_v1 *wlr_deco = data;
     struct hayward_xdg_shell_view *xdg_shell_view = wlr_deco->surface->data;
 

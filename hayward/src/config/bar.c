@@ -22,7 +22,8 @@
 
 #include "config.h"
 
-void free_bar_binding(struct bar_binding *binding) {
+void
+free_bar_binding(struct bar_binding *binding) {
     if (!binding) {
         return;
     }
@@ -30,7 +31,8 @@ void free_bar_binding(struct bar_binding *binding) {
     free(binding);
 }
 
-void free_bar_config(struct bar_config *bar) {
+void
+free_bar_config(struct bar_config *bar) {
     if (!bar) {
         return;
     }
@@ -86,7 +88,8 @@ void free_bar_config(struct bar_config *bar) {
     free(bar);
 }
 
-struct bar_config *default_bar_config(void) {
+struct bar_config *
+default_bar_config(void) {
     struct bar_config *bar = NULL;
     bar = calloc(1, sizeof(struct bar_config));
     if (!bar) {
@@ -192,7 +195,8 @@ handle_haywardbar_client_destroy(struct wl_listener *listener, void *data) {
     bar->client = NULL;
 }
 
-static void invoke_haywardbar(struct bar_config *bar) {
+static void
+invoke_haywardbar(struct bar_config *bar) {
     int sockets[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
         hayward_log_errno(HAYWARD_ERROR, "socketpair failed");
@@ -265,7 +269,8 @@ static void invoke_haywardbar(struct bar_config *bar) {
     return;
 }
 
-void load_haywardbar(struct bar_config *bar) {
+void
+load_haywardbar(struct bar_config *bar) {
     if (bar->client != NULL) {
         wl_client_destroy(bar->client);
     }
@@ -273,7 +278,8 @@ void load_haywardbar(struct bar_config *bar) {
     invoke_haywardbar(bar);
 }
 
-void load_haywardbars(void) {
+void
+load_haywardbars(void) {
     for (int i = 0; i < config->bars->length; ++i) {
         struct bar_config *bar = config->bars->items[i];
         load_haywardbar(bar);

@@ -8,7 +8,8 @@
 #include "hayward-common/cairo_util.h"
 #include "hayward-common/log.h"
 
-enum background_mode parse_background_mode(const char *mode) {
+enum background_mode
+parse_background_mode(const char *mode) {
     if (strcmp(mode, "stretch") == 0) {
         return BACKGROUND_MODE_STRETCH;
     } else if (strcmp(mode, "fill") == 0) {
@@ -126,7 +127,8 @@ gdk_cairo_image_surface_create_from_pixbuf(const GdkPixbuf *gdkbuf) {
 }
 #endif // HAVE_GDK_PIXBUF
 
-cairo_surface_t *load_background_image(const char *path) {
+cairo_surface_t *
+load_background_image(const char *path) {
     cairo_surface_t *image;
 #if HAVE_GDK_PIXBUF
     GError *err = NULL;
@@ -166,7 +168,8 @@ cairo_surface_t *load_background_image(const char *path) {
     return image;
 }
 
-void render_background_image(
+void
+render_background_image(
     cairo_t *cairo, cairo_surface_t *image, enum background_mode mode,
     int buffer_width, int buffer_height
 ) {

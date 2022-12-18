@@ -3,6 +3,7 @@
 
 struct haywardbar_output;
 
-void render_frame(struct haywardbar_output *output);
+void
+render_frame(struct haywardbar_output *output);
 
 #endif

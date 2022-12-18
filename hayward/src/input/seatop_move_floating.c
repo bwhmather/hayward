@@ -11,7 +11,8 @@ struct seatop_move_floating_event {
     double dx, dy; // cursor offset in window
 };
 
-static void finalize_move(struct hayward_seat *seat) {
+static void
+finalize_move(struct hayward_seat *seat) {
     struct seatop_move_floating_event *e = seat->seatop_data;
 
     // We "move" the window to its own location
@@ -24,7 +25,8 @@ static void finalize_move(struct hayward_seat *seat) {
     seatop_begin_default(seat);
 }
 
-static void handle_button(
+static void
+handle_button(
     struct hayward_seat *seat, uint32_t time_msec,
     struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
@@ -34,7 +36,8 @@ static void handle_button(
     }
 }
 
-static void handle_tablet_tool_tip(
+static void
+handle_tablet_tool_tip(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec, enum wlr_tablet_tool_tip_state state
 ) {
@@ -67,7 +70,8 @@ static const struct hayward_seatop_impl seatop_impl = {
     .unref = handle_unref,
 };
 
-void seatop_begin_move_floating(
+void
+seatop_begin_move_floating(
     struct hayward_seat *seat, struct hayward_window *window
 ) {
     seatop_end(seat);

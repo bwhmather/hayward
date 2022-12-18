@@ -7,7 +7,8 @@
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 
-struct cmd_results *input_cmd_xkb_capslock(int argc, char **argv) {
+struct cmd_results *
+input_cmd_xkb_capslock(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "xkb_capslock", EXPECTED_AT_LEAST, 1))) {
         return error;

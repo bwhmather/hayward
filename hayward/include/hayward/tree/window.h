@@ -116,44 +116,59 @@ struct hayward_window {
     } events;
 };
 
-struct hayward_window *window_create(struct hayward_view *view);
+struct hayward_window *
+window_create(struct hayward_view *view);
 
-void window_destroy(struct hayward_window *window);
+void
+window_destroy(struct hayward_window *window);
 
-void window_begin_destroy(struct hayward_window *window);
+void
+window_begin_destroy(struct hayward_window *window);
 
-void window_detach(struct hayward_window *window);
-bool window_is_attached(struct hayward_window *window);
+void
+window_detach(struct hayward_window *window);
+bool
+window_is_attached(struct hayward_window *window);
 
 /**
  * These functions will update cached back links and internal state to match
  * canonical values on parent.
  */
-void window_reconcile_floating(
+void
+window_reconcile_floating(
     struct hayward_window *window, struct hayward_workspace *workspace
 );
-void window_reconcile_tiling(
+void
+window_reconcile_tiling(
     struct hayward_window *window, struct hayward_column *column
 );
-void window_reconcile_detached(struct hayward_window *window);
+void
+window_reconcile_detached(struct hayward_window *window);
 
 /**
  * If the window is involved in a drag or resize operation via a mouse, this
  * ends the operation.
  */
-void window_end_mouse_operation(struct hayward_window *window);
+void
+window_end_mouse_operation(struct hayward_window *window);
 
-void window_update_title_textures(struct hayward_window *window);
+void
+window_update_title_textures(struct hayward_window *window);
 
-bool window_is_floating(struct hayward_window *window);
+bool
+window_is_floating(struct hayward_window *window);
 
-bool window_is_current_floating(struct hayward_window *window);
+bool
+window_is_current_floating(struct hayward_window *window);
 
-void window_set_floating(struct hayward_window *window, bool enable);
+void
+window_set_floating(struct hayward_window *window, bool enable);
 
-bool window_is_fullscreen(struct hayward_window *window);
+bool
+window_is_fullscreen(struct hayward_window *window);
 
-bool window_is_tiling(struct hayward_window *window);
+bool
+window_is_tiling(struct hayward_window *window);
 
 /**
  * Detaches a window from its current column, and by extension workspace, and
@@ -167,7 +182,8 @@ bool window_is_tiling(struct hayward_window *window);
  *
  * The old workspace and old columns will not be automatically cleaned up.
  */
-void window_move_to_column_from_direction(
+void
+window_move_to_column_from_direction(
     struct hayward_window *window, struct hayward_column *column,
     enum wlr_direction move_dir
 );
@@ -184,31 +200,38 @@ void window_move_to_column_from_direction(
  *
  * The old workspace and old columns will not be automatically cleaned up.
  */
-void window_move_to_column(
+void
+window_move_to_column(
     struct hayward_window *window, struct hayward_column *destination
 );
 
-void window_move_to_workspace(
+void
+window_move_to_workspace(
     struct hayward_window *window, struct hayward_workspace *workspace
 );
 
-void window_move_to_output_from_direction(
+void
+window_move_to_output_from_direction(
     struct hayward_window *window, struct hayward_output *output,
     enum wlr_direction move_dir
 );
-void window_move_to_output(
+void
+window_move_to_output(
     struct hayward_window *window, struct hayward_output *output
 );
 
-struct wlr_surface *window_surface_at(
+struct wlr_surface *
+window_surface_at(
     struct hayward_window *window, double lx, double ly, double *sx, double *sy
 );
 
-bool window_contents_contain_point(
+bool
+window_contents_contain_point(
     struct hayward_window *window, double lx, double ly
 );
 
-bool window_contains_point(struct hayward_window *window, double lx, double ly);
+bool
+window_contains_point(struct hayward_window *window, double lx, double ly);
 
 /**
  * Returns the fullscreen window obstructing this window if it exists.
@@ -219,63 +242,82 @@ window_obstructing_fullscreen_window(struct hayward_window *window);
 /**
  * Return the height of a regular title bar.
  */
-size_t window_titlebar_height(void);
+size_t
+window_titlebar_height(void);
 
-void window_set_fullscreen(struct hayward_window *window, bool enabled);
+void
+window_set_fullscreen(struct hayward_window *window, bool enabled);
 
-void window_handle_fullscreen_reparent(struct hayward_window *window);
+void
+window_handle_fullscreen_reparent(struct hayward_window *window);
 
-void floating_calculate_constraints(
+void
+floating_calculate_constraints(
     int *min_width, int *max_width, int *min_height, int *max_height
 );
 
-void window_floating_resize_and_center(struct hayward_window *window);
+void
+window_floating_resize_and_center(struct hayward_window *window);
 
-void window_floating_set_default_size(struct hayward_window *window);
+void
+window_floating_set_default_size(struct hayward_window *window);
 
 /**
  * Move a floating window to a new layout-local position.
  */
-void window_floating_move_to(
-    struct hayward_window *window, double lx, double ly
-);
+void
+window_floating_move_to(struct hayward_window *window, double lx, double ly);
 
 /**
  * Move a floating window to the center of the workspace.
  */
-void window_floating_move_to_center(struct hayward_window *window);
+void
+window_floating_move_to_center(struct hayward_window *window);
 
-struct hayward_output *window_get_output(struct hayward_window *window);
-struct hayward_output *window_get_current_output(struct hayward_window *window);
+struct hayward_output *
+window_get_output(struct hayward_window *window);
+struct hayward_output *
+window_get_current_output(struct hayward_window *window);
 
 /**
  * Get a window's box in layout coordinates.
  */
-void window_get_box(struct hayward_window *window, struct wlr_box *box);
+void
+window_get_box(struct hayward_window *window, struct wlr_box *box);
 
-void window_set_resizing(struct hayward_window *window, bool resizing);
+void
+window_set_resizing(struct hayward_window *window, bool resizing);
 
-void window_set_geometry_from_content(struct hayward_window *window);
+void
+window_set_geometry_from_content(struct hayward_window *window);
 
-bool window_is_transient_for(
+bool
+window_is_transient_for(
     struct hayward_window *child, struct hayward_window *ancestor
 );
 
-void window_raise_floating(struct hayward_window *window);
+void
+window_raise_floating(struct hayward_window *window);
 
-bool window_is_sticky(struct hayward_window *window);
+bool
+window_is_sticky(struct hayward_window *window);
 
-list_t *window_get_siblings(struct hayward_window *window);
+list_t *
+window_get_siblings(struct hayward_window *window);
 
-int window_sibling_index(struct hayward_window *child);
+int
+window_sibling_index(struct hayward_window *child);
 
-list_t *window_get_current_siblings(struct hayward_window *window);
+list_t *
+window_get_current_siblings(struct hayward_window *window);
 
-struct hayward_window *window_get_previous_sibling(struct hayward_window *window
-);
-struct hayward_window *window_get_next_sibling(struct hayward_window *window);
+struct hayward_window *
+window_get_previous_sibling(struct hayward_window *window);
+struct hayward_window *
+window_get_next_sibling(struct hayward_window *window);
 
-enum hayward_column_layout window_parent_layout(struct hayward_window *window);
+enum hayward_column_layout
+window_parent_layout(struct hayward_window *window);
 enum hayward_column_layout
 window_current_parent_layout(struct hayward_window *window);
 
@@ -284,9 +326,10 @@ window_current_parent_layout(struct hayward_window *window);
  * This is the most recently entered output.
  * If the window is not on any output, return NULL.
  */
-struct hayward_output *window_get_effective_output(struct hayward_window *window
-);
+struct hayward_output *
+window_get_effective_output(struct hayward_window *window);
 
-void window_discover_outputs(struct hayward_window *window);
+void
+window_discover_outputs(struct hayward_window *window);
 
 #endif

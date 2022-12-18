@@ -3,7 +3,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *output_cmd_mode(int argc, char **argv) {
+struct cmd_results *
+output_cmd_mode(int argc, char **argv) {
     if (!config->handler_context.output_config) {
         return cmd_results_new(CMD_FAILURE, "Missing output config");
     }
@@ -65,7 +66,8 @@ struct cmd_results *output_cmd_mode(int argc, char **argv) {
     return NULL;
 }
 
-static bool parse_modeline(char **argv, drmModeModeInfo *mode) {
+static bool
+parse_modeline(char **argv, drmModeModeInfo *mode) {
     mode->type = DRM_MODE_TYPE_USERDEF;
     mode->clock = strtof(argv[0], NULL) * 1000;
     mode->hdisplay = strtol(argv[1], NULL, 10);
@@ -103,7 +105,8 @@ static bool parse_modeline(char **argv, drmModeModeInfo *mode) {
     return true;
 }
 
-struct cmd_results *output_cmd_modeline(int argc, char **argv) {
+struct cmd_results *
+output_cmd_modeline(int argc, char **argv) {
     if (!config->handler_context.output_config) {
         return cmd_results_new(CMD_FAILURE, "Missing output config");
     }

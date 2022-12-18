@@ -33,7 +33,8 @@
 
 #include "linux-dmabuf-unstable-v1-protocol.h"
 
-struct hayward_column *column_create(void) {
+struct hayward_column *
+column_create(void) {
     struct hayward_column *c = calloc(1, sizeof(struct hayward_column));
     if (!c) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_column");
@@ -54,7 +55,8 @@ struct hayward_column *column_create(void) {
     return c;
 }
 
-void column_destroy(struct hayward_column *column) {
+void
+column_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     hayward_assert(
         column->node.destroying,
@@ -72,7 +74,8 @@ void column_destroy(struct hayward_column *column) {
     free(column);
 }
 
-void column_begin_destroy(struct hayward_column *column) {
+void
+column_begin_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     wl_signal_emit(&column->node.events.destroy, &column->node);
 
@@ -84,7 +87,8 @@ void column_begin_destroy(struct hayward_column *column) {
     }
 }
 
-void column_consider_destroy(struct hayward_column *column) {
+void
+column_consider_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     struct hayward_workspace *workspace = column->pending.workspace;
 
@@ -98,7 +102,8 @@ void column_consider_destroy(struct hayward_column *column) {
     }
 }
 
-void column_detach(struct hayward_column *column) {
+void
+column_detach(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     struct hayward_workspace *workspace = column->pending.workspace;
 
@@ -109,7 +114,8 @@ void column_detach(struct hayward_column *column) {
     workspace_remove_tiling(workspace, column);
 }
 
-void column_reconcile(
+void
+column_reconcile(
     struct hayward_column *column, struct hayward_workspace *workspace,
     struct hayward_output *output
 ) {
@@ -134,7 +140,8 @@ void column_reconcile(
     }
 }
 
-void column_reconcile_detached(struct hayward_column *column) {
+void
+column_reconcile_detached(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
 
     column->pending.workspace = NULL;
@@ -150,7 +157,8 @@ void column_reconcile_detached(struct hayward_column *column) {
     }
 }
 
-struct hayward_window *column_find_child(
+struct hayward_window *
+column_find_child(
     struct hayward_column *column,
     bool (*test)(struct hayward_window *container, void *data), void *data
 ) {
@@ -167,7 +175,8 @@ struct hayward_window *column_find_child(
     return NULL;
 }
 
-void column_insert_child(
+void
+column_insert_child(
     struct hayward_column *parent, struct hayward_window *child, int i
 ) {
     hayward_assert(parent != NULL, "Expected column");
@@ -191,7 +200,8 @@ void column_insert_child(
     window_handle_fullscreen_reparent(child);
 }
 
-void column_add_sibling(
+void
+column_add_sibling(
     struct hayward_window *fixed, struct hayward_window *active, bool after
 ) {
     hayward_assert(fixed != NULL, "Expected fixed window");
@@ -217,9 +227,8 @@ void column_add_sibling(
     window_handle_fullscreen_reparent(active);
 }
 
-void column_add_child(
-    struct hayward_column *parent, struct hayward_window *child
-) {
+void
+column_add_child(struct hayward_column *parent, struct hayward_window *child) {
     hayward_assert(parent != NULL, "Expected column");
     hayward_assert(child != NULL, "Expected window");
     hayward_assert(
@@ -238,7 +247,8 @@ void column_add_child(
     node_set_dirty(&parent->node);
 }
 
-void column_remove_child(
+void
+column_remove_child(
     struct hayward_column *parent, struct hayward_window *child
 ) {
     hayward_assert(parent != NULL, "Expected column");
@@ -268,7 +278,8 @@ void column_remove_child(
     node_set_dirty(&child->node);
 }
 
-void column_set_active_child(
+void
+column_set_active_child(
     struct hayward_column *column, struct hayward_window *window
 ) {
     hayward_assert(column != NULL, "Expected column");
@@ -296,7 +307,8 @@ void column_set_active_child(
     node_set_dirty(&column->node);
 }
 
-void column_for_each_child(
+void
+column_for_each_child(
     struct hayward_column *column,
     void (*f)(struct hayward_window *window, void *data), void *data
 ) {
@@ -309,7 +321,8 @@ void column_for_each_child(
     }
 }
 
-void column_get_box(struct hayward_column *column, struct wlr_box *box) {
+void
+column_get_box(struct hayward_column *column, struct wlr_box *box) {
     hayward_assert(column != NULL, "Expected column");
     hayward_assert(box != NULL, "Expected box");
 
@@ -323,7 +336,8 @@ void column_get_box(struct hayward_column *column, struct wlr_box *box) {
  * Indicate to clients in this container that they are participating in (or
  * have just finished) an interactive resize
  */
-void column_set_resizing(struct hayward_column *column, bool resizing) {
+void
+column_set_resizing(struct hayward_column *column, bool resizing) {
     hayward_assert(column != NULL, "Expected column");
 
     if (!column) {
@@ -336,7 +350,8 @@ void column_set_resizing(struct hayward_column *column, bool resizing) {
     }
 }
 
-list_t *column_get_siblings(struct hayward_column *column) {
+list_t *
+column_get_siblings(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
 
     if (column->pending.workspace) {
@@ -345,13 +360,15 @@ list_t *column_get_siblings(struct hayward_column *column) {
     return NULL;
 }
 
-int column_sibling_index(struct hayward_column *child) {
+int
+column_sibling_index(struct hayward_column *child) {
     hayward_assert(child != NULL, "Expected column");
 
     return list_find(column_get_siblings(child), child);
 }
 
-list_t *column_get_current_siblings(struct hayward_column *column) {
+list_t *
+column_get_current_siblings(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
 
     if (column->current.workspace) {
@@ -360,8 +377,8 @@ list_t *column_get_current_siblings(struct hayward_column *column) {
     return NULL;
 }
 
-struct hayward_column *column_get_previous_sibling(struct hayward_column *column
-) {
+struct hayward_column *
+column_get_previous_sibling(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     hayward_assert(
         column->pending.workspace, "Column is not attached to a workspace"
@@ -377,7 +394,8 @@ struct hayward_column *column_get_previous_sibling(struct hayward_column *column
     return siblings->items[index - 1];
 }
 
-struct hayward_column *column_get_next_sibling(struct hayward_column *column) {
+struct hayward_column *
+column_get_next_sibling(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     hayward_assert(
         column->pending.workspace, "Column is not attached to a workspace"
@@ -401,8 +419,8 @@ struct hayward_column *column_get_next_sibling(struct hayward_column *column) {
  * Return the output which will be used for scale purposes.
  * This is the most recently entered output.
  */
-struct hayward_output *column_get_effective_output(struct hayward_column *column
-) {
+struct hayward_output *
+column_get_effective_output(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     if (column->outputs->length == 0) {
         return NULL;
@@ -410,7 +428,8 @@ struct hayward_output *column_get_effective_output(struct hayward_column *column
     return column->outputs->items[column->outputs->length - 1];
 }
 
-void column_discover_outputs(struct hayward_column *column) {
+void
+column_discover_outputs(struct hayward_column *column) {
     // TODO columns can only realistically be on one output.
     hayward_assert(column != NULL, "Expected column");
 
@@ -448,11 +467,13 @@ void column_discover_outputs(struct hayward_column *column) {
     }
 }
 
-static bool find_urgent_iterator(struct hayward_window *container, void *data) {
+static bool
+find_urgent_iterator(struct hayward_window *container, void *data) {
     return container->view && view_is_urgent(container->view);
 }
 
-bool column_has_urgent_child(struct hayward_column *column) {
+bool
+column_has_urgent_child(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     return column_find_child(column, find_urgent_iterator, NULL);
 }

@@ -12,9 +12,13 @@
 
 #include "hayward-common/log.h"
 
-int wrap(int i, int max) { return ((i % max) + max) % max; }
+int
+wrap(int i, int max) {
+    return ((i % max) + max) % max;
+}
 
-bool parse_color(const char *color, uint32_t *result) {
+bool
+parse_color(const char *color, uint32_t *result) {
     if (color[0] == '#') {
         ++color;
     }
@@ -31,14 +35,16 @@ bool parse_color(const char *color, uint32_t *result) {
     return true;
 }
 
-void color_to_rgba(float dest[static 4], uint32_t color) {
+void
+color_to_rgba(float dest[static 4], uint32_t color) {
     dest[0] = ((color >> 24) & 0xff) / 255.0;
     dest[1] = ((color >> 16) & 0xff) / 255.0;
     dest[2] = ((color >> 8) & 0xff) / 255.0;
     dest[3] = (color & 0xff) / 255.0;
 }
 
-bool parse_boolean(const char *boolean, bool current) {
+bool
+parse_boolean(const char *boolean, bool current) {
     if (strcasecmp(boolean, "1") == 0 || strcasecmp(boolean, "yes") == 0 ||
         strcasecmp(boolean, "on") == 0 || strcasecmp(boolean, "true") == 0 ||
         strcasecmp(boolean, "enable") == 0 ||
@@ -52,7 +58,8 @@ bool parse_boolean(const char *boolean, bool current) {
     return false;
 }
 
-float parse_float(const char *value) {
+float
+parse_float(const char *value) {
     errno = 0;
     char *end;
     float flt = strtof(value, &end);
@@ -65,7 +72,8 @@ float parse_float(const char *value) {
     return flt;
 }
 
-enum movement_unit parse_movement_unit(const char *unit) {
+enum movement_unit
+parse_movement_unit(const char *unit) {
     if (strcasecmp(unit, "px") == 0) {
         return MOVEMENT_UNIT_PX;
     }
@@ -78,9 +86,8 @@ enum movement_unit parse_movement_unit(const char *unit) {
     return MOVEMENT_UNIT_INVALID;
 }
 
-int parse_movement_amount(
-    int argc, char **argv, struct movement_amount *amount
-) {
+int
+parse_movement_amount(int argc, char **argv, struct movement_amount *amount) {
     hayward_assert(argc > 0, "Expected args in parse_movement_amount");
 
     char *err;
@@ -123,7 +130,8 @@ hayward_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) {
     return NULL;
 }
 
-bool hayward_set_cloexec(int fd, bool cloexec) {
+bool
+hayward_set_cloexec(int fd, bool cloexec) {
     int flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
         hayward_log_errno(HAYWARD_ERROR, "fcntl failed");

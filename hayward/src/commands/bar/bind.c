@@ -124,18 +124,22 @@ bar_cmd_bind(int argc, char **argv, bool code, bool unbind) {
     return binding_add(binding, bindings);
 }
 
-struct cmd_results *bar_cmd_bindcode(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_bindcode(int argc, char **argv) {
     return bar_cmd_bind(argc, argv, true, false);
 }
 
-struct cmd_results *bar_cmd_bindsym(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_bindsym(int argc, char **argv) {
     return bar_cmd_bind(argc, argv, false, false);
 }
 
-struct cmd_results *bar_cmd_unbindcode(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_unbindcode(int argc, char **argv) {
     return bar_cmd_bind(argc, argv, true, true);
 }
 
-struct cmd_results *bar_cmd_unbindsym(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_unbindsym(int argc, char **argv) {
     return bar_cmd_bind(argc, argv, false, true);
 }

@@ -88,7 +88,8 @@ render_status_line_error(struct render_context *ctx, double *x) {
     return output->height;
 }
 
-static uint32_t render_status_line_text(struct render_context *ctx, double *x) {
+static uint32_t
+render_status_line_text(struct render_context *ctx, double *x) {
     struct haywardbar_output *output = ctx->output;
     const char *text = output->bar->status->text;
     if (!text) {
@@ -126,7 +127,8 @@ static uint32_t render_status_line_text(struct render_context *ctx, double *x) {
     return output->height;
 }
 
-static void render_sharp_rectangle(
+static void
+render_sharp_rectangle(
     cairo_t *cairo, uint32_t color, double x, double y, double width,
     double height
 ) {
@@ -139,7 +141,8 @@ static void render_sharp_rectangle(
     cairo_restore(cairo);
 }
 
-static void render_sharp_line(
+static void
+render_sharp_line(
     cairo_t *cairo, uint32_t color, double x, double y, double width,
     double height
 ) {
@@ -168,7 +171,8 @@ static void render_sharp_line(
     }
 }
 
-static enum hotspot_event_handling block_hotspot_callback(
+static enum hotspot_event_handling
+block_hotspot_callback(
     struct haywardbar_output *output, struct haywardbar_hotspot *hotspot,
     double x, double y, uint32_t button, void *data
 ) {
@@ -180,9 +184,13 @@ static enum hotspot_event_handling block_hotspot_callback(
     );
 }
 
-static void i3bar_block_unref_callback(void *data) { i3bar_block_unref(data); }
+static void
+i3bar_block_unref_callback(void *data) {
+    i3bar_block_unref(data);
+}
 
-static uint32_t render_status_block(
+static uint32_t
+render_status_block(
     struct render_context *ctx, struct i3bar_block *block, double *x, bool edge,
     bool use_short_text
 ) {
@@ -370,7 +378,8 @@ static uint32_t render_status_block(
     return output->height;
 }
 
-static void predict_status_block_pos(
+static void
+predict_status_block_pos(
     cairo_t *cairo, struct haywardbar_output *output, struct i3bar_block *block,
     double *x, bool edge
 ) {
@@ -441,7 +450,8 @@ static void predict_status_block_pos(
     }
 }
 
-static double predict_status_line_pos(
+static double
+predict_status_line_pos(
     cairo_t *cairo, struct haywardbar_output *output, double x
 ) {
     bool edge = x == output->width;
@@ -453,7 +463,8 @@ static double predict_status_line_pos(
     return x;
 }
 
-static uint32_t predict_workspace_button_length(
+static uint32_t
+predict_workspace_button_length(
     cairo_t *cairo, struct haywardbar_output *output,
     struct haywardbar_workspace *ws
 ) {
@@ -483,7 +494,8 @@ static uint32_t predict_workspace_button_length(
     return width;
 }
 
-static uint32_t predict_workspace_buttons_length(
+static uint32_t
+predict_workspace_buttons_length(
     cairo_t *cairo, struct haywardbar_output *output
 ) {
     uint32_t width = 0;
@@ -496,7 +508,8 @@ static uint32_t predict_workspace_buttons_length(
     return width;
 }
 
-static uint32_t predict_binding_mode_indicator_length(
+static uint32_t
+predict_binding_mode_indicator_length(
     cairo_t *cairo, struct haywardbar_output *output
 ) {
     const char *mode = output->bar->mode;
@@ -560,7 +573,8 @@ render_status_line_i3bar(struct render_context *ctx, double *x) {
     return max_height;
 }
 
-static uint32_t render_status_line(struct render_context *ctx, double *x) {
+static uint32_t
+render_status_line(struct render_context *ctx, double *x) {
     struct status_line *status = ctx->output->bar->status;
     switch (status->protocol) {
     case PROTOCOL_ERROR:
@@ -633,7 +647,8 @@ render_binding_mode_indicator(struct render_context *ctx, double x) {
     return output->height;
 }
 
-static enum hotspot_event_handling workspace_hotspot_callback(
+static enum hotspot_event_handling
+workspace_hotspot_callback(
     struct haywardbar_output *output, struct haywardbar_hotspot *hotspot,
     double x, double y, uint32_t button, void *data
 ) {
@@ -644,7 +659,8 @@ static enum hotspot_event_handling workspace_hotspot_callback(
     return HOTSPOT_IGNORE;
 }
 
-static uint32_t render_workspace_button(
+static uint32_t
+render_workspace_button(
     struct render_context *ctx, struct haywardbar_workspace *ws, double *x
 ) {
     struct haywardbar_output *output = ctx->output;
@@ -722,7 +738,8 @@ static uint32_t render_workspace_button(
     return output->height;
 }
 
-static uint32_t render_to_cairo(struct render_context *ctx) {
+static uint32_t
+render_to_cairo(struct render_context *ctx) {
     cairo_t *cairo = ctx->cairo;
     struct haywardbar_output *output = ctx->output;
     struct haywardbar *bar = output->bar;
@@ -774,7 +791,8 @@ static uint32_t render_to_cairo(struct render_context *ctx) {
     return max_height > output->height ? max_height : output->height;
 }
 
-static void output_frame_handle_done(
+static void
+output_frame_handle_done(
     void *data, struct wl_callback *callback, uint32_t time
 ) {
     wl_callback_destroy(callback);
@@ -789,7 +807,8 @@ static void output_frame_handle_done(
 static const struct wl_callback_listener output_frame_listener = {
     .done = output_frame_handle_done};
 
-void render_frame(struct haywardbar_output *output) {
+void
+render_frame(struct haywardbar_output *output) {
     assert(output->surface != NULL);
     if (!output->layer_surface) {
         return;

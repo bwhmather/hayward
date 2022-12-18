@@ -34,7 +34,8 @@ popup_get_view_coords(struct hayward_view_child *child, int *sx, int *sy) {
     );
 }
 
-static void popup_destroy(struct hayward_view_child *child) {
+static void
+popup_destroy(struct hayward_view_child *child) {
     hayward_assert(child->impl == &popup_impl, "Expected an xdg_shell popup");
     struct hayward_xdg_popup *popup = (struct hayward_xdg_popup *)child;
     wl_list_remove(&popup->new_popup.link);
@@ -50,19 +51,22 @@ static const struct hayward_view_child_impl popup_impl = {
 static struct hayward_xdg_popup *
 popup_create(struct wlr_xdg_popup *wlr_popup, struct hayward_view *view);
 
-static void popup_handle_new_popup(struct wl_listener *listener, void *data) {
+static void
+popup_handle_new_popup(struct wl_listener *listener, void *data) {
     struct hayward_xdg_popup *popup =
         wl_container_of(listener, popup, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
     popup_create(wlr_popup, popup->child.view);
 }
 
-static void popup_handle_destroy(struct wl_listener *listener, void *data) {
+static void
+popup_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_xdg_popup *popup = wl_container_of(listener, popup, destroy);
     view_child_destroy(&popup->child);
 }
 
-static void popup_unconstrain(struct hayward_xdg_popup *popup) {
+static void
+popup_unconstrain(struct hayward_xdg_popup *popup) {
     struct hayward_view *view = popup->child.view;
     struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
@@ -117,7 +121,8 @@ xdg_shell_view_from_view(struct hayward_view *view) {
     return (struct hayward_xdg_shell_view *)view;
 }
 
-static void get_constraints(
+static void
+get_constraints(
     struct hayward_view *view, double *min_width, double *max_width,
     double *min_height, double *max_height
 ) {
@@ -143,7 +148,8 @@ get_string_prop(struct hayward_view *view, enum hayward_view_prop prop) {
     }
 }
 
-static uint32_t configure(
+static uint32_t
+configure(
     struct hayward_view *view, double lx, double ly, int width, int height
 ) {
     struct hayward_xdg_shell_view *xdg_shell_view =
@@ -154,14 +160,16 @@ static uint32_t configure(
     return wlr_xdg_toplevel_set_size(view->wlr_xdg_toplevel, width, height);
 }
 
-static void set_activated(struct hayward_view *view, bool activated) {
+static void
+set_activated(struct hayward_view *view, bool activated) {
     if (xdg_shell_view_from_view(view) == NULL) {
         return;
     }
     wlr_xdg_toplevel_set_activated(view->wlr_xdg_toplevel, activated);
 }
 
-static void set_tiled(struct hayward_view *view, bool tiled) {
+static void
+set_tiled(struct hayward_view *view, bool tiled) {
     if (xdg_shell_view_from_view(view) == NULL) {
         return;
     }
@@ -172,21 +180,24 @@ static void set_tiled(struct hayward_view *view, bool tiled) {
     wlr_xdg_toplevel_set_tiled(view->wlr_xdg_toplevel, edges);
 }
 
-static void set_fullscreen(struct hayward_view *view, bool fullscreen) {
+static void
+set_fullscreen(struct hayward_view *view, bool fullscreen) {
     if (xdg_shell_view_from_view(view) == NULL) {
         return;
     }
     wlr_xdg_toplevel_set_fullscreen(view->wlr_xdg_toplevel, fullscreen);
 }
 
-static void set_resizing(struct hayward_view *view, bool resizing) {
+static void
+set_resizing(struct hayward_view *view, bool resizing) {
     if (xdg_shell_view_from_view(view) == NULL) {
         return;
     }
     wlr_xdg_toplevel_set_resizing(view->wlr_xdg_toplevel, resizing);
 }
 
-static bool wants_floating(struct hayward_view *view) {
+static bool
+wants_floating(struct hayward_view *view) {
     struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
     struct wlr_xdg_toplevel_state *state = &toplevel->current;
     return (state->min_width != 0 && state->min_height != 0 &&
@@ -195,7 +206,8 @@ static bool wants_floating(struct hayward_view *view) {
         toplevel->parent;
 }
 
-static void for_each_surface(
+static void
+for_each_surface(
     struct hayward_view *view, wlr_surface_iterator_func_t iterator,
     void *user_data
 ) {
@@ -207,7 +219,8 @@ static void for_each_surface(
     );
 }
 
-static void for_each_popup_surface(
+static void
+for_each_popup_surface(
     struct hayward_view *view, wlr_surface_iterator_func_t iterator,
     void *user_data
 ) {
@@ -234,14 +247,16 @@ is_transient_for(struct hayward_view *child, struct hayward_view *ancestor) {
     return false;
 }
 
-static void _close(struct hayward_view *view) {
+static void
+_close(struct hayward_view *view) {
     if (xdg_shell_view_from_view(view) == NULL) {
         return;
     }
     wlr_xdg_toplevel_send_close(view->wlr_xdg_toplevel);
 }
 
-static void close_popups(struct hayward_view *view) {
+static void
+close_popups(struct hayward_view *view) {
     struct wlr_xdg_popup *popup, *tmp;
     wl_list_for_each_safe(
         popup, tmp, &view->wlr_xdg_toplevel->base->popups, link
@@ -250,7 +265,8 @@ static void close_popups(struct hayward_view *view) {
     }
 }
 
-static void destroy(struct hayward_view *view) {
+static void
+destroy(struct hayward_view *view) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         xdg_shell_view_from_view(view);
     if (xdg_shell_view == NULL) {
@@ -276,7 +292,8 @@ static const struct hayward_view_impl view_impl = {
     .destroy = destroy,
 };
 
-static void handle_commit(struct wl_listener *listener, void *data) {
+static void
+handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, commit);
     struct hayward_view *view = &xdg_shell_view->view;
@@ -312,16 +329,19 @@ static void handle_commit(struct wl_listener *listener, void *data) {
     view_damage_from(view);
 }
 
-static void handle_set_title(struct wl_listener *listener, void *data) {
+static void
+handle_set_title(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, set_title);
     struct hayward_view *view = &xdg_shell_view->view;
     view_update_title(view, false);
 }
 
-static void handle_set_app_id(struct wl_listener *listener, void *data) {}
+static void
+handle_set_app_id(struct wl_listener *listener, void *data) {}
 
-static void handle_new_popup(struct wl_listener *listener, void *data) {
+static void
+handle_new_popup(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
@@ -355,7 +375,8 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     transaction_commit_dirty();
 }
 
-static void handle_request_move(struct wl_listener *listener, void *data) {
+static void
+handle_request_move(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, request_move);
     struct hayward_view *view = &xdg_shell_view->view;
@@ -369,7 +390,8 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_request_resize(struct wl_listener *listener, void *data) {
+static void
+handle_request_resize(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, request_resize);
     struct hayward_view *view = &xdg_shell_view->view;
@@ -383,7 +405,8 @@ static void handle_request_resize(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_unmap(struct wl_listener *listener, void *data) {
+static void
+handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, unmap);
     struct hayward_view *view = &xdg_shell_view->view;
@@ -401,7 +424,8 @@ static void handle_unmap(struct wl_listener *listener, void *data) {
     wl_list_remove(&xdg_shell_view->set_app_id.link);
 }
 
-static void handle_map(struct wl_listener *listener, void *data) {
+static void
+handle_map(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, map);
     struct hayward_view *view = &xdg_shell_view->view;
@@ -468,7 +492,8 @@ static void handle_map(struct wl_listener *listener, void *data) {
     wl_signal_add(&toplevel->events.set_app_id, &xdg_shell_view->set_app_id);
 }
 
-static void handle_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, destroy);
     struct hayward_view *view = &xdg_shell_view->view;
@@ -488,7 +513,8 @@ view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface) {
     return xdg_surface->data;
 }
 
-void handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
+void
+handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
     struct wlr_xdg_surface *xdg_surface = data;
 
     if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {

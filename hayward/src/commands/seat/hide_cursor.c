@@ -10,7 +10,8 @@
 #include "hayward/input/seat.h"
 #include "hayward/server.h"
 
-struct cmd_results *seat_cmd_hide_cursor(int argc, char **argv) {
+struct cmd_results *
+seat_cmd_hide_cursor(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "hide_cursor", EXPECTED_AT_LEAST, 1))) {
         return error;

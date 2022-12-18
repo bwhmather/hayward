@@ -16,7 +16,8 @@
 
 #include "config.h"
 
-static int create_pool_file(size_t size, char **name) {
+static int
+create_pool_file(size_t size, char **name) {
     static const char template[] = "hayward-client-XXXXXX";
     const char *path = getenv("XDG_RUNTIME_DIR");
     if (path == NULL) {
@@ -50,7 +51,8 @@ static int create_pool_file(size_t size, char **name) {
     return fd;
 }
 
-static void buffer_release(void *data, struct wl_buffer *wl_buffer) {
+static void
+buffer_release(void *data, struct wl_buffer *wl_buffer) {
     struct pool_buffer *buffer = data;
     buffer->busy = false;
 }
@@ -58,7 +60,8 @@ static void buffer_release(void *data, struct wl_buffer *wl_buffer) {
 static const struct wl_buffer_listener buffer_listener = {
     .release = buffer_release};
 
-static struct pool_buffer *create_buffer(
+static struct pool_buffer *
+create_buffer(
     struct wl_shm *shm, struct pool_buffer *buf, int32_t width, int32_t height,
     uint32_t format
 ) {
@@ -91,7 +94,8 @@ static struct pool_buffer *create_buffer(
     return buf;
 }
 
-void destroy_buffer(struct pool_buffer *buffer) {
+void
+destroy_buffer(struct pool_buffer *buffer) {
     if (buffer->buffer) {
         wl_buffer_destroy(buffer->buffer);
     }
@@ -110,7 +114,8 @@ void destroy_buffer(struct pool_buffer *buffer) {
     memset(buffer, 0, sizeof(struct pool_buffer));
 }
 
-struct pool_buffer *get_next_buffer(
+struct pool_buffer *
+get_next_buffer(
     struct wl_shm *shm, struct pool_buffer pool[static 2], uint32_t width,
     uint32_t height
 ) {

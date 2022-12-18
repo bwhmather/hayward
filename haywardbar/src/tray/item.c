@@ -23,14 +23,16 @@
 
 // TODO menu
 
-static bool sni_ready(struct haywardbar_sni *sni) {
+static bool
+sni_ready(struct haywardbar_sni *sni) {
     return sni->status &&
         (sni->status[0] == 'N' ? // NeedsAttention
              sni->attention_icon_name || sni->attention_icon_pixmap
                                : sni->icon_name || sni->icon_pixmap);
 }
 
-static void set_sni_dirty(struct haywardbar_sni *sni) {
+static void
+set_sni_dirty(struct haywardbar_sni *sni) {
     if (sni_ready(sni)) {
         sni->target_size = sni->min_size = sni->max_size =
             0; // invalidate previous icon
@@ -38,7 +40,8 @@ static void set_sni_dirty(struct haywardbar_sni *sni) {
     }
 }
 
-static int read_pixmap(
+static int
+read_pixmap(
     sd_bus_message *msg, struct haywardbar_sni *sni, const char *prop,
     list_t **dest
 ) {
@@ -213,7 +216,8 @@ cleanup:
     return ret;
 }
 
-static void sni_get_property_async(
+static void
+sni_get_property_async(
     struct haywardbar_sni *sni, const char *prop, const char *type, void *dest
 ) {
     struct haywardbar_sni_slot *data =
@@ -251,7 +255,8 @@ static void sni_get_property_async(
  * can stop since it has already found the required callback, otherwise, it
  * returns 0, which allows matching to continue.
  */
-static int sni_check_msg_sender(
+static int
+sni_check_msg_sender(
     struct haywardbar_sni *sni, sd_bus_message *msg, const char *signal
 ) {
     bool has_well_known_names =
@@ -281,7 +286,8 @@ handle_new_icon(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return sni_check_msg_sender(sni, msg, "icon");
 }
 
-static int handle_new_attention_icon(
+static int
+handle_new_attention_icon(
     sd_bus_message *msg, void *data, sd_bus_error *error
 ) {
     struct haywardbar_sni *sni = data;
@@ -323,7 +329,8 @@ handle_new_status(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return ret;
 }
 
-static void sni_match_signal_async(
+static void
+sni_match_signal_async(
     struct haywardbar_sni *sni, char *signal, sd_bus_message_handler_t callback
 ) {
     struct haywardbar_sni_slot *slot =
@@ -343,7 +350,8 @@ static void sni_match_signal_async(
     }
 }
 
-struct haywardbar_sni *create_sni(char *id, struct haywardbar_tray *tray) {
+struct haywardbar_sni *
+create_sni(char *id, struct haywardbar_tray *tray) {
     struct haywardbar_sni *sni = calloc(1, sizeof(struct haywardbar_sni));
     if (!sni) {
         return NULL;
@@ -386,7 +394,8 @@ struct haywardbar_sni *create_sni(char *id, struct haywardbar_tray *tray) {
     return sni;
 }
 
-void destroy_sni(struct haywardbar_sni *sni) {
+void
+destroy_sni(struct haywardbar_sni *sni) {
     if (!sni) {
         return;
     }
@@ -412,7 +421,8 @@ void destroy_sni(struct haywardbar_sni *sni) {
     free(sni);
 }
 
-static void handle_click(
+static void
+handle_click(
     struct haywardbar_sni *sni, int x, int y, uint32_t button, int delta
 ) {
     const char *method = NULL;
@@ -455,12 +465,14 @@ static void handle_click(
     }
 }
 
-static int cmp_sni_id(const void *item, const void *cmp_to) {
+static int
+cmp_sni_id(const void *item, const void *cmp_to) {
     const struct haywardbar_sni *sni = item;
     return strcmp(sni->watcher_id, cmp_to);
 }
 
-static enum hotspot_event_handling icon_hotspot_callback(
+static enum hotspot_event_handling
+icon_hotspot_callback(
     struct haywardbar_output *output, struct haywardbar_hotspot *hotspot,
     double x, double y, uint32_t button, void *data
 ) {
@@ -538,7 +550,8 @@ reload_sni(struct haywardbar_sni *sni, char *icon_theme, int target_size) {
     }
 }
 
-uint32_t render_sni(
+uint32_t
+render_sni(
     cairo_t *cairo, struct haywardbar_output *output, double *x,
     struct haywardbar_sni *sni
 ) {

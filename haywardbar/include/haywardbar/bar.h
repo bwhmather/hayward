@@ -90,11 +90,15 @@ struct haywardbar_workspace {
     bool urgent;
 };
 
-bool bar_setup(struct haywardbar *bar, const char *socket_path);
-void bar_run(struct haywardbar *bar);
-void bar_teardown(struct haywardbar *bar);
+bool
+bar_setup(struct haywardbar *bar, const char *socket_path);
+void
+bar_run(struct haywardbar *bar);
+void
+bar_teardown(struct haywardbar *bar);
 
-void set_bar_dirty(struct haywardbar *bar);
+void
+set_bar_dirty(struct haywardbar *bar);
 
 /*
  * Determines whether the bar should be visible and changes it to be so.
@@ -108,11 +112,15 @@ void set_bar_dirty(struct haywardbar *bar);
  *
  * Returns true if the bar is now visible, otherwise false.
  */
-bool determine_bar_visibility(struct haywardbar *bar, bool moving_layer);
-void free_workspaces(struct wl_list *list);
+bool
+determine_bar_visibility(struct haywardbar *bar, bool moving_layer);
+void
+free_workspaces(struct wl_list *list);
 
-void status_in(int fd, short mask, void *data);
+void
+status_in(int fd, short mask, void *data);
 
-void destroy_layer_surface(struct haywardbar_output *output);
+void
+destroy_layer_surface(struct haywardbar_output *output);
 
 #endif

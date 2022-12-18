@@ -13,7 +13,8 @@
 //   in use (we set using_csd instead and render a hayward border).
 // - view->saved_border should be the last applied border when switching to CSD.
 // - view->using_csd should always reflect whether CSD is applied or not.
-static void set_border(
+static void
+set_border(
     struct hayward_window *window, enum hayward_window_border new_border
 ) {
     if (window->view->using_csd && new_border != B_CSD) {
@@ -29,7 +30,8 @@ static void set_border(
     window->view->using_csd = new_border == B_CSD;
 }
 
-static void border_toggle(struct hayward_window *window) {
+static void
+border_toggle(struct hayward_window *window) {
     if (window->view->using_csd) {
         set_border(window, B_NONE);
         return;
@@ -55,7 +57,8 @@ static void border_toggle(struct hayward_window *window) {
     }
 }
 
-struct cmd_results *cmd_border(int argc, char **argv) {
+struct cmd_results *
+cmd_border(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "border", EXPECTED_AT_LEAST, 1))) {
         return error;

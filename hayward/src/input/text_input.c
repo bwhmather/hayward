@@ -29,7 +29,8 @@ relay_get_focused_text_input(struct hayward_input_method_relay *relay) {
     return NULL;
 }
 
-static void handle_im_commit(struct wl_listener *listener, void *data) {
+static void
+handle_im_commit(struct wl_listener *listener, void *data) {
     struct hayward_input_method_relay *relay =
         wl_container_of(listener, relay, input_method_commit);
 
@@ -77,7 +78,8 @@ handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
+static void
+handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
     struct hayward_input_method_relay *relay =
         wl_container_of(listener, relay, input_method_grab_keyboard);
     struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
@@ -97,7 +99,8 @@ static void handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
         handle_im_keyboard_grab_destroy;
 }
 
-static void text_input_set_pending_focused_surface(
+static void
+text_input_set_pending_focused_surface(
     struct hayward_text_input *text_input, struct wlr_surface *surface
 ) {
     wl_list_remove(&text_input->pending_focused_surface_destroy.link);
@@ -113,7 +116,8 @@ static void text_input_set_pending_focused_surface(
     }
 }
 
-static void handle_im_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_im_destroy(struct wl_listener *listener, void *data) {
     struct hayward_input_method_relay *relay =
         wl_container_of(listener, relay, input_method_destroy);
     struct wlr_input_method_v2 *context = data;
@@ -130,7 +134,8 @@ static void handle_im_destroy(struct wl_listener *listener, void *data) {
     }
 }
 
-static void relay_send_im_state(
+static void
+relay_send_im_state(
     struct hayward_input_method_relay *relay, struct wlr_text_input_v3 *input
 ) {
     struct wlr_input_method_v2 *input_method = relay->input_method;
@@ -158,7 +163,8 @@ static void relay_send_im_state(
     // TODO: pass intent, display popup size
 }
 
-static void handle_text_input_enable(struct wl_listener *listener, void *data) {
+static void
+handle_text_input_enable(struct wl_listener *listener, void *data) {
     struct hayward_text_input *text_input =
         wl_container_of(listener, text_input, text_input_enable);
     if (text_input->relay->input_method == NULL) {
@@ -171,7 +177,8 @@ static void handle_text_input_enable(struct wl_listener *listener, void *data) {
     relay_send_im_state(text_input->relay, text_input->input);
 }
 
-static void handle_text_input_commit(struct wl_listener *listener, void *data) {
+static void
+handle_text_input_commit(struct wl_listener *listener, void *data) {
     struct hayward_text_input *text_input =
         wl_container_of(listener, text_input, text_input_commit);
     if (!text_input->input->current_enabled) {
@@ -190,7 +197,8 @@ static void handle_text_input_commit(struct wl_listener *listener, void *data) {
     relay_send_im_state(text_input->relay, text_input->input);
 }
 
-static void relay_disable_text_input(
+static void
+relay_disable_text_input(
     struct hayward_input_method_relay *relay,
     struct hayward_text_input *text_input
 ) {
@@ -234,7 +242,8 @@ handle_text_input_destroy(struct wl_listener *listener, void *data) {
     free(text_input);
 }
 
-static void handle_pending_focused_surface_destroy(
+static void
+handle_pending_focused_surface_destroy(
     struct wl_listener *listener, void *data
 ) {
     struct hayward_text_input *text_input =
@@ -246,7 +255,8 @@ static void handle_pending_focused_surface_destroy(
     wl_list_init(&text_input->pending_focused_surface_destroy.link);
 }
 
-struct hayward_text_input *hayward_text_input_create(
+struct hayward_text_input *
+hayward_text_input_create(
     struct hayward_input_method_relay *relay,
     struct wlr_text_input_v3 *text_input
 ) {
@@ -278,7 +288,8 @@ struct hayward_text_input *hayward_text_input_create(
     return input;
 }
 
-static void relay_handle_text_input(struct wl_listener *listener, void *data) {
+static void
+relay_handle_text_input(struct wl_listener *listener, void *data) {
     struct hayward_input_method_relay *relay =
         wl_container_of(listener, relay, text_input_new);
     struct wlr_text_input_v3 *wlr_text_input = data;
@@ -331,7 +342,8 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
     }
 }
 
-void hayward_input_method_relay_init(
+void
+hayward_input_method_relay_init(
     struct hayward_seat *seat, struct hayward_input_method_relay *relay
 ) {
     relay->seat = seat;
@@ -348,13 +360,14 @@ void hayward_input_method_relay_init(
     );
 }
 
-void hayward_input_method_relay_finish(struct hayward_input_method_relay *relay
-) {
+void
+hayward_input_method_relay_finish(struct hayward_input_method_relay *relay) {
     wl_list_remove(&relay->input_method_new.link);
     wl_list_remove(&relay->text_input_new.link);
 }
 
-void hayward_input_method_relay_set_focus(
+void
+hayward_input_method_relay_set_focus(
     struct hayward_input_method_relay *relay, struct wlr_surface *surface
 ) {
     struct hayward_text_input *text_input;

@@ -12,9 +12,13 @@
 
 static struct haywardbar haywardbar;
 
-void sig_handler(int signal) { haywardbar.running = false; }
+void
+sig_handler(int signal) {
+    haywardbar.running = false;
+}
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv) {
     char *socket_path = NULL;
     bool debug = false;
 

@@ -7,7 +7,8 @@
 #include "hayward/commands.h"
 #include "hayward/ipc-server.h"
 
-struct cmd_results *bar_cmd_gaps(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_gaps(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "gaps", EXPECTED_AT_LEAST, 1))) {
         return error;

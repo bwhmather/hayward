@@ -8,7 +8,8 @@
 
 #include "config.h"
 
-struct cmd_results *bar_cmd_workspace_min_width(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_workspace_min_width(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "workspace_min_width", EXPECTED_AT_LEAST, 1))) {
         return error;

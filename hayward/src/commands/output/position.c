@@ -3,7 +3,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *output_cmd_position(int argc, char **argv) {
+struct cmd_results *
+output_cmd_position(int argc, char **argv) {
     if (!config->handler_context.output_config) {
         return cmd_results_new(CMD_FAILURE, "Missing output config");
     }

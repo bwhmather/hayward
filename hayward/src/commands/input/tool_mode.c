@@ -3,7 +3,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-static void set_tool_mode(
+static void
+set_tool_mode(
     struct input_config *ic, enum wlr_tablet_tool_type type,
     enum hayward_tablet_tool_mode mode
 ) {
@@ -23,7 +24,8 @@ static void set_tool_mode(
     }
 }
 
-struct cmd_results *input_cmd_tool_mode(int argc, char **argv) {
+struct cmd_results *
+input_cmd_tool_mode(int argc, char **argv) {
     struct cmd_results *error;
     if ((error = checkarg(argc, "tool_mode", EXPECTED_AT_LEAST, 2))) {
         return error;

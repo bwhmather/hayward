@@ -37,7 +37,8 @@
 
 #include "config.h"
 
-struct hayward_output *output_by_name_or_id(const char *name_or_id) {
+struct hayward_output *
+output_by_name_or_id(const char *name_or_id) {
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
         char identifier[128];
@@ -50,7 +51,8 @@ struct hayward_output *output_by_name_or_id(const char *name_or_id) {
     return NULL;
 }
 
-struct hayward_output *all_output_by_name_or_id(const char *name_or_id) {
+struct hayward_output *
+all_output_by_name_or_id(const char *name_or_id) {
     struct hayward_output *output;
     wl_list_for_each(output, &root->all_outputs, link) {
         char identifier[128];
@@ -73,7 +75,8 @@ struct surface_iterator_data {
     int width, height;
 };
 
-static bool get_surface_box(
+static bool
+get_surface_box(
     struct surface_iterator_data *data, struct wlr_surface *surface, int sx,
     int sy, struct wlr_box *surface_box
 ) {
@@ -105,7 +108,8 @@ static bool get_surface_box(
     return wlr_box_intersection(&intersection, &output_box, &box);
 }
 
-static void output_for_each_surface_iterator(
+static void
+output_for_each_surface_iterator(
     struct wlr_surface *surface, int sx, int sy, void *_data
 ) {
     struct surface_iterator_data *data = _data;
@@ -121,7 +125,8 @@ static void output_for_each_surface_iterator(
     );
 }
 
-void output_surface_for_each_surface(
+void
+output_surface_for_each_surface(
     struct hayward_output *output, struct wlr_surface *surface, double ox,
     double oy, hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -141,7 +146,8 @@ void output_surface_for_each_surface(
     );
 }
 
-void output_view_for_each_surface(
+void
+output_view_for_each_surface(
     struct hayward_output *output, struct hayward_view *view,
     hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -159,7 +165,8 @@ void output_view_for_each_surface(
     view_for_each_surface(view, output_for_each_surface_iterator, &data);
 }
 
-void output_view_for_each_popup_surface(
+void
+output_view_for_each_popup_surface(
     struct hayward_output *output, struct hayward_view *view,
     hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -177,7 +184,8 @@ void output_view_for_each_popup_surface(
     view_for_each_popup_surface(view, output_for_each_surface_iterator, &data);
 }
 
-void output_layer_for_each_surface(
+void
+output_layer_for_each_surface(
     struct hayward_output *output, struct wl_list *layer_surfaces,
     hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -202,7 +210,8 @@ void output_layer_for_each_surface(
     }
 }
 
-void output_layer_for_each_toplevel_surface(
+void
+output_layer_for_each_toplevel_surface(
     struct hayward_output *output, struct wl_list *layer_surfaces,
     hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -217,7 +226,8 @@ void output_layer_for_each_toplevel_surface(
     }
 }
 
-void output_layer_for_each_popup_surface(
+void
+output_layer_for_each_popup_surface(
     struct hayward_output *output, struct wl_list *layer_surfaces,
     hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -243,7 +253,8 @@ void output_layer_for_each_popup_surface(
 }
 
 #if HAVE_XWAYLAND
-void output_unmanaged_for_each_surface(
+void
+output_unmanaged_for_each_surface(
     struct hayward_output *output, struct wl_list *unmanaged,
     hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -261,7 +272,8 @@ void output_unmanaged_for_each_surface(
 }
 #endif
 
-void output_drag_icons_for_each_surface(
+void
+output_drag_icons_for_each_surface(
     struct hayward_output *output, struct wl_list *drag_icons,
     hayward_surface_iterator_func_t iterator, void *user_data
 ) {
@@ -279,7 +291,8 @@ void output_drag_icons_for_each_surface(
     }
 }
 
-static void for_each_surface_container_iterator(
+static void
+for_each_surface_container_iterator(
     struct hayward_window *container, void *_data
 ) {
     if (!container->view || !view_is_visible(container->view)) {
@@ -292,7 +305,8 @@ static void for_each_surface_container_iterator(
     );
 }
 
-static void output_for_each_surface(
+static void
+output_for_each_surface(
     struct hayward_output *output, hayward_surface_iterator_func_t iterator,
     void *user_data
 ) {
@@ -384,18 +398,21 @@ overlay:
     );
 }
 
-static int scale_length(int length, int offset, float scale) {
+static int
+scale_length(int length, int offset, float scale) {
     return round((offset + length) * scale) - round(offset * scale);
 }
 
-void scale_box(struct wlr_box *box, float scale) {
+void
+scale_box(struct wlr_box *box, float scale) {
     box->width = scale_length(box->width, box->x, scale);
     box->height = scale_length(box->height, box->y, scale);
     box->x = round(box->x * scale);
     box->y = round(box->y * scale);
 }
 
-bool output_has_opaque_overlay_layer_surface(struct hayward_output *output) {
+bool
+output_has_opaque_overlay_layer_surface(struct hayward_output *output) {
     struct hayward_layer_surface *hayward_layer_surface;
     wl_list_for_each(
         hayward_layer_surface,
@@ -431,7 +448,8 @@ struct send_frame_done_data {
     int msec_until_refresh;
 };
 
-static void send_frame_done_iterator(
+static void
+send_frame_done_iterator(
     struct hayward_output *output, struct hayward_view *view,
     struct wlr_surface *surface, struct wlr_box *box, void *user_data
 ) {
@@ -454,13 +472,15 @@ static void send_frame_done_iterator(
     }
 }
 
-static void send_frame_done(
+static void
+send_frame_done(
     struct hayward_output *output, struct send_frame_done_data *data
 ) {
     output_for_each_surface(output, send_frame_done_iterator, data);
 }
 
-static void count_surface_iterator(
+static void
+count_surface_iterator(
     struct hayward_output *output, struct hayward_view *view,
     struct wlr_surface *surface, struct wlr_box *box, void *data
 ) {
@@ -468,7 +488,8 @@ static void count_surface_iterator(
     (*n)++;
 }
 
-static bool scan_out_fullscreen_view(
+static bool
+scan_out_fullscreen_view(
     struct hayward_output *output, struct hayward_view *view
 ) {
     struct wlr_output *wlr_output = output->wlr_output;
@@ -532,7 +553,8 @@ static bool scan_out_fullscreen_view(
     return wlr_output_commit(wlr_output);
 }
 
-static int output_repaint_timer_handler(void *data) {
+static int
+output_repaint_timer_handler(void *data) {
     struct hayward_output *output = data;
     if (output->wlr_output == NULL) {
         return 0;
@@ -597,7 +619,8 @@ static int output_repaint_timer_handler(void *data) {
     return 0;
 }
 
-static void damage_handle_frame(struct wl_listener *listener, void *user_data) {
+static void
+damage_handle_frame(struct wl_listener *listener, void *user_data) {
     struct hayward_output *output =
         wl_container_of(listener, output, damage_frame);
     if (!output->enabled || !output->wlr_output->enabled) {
@@ -662,7 +685,8 @@ static void damage_handle_frame(struct wl_listener *listener, void *user_data) {
     send_frame_done(output, &data);
 }
 
-void output_damage_whole(struct hayward_output *output) {
+void
+output_damage_whole(struct hayward_output *output) {
     // The output can exist with no wlr_output if it's just been disconnected
     // and the transaction to evacuate it has't completed yet.
     if (output && output->wlr_output && output->damage) {
@@ -670,7 +694,8 @@ void output_damage_whole(struct hayward_output *output) {
     }
 }
 
-static void damage_surface_iterator(
+static void
+damage_surface_iterator(
     struct hayward_output *output, struct hayward_view *view,
     struct wlr_surface *surface, struct wlr_box *_box, void *_data
 ) {
@@ -705,7 +730,8 @@ static void damage_surface_iterator(
     }
 }
 
-void output_damage_surface(
+void
+output_damage_surface(
     struct hayward_output *output, double ox, double oy,
     struct wlr_surface *surface, bool whole
 ) {
@@ -714,7 +740,8 @@ void output_damage_surface(
     );
 }
 
-void output_damage_from_view(
+void
+output_damage_from_view(
     struct hayward_output *output, struct hayward_view *view
 ) {
     if (!view_is_visible(view)) {
@@ -725,7 +752,8 @@ void output_damage_from_view(
 }
 
 // Expecting an unscaled box in layout coordinates
-void output_damage_box(struct hayward_output *output, struct wlr_box *_box) {
+void
+output_damage_box(struct hayward_output *output, struct wlr_box *_box) {
     struct wlr_box box;
     memcpy(&box, _box, sizeof(struct wlr_box));
     box.x -= output->lx;
@@ -734,7 +762,8 @@ void output_damage_box(struct hayward_output *output, struct wlr_box *_box) {
     wlr_output_damage_add_box(output->damage, &box);
 }
 
-void output_damage_window(
+void
+output_damage_window(
     struct hayward_output *output, struct hayward_window *window
 ) {
     // Pad the box by 1px, because the width is a double and might be a fraction
@@ -760,7 +789,8 @@ damage_child_views_iterator(struct hayward_window *window, void *data) {
     output_damage_window(output, window);
 }
 
-void output_damage_column(
+void
+output_damage_column(
     struct hayward_output *output, struct hayward_column *column
 ) {
     // Pad the box by 1px, because the width is a double and might be a fraction
@@ -777,7 +807,8 @@ void output_damage_column(
     column_for_each_child(column, damage_child_views_iterator, output);
 }
 
-static void damage_handle_destroy(struct wl_listener *listener, void *data) {
+static void
+damage_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_output *output =
         wl_container_of(listener, output, damage_destroy);
     if (!output->enabled) {
@@ -791,7 +822,8 @@ static void damage_handle_destroy(struct wl_listener *listener, void *data) {
     transaction_commit_dirty();
 }
 
-static void update_output_manager_config(struct hayward_server *server) {
+static void
+update_output_manager_config(struct hayward_server *server) {
     struct wlr_output_configuration_v1 *config =
         wlr_output_configuration_v1_create();
 
@@ -819,7 +851,8 @@ static void update_output_manager_config(struct hayward_server *server) {
     wlr_output_manager_v1_set_configuration(server->output_manager_v1, config);
 }
 
-static void handle_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, destroy);
     struct hayward_server *server = output->server;
     output_begin_destroy(output);
@@ -843,7 +876,8 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
     update_output_manager_config(server);
 }
 
-static void handle_mode(struct wl_listener *listener, void *data) {
+static void
+handle_mode(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, mode);
     if (!output->enabled && !output->enabling) {
         struct output_config *oc = find_output_config(output);
@@ -871,11 +905,13 @@ static void handle_mode(struct wl_listener *listener, void *data) {
     update_output_manager_config(output->server);
 }
 
-static void update_textures(struct hayward_window *container, void *data) {
+static void
+update_textures(struct hayward_window *container, void *data) {
     window_update_title_textures(container);
 }
 
-static void handle_commit(struct wl_listener *listener, void *data) {
+static void
+handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
@@ -897,7 +933,8 @@ static void handle_commit(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_present(struct wl_listener *listener, void *data) {
+static void
+handle_present(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, present);
     struct wlr_output_event_present *output_event = data;
 
@@ -911,7 +948,8 @@ static void handle_present(struct wl_listener *listener, void *data) {
 
 static unsigned int last_headless_num = 0;
 
-void handle_new_output(struct wl_listener *listener, void *data) {
+void
+handle_new_output(struct wl_listener *listener, void *data) {
     struct hayward_server *server =
         wl_container_of(listener, server, new_output);
     struct wlr_output *wlr_output = data;
@@ -981,13 +1019,15 @@ void handle_new_output(struct wl_listener *listener, void *data) {
     update_output_manager_config(server);
 }
 
-void handle_output_layout_change(struct wl_listener *listener, void *data) {
+void
+handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hayward_server *server =
         wl_container_of(listener, server, output_layout_change);
     update_output_manager_config(server);
 }
 
-static void output_manager_apply(
+static void
+output_manager_apply(
     struct hayward_server *server, struct wlr_output_configuration_v1 *config,
     bool test_only
 ) {
@@ -1057,7 +1097,8 @@ static void output_manager_apply(
     }
 }
 
-void handle_output_manager_apply(struct wl_listener *listener, void *data) {
+void
+handle_output_manager_apply(struct wl_listener *listener, void *data) {
     struct hayward_server *server =
         wl_container_of(listener, server, output_manager_apply);
     struct wlr_output_configuration_v1 *config = data;
@@ -1065,7 +1106,8 @@ void handle_output_manager_apply(struct wl_listener *listener, void *data) {
     output_manager_apply(server, config, false);
 }
 
-void handle_output_manager_test(struct wl_listener *listener, void *data) {
+void
+handle_output_manager_test(struct wl_listener *listener, void *data) {
     struct hayward_server *server =
         wl_container_of(listener, server, output_manager_test);
     struct wlr_output_configuration_v1 *config = data;
@@ -1073,9 +1115,8 @@ void handle_output_manager_test(struct wl_listener *listener, void *data) {
     output_manager_apply(server, config, true);
 }
 
-void handle_output_power_manager_set_mode(
-    struct wl_listener *listener, void *data
-) {
+void
+handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     struct wlr_output_power_v1_set_mode_event *event = data;
     struct hayward_output *output = event->output->data;
 

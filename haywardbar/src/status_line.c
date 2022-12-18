@@ -19,7 +19,8 @@
 #include "haywardbar/config.h"
 #include "haywardbar/i3bar.h"
 
-static void status_line_close_fds(struct status_line *status) {
+static void
+status_line_close_fds(struct status_line *status) {
     if (status->read_fd != -1) {
         loop_remove_fd(status->bar->eventloop, status->read_fd);
         close(status->read_fd);
@@ -31,13 +32,15 @@ static void status_line_close_fds(struct status_line *status) {
     }
 }
 
-void status_error(struct status_line *status, const char *text) {
+void
+status_error(struct status_line *status, const char *text) {
     status_line_close_fds(status);
     status->protocol = PROTOCOL_ERROR;
     status->text = text;
 }
 
-bool status_handle_readable(struct status_line *status) {
+bool
+status_handle_readable(struct status_line *status) {
     ssize_t read_bytes = 1;
     switch (status->protocol) {
     case PROTOCOL_UNDEF:
@@ -155,7 +158,8 @@ bool status_handle_readable(struct status_line *status) {
     }
 }
 
-struct status_line *status_line_init(char *cmd) {
+struct status_line *
+status_line_init(char *cmd) {
     struct status_line *status = calloc(1, sizeof(struct status_line));
     status->stop_signal = SIGSTOP;
     status->cont_signal = SIGCONT;
@@ -214,7 +218,8 @@ struct status_line *status_line_init(char *cmd) {
     return status;
 }
 
-void status_line_free(struct status_line *status) {
+void
+status_line_free(struct status_line *status) {
     status_line_close_fds(status);
     kill(-status->pid, status->cont_signal);
     kill(-status->pid, SIGTERM);

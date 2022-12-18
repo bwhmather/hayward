@@ -29,20 +29,27 @@ struct haywardnag_type {
     ssize_t button_padding;
 };
 
-struct haywardnag_type *haywardnag_type_new(const char *name);
+struct haywardnag_type *
+haywardnag_type_new(const char *name);
 
-void haywardnag_types_add_default(list_t *types);
+void
+haywardnag_types_add_default(list_t *types);
 
-struct haywardnag_type *haywardnag_type_get(list_t *types, char *name);
+struct haywardnag_type *
+haywardnag_type_get(list_t *types, char *name);
 
-struct haywardnag_type *haywardnag_type_clone(struct haywardnag_type *type);
+struct haywardnag_type *
+haywardnag_type_clone(struct haywardnag_type *type);
 
-void haywardnag_type_merge(
+void
+haywardnag_type_merge(
     struct haywardnag_type *dest, struct haywardnag_type *src
 );
 
-void haywardnag_type_free(struct haywardnag_type *type);
+void
+haywardnag_type_free(struct haywardnag_type *type);
 
-void haywardnag_types_free(list_t *types);
+void
+haywardnag_types_free(list_t *types);
 
 #endif

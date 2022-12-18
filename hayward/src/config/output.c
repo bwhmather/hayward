@@ -20,14 +20,16 @@
 #include "hayward/input/cursor.h"
 #include "hayward/tree/root.h"
 
-int output_name_cmp(const void *item, const void *data) {
+int
+output_name_cmp(const void *item, const void *data) {
     const struct output_config *output = item;
     const char *name = data;
 
     return strcmp(output->name, name);
 }
 
-void output_get_identifier(
+void
+output_get_identifier(
     char *identifier, size_t len, struct hayward_output *output
 ) {
     struct wlr_output *wlr_output = output->wlr_output;
@@ -53,7 +55,8 @@ hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter) {
     return NULL;
 }
 
-struct output_config *new_output_config(const char *name) {
+struct output_config *
+new_output_config(const char *name) {
     struct output_config *oc = calloc(1, sizeof(struct output_config));
     if (oc == NULL) {
         return NULL;
@@ -79,7 +82,8 @@ struct output_config *new_output_config(const char *name) {
     return oc;
 }
 
-void merge_output_config(struct output_config *dst, struct output_config *src) {
+void
+merge_output_config(struct output_config *dst, struct output_config *src) {
     if (src->enabled != -1) {
         dst->enabled = src->enabled;
     }
@@ -142,7 +146,8 @@ void merge_output_config(struct output_config *dst, struct output_config *src) {
     }
 }
 
-static void merge_wildcard_on_all(struct output_config *wildcard) {
+static void
+merge_wildcard_on_all(struct output_config *wildcard) {
     for (int i = 0; i < config->output_configs->length; i++) {
         struct output_config *oc = config->output_configs->items[i];
         if (strcmp(wildcard->name, oc->name) != 0) {
@@ -154,7 +159,8 @@ static void merge_wildcard_on_all(struct output_config *wildcard) {
     }
 }
 
-static void merge_id_on_name(struct output_config *oc) {
+static void
+merge_id_on_name(struct output_config *oc) {
     char *id_on_name = NULL;
     char id[128];
     char *name = NULL;
@@ -217,7 +223,8 @@ static void merge_id_on_name(struct output_config *oc) {
     free(id_on_name);
 }
 
-struct output_config *store_output_config(struct output_config *oc) {
+struct output_config *
+store_output_config(struct output_config *oc) {
     bool wildcard = strcmp(oc->name, "*") == 0;
     if (wildcard) {
         merge_wildcard_on_all(oc);
@@ -265,7 +272,8 @@ struct output_config *store_output_config(struct output_config *oc) {
     return oc;
 }
 
-static void set_mode(
+static void
+set_mode(
     struct wlr_output *output, int width, int height, float refresh_rate,
     bool custom
 ) {
@@ -308,7 +316,8 @@ static void set_mode(
     wlr_output_set_mode(output, best);
 }
 
-static void set_modeline(struct wlr_output *output, drmModeModeInfo *drm_mode) {
+static void
+set_modeline(struct wlr_output *output, drmModeModeInfo *drm_mode) {
     if (!wlr_output_is_drm(output)) {
         hayward_log(HAYWARD_ERROR, "Modeline can only be set to DRM output");
         return;
@@ -322,7 +331,8 @@ static void set_modeline(struct wlr_output *output, drmModeModeInfo *drm_mode) {
 
 /* Some manufacturers hardcode the aspect-ratio of the output in the physical
  * size field. */
-static bool phys_size_is_aspect_ratio(struct wlr_output *output) {
+static bool
+phys_size_is_aspect_ratio(struct wlr_output *output) {
     return (output->phys_width == 1600 && output->phys_height == 900) ||
         (output->phys_width == 1600 && output->phys_height == 1000) ||
         (output->phys_width == 160 && output->phys_height == 90) ||
@@ -338,7 +348,8 @@ static bool phys_size_is_aspect_ratio(struct wlr_output *output) {
 // 1 inch = 25.4 mm
 #define MM_PER_INCH 25.4
 
-static int compute_default_scale(struct wlr_output *output) {
+static int
+compute_default_scale(struct wlr_output *output) {
     struct wlr_box box = {.width = output->width, .height = output->height};
     if (output->pending.committed & WLR_OUTPUT_STATE_MODE) {
         switch (output->pending.mode_type) {
@@ -523,9 +534,8 @@ queue_output_config(struct output_config *oc, struct hayward_output *output) {
     }
 }
 
-bool apply_output_config(
-    struct output_config *oc, struct hayward_output *output
-) {
+bool
+apply_output_config(struct output_config *oc, struct hayward_output *output) {
     if (output == root->fallback_output) {
         return false;
     }
@@ -629,9 +639,8 @@ bool apply_output_config(
     return true;
 }
 
-bool test_output_config(
-    struct output_config *oc, struct hayward_output *output
-) {
+bool
+test_output_config(struct output_config *oc, struct hayward_output *output) {
     if (output == root->fallback_output) {
         return false;
     }
@@ -750,13 +759,15 @@ get_output_config(char *identifier, struct hayward_output *hayward_output) {
     return result;
 }
 
-struct output_config *find_output_config(struct hayward_output *output) {
+struct output_config *
+find_output_config(struct hayward_output *output) {
     char id[128];
     output_get_identifier(id, sizeof(id), output);
     return get_output_config(id, output);
 }
 
-void apply_output_config_to_outputs(struct output_config *oc) {
+void
+apply_output_config_to_outputs(struct output_config *oc) {
     // Try to find the output container and apply configuration now. If
     // this is during startup then there will be no container and config
     // will be applied during normal "new output" event from wlroots.
@@ -793,7 +804,8 @@ void apply_output_config_to_outputs(struct output_config *oc) {
     }
 }
 
-void reset_outputs(void) {
+void
+reset_outputs(void) {
     struct output_config *oc = NULL;
     int i = list_seq_find(config->output_configs, output_name_cmp, "*");
     if (i >= 0) {
@@ -804,7 +816,8 @@ void reset_outputs(void) {
     apply_output_config_to_outputs(oc);
 }
 
-void free_output_config(struct output_config *oc) {
+void
+free_output_config(struct output_config *oc) {
     if (!oc) {
         return;
     }
@@ -823,7 +836,8 @@ handle_haywardbg_client_destroy(struct wl_listener *listener, void *data) {
     hayward_config->haywardbg_client = NULL;
 }
 
-static bool _spawn_haywardbg(char **command) {
+static bool
+_spawn_haywardbg(char **command) {
     if (config->haywardbg_client != NULL) {
         wl_client_destroy(config->haywardbg_client);
     }
@@ -889,7 +903,8 @@ static bool _spawn_haywardbg(char **command) {
     return true;
 }
 
-bool spawn_haywardbg(void) {
+bool
+spawn_haywardbg(void) {
     if (!config->haywardbg_command) {
         return true;
     }

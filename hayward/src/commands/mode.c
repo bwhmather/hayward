@@ -18,7 +18,8 @@ static const struct cmd_handler mode_handlers[] = {
     {"unbindsym", cmd_unbindsym},
 };
 
-struct cmd_results *cmd_mode(int argc, char **argv) {
+struct cmd_results *
+cmd_mode(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "mode", EXPECTED_AT_LEAST, 1))) {
         return error;

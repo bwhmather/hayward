@@ -10,7 +10,8 @@
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 
-struct cmd_results *input_cmd_calibration_matrix(int argc, char **argv) {
+struct cmd_results *
+input_cmd_calibration_matrix(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "calibration_matrix", EXPECTED_EQUAL_TO, 6))) {
         return error;

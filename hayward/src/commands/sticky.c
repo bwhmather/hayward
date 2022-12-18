@@ -14,7 +14,8 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
 
-struct cmd_results *cmd_sticky(int argc, char **argv) {
+struct cmd_results *
+cmd_sticky(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "sticky", EXPECTED_EQUAL_TO, 1))) {
         return error;

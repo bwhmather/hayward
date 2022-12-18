@@ -100,10 +100,13 @@ struct haywardnag {
     struct haywardnag_details details;
 };
 
-void haywardnag_setup(struct haywardnag *haywardnag);
+void
+haywardnag_setup(struct haywardnag *haywardnag);
 
-void haywardnag_run(struct haywardnag *haywardnag);
+void
+haywardnag_run(struct haywardnag *haywardnag);
 
-void haywardnag_destroy(struct haywardnag *haywardnag);
+void
+haywardnag_destroy(struct haywardnag *haywardnag);
 
 #endif

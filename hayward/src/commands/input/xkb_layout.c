@@ -4,7 +4,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *input_cmd_xkb_layout(int argc, char **argv) {
+struct cmd_results *
+input_cmd_xkb_layout(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "xkb_layout", EXPECTED_EQUAL_TO, 1))) {
         return error;

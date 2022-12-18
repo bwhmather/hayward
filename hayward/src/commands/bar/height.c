@@ -5,7 +5,8 @@
 
 #include "hayward/commands.h"
 
-struct cmd_results *bar_cmd_height(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_height(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "height", EXPECTED_EQUAL_TO, 1))) {
         return error;

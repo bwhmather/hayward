@@ -31,19 +31,23 @@ struct hayward_idle_inhibitor_v1 {
     struct wl_listener destroy;
 };
 
-struct hayward_idle_inhibit_manager_v1 *hayward_idle_inhibit_manager_v1_create(
+struct hayward_idle_inhibit_manager_v1 *
+hayward_idle_inhibit_manager_v1_create(
     struct wl_display *wl_display, struct wlr_idle *idle
 );
 
-void hayward_idle_inhibit_v1_check_active(
+void
+hayward_idle_inhibit_v1_check_active(
     struct hayward_idle_inhibit_manager_v1 *manager
 );
 
-void hayward_idle_inhibit_v1_user_inhibitor_destroy(
+void
+hayward_idle_inhibit_v1_user_inhibitor_destroy(
     struct hayward_idle_inhibitor_v1 *inhibitor
 );
 
-void hayward_idle_inhibit_v1_user_inhibitor_register(
+void
+hayward_idle_inhibit_v1_user_inhibitor_register(
     struct hayward_view *view, enum hayward_idle_inhibit_mode mode
 );
 
@@ -54,8 +58,7 @@ struct hayward_idle_inhibitor_v1 *
 hayward_idle_inhibit_v1_application_inhibitor_for_view(struct hayward_view *view
 );
 
-bool hayward_idle_inhibit_v1_is_active(
-    struct hayward_idle_inhibitor_v1 *inhibitor
-);
+bool
+hayward_idle_inhibit_v1_is_active(struct hayward_idle_inhibitor_v1 *inhibitor);
 
 #endif

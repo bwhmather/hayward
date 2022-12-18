@@ -152,28 +152,45 @@ extern struct hayward_debug debug;
 
 /* Prepares an unprivileged server_init by performing all privileged operations
  * in advance */
-bool server_privileged_prepare(struct hayward_server *server);
-bool server_init(struct hayward_server *server);
-void server_fini(struct hayward_server *server);
-bool server_start(struct hayward_server *server);
-void server_run(struct hayward_server *server);
+bool
+server_privileged_prepare(struct hayward_server *server);
+bool
+server_init(struct hayward_server *server);
+void
+server_fini(struct hayward_server *server);
+bool
+server_start(struct hayward_server *server);
+void
+server_run(struct hayward_server *server);
 
-void restore_nofile_limit(void);
+void
+restore_nofile_limit(void);
 
-void handle_compositor_new_surface(struct wl_listener *listener, void *data);
-void handle_new_output(struct wl_listener *listener, void *data);
+void
+handle_compositor_new_surface(struct wl_listener *listener, void *data);
+void
+handle_new_output(struct wl_listener *listener, void *data);
 
-void handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
-void handle_layer_shell_surface(struct wl_listener *listener, void *data);
-void hayward_session_lock_init(void);
-void handle_xdg_shell_surface(struct wl_listener *listener, void *data);
+void
+handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
+void
+handle_layer_shell_surface(struct wl_listener *listener, void *data);
+void
+hayward_session_lock_init(void);
+void
+handle_xdg_shell_surface(struct wl_listener *listener, void *data);
 #if HAVE_XWAYLAND
-void handle_xwayland_surface(struct wl_listener *listener, void *data);
+void
+handle_xwayland_surface(struct wl_listener *listener, void *data);
 #endif
-void handle_server_decoration(struct wl_listener *listener, void *data);
-void handle_xdg_decoration(struct wl_listener *listener, void *data);
-void handle_pointer_constraint(struct wl_listener *listener, void *data);
-void xdg_activation_v1_handle_request_activate(
+void
+handle_server_decoration(struct wl_listener *listener, void *data);
+void
+handle_xdg_decoration(struct wl_listener *listener, void *data);
+void
+handle_pointer_constraint(struct wl_listener *listener, void *data);
+void
+xdg_activation_v1_handle_request_activate(
     struct wl_listener *listener, void *data
 );
 

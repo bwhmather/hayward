@@ -39,7 +39,8 @@ handle_lost_watcher(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return 0;
 }
 
-struct haywardbar_tray *create_tray(struct haywardbar *bar) {
+struct haywardbar_tray *
+create_tray(struct haywardbar *bar) {
     hayward_log(HAYWARD_DEBUG, "Initializing tray");
 
     sd_bus *bus;
@@ -83,7 +84,8 @@ struct haywardbar_tray *create_tray(struct haywardbar *bar) {
     return tray;
 }
 
-void destroy_tray(struct haywardbar_tray *tray) {
+void
+destroy_tray(struct haywardbar_tray *tray) {
     if (!tray) {
         return;
     }
@@ -100,7 +102,8 @@ void destroy_tray(struct haywardbar_tray *tray) {
     free(tray);
 }
 
-void tray_in(int fd, short mask, void *data) {
+void
+tray_in(int fd, short mask, void *data) {
     sd_bus *bus = data;
     int ret;
     while ((ret = sd_bus_process(bus, NULL)) > 0) {
@@ -111,7 +114,8 @@ void tray_in(int fd, short mask, void *data) {
     }
 }
 
-static int cmp_output(const void *item, const void *cmp_to) {
+static int
+cmp_output(const void *item, const void *cmp_to) {
     const struct haywardbar_output *output = cmp_to;
     if (output->identifier && strcmp(item, output->identifier) == 0) {
         return 0;

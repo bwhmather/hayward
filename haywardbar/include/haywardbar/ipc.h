@@ -4,12 +4,15 @@
 
 #include "haywardbar/bar.h"
 
-bool ipc_initialize(struct haywardbar *bar);
-bool handle_ipc_readable(struct haywardbar *bar);
-bool ipc_get_workspaces(struct haywardbar *bar);
-void ipc_send_workspace_command(struct haywardbar *bar, const char *ws);
-void ipc_execute_binding(
-    struct haywardbar *bar, struct haywardbar_binding *bind
-);
+bool
+ipc_initialize(struct haywardbar *bar);
+bool
+handle_ipc_readable(struct haywardbar *bar);
+bool
+ipc_get_workspaces(struct haywardbar *bar);
+void
+ipc_send_workspace_command(struct haywardbar *bar, const char *ws);
+void
+ipc_execute_binding(struct haywardbar *bar, struct haywardbar_binding *bind);
 
 #endif

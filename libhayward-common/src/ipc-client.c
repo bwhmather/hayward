@@ -15,7 +15,8 @@ static const char ipc_magic[] = {'i', '3', '-', 'i', 'p', 'c'};
 
 #define IPC_HEADER_SIZE (sizeof(ipc_magic) + 8)
 
-char *get_socketpath(void) {
+char *
+get_socketpath(void) {
     const char *haywardsock = getenv("HAYWARDSOCK");
     if (haywardsock) {
         return strdup(haywardsock);
@@ -55,7 +56,8 @@ char *get_socketpath(void) {
     return NULL;
 }
 
-int ipc_open_socket(const char *socket_path) {
+int
+ipc_open_socket(const char *socket_path) {
     struct sockaddr_un addr;
     int socketfd;
     if ((socketfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
@@ -71,7 +73,8 @@ int ipc_open_socket(const char *socket_path) {
     return socketfd;
 }
 
-bool ipc_set_recv_timeout(int socketfd, struct timeval tv) {
+bool
+ipc_set_recv_timeout(int socketfd, struct timeval tv) {
     if (setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1) {
         hayward_log_errno(HAYWARD_ERROR, "Failed to set ipc recv timeout");
         return false;
@@ -79,7 +82,8 @@ bool ipc_set_recv_timeout(int socketfd, struct timeval tv) {
     return true;
 }
 
-struct ipc_response *ipc_recv_response(int socketfd) {
+struct ipc_response *
+ipc_recv_response(int socketfd) {
     char data[IPC_HEADER_SIZE];
 
     size_t total = 0;
@@ -128,12 +132,14 @@ error_1:
     return NULL;
 }
 
-void free_ipc_response(struct ipc_response *response) {
+void
+free_ipc_response(struct ipc_response *response) {
     free(response->payload);
     free(response);
 }
 
-char *ipc_single_command(
+char *
+ipc_single_command(
     int socketfd, uint32_t type, const char *payload, uint32_t *len
 ) {
     char data[IPC_HEADER_SIZE];

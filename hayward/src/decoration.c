@@ -37,7 +37,8 @@ server_decoration_handle_mode(struct wl_listener *listener, void *data) {
     transaction_commit_dirty();
 }
 
-void handle_server_decoration(struct wl_listener *listener, void *data) {
+void
+handle_server_decoration(struct wl_listener *listener, void *data) {
     struct wlr_server_decoration *wlr_deco = data;
 
     struct hayward_server_decoration *deco = calloc(1, sizeof(*deco));

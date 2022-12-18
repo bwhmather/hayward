@@ -8,7 +8,8 @@
 
 #include "config.h"
 
-struct cmd_results *bar_cmd_icon_theme(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_icon_theme(int argc, char **argv) {
 #if HAVE_TRAY
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "icon_theme", EXPECTED_EQUAL_TO, 1))) {

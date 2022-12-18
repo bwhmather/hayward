@@ -51,30 +51,35 @@ struct hayward_node {
     } events;
 };
 
-void node_init(
-    struct hayward_node *node, enum hayward_node_type type, void *thing
-);
+void
+node_init(struct hayward_node *node, enum hayward_node_type type, void *thing);
 
-const char *node_type_to_str(enum hayward_node_type type);
+const char *
+node_type_to_str(enum hayward_node_type type);
 
 /**
  * Mark a node as dirty if it isn't already. Dirty nodes will be included in the
  * next transaction then unmarked as dirty.
  */
-void node_set_dirty(struct hayward_node *node);
+void
+node_set_dirty(struct hayward_node *node);
 
-bool node_is_view(struct hayward_node *node);
+bool
+node_is_view(struct hayward_node *node);
 
-char *node_get_name(struct hayward_node *node);
+char *
+node_get_name(struct hayward_node *node);
 
-void node_get_box(struct hayward_node *node, struct wlr_box *box);
+void
+node_get_box(struct hayward_node *node, struct wlr_box *box);
 
-struct hayward_node *node_get_parent(struct hayward_node *node);
+struct hayward_node *
+node_get_parent(struct hayward_node *node);
 
-list_t *node_get_children(struct hayward_node *node);
+list_t *
+node_get_children(struct hayward_node *node);
 
-bool node_has_ancestor(
-    struct hayward_node *node, struct hayward_node *ancestor
-);
+bool
+node_has_ancestor(struct hayward_node *node, struct hayward_node *ancestor);
 
 #endif

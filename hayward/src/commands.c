@@ -128,13 +128,15 @@ static const struct cmd_handler command_handlers[] = {
     {"urgent", cmd_urgent},
 };
 
-static int handler_compare(const void *_a, const void *_b) {
+static int
+handler_compare(const void *_a, const void *_b) {
     const struct cmd_handler *a = _a;
     const struct cmd_handler *b = _b;
     return strcasecmp(a->command, b->command);
 }
 
-const struct cmd_handler *find_handler(
+const struct cmd_handler *
+find_handler(
     char *line, const struct cmd_handler *handlers, size_t handlers_size
 ) {
     if (!handlers || !handlers_size) {
@@ -147,7 +149,8 @@ const struct cmd_handler *find_handler(
     );
 }
 
-static const struct cmd_handler *find_handler_ex(
+static const struct cmd_handler *
+find_handler_ex(
     char *line, const struct cmd_handler *config_handlers,
     size_t config_handlers_size, const struct cmd_handler *command_handlers,
     size_t command_handlers_size, const struct cmd_handler *handlers,
@@ -162,14 +165,16 @@ static const struct cmd_handler *find_handler_ex(
     return handler ? handler : find_handler(line, handlers, handlers_size);
 }
 
-static const struct cmd_handler *find_core_handler(char *line) {
+static const struct cmd_handler *
+find_core_handler(char *line) {
     return find_handler_ex(
         line, config_handlers, sizeof(config_handlers), command_handlers,
         sizeof(command_handlers), handlers, sizeof(handlers)
     );
 }
 
-list_t *execute_command(
+list_t *
+execute_command(
     char *_exec, struct hayward_seat *seat, struct hayward_window *window
 ) {
     char *cmd;
@@ -266,7 +271,8 @@ cleanup:
 //	  be chained together)
 // 4) execute_command handles all state internally while config_command has
 // some state handled outside (notably the block mode, in read_config)
-struct cmd_results *config_command(char *exec, char **new_block) {
+struct cmd_results *
+config_command(char *exec, char **new_block) {
     struct cmd_results *results = NULL;
     int argc;
     char **argv = split_args(exec, &argc);
@@ -349,7 +355,8 @@ cleanup:
     return results;
 }
 
-struct cmd_results *config_subcommand(
+struct cmd_results *
+config_subcommand(
     char **argv, int argc, const struct cmd_handler *handlers,
     size_t handlers_size
 ) {
@@ -372,7 +379,8 @@ struct cmd_results *config_subcommand(
     );
 }
 
-struct cmd_results *config_commands_command(char *exec) {
+struct cmd_results *
+config_commands_command(char *exec) {
     struct cmd_results *results = NULL;
     int argc;
     char **argv = split_args(exec, &argc);
@@ -426,14 +434,16 @@ cmd_results_new(enum cmd_status status, const char *format, ...) {
     return results;
 }
 
-void free_cmd_results(struct cmd_results *results) {
+void
+free_cmd_results(struct cmd_results *results) {
     if (results->error) {
         free(results->error);
     }
     free(results);
 }
 
-char *cmd_results_to_json(list_t *res_list) {
+char *
+cmd_results_to_json(list_t *res_list) {
     json_object *result_array = json_object_new_array();
     for (int i = 0; i < res_list->length; ++i) {
         struct cmd_results *results = res_list->items[i];

@@ -19,7 +19,8 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/workspace.h"
 
-static void apply_exclusive(
+static void
+apply_exclusive(
     struct wlr_box *usable_area, uint32_t anchor, int32_t exclusive,
     int32_t margin_top, int32_t margin_right, int32_t margin_bottom,
     int32_t margin_left
@@ -90,7 +91,8 @@ static void apply_exclusive(
     }
 }
 
-static void arrange_layer(
+static void
+arrange_layer(
     struct hayward_output *output, struct wl_list *list,
     struct wlr_box *usable_area, bool exclusive
 ) {
@@ -180,7 +182,8 @@ static void arrange_layer(
     }
 }
 
-void arrange_layers(struct hayward_output *output) {
+void
+arrange_layers(struct hayward_output *output) {
     struct wlr_box usable_area = {0};
     wlr_output_effective_resolution(
         output->wlr_output, &usable_area.width, &usable_area.height
@@ -260,7 +263,8 @@ void arrange_layers(struct hayward_output *output) {
     }
 }
 
-static struct hayward_layer_surface *find_mapped_layer_by_client(
+static struct hayward_layer_surface *
+find_mapped_layer_by_client(
     struct wl_client *client, struct wlr_output *ignore_output
 ) {
     for (int i = 0; i < root->outputs->length; ++i) {
@@ -283,7 +287,8 @@ static struct hayward_layer_surface *find_mapped_layer_by_client(
     return NULL;
 }
 
-static void handle_output_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_output_destroy(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *hayward_layer =
         wl_container_of(listener, hayward_layer, output_destroy);
     // Determine if this layer is being used by an exclusive client. If it is,
@@ -305,7 +310,8 @@ static void handle_output_destroy(struct wl_listener *listener, void *data) {
     wlr_layer_surface_v1_destroy(hayward_layer->layer_surface);
 }
 
-static void handle_surface_commit(struct wl_listener *listener, void *data) {
+static void
+handle_surface_commit(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *layer =
         wl_container_of(listener, layer, surface_commit);
     struct wlr_layer_surface_v1 *layer_surface = layer->layer_surface;
@@ -349,7 +355,8 @@ static void handle_surface_commit(struct wl_listener *listener, void *data) {
     transaction_commit_dirty();
 }
 
-static void unmap(struct hayward_layer_surface *hayward_layer) {
+static void
+unmap(struct hayward_layer_surface *hayward_layer) {
     if (root_get_focused_layer() == hayward_layer->layer_surface) {
         root_set_focused_layer(NULL);
     }
@@ -365,10 +372,11 @@ static void unmap(struct hayward_layer_surface *hayward_layer) {
     );
 }
 
-static void layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface
-);
+static void
+layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface);
 
-static void handle_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *hayward_layer =
         wl_container_of(listener, hayward_layer, destroy);
     hayward_log(
@@ -405,7 +413,8 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
     free(hayward_layer);
 }
 
-static void handle_map(struct wl_listener *listener, void *data) {
+static void
+handle_map(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *hayward_layer =
         wl_container_of(listener, hayward_layer, map);
     struct wlr_output *wlr_output = hayward_layer->layer_surface->output;
@@ -422,7 +431,8 @@ static void handle_map(struct wl_listener *listener, void *data) {
     cursor_rebase_all();
 }
 
-static void handle_unmap(struct wl_listener *listener, void *data) {
+static void
+handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *hayward_layer =
         wl_container_of(listener, hayward_layer, unmap);
     unmap(hayward_layer);
@@ -441,26 +451,29 @@ subsurface_damage(struct hayward_layer_subsurface *subsurface, bool whole) {
     );
 }
 
-static void subsurface_handle_unmap(struct wl_listener *listener, void *data) {
+static void
+subsurface_handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_layer_subsurface *subsurface =
         wl_container_of(listener, subsurface, unmap);
     subsurface_damage(subsurface, true);
 }
 
-static void subsurface_handle_map(struct wl_listener *listener, void *data) {
+static void
+subsurface_handle_map(struct wl_listener *listener, void *data) {
     struct hayward_layer_subsurface *subsurface =
         wl_container_of(listener, subsurface, map);
     subsurface_damage(subsurface, true);
 }
 
-static void subsurface_handle_commit(struct wl_listener *listener, void *data) {
+static void
+subsurface_handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_layer_subsurface *subsurface =
         wl_container_of(listener, subsurface, commit);
     subsurface_damage(subsurface, false);
 }
 
-static void layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface
-) {
+static void
+layer_subsurface_destroy(struct hayward_layer_subsurface *subsurface) {
     wl_list_remove(&subsurface->link);
     wl_list_remove(&subsurface->map.link);
     wl_list_remove(&subsurface->unmap.link);
@@ -476,7 +489,8 @@ subsurface_handle_destroy(struct wl_listener *listener, void *data) {
     layer_subsurface_destroy(subsurface);
 }
 
-static struct hayward_layer_subsurface *create_subsurface(
+static struct hayward_layer_subsurface *
+create_subsurface(
     struct wlr_subsurface *wlr_subsurface,
     struct hayward_layer_surface *layer_surface
 ) {
@@ -502,7 +516,8 @@ static struct hayward_layer_subsurface *create_subsurface(
     return subsurface;
 }
 
-static void handle_new_subsurface(struct wl_listener *listener, void *data) {
+static void
+handle_new_subsurface(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *hayward_layer_surface =
         wl_container_of(listener, hayward_layer_surface, new_subsurface);
     struct wlr_subsurface *wlr_subsurface = data;
@@ -517,7 +532,8 @@ popup_get_layer(struct hayward_layer_popup *popup) {
     return popup->parent_layer;
 }
 
-static void popup_damage(struct hayward_layer_popup *layer_popup, bool whole) {
+static void
+popup_damage(struct hayward_layer_popup *layer_popup, bool whole) {
     struct wlr_xdg_popup *popup = layer_popup->wlr_popup;
     struct wlr_surface *surface = popup->base->surface;
     int popup_sx = popup->geometry.x - popup->base->current.geometry.x;
@@ -542,7 +558,8 @@ static void popup_damage(struct hayward_layer_popup *layer_popup, bool whole) {
     output_damage_surface(output, ox, oy, surface, whole);
 }
 
-static void popup_handle_map(struct wl_listener *listener, void *data) {
+static void
+popup_handle_map(struct wl_listener *listener, void *data) {
     struct hayward_layer_popup *popup = wl_container_of(listener, popup, map);
     struct hayward_layer_surface *layer = popup_get_layer(popup);
     struct wlr_output *wlr_output = layer->layer_surface->output;
@@ -551,18 +568,21 @@ static void popup_handle_map(struct wl_listener *listener, void *data) {
     popup_damage(popup, true);
 }
 
-static void popup_handle_unmap(struct wl_listener *listener, void *data) {
+static void
+popup_handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_layer_popup *popup = wl_container_of(listener, popup, unmap);
     popup_damage(popup, true);
 }
 
-static void popup_handle_commit(struct wl_listener *listener, void *data) {
+static void
+popup_handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_layer_popup *popup =
         wl_container_of(listener, popup, commit);
     popup_damage(popup, false);
 }
 
-static void popup_handle_destroy(struct wl_listener *listener, void *data) {
+static void
+popup_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_layer_popup *popup =
         wl_container_of(listener, popup, destroy);
 
@@ -573,7 +593,8 @@ static void popup_handle_destroy(struct wl_listener *listener, void *data) {
     free(popup);
 }
 
-static void popup_unconstrain(struct hayward_layer_popup *popup) {
+static void
+popup_unconstrain(struct hayward_layer_popup *popup) {
     struct hayward_layer_surface *layer = popup_get_layer(popup);
     struct wlr_xdg_popup *wlr_popup = popup->wlr_popup;
 
@@ -593,9 +614,11 @@ static void popup_unconstrain(struct hayward_layer_popup *popup) {
     wlr_xdg_popup_unconstrain_from_box(wlr_popup, &output_toplevel_sx_box);
 }
 
-static void popup_handle_new_popup(struct wl_listener *listener, void *data);
+static void
+popup_handle_new_popup(struct wl_listener *listener, void *data);
 
-static struct hayward_layer_popup *create_popup(
+static struct hayward_layer_popup *
+create_popup(
     struct wlr_xdg_popup *wlr_popup, enum layer_parent parent_type, void *parent
 ) {
     struct hayward_layer_popup *popup =
@@ -624,14 +647,16 @@ static struct hayward_layer_popup *create_popup(
     return popup;
 }
 
-static void popup_handle_new_popup(struct wl_listener *listener, void *data) {
+static void
+popup_handle_new_popup(struct wl_listener *listener, void *data) {
     struct hayward_layer_popup *hayward_layer_popup =
         wl_container_of(listener, hayward_layer_popup, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
     create_popup(wlr_popup, LAYER_PARENT_POPUP, hayward_layer_popup);
 }
 
-static void handle_new_popup(struct wl_listener *listener, void *data) {
+static void
+handle_new_popup(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *hayward_layer_surface =
         wl_container_of(listener, hayward_layer_surface, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
@@ -643,7 +668,8 @@ layer_from_wlr_layer_surface_v1(struct wlr_layer_surface_v1 *layer_surface) {
     return layer_surface->data;
 }
 
-void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
+void
+handle_layer_shell_surface(struct wl_listener *listener, void *data) {
     struct wlr_layer_surface_v1 *layer_surface = data;
     hayward_log(
         HAYWARD_DEBUG,

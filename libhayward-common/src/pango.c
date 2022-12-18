@@ -11,7 +11,8 @@
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 
-size_t escape_markup_text(const char *src, char *dest) {
+size_t
+escape_markup_text(const char *src, char *dest) {
     size_t length = 0;
     if (dest) {
         dest[0] = '\0';
@@ -51,7 +52,8 @@ size_t escape_markup_text(const char *src, char *dest) {
     return length;
 }
 
-PangoLayout *get_pango_layout(
+PangoLayout *
+get_pango_layout(
     cairo_t *cairo, const char *font, const char *text, double scale,
     bool markup
 ) {
@@ -87,7 +89,8 @@ PangoLayout *get_pango_layout(
     return layout;
 }
 
-void get_text_size(
+void
+get_text_size(
     cairo_t *cairo, const char *font, int *width, int *height, int *baseline,
     double scale, bool markup, const char *fmt, ...
 ) {
@@ -116,7 +119,8 @@ void get_text_size(
     free(buf);
 }
 
-void get_text_metrics(const char *font, int *height, int *baseline) {
+void
+get_text_metrics(const char *font, int *height, int *baseline) {
     cairo_t *cairo = cairo_create(NULL);
     PangoContext *pango = pango_cairo_create_context(cairo);
     PangoFontDescription *description =
@@ -134,7 +138,8 @@ void get_text_metrics(const char *font, int *height, int *baseline) {
     cairo_destroy(cairo);
 }
 
-void render_text(
+void
+render_text(
     cairo_t *cairo, const char *font, double scale, bool markup,
     const char *fmt, ...
 ) {

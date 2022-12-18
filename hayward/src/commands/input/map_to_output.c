@@ -8,7 +8,8 @@
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 
-struct cmd_results *input_cmd_map_to_output(int argc, char **argv) {
+struct cmd_results *
+input_cmd_map_to_output(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "map_to_output", EXPECTED_EQUAL_TO, 1))) {
         return error;

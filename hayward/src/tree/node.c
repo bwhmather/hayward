@@ -10,9 +10,8 @@
 #include "hayward/tree/window.h"
 #include "hayward/tree/workspace.h"
 
-void node_init(
-    struct hayward_node *node, enum hayward_node_type type, void *thing
-) {
+void
+node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
     static size_t next_id = 1;
     node->id = next_id++;
     node->type = type;
@@ -20,7 +19,8 @@ void node_init(
     wl_signal_init(&node->events.destroy);
 }
 
-const char *node_type_to_str(enum hayward_node_type type) {
+const char *
+node_type_to_str(enum hayward_node_type type) {
     switch (type) {
     case N_ROOT:
         return "N_ROOT";
@@ -36,7 +36,8 @@ const char *node_type_to_str(enum hayward_node_type type) {
     return "";
 }
 
-void node_set_dirty(struct hayward_node *node) {
+void
+node_set_dirty(struct hayward_node *node) {
     if (node->dirty) {
         return;
     }
@@ -45,9 +46,13 @@ void node_set_dirty(struct hayward_node *node) {
 }
 
 // TODO (hayward) rename to node_is_window.
-bool node_is_view(struct hayward_node *node) { return node->type == N_WINDOW; }
+bool
+node_is_view(struct hayward_node *node) {
+    return node->type == N_WINDOW;
+}
 
-char *node_get_name(struct hayward_node *node) {
+char *
+node_get_name(struct hayward_node *node) {
     switch (node->type) {
     case N_ROOT:
         return "root";
@@ -63,7 +68,8 @@ char *node_get_name(struct hayward_node *node) {
     return NULL;
 }
 
-void node_get_box(struct hayward_node *node, struct wlr_box *box) {
+void
+node_get_box(struct hayward_node *node, struct wlr_box *box) {
     switch (node->type) {
     case N_ROOT:
         root_get_box(root, box);
@@ -83,7 +89,8 @@ void node_get_box(struct hayward_node *node, struct wlr_box *box) {
     }
 }
 
-struct hayward_node *node_get_parent(struct hayward_node *node) {
+struct hayward_node *
+node_get_parent(struct hayward_node *node) {
     switch (node->type) {
     case N_ROOT:
         return NULL;
@@ -112,7 +119,8 @@ struct hayward_node *node_get_parent(struct hayward_node *node) {
     return NULL;
 }
 
-list_t *node_get_children(struct hayward_node *node) {
+list_t *
+node_get_children(struct hayward_node *node) {
     switch (node->type) {
     case N_ROOT:
         return NULL;
@@ -128,9 +136,8 @@ list_t *node_get_children(struct hayward_node *node) {
     return NULL;
 }
 
-bool node_has_ancestor(
-    struct hayward_node *node, struct hayward_node *ancestor
-) {
+bool
+node_has_ancestor(struct hayward_node *node, struct hayward_node *ancestor) {
     struct hayward_node *parent = node_get_parent(node);
     while (parent) {
         if (parent == ancestor) {

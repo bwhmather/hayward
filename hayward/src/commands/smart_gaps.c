@@ -10,7 +10,8 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/window.h"
 
-struct cmd_results *cmd_smart_gaps(int argc, char **argv) {
+struct cmd_results *
+cmd_smart_gaps(int argc, char **argv) {
     struct cmd_results *error =
         checkarg(argc, "smart_gaps", EXPECTED_AT_LEAST, 1);
 

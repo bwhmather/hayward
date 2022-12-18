@@ -16,12 +16,14 @@
 
 static const char *watcher_path = "/StatusNotifierWatcher";
 
-static int cmp_sni_id(const void *item, const void *cmp_to) {
+static int
+cmp_sni_id(const void *item, const void *cmp_to) {
     const struct haywardbar_sni *sni = item;
     return strcmp(sni->watcher_id, cmp_to);
 }
 
-static void add_sni(struct haywardbar_tray *tray, char *id) {
+static void
+add_sni(struct haywardbar_tray *tray, char *id) {
     int idx = list_seq_find(tray->items, cmp_sni_id, id);
     if (idx == -1) {
         hayward_log(HAYWARD_INFO, "Registering Status Notifier Item '%s'", id);
@@ -73,7 +75,8 @@ handle_sni_unregistered(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return ret;
 }
 
-static int get_registered_snis_callback(
+static int
+get_registered_snis_callback(
     sd_bus_message *msg, void *data, sd_bus_error *error
 ) {
     if (sd_bus_message_is_method_error(msg, NULL)) {
@@ -113,7 +116,8 @@ static int get_registered_snis_callback(
     return ret;
 }
 
-static bool register_to_watcher(struct haywardbar_host *host) {
+static bool
+register_to_watcher(struct haywardbar_host *host) {
     // this is called asynchronously in case the watcher is owned by this
     // process
     int ret = sd_bus_call_method_async(
@@ -165,7 +169,8 @@ handle_new_watcher(sd_bus_message *msg, void *data, sd_bus_error *error) {
     return 0;
 }
 
-bool init_host(
+bool
+init_host(
     struct haywardbar_host *host, char *protocol, struct haywardbar_tray *tray
 ) {
     size_t len =
@@ -255,7 +260,8 @@ error:
     return false;
 }
 
-void finish_host(struct haywardbar_host *host) {
+void
+finish_host(struct haywardbar_host *host) {
     sd_bus_release_name(host->tray->bus, host->service);
     free(host->service);
     free(host->watcher_interface);

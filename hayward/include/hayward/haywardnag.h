@@ -15,18 +15,21 @@ struct haywardnag_instance {
 // open so it can be written to. Call haywardnag_show when done writing. This
 // will be automatically called by haywardnag_log if the instance is not spawned
 // and haywardnag->detailed is true.
-bool haywardnag_spawn(
+bool
+haywardnag_spawn(
     const char *haywardnag_command, struct haywardnag_instance *haywardnag
 );
 
 // Write a log message to haywardnag->fd[1]. This will fail when
 // haywardnag->detailed is false.
-void haywardnag_log(
+void
+haywardnag_log(
     const char *haywardnag_command, struct haywardnag_instance *haywardnag,
     const char *fmt, ...
 );
 
 // If haywardnag->detailed, close haywardnag->fd[1] so haywardnag displays
-void haywardnag_show(struct haywardnag_instance *haywardnag);
+void
+haywardnag_show(struct haywardnag_instance *haywardnag);
 
 #endif

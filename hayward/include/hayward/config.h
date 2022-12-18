@@ -579,12 +579,14 @@ struct hayward_config {
  * Loads the main config from the given path. is_active should be true when
  * reloading the config.
  */
-bool load_main_config(const char *path, bool is_active, bool validating);
+bool
+load_main_config(const char *path, bool is_active, bool validating);
 
 /**
  * Loads an included config. Can only be used after load_main_config.
  */
-void load_include_configs(
+void
+load_include_configs(
     const char *path, struct hayward_config *config,
     struct haywardnag_instance *haywardnag
 );
@@ -592,7 +594,8 @@ void load_include_configs(
 /**
  * Reads the config from the given FILE.
  */
-bool read_config(
+bool
+read_config(
     FILE *file, struct hayward_config *config,
     struct haywardnag_instance *haywardnag
 );
@@ -600,116 +603,153 @@ bool read_config(
 /**
  * Run the commands that were deferred when reading the config file.
  */
-void run_deferred_commands(void);
+void
+run_deferred_commands(void);
 
 /**
  * Run the binding commands that were deferred when initializing the inputs
  */
-void run_deferred_bindings(void);
+void
+run_deferred_bindings(void);
 
 /**
  * Adds a warning entry to the haywardnag instance used for errors.
  */
-void config_add_haywardnag_warning(char *fmt, ...);
+void
+config_add_haywardnag_warning(char *fmt, ...);
 
 /**
  * Free config struct
  */
-void free_config(struct hayward_config *config);
+void
+free_config(struct hayward_config *config);
 
-void free_hayward_variable(struct hayward_variable *var);
+void
+free_hayward_variable(struct hayward_variable *var);
 
 /**
  * Does variable replacement for a string based on the config's currently loaded
  * variables.
  */
-char *do_var_replacement(char *str);
+char *
+do_var_replacement(char *str);
 
-int input_identifier_cmp(const void *item, const void *data);
+int
+input_identifier_cmp(const void *item, const void *data);
 
-struct input_config *new_input_config(const char *identifier);
+struct input_config *
+new_input_config(const char *identifier);
 
-void merge_input_config(struct input_config *dst, struct input_config *src);
+void
+merge_input_config(struct input_config *dst, struct input_config *src);
 
-struct input_config *store_input_config(struct input_config *ic, char **error);
+struct input_config *
+store_input_config(struct input_config *ic, char **error);
 
-void input_config_fill_rule_names(
+void
+input_config_fill_rule_names(
     struct input_config *ic, struct xkb_rule_names *rules
 );
 
-void free_input_config(struct input_config *ic);
+void
+free_input_config(struct input_config *ic);
 
-int seat_name_cmp(const void *item, const void *data);
+int
+seat_name_cmp(const void *item, const void *data);
 
-struct seat_config *new_seat_config(const char *name);
+struct seat_config *
+new_seat_config(const char *name);
 
-void merge_seat_config(struct seat_config *dst, struct seat_config *src);
+void
+merge_seat_config(struct seat_config *dst, struct seat_config *src);
 
-struct seat_config *copy_seat_config(struct seat_config *seat);
+struct seat_config *
+copy_seat_config(struct seat_config *seat);
 
-void free_seat_config(struct seat_config *ic);
+void
+free_seat_config(struct seat_config *ic);
 
-struct seat_attachment_config *seat_attachment_config_new(void);
+struct seat_attachment_config *
+seat_attachment_config_new(void);
 
 struct seat_attachment_config *
 seat_config_get_attachment(struct seat_config *seat_config, char *identifier);
 
-struct seat_config *store_seat_config(struct seat_config *seat);
+struct seat_config *
+store_seat_config(struct seat_config *seat);
 
-int output_name_cmp(const void *item, const void *data);
+int
+output_name_cmp(const void *item, const void *data);
 
-void output_get_identifier(
+void
+output_get_identifier(
     char *identifier, size_t len, struct hayward_output *output
 );
 
 const char *
 hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
 
-struct output_config *new_output_config(const char *name);
+struct output_config *
+new_output_config(const char *name);
 
-void merge_output_config(struct output_config *dst, struct output_config *src);
+void
+merge_output_config(struct output_config *dst, struct output_config *src);
 
-bool apply_output_config(
-    struct output_config *oc, struct hayward_output *output
-);
+bool
+apply_output_config(struct output_config *oc, struct hayward_output *output);
 
-bool test_output_config(
-    struct output_config *oc, struct hayward_output *output
-);
+bool
+test_output_config(struct output_config *oc, struct hayward_output *output);
 
-struct output_config *store_output_config(struct output_config *oc);
+struct output_config *
+store_output_config(struct output_config *oc);
 
-struct output_config *find_output_config(struct hayward_output *output);
+struct output_config *
+find_output_config(struct hayward_output *output);
 
-void apply_output_config_to_outputs(struct output_config *oc);
+void
+apply_output_config_to_outputs(struct output_config *oc);
 
-void reset_outputs(void);
+void
+reset_outputs(void);
 
-void free_output_config(struct output_config *oc);
+void
+free_output_config(struct output_config *oc);
 
-bool spawn_haywardbg(void);
+bool
+spawn_haywardbg(void);
 
-int workspace_output_cmp_workspace(const void *a, const void *b);
+int
+workspace_output_cmp_workspace(const void *a, const void *b);
 
-void free_hayward_binding(struct hayward_binding *sb);
+void
+free_hayward_binding(struct hayward_binding *sb);
 
-void free_switch_binding(struct hayward_switch_binding *binding);
+void
+free_switch_binding(struct hayward_switch_binding *binding);
 
-void seat_execute_command(
+void
+seat_execute_command(
     struct hayward_seat *seat, struct hayward_binding *binding
 );
 
-void load_haywardbar(struct bar_config *bar);
+void
+load_haywardbar(struct bar_config *bar);
 
-void load_haywardbars(void);
+void
+load_haywardbars(void);
 
-struct bar_config *default_bar_config(void);
+struct bar_config *
+default_bar_config(void);
 
-void free_bar_config(struct bar_config *bar);
+void
+free_bar_config(struct bar_config *bar);
 
-void free_bar_binding(struct bar_binding *binding);
+void
+free_bar_binding(struct bar_binding *binding);
 
-void free_workspace_config(struct workspace_config *wsc);
+void
+free_workspace_config(struct workspace_config *wsc);
 
 /**
  * Updates the value of config->font_height based on the metrics for title's
@@ -718,17 +758,21 @@ void free_workspace_config(struct workspace_config *wsc);
  * If the height has changed, all containers will be rearranged to take on the
  * new size.
  */
-void config_update_font_height(void);
+void
+config_update_font_height(void);
 
 /**
  * Convert bindsym into bindcode using the first configured layout.
  * Return false in case the conversion is unsuccessful.
  */
-bool translate_binding(struct hayward_binding *binding);
+bool
+translate_binding(struct hayward_binding *binding);
 
-void translate_keysyms(struct input_config *input_config);
+void
+translate_keysyms(struct input_config *input_config);
 
-void binding_add_translated(struct hayward_binding *binding, list_t *bindings);
+void
+binding_add_translated(struct hayward_binding *binding, list_t *bindings);
 
 /* Global config singleton. */
 extern struct hayward_config *config;

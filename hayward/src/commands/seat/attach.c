@@ -6,7 +6,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *seat_cmd_attach(int argc, char **argv) {
+struct cmd_results *
+seat_cmd_attach(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "attach", EXPECTED_AT_LEAST, 1))) {
         return error;

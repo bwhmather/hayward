@@ -17,16 +17,19 @@
 
 #include "config.h"
 
-static int cmp_id(const void *item, const void *cmp_to) {
+static int
+cmp_id(const void *item, const void *cmp_to) {
     return strcmp(item, cmp_to);
 }
 
-static bool dir_exists(char *path) {
+static bool
+dir_exists(char *path) {
     struct stat sb;
     return stat(path, &sb) == 0 && S_ISDIR(sb.st_mode);
 }
 
-static list_t *get_basedirs(void) {
+static list_t *
+get_basedirs(void) {
     list_t *basedirs = create_list();
     list_add(basedirs, strdup("$HOME/.icons")); // deprecated
 
@@ -71,7 +74,8 @@ static list_t *get_basedirs(void) {
     return basedirs_expanded;
 }
 
-static void destroy_theme(struct icon_theme *theme) {
+static void
+destroy_theme(struct icon_theme *theme) {
     if (!theme) {
         return;
     }
@@ -219,7 +223,8 @@ entry_handler(char *group, char *key, char *value, struct icon_theme *theme) {
  * and group_handler between every group (as well as at both ends)
  * Handlers return whether an error occurred, which stops parsing
  */
-static struct icon_theme *read_theme_file(char *basedir, char *theme_name) {
+static struct icon_theme *
+read_theme_file(char *basedir, char *theme_name) {
     // look for index.theme file
     size_t path_len =
         snprintf(NULL, 0, "%s/%s/index.theme", basedir, theme_name) + 1;
@@ -352,7 +357,8 @@ static struct icon_theme *read_theme_file(char *basedir, char *theme_name) {
     return theme;
 }
 
-static list_t *load_themes_in_dir(char *basedir) {
+static list_t *
+load_themes_in_dir(char *basedir) {
     DIR *dir;
     if (!(dir = opendir(basedir))) {
         return NULL;
@@ -373,7 +379,8 @@ static list_t *load_themes_in_dir(char *basedir) {
     return themes;
 }
 
-static void log_loaded_themes(list_t *themes) {
+static void
+log_loaded_themes(list_t *themes) {
     if (themes->length == 0) {
         hayward_log(HAYWARD_INFO, "Warning: no icon themes loaded");
         return;
@@ -410,7 +417,8 @@ static void log_loaded_themes(list_t *themes) {
     free(str);
 }
 
-void init_themes(list_t **themes, list_t **basedirs) {
+void
+init_themes(list_t **themes, list_t **basedirs) {
     *basedirs = get_basedirs();
 
     *themes = create_list();
@@ -426,7 +434,8 @@ void init_themes(list_t **themes, list_t **basedirs) {
     log_loaded_themes(*themes);
 }
 
-void finish_themes(list_t *themes, list_t *basedirs) {
+void
+finish_themes(list_t *themes, list_t *basedirs) {
     for (int i = 0; i < themes->length; ++i) {
         destroy_theme(themes->items[i]);
     }
@@ -464,7 +473,8 @@ find_icon_in_subdir(char *name, char *basedir, char *theme, char *subdir) {
     return NULL;
 }
 
-static bool theme_exists_in_basedir(char *theme, char *basedir) {
+static bool
+theme_exists_in_basedir(char *theme, char *basedir) {
     size_t path_len = snprintf(NULL, 0, "%s/%s", basedir, theme) + 1;
     char *path = malloc(path_len);
     snprintf(path, path_len, "%s/%s", basedir, theme);
@@ -473,7 +483,8 @@ static bool theme_exists_in_basedir(char *theme, char *basedir) {
     return ret;
 }
 
-static char *find_icon_with_theme(
+static char *
+find_icon_with_theme(
     list_t *basedirs, list_t *themes, char *name, int size, char *theme_name,
     int *min_size, int *max_size
 ) {
@@ -561,7 +572,8 @@ find_fallback_icon(list_t *basedirs, char *name, int *min_size, int *max_size) {
     return NULL;
 }
 
-char *find_icon(
+char *
+find_icon(
     list_t *themes, list_t *basedirs, char *name, int size, char *theme,
     int *min_size, int *max_size
 ) {

@@ -35,7 +35,8 @@
 #include "hayward/tree/workspace.h"
 #include "hayward/xdg_decoration.h"
 
-void view_init(
+void
+view_init(
     struct hayward_view *view, enum hayward_view_type type,
     const struct hayward_view_impl *impl
 ) {
@@ -47,7 +48,8 @@ void view_init(
     wl_signal_init(&view->events.unmap);
 }
 
-void view_destroy(struct hayward_view *view) {
+void
+view_destroy(struct hayward_view *view) {
     hayward_assert(view->surface == NULL, "Tried to free mapped view");
     hayward_assert(
         view->destroying, "Tried to free view which wasn't marked as destroying"
@@ -71,7 +73,8 @@ void view_destroy(struct hayward_view *view) {
     }
 }
 
-void view_begin_destroy(struct hayward_view *view) {
+void
+view_begin_destroy(struct hayward_view *view) {
     hayward_assert(view->surface == NULL, "Tried to destroy a mapped view");
     view->destroying = true;
 
@@ -80,63 +83,72 @@ void view_begin_destroy(struct hayward_view *view) {
     }
 }
 
-const char *view_get_title(struct hayward_view *view) {
+const char *
+view_get_title(struct hayward_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_TITLE);
     }
     return NULL;
 }
 
-const char *view_get_app_id(struct hayward_view *view) {
+const char *
+view_get_app_id(struct hayward_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_APP_ID);
     }
     return NULL;
 }
 
-const char *view_get_class(struct hayward_view *view) {
+const char *
+view_get_class(struct hayward_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_CLASS);
     }
     return NULL;
 }
 
-const char *view_get_instance(struct hayward_view *view) {
+const char *
+view_get_instance(struct hayward_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_INSTANCE);
     }
     return NULL;
 }
 #if HAVE_XWAYLAND
-uint32_t view_get_x11_window_id(struct hayward_view *view) {
+uint32_t
+view_get_x11_window_id(struct hayward_view *view) {
     if (view->impl->get_int_prop) {
         return view->impl->get_int_prop(view, VIEW_PROP_X11_WINDOW_ID);
     }
     return 0;
 }
 
-uint32_t view_get_x11_parent_id(struct hayward_view *view) {
+uint32_t
+view_get_x11_parent_id(struct hayward_view *view) {
     if (view->impl->get_int_prop) {
         return view->impl->get_int_prop(view, VIEW_PROP_X11_PARENT_ID);
     }
     return 0;
 }
 #endif
-const char *view_get_window_role(struct hayward_view *view) {
+const char *
+view_get_window_role(struct hayward_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_WINDOW_ROLE);
     }
     return NULL;
 }
 
-uint32_t view_get_window_type(struct hayward_view *view) {
+uint32_t
+view_get_window_type(struct hayward_view *view) {
     if (view->impl->get_int_prop) {
         return view->impl->get_int_prop(view, VIEW_PROP_WINDOW_TYPE);
     }
     return 0;
 }
 
-const char *view_get_shell(struct hayward_view *view) {
+const char *
+view_get_shell(struct hayward_view *view) {
     switch (view->type) {
     case HAYWARD_VIEW_XDG_SHELL:
         return "xdg_shell";
@@ -148,7 +160,8 @@ const char *view_get_shell(struct hayward_view *view) {
     return "unknown";
 }
 
-void view_get_constraints(
+void
+view_get_constraints(
     struct hayward_view *view, double *min_width, double *max_width,
     double *min_height, double *max_height
 ) {
@@ -164,7 +177,8 @@ void view_get_constraints(
     }
 }
 
-uint32_t view_configure(
+uint32_t
+view_configure(
     struct hayward_view *view, double lx, double ly, int width, int height
 ) {
     if (view->impl->configure) {
@@ -173,7 +187,8 @@ uint32_t view_configure(
     return 0;
 }
 
-bool view_inhibit_idle(struct hayward_view *view) {
+bool
+view_inhibit_idle(struct hayward_view *view) {
     struct hayward_idle_inhibitor_v1 *user_inhibitor =
         hayward_idle_inhibit_v1_user_inhibitor_for_view(view);
 
@@ -196,7 +211,8 @@ bool view_inhibit_idle(struct hayward_view *view) {
         hayward_idle_inhibit_v1_is_active(application_inhibitor);
 }
 
-bool view_ancestor_is_only_visible(struct hayward_view *view) {
+bool
+view_ancestor_is_only_visible(struct hayward_view *view) {
     struct hayward_window *window = view->window;
     struct hayward_column *column = window->pending.parent;
 
@@ -208,7 +224,8 @@ bool view_ancestor_is_only_visible(struct hayward_view *view) {
     return true;
 }
 
-static bool view_is_only_visible(struct hayward_view *view) {
+static bool
+view_is_only_visible(struct hayward_view *view) {
     struct hayward_window *window = view->window;
 
     enum hayward_column_layout layout = window_parent_layout(window);
@@ -228,12 +245,14 @@ static bool view_is_only_visible(struct hayward_view *view) {
     return true;
 }
 
-static bool gaps_to_edge(struct hayward_view *view) {
+static bool
+gaps_to_edge(struct hayward_view *view) {
     struct side_gaps gaps = view->window->pending.workspace->current_gaps;
     return gaps.top > 0 || gaps.right > 0 || gaps.bottom > 0 || gaps.left > 0;
 }
 
-void view_autoconfigure(struct hayward_view *view) {
+void
+view_autoconfigure(struct hayward_view *view) {
     struct hayward_window *window = view->window;
     struct hayward_workspace *workspace = window->pending.workspace;
 
@@ -348,7 +367,8 @@ void view_autoconfigure(struct hayward_view *view) {
     window->pending.content_height = height;
 }
 
-void view_set_activated(struct hayward_view *view, bool activated) {
+void
+view_set_activated(struct hayward_view *view, bool activated) {
     if (view->impl->set_activated) {
         view->impl->set_activated(view, activated);
     }
@@ -359,7 +379,8 @@ void view_set_activated(struct hayward_view *view, bool activated) {
     }
 }
 
-void view_request_activate(struct hayward_view *view) {
+void
+view_request_activate(struct hayward_view *view) {
     struct hayward_workspace *workspace = view->window->pending.workspace;
 
     switch (config->focus_on_window_activation) {
@@ -381,7 +402,8 @@ void view_request_activate(struct hayward_view *view) {
     }
 }
 
-void view_set_csd_from_server(struct hayward_view *view, bool enabled) {
+void
+view_set_csd_from_server(struct hayward_view *view, bool enabled) {
     hayward_log(
         HAYWARD_DEBUG, "Telling view %p to set CSD to %i", (void *)view, enabled
     );
@@ -396,7 +418,8 @@ void view_set_csd_from_server(struct hayward_view *view, bool enabled) {
     view->using_csd = enabled;
 }
 
-void view_update_csd_from_client(struct hayward_view *view, bool enabled) {
+void
+view_update_csd_from_client(struct hayward_view *view, bool enabled) {
     hayward_log(
         HAYWARD_DEBUG, "View %p updated CSD to %i", (void *)view, enabled
     );
@@ -412,32 +435,37 @@ void view_update_csd_from_client(struct hayward_view *view, bool enabled) {
     view->using_csd = enabled;
 }
 
-void view_set_tiled(struct hayward_view *view, bool tiled) {
+void
+view_set_tiled(struct hayward_view *view, bool tiled) {
     if (view->impl->set_tiled) {
         view->impl->set_tiled(view, tiled);
     }
 }
 
-void view_close(struct hayward_view *view) {
+void
+view_close(struct hayward_view *view) {
     if (view->impl->close) {
         view->impl->close(view);
     }
 }
 
-void view_close_popups(struct hayward_view *view) {
+void
+view_close_popups(struct hayward_view *view) {
     if (view->impl->close_popups) {
         view->impl->close_popups(view);
     }
 }
 
-void view_damage_from(struct hayward_view *view) {
+void
+view_damage_from(struct hayward_view *view) {
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
         output_damage_from_view(output, view);
     }
 }
 
-void view_for_each_surface(
+void
+view_for_each_surface(
     struct hayward_view *view, wlr_surface_iterator_func_t iterator,
     void *user_data
 ) {
@@ -451,7 +479,8 @@ void view_for_each_surface(
     }
 }
 
-void view_for_each_popup_surface(
+void
+view_for_each_popup_surface(
     struct hayward_view *view, wlr_surface_iterator_func_t iterator,
     void *user_data
 ) {
@@ -463,14 +492,16 @@ void view_for_each_popup_surface(
     }
 }
 
-static void view_subsurface_create(
+static void
+view_subsurface_create(
     struct hayward_view *view, struct wlr_subsurface *subsurface
 );
 
 static void
 view_init_subsurfaces(struct hayward_view *view, struct wlr_surface *surface);
 
-static void view_child_init_subsurfaces(
+static void
+view_child_init_subsurfaces(
     struct hayward_view_child *view_child, struct wlr_surface *surface
 );
 
@@ -482,7 +513,8 @@ view_handle_surface_new_subsurface(struct wl_listener *listener, void *data) {
     view_subsurface_create(view, subsurface);
 }
 
-static void view_populate_pid(struct hayward_view *view) {
+static void
+view_populate_pid(struct hayward_view *view) {
     pid_t pid;
     switch (view->type) {
 #if HAVE_XWAYLAND
@@ -501,7 +533,8 @@ static void view_populate_pid(struct hayward_view *view) {
     view->pid = pid;
 }
 
-static bool should_focus(struct hayward_view *view) {
+static bool
+should_focus(struct hayward_view *view) {
     struct hayward_workspace *active_workspace = root_get_active_workspace();
     struct hayward_workspace *map_workspace = view->window->pending.workspace;
     struct hayward_output *map_output = view->window->pending.output;
@@ -569,7 +602,8 @@ handle_foreign_close_request(struct wl_listener *listener, void *data) {
     view_close(view);
 }
 
-static void handle_foreign_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_foreign_destroy(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_destroy);
 
@@ -579,7 +613,8 @@ static void handle_foreign_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&view->foreign_destroy.link);
 }
 
-void view_map(
+void
+view_map(
     struct hayward_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
     struct wlr_output *fullscreen_output, bool decoration
 ) {
@@ -711,7 +746,8 @@ void view_map(
     ipc_event_window(view->window, "new");
 }
 
-void view_unmap(struct hayward_view *view) {
+void
+view_unmap(struct hayward_view *view) {
     wl_signal_emit(&view->events.unmap, view);
 
     wl_list_remove(&view->surface_new_subsurface.link);
@@ -757,14 +793,16 @@ void view_unmap(struct hayward_view *view) {
     view->surface = NULL;
 }
 
-void view_update_size(struct hayward_view *view) {
+void
+view_update_size(struct hayward_view *view) {
     struct hayward_window *container = view->window;
     container->pending.content_width = view->geometry.width;
     container->pending.content_height = view->geometry.height;
     window_set_geometry_from_content(container);
 }
 
-void view_center_surface(struct hayward_view *view) {
+void
+view_center_surface(struct hayward_view *view) {
     struct hayward_window *container = view->window;
     // We always center the current coordinates rather than the next, as the
     // geometry immediately affects the currently active rendering.
@@ -797,7 +835,8 @@ subsurface_get_view_coords(struct hayward_view_child *child, int *sx, int *sy) {
     *sy += subsurface->current.y;
 }
 
-static void subsurface_destroy(struct hayward_view_child *child) {
+static void
+subsurface_destroy(struct hayward_view_child *child) {
     hayward_assert(child->impl == &subsurface_impl, "Expected a subsurface");
     struct hayward_subsurface *subsurface = (struct hayward_subsurface *)child;
     wl_list_remove(&subsurface->destroy.link);
@@ -817,9 +856,11 @@ subsurface_handle_destroy(struct wl_listener *listener, void *data) {
     view_child_destroy(child);
 }
 
-static void view_child_damage(struct hayward_view_child *child, bool whole);
+static void
+view_child_damage(struct hayward_view_child *child, bool whole);
 
-static void view_subsurface_create(
+static void
+view_subsurface_create(
     struct hayward_view *view, struct wlr_subsurface *wlr_subsurface
 ) {
     struct hayward_subsurface *subsurface =
@@ -840,7 +881,8 @@ static void view_subsurface_create(
     view_child_damage(&subsurface->child, true);
 }
 
-static void view_child_subsurface_create(
+static void
+view_child_subsurface_create(
     struct hayward_view_child *child, struct wlr_subsurface *wlr_subsurface
 ) {
     struct hayward_subsurface *subsurface =
@@ -864,7 +906,8 @@ static void view_child_subsurface_create(
     view_child_damage(&subsurface->child, true);
 }
 
-static bool view_child_is_mapped(struct hayward_view_child *child) {
+static bool
+view_child_is_mapped(struct hayward_view_child *child) {
     while (child) {
         if (!child->mapped) {
             return false;
@@ -874,7 +917,8 @@ static bool view_child_is_mapped(struct hayward_view_child *child) {
     return true;
 }
 
-static void view_child_damage(struct hayward_view_child *child, bool whole) {
+static void
+view_child_damage(struct hayward_view_child *child, bool whole) {
     if (!child || !view_child_is_mapped(child) || !child->view ||
         !child->view->window) {
         return;
@@ -896,7 +940,8 @@ view_child_handle_surface_commit(struct wl_listener *listener, void *data) {
     view_child_damage(child, false);
 }
 
-static void view_child_handle_surface_new_subsurface(
+static void
+view_child_handle_surface_new_subsurface(
     struct wl_listener *listener, void *data
 ) {
     struct hayward_view_child *child =
@@ -927,7 +972,8 @@ view_init_subsurfaces(struct hayward_view *view, struct wlr_surface *surface) {
     }
 }
 
-static void view_child_init_subsurfaces(
+static void
+view_child_init_subsurfaces(
     struct hayward_view_child *view_child, struct wlr_surface *surface
 ) {
     struct wlr_subsurface *subsurface;
@@ -967,7 +1013,8 @@ view_child_handle_view_unmap(struct wl_listener *listener, void *data) {
     child->mapped = false;
 }
 
-void view_child_init(
+void
+view_child_init(
     struct hayward_view_child *child,
     const struct hayward_view_child_impl *impl, struct hayward_view *view,
     struct wlr_surface *surface
@@ -1008,7 +1055,8 @@ void view_child_init(
     view_child_init_subsurfaces(child, surface);
 }
 
-void view_child_destroy(struct hayward_view_child *child) {
+void
+view_child_destroy(struct hayward_view_child *child) {
     if (view_child_is_mapped(child) && child->view->window != NULL) {
         view_child_damage(child, true);
     }
@@ -1041,7 +1089,8 @@ void view_child_destroy(struct hayward_view_child *child) {
     }
 }
 
-struct hayward_view *view_from_wlr_surface(struct wlr_surface *wlr_surface) {
+struct hayward_view *
+view_from_wlr_surface(struct wlr_surface *wlr_surface) {
     if (wlr_surface_is_xdg_surface(wlr_surface)) {
         struct wlr_xdg_surface *xdg_surface =
             wlr_xdg_surface_from_wlr_surface(wlr_surface);
@@ -1080,14 +1129,16 @@ struct hayward_view *view_from_wlr_surface(struct wlr_surface *wlr_surface) {
     return NULL;
 }
 
-static char *escape_pango_markup(const char *buffer) {
+static char *
+escape_pango_markup(const char *buffer) {
     size_t length = escape_markup_text(buffer, NULL);
     char *escaped_title = calloc(length + 1, sizeof(char));
     escape_markup_text(buffer, escaped_title);
     return escaped_title;
 }
 
-static size_t append_prop(char *buffer, const char *value) {
+static size_t
+append_prop(char *buffer, const char *value) {
     if (!value) {
         return 0;
     }
@@ -1109,7 +1160,8 @@ static size_t append_prop(char *buffer, const char *value) {
  * Calculate and return the length of the formatted title.
  * If buffer is not NULL, also populate the buffer with the formatted title.
  */
-static size_t parse_title_format(struct hayward_view *view, char *buffer) {
+static size_t
+parse_title_format(struct hayward_view *view, char *buffer) {
     if (!view->title_format || strcmp(view->title_format, "%title") == 0) {
         return append_prop(buffer, view_get_title(view));
     }
@@ -1151,7 +1203,8 @@ static size_t parse_title_format(struct hayward_view *view, char *buffer) {
     return len;
 }
 
-void view_update_title(struct hayward_view *view, bool force) {
+void
+view_update_title(struct hayward_view *view, bool force) {
     const char *title = view_get_title(view);
 
     if (!force) {
@@ -1189,7 +1242,8 @@ void view_update_title(struct hayward_view *view, bool force) {
     }
 }
 
-bool view_is_visible(struct hayward_view *view) {
+bool
+view_is_visible(struct hayward_view *view) {
     if (view->window->node.destroying) {
         return false;
     }
@@ -1227,7 +1281,8 @@ bool view_is_visible(struct hayward_view *view) {
     return true;
 }
 
-void view_set_urgent(struct hayward_view *view, bool enable) {
+void
+view_set_urgent(struct hayward_view *view, bool enable) {
     if (view_is_urgent(view) == enable) {
         return;
     }
@@ -1250,11 +1305,13 @@ void view_set_urgent(struct hayward_view *view, bool enable) {
     workspace_detect_urgent(view->window->pending.workspace);
 }
 
-bool view_is_urgent(struct hayward_view *view) {
+bool
+view_is_urgent(struct hayward_view *view) {
     return view->urgent.tv_sec || view->urgent.tv_nsec;
 }
 
-void view_remove_saved_buffer(struct hayward_view *view) {
+void
+view_remove_saved_buffer(struct hayward_view *view) {
     hayward_assert(
         !wl_list_empty(&view->saved_buffers), "Expected a saved buffer"
     );
@@ -1266,7 +1323,8 @@ void view_remove_saved_buffer(struct hayward_view *view) {
     }
 }
 
-static void view_save_buffer_iterator(
+static void
+view_save_buffer_iterator(
     struct wlr_surface *surface, int sx, int sy, void *data
 ) {
     struct hayward_view *view = data;
@@ -1286,14 +1344,16 @@ static void view_save_buffer_iterator(
     }
 }
 
-void view_save_buffer(struct hayward_view *view) {
+void
+view_save_buffer(struct hayward_view *view) {
     hayward_assert(
         wl_list_empty(&view->saved_buffers), "Didn't expect saved buffer"
     );
     view_for_each_surface(view, view_save_buffer_iterator, view);
 }
 
-bool view_is_transient_for(
+bool
+view_is_transient_for(
     struct hayward_view *child, struct hayward_view *ancestor
 ) {
     return child->impl->is_transient_for &&

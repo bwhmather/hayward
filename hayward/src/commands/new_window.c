@@ -3,7 +3,8 @@
 #include "hayward/commands.h"
 #include "hayward/config.h"
 
-struct cmd_results *cmd_new_window(int argc, char **argv) {
+struct cmd_results *
+cmd_new_window(int argc, char **argv) {
     hayward_log(
         HAYWARD_INFO,
         "Warning: new_window is deprecated. "

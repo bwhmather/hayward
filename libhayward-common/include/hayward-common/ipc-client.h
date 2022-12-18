@@ -23,29 +23,35 @@ struct ipc_response {
 /**
  * Gets the path to the IPC socket from hayward.
  */
-char *get_socketpath(void);
+char *
+get_socketpath(void);
 /**
  * Opens the hayward socket.
  */
-int ipc_open_socket(const char *socket_path);
+int
+ipc_open_socket(const char *socket_path);
 /**
  * Issues a single IPC command and returns the buffer. len will be updated with
  * the length of the buffer returned from hayward.
  */
-char *ipc_single_command(
+char *
+ipc_single_command(
     int socketfd, uint32_t type, const char *payload, uint32_t *len
 );
 /**
  * Receives a single IPC response and returns an ipc_response.
  */
-struct ipc_response *ipc_recv_response(int socketfd);
+struct ipc_response *
+ipc_recv_response(int socketfd);
 /**
  * Free ipc_response struct
  */
-void free_ipc_response(struct ipc_response *response);
+void
+free_ipc_response(struct ipc_response *response);
 /**
  * Sets the receive timeout for the IPC socket
  */
-bool ipc_set_recv_timeout(int socketfd, struct timeval tv);
+bool
+ipc_set_recv_timeout(int socketfd, struct timeval tv);
 
 #endif

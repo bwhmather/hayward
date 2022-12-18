@@ -27,7 +27,8 @@ struct hayward_view;
  *
  * When all views in the transaction are ready, the layout will be applied.
  */
-void transaction_notify_view_ready_by_serial(
+void
+transaction_notify_view_ready_by_serial(
     struct hayward_view *view, uint32_t serial
 );
 
@@ -37,7 +38,8 @@ void transaction_notify_view_ready_by_serial(
  *
  * This is used by xwayland views, as they don't have serials.
  */
-void transaction_notify_view_ready_by_geometry(
+void
+transaction_notify_view_ready_by_geometry(
     struct hayward_view *view, double x, double y, int width, int height
 );
 
@@ -45,12 +47,14 @@ void transaction_notify_view_ready_by_geometry(
  * Find all dirty containers, create and commit a transaction containing them,
  * and unmark them as dirty.
  */
-void transaction_commit_dirty(void);
+void
+transaction_commit_dirty(void);
 
 /*
  * Same as transaction_commit_dirty, but signalling that this is a
  * client-initiated change has already taken effect.
  */
-void transaction_commit_dirty_client(void);
+void
+transaction_commit_dirty_client(void);
 
 #endif

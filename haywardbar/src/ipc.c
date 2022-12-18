@@ -21,7 +21,8 @@
 
 #include "config.h"
 
-void ipc_send_workspace_command(struct haywardbar *bar, const char *ws) {
+void
+ipc_send_workspace_command(struct haywardbar *bar, const char *ws) {
     uint32_t size = strlen("workspace \"\"") + strlen(ws);
     for (size_t i = 0; i < strlen(ws); ++i) {
         if (ws[i] == '"' || ws[i] == '\\') {
@@ -47,7 +48,8 @@ void ipc_send_workspace_command(struct haywardbar *bar, const char *ws) {
     free(command);
 }
 
-char *parse_font(const char *font) {
+char *
+parse_font(const char *font) {
     char *new_font = NULL;
     if (strncmp("pango:", font, 6) == 0) {
         font += 6;
@@ -354,7 +356,8 @@ ipc_parse_config(struct haywardbar_config *config, const char *payload) {
     return true;
 }
 
-bool ipc_get_workspaces(struct haywardbar *bar) {
+bool
+ipc_get_workspaces(struct haywardbar *bar) {
     struct haywardbar_output *output;
     wl_list_for_each(output, &bar->outputs, link) {
         free_workspaces(&output->workspaces);
@@ -425,9 +428,8 @@ bool ipc_get_workspaces(struct haywardbar *bar) {
     return determine_bar_visibility(bar, false);
 }
 
-void ipc_execute_binding(
-    struct haywardbar *bar, struct haywardbar_binding *bind
-) {
+void
+ipc_execute_binding(struct haywardbar *bar, struct haywardbar_binding *bind) {
     hayward_log(
         HAYWARD_DEBUG, "Executing binding for button %u (release=%d): `%s`",
         bind->button, bind->release, bind->command
@@ -437,7 +439,8 @@ void ipc_execute_binding(
     );
 }
 
-bool ipc_initialize(struct haywardbar *bar) {
+bool
+ipc_initialize(struct haywardbar *bar) {
     uint32_t len = strlen(bar->id);
     char *res = ipc_single_command(
         bar->ipc_socketfd, IPC_GET_BAR_CONFIG, bar->id, &len
@@ -485,7 +488,8 @@ handle_bar_state_update(struct haywardbar *bar, json_object *event) {
     return determine_bar_visibility(bar, false);
 }
 
-static bool handle_barconfig_update(
+static bool
+handle_barconfig_update(
     struct haywardbar *bar, const char *payload, json_object *json_config
 ) {
     json_object *json_id = json_object_object_get(json_config, "id");
@@ -573,7 +577,8 @@ static bool handle_barconfig_update(
     return true;
 }
 
-bool handle_ipc_readable(struct haywardbar *bar) {
+bool
+handle_ipc_readable(struct haywardbar *bar) {
     struct ipc_response *resp = ipc_recv_response(bar->ipc_event_socketfd);
     if (!resp) {
         return false;

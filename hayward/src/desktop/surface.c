@@ -7,7 +7,8 @@
 
 #include "hayward/server.h"
 
-static void handle_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_surface *surface =
         wl_container_of(listener, surface, destroy);
 
@@ -21,7 +22,8 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
     free(surface);
 }
 
-static int surface_frame_done_timer_handler(void *data) {
+static int
+surface_frame_done_timer_handler(void *data) {
     struct hayward_surface *surface = data;
 
     struct timespec now;
@@ -31,7 +33,8 @@ static int surface_frame_done_timer_handler(void *data) {
     return 0;
 }
 
-void handle_compositor_new_surface(struct wl_listener *listener, void *data) {
+void
+handle_compositor_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_surface *wlr_surface = data;
 
     struct hayward_surface *surface = calloc(1, sizeof(struct hayward_surface));

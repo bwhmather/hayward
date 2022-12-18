@@ -5,7 +5,8 @@
 
 #include "hayward/commands.h"
 
-struct cmd_results *bar_cmd_separator_symbol(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_separator_symbol(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "separator_symbol", EXPECTED_EQUAL_TO, 1))) {
         return error;

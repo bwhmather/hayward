@@ -25,7 +25,8 @@ struct gaps_data {
 };
 
 // Prevent negative outer gaps from moving windows out of the workspace.
-static void prevent_invalid_outer_gaps(void) {
+static void
+prevent_invalid_outer_gaps(void) {
     if (config->gaps_outer.top < -config->gaps_inner) {
         config->gaps_outer.top = -config->gaps_inner;
     }
@@ -43,7 +44,8 @@ static void prevent_invalid_outer_gaps(void) {
 // gaps inner|outer|horizontal|vertical|top|right|bottom|left <px>
 static const char expected_defaults[] =
     "'gaps inner|outer|horizontal|vertical|top|right|bottom|left <px>'";
-static struct cmd_results *gaps_set_defaults(int argc, char **argv) {
+static struct cmd_results *
+gaps_set_defaults(int argc, char **argv) {
     struct cmd_results *error = checkarg(argc, "gaps", EXPECTED_EQUAL_TO, 2);
     if (error) {
         return error;
@@ -91,7 +93,8 @@ static struct cmd_results *gaps_set_defaults(int argc, char **argv) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static void apply_gaps_op(int *prop, enum gaps_op op, int amount) {
+static void
+apply_gaps_op(int *prop, enum gaps_op op, int amount) {
     switch (op) {
     case GAPS_OP_SET:
         *prop = amount;
@@ -108,7 +111,8 @@ static void apply_gaps_op(int *prop, enum gaps_op op, int amount) {
     }
 }
 
-static void configure_gaps(struct hayward_workspace *workspace, void *_data) {
+static void
+configure_gaps(struct hayward_workspace *workspace, void *_data) {
     // Apply operation to gaps
     struct gaps_data *data = _data;
     if (data->inner) {
@@ -148,7 +152,8 @@ static void configure_gaps(struct hayward_workspace *workspace, void *_data) {
 static const char expected_runtime[] =
     "'gaps inner|outer|horizontal|vertical|"
     "top|right|bottom|left current|all set|plus|minus|toggle <px>'";
-static struct cmd_results *gaps_set_runtime(int argc, char **argv) {
+static struct cmd_results *
+gaps_set_runtime(int argc, char **argv) {
     struct cmd_results *error = checkarg(argc, "gaps", EXPECTED_EQUAL_TO, 4);
     if (error) {
         return error;
@@ -218,7 +223,8 @@ static struct cmd_results *gaps_set_runtime(int argc, char **argv) {
 // gaps inner|outer|<dir>|<side> <px> - sets defaults for workspaces
 // gaps inner|outer|<dir>|<side> current|all set|plus|minus|toggle <px> -
 // runtime only <dir> = horizontal|vertical <side> = top|right|bottom|left
-struct cmd_results *cmd_gaps(int argc, char **argv) {
+struct cmd_results *
+cmd_gaps(int argc, char **argv) {
     struct cmd_results *error = checkarg(argc, "gaps", EXPECTED_AT_LEAST, 2);
     if (error) {
         return error;

@@ -7,7 +7,8 @@
 
 #include "hayward/config.h"
 
-struct seat_config *new_seat_config(const char *name) {
+struct seat_config *
+new_seat_config(const char *name) {
     struct seat_config *seat = calloc(1, sizeof(struct seat_config));
     if (!seat) {
         hayward_log(HAYWARD_DEBUG, "Unable to allocate seat config");
@@ -35,7 +36,8 @@ struct seat_config *new_seat_config(const char *name) {
     return seat;
 }
 
-static void merge_wildcard_on_all(struct seat_config *wildcard) {
+static void
+merge_wildcard_on_all(struct seat_config *wildcard) {
     for (int i = 0; i < config->seat_configs->length; i++) {
         struct seat_config *sc = config->seat_configs->items[i];
         if (strcmp(wildcard->name, sc->name) != 0) {
@@ -45,7 +47,8 @@ static void merge_wildcard_on_all(struct seat_config *wildcard) {
     }
 }
 
-struct seat_config *store_seat_config(struct seat_config *sc) {
+struct seat_config *
+store_seat_config(struct seat_config *sc) {
     bool wildcard = strcmp(sc->name, "*") == 0;
     if (wildcard) {
         merge_wildcard_on_all(sc);
@@ -81,7 +84,8 @@ struct seat_config *store_seat_config(struct seat_config *sc) {
     return sc;
 }
 
-struct seat_attachment_config *seat_attachment_config_new(void) {
+struct seat_attachment_config *
+seat_attachment_config_new(void) {
     struct seat_attachment_config *attachment =
         calloc(1, sizeof(struct seat_attachment_config));
     if (!attachment) {
@@ -110,13 +114,15 @@ seat_attachment_config_copy(struct seat_attachment_config *attachment) {
     return copy;
 }
 
-static void merge_seat_attachment_config(
+static void
+merge_seat_attachment_config(
     struct seat_attachment_config *dest, struct seat_attachment_config *source
 ) {
     // nothing to merge yet, but there will be some day
 }
 
-void merge_seat_config(struct seat_config *dest, struct seat_config *source) {
+void
+merge_seat_config(struct seat_config *dest, struct seat_config *source) {
     if (source->fallback != -1) {
         dest->fallback = source->fallback;
     }
@@ -182,7 +188,8 @@ void merge_seat_config(struct seat_config *dest, struct seat_config *source) {
     }
 }
 
-struct seat_config *copy_seat_config(struct seat_config *seat) {
+struct seat_config *
+copy_seat_config(struct seat_config *seat) {
     struct seat_config *copy = new_seat_config(seat->name);
     if (copy == NULL) {
         return NULL;
@@ -193,7 +200,8 @@ struct seat_config *copy_seat_config(struct seat_config *seat) {
     return copy;
 }
 
-void free_seat_config(struct seat_config *seat) {
+void
+free_seat_config(struct seat_config *seat) {
     if (!seat) {
         return;
     }
@@ -207,7 +215,8 @@ void free_seat_config(struct seat_config *seat) {
     free(seat);
 }
 
-int seat_name_cmp(const void *item, const void *data) {
+int
+seat_name_cmp(const void *item, const void *data) {
     const struct seat_config *sc = item;
     const char *name = data;
     return strcmp(sc->name, name);

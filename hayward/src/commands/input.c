@@ -47,7 +47,8 @@ static const struct cmd_handler input_config_handlers[] = {
     {"xkb_numlock", input_cmd_xkb_numlock},
 };
 
-struct cmd_results *cmd_input(int argc, char **argv) {
+struct cmd_results *
+cmd_input(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "input", EXPECTED_AT_LEAST, 2))) {
         return error;

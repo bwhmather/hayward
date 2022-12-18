@@ -6,7 +6,8 @@
 
 #include "hayward/commands.h"
 
-struct cmd_results *bar_cmd_binding_mode_indicator(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_binding_mode_indicator(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error =
              checkarg(argc, "binding_mode_indicator", EXPECTED_EQUAL_TO, 1))) {

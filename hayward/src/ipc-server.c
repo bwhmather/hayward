@@ -60,21 +60,29 @@ struct ipc_client {
     ipc_command_type pending_type;
 };
 
-struct sockaddr_un *ipc_user_sockaddr(void);
-int ipc_handle_connection(int fd, uint32_t mask, void *data);
-int ipc_client_handle_readable(int client_fd, uint32_t mask, void *data);
-int ipc_client_handle_writable(int client_fd, uint32_t mask, void *data);
-void ipc_client_disconnect(struct ipc_client *client);
-void ipc_client_handle_command(
+struct sockaddr_un *
+ipc_user_sockaddr(void);
+int
+ipc_handle_connection(int fd, uint32_t mask, void *data);
+int
+ipc_client_handle_readable(int client_fd, uint32_t mask, void *data);
+int
+ipc_client_handle_writable(int client_fd, uint32_t mask, void *data);
+void
+ipc_client_disconnect(struct ipc_client *client);
+void
+ipc_client_handle_command(
     struct ipc_client *client, uint32_t payload_length,
     ipc_command_type payload_type
 );
-bool ipc_send_reply(
+bool
+ipc_send_reply(
     struct ipc_client *client, ipc_command_type payload_type,
     const char *payload, uint32_t payload_length
 );
 
-static void handle_display_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_display_destroy(struct wl_listener *listener, void *data) {
     if (ipc_event_source) {
         wl_event_source_remove(ipc_event_source);
     }
@@ -93,7 +101,8 @@ static void handle_display_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&ipc_display_destroy.link);
 }
 
-void ipc_init(struct hayward_server *server) {
+void
+ipc_init(struct hayward_server *server) {
     ipc_socket = socket(AF_UNIX, SOCK_STREAM, 0);
     if (ipc_socket == -1) {
         hayward_abort("Unable to create IPC socket");
@@ -144,7 +153,8 @@ void ipc_init(struct hayward_server *server) {
     );
 }
 
-struct sockaddr_un *ipc_user_sockaddr(void) {
+struct sockaddr_un *
+ipc_user_sockaddr(void) {
     struct sockaddr_un *ipc_sockaddr = malloc(sizeof(struct sockaddr_un));
     if (ipc_sockaddr == NULL) {
         hayward_abort("Can't allocate ipc_sockaddr");
@@ -168,7 +178,8 @@ struct sockaddr_un *ipc_user_sockaddr(void) {
     return ipc_sockaddr;
 }
 
-int ipc_handle_connection(int fd, uint32_t mask, void *data) {
+int
+ipc_handle_connection(int fd, uint32_t mask, void *data) {
     (void)fd;
     struct hayward_server *server = data;
     hayward_log(HAYWARD_DEBUG, "Event on IPC listening socket");
@@ -232,7 +243,8 @@ int ipc_handle_connection(int fd, uint32_t mask, void *data) {
     return 0;
 }
 
-int ipc_client_handle_readable(int client_fd, uint32_t mask, void *data) {
+int
+ipc_client_handle_readable(int client_fd, uint32_t mask, void *data) {
     struct ipc_client *client = data;
 
     if (mask & WL_EVENT_ERROR) {
@@ -309,7 +321,8 @@ int ipc_client_handle_readable(int client_fd, uint32_t mask, void *data) {
     return 0;
 }
 
-static bool ipc_has_event_listeners(ipc_command_type event) {
+static bool
+ipc_has_event_listeners(ipc_command_type event) {
     for (int i = 0; i < ipc_client_list->length; i++) {
         struct ipc_client *client = ipc_client_list->items[i];
         if ((client->subscribed_events & event_mask(event)) != 0) {
@@ -319,7 +332,8 @@ static bool ipc_has_event_listeners(ipc_command_type event) {
     return false;
 }
 
-static void ipc_send_event(const char *json_string, ipc_command_type event) {
+static void
+ipc_send_event(const char *json_string, ipc_command_type event) {
     struct ipc_client *client;
     for (int i = 0; i < ipc_client_list->length; i++) {
         client = ipc_client_list->items[i];
@@ -340,7 +354,8 @@ static void ipc_send_event(const char *json_string, ipc_command_type event) {
     }
 }
 
-void ipc_event_workspace(
+void
+ipc_event_workspace(
     struct hayward_workspace *old, struct hayward_workspace *new,
     const char *change
 ) {
@@ -371,7 +386,8 @@ void ipc_event_workspace(
     json_object_put(obj);
 }
 
-void ipc_event_window(struct hayward_window *window, const char *change) {
+void
+ipc_event_window(struct hayward_window *window, const char *change) {
     if (!ipc_has_event_listeners(IPC_EVENT_WINDOW)) {
         return;
     }
@@ -387,7 +403,8 @@ void ipc_event_window(struct hayward_window *window, const char *change) {
     json_object_put(obj);
 }
 
-void ipc_event_barconfig_update(struct bar_config *bar) {
+void
+ipc_event_barconfig_update(struct bar_config *bar) {
     if (!ipc_has_event_listeners(IPC_EVENT_BARCONFIG_UPDATE)) {
         return;
     }
@@ -399,7 +416,8 @@ void ipc_event_barconfig_update(struct bar_config *bar) {
     json_object_put(json);
 }
 
-void ipc_event_bar_state_update(struct bar_config *bar) {
+void
+ipc_event_bar_state_update(struct bar_config *bar) {
     if (!ipc_has_event_listeners(IPC_EVENT_BAR_STATE_UPDATE)) {
         return;
     }
@@ -417,7 +435,8 @@ void ipc_event_bar_state_update(struct bar_config *bar) {
     json_object_put(json);
 }
 
-void ipc_event_mode(const char *mode, bool pango) {
+void
+ipc_event_mode(const char *mode, bool pango) {
     if (!ipc_has_event_listeners(IPC_EVENT_MODE)) {
         return;
     }
@@ -431,7 +450,8 @@ void ipc_event_mode(const char *mode, bool pango) {
     json_object_put(obj);
 }
 
-void ipc_event_shutdown(const char *reason) {
+void
+ipc_event_shutdown(const char *reason) {
     if (!ipc_has_event_listeners(IPC_EVENT_SHUTDOWN)) {
         return;
     }
@@ -445,7 +465,8 @@ void ipc_event_shutdown(const char *reason) {
     json_object_put(json);
 }
 
-void ipc_event_binding(struct hayward_binding *binding) {
+void
+ipc_event_binding(struct hayward_binding *binding) {
     if (!ipc_has_event_listeners(IPC_EVENT_BINDING)) {
         return;
     }
@@ -537,7 +558,8 @@ void ipc_event_binding(struct hayward_binding *binding) {
     json_object_put(json);
 }
 
-static void ipc_event_tick(const char *payload) {
+static void
+ipc_event_tick(const char *payload) {
     if (!ipc_has_event_listeners(IPC_EVENT_TICK)) {
         return;
     }
@@ -552,7 +574,8 @@ static void ipc_event_tick(const char *payload) {
     json_object_put(json);
 }
 
-void ipc_event_input(const char *change, struct hayward_input_device *device) {
+void
+ipc_event_input(const char *change, struct hayward_input_device *device) {
     if (!ipc_has_event_listeners(IPC_EVENT_INPUT)) {
         return;
     }
@@ -567,7 +590,8 @@ void ipc_event_input(const char *change, struct hayward_input_device *device) {
     json_object_put(json);
 }
 
-int ipc_client_handle_writable(int client_fd, uint32_t mask, void *data) {
+int
+ipc_client_handle_writable(int client_fd, uint32_t mask, void *data) {
     struct ipc_client *client = data;
 
     if (mask & WL_EVENT_ERROR) {
@@ -615,7 +639,8 @@ int ipc_client_handle_writable(int client_fd, uint32_t mask, void *data) {
     return 0;
 }
 
-void ipc_client_disconnect(struct ipc_client *client) {
+void
+ipc_client_disconnect(struct ipc_client *client) {
     hayward_assert(client != NULL, "client != NULL");
 
     shutdown(client->fd, SHUT_RDWR);
@@ -654,7 +679,8 @@ ipc_get_workspaces_callback(struct hayward_workspace *workspace, void *data) {
     );
 }
 
-void ipc_client_handle_command(
+void
+ipc_client_handle_command(
     struct ipc_client *client, uint32_t payload_length,
     ipc_command_type payload_type
 ) {
@@ -956,7 +982,8 @@ exit_cleanup:
     return;
 }
 
-bool ipc_send_reply(
+bool
+ipc_send_reply(
     struct ipc_client *client, ipc_command_type payload_type,
     const char *payload, uint32_t payload_length
 ) {

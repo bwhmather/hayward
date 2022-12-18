@@ -11,7 +11,8 @@
 #include "config.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
-uint32_t parse_position(const char *position) {
+uint32_t
+parse_position(const char *position) {
     uint32_t horiz =
         ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
     if (strcmp("top", position) == 0) {
@@ -27,7 +28,8 @@ uint32_t parse_position(const char *position) {
     }
 }
 
-struct haywardbar_config *init_config(void) {
+struct haywardbar_config *
+init_config(void) {
     struct haywardbar_config *config =
         calloc(1, sizeof(struct haywardbar_config));
     config->status_command = NULL;
@@ -92,7 +94,8 @@ struct haywardbar_config *init_config(void) {
     return config;
 }
 
-void free_binding(struct haywardbar_binding *binding) {
+void
+free_binding(struct haywardbar_binding *binding) {
     if (!binding) {
         return;
     }
@@ -101,7 +104,8 @@ void free_binding(struct haywardbar_binding *binding) {
 }
 
 #if HAVE_TRAY
-void free_tray_binding(struct tray_binding *binding) {
+void
+free_tray_binding(struct tray_binding *binding) {
     if (!binding) {
         return;
     }
@@ -110,7 +114,8 @@ void free_tray_binding(struct tray_binding *binding) {
 }
 #endif
 
-void free_config(struct haywardbar_config *config) {
+void
+free_config(struct haywardbar_config *config) {
     free(config->status_command);
     free(config->font);
     free(config->mode);

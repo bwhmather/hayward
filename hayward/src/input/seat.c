@@ -43,14 +43,17 @@
 static void
 seat_send_focus(struct hayward_seat *seat, struct wlr_surface *surface);
 
-static void handle_request_start_drag(struct wl_listener *listener, void *data);
-static void handle_start_drag(struct wl_listener *listener, void *data);
+static void
+handle_request_start_drag(struct wl_listener *listener, void *data);
+static void
+handle_start_drag(struct wl_listener *listener, void *data);
 static void
 handle_request_set_selection(struct wl_listener *listener, void *data);
 static void
 handle_request_set_primary_selection(struct wl_listener *listener, void *data);
 
-struct hayward_seat *seat_create(const char *seat_name) {
+struct hayward_seat *
+seat_create(const char *seat_name) {
     struct hayward_seat *seat = calloc(1, sizeof(struct hayward_seat));
     if (!seat) {
         return NULL;
@@ -108,7 +111,8 @@ struct hayward_seat *seat_create(const char *seat_name) {
     return seat;
 }
 
-static void seat_device_destroy(struct hayward_seat_device *seat_device) {
+static void
+seat_device_destroy(struct hayward_seat_device *seat_device) {
     if (!seat_device) {
         return;
     }
@@ -125,7 +129,8 @@ static void seat_device_destroy(struct hayward_seat_device *seat_device) {
     free(seat_device);
 }
 
-void seat_destroy(struct hayward_seat *seat) {
+void
+seat_destroy(struct hayward_seat *seat) {
     if (seat == config->handler_context.seat) {
         config->handler_context.seat = input_manager_get_default_seat();
     }
@@ -149,7 +154,8 @@ void seat_destroy(struct hayward_seat *seat) {
     free(seat);
 }
 
-void seat_idle_notify_activity(
+void
+seat_idle_notify_activity(
     struct hayward_seat *seat, enum hayward_input_idle_source source
 ) {
     uint32_t mask = seat->idle_inhibit_sources;
@@ -169,7 +175,8 @@ void seat_idle_notify_activity(
     }
 }
 
-static struct hayward_keyboard *hayward_keyboard_for_wlr_keyboard(
+static struct hayward_keyboard *
+hayward_keyboard_for_wlr_keyboard(
     struct hayward_seat *seat, struct wlr_keyboard *wlr_keyboard
 ) {
     struct hayward_seat_device *seat_device;
@@ -193,7 +200,8 @@ static struct hayward_keyboard *hayward_keyboard_for_wlr_keyboard(
     return NULL;
 }
 
-static void seat_keyboard_notify_enter(
+static void
+seat_keyboard_notify_enter(
     struct hayward_seat *seat, struct wlr_surface *surface
 ) {
     struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
@@ -216,7 +224,8 @@ static void seat_keyboard_notify_enter(
     );
 }
 
-static void seat_tablet_pads_notify_enter(
+static void
+seat_tablet_pads_notify_enter(
     struct hayward_seat *seat, struct wlr_surface *surface
 ) {
     struct hayward_seat_device *seat_device;
@@ -225,15 +234,15 @@ static void seat_tablet_pads_notify_enter(
     }
 }
 
-bool seat_is_input_allowed(
-    struct hayward_seat *seat, struct wlr_surface *surface
-) {
+bool
+seat_is_input_allowed(struct hayward_seat *seat, struct wlr_surface *surface) {
     struct wl_client *client = wl_resource_get_client(surface->resource);
     return seat->exclusive_client == client ||
         (seat->exclusive_client == NULL && !server.session_lock.locked);
 }
 
-static void drag_icon_damage_whole(struct hayward_drag_icon *icon) {
+static void
+drag_icon_damage_whole(struct hayward_drag_icon *icon) {
     if (!icon->wlr_drag_icon->mapped) {
         return;
     }
@@ -242,7 +251,8 @@ static void drag_icon_damage_whole(struct hayward_drag_icon *icon) {
     );
 }
 
-void drag_icon_update_position(struct hayward_drag_icon *icon) {
+void
+drag_icon_update_position(struct hayward_drag_icon *icon) {
     drag_icon_damage_whole(icon);
 
     struct wlr_drag_icon *wlr_icon = icon->wlr_drag_icon;
@@ -275,17 +285,20 @@ drag_icon_handle_surface_commit(struct wl_listener *listener, void *data) {
     drag_icon_update_position(icon);
 }
 
-static void drag_icon_handle_map(struct wl_listener *listener, void *data) {
+static void
+drag_icon_handle_map(struct wl_listener *listener, void *data) {
     struct hayward_drag_icon *icon = wl_container_of(listener, icon, map);
     drag_icon_damage_whole(icon);
 }
 
-static void drag_icon_handle_unmap(struct wl_listener *listener, void *data) {
+static void
+drag_icon_handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_drag_icon *icon = wl_container_of(listener, icon, unmap);
     drag_icon_damage_whole(icon);
 }
 
-static void drag_icon_handle_destroy(struct wl_listener *listener, void *data) {
+static void
+drag_icon_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_drag_icon *icon = wl_container_of(listener, icon, destroy);
     icon->wlr_drag_icon->data = NULL;
     wl_list_remove(&icon->link);
@@ -296,7 +309,8 @@ static void drag_icon_handle_destroy(struct wl_listener *listener, void *data) {
     free(icon);
 }
 
-static void drag_handle_destroy(struct wl_listener *listener, void *data) {
+static void
+drag_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_drag *drag = wl_container_of(listener, drag, destroy);
 
     // Focus enter isn't sent during drag, so refocus the focused node, layer
@@ -345,7 +359,8 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
     wlr_data_source_destroy(event->drag->source);
 }
 
-static void handle_start_drag(struct wl_listener *listener, void *data) {
+static void
+handle_start_drag(struct wl_listener *listener, void *data) {
     struct hayward_seat *seat = wl_container_of(listener, seat, start_drag);
     struct wlr_drag *wlr_drag = data;
 
@@ -409,7 +424,8 @@ handle_request_set_primary_selection(struct wl_listener *listener, void *data) {
     );
 }
 
-static void seat_update_capabilities(struct hayward_seat *seat) {
+static void
+seat_update_capabilities(struct hayward_seat *seat) {
     uint32_t caps = 0;
     uint32_t previous_caps = seat->wlr_seat->capabilities;
     struct hayward_seat_device *seat_device;
@@ -447,7 +463,8 @@ static void seat_update_capabilities(struct hayward_seat *seat) {
     }
 }
 
-static void seat_reset_input_config(
+static void
+seat_reset_input_config(
     struct hayward_seat *seat, struct hayward_seat_device *hayward_device
 ) {
     hayward_log(
@@ -459,7 +476,8 @@ static void seat_reset_input_config(
     );
 }
 
-static bool has_prefix(const char *str, const char *prefix) {
+static bool
+has_prefix(const char *str, const char *prefix) {
     return strncmp(str, prefix, strlen(prefix)) == 0;
 }
 
@@ -467,7 +485,8 @@ static bool has_prefix(const char *str, const char *prefix) {
  * Get the name of the built-in output, if any. Returns NULL if there isn't
  * exactly one built-in output.
  */
-static const char *get_builtin_output_name(void) {
+static const char *
+get_builtin_output_name(void) {
     const char *match = NULL;
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
@@ -483,7 +502,8 @@ static const char *get_builtin_output_name(void) {
     return match;
 }
 
-static bool is_touch_or_tablet_tool(struct hayward_seat_device *seat_device) {
+static bool
+is_touch_or_tablet_tool(struct hayward_seat_device *seat_device) {
     switch (seat_device->input_device->wlr_device->type) {
     case WLR_INPUT_DEVICE_TOUCH:
     case WLR_INPUT_DEVICE_TABLET_TOOL:
@@ -493,7 +513,8 @@ static bool is_touch_or_tablet_tool(struct hayward_seat_device *seat_device) {
     }
 }
 
-static void seat_apply_input_config(
+static void
+seat_apply_input_config(
     struct hayward_seat *seat, struct hayward_seat_device *hayward_device
 ) {
     struct input_config *ic =
@@ -599,7 +620,8 @@ static void seat_apply_input_config(
     }
 }
 
-static void seat_configure_pointer(
+static void
+seat_configure_pointer(
     struct hayward_seat *seat, struct hayward_seat_device *hayward_device
 ) {
     if ((seat->wlr_seat->capabilities & WL_SEAT_CAPABILITY_POINTER) == 0) {
@@ -614,7 +636,8 @@ static void seat_configure_pointer(
     );
 }
 
-static void seat_configure_keyboard(
+static void
+seat_configure_keyboard(
     struct hayward_seat *seat, struct hayward_seat_device *seat_device
 ) {
     if (!seat_device->keyboard) {
@@ -635,7 +658,8 @@ static void seat_configure_keyboard(
     }
 }
 
-static void seat_configure_switch(
+static void
+seat_configure_switch(
     struct hayward_seat *seat, struct hayward_seat_device *seat_device
 ) {
     if (!seat_device->switch_device) {
@@ -645,7 +669,8 @@ static void seat_configure_switch(
     hayward_switch_configure(seat_device->switch_device);
 }
 
-static void seat_configure_touch(
+static void
+seat_configure_touch(
     struct hayward_seat *seat, struct hayward_seat_device *hayward_device
 ) {
     wlr_cursor_attach_input_device(
@@ -654,7 +679,8 @@ static void seat_configure_touch(
     seat_apply_input_config(seat, hayward_device);
 }
 
-static void seat_configure_tablet_tool(
+static void
+seat_configure_tablet_tool(
     struct hayward_seat *seat, struct hayward_seat_device *hayward_device
 ) {
     if (!hayward_device->tablet) {
@@ -667,7 +693,8 @@ static void seat_configure_tablet_tool(
     seat_apply_input_config(seat, hayward_device);
 }
 
-static void seat_configure_tablet_pad(
+static void
+seat_configure_tablet_pad(
     struct hayward_seat *seat, struct hayward_seat_device *hayward_device
 ) {
     if (!hayward_device->tablet_pad) {
@@ -677,7 +704,8 @@ static void seat_configure_tablet_pad(
     hayward_configure_tablet_pad(hayward_device->tablet_pad);
 }
 
-static struct hayward_seat_device *seat_get_device(
+static struct hayward_seat_device *
+seat_get_device(
     struct hayward_seat *seat, struct hayward_input_device *input_device
 ) {
     struct hayward_seat_device *seat_device = NULL;
@@ -697,7 +725,8 @@ static struct hayward_seat_device *seat_get_device(
     return NULL;
 }
 
-void seat_configure_device(
+void
+seat_configure_device(
     struct hayward_seat *seat, struct hayward_input_device *input_device
 ) {
     struct hayward_seat_device *seat_device =
@@ -728,7 +757,8 @@ void seat_configure_device(
     }
 }
 
-void seat_reset_device(
+void
+seat_reset_device(
     struct hayward_seat *seat, struct hayward_input_device *input_device
 ) {
     struct hayward_seat_device *seat_device =
@@ -760,7 +790,8 @@ void seat_reset_device(
     }
 }
 
-void seat_add_device(
+void
+seat_add_device(
     struct hayward_seat *seat, struct hayward_input_device *input_device
 ) {
     if (seat_get_device(seat, input_device)) {
@@ -789,7 +820,8 @@ void seat_add_device(
     seat_update_capabilities(seat);
 }
 
-void seat_remove_device(
+void
+seat_remove_device(
     struct hayward_seat *seat, struct hayward_input_device *input_device
 ) {
     struct hayward_seat_device *seat_device =
@@ -809,14 +841,16 @@ void seat_remove_device(
     seat_update_capabilities(seat);
 }
 
-static bool xcursor_manager_is_named(
+static bool
+xcursor_manager_is_named(
     const struct wlr_xcursor_manager *manager, const char *name
 ) {
     return (!manager->name && !name) ||
         (name && manager->name && strcmp(name, manager->name) == 0);
 }
 
-void seat_configure_xcursor(struct hayward_seat *seat) {
+void
+seat_configure_xcursor(struct hayward_seat *seat) {
     unsigned cursor_size = 24;
     const char *cursor_theme = NULL;
 
@@ -942,7 +976,8 @@ seat_send_unfocus(struct hayward_seat *seat, struct wlr_surface *surface) {
     wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 }
 
-void seat_commit_focus(struct hayward_seat *seat) {
+void
+seat_commit_focus(struct hayward_seat *seat) {
     hayward_assert(seat != NULL, "Expected seat");
 
     struct wlr_surface *old_surface = seat->focused_surface;
@@ -963,7 +998,8 @@ void seat_commit_focus(struct hayward_seat *seat) {
     seat->focused_surface = new_surface;
 }
 
-void hayward_force_focus(struct wlr_surface *surface) {
+void
+hayward_force_focus(struct wlr_surface *surface) {
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
         seat_keyboard_notify_enter(seat, surface);
@@ -972,9 +1008,8 @@ void hayward_force_focus(struct wlr_surface *surface) {
     }
 }
 
-void seat_set_exclusive_client(
-    struct hayward_seat *seat, struct wl_client *client
-) {
+void
+seat_set_exclusive_client(struct hayward_seat *seat, struct wl_client *client) {
     if (!client) {
         seat->exclusive_client = client;
         // Triggers a refocus of the topmost surface layer if necessary
@@ -1017,9 +1052,8 @@ void seat_set_exclusive_client(
     seat->exclusive_client = client;
 }
 
-void seat_apply_config(
-    struct hayward_seat *seat, struct seat_config *seat_config
-) {
+void
+seat_apply_config(struct hayward_seat *seat, struct seat_config *seat_config) {
     struct hayward_seat_device *seat_device = NULL;
 
     if (!seat_config) {
@@ -1037,7 +1071,8 @@ void seat_apply_config(
     }
 }
 
-struct seat_config *seat_get_config(struct hayward_seat *seat) {
+struct seat_config *
+seat_get_config(struct hayward_seat *seat) {
     struct seat_config *seat_config = NULL;
     for (int i = 0; i < config->seat_configs->length; ++i) {
         seat_config = config->seat_configs->items[i];
@@ -1049,7 +1084,8 @@ struct seat_config *seat_get_config(struct hayward_seat *seat) {
     return NULL;
 }
 
-struct seat_config *seat_get_config_by_name(const char *name) {
+struct seat_config *
+seat_get_config_by_name(const char *name) {
     struct seat_config *seat_config = NULL;
     for (int i = 0; i < config->seat_configs->length; ++i) {
         seat_config = config->seat_configs->items[i];
@@ -1061,7 +1097,8 @@ struct seat_config *seat_get_config_by_name(const char *name) {
     return NULL;
 }
 
-void seat_pointer_notify_button(
+void
+seat_pointer_notify_button(
     struct hayward_seat *seat, uint32_t time_msec, uint32_t button,
     enum wlr_button_state state
 ) {
@@ -1070,7 +1107,8 @@ void seat_pointer_notify_button(
     );
 }
 
-void seatop_button(
+void
+seatop_button(
     struct hayward_seat *seat, uint32_t time_msec,
     struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
@@ -1080,13 +1118,15 @@ void seatop_button(
     }
 }
 
-void seatop_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
+void
+seatop_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     if (seat->seatop_impl->pointer_motion) {
         seat->seatop_impl->pointer_motion(seat, time_msec);
     }
 }
 
-void seatop_pointer_axis(
+void
+seatop_pointer_axis(
     struct hayward_seat *seat, struct wlr_pointer_axis_event *event
 ) {
     if (seat->seatop_impl->pointer_axis) {
@@ -1094,7 +1134,8 @@ void seatop_pointer_axis(
     }
 }
 
-void seatop_tablet_tool_tip(
+void
+seatop_tablet_tool_tip(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec, enum wlr_tablet_tool_tip_state state
 ) {
@@ -1103,7 +1144,8 @@ void seatop_tablet_tool_tip(
     }
 }
 
-void seatop_tablet_tool_motion(
+void
+seatop_tablet_tool_motion(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec
 ) {
@@ -1114,13 +1156,15 @@ void seatop_tablet_tool_motion(
     }
 }
 
-void seatop_rebase(struct hayward_seat *seat, uint32_t time_msec) {
+void
+seatop_rebase(struct hayward_seat *seat, uint32_t time_msec) {
     if (seat->seatop_impl->rebase) {
         seat->seatop_impl->rebase(seat, time_msec);
     }
 }
 
-void seatop_end(struct hayward_seat *seat) {
+void
+seatop_end(struct hayward_seat *seat) {
     if (seat->seatop_impl && seat->seatop_impl->end) {
         seat->seatop_impl->end(seat);
     }
@@ -1129,13 +1173,15 @@ void seatop_end(struct hayward_seat *seat) {
     seat->seatop_impl = NULL;
 }
 
-void seatop_unref(struct hayward_seat *seat, struct hayward_window *container) {
+void
+seatop_unref(struct hayward_seat *seat, struct hayward_window *container) {
     if (seat->seatop_impl->unref) {
         seat->seatop_impl->unref(seat, container);
     }
 }
 
-void seatop_render(
+void
+seatop_render(
     struct hayward_seat *seat, struct hayward_output *output,
     pixman_region32_t *damage
 ) {
@@ -1144,7 +1190,8 @@ void seatop_render(
     }
 }
 
-bool seatop_allows_set_cursor(struct hayward_seat *seat) {
+bool
+seatop_allows_set_cursor(struct hayward_seat *seat) {
     return seat->seatop_impl->allow_set_cursor;
 }
 

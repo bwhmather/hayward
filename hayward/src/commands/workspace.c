@@ -35,13 +35,15 @@ workspace_config_find_or_create(char *workspace_name) {
     return wsc;
 }
 
-void free_workspace_config(struct workspace_config *wsc) {
+void
+free_workspace_config(struct workspace_config *wsc) {
     free(wsc->workspace);
     list_free_items_and_destroy(wsc->outputs);
     free(wsc);
 }
 
-static void prevent_invalid_outer_gaps(struct workspace_config *wsc) {
+static void
+prevent_invalid_outer_gaps(struct workspace_config *wsc) {
     if (wsc->gaps_outer.top != INT_MIN &&
         wsc->gaps_outer.top < -wsc->gaps_inner) {
         wsc->gaps_outer.top = -wsc->gaps_inner;
@@ -130,7 +132,8 @@ cmd_workspace_gaps(int argc, char **argv, int gaps_location) {
     return error;
 }
 
-struct cmd_results *cmd_workspace(int argc, char **argv) {
+struct cmd_results *
+cmd_workspace(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "workspace", EXPECTED_AT_LEAST, 1))) {
         return error;

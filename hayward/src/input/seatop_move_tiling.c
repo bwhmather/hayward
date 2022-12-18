@@ -37,7 +37,8 @@ struct seatop_move_tiling_event {
     bool insert_after_target;
 };
 
-static void handle_render(
+static void
+handle_render(
     struct hayward_seat *seat, struct hayward_output *output,
     pixman_region32_t *damage
 ) {
@@ -59,7 +60,8 @@ static void handle_render(
     render_rect(output, damage, &box, color);
 }
 
-static void handle_motion_prethreshold(struct hayward_seat *seat) {
+static void
+handle_motion_prethreshold(struct hayward_seat *seat) {
     struct seatop_move_tiling_event *e = seat->seatop_data;
     double cx = seat->cursor->cursor->x;
     double cy = seat->cursor->cursor->y;
@@ -108,7 +110,8 @@ resize_box(struct wlr_box *box, enum wlr_edges edge, int thickness) {
     }
 }
 
-static void handle_motion_postthreshold(struct hayward_seat *seat) {
+static void
+handle_motion_postthreshold(struct hayward_seat *seat) {
     struct seatop_move_tiling_event *e = seat->seatop_data;
     struct hayward_output *target_output = NULL;
     struct hayward_window *target_window = NULL;
@@ -223,7 +226,8 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     transaction_commit_dirty();
 }
 
-static void finalize_move(struct hayward_seat *seat) {
+static void
+finalize_move(struct hayward_seat *seat) {
     struct seatop_move_tiling_event *e = seat->seatop_data;
 
     struct hayward_window *moving_window = e->moving_window;
@@ -302,7 +306,8 @@ static void finalize_move(struct hayward_seat *seat) {
     seatop_begin_default(seat);
 }
 
-static void handle_button(
+static void
+handle_button(
     struct hayward_seat *seat, uint32_t time_msec,
     struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
@@ -312,7 +317,8 @@ static void handle_button(
     }
 }
 
-static void handle_tablet_tool_tip(
+static void
+handle_tablet_tool_tip(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec, enum wlr_tablet_tool_tip_state state
 ) {
@@ -341,7 +347,8 @@ static const struct hayward_seatop_impl seatop_impl = {
     .render = handle_render,
 };
 
-void seatop_begin_move_tiling_threshold(
+void
+seatop_begin_move_tiling_threshold(
     struct hayward_seat *seat, struct hayward_window *moving_window
 ) {
     seatop_end(seat);
@@ -363,7 +370,8 @@ void seatop_begin_move_tiling_threshold(
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }
 
-void seatop_begin_move_tiling(
+void
+seatop_begin_move_tiling(
     struct hayward_seat *seat, struct hayward_window *container
 ) {
     seatop_begin_move_tiling_threshold(seat, container);

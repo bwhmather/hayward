@@ -11,7 +11,8 @@
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
 
-static void log_status(enum libinput_config_status status) {
+static void
+log_status(enum libinput_config_status status) {
     if (status != LIBINPUT_CONFIG_STATUS_SUCCESS) {
         hayward_log(
             HAYWARD_ERROR, "Failed to apply libinput config: %s",
@@ -20,7 +21,8 @@ static void log_status(enum libinput_config_status status) {
     }
 }
 
-static bool set_send_events(struct libinput_device *device, uint32_t mode) {
+static bool
+set_send_events(struct libinput_device *device, uint32_t mode) {
     if (libinput_device_config_send_events_get_mode(device) == mode) {
         return false;
     }
@@ -40,7 +42,8 @@ set_tap(struct libinput_device *device, enum libinput_config_tap_state tap) {
     return true;
 }
 
-static bool set_tap_button_map(
+static bool
+set_tap_button_map(
     struct libinput_device *device, enum libinput_config_tap_button_map map
 ) {
     if (libinput_device_config_tap_get_finger_count(device) <= 0 ||
@@ -52,7 +55,8 @@ static bool set_tap_button_map(
     return true;
 }
 
-static bool set_tap_drag(
+static bool
+set_tap_drag(
     struct libinput_device *device, enum libinput_config_drag_state drag
 ) {
     if (libinput_device_config_tap_get_finger_count(device) <= 0 ||
@@ -64,7 +68,8 @@ static bool set_tap_drag(
     return true;
 }
 
-static bool set_tap_drag_lock(
+static bool
+set_tap_drag_lock(
     struct libinput_device *device, enum libinput_config_drag_lock_state lock
 ) {
     if (libinput_device_config_tap_get_finger_count(device) <= 0 ||
@@ -76,7 +81,8 @@ static bool set_tap_drag_lock(
     return true;
 }
 
-static bool set_accel_speed(struct libinput_device *device, double speed) {
+static bool
+set_accel_speed(struct libinput_device *device, double speed) {
     if (!libinput_device_config_accel_is_available(device) ||
         libinput_device_config_accel_get_speed(device) == speed) {
         return false;
@@ -86,7 +92,8 @@ static bool set_accel_speed(struct libinput_device *device, double speed) {
     return true;
 }
 
-static bool set_accel_profile(
+static bool
+set_accel_profile(
     struct libinput_device *device, enum libinput_config_accel_profile profile
 ) {
     if (!libinput_device_config_accel_is_available(device) ||
@@ -98,7 +105,8 @@ static bool set_accel_profile(
     return true;
 }
 
-static bool set_natural_scroll(struct libinput_device *d, bool n) {
+static bool
+set_natural_scroll(struct libinput_device *d, bool n) {
     if (!libinput_device_config_scroll_has_natural_scroll(d) ||
         libinput_device_config_scroll_get_natural_scroll_enabled(d) == n) {
         return false;
@@ -108,7 +116,8 @@ static bool set_natural_scroll(struct libinput_device *d, bool n) {
     return true;
 }
 
-static bool set_left_handed(struct libinput_device *device, bool left) {
+static bool
+set_left_handed(struct libinput_device *device, bool left) {
     if (!libinput_device_config_left_handed_is_available(device) ||
         libinput_device_config_left_handed_get(device) == left) {
         return false;
@@ -118,7 +127,8 @@ static bool set_left_handed(struct libinput_device *device, bool left) {
     return true;
 }
 
-static bool set_click_method(
+static bool
+set_click_method(
     struct libinput_device *device, enum libinput_config_click_method method
 ) {
     uint32_t click = libinput_device_config_click_get_methods(device);
@@ -131,7 +141,8 @@ static bool set_click_method(
     return true;
 }
 
-static bool set_middle_emulation(
+static bool
+set_middle_emulation(
     struct libinput_device *dev, enum libinput_config_middle_emulation_state mid
 ) {
     if (!libinput_device_config_middle_emulation_is_available(dev) ||
@@ -143,7 +154,8 @@ static bool set_middle_emulation(
     return true;
 }
 
-static bool set_scroll_method(
+static bool
+set_scroll_method(
     struct libinput_device *device, enum libinput_config_scroll_method method
 ) {
     uint32_t scroll = libinput_device_config_scroll_get_methods(device);
@@ -156,7 +168,8 @@ static bool set_scroll_method(
     return true;
 }
 
-static bool set_scroll_button(struct libinput_device *dev, uint32_t button) {
+static bool
+set_scroll_button(struct libinput_device *dev, uint32_t button) {
     uint32_t scroll = libinput_device_config_scroll_get_methods(dev);
     if ((scroll & ~LIBINPUT_CONFIG_SCROLL_NO_SCROLL) == 0 ||
         libinput_device_config_scroll_get_button(dev) == button) {
@@ -167,7 +180,8 @@ static bool set_scroll_button(struct libinput_device *dev, uint32_t button) {
     return true;
 }
 
-static bool set_dwt(struct libinput_device *device, bool dwt) {
+static bool
+set_dwt(struct libinput_device *device, bool dwt) {
     if (!libinput_device_config_dwt_is_available(device) ||
         libinput_device_config_dwt_get_enabled(device) == dwt) {
         return false;
@@ -177,7 +191,8 @@ static bool set_dwt(struct libinput_device *device, bool dwt) {
     return true;
 }
 
-static bool set_calibration_matrix(struct libinput_device *dev, float mat[6]) {
+static bool
+set_calibration_matrix(struct libinput_device *dev, float mat[6]) {
     if (!libinput_device_config_calibration_has_matrix(dev)) {
         return false;
     }
@@ -200,7 +215,8 @@ static bool set_calibration_matrix(struct libinput_device *dev, float mat[6]) {
     return changed;
 }
 
-void hayward_input_configure_libinput_device(
+void
+hayward_input_configure_libinput_device(
     struct hayward_input_device *input_device
 ) {
     struct input_config *ic = input_device_get_config(input_device);
@@ -284,9 +300,8 @@ void hayward_input_configure_libinput_device(
     }
 }
 
-void hayward_input_reset_libinput_device(
-    struct hayward_input_device *input_device
-) {
+void
+hayward_input_reset_libinput_device(struct hayward_input_device *input_device) {
     if (!wlr_input_device_is_libinput(input_device->wlr_device)) {
         return;
     }
@@ -351,8 +366,8 @@ void hayward_input_reset_libinput_device(
     }
 }
 
-bool hayward_libinput_device_is_builtin(
-    struct hayward_input_device *hayward_device
+bool
+hayward_libinput_device_is_builtin(struct hayward_input_device *hayward_device
 ) {
     if (!wlr_input_device_is_libinput(hayward_device->wlr_device)) {
         return false;

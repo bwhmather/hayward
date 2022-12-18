@@ -35,7 +35,8 @@ static struct rlimit original_nofile_rlimit = {0};
 struct hayward_server server = {0};
 struct hayward_debug debug = {0};
 
-void hayward_terminate(int exit_code) {
+void
+hayward_terminate(int exit_code) {
     if (!server.wl_display) {
         // Running as IPC client
         exit(exit_code);
@@ -48,9 +49,13 @@ void hayward_terminate(int exit_code) {
     }
 }
 
-void sig_handler(int signal) { hayward_terminate(EXIT_SUCCESS); }
+void
+sig_handler(int signal) {
+    hayward_terminate(EXIT_SUCCESS);
+}
 
-void detect_proprietary(int allow_unsupported_gpu) {
+void
+detect_proprietary(int allow_unsupported_gpu) {
     FILE *f = fopen("/proc/modules", "r");
     if (!f) {
         return;
@@ -96,7 +101,8 @@ void detect_proprietary(int allow_unsupported_gpu) {
     fclose(f);
 }
 
-void run_as_ipc_client(char *command, char *socket_path) {
+void
+run_as_ipc_client(char *command, char *socket_path) {
     int socketfd = ipc_open_socket(socket_path);
     uint32_t len = strlen(command);
     char *resp = ipc_single_command(socketfd, IPC_COMMAND, command, &len);
@@ -105,7 +111,8 @@ void run_as_ipc_client(char *command, char *socket_path) {
     close(socketfd);
 }
 
-static void log_env(void) {
+static void
+log_env(void) {
     const char *log_vars[] = {
         "LD_LIBRARY_PATH",
         "LD_PRELOAD",
@@ -120,7 +127,8 @@ static void log_env(void) {
     }
 }
 
-static void log_file(FILE *f) {
+static void
+log_file(FILE *f) {
     char *line = NULL;
     size_t line_size = 0;
     ssize_t nread;
@@ -133,7 +141,8 @@ static void log_file(FILE *f) {
     free(line);
 }
 
-static void log_distro(void) {
+static void
+log_distro(void) {
     const char *paths[] = {
         "/etc/lsb-release",    "/etc/os-release",     "/etc/debian_version",
         "/etc/redhat-release", "/etc/gentoo-release",
@@ -148,7 +157,8 @@ static void log_distro(void) {
     }
 }
 
-static void log_kernel(void) {
+static void
+log_kernel(void) {
     FILE *f = popen("uname -a", "r");
     if (!f) {
         hayward_log(HAYWARD_INFO, "Unable to determine kernel version");
@@ -158,7 +168,8 @@ static void log_kernel(void) {
     pclose(f);
 }
 
-static bool drop_permissions(void) {
+static bool
+drop_permissions(void) {
     if (getuid() != geteuid() || getgid() != getegid()) {
         hayward_log(
             HAYWARD_ERROR,
@@ -192,7 +203,8 @@ static bool drop_permissions(void) {
     return true;
 }
 
-static void increase_nofile_limit(void) {
+static void
+increase_nofile_limit(void) {
     if (getrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
         hayward_log_errno(
             HAYWARD_ERROR,
@@ -217,7 +229,8 @@ static void increase_nofile_limit(void) {
     }
 }
 
-void restore_nofile_limit(void) {
+void
+restore_nofile_limit(void) {
     if (original_nofile_rlimit.rlim_cur == 0) {
         return;
     }
@@ -230,7 +243,8 @@ void restore_nofile_limit(void) {
     }
 }
 
-void enable_debug_flag(const char *flag) {
+void
+enable_debug_flag(const char *flag) {
     if (strcmp(flag, "damage=highlight") == 0) {
         debug.damage = DAMAGE_HIGHLIGHT;
     } else if (strcmp(flag, "damage=rerender") == 0) {
@@ -262,7 +276,8 @@ convert_wlr_log_importance(enum wlr_log_importance importance) {
     }
 }
 
-static void handle_wlr_log(
+static void
+handle_wlr_log(
     enum wlr_log_importance importance, const char *fmt, va_list args
 ) {
     static char hayward_fmt[1024];
@@ -296,7 +311,8 @@ static const char usage[] =
     "exits.\n"
     "\n";
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv) {
     static bool verbose = false, debug = false, validate = false,
                 allow_unsupported_gpu = false;
 

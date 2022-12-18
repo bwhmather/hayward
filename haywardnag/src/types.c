@@ -15,7 +15,8 @@
 #include "haywardnag/config.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
-struct haywardnag_type *haywardnag_type_new(const char *name) {
+struct haywardnag_type *
+haywardnag_type_new(const char *name) {
     struct haywardnag_type *type = calloc(1, sizeof(struct haywardnag_type));
     if (!type) {
         hayward_abort("Failed to allocate type: %s", name);
@@ -33,7 +34,8 @@ struct haywardnag_type *haywardnag_type_new(const char *name) {
     return type;
 }
 
-void haywardnag_types_add_default(list_t *types) {
+void
+haywardnag_types_add_default(list_t *types) {
     struct haywardnag_type *type_defaults = haywardnag_type_new("<defaults>");
     type_defaults->font = strdup("pango:Monospace 10");
     type_defaults->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
@@ -77,7 +79,8 @@ void haywardnag_types_add_default(list_t *types) {
     list_add(types, type_warning);
 }
 
-struct haywardnag_type *haywardnag_type_get(list_t *types, char *name) {
+struct haywardnag_type *
+haywardnag_type_get(list_t *types, char *name) {
     for (int i = 0; i < types->length; i++) {
         struct haywardnag_type *type = types->items[i];
         if (strcasecmp(type->name, name) == 0) {
@@ -87,7 +90,8 @@ struct haywardnag_type *haywardnag_type_get(list_t *types, char *name) {
     return NULL;
 }
 
-void haywardnag_type_merge(
+void
+haywardnag_type_merge(
     struct haywardnag_type *dest, struct haywardnag_type *src
 ) {
     if (!dest || !src) {
@@ -173,14 +177,16 @@ void haywardnag_type_merge(
     }
 }
 
-void haywardnag_type_free(struct haywardnag_type *type) {
+void
+haywardnag_type_free(struct haywardnag_type *type) {
     free(type->name);
     free(type->font);
     free(type->output);
     free(type);
 }
 
-void haywardnag_types_free(list_t *types) {
+void
+haywardnag_types_free(list_t *types) {
     for (int i = 0; i < types->length; ++i) {
         haywardnag_type_free(types->items[i]);
     }

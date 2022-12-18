@@ -29,7 +29,8 @@ static const struct cmd_handler seat_handlers[] = {
     {"xcursor_theme", seat_cmd_xcursor_theme},
 };
 
-static struct cmd_results *action_handlers(int argc, char **argv) {
+static struct cmd_results *
+action_handlers(int argc, char **argv) {
     struct cmd_results *res = config_subcommand(
         argv, argc, seat_action_handlers, sizeof(seat_action_handlers)
     );
@@ -38,7 +39,8 @@ static struct cmd_results *action_handlers(int argc, char **argv) {
     return res;
 }
 
-static struct cmd_results *config_handlers(int argc, char **argv) {
+static struct cmd_results *
+config_handlers(int argc, char **argv) {
     struct cmd_results *res =
         config_subcommand(argv, argc, seat_handlers, sizeof(seat_handlers));
     if (res && res->status != CMD_SUCCESS) {
@@ -54,7 +56,8 @@ static struct cmd_results *config_handlers(int argc, char **argv) {
     return res;
 }
 
-struct cmd_results *cmd_seat(int argc, char **argv) {
+struct cmd_results *
+cmd_seat(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "seat", EXPECTED_AT_LEAST, 2))) {
         return error;

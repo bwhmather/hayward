@@ -11,13 +11,15 @@
 #include "hayward/config.h"
 
 // sort in order of longest->shortest
-static int compare_set_qsort(const void *_l, const void *_r) {
+static int
+compare_set_qsort(const void *_l, const void *_r) {
     struct hayward_variable const *l = *(void **)_l;
     struct hayward_variable const *r = *(void **)_r;
     return strlen(r->name) - strlen(l->name);
 }
 
-void free_hayward_variable(struct hayward_variable *var) {
+void
+free_hayward_variable(struct hayward_variable *var) {
     if (!var) {
         return;
     }
@@ -26,7 +28,8 @@ void free_hayward_variable(struct hayward_variable *var) {
     free(var);
 }
 
-struct cmd_results *cmd_set(int argc, char **argv) {
+struct cmd_results *
+cmd_set(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "set", EXPECTED_AT_LEAST, 2))) {
         return error;

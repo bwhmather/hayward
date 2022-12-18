@@ -26,6 +26,7 @@ struct hayward_xwayland {
     xcb_atom_t atoms[ATOM_LAST];
 };
 
-void handle_xwayland_ready(struct wl_listener *listener, void *data);
+void
+handle_xwayland_ready(struct wl_listener *listener, void *data);
 
 #endif

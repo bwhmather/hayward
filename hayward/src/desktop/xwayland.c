@@ -46,7 +46,8 @@ unmanaged_handle_request_configure(struct wl_listener *listener, void *data) {
     );
 }
 
-static void unmanaged_handle_commit(struct wl_listener *listener, void *data) {
+static void
+unmanaged_handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_unmanaged *surface =
         wl_container_of(listener, surface, commit);
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
@@ -73,7 +74,8 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data) {
     }
 }
 
-static void unmanaged_handle_map(struct wl_listener *listener, void *data) {
+static void
+unmanaged_handle_map(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_unmanaged *surface =
         wl_container_of(listener, surface, map);
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
@@ -98,7 +100,8 @@ static void unmanaged_handle_map(struct wl_listener *listener, void *data) {
     }
 }
 
-static void unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
+static void
+unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_unmanaged *surface =
         wl_container_of(listener, surface, unmap);
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
@@ -133,7 +136,8 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data) {
     root_set_focused_surface(xsurface->surface);
 }
 
-static void unmanaged_handle_destroy(struct wl_listener *listener, void *data) {
+static void
+unmanaged_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_unmanaged *surface =
         wl_container_of(listener, surface, destroy);
     wl_list_remove(&surface->request_configure.link);
@@ -145,7 +149,8 @@ static void unmanaged_handle_destroy(struct wl_listener *listener, void *data) {
     free(surface);
 }
 
-static void handle_map(struct wl_listener *listener, void *data);
+static void
+handle_map(struct wl_listener *listener, void *data);
 
 struct hayward_xwayland_view *
 create_xwayland_view(struct wlr_xwayland_surface *xsurface);
@@ -253,7 +258,8 @@ get_int_prop(struct hayward_view *view, enum hayward_view_prop prop) {
     }
 }
 
-static uint32_t configure(
+static uint32_t
+configure(
     struct hayward_view *view, double lx, double ly, int width, int height
 ) {
     struct hayward_xwayland_view *xwayland_view = xwayland_view_from_view(view);
@@ -268,7 +274,8 @@ static uint32_t configure(
     return 0;
 }
 
-static void set_activated(struct hayward_view *view, bool activated) {
+static void
+set_activated(struct hayward_view *view, bool activated) {
     if (xwayland_view_from_view(view) == NULL) {
         return;
     }
@@ -282,7 +289,8 @@ static void set_activated(struct hayward_view *view, bool activated) {
     wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
 }
 
-static void set_tiled(struct hayward_view *view, bool tiled) {
+static void
+set_tiled(struct hayward_view *view, bool tiled) {
     if (xwayland_view_from_view(view) == NULL) {
         return;
     }
@@ -290,7 +298,8 @@ static void set_tiled(struct hayward_view *view, bool tiled) {
     wlr_xwayland_surface_set_maximized(surface, tiled);
 }
 
-static void set_fullscreen(struct hayward_view *view, bool fullscreen) {
+static void
+set_fullscreen(struct hayward_view *view, bool fullscreen) {
     if (xwayland_view_from_view(view) == NULL) {
         return;
     }
@@ -298,7 +307,8 @@ static void set_fullscreen(struct hayward_view *view, bool fullscreen) {
     wlr_xwayland_surface_set_fullscreen(surface, fullscreen);
 }
 
-static bool wants_floating(struct hayward_view *view) {
+static bool
+wants_floating(struct hayward_view *view) {
     if (xwayland_view_from_view(view) == NULL) {
         return false;
     }
@@ -330,7 +340,8 @@ static bool wants_floating(struct hayward_view *view) {
     return false;
 }
 
-static void handle_set_decorations(struct wl_listener *listener, void *data) {
+static void
+handle_set_decorations(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, set_decorations);
     struct hayward_view *view = &xwayland_view->view;
@@ -355,14 +366,16 @@ is_transient_for(struct hayward_view *child, struct hayward_view *ancestor) {
     return false;
 }
 
-static void _close(struct hayward_view *view) {
+static void
+_close(struct hayward_view *view) {
     if (xwayland_view_from_view(view) == NULL) {
         return;
     }
     wlr_xwayland_surface_close(view->wlr_xwayland_surface);
 }
 
-static void destroy(struct hayward_view *view) {
+static void
+destroy(struct hayward_view *view) {
     struct hayward_xwayland_view *xwayland_view = xwayland_view_from_view(view);
     if (xwayland_view == NULL) {
         return;
@@ -370,7 +383,8 @@ static void destroy(struct hayward_view *view) {
     free(xwayland_view);
 }
 
-static void get_constraints(
+static void
+get_constraints(
     struct hayward_view *view, double *min_width, double *max_width,
     double *min_height, double *max_height
 ) {
@@ -405,7 +419,8 @@ static const struct hayward_view_impl view_impl = {
     .destroy = destroy,
 };
 
-static void get_geometry(struct hayward_view *view, struct wlr_box *box) {
+static void
+get_geometry(struct hayward_view *view, struct wlr_box *box) {
     box->x = box->y = 0;
     if (view->surface) {
         box->width = view->surface->current.width;
@@ -416,7 +431,8 @@ static void get_geometry(struct hayward_view *view, struct wlr_box *box) {
     }
 }
 
-static void handle_commit(struct wl_listener *listener, void *data) {
+static void
+handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, commit);
     struct hayward_view *view = &xwayland_view->view;
@@ -453,7 +469,8 @@ static void handle_commit(struct wl_listener *listener, void *data) {
     view_damage_from(view);
 }
 
-static void handle_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, destroy);
     struct hayward_view *view = &xwayland_view->view;
@@ -484,7 +501,8 @@ static void handle_destroy(struct wl_listener *listener, void *data) {
     view_begin_destroy(&xwayland_view->view);
 }
 
-static void handle_unmap(struct wl_listener *listener, void *data) {
+static void
+handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, unmap);
     struct hayward_view *view = &xwayland_view->view;
@@ -496,7 +514,8 @@ static void handle_unmap(struct wl_listener *listener, void *data) {
     wl_list_remove(&xwayland_view->commit.link);
 }
 
-static void handle_map(struct wl_listener *listener, void *data) {
+static void
+handle_map(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, map);
     struct wlr_xwayland_surface *xsurface = data;
@@ -516,7 +535,8 @@ static void handle_map(struct wl_listener *listener, void *data) {
     transaction_commit_dirty();
 }
 
-static void handle_override_redirect(struct wl_listener *listener, void *data) {
+static void
+handle_override_redirect(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, override_redirect);
     struct wlr_xwayland_surface *xsurface = data;
@@ -535,7 +555,8 @@ static void handle_override_redirect(struct wl_listener *listener, void *data) {
     }
 }
 
-static void handle_request_configure(struct wl_listener *listener, void *data) {
+static void
+handle_request_configure(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_configure);
     struct wlr_xwayland_surface_configure_event *ev = data;
@@ -585,7 +606,8 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     transaction_commit_dirty();
 }
 
-static void handle_request_minimize(struct wl_listener *listener, void *data) {
+static void
+handle_request_minimize(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_minimize);
     struct hayward_view *view = &xwayland_view->view;
@@ -599,7 +621,8 @@ static void handle_request_minimize(struct wl_listener *listener, void *data) {
     wlr_xwayland_surface_set_minimized(xsurface, !focused && e->minimize);
 }
 
-static void handle_request_move(struct wl_listener *listener, void *data) {
+static void
+handle_request_move(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_move);
     struct hayward_view *view = &xwayland_view->view;
@@ -614,7 +637,8 @@ static void handle_request_move(struct wl_listener *listener, void *data) {
     seatop_begin_move_floating(seat, view->window);
 }
 
-static void handle_request_resize(struct wl_listener *listener, void *data) {
+static void
+handle_request_resize(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_resize);
     struct hayward_view *view = &xwayland_view->view;
@@ -630,7 +654,8 @@ static void handle_request_resize(struct wl_listener *listener, void *data) {
     seatop_begin_resize_floating(seat, view->window, e->edges);
 }
 
-static void handle_request_activate(struct wl_listener *listener, void *data) {
+static void
+handle_request_activate(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_activate);
     struct hayward_view *view = &xwayland_view->view;
@@ -643,7 +668,8 @@ static void handle_request_activate(struct wl_listener *listener, void *data) {
     transaction_commit_dirty();
 }
 
-static void handle_set_title(struct wl_listener *listener, void *data) {
+static void
+handle_set_title(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, set_title);
     struct hayward_view *view = &xwayland_view->view;
@@ -654,19 +680,23 @@ static void handle_set_title(struct wl_listener *listener, void *data) {
     view_update_title(view, false);
 }
 
-static void handle_set_class(struct wl_listener *listener, void *data) {
+static void
+handle_set_class(struct wl_listener *listener, void *data) {
     // TODO probably remove.
 }
 
-static void handle_set_role(struct wl_listener *listener, void *data) {
+static void
+handle_set_role(struct wl_listener *listener, void *data) {
     // TODO probably remove.
 }
 
-static void handle_set_window_type(struct wl_listener *listener, void *data) {
+static void
+handle_set_window_type(struct wl_listener *listener, void *data) {
     // TODO probably remove.
 }
 
-static void handle_set_hints(struct wl_listener *listener, void *data) {
+static void
+handle_set_hints(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, set_hints);
     struct hayward_view *view = &xwayland_view->view;
@@ -775,7 +805,8 @@ create_xwayland_view(struct wlr_xwayland_surface *xsurface) {
     return xwayland_view;
 }
 
-void handle_xwayland_surface(struct wl_listener *listener, void *data) {
+void
+handle_xwayland_surface(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_surface *xsurface = data;
 
     if (xsurface->override_redirect) {
@@ -787,7 +818,8 @@ void handle_xwayland_surface(struct wl_listener *listener, void *data) {
     create_xwayland_view(xsurface);
 }
 
-void handle_xwayland_ready(struct wl_listener *listener, void *data) {
+void
+handle_xwayland_ready(struct wl_listener *listener, void *data) {
     struct hayward_server *server =
         wl_container_of(listener, server, xwayland_ready);
     struct hayward_xwayland *xwayland = &server->xwayland;

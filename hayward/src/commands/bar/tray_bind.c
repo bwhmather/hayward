@@ -8,7 +8,8 @@
 
 #include "config.h"
 
-static struct cmd_results *tray_bind(int argc, char **argv, bool code) {
+static struct cmd_results *
+tray_bind(int argc, char **argv, bool code) {
 #if HAVE_TRAY
     const char *command = code ? "bar tray_bindcode" : "bar tray_bindsym";
     struct cmd_results *error = NULL;
@@ -87,10 +88,12 @@ static struct cmd_results *tray_bind(int argc, char **argv, bool code) {
 #endif
 }
 
-struct cmd_results *bar_cmd_tray_bindcode(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_tray_bindcode(int argc, char **argv) {
     return tray_bind(argc, argv, true);
 }
 
-struct cmd_results *bar_cmd_tray_bindsym(int argc, char **argv) {
+struct cmd_results *
+bar_cmd_tray_bindsym(int argc, char **argv) {
     return tray_bind(argc, argv, false);
 }

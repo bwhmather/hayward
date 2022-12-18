@@ -4,7 +4,8 @@
 #include "hayward/config.h"
 #include "hayward/tree/window.h"
 
-struct cmd_results *cmd_default_border(int argc, char **argv) {
+struct cmd_results *
+cmd_default_border(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "default_border", EXPECTED_AT_LEAST, 1))) {
         return error;

@@ -17,7 +17,8 @@ static const char *bg_options[] = {
     "stretch", "center", "fill", "fit", "tile",
 };
 
-static bool validate_color(const char *color) {
+static bool
+validate_color(const char *color) {
     if (strlen(color) != 7 || color[0] != '#') {
         return false;
     }
@@ -27,7 +28,8 @@ static bool validate_color(const char *color) {
     return *ptr == '\0';
 }
 
-struct cmd_results *output_cmd_background(int argc, char **argv) {
+struct cmd_results *
+output_cmd_background(int argc, char **argv) {
     if (!config->handler_context.output_config) {
         return cmd_results_new(CMD_FAILURE, "Missing output config");
     }

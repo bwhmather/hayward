@@ -28,7 +28,8 @@ static const char expected_syntax[] =
     "'move <window> [to] workspace <name>' or "
     "'move <window|workspace> [to] output <name|direction>'";
 
-static struct hayward_output *output_in_direction(
+static struct hayward_output *
+output_in_direction(
     const char *direction_string, struct hayward_output *reference, int ref_lx,
     int ref_ly
 ) {
@@ -73,7 +74,8 @@ static struct hayward_output *output_in_direction(
     return output_by_name_or_id(direction_string);
 }
 
-static bool window_move_to_next_output(
+static bool
+window_move_to_next_output(
     struct hayward_window *window, struct hayward_output *output,
     enum wlr_direction move_dir
 ) {
@@ -87,7 +89,8 @@ static bool window_move_to_next_output(
 }
 
 // Returns true if moved
-static bool window_move_in_direction(
+static bool
+window_move_in_direction(
     struct hayward_window *window, enum wlr_direction move_dir
 ) {
     // If moving a fullscreen view, only consider outputs
@@ -194,7 +197,8 @@ static bool window_move_in_direction(
     return false; // TODO unreachable.
 }
 
-static struct cmd_results *cmd_move_window(int argc, char **argv) {
+static struct cmd_results *
+cmd_move_window(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "move window", EXPECTED_AT_LEAST, 2))) {
         return error;
@@ -463,7 +467,8 @@ static const char expected_position_syntax[] =
     "'move [absolute] position center' or "
     "'move position cursor|mouse|pointer'";
 
-static struct cmd_results *cmd_move_to_position(int argc, char **argv) {
+static struct cmd_results *
+cmd_move_to_position(int argc, char **argv) {
     struct hayward_window *window = config->handler_context.window;
     if (!window || !window_is_floating(window)) {
         return cmd_results_new(
@@ -605,7 +610,8 @@ static const char expected_full_syntax[] =
     " or 'move [window] [to] [absolute] position center'"
     " or 'move [window] [to] position mouse|cursor|pointer'";
 
-struct cmd_results *cmd_move(int argc, char **argv) {
+struct cmd_results *
+cmd_move(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "move", EXPECTED_AT_LEAST, 1))) {
         return error;

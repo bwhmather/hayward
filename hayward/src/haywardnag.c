@@ -24,7 +24,8 @@ handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {
     haywardnag->client = NULL;
 }
 
-bool haywardnag_spawn(
+bool
+haywardnag_spawn(
     const char *haywardnag_command, struct haywardnag_instance *haywardnag
 ) {
     if (haywardnag->client != NULL) {
@@ -139,7 +140,8 @@ failed:
     return false;
 }
 
-void haywardnag_log(
+void
+haywardnag_log(
     const char *haywardnag_command, struct haywardnag_instance *haywardnag,
     const char *fmt, ...
 ) {
@@ -181,7 +183,8 @@ void haywardnag_log(
     free(temp);
 }
 
-void haywardnag_show(struct haywardnag_instance *haywardnag) {
+void
+haywardnag_show(struct haywardnag_instance *haywardnag) {
     if (haywardnag->detailed && haywardnag->client != NULL) {
         close(haywardnag->fd[1]);
     }

@@ -5,7 +5,8 @@
 #include "hayward/config.h"
 #include "hayward/server.h"
 
-struct cmd_results *cmd_xwayland(int argc, char **argv) {
+struct cmd_results *
+cmd_xwayland(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "xwayland", EXPECTED_EQUAL_TO, 1))) {
         return error;

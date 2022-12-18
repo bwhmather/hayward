@@ -23,28 +23,34 @@ typedef enum {
 
 // Will log all messages less than or equal to `verbosity`
 // The `terminate` callback is called by `hayward_abort`
-void hayward_log_init(hayward_log_importance_t verbosity);
+void
+hayward_log_init(hayward_log_importance_t verbosity);
 
-void _hayward_vlog(
+void
+_hayward_vlog(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
     const char *format, va_list args
 ) ATTRIB_PRINTF(4, 0);
-void _hayward_log(
+void
+_hayward_log(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
     const char *format, ...
 ) ATTRIB_PRINTF(4, 5);
-void _hayward_vlog_errno(
+void
+_hayward_vlog_errno(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
     const char *format, va_list args
 ) ATTRIB_PRINTF(4, 0);
-void _hayward_log_errno(
+void
+_hayward_log_errno(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
     const char *format, ...
 ) ATTRIB_PRINTF(4, 5);
 noreturn void
 _hayward_abort(const char *filename, long int lineno, const char *format, ...)
     ATTRIB_PRINTF(3, 4);
-void _hayward_assert(
+void
+_hayward_assert(
     bool condition, const char *filename, long int lineno, const char *function,
     const char *format, ...
 ) ATTRIB_PRINTF(5, 6);

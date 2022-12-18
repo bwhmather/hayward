@@ -16,11 +16,13 @@
 #include "haywardnag/types.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
-static void nop() {
+static void
+nop() {
     // Intentionally left blank
 }
 
-static bool terminal_execute(char *terminal, char *command) {
+static bool
+terminal_execute(char *terminal, char *command) {
     char fname[] = "/tmp/haywardnagXXXXXX";
     FILE *tmp = fdopen(mkstemp(fname), "w");
     if (!tmp) {
@@ -46,7 +48,8 @@ static bool terminal_execute(char *terminal, char *command) {
     return false;
 }
 
-static void haywardnag_button_execute(
+static void
+haywardnag_button_execute(
     struct haywardnag *haywardnag, struct haywardnag_button *button
 ) {
     hayward_log(
@@ -102,7 +105,8 @@ static void haywardnag_button_execute(
     }
 }
 
-static void layer_surface_configure(
+static void
+layer_surface_configure(
     void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial,
     uint32_t width, uint32_t height
 ) {
@@ -124,7 +128,8 @@ static const struct zwlr_layer_surface_v1_listener layer_surface_listener = {
     .closed = layer_surface_closed,
 };
 
-static void surface_enter(
+static void
+surface_enter(
     void *data, struct wl_surface *surface, struct wl_output *output
 ) {
     struct haywardnag *haywardnag = data;
@@ -148,7 +153,8 @@ static const struct wl_surface_listener surface_listener = {
     .leave = nop,
 };
 
-static void update_cursor(struct haywardnag_seat *seat) {
+static void
+update_cursor(struct haywardnag_seat *seat) {
     struct haywardnag_pointer *pointer = &seat->pointer;
     struct haywardnag *haywardnag = seat->haywardnag;
     if (pointer->cursor_theme) {
@@ -187,7 +193,8 @@ static void update_cursor(struct haywardnag_seat *seat) {
     wl_surface_commit(pointer->cursor_surface);
 }
 
-void update_all_cursors(struct haywardnag *haywardnag) {
+void
+update_all_cursors(struct haywardnag *haywardnag) {
     struct haywardnag_seat *seat;
     wl_list_for_each(seat, &haywardnag->seats, link) {
         if (seat->pointer.pointer) {
@@ -196,7 +203,8 @@ void update_all_cursors(struct haywardnag *haywardnag) {
     }
 }
 
-static void wl_pointer_enter(
+static void
+wl_pointer_enter(
     void *data, struct wl_pointer *wl_pointer, uint32_t serial,
     struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y
 ) {
@@ -208,7 +216,8 @@ static void wl_pointer_enter(
     update_cursor(seat);
 }
 
-static void wl_pointer_motion(
+static void
+wl_pointer_motion(
     void *data, struct wl_pointer *wl_pointer, uint32_t time,
     wl_fixed_t surface_x, wl_fixed_t surface_y
 ) {
@@ -217,7 +226,8 @@ static void wl_pointer_motion(
     seat->pointer.y = wl_fixed_to_int(surface_y);
 }
 
-static void wl_pointer_button(
+static void
+wl_pointer_button(
     void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time,
     uint32_t button, uint32_t state
 ) {
@@ -266,7 +276,8 @@ static void wl_pointer_button(
     }
 }
 
-static void wl_pointer_axis(
+static void
+wl_pointer_axis(
     void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis,
     wl_fixed_t value
 ) {
@@ -305,7 +316,8 @@ static const struct wl_pointer_listener pointer_listener = {
     .axis_discrete = nop,
 };
 
-static void seat_handle_capabilities(
+static void
+seat_handle_capabilities(
     void *data, struct wl_seat *wl_seat, enum wl_seat_capability caps
 ) {
     struct haywardnag_seat *seat = data;
@@ -324,7 +336,8 @@ static const struct wl_seat_listener seat_listener = {
     .name = nop,
 };
 
-static void output_scale(void *data, struct wl_output *output, int32_t factor) {
+static void
+output_scale(void *data, struct wl_output *output, int32_t factor) {
     struct haywardnag_output *haywardnag_output = data;
     haywardnag_output->scale = factor;
     if (haywardnag_output->haywardnag->output == haywardnag_output) {
@@ -356,7 +369,8 @@ static const struct wl_output_listener output_listener = {
     .description = nop,
 };
 
-static void handle_global(
+static void
+handle_global(
     void *data, struct wl_registry *registry, uint32_t name,
     const char *interface, uint32_t version
 ) {
@@ -404,7 +418,8 @@ static void handle_global(
     }
 }
 
-void haywardnag_seat_destroy(struct haywardnag_seat *seat) {
+void
+haywardnag_seat_destroy(struct haywardnag_seat *seat) {
     if (seat->pointer.cursor_theme) {
         wl_cursor_theme_destroy(seat->pointer.cursor_theme);
     }
@@ -436,7 +451,8 @@ static const struct wl_registry_listener registry_listener = {
     .global_remove = handle_global_remove,
 };
 
-void haywardnag_setup_cursors(struct haywardnag *haywardnag) {
+void
+haywardnag_setup_cursors(struct haywardnag *haywardnag) {
     struct haywardnag_seat *seat;
 
     wl_list_for_each(seat, &haywardnag->seats, link) {
@@ -448,7 +464,8 @@ void haywardnag_setup_cursors(struct haywardnag *haywardnag) {
     }
 }
 
-void haywardnag_setup(struct haywardnag *haywardnag) {
+void
+haywardnag_setup(struct haywardnag *haywardnag) {
     haywardnag->display = wl_display_connect(NULL);
     if (!haywardnag->display) {
         hayward_abort("Unable to connect to the compositor. "
@@ -505,7 +522,8 @@ void haywardnag_setup(struct haywardnag *haywardnag) {
     wl_registry_destroy(registry);
 }
 
-void haywardnag_run(struct haywardnag *haywardnag) {
+void
+haywardnag_run(struct haywardnag *haywardnag) {
     haywardnag->run_display = true;
     render_frame(haywardnag);
     while (haywardnag->run_display &&
@@ -518,7 +536,8 @@ void haywardnag_run(struct haywardnag *haywardnag) {
     }
 }
 
-void haywardnag_destroy(struct haywardnag *haywardnag) {
+void
+haywardnag_destroy(struct haywardnag *haywardnag) {
     haywardnag->run_display = false;
 
     free(haywardnag->message);

@@ -10,21 +10,24 @@
  *
  * Returns the modifier mask or 0 if the name isn't found.
  */
-uint32_t get_modifier_mask_by_name(const char *name);
+uint32_t
+get_modifier_mask_by_name(const char *name);
 
 /**
  * Get modifier name from modifier mask.
  *
  * Returns the modifier name or NULL if it isn't found.
  */
-const char *get_modifier_name_by_mask(uint32_t modifier);
+const char *
+get_modifier_name_by_mask(uint32_t modifier);
 
 /**
  * Get an array of modifier names from modifier_masks
  *
  * Populates the names array and return the number of names added.
  */
-int get_modifier_names(const char **names, uint32_t modifier_masks);
+int
+get_modifier_names(const char **names, uint32_t modifier_masks);
 
 struct hayward_shortcut_state {
     /**
@@ -83,13 +86,17 @@ struct hayward_keyboard_group {
 struct xkb_keymap *
 hayward_keyboard_compile_keymap(struct input_config *ic, char **error);
 
-struct hayward_keyboard *hayward_keyboard_create(
+struct hayward_keyboard *
+hayward_keyboard_create(
     struct hayward_seat *seat, struct hayward_seat_device *device
 );
 
-void hayward_keyboard_configure(struct hayward_keyboard *keyboard);
+void
+hayward_keyboard_configure(struct hayward_keyboard *keyboard);
 
-void hayward_keyboard_destroy(struct hayward_keyboard *keyboard);
+void
+hayward_keyboard_destroy(struct hayward_keyboard *keyboard);
 
-void hayward_keyboard_disarm_key_repeat(struct hayward_keyboard *keyboard);
+void
+hayward_keyboard_disarm_key_repeat(struct hayward_keyboard *keyboard);
 #endif

@@ -40,38 +40,50 @@ struct hayward_input_manager {
 /**
  * Gets the last seat the user interacted with
  */
-struct hayward_seat *input_manager_current_seat(void);
+struct hayward_seat *
+input_manager_current_seat(void);
 
-struct hayward_seat *input_manager_get_default_seat(void);
+struct hayward_seat *
+input_manager_get_default_seat(void);
 
-struct hayward_seat *input_manager_get_seat(const char *seat_name, bool create);
+struct hayward_seat *
+input_manager_get_seat(const char *seat_name, bool create);
 
-char *input_device_get_identifier(struct wlr_input_device *device);
+char *
+input_device_get_identifier(struct wlr_input_device *device);
 
-const char *input_device_get_type(struct hayward_input_device *device);
+const char *
+input_device_get_type(struct hayward_input_device *device);
 
 /**
  * If none of the seat configs have a fallback setting (either true or false),
  * create the default seat (if needed) and set it as the fallback
  */
-void input_manager_verify_fallback_seat(void);
+void
+input_manager_verify_fallback_seat(void);
 
-struct hayward_input_manager *input_manager_create(struct hayward_server *server
-);
+struct hayward_input_manager *
+input_manager_create(struct hayward_server *server);
 
-void input_manager_configure_all_inputs(void);
+void
+input_manager_configure_all_inputs(void);
 
-void input_manager_apply_input_config(struct input_config *input_config);
+void
+input_manager_apply_input_config(struct input_config *input_config);
 
-void input_manager_reset_input(struct hayward_input_device *input_device);
+void
+input_manager_reset_input(struct hayward_input_device *input_device);
 
-void input_manager_reset_all_inputs(void);
+void
+input_manager_reset_all_inputs(void);
 
-void input_manager_apply_seat_config(struct seat_config *seat_config);
+void
+input_manager_apply_seat_config(struct seat_config *seat_config);
 
-void input_manager_configure_xcursor(void);
+void
+input_manager_configure_xcursor(void);
 
-struct input_config *input_device_get_config(struct hayward_input_device *device
-);
+struct input_config *
+input_device_get_config(struct hayward_input_device *device);
 
 #endif

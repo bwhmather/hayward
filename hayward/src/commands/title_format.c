@@ -8,7 +8,8 @@
 #include "hayward/config.h"
 #include "hayward/tree/view.h"
 
-struct cmd_results *cmd_title_format(int argc, char **argv) {
+struct cmd_results *
+cmd_title_format(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "title_format", EXPECTED_AT_LEAST, 1))) {
         return error;

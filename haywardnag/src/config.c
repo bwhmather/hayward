@@ -13,7 +13,8 @@
 #include "haywardnag/types.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
-static char *read_and_trim_stdin(void) {
+static char *
+read_and_trim_stdin(void) {
     char *buffer = NULL, *line = NULL;
     size_t buffer_len = 0, line_size = 0;
     while (1) {
@@ -49,7 +50,8 @@ freebuf:
     return NULL;
 }
 
-int haywardnag_parse_options(
+int
+haywardnag_parse_options(
     int argc, char **argv, struct haywardnag *haywardnag, list_t *types,
     struct haywardnag_type *type, char **config, bool *debug
 ) {
@@ -376,11 +378,13 @@ int haywardnag_parse_options(
     return 0;
 }
 
-static bool file_exists(const char *path) {
+static bool
+file_exists(const char *path) {
     return path && access(path, R_OK) != -1;
 }
 
-char *haywardnag_get_config_path(void) {
+char *
+haywardnag_get_config_path(void) {
     static const char *config_paths[] = {
         "$HOME/.haywardnag/config",
         "$XDG_CONFIG_HOME/haywardnag/config",
@@ -407,7 +411,8 @@ char *haywardnag_get_config_path(void) {
     return NULL;
 }
 
-int haywardnag_load_config(
+int
+haywardnag_load_config(
     char *path, struct haywardnag *haywardnag, list_t *types
 ) {
     FILE *config = fopen(path, "r");

@@ -9,7 +9,8 @@
 #include "hayward/config.h"
 #include "hayward/input/input-manager.h"
 
-static void toggle_supported_send_events_for_device(
+static void
+toggle_supported_send_events_for_device(
     struct input_config *ic, struct hayward_input_device *input_device
 ) {
     struct wlr_input_device *wlr_device = input_device->wlr_device;
@@ -46,7 +47,8 @@ static void toggle_supported_send_events_for_device(
     ic->send_events = mode;
 }
 
-static int mode_for_name(const char *name) {
+static int
+mode_for_name(const char *name) {
     if (!strcmp(name, "enabled")) {
         return LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
     } else if (!strcmp(name, "disabled_on_external_mouse")) {
@@ -57,7 +59,8 @@ static int mode_for_name(const char *name) {
     return -1;
 }
 
-static void toggle_select_send_events_for_device(
+static void
+toggle_select_send_events_for_device(
     struct input_config *ic, struct hayward_input_device *input_device,
     int argc, char **argv
 ) {
@@ -80,7 +83,8 @@ static void toggle_select_send_events_for_device(
     ic->send_events = mode_for_name(argv[index % argc]);
 }
 
-static void toggle_send_events(int argc, char **argv) {
+static void
+toggle_send_events(int argc, char **argv) {
     struct input_config *ic = config->handler_context.input_config;
     bool wildcard = strcmp(ic->identifier, "*") == 0;
     const char *type = strncmp(ic->identifier, "type:", strlen("type:")) == 0
@@ -114,7 +118,8 @@ static void toggle_send_events(int argc, char **argv) {
     }
 }
 
-struct cmd_results *input_cmd_events(int argc, char **argv) {
+struct cmd_results *
+input_cmd_events(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "events", EXPECTED_AT_LEAST, 1))) {
         return error;

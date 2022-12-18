@@ -226,43 +226,58 @@ struct hayward_xdg_popup {
     struct wl_listener destroy;
 };
 
-void view_init(
+void
+view_init(
     struct hayward_view *view, enum hayward_view_type type,
     const struct hayward_view_impl *impl
 );
 
-void view_destroy(struct hayward_view *view);
+void
+view_destroy(struct hayward_view *view);
 
-void view_begin_destroy(struct hayward_view *view);
+void
+view_begin_destroy(struct hayward_view *view);
 
-const char *view_get_title(struct hayward_view *view);
+const char *
+view_get_title(struct hayward_view *view);
 
-const char *view_get_app_id(struct hayward_view *view);
+const char *
+view_get_app_id(struct hayward_view *view);
 
-const char *view_get_class(struct hayward_view *view);
+const char *
+view_get_class(struct hayward_view *view);
 
-const char *view_get_instance(struct hayward_view *view);
+const char *
+view_get_instance(struct hayward_view *view);
 
-uint32_t view_get_x11_window_id(struct hayward_view *view);
+uint32_t
+view_get_x11_window_id(struct hayward_view *view);
 
-uint32_t view_get_x11_parent_id(struct hayward_view *view);
+uint32_t
+view_get_x11_parent_id(struct hayward_view *view);
 
-const char *view_get_window_role(struct hayward_view *view);
+const char *
+view_get_window_role(struct hayward_view *view);
 
-uint32_t view_get_window_type(struct hayward_view *view);
+uint32_t
+view_get_window_type(struct hayward_view *view);
 
-const char *view_get_shell(struct hayward_view *view);
+const char *
+view_get_shell(struct hayward_view *view);
 
-void view_get_constraints(
+void
+view_get_constraints(
     struct hayward_view *view, double *min_width, double *max_width,
     double *min_height, double *max_height
 );
 
-uint32_t view_configure(
+uint32_t
+view_configure(
     struct hayward_view *view, double lx, double ly, int width, int height
 );
 
-bool view_inhibit_idle(struct hayward_view *view);
+bool
+view_inhibit_idle(struct hayward_view *view);
 
 /**
  * Whether or not this view's most distant ancestor (possibly itself) is the
@@ -270,44 +285,55 @@ bool view_inhibit_idle(struct hayward_view *view);
  * views. If the view is floating, there may be tiling views or views in a
  * different floating container.
  */
-bool view_ancestor_is_only_visible(struct hayward_view *view);
+bool
+view_ancestor_is_only_visible(struct hayward_view *view);
 
 /**
  * Configure the view's position and size based on the container's position and
  * size, taking borders into consideration.
  */
-void view_autoconfigure(struct hayward_view *view);
+void
+view_autoconfigure(struct hayward_view *view);
 
-void view_set_activated(struct hayward_view *view, bool activated);
+void
+view_set_activated(struct hayward_view *view, bool activated);
 
 /**
  * Called when the view requests to be focused.
  */
-void view_request_activate(struct hayward_view *view);
+void
+view_request_activate(struct hayward_view *view);
 
 /**
  * If possible, instructs the client to change their decoration mode.
  */
-void view_set_csd_from_server(struct hayward_view *view, bool enabled);
+void
+view_set_csd_from_server(struct hayward_view *view, bool enabled);
 
 /**
  * Updates the view's border setting when the client unexpectedly changes their
  * decoration mode.
  */
-void view_update_csd_from_client(struct hayward_view *view, bool enabled);
+void
+view_update_csd_from_client(struct hayward_view *view, bool enabled);
 
-void view_set_tiled(struct hayward_view *view, bool tiled);
+void
+view_set_tiled(struct hayward_view *view, bool tiled);
 
-void view_close(struct hayward_view *view);
+void
+view_close(struct hayward_view *view);
 
-void view_close_popups(struct hayward_view *view);
+void
+view_close_popups(struct hayward_view *view);
 
-void view_damage_from(struct hayward_view *view);
+void
+view_damage_from(struct hayward_view *view);
 
 /**
  * Iterate all surfaces of a view (toplevels + popups).
  */
-void view_for_each_surface(
+void
+view_for_each_surface(
     struct hayward_view *view, wlr_surface_iterator_func_t iterator,
     void *user_data
 );
@@ -315,7 +341,8 @@ void view_for_each_surface(
 /**
  * Iterate all popup surfaces of a view.
  */
-void view_for_each_popup_surface(
+void
+view_for_each_popup_surface(
     struct hayward_view *view, wlr_surface_iterator_func_t iterator,
     void *user_data
 );
@@ -329,23 +356,29 @@ void view_for_each_popup_surface(
  * `decoration` should be set to true if the client prefers CSD. The client's
  * preference may be ignored.
  */
-void view_map(
+void
+view_map(
     struct hayward_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
     struct wlr_output *fullscreen_output, bool decoration
 );
 
-void view_unmap(struct hayward_view *view);
+void
+view_unmap(struct hayward_view *view);
 
-void view_update_size(struct hayward_view *view);
-void view_center_surface(struct hayward_view *view);
+void
+view_update_size(struct hayward_view *view);
+void
+view_center_surface(struct hayward_view *view);
 
-void view_child_init(
+void
+view_child_init(
     struct hayward_view_child *child,
     const struct hayward_view_child_impl *impl, struct hayward_view *view,
     struct wlr_surface *surface
 );
 
-void view_child_destroy(struct hayward_view_child *child);
+void
+view_child_destroy(struct hayward_view_child *child);
 
 struct hayward_view *
 view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface);
@@ -353,30 +386,38 @@ view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface);
 struct hayward_view *
 view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface);
 #endif
-struct hayward_view *view_from_wlr_surface(struct wlr_surface *surface);
+struct hayward_view *
+view_from_wlr_surface(struct wlr_surface *surface);
 
 /**
  * Re-read the view's title property and update any relevant title bars.
  * The force argument makes it recreate the title bars even if the title hasn't
  * changed.
  */
-void view_update_title(struct hayward_view *view, bool force);
+void
+view_update_title(struct hayward_view *view, bool force);
 
 /**
  * Returns true if there's a possibility the view may be rendered on screen.
  * Intended for damage tracking.
  */
-bool view_is_visible(struct hayward_view *view);
+bool
+view_is_visible(struct hayward_view *view);
 
-void view_set_urgent(struct hayward_view *view, bool enable);
+void
+view_set_urgent(struct hayward_view *view, bool enable);
 
-bool view_is_urgent(struct hayward_view *view);
+bool
+view_is_urgent(struct hayward_view *view);
 
-void view_remove_saved_buffer(struct hayward_view *view);
+void
+view_remove_saved_buffer(struct hayward_view *view);
 
-void view_save_buffer(struct hayward_view *view);
+void
+view_save_buffer(struct hayward_view *view);
 
-bool view_is_transient_for(
+bool
+view_is_transient_for(
     struct hayward_view *child, struct hayward_view *ancestor
 );
 

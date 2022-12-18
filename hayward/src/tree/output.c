@@ -15,7 +15,8 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/workspace.h"
 
-enum wlr_direction opposite_direction(enum wlr_direction d) {
+enum wlr_direction
+opposite_direction(enum wlr_direction d) {
     switch (d) {
     case WLR_DIRECTION_UP:
         return WLR_DIRECTION_DOWN;
@@ -30,7 +31,8 @@ enum wlr_direction opposite_direction(enum wlr_direction d) {
     return 0;
 }
 
-struct hayward_output *output_create(struct wlr_output *wlr_output) {
+struct hayward_output *
+output_create(struct wlr_output *wlr_output) {
     struct hayward_output *output = calloc(1, sizeof(struct hayward_output));
     node_init(&output->node, N_OUTPUT, output);
     output->wlr_output = wlr_output;
@@ -50,7 +52,8 @@ struct hayward_output *output_create(struct wlr_output *wlr_output) {
     return output;
 }
 
-void output_enable(struct hayward_output *output) {
+void
+output_enable(struct hayward_output *output) {
     hayward_assert(!output->enabled, "output is already enabled");
     output->enabled = true;
     list_add(root->outputs, output);
@@ -67,7 +70,8 @@ void output_enable(struct hayward_output *output) {
     arrange_root();
 }
 
-static void output_evacuate(struct hayward_output *output) {
+static void
+output_evacuate(struct hayward_output *output) {
     struct hayward_output *new_output = NULL;
     if (root->outputs->length > 1) {
         new_output = root->outputs->items[0];
@@ -120,7 +124,8 @@ static void output_evacuate(struct hayward_output *output) {
     }
 }
 
-void output_destroy(struct hayward_output *output) {
+void
+output_destroy(struct hayward_output *output) {
     hayward_assert(
         output->node.destroying,
         "Tried to free output which wasn't marked as destroying"
@@ -138,7 +143,8 @@ void output_destroy(struct hayward_output *output) {
     free(output);
 }
 
-static void untrack_output(struct hayward_window *container, void *data) {
+static void
+untrack_output(struct hayward_window *container, void *data) {
     struct hayward_output *output = data;
     int index = list_find(container->outputs, output);
     if (index != -1) {
@@ -146,7 +152,8 @@ static void untrack_output(struct hayward_window *container, void *data) {
     }
 }
 
-void output_disable(struct hayward_output *output) {
+void
+output_disable(struct hayward_output *output) {
     hayward_assert(output->enabled, "Expected an enabled output");
 
     int index = list_find(root->outputs, output);
@@ -182,7 +189,8 @@ void output_disable(struct hayward_output *output) {
     input_manager_configure_all_inputs();
 }
 
-void output_begin_destroy(struct hayward_output *output) {
+void
+output_begin_destroy(struct hayward_output *output) {
     hayward_assert(!output->enabled, "Expected a disabled output");
     hayward_log(
         HAYWARD_DEBUG, "Destroying output '%s'", output->wlr_output->name
@@ -193,11 +201,13 @@ void output_begin_destroy(struct hayward_output *output) {
     node_set_dirty(&output->node);
 }
 
-struct hayward_output *output_from_wlr_output(struct wlr_output *output) {
+struct hayward_output *
+output_from_wlr_output(struct wlr_output *output) {
     return output->data;
 }
 
-void output_reconcile(struct hayward_output *output) {
+void
+output_reconcile(struct hayward_output *output) {
     hayward_assert(output != NULL, "Expected output");
 
     struct hayward_workspace *workspace = root_get_active_workspace();
@@ -209,7 +219,8 @@ void output_reconcile(struct hayward_output *output) {
         workspace_get_fullscreen_window_for_output(workspace, output);
 }
 
-struct hayward_output *output_get_in_direction(
+struct hayward_output *
+output_get_in_direction(
     struct hayward_output *reference, enum wlr_direction direction
 ) {
     hayward_assert(direction, "got invalid direction: %d", direction);
@@ -228,16 +239,16 @@ struct hayward_output *output_get_in_direction(
     return output_from_wlr_output(wlr_adjacent);
 }
 
-void output_get_box(struct hayward_output *output, struct wlr_box *box) {
+void
+output_get_box(struct hayward_output *output, struct wlr_box *box) {
     box->x = output->lx;
     box->y = output->ly;
     box->width = output->width;
     box->height = output->height;
 }
 
-void output_get_usable_area(
-    struct hayward_output *output, struct wlr_box *box
-) {
+void
+output_get_usable_area(struct hayward_output *output, struct wlr_box *box) {
     box->x = output->usable_area.x;
     box->y = output->usable_area.y;
     box->width = output->usable_area.width;

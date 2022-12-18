@@ -6,7 +6,8 @@
 
 #include "hayward/config.h"
 
-struct hayward_switch *hayward_switch_create(
+struct hayward_switch *
+hayward_switch_create(
     struct hayward_seat *seat, struct hayward_seat_device *device
 ) {
     struct hayward_switch *switch_device =
@@ -21,7 +22,8 @@ struct hayward_switch *hayward_switch_create(
     return switch_device;
 }
 
-static bool hayward_switch_trigger_test(
+static bool
+hayward_switch_trigger_test(
     enum hayward_switch_trigger trigger, enum wlr_switch_state state
 ) {
     switch (trigger) {
@@ -35,7 +37,8 @@ static bool hayward_switch_trigger_test(
     abort(); // unreachable
 }
 
-static void execute_binding(struct hayward_switch *hayward_switch) {
+static void
+execute_binding(struct hayward_switch *hayward_switch) {
     struct hayward_seat *seat = hayward_switch->seat_device->hayward_seat;
     bool input_inhibited =
         seat->exclusive_client != NULL || server.session_lock.locked;
@@ -81,7 +84,8 @@ static void execute_binding(struct hayward_switch *hayward_switch) {
     }
 }
 
-static void handle_switch_toggle(struct wl_listener *listener, void *data) {
+static void
+handle_switch_toggle(struct wl_listener *listener, void *data) {
     struct hayward_switch *hayward_switch =
         wl_container_of(listener, hayward_switch, switch_toggle);
     struct wlr_switch_toggle_event *event = data;
@@ -102,7 +106,8 @@ static void handle_switch_toggle(struct wl_listener *listener, void *data) {
     execute_binding(hayward_switch);
 }
 
-void hayward_switch_configure(struct hayward_switch *hayward_switch) {
+void
+hayward_switch_configure(struct hayward_switch *hayward_switch) {
     struct wlr_input_device *wlr_device =
         hayward_switch->seat_device->input_device->wlr_device;
     wl_list_remove(&hayward_switch->switch_toggle.link);
@@ -114,7 +119,8 @@ void hayward_switch_configure(struct hayward_switch *hayward_switch) {
     hayward_log(HAYWARD_DEBUG, "Configured switch for device");
 }
 
-void hayward_switch_destroy(struct hayward_switch *hayward_switch) {
+void
+hayward_switch_destroy(struct hayward_switch *hayward_switch) {
     if (!hayward_switch) {
         return;
     }
@@ -122,7 +128,8 @@ void hayward_switch_destroy(struct hayward_switch *hayward_switch) {
     free(hayward_switch);
 }
 
-void hayward_switch_retrigger_bindings_for_all(void) {
+void
+hayward_switch_retrigger_bindings_for_all(void) {
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
         struct hayward_seat_device *seat_device;

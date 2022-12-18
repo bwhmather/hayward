@@ -51,7 +51,8 @@ handle_command(struct hayward_cursor *cursor, int argc, char **argv) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-struct cmd_results *seat_cmd_cursor(int argc, char **argv) {
+struct cmd_results *
+seat_cmd_cursor(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "cursor", EXPECTED_AT_LEAST, 2))) {
         return error;
@@ -86,7 +87,8 @@ struct cmd_results *seat_cmd_cursor(int argc, char **argv) {
     return error ? error : cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *press_or_release(
+static struct cmd_results *
+press_or_release(
     struct hayward_cursor *cursor, char *action, char *button_str
 ) {
     enum wlr_button_state state;

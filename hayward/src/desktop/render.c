@@ -50,7 +50,8 @@ struct render_data {
  * scale to 2px if its X coordinate is 1, because the X coordinate would have
  * scaled to 2px.
  */
-static int scale_length(int length, int offset, float scale) {
+static int
+scale_length(int length, int offset, float scale) {
     return round((offset + length) * scale) - round(offset * scale);
 }
 
@@ -76,7 +77,8 @@ scissor_output(struct wlr_output *wlr_output, pixman_box32_t *rect) {
     wlr_renderer_scissor(renderer, &box);
 }
 
-static void set_scale_filter(
+static void
+set_scale_filter(
     struct wlr_output *wlr_output, struct wlr_texture *texture,
     enum scale_filter_mode scale_filter
 ) {
@@ -102,7 +104,8 @@ static void set_scale_filter(
     }
 }
 
-static void render_texture(
+static void
+render_texture(
     struct wlr_output *wlr_output, pixman_region32_t *output_damage,
     struct wlr_texture *texture, const struct wlr_fbox *src_box,
     const struct wlr_box *dst_box, const float matrix[static 9], float alpha
@@ -140,7 +143,8 @@ damage_finish:
     pixman_region32_fini(&damage);
 }
 
-static void render_surface_iterator(
+static void
+render_surface_iterator(
     struct hayward_output *output, struct hayward_view *view,
     struct wlr_surface *surface, struct wlr_box *_box, void *_data
 ) {
@@ -184,7 +188,8 @@ static void render_surface_iterator(
     );
 }
 
-static void render_layer_toplevel(
+static void
+render_layer_toplevel(
     struct hayward_output *output, pixman_region32_t *damage,
     struct wl_list *layer_surfaces
 ) {
@@ -197,7 +202,8 @@ static void render_layer_toplevel(
     );
 }
 
-static void render_layer_popups(
+static void
+render_layer_popups(
     struct hayward_output *output, pixman_region32_t *damage,
     struct wl_list *layer_surfaces
 ) {
@@ -211,7 +217,8 @@ static void render_layer_popups(
 }
 
 #if HAVE_XWAYLAND
-static void render_unmanaged(
+static void
+render_unmanaged(
     struct hayward_output *output, pixman_region32_t *damage,
     struct wl_list *unmanaged
 ) {
@@ -225,7 +232,8 @@ static void render_unmanaged(
 }
 #endif
 
-static void render_drag_icons(
+static void
+render_drag_icons(
     struct hayward_output *output, pixman_region32_t *damage,
     struct wl_list *drag_icons
 ) {
@@ -240,7 +248,8 @@ static void render_drag_icons(
 
 // _box.x and .y are expected to be layout-local
 // _box.width and .height are expected to be output-buffer-local
-void render_rect(
+void
+render_rect(
     struct hayward_output *output, pixman_region32_t *output_damage,
     const struct wlr_box *_box, float color[static 4]
 ) {
@@ -274,14 +283,16 @@ damage_finish:
     pixman_region32_fini(&damage);
 }
 
-void premultiply_alpha(float color[4], float opacity) {
+void
+premultiply_alpha(float color[4], float opacity) {
     color[3] *= opacity;
     color[0] *= color[3];
     color[1] *= color[3];
     color[2] *= color[3];
 }
 
-static void render_view_toplevels(
+static void
+render_view_toplevels(
     struct hayward_view *view, struct hayward_output *output,
     pixman_region32_t *damage, float alpha
 ) {
@@ -306,7 +317,8 @@ static void render_view_toplevels(
     );
 }
 
-static void render_view_popups(
+static void
+render_view_popups(
     struct hayward_view *view, struct hayward_output *output,
     pixman_region32_t *damage, float alpha
 ) {
@@ -319,7 +331,8 @@ static void render_view_popups(
     );
 }
 
-static void render_saved_view(
+static void
+render_saved_view(
     struct hayward_view *view, struct hayward_output *output,
     pixman_region32_t *damage, float alpha
 ) {
@@ -396,7 +409,8 @@ static void render_saved_view(
 /**
  * Render a view's surface and left/bottom/right borders.
  */
-static void render_view(
+static void
+render_view(
     struct hayward_output *output, pixman_region32_t *damage,
     struct hayward_window *window, struct border_colors *colors
 ) {
@@ -465,7 +479,8 @@ static void render_view(
  * The height is: 1px border, 3px padding, font height, 3px padding, 1px border
  * The left side is: 1px border, 2px padding, title
  */
-static void render_titlebar(
+static void
+render_titlebar(
     struct hayward_output *output, pixman_region32_t *output_damage,
     struct hayward_window *window, int x, int y, int width,
     struct border_colors *colors, struct wlr_texture *title_texture
@@ -661,7 +676,8 @@ static void render_titlebar(
 /**
  * Render the top border line for a view using "border pixel".
  */
-static void render_top_border(
+static void
+render_top_border(
     struct hayward_output *output, pixman_region32_t *output_damage,
     struct hayward_window *container, struct border_colors *colors
 ) {
@@ -690,7 +706,8 @@ static void render_top_border(
  * Wrap child views in borders and leave child containers borderless because
  * they'll apply their own borders to their children.
  */
-static void render_column_split(
+static void
+render_column_split(
     struct hayward_output *output, pixman_region32_t *damage,
     struct hayward_column *column
 ) {
@@ -733,7 +750,8 @@ static void render_column_split(
 /**
  * Render a container's children using the L_STACKED layout.
  */
-static void render_column_stacked(
+static void
+render_column_stacked(
     struct hayward_output *output, pixman_region32_t *damage,
     struct hayward_column *column
 ) {
@@ -786,7 +804,8 @@ static void render_column_stacked(
     render_view(output, damage, current, current_colors);
 }
 
-static void render_column(
+static void
+render_column(
     struct hayward_output *output, pixman_region32_t *damage,
     struct hayward_column *column
 ) {
@@ -800,7 +819,8 @@ static void render_column(
     }
 }
 
-static void render_workspace(
+static void
+render_workspace(
     struct hayward_output *output, pixman_region32_t *damage,
     struct hayward_workspace *workspace, bool focused
 ) {
@@ -813,7 +833,8 @@ static void render_workspace(
     }
 }
 
-static void render_floating_window(
+static void
+render_floating_window(
     struct hayward_output *soutput, pixman_region32_t *damage,
     struct hayward_window *window
 ) {
@@ -866,7 +887,8 @@ render_seatops(struct hayward_output *output, pixman_region32_t *damage) {
     }
 }
 
-void output_render(
+void
+output_render(
     struct hayward_output *output, struct timespec *when,
     pixman_region32_t *damage
 ) {

@@ -64,125 +64,159 @@ struct hayward_output {
     struct wl_event_source *repaint_timer;
 };
 
-struct hayward_output *output_create(struct wlr_output *wlr_output);
+struct hayward_output *
+output_create(struct wlr_output *wlr_output);
 
-void output_destroy(struct hayward_output *output);
+void
+output_destroy(struct hayward_output *output);
 
-void output_begin_destroy(struct hayward_output *output);
+void
+output_begin_destroy(struct hayward_output *output);
 
-struct hayward_output *output_from_wlr_output(struct wlr_output *output);
+struct hayward_output *
+output_from_wlr_output(struct wlr_output *output);
 
-struct hayward_output *output_get_in_direction(
+struct hayward_output *
+output_get_in_direction(
     struct hayward_output *reference, enum wlr_direction direction
 );
 
-void output_reconcile(struct hayward_output *output);
+void
+output_reconcile(struct hayward_output *output);
 
 typedef void (*hayward_surface_iterator_func_t
 )(struct hayward_output *output, struct hayward_view *view,
   struct wlr_surface *surface, struct wlr_box *box, void *user_data);
 
-void output_damage_whole(struct hayward_output *output);
+void
+output_damage_whole(struct hayward_output *output);
 
-void output_damage_surface(
+void
+output_damage_surface(
     struct hayward_output *output, double ox, double oy,
     struct wlr_surface *surface, bool whole
 );
 
-void output_damage_from_view(
+void
+output_damage_from_view(
     struct hayward_output *output, struct hayward_view *view
 );
 
-void output_damage_box(struct hayward_output *output, struct wlr_box *box);
+void
+output_damage_box(struct hayward_output *output, struct wlr_box *box);
 
-void output_damage_window(
+void
+output_damage_window(
     struct hayward_output *output, struct hayward_window *window
 );
-void output_damage_column(
+void
+output_damage_column(
     struct hayward_output *output, struct hayward_column *column
 );
 
 // this ONLY includes the enabled outputs
-struct hayward_output *output_by_name_or_id(const char *name_or_id);
+struct hayward_output *
+output_by_name_or_id(const char *name_or_id);
 
 // this includes all the outputs, including disabled ones
-struct hayward_output *all_output_by_name_or_id(const char *name_or_id);
+struct hayward_output *
+all_output_by_name_or_id(const char *name_or_id);
 
-void output_enable(struct hayward_output *output);
+void
+output_enable(struct hayward_output *output);
 
-void output_disable(struct hayward_output *output);
+void
+output_disable(struct hayward_output *output);
 
-bool output_has_opaque_overlay_layer_surface(struct hayward_output *output);
+bool
+output_has_opaque_overlay_layer_surface(struct hayward_output *output);
 
-void output_render(
+void
+output_render(
     struct hayward_output *output, struct timespec *when,
     pixman_region32_t *damage
 );
 
-void output_surface_for_each_surface(
+void
+output_surface_for_each_surface(
     struct hayward_output *output, struct wlr_surface *surface, double ox,
     double oy, hayward_surface_iterator_func_t iterator, void *user_data
 );
 
-void output_view_for_each_surface(
+void
+output_view_for_each_surface(
     struct hayward_output *output, struct hayward_view *view,
     hayward_surface_iterator_func_t iterator, void *user_data
 );
 
-void output_view_for_each_popup_surface(
+void
+output_view_for_each_popup_surface(
     struct hayward_output *output, struct hayward_view *view,
     hayward_surface_iterator_func_t iterator, void *user_data
 );
 
-void output_layer_for_each_surface(
+void
+output_layer_for_each_surface(
     struct hayward_output *output, struct wl_list *layer_surfaces,
     hayward_surface_iterator_func_t iterator, void *user_data
 );
 
-void output_layer_for_each_toplevel_surface(
+void
+output_layer_for_each_toplevel_surface(
     struct hayward_output *output, struct wl_list *layer_surfaces,
     hayward_surface_iterator_func_t iterator, void *user_data
 );
 
-void output_layer_for_each_popup_surface(
+void
+output_layer_for_each_popup_surface(
     struct hayward_output *output, struct wl_list *layer_surfaces,
     hayward_surface_iterator_func_t iterator, void *user_data
 );
 
 #if HAVE_XWAYLAND
-void output_unmanaged_for_each_surface(
+void
+output_unmanaged_for_each_surface(
     struct hayward_output *output, struct wl_list *unmanaged,
     hayward_surface_iterator_func_t iterator, void *user_data
 );
 #endif
 
-void output_drag_icons_for_each_surface(
+void
+output_drag_icons_for_each_surface(
     struct hayward_output *output, struct wl_list *drag_icons,
     hayward_surface_iterator_func_t iterator, void *user_data
 );
 
-void output_get_box(struct hayward_output *output, struct wlr_box *box);
-void output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
+void
+output_get_box(struct hayward_output *output, struct wlr_box *box);
+void
+output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
 
-void render_rect(
+void
+render_rect(
     struct hayward_output *output, pixman_region32_t *output_damage,
     const struct wlr_box *_box, float color[static 4]
 );
 
-void premultiply_alpha(float color[4], float opacity);
+void
+premultiply_alpha(float color[4], float opacity);
 
-void scale_box(struct wlr_box *box, float scale);
+void
+scale_box(struct wlr_box *box, float scale);
 
-enum wlr_direction opposite_direction(enum wlr_direction d);
+enum wlr_direction
+opposite_direction(enum wlr_direction d);
 
-void handle_output_layout_change(struct wl_listener *listener, void *data);
+void
+handle_output_layout_change(struct wl_listener *listener, void *data);
 
-void handle_output_manager_apply(struct wl_listener *listener, void *data);
+void
+handle_output_manager_apply(struct wl_listener *listener, void *data);
 
-void handle_output_manager_test(struct wl_listener *listener, void *data);
+void
+handle_output_manager_test(struct wl_listener *listener, void *data);
 
-void handle_output_power_manager_set_mode(
-    struct wl_listener *listener, void *data
-);
+void
+handle_output_power_manager_set_mode(struct wl_listener *listener, void *data);
 
 #endif

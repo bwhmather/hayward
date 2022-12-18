@@ -19,7 +19,8 @@ struct seatop_down_event {
     double ref_container_lx, ref_container_ly; // container's x/y at start of op
 };
 
-static void handle_pointer_axis(
+static void
+handle_pointer_axis(
     struct hayward_seat *seat, struct wlr_pointer_axis_event *event
 ) {
     struct hayward_input_device *input_device =
@@ -36,7 +37,8 @@ static void handle_pointer_axis(
     );
 }
 
-static void handle_button(
+static void
+handle_button(
     struct hayward_seat *seat, uint32_t time_msec,
     struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
@@ -60,7 +62,8 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     }
 }
 
-static void handle_tablet_tool_tip(
+static void
+handle_tablet_tool_tip(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec, enum wlr_tablet_tool_tip_state state
 ) {
@@ -70,7 +73,8 @@ static void handle_tablet_tool_tip(
     }
 }
 
-static void handle_tablet_tool_motion(
+static void
+handle_tablet_tool_motion(
     struct hayward_seat *seat, struct hayward_tablet_tool *tool,
     uint32_t time_msec
 ) {
@@ -84,7 +88,8 @@ static void handle_tablet_tool_motion(
     }
 }
 
-static void handle_destroy(struct wl_listener *listener, void *data) {
+static void
+handle_destroy(struct wl_listener *listener, void *data) {
     struct seatop_down_event *e = wl_container_of(listener, e, surface_destroy);
     if (e) {
         seatop_begin_default(e->seat);
@@ -99,7 +104,8 @@ handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
     }
 }
 
-static void handle_end(struct hayward_seat *seat) {
+static void
+handle_end(struct hayward_seat *seat) {
     struct seatop_down_event *e = seat->seatop_data;
     wl_list_remove(&e->surface_destroy.link);
 }
@@ -115,7 +121,8 @@ static const struct hayward_seatop_impl seatop_impl = {
     .allow_set_cursor = true,
 };
 
-void seatop_begin_down(
+void
+seatop_begin_down(
     struct hayward_seat *seat, struct hayward_window *container,
     uint32_t time_msec, double sx, double sy
 ) {
@@ -129,7 +136,8 @@ void seatop_begin_down(
     transaction_commit_dirty();
 }
 
-void seatop_begin_down_on_surface(
+void
+seatop_begin_down_on_surface(
     struct hayward_seat *seat, struct wlr_surface *surface, uint32_t time_msec,
     double sx, double sy
 ) {

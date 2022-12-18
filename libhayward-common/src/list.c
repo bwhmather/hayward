@@ -6,7 +6,8 @@
 
 #include "hayward-common/log.h"
 
-list_t *create_list(void) {
+list_t *
+create_list(void) {
     list_t *list = malloc(sizeof(list_t));
     if (!list) {
         return NULL;
@@ -17,14 +18,16 @@ list_t *create_list(void) {
     return list;
 }
 
-static void list_resize(list_t *list) {
+static void
+list_resize(list_t *list) {
     if (list->length == list->capacity) {
         list->capacity *= 2;
         list->items = realloc(list->items, sizeof(void *) * list->capacity);
     }
 }
 
-void list_free(list_t *list) {
+void
+list_free(list_t *list) {
     if (list == NULL) {
         return;
     }
@@ -32,12 +35,14 @@ void list_free(list_t *list) {
     free(list);
 }
 
-void list_add(list_t *list, void *item) {
+void
+list_add(list_t *list, void *item) {
     list_resize(list);
     list->items[list->length++] = item;
 }
 
-void list_insert(list_t *list, int index, void *item) {
+void
+list_insert(list_t *list, int index, void *item) {
     list_resize(list);
     memmove(
         &list->items[index + 1], &list->items[index],
@@ -47,7 +52,8 @@ void list_insert(list_t *list, int index, void *item) {
     list->items[index] = item;
 }
 
-void list_del(list_t *list, int index) {
+void
+list_del(list_t *list, int index) {
     list->length--;
     memmove(
         &list->items[index], &list->items[index + 1],
@@ -55,19 +61,20 @@ void list_del(list_t *list, int index) {
     );
 }
 
-void list_cat(list_t *list, list_t *source) {
+void
+list_cat(list_t *list, list_t *source) {
     for (int i = 0; i < source->length; ++i) {
         list_add(list, source->items[i]);
     }
 }
 
-void list_qsort(
-    list_t *list, int compare(const void *left, const void *right)
-) {
+void
+list_qsort(list_t *list, int compare(const void *left, const void *right)) {
     qsort(list->items, list->length, sizeof(void *), compare);
 }
 
-int list_seq_find(
+int
+list_seq_find(
     list_t *list, int compare(const void *item, const void *data),
     const void *data
 ) {
@@ -80,7 +87,8 @@ int list_seq_find(
     return -1;
 }
 
-int list_find(list_t *list, const void *item) {
+int
+list_find(list_t *list, const void *item) {
     for (int i = 0; i < list->length; i++) {
         if (list->items[i] == item) {
             return i;
@@ -89,13 +97,15 @@ int list_find(list_t *list, const void *item) {
     return -1;
 }
 
-void list_swap(list_t *list, int src, int dest) {
+void
+list_swap(list_t *list, int src, int dest) {
     void *tmp = list->items[src];
     list->items[src] = list->items[dest];
     list->items[dest] = tmp;
 }
 
-void list_move_to_end(list_t *list, void *item) {
+void
+list_move_to_end(list_t *list, void *item) {
     int i;
     for (i = 0; i < list->length; ++i) {
         if (list->items[i] == item) {
@@ -107,7 +117,8 @@ void list_move_to_end(list_t *list, void *item) {
     list_add(list, item);
 }
 
-static void list_rotate(list_t *list, int from, int to) {
+static void
+list_rotate(list_t *list, int from, int to) {
     void *tmp = list->items[to];
 
     while (to > from) {
@@ -118,7 +129,8 @@ static void list_rotate(list_t *list, int from, int to) {
     list->items[from] = tmp;
 }
 
-static void list_inplace_merge(
+static void
+list_inplace_merge(
     list_t *list, int left, int last, int mid,
     int compare(const void *a, const void *b)
 ) {
@@ -140,7 +152,8 @@ static void list_inplace_merge(
     }
 }
 
-static void list_inplace_sort(
+static void
+list_inplace_sort(
     list_t *list, int first, int last, int compare(const void *a, const void *b)
 ) {
     if (first >= last) {
@@ -157,13 +170,15 @@ static void list_inplace_sort(
     }
 }
 
-void list_stable_sort(list_t *list, int compare(const void *a, const void *b)) {
+void
+list_stable_sort(list_t *list, int compare(const void *a, const void *b)) {
     if (list->length > 1) {
         list_inplace_sort(list, 0, list->length - 1, compare);
     }
 }
 
-void list_free_items_and_destroy(list_t *list) {
+void
+list_free_items_and_destroy(list_t *list) {
     if (!list) {
         return;
     }

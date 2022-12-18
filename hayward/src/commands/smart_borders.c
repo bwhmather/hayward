@@ -5,7 +5,8 @@
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
 
-struct cmd_results *cmd_smart_borders(int argc, char **argv) {
+struct cmd_results *
+cmd_smart_borders(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "smart_borders", EXPECTED_EQUAL_TO, 1))) {
         return error;

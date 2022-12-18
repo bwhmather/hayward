@@ -35,7 +35,8 @@ static struct modifier_key {
     {"Mod5", WLR_MODIFIER_MOD5},
 };
 
-uint32_t get_modifier_mask_by_name(const char *name) {
+uint32_t
+get_modifier_mask_by_name(const char *name) {
     int i;
     for (i = 0; i < (int)(sizeof(modifiers) / sizeof(struct modifier_key));
          ++i) {
@@ -47,7 +48,8 @@ uint32_t get_modifier_mask_by_name(const char *name) {
     return 0;
 }
 
-const char *get_modifier_name_by_mask(uint32_t modifier) {
+const char *
+get_modifier_name_by_mask(uint32_t modifier) {
     int i;
     for (i = 0; i < (int)(sizeof(modifiers) / sizeof(struct modifier_key));
          ++i) {
@@ -59,7 +61,8 @@ const char *get_modifier_name_by_mask(uint32_t modifier) {
     return NULL;
 }
 
-int get_modifier_names(const char **names, uint32_t modifier_masks) {
+int
+get_modifier_names(const char **names, uint32_t modifier_masks) {
     int length = 0;
     int i;
     for (i = 0; i < (int)(sizeof(modifiers) / sizeof(struct modifier_key));
@@ -74,7 +77,8 @@ int get_modifier_names(const char **names, uint32_t modifier_masks) {
     return length;
 }
 
-static void handle_xkb_context_log(
+static void
+handle_xkb_context_log(
     struct xkb_context *context, enum xkb_log_level level, const char *format,
     va_list args
 ) {
@@ -204,7 +208,8 @@ state_erase_key(struct hayward_shortcut_state *state, uint32_t keycode) {
  * Add a key id (with associated keycode) to the list of pressed keys,
  * if the list is not full.
  */
-static void state_add_key(
+static void
+state_add_key(
     struct hayward_shortcut_state *state, uint32_t keycode, uint32_t key_id
 ) {
     if (state->npressed >= HAYWARD_KEYBOARD_PRESSED_KEYS_CAP) {
@@ -229,7 +234,8 @@ static void state_add_key(
 /**
  * Update the shortcut model state in response to new input
  */
-static bool update_shortcut_state(
+static bool
+update_shortcut_state(
     struct hayward_shortcut_state *state, uint32_t keycode,
     enum wl_keyboard_key_state keystate, uint32_t new_key,
     uint32_t raw_modifiers
@@ -257,7 +263,8 @@ static bool update_shortcut_state(
  * If one exists, finds a binding which matches the shortcut model state,
  * current modifiers, release state, and locked state.
  */
-static void get_active_binding(
+static void
+get_active_binding(
     const struct hayward_shortcut_state *state, list_t *bindings,
     struct hayward_binding **current_binding, uint32_t modifiers, bool release,
     bool locked, bool inhibited, const char *input, bool exact_input,
@@ -366,7 +373,8 @@ static void get_active_binding(
  * Returns true if the keysym was handled by a binding and false if the event
  * should be propagated to clients.
  */
-static bool keyboard_execute_compositor_binding(
+static bool
+keyboard_execute_compositor_binding(
     struct hayward_keyboard *keyboard, const xkb_keysym_t *pressed_keysyms,
     uint32_t modifiers, size_t keysyms_len
 ) {
@@ -398,7 +406,8 @@ static bool keyboard_execute_compositor_binding(
  *
  * On US layout, pressing Alt+Shift+2 will trigger Alt+@.
  */
-static size_t keyboard_keysyms_translated(
+static size_t
+keyboard_keysyms_translated(
     struct hayward_keyboard *keyboard, xkb_keycode_t keycode,
     const xkb_keysym_t **keysyms, uint32_t *modifiers
 ) {
@@ -424,7 +433,8 @@ static size_t keyboard_keysyms_translated(
  *
  * This will trigger keybinds such as Alt+Shift+2.
  */
-static size_t keyboard_keysyms_raw(
+static size_t
+keyboard_keysyms_raw(
     struct hayward_keyboard *keyboard, xkb_keycode_t keycode,
     const xkb_keysym_t **keysyms, uint32_t *modifiers
 ) {
@@ -452,7 +462,8 @@ struct key_info {
     size_t translated_keysyms_len;
 };
 
-static void update_keyboard_state(
+static void
+update_keyboard_state(
     struct hayward_keyboard *keyboard, uint32_t raw_keycode,
     enum wl_keyboard_key_state keystate, struct key_info *keyinfo
 ) {
@@ -517,7 +528,8 @@ keyboard_get_im_grab(struct hayward_keyboard *keyboard) {
     return input_method->keyboard_grab;
 }
 
-static void handle_key_event(
+static void
+handle_key_event(
     struct hayward_keyboard *keyboard, struct wlr_keyboard_key_event *event
 ) {
     struct hayward_seat *seat = keyboard->seat_device->hayward_seat;
@@ -689,7 +701,8 @@ static void handle_key_event(
     free(device_identifier);
 }
 
-static void handle_keyboard_key(struct wl_listener *listener, void *data) {
+static void
+handle_keyboard_key(struct wl_listener *listener, void *data) {
     struct hayward_keyboard *keyboard =
         wl_container_of(listener, keyboard, keyboard_key);
     handle_key_event(keyboard, data);
@@ -747,7 +760,8 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
     // TODO force refocus so that focused layer picks up new keyboard state.
 }
 
-static int handle_keyboard_repeat(void *data) {
+static int
+handle_keyboard_repeat(void *data) {
     struct hayward_keyboard *keyboard = (struct hayward_keyboard *)data;
     struct wlr_keyboard *wlr_device =
         keyboard->seat_device->input_device->wlr_device->keyboard;
@@ -769,7 +783,8 @@ static int handle_keyboard_repeat(void *data) {
     return 0;
 }
 
-static void determine_bar_visibility(uint32_t modifiers) {
+static void
+determine_bar_visibility(uint32_t modifiers) {
     for (int i = 0; i < config->bars->length; ++i) {
         struct bar_config *bar = config->bars->items[i];
         if (bar->modifier == 0) {
@@ -790,7 +805,8 @@ static void determine_bar_visibility(uint32_t modifiers) {
     }
 }
 
-static void handle_modifier_event(struct hayward_keyboard *keyboard) {
+static void
+handle_modifier_event(struct hayward_keyboard *keyboard) {
     struct wlr_input_device *wlr_device =
         keyboard->seat_device->input_device->wlr_device;
     if (!wlr_device->keyboard->group) {
@@ -840,7 +856,8 @@ handle_keyboard_group_modifiers(struct wl_listener *listener, void *data) {
     handle_modifier_event(group->seat_device->keyboard);
 }
 
-struct hayward_keyboard *hayward_keyboard_create(
+struct hayward_keyboard *
+hayward_keyboard_create(
     struct hayward_seat *seat, struct hayward_seat_device *device
 ) {
     struct hayward_keyboard *keyboard =
@@ -866,11 +883,13 @@ repeat_info_match(struct hayward_keyboard *a, struct wlr_keyboard *b) {
         a->repeat_delay == b->repeat_info.delay;
 }
 
-static void destroy_empty_wlr_keyboard_group(void *data) {
+static void
+destroy_empty_wlr_keyboard_group(void *data) {
     wlr_keyboard_group_destroy(data);
 }
 
-static void hayward_keyboard_group_remove(struct hayward_keyboard *keyboard) {
+static void
+hayward_keyboard_group_remove(struct hayward_keyboard *keyboard) {
     struct hayward_input_device *device = keyboard->seat_device->input_device;
     struct wlr_keyboard *wlr_keyboard = device->wlr_device->keyboard;
     struct wlr_keyboard_group *wlr_group = wlr_keyboard->group;
@@ -938,7 +957,8 @@ hayward_keyboard_group_remove_invalid(struct hayward_keyboard *keyboard) {
     }
 }
 
-static void hayward_keyboard_group_add(struct hayward_keyboard *keyboard) {
+static void
+hayward_keyboard_group_add(struct hayward_keyboard *keyboard) {
     struct hayward_input_device *device = keyboard->seat_device->input_device;
     struct wlr_keyboard *wlr_keyboard = device->wlr_device->keyboard;
     struct hayward_seat *seat = keyboard->seat_device->hayward_seat;
@@ -1075,7 +1095,8 @@ cleanup:
     free(hayward_group);
 }
 
-void hayward_keyboard_configure(struct hayward_keyboard *keyboard) {
+void
+hayward_keyboard_configure(struct hayward_keyboard *keyboard) {
     struct input_config *input_config =
         input_device_get_config(keyboard->seat_device->input_device);
     struct wlr_input_device *wlr_device =
@@ -1202,7 +1223,8 @@ void hayward_keyboard_configure(struct hayward_keyboard *keyboard) {
     }
 }
 
-void hayward_keyboard_destroy(struct hayward_keyboard *keyboard) {
+void
+hayward_keyboard_destroy(struct hayward_keyboard *keyboard) {
     if (!keyboard) {
         return;
     }
@@ -1224,7 +1246,8 @@ void hayward_keyboard_destroy(struct hayward_keyboard *keyboard) {
     free(keyboard);
 }
 
-void hayward_keyboard_disarm_key_repeat(struct hayward_keyboard *keyboard) {
+void
+hayward_keyboard_disarm_key_repeat(struct hayward_keyboard *keyboard) {
     if (!keyboard) {
         return;
     }

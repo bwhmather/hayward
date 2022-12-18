@@ -20,7 +20,8 @@ static const struct {
     {"switch", IDLE_SOURCE_SWITCH},
 };
 
-static uint32_t parse_sources(int argc, char **argv) {
+static uint32_t
+parse_sources(int argc, char **argv) {
     uint32_t sources = 0;
     for (int i = 0; i < argc; ++i) {
         uint32_t value = 0;
@@ -40,7 +41,8 @@ static uint32_t parse_sources(int argc, char **argv) {
     return sources;
 }
 
-struct cmd_results *seat_cmd_idle_inhibit(int argc, char **argv) {
+struct cmd_results *
+seat_cmd_idle_inhibit(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "idle_inhibit", EXPECTED_AT_LEAST, 1))) {
         return error;
@@ -57,7 +59,8 @@ struct cmd_results *seat_cmd_idle_inhibit(int argc, char **argv) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-struct cmd_results *seat_cmd_idle_wake(int argc, char **argv) {
+struct cmd_results *
+seat_cmd_idle_wake(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "idle_wake", EXPECTED_AT_LEAST, 1))) {
         return error;

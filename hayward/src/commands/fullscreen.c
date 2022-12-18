@@ -13,7 +13,8 @@
 static const char expected_syntax[] =
     "Expected `fullscreen [enable|disable|toggle]`";
 
-struct cmd_results *cmd_fullscreen(int argc, char **argv) {
+struct cmd_results *
+cmd_fullscreen(int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "fullscreen", EXPECTED_AT_MOST, 2))) {
         return error;

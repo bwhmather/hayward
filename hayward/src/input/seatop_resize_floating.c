@@ -22,7 +22,8 @@ struct seatop_resize_floating_event {
     double ref_window_lx, ref_window_ly; // window's x/y at start of op
 };
 
-static void handle_button(
+static void
+handle_button(
     struct hayward_seat *seat, uint32_t time_msec,
     struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
@@ -169,7 +170,8 @@ static const struct hayward_seatop_impl seatop_impl = {
     .unref = handle_unref,
 };
 
-void seatop_begin_resize_floating(
+void
+seatop_begin_resize_floating(
     struct hayward_seat *seat, struct hayward_window *window,
     enum wlr_edges edge
 ) {
