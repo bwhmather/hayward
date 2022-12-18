@@ -12,10 +12,10 @@
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 
+#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+
 #include "haywardnag/render.h"
 #include "haywardnag/types.h"
-
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 static void
 nop() {

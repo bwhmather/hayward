@@ -16,6 +16,8 @@ IncludeCategories:
     SortPriority: 1
   - Regex: '"hayward-.*/'
     SortPriority: 2
-  - Regex: '"haywardnag/'
+  - Regex: '".*-protocol.h"'
     SortPriority: 3
+  - Regex: '"haywardnag/'
+    SortPriority: 4
 

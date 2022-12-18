@@ -18,6 +18,8 @@
 #include "hayward-common/pango.h"
 #include "hayward-common/stringop.h"
 
+#include "linux-dmabuf-unstable-v1-protocol.h"
+
 #include "hayward/config.h"
 #include "hayward/desktop.h"
 #include "hayward/desktop/transaction.h"
@@ -30,8 +32,6 @@
 #include "hayward/tree/view.h"
 #include "hayward/tree/workspace.h"
 #include "hayward/xdg_decoration.h"
-
-#include "linux-dmabuf-unstable-v1-protocol.h"
 
 struct hayward_column *
 column_create(void) {

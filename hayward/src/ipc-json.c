@@ -11,6 +11,8 @@
 
 #include "hayward-common/log.h"
 
+#include "wlr-layer-shell-unstable-v1-protocol.h"
+
 #include "hayward/config.h"
 #include "hayward/desktop/idle_inhibit_v1.h"
 #include "hayward/input/cursor.h"
@@ -23,7 +25,6 @@
 #include "hayward/tree/workspace.h"
 
 #include "config.h"
-#include "wlr-layer-shell-unstable-v1-protocol.h"
 
 static const char *
 ipc_json_node_type_description(enum hayward_node_type node_type) {

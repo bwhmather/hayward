@@ -4,10 +4,11 @@
 
 #include "hayward-client/pool-buffer.h"
 
-#include "config.h"
-#include "input.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
+
+#include "config.h"
+#include "input.h"
 
 struct haywardbar_config;
 struct haywardbar_output;

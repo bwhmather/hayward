@@ -9,10 +9,10 @@
 #include "hayward-common/log.h"
 #include "hayward-common/util.h"
 
+#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"
-
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 static char *
 read_and_trim_stdin(void) {

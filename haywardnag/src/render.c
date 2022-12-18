@@ -5,10 +5,10 @@
 #include "hayward-common/log.h"
 #include "hayward-common/pango.h"
 
+#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+
 #include "haywardnag/haywardnag.h"
 #include "haywardnag/types.h"
-
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 static uint32_t
 render_message(cairo_t *cairo, struct haywardnag *haywardnag) {

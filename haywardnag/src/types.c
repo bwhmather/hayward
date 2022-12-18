@@ -12,9 +12,9 @@
 #include "hayward-common/log.h"
 #include "hayward-common/util.h"
 
-#include "haywardnag/config.h"
-
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
+
+#include "haywardnag/config.h"
 
 struct haywardnag_type *
 haywardnag_type_new(const char *name) {

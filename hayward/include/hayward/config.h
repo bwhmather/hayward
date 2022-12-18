@@ -12,6 +12,8 @@
 
 #include "hayward-common/list.h"
 
+#include "wlr-layer-shell-unstable-v1-protocol.h"
+
 #include "hayward/input/tablet.h"
 #include "hayward/tree/column.h"
 #include "hayward/tree/root.h"
@@ -19,7 +21,6 @@
 
 #include "../include/config.h"
 #include "haywardnag.h"
-#include "wlr-layer-shell-unstable-v1-protocol.h"
 
 // TODO: Refactor this shit
 

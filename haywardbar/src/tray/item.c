@@ -13,14 +13,14 @@
 #include "hayward-common/list.h"
 #include "hayward-common/log.h"
 
+#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+
 #include "haywardbar/bar.h"
 #include "haywardbar/config.h"
 #include "haywardbar/input.h"
 #include "haywardbar/tray/host.h"
 #include "haywardbar/tray/icon.h"
 #include "haywardbar/tray/tray.h"
-
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
 
 // TODO menu
 

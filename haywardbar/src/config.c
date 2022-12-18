@@ -8,8 +8,9 @@
 #include "hayward-common/log.h"
 #include "hayward-common/stringop.h"
 
-#include "config.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
+
+#include "config.h"
 
 uint32_t
 parse_position(const char *position) {

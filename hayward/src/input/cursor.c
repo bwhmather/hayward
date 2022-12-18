@@ -22,6 +22,8 @@
 #include "hayward-common/log.h"
 #include "hayward-common/util.h"
 
+#include "wlr-layer-shell-unstable-v1-protocol.h"
+
 #include "hayward/commands.h"
 #include "hayward/desktop.h"
 #include "hayward/input/keyboard.h"
@@ -35,7 +37,6 @@
 #include "hayward/tree/workspace.h"
 
 #include "config.h"
-#include "wlr-layer-shell-unstable-v1-protocol.h"
 
 static uint32_t
 get_current_time_msec(void) {
