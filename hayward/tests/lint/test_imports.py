@@ -3,6 +3,7 @@ import itertools
 import json
 import os
 import pathlib
+import re
 import shlex
 import unittest
 
@@ -97,7 +98,8 @@ def normalize_clang_path(path):
 
 
 class DeclarationOrderTestCase(unittest.TestCase):
-    maxDiff=2000
+    maxDiff = 2000
+
     def test_source_and_header_orders_match(self):
         for source_path in enumerate_source_files():
             with self.subTest(file=source_path):
@@ -208,6 +210,32 @@ class DeclarationOrderTestCase(unittest.TestCase):
         ]
 
         self.assertEqual(set(header_decls), set(source_defs))
+
+
+class IncludeTestCase(unittest.TestCase):
+    def test_no_circular_includes(self):
+        pattern = re.compile('^#include "(hayward/.*\\.h)"$', flags=re.MULTILINE)
+
+        # Build dependency graph.
+        graph = {}
+        for header in enumerate_header_files():
+            name = str(header.relative_to("hayward/include"))
+            path = SOURCE_ROOT / header
+            source = path.read_text()
+            graph[name] = {match.group(1) for match in pattern.finditer(source)}
+
+        # Check for cycles.
+        visited = set()
+        stack = []
+        for root in graph:
+            queue = {root}
+            visited = set()
+            while queue:
+                dep = queue.pop()
+                visited.add(dep)
+                deps = graph[dep]
+                self.assertNotIn(root, deps)
+                queue.update(deps.difference(visited))
 
 
 if __name__ == "__main__":
