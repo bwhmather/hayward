@@ -12,6 +12,7 @@
 #include "hayward/input/seat.h"
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
+#include "hayward/tree.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/column.h"
 #include "hayward/tree/node.h"
@@ -247,7 +248,7 @@ finalize_move(struct hayward_seat *seat) {
 
     // Move container into empty workspace.
     if (target_window == NULL) {
-        window_move_to_workspace(moving_window, target_workspace);
+        hayward_move_window_to_workspace(moving_window, target_workspace);
     } else {
         if (target_edge == WLR_EDGE_LEFT || target_edge == WLR_EDGE_RIGHT) {
             struct hayward_column *target_column =
@@ -268,7 +269,7 @@ finalize_move(struct hayward_seat *seat) {
                 target_workspace, target_output, new_column, new_column_index
             );
 
-            window_move_to_column(moving_window, new_column);
+            hayward_move_window_to_column(moving_window, new_column);
         } else {
             // TODO (hayward) fix different level of abstraction.
             window_detach(moving_window);

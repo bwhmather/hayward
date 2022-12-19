@@ -28,6 +28,7 @@
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
 #include "hayward/server.h"
+#include "hayward/tree.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/column.h"
 #include "hayward/tree/view.h"
@@ -578,7 +579,7 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
 
     if (event->fullscreen && event->output && event->output->data) {
         struct hayward_output *output = event->output->data;
-        window_move_to_output(window, output);
+        hayward_move_window_to_output(window, output);
     }
 
     window_set_fullscreen(window, event->fullscreen);
@@ -680,7 +681,7 @@ view_map(
         view->window->pending.border = config->floating_border;
         view->window->pending.border_thickness =
             config->floating_border_thickness;
-        window_set_floating(view->window, true);
+        hayward_move_window_to_floating(view->window);
     } else {
         struct hayward_window *target_sibling =
             workspace_get_active_tiling_window(workspace);

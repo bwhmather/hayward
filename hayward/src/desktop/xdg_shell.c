@@ -15,6 +15,7 @@
 #include "hayward/input/input-manager.h"
 #include "hayward/input/seat.h"
 #include "hayward/output.h"
+#include "hayward/tree.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/window.h"
@@ -365,7 +366,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
         req->fullscreen_output->data) {
         struct hayward_workspace *workspace = root_get_active_workspace();
         if (workspace && window->pending.workspace != workspace) {
-            window_move_to_workspace(window, workspace);
+            hayward_move_window_to_workspace(window, workspace);
         }
     }
 

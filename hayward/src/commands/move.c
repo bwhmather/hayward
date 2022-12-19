@@ -18,6 +18,7 @@
 #include "hayward/input/seat.h"
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
+#include "hayward/tree.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/root.h"
 #include "hayward/tree/window.h"
@@ -84,7 +85,7 @@ window_move_to_next_output(
     if (!next_output) {
         return false;
     }
-    window_move_to_output_from_direction(window, output, move_dir);
+    hayward_move_window_to_output_from_direction(window, output, move_dir);
     return true;
 }
 
@@ -155,7 +156,9 @@ window_move_in_direction(
         struct hayward_column *new_column =
             window->pending.workspace->pending.tiling
                 ->items[old_column_index - 1];
-        window_move_to_column_from_direction(window, new_column, move_dir);
+        hayward_move_window_to_column_from_direction(
+            window, new_column, move_dir
+        );
 
         return true;
     }
@@ -189,7 +192,9 @@ window_move_in_direction(
         struct hayward_column *new_column =
             window->pending.workspace->pending.tiling
                 ->items[old_column_index + 1];
-        window_move_to_column_from_direction(window, new_column, move_dir);
+        hayward_move_window_to_column_from_direction(
+            window, new_column, move_dir
+        );
 
         return true;
     }
@@ -249,7 +254,7 @@ cmd_move_window(int argc, char **argv) {
         free(workspace_name);
 
         // Do the move.
-        window_move_to_workspace(window, workspace);
+        hayward_move_window_to_workspace(window, workspace);
 
         ipc_event_window(window, "move");
 
@@ -300,17 +305,17 @@ cmd_move_window(int argc, char **argv) {
 
     switch (destination->type) {
     case N_WORKSPACE:
-        window_move_to_workspace(window, destination->hayward_workspace);
+        hayward_move_window_to_workspace(
+            window, destination->hayward_workspace
+        );
         break;
-    case N_OUTPUT: {
-        struct hayward_workspace *workspace = root_get_active_workspace();
-        hayward_assert(workspace, "Expected output to have a workspace");
-        window_move_to_workspace(window, workspace);
-    } break;
+    case N_OUTPUT:
+        hayward_move_window_to_output(window, destination->hayward_output);
+        break;
     case N_WINDOW:
         // TODO (hayward)
     case N_COLUMN:
-        window_move_to_column(window, destination->hayward_column);
+        hayward_move_window_to_column(window, destination->hayward_column);
         break;
     case N_ROOT:
         break;

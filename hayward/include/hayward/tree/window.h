@@ -161,64 +161,11 @@ window_is_floating(struct hayward_window *window);
 bool
 window_is_current_floating(struct hayward_window *window);
 
-void
-window_set_floating(struct hayward_window *window, bool enable);
-
 bool
 window_is_fullscreen(struct hayward_window *window);
 
 bool
 window_is_tiling(struct hayward_window *window);
-
-/**
- * Detaches a window from its current column, and by extension workspace, and
- * attaches it to a new column, possibly in a different workspace.  Where in
- * the new column it is inserted is determined by the direction of movement.
- *
- * If the window was previously floating or fullscreen, all of that state will
- * be cleared.
- *
- * The window will not be automatically focused.
- *
- * The old workspace and old columns will not be automatically cleaned up.
- */
-void
-window_move_to_column_from_direction(
-    struct hayward_window *window, struct hayward_column *column,
-    enum wlr_direction move_dir
-);
-
-/**
- * Detaches a window from its current column, and by extension workspace, and
- * attaches it to a new column, possibly in a different workspace.  The window
- * will be move immediately after the column's last focused child.
- *
- * If the window was previously floating or fullscreen, all of that state will
- * be cleared.
- *
- * The window will not be automatically focused.
- *
- * The old workspace and old columns will not be automatically cleaned up.
- */
-void
-window_move_to_column(
-    struct hayward_window *window, struct hayward_column *destination
-);
-
-void
-window_move_to_workspace(
-    struct hayward_window *window, struct hayward_workspace *workspace
-);
-
-void
-window_move_to_output_from_direction(
-    struct hayward_window *window, struct hayward_output *output,
-    enum wlr_direction move_dir
-);
-void
-window_move_to_output(
-    struct hayward_window *window, struct hayward_output *output
-);
 
 struct wlr_surface *
 window_surface_at(

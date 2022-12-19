@@ -8,6 +8,7 @@
 #include "hayward/input/seat.h"
 #include "hayward/ipc-server.h"
 #include "hayward/output.h"
+#include "hayward/tree.h"
 #include "hayward/tree/arrange.h"
 #include "hayward/tree/view.h"
 #include "hayward/tree/window.h"
@@ -30,9 +31,11 @@ cmd_floating(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, "Can only float windows");
     }
 
-    bool wants_floating = parse_boolean(argv[0], window_is_floating(window));
-
-    window_set_floating(window, wants_floating);
+    if (parse_boolean(argv[0], window_is_floating(window))) {
+        hayward_move_window_to_floating(window);
+    } else {
+        hayward_move_window_to_tiling(window);
+    }
 
     arrange_workspace(window->pending.workspace);
 

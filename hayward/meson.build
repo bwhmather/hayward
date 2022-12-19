@@ -190,6 +190,7 @@ hayward_sources = files(
 	'src/tree/window.c',
 	'src/tree/workspace.c',
 	'src/tree/output.c',
+	'src/tree.c',
 )
 
 hayward_deps = [
