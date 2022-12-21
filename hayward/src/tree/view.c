@@ -538,7 +538,6 @@ should_focus(struct hayward_view *view) {
     struct hayward_workspace *active_workspace = root_get_active_workspace();
     struct hayward_workspace *map_workspace = view->window->pending.workspace;
     struct hayward_output *map_output = view->window->pending.output;
-    hayward_assert(map_output != NULL, "Expected output");
 
     // Views cannot be focused if not mapped.
     if (map_workspace == NULL) {
@@ -551,7 +550,7 @@ should_focus(struct hayward_view *view) {
     }
 
     // View opened "under" fullscreen view should not be given focus.
-    if (map_output->pending.fullscreen_window != NULL) {
+    if (map_output != NULL && map_output->pending.fullscreen_window != NULL) {
         return false;
     }
 
