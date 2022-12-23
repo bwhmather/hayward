@@ -2,11 +2,11 @@
 #define _HAYWARD_IPC_SERVER_H
 #include <sys/socket.h>
 
-#include "hayward-common/ipc.h"
+#include <hayward-common/ipc.h>
 
-#include "hayward/config.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/tree/window.h"
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/tree/window.h>
 
 struct hayward_server;
 

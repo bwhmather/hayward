@@ -1,8 +1,9 @@
-#include "hayward-common/log.h"
-
 #include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/tree/window.h"
+
+#include <hayward-common/log.h>
+
+#include <hayward/config.h>
+#include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_default_floating_border(int argc, char **argv) {

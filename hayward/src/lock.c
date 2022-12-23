@@ -1,12 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/input/keyboard.h"
-#include "hayward/input/seat.h"
-#include "hayward/output.h"
-#include "hayward/server.h"
+#include <hayward/input/keyboard.h>
+#include <hayward/input/seat.h>
+#include <hayward/output.h>
+#include <hayward/server.h>
 
 struct hayward_session_lock_surface {
     struct wlr_session_lock_surface_v1 *lock_surface;

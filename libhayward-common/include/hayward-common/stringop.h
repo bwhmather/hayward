@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
 void
 strip_whitespace(char *str);

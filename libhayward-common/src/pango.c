@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/cairo_util.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
 size_t
 escape_markup_text(const char *src, char *dest) {

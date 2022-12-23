@@ -2,9 +2,9 @@
 
 #include <wlr/types/wlr_idle.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct hayward_switch *
 hayward_switch_create(

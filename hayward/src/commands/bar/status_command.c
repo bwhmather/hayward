@@ -1,9 +1,9 @@
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
-
-#include "hayward/commands.h"
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
 struct cmd_results *
 bar_cmd_status_command(int argc, char **argv) {

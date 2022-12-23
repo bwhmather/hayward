@@ -9,7 +9,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
 static const char ipc_magic[] = {'i', '3', '-', 'i', 'p', 'c'};
 

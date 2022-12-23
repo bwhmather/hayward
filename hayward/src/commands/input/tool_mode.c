@@ -1,7 +1,8 @@
+#include "hayward/commands.h"
+
 #include <strings.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 static void
 set_tool_mode(

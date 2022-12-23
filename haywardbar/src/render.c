@@ -8,20 +8,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward-client/pool-buffer.h"
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/log.h"
-#include "hayward-common/pango.h"
+#include <hayward-client/pool-buffer.h>
+#include <hayward-common/cairo_util.h>
+#include <hayward-common/log.h>
+#include <hayward-common/pango.h>
 
-#include "haywardbar/bar.h"
-#include "haywardbar/config.h"
-#include "haywardbar/i3bar.h"
-#include "haywardbar/ipc.h"
-#include "haywardbar/status_line.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/config.h>
+#include <haywardbar/i3bar.h>
+#include <haywardbar/ipc.h>
+#include <haywardbar/status_line.h>
 #if HAVE_TRAY
-#include "haywardbar/tray/tray.h"
+#include <haywardbar/tray/tray.h>
 #endif
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
 
 static const int WS_HORIZONTAL_PADDING = 5;
 static const double WS_VERTICAL_PADDING = 1.5;

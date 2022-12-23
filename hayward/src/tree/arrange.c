@@ -8,14 +8,14 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "hayward/output.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/output.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 void
 arrange_window(struct hayward_window *window) {

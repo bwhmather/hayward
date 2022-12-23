@@ -1,7 +1,8 @@
 #include "hayward/desktop.h"
-#include "hayward/output.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/window.h"
+
+#include <hayward/output.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/window.h>
 
 void
 desktop_damage_surface(

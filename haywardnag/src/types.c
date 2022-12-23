@@ -8,13 +8,13 @@
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
 
-#include "haywardnag/config.h"
+#include <haywardnag/config.h>
 
 struct haywardnag_type *
 haywardnag_type_new(const char *name) {

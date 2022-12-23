@@ -1,12 +1,13 @@
+#include "hayward/commands.h"
+
 #include <strings.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
+#include <hayward/config.h>
+#include <hayward/input/cursor.h>
 
-#include "config.h"
+#include <config.h>
 
 static struct cmd_results *
 tray_bind(int argc, char **argv, bool code) {

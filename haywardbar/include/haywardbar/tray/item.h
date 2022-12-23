@@ -6,9 +6,9 @@
 #include <stdint.h>
 #include <wayland-util.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
-#include "haywardbar/tray/tray.h"
+#include <haywardbar/tray/tray.h>
 
 struct haywardbar_output;
 

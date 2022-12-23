@@ -1,14 +1,15 @@
+#include "hayward/commands.h"
+
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/output.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/output.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 static const char expected_syntax[] = "Expected 'layout stacking|split'";
 

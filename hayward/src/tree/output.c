@@ -7,13 +7,13 @@
 #include <strings.h>
 #include <wlr/types/wlr_output_damage.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "hayward/ipc-server.h"
-#include "hayward/layers.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/ipc-server.h>
+#include <hayward/layers.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/workspace.h>
 
 enum wlr_direction
 opposite_direction(enum wlr_direction d) {

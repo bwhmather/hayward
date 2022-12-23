@@ -1,8 +1,9 @@
 #include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/keyboard.h"
 
-#include "strings.h"
+#include <strings.h>
+
+#include <hayward/config.h>
+#include <hayward/input/keyboard.h>
 
 struct cmd_results *
 cmd_floating_modifier(int argc, char **argv) {

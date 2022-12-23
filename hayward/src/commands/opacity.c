@@ -1,12 +1,13 @@
+#include "hayward/commands.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/desktop.h"
-#include "hayward/tree/view.h"
+#include <hayward/desktop.h>
+#include <hayward/tree/view.h>
 
 struct cmd_results *
 cmd_opacity(int argc, char **argv) {

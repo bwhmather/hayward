@@ -1,13 +1,13 @@
-#include "hayward/input/seat.h"
+#include "hayward/commands.h"
 
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
-#include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
 
 // must be in order for the bsearch
 // these handlers perform actions on the seat

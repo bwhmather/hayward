@@ -19,24 +19,24 @@
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/util/region.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "wlr-layer-shell-unstable-v1-protocol.h"
+#include <wlr-layer-shell-unstable-v1-protocol.h>
 
-#include "hayward/commands.h"
-#include "hayward/desktop.h"
-#include "hayward/input/keyboard.h"
-#include "hayward/input/tablet.h"
-#include "hayward/layers.h"
-#include "hayward/output.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/commands.h>
+#include <hayward/desktop.h>
+#include <hayward/input/keyboard.h>
+#include <hayward/input/tablet.h>
+#include <hayward/layers.h>
+#include <hayward/output.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
-#include "config.h"
+#include <config.h>
 
 static uint32_t
 get_current_time_msec(void) {

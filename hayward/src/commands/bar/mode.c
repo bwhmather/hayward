@@ -1,12 +1,13 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/ipc-server.h"
+#include <hayward/config.h>
+#include <hayward/ipc-server.h>
 
 static struct cmd_results *
 bar_set_mode(struct bar_config *bar, const char *mode) {

@@ -1,10 +1,11 @@
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
-
 #include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/output.h"
-#include "hayward/tree/window.h"
+
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
+
+#include <hayward/config.h>
+#include <hayward/output.h>
+#include <hayward/tree/window.h>
 
 static void
 rebuild_textures_iterator(struct hayward_window *container, void *data) {

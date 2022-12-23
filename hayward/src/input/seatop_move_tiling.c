@@ -1,24 +1,25 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/input/seat.h"
+
 #include <limits.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/util/edges.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "hayward/desktop.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
-#include "hayward/ipc-server.h"
-#include "hayward/output.h"
-#include "hayward/tree.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/node.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/desktop.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/cursor.h>
+#include <hayward/ipc-server.h>
+#include <hayward/output.h>
+#include <hayward/tree.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/node.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 // Thickness of the dropzone when dragging to the edge of a layout container
 #define DROP_LAYOUT_BORDER 30

@@ -21,11 +21,11 @@
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
-#include "config.h"
+#include <config.h>
 #if HAVE_XWAYLAND
-#include "hayward/xwayland.h"
+#include <hayward/xwayland.h>
 #endif
 
 struct hayward_transaction;

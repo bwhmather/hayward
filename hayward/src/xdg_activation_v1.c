@@ -1,6 +1,6 @@
 #include <wlr/types/wlr_xdg_activation_v1.h>
 
-#include "hayward/tree/view.h"
+#include <hayward/tree/view.h>
 
 void
 xdg_activation_v1_handle_request_activate(

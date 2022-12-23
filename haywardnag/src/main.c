@@ -2,12 +2,12 @@
 #include <signal.h>
 #include <stdlib.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "haywardnag/config.h"
-#include "haywardnag/haywardnag.h"
-#include "haywardnag/types.h"
+#include <haywardnag/config.h>
+#include <haywardnag/haywardnag.h>
+#include <haywardnag/types.h>
 
 static struct haywardnag haywardnag;
 

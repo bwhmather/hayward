@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <sys/time.h>
 
-#include "hayward-common/ipc.h"
+#include <hayward-common/ipc.h>
 
 /**
  * IPC response including type of IPC response, size of payload and the json

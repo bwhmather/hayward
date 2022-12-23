@@ -1,12 +1,13 @@
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/seat.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
+#include <hayward/config.h>
+#include <hayward/input/seat.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_shortcuts_inhibitor(int argc, char **argv) {

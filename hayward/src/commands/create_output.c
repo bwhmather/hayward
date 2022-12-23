@@ -1,3 +1,5 @@
+#include "hayward/commands.h"
+
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
 #include <wlr/backend/wayland.h>
@@ -5,10 +7,11 @@
 #if WLR_HAS_X11_BACKEND
 #include <wlr/backend/x11.h>
 #endif
-#include "hayward-common/log.h"
-
 #include "hayward/commands.h"
-#include "hayward/server.h"
+
+#include <hayward-common/log.h>
+
+#include <hayward/server.h>
 
 static void
 create_output(struct wlr_backend *backend, void *data) {

@@ -1,9 +1,10 @@
+#include "hayward/commands.h"
+
 #include <strings.h>
 
-#include "hayward-common/util.h"
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 cmd_focus_wrapping(int argc, char **argv) {

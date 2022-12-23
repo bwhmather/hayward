@@ -6,10 +6,10 @@
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
-#include "hayward/config.h"
-#include "hayward/server.h"
+#include <hayward/config.h>
+#include <hayward/server.h>
 
 struct hayward_input_device {
     char *identifier;

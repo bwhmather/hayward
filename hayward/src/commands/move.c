@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
@@ -8,21 +10,20 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
-#include "hayward/ipc-server.h"
-#include "hayward/output.h"
-#include "hayward/tree.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/input/cursor.h>
+#include <hayward/input/seat.h>
+#include <hayward/ipc-server.h>
+#include <hayward/output.h>
+#include <hayward/tree.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 static const char expected_syntax[] =
     "Expected 'move <left|right|up|down> <[px] px>' or "

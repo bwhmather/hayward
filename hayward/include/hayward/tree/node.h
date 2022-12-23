@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <wayland-server-core.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
 #define MIN_SANE_W 100
 #define MIN_SANE_H 60

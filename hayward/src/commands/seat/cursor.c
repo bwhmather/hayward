@@ -1,12 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/input/cursor.h"
+#include "hayward/commands.h"
 
 #include <linux/input-event-codes.h>
 #include <strings.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_pointer.h>
 
-#include "hayward/commands.h"
+#include <hayward/input/cursor.h>
 
 static struct cmd_results *
 press_or_release(struct hayward_cursor *cursor, char *action, char *button_str);

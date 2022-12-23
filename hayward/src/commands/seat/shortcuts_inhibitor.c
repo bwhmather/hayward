@@ -1,9 +1,10 @@
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
-
 #include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
+
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
+
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
 
 static struct cmd_results *
 handle_action(

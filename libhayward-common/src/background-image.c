@@ -5,8 +5,8 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #endif
 
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/log.h"
+#include <hayward-common/cairo_util.h>
+#include <hayward-common/log.h>
 
 enum background_mode
 parse_background_mode(const char *mode) {

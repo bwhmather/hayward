@@ -8,12 +8,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "haywardbar/bar.h"
-#include "haywardbar/config.h"
-#include "haywardbar/input.h"
-#include "haywardbar/status_line.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/config.h>
+#include <haywardbar/input.h>
+#include <haywardbar/status_line.h>
 
 void
 i3bar_block_unref(struct i3bar_block *block) {

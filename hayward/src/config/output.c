@@ -1,5 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/output.h"
+#include "hayward/config.h"
 
 #include <assert.h>
 #include <drm_fourcc.h>
@@ -13,12 +13,12 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
-#include "hayward/tree/root.h"
+#include <hayward/input/cursor.h>
+#include <hayward/output.h>
+#include <hayward/tree/root.h>
 
 int
 output_name_cmp(const void *item, const void *data) {

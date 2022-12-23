@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
 struct haywardnag_type {
     char *name;

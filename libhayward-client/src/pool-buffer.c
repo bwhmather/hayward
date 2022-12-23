@@ -12,9 +12,9 @@
 #include <unistd.h>
 #include <wayland-client.h>
 
-#include "hayward-common/util.h"
+#include <hayward-common/util.h>
 
-#include "config.h"
+#include <config.h>
 
 static int
 create_pool_file(size_t size, char **name) {

@@ -15,19 +15,19 @@
 #include <wlr/util/log.h>
 #include <wlr/version.h>
 
-#include "hayward-common/ipc-client.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/ipc-client.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/haywardnag.h"
-#include "hayward/ipc-server.h"
-#include "hayward/server.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/commands.h>
+#include <hayward/config.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/haywardnag.h>
+#include <hayward/ipc-server.h>
+#include <hayward/server.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/workspace.h>
 
 static bool terminate_request = false;
 static int exit_value = 0;

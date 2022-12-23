@@ -1,8 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 seat_cmd_xcursor_theme(int argc, char **argv) {

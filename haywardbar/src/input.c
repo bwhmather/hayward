@@ -6,12 +6,12 @@
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "haywardbar/bar.h"
-#include "haywardbar/config.h"
-#include "haywardbar/ipc.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/config.h>
+#include <haywardbar/ipc.h>
 
 void
 free_hotspots(struct wl_list *list) {

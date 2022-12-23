@@ -1,9 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 input_cmd_map_to_region(int argc, char **argv) {

@@ -1,15 +1,16 @@
+#include "hayward/commands.h"
+
 #include <libevdev/libevdev.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
+#include <hayward/config.h>
+#include <hayward/input/cursor.h>
 
 static struct cmd_results *
 binding_add(struct bar_binding *binding, list_t *mode_bindings) {

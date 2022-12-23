@@ -1,12 +1,13 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
 #include <strings.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/seat.h"
+#include <hayward/config.h>
+#include <hayward/input/seat.h>
 
 static const struct {
     const char *name;

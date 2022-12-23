@@ -1,3 +1,5 @@
+#include "hayward/commands.h"
+
 #include <errno.h>
 #include <math.h>
 #include <stdbool.h>
@@ -5,9 +7,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
-
-#include "hayward/commands.h"
+#include <hayward-common/log.h>
 
 static const char min_usage[] =
     "Expected 'floating_minimum_size <width> x <height>'";

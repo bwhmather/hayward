@@ -1,14 +1,15 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/stringop.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
-#include "hayward/server.h"
+#include <hayward/config.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/seat.h>
+#include <hayward/server.h>
 
 struct cmd_results *
 seat_cmd_hide_cursor(int argc, char **argv) {

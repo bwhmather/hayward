@@ -1,7 +1,8 @@
-#include "hayward-common/util.h"
-
 #include "hayward/commands.h"
-#include "hayward/config.h"
+
+#include <hayward-common/util.h>
+
+#include <hayward/config.h>
 
 struct cmd_results *
 seat_cmd_fallback(int argc, char **argv) {

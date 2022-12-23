@@ -14,26 +14,26 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_subcompositor.h>
 
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/pango.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/cairo_util.h>
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/pango.h>
+#include <hayward-common/stringop.h>
 
-#include "linux-dmabuf-unstable-v1-protocol.h"
+#include <linux-dmabuf-unstable-v1-protocol.h>
 
-#include "hayward/config.h"
-#include "hayward/desktop.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/ipc-server.h"
-#include "hayward/output.h"
-#include "hayward/server.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/workspace.h"
-#include "hayward/xdg_decoration.h"
+#include <hayward/config.h>
+#include <hayward/desktop.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/ipc-server.h>
+#include <hayward/output.h>
+#include <hayward/server.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/workspace.h>
+#include <hayward/xdg_decoration.h>
 
 static void
 window_set_floating(struct hayward_window *window, bool enable) {

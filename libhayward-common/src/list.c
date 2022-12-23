@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
 list_t *
 create_list(void) {

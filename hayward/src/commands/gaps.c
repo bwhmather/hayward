@@ -1,14 +1,15 @@
+#include "hayward/commands.h"
+
 #include <math.h>
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/config.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/workspace.h>
 
 enum gaps_op { GAPS_OP_SET, GAPS_OP_ADD, GAPS_OP_SUBTRACT, GAPS_OP_TOGGLE };
 

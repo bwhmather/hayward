@@ -8,9 +8,10 @@
 #include <string.h>
 #include <strings.h>
 #include <time.h>
+
 #include <wayland-server-protocol.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
 int
 wrap(int i, int max) {

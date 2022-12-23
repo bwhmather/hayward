@@ -1,14 +1,15 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/input/seat.h"
+
 #include <float.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_tablet_v2.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
-#include "hayward/tree/view.h"
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/cursor.h>
+#include <hayward/tree/view.h>
 
 struct seatop_down_event {
     struct hayward_window *container;

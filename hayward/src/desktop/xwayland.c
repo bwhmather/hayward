@@ -8,18 +8,18 @@
 #include <wlr/xwayland.h>
 #include <xcb/xcb_icccm.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/desktop.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/output.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/desktop.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/output.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 static const char *atom_map[ATOM_LAST] = {
     [NET_WM_WINDOW_TYPE_NORMAL] = "_NET_WM_WINDOW_TYPE_NORMAL",

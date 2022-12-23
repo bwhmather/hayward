@@ -8,19 +8,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward-common/background-image.h"
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/background-image.h>
+#include <hayward-common/cairo_util.h>
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
 
-#include "haywardbar/bar.h"
-#include "haywardbar/config.h"
-#include "haywardbar/input.h"
-#include "haywardbar/tray/host.h"
-#include "haywardbar/tray/icon.h"
-#include "haywardbar/tray/tray.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/config.h>
+#include <haywardbar/input.h>
+#include <haywardbar/tray/host.h>
+#include <haywardbar/tray/icon.h>
+#include <haywardbar/tray/tray.h>
 
 // TODO menu
 

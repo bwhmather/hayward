@@ -1,10 +1,11 @@
+#include "hayward/commands.h"
+
 #include <string.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
+#include <hayward/config.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/seat.h>
 
 enum operation {
     OP_ENABLE,

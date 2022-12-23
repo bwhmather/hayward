@@ -11,13 +11,13 @@
 #include <wlr/types/wlr_keyboard_group.h>
 #include <xkbcommon/xkbcommon-names.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/ipc-server.h"
+#include <hayward/commands.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/ipc-server.h>
 
 static struct modifier_key {
     char *name;

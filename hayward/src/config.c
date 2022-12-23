@@ -18,22 +18,22 @@
 #include <wlr/types/wlr_output.h>
 #include <wordexp.h>
 
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/pango.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/cairo_util.h>
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/pango.h>
+#include <hayward-common/stringop.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/haywardnag.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/input/switch.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/commands.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/haywardnag.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/input/switch.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/workspace.h>
 
 struct hayward_config *config = NULL;
 

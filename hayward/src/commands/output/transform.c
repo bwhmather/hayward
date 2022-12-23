@@ -1,10 +1,11 @@
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/output.h"
+#include <hayward/config.h>
+#include <hayward/output.h>
 
 static enum wl_output_transform
 invert_rotation_direction(enum wl_output_transform t) {

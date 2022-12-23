@@ -1,12 +1,13 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <assert.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/input-manager.h"
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
 
 struct xkb_switch_layout_action {
     struct wlr_keyboard *keyboard;

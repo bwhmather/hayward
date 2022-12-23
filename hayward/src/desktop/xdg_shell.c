@@ -6,21 +6,21 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/edges.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/decoration.h"
-#include "hayward/desktop.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/output.h"
-#include "hayward/tree.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
-#include "hayward/xdg_decoration.h"
+#include <hayward/decoration.h>
+#include <hayward/desktop.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/output.h>
+#include <hayward/tree.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
+#include <hayward/xdg_decoration.h>
 
 static const struct hayward_view_child_impl popup_impl;
 

@@ -5,15 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "haywardbar/bar.h"
-#include "haywardbar/config.h"
-#include "haywardbar/tray/host.h"
-#include "haywardbar/tray/icon.h"
-#include "haywardbar/tray/item.h"
-#include "haywardbar/tray/watcher.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/config.h>
+#include <haywardbar/tray/host.h>
+#include <haywardbar/tray/icon.h>
+#include <haywardbar/tray/item.h>
+#include <haywardbar/tray/watcher.h>
 
 static int
 handle_lost_watcher(sd_bus_message *msg, void *data, sd_bus_error *error) {

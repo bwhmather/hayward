@@ -2,7 +2,8 @@
 #define _HAYWARDBAR_IPC_H
 #include <stdbool.h>
 
-#include "haywardbar/bar.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/config.h>
 
 bool
 ipc_initialize(struct haywardbar *bar);

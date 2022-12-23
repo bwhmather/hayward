@@ -12,12 +12,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/loop.h"
+#include <hayward-common/log.h>
+#include <hayward-common/loop.h>
 
-#include "haywardbar/bar.h"
-#include "haywardbar/config.h"
-#include "haywardbar/i3bar.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/config.h>
+#include <haywardbar/i3bar.h>
 
 static void
 status_line_close_fds(struct status_line *status) {

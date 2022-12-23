@@ -1,12 +1,13 @@
+#include "hayward/commands.h"
+
 #include <stdlib.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
-#include "config.h"
+#include <config.h>
 
 struct cmd_results *
 bar_cmd_workspace_min_width(int argc, char **argv) {

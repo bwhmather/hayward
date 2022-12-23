@@ -1,11 +1,12 @@
-#include "hayward-common/log.h"
-
 #include "hayward/commands.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+
+#include <hayward-common/log.h>
+
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 static void
 close_window_iterator(struct hayward_window *window, void *data) {

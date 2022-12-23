@@ -12,12 +12,16 @@ BreakBeforeTernaryOperators: true
 AlwaysBreakAfterReturnType: All
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '\<.+\>'
-    SortPriority: 1
-  - Regex: '"hayward-.*/'
-    SortPriority: 2
-  - Regex: '".*-protocol.h"'
-    SortPriority: 3
-  - Regex: '"haywardnag/'
-    SortPriority: 4
+  - Regex: '".*"'
+    Priority: 1
+  - Regex: '<config.h>'
+    Priority: 7
+  - Regex: '<hayward-.*/.*>'
+    Priority: 3
+  - Regex: '<.*-protocol.h>'
+    Priority: 4
+  - Regex: '<haywardnag/.*>'
+    Priority: 5
+  - Regex: '<.+>'
+    Priority: 2
 

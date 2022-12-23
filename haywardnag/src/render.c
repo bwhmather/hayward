@@ -1,14 +1,14 @@
 #include <stdint.h>
 
-#include "hayward-client/pool-buffer.h"
-#include "hayward-common/cairo_util.h"
-#include "hayward-common/log.h"
-#include "hayward-common/pango.h"
+#include <hayward-client/pool-buffer.h>
+#include <hayward-common/cairo_util.h>
+#include <hayward-common/log.h>
+#include <hayward-common/pango.h>
 
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
 
-#include "haywardnag/haywardnag.h"
-#include "haywardnag/types.h"
+#include <haywardnag/haywardnag.h>
+#include <haywardnag/types.h>
 
 static uint32_t
 render_message(cairo_t *cairo, struct haywardnag *haywardnag) {

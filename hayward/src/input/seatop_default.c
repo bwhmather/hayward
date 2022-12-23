@@ -1,21 +1,22 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/input/seat.h"
+
 #include <float.h>
 #include <libevdev/libevdev.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
-#include "hayward/input/tablet.h"
-#include "hayward/output.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/tablet.h>
+#include <hayward/output.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/workspace.h>
 #if HAVE_XWAYLAND
-#include "hayward/xwayland.h"
+#include <hayward/xwayland.h>
 #endif
 
 struct seatop_default_event {

@@ -1,12 +1,13 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/config.h"
+
 #include <float.h>
 #include <limits.h>
 #include <stdlib.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/config.h"
-#include "hayward/input/keyboard.h"
+#include <hayward/input/keyboard.h>
 
 struct input_config *
 new_input_config(const char *identifier) {

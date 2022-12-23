@@ -6,12 +6,12 @@
 #include <wlr/render/wlr_texture.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
-#include "hayward/tree/node.h"
-#include "hayward/tree/window.h"
+#include <hayward/tree/node.h>
+#include <hayward/tree/window.h>
 
-#include "config.h"
+#include <config.h>
 
 extern struct hayward_root *root;
 

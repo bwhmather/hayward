@@ -3,7 +3,7 @@
 #include <wlr/types/wlr_idle.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 
-#include "hayward/server.h"
+#include <hayward/server.h>
 
 enum hayward_idle_inhibit_mode {
     INHIBIT_IDLE_APPLICATION, // Application set inhibitor (when visible)

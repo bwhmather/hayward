@@ -9,32 +9,33 @@
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 
-#include "config.h"
+#include <config.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
 #endif
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/pango.h"
-#include "hayward-common/stringop.h"
-
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/desktop.h"
-#include "hayward/desktop/idle_inhibit_v1.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/seat.h"
-#include "hayward/ipc-server.h"
-#include "hayward/output.h"
-#include "hayward/server.h"
-#include "hayward/tree.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/column.h"
 #include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
-#include "hayward/xdg_decoration.h"
+
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/pango.h>
+#include <hayward-common/stringop.h>
+
+#include <hayward/commands.h>
+#include <hayward/config.h>
+#include <hayward/desktop.h>
+#include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/seat.h>
+#include <hayward/ipc-server.h>
+#include <hayward/output.h>
+#include <hayward/server.h>
+#include <hayward/tree.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
+#include <hayward/xdg_decoration.h>
 
 void
 view_init(

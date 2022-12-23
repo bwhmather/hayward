@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/config.h"
+
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -11,16 +13,15 @@
 #include <unistd.h>
 #include <wordexp.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
+#include <hayward-common/util.h>
 
-#include "hayward/config.h"
-#include "hayward/input/keyboard.h"
-#include "hayward/output.h"
+#include <hayward/input/keyboard.h>
+#include <hayward/output.h>
 
-#include "config.h"
+#include <config.h>
 
 void
 free_bar_binding(struct bar_binding *binding) {

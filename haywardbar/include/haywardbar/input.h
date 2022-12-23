@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <wayland-client.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
 #define HAYWARD_SCROLL_UP KEY_MAX + 1
 #define HAYWARD_SCROLL_DOWN KEY_MAX + 2

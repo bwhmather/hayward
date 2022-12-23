@@ -8,18 +8,18 @@
 #include <string.h>
 #include <strings.h>
 
-#include "haywardbar/config.h"
-#include "haywardbar/status_line.h"
-#if HAVE_TRAY
-#include "haywardbar/tray/tray.h"
-#endif
-#include "hayward-common/ipc-client.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/loop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/ipc-client.h>
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/loop.h>
+#include <hayward-common/util.h>
 
-#include "config.h"
+#include <haywardbar/config.h>
+#include <haywardbar/status_line.h>
+#if HAVE_TRAY
+#include <haywardbar/tray/tray.h>
+#endif
+#include <config.h>
 
 void
 ipc_send_workspace_command(struct haywardbar *bar, const char *ws) {

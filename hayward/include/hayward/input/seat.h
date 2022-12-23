@@ -6,10 +6,10 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/edges.h>
 
-#include "hayward/config.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/tablet.h"
-#include "hayward/input/text_input.h"
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/tablet.h>
+#include <hayward/input/text_input.h>
 
 struct hayward_seat;
 

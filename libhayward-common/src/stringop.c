@@ -9,8 +9,8 @@
 #include <strings.h>
 #include <wordexp.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
 static const char whitespace[] = " \f\n\r\t\v";
 

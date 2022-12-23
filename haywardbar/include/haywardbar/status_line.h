@@ -1,11 +1,10 @@
 #ifndef _HAYWARDBAR_STATUS_LINE_H
 #define _HAYWARDBAR_STATUS_LINE_H
+#include <haywardbar/bar.h>
 #include <json.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#include "bar.h"
 
 enum status_protocol {
     PROTOCOL_UNDEF,

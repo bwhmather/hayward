@@ -10,8 +10,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
 struct loop_fd_event {
     void (*callback)(int fd, short mask, void *data);

@@ -1,7 +1,7 @@
 #ifndef _HAYWARDBAR_TRAY_TRAY_H
 #define _HAYWARDBAR_TRAY_TRAY_H
 
-#include "config.h"
+#include <config.h>
 #if HAVE_LIBSYSTEMD
 #include <systemd/sd-bus.h>
 #elif HAVE_LIBELOGIND
@@ -12,9 +12,9 @@
 #include <cairo.h>
 #include <stdint.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
-#include "haywardbar/tray/host.h"
+#include <haywardbar/tray/host.h>
 
 struct haywardbar;
 struct haywardbar_output;

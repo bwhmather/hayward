@@ -15,22 +15,22 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/util/region.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/config.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/layers.h"
-#include "hayward/output.h"
-#include "hayward/server.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/layers.h>
+#include <hayward/output.h>
+#include <hayward/server.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
-#include "config.h"
+#include <config.h>
 
 struct render_data {
     pixman_region32_t *damage;

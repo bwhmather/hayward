@@ -1,7 +1,8 @@
-#include "hayward-common/log.h"
-
 #include "hayward/commands.h"
-#include "hayward/config.h"
+
+#include <hayward-common/log.h>
+
+#include <hayward/config.h>
 
 struct cmd_results *
 cmd_new_window(int argc, char **argv) {

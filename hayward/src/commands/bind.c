@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <libevdev/libevdev.h>
 #include <linux/input-event-codes.h>
 #include <string.h>
@@ -7,17 +9,16 @@
 #include <xkbcommon/xkbcommon-names.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/keyboard.h"
-#include "hayward/ipc-server.h"
+#include <hayward/config.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/keyboard.h>
+#include <hayward/ipc-server.h>
 
 int binding_order = 0;
 

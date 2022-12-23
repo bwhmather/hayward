@@ -1,7 +1,8 @@
+#include "hayward/commands.h"
+
 #include <stddef.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 void
 hayward_terminate(int exit_code);

@@ -11,11 +11,11 @@
 #include <unistd.h>
 #include <wordexp.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
-#include "config.h"
+#include <config.h>
 
 static int
 cmp_id(const void *item, const void *cmp_to) {

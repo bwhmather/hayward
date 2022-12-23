@@ -9,22 +9,22 @@
 #include <wlr/types/wlr_output.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "wlr-layer-shell-unstable-v1-protocol.h"
+#include <wlr-layer-shell-unstable-v1-protocol.h>
 
-#include "hayward/config.h"
-#include "hayward/desktop/idle_inhibit_v1.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/output.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/config.h>
+#include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/output.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
-#include "config.h"
+#include <config.h>
 
 static const char *
 ipc_json_node_type_description(enum hayward_node_type node_type) {

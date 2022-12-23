@@ -1,10 +1,11 @@
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
-#include "hayward/commands.h"
-#include "hayward/input/keyboard.h"
+#include <hayward/input/keyboard.h>
 
 struct cmd_results *
 bar_cmd_modifier(int argc, char **argv) {

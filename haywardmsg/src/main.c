@@ -14,9 +14,9 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "hayward-common/ipc-client.h"
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/ipc-client.h>
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
 void
 hayward_terminate(int exit_code) {

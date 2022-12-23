@@ -1,10 +1,11 @@
+#include "hayward/commands.h"
+
 #include <strings.h>
 
-#include "hayward-common/util.h"
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/output.h"
+#include <hayward/config.h>
+#include <hayward/output.h>
 
 struct cmd_results *
 output_cmd_dpms(int argc, char **argv) {

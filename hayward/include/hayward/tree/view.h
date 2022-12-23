@@ -3,12 +3,12 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_compositor.h>
 
-#include "config.h"
+#include <config.h>
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
 #endif
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
 
 struct hayward_window;
 struct hayward_xdg_decoration;

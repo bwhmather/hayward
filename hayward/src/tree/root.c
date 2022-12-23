@@ -6,17 +6,17 @@
 #include <string.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/seat.h"
-#include "hayward/ipc-server.h"
-#include "hayward/output.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/seat.h>
+#include <hayward/ipc-server.h>
+#include <hayward/output.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 struct hayward_root *root;
 

@@ -1,11 +1,11 @@
 #include <string.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/commands.h>
+#include <hayward/config.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/workspace.h>
 
 struct cmd_results *
 cmd_titlebar_padding(int argc, char **argv) {

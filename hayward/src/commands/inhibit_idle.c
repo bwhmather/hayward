@@ -1,10 +1,11 @@
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/desktop/idle_inhibit_v1.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
+#include <hayward/config.h>
+#include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_inhibit_idle(int argc, char **argv) {

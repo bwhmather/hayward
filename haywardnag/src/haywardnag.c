@@ -9,13 +9,13 @@
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
 
-#include "haywardnag/render.h"
-#include "haywardnag/types.h"
+#include <haywardnag/render.h>
+#include <haywardnag/types.h>
 
 static void
 nop() {

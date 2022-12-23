@@ -10,10 +10,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "hayward/server.h"
+#include <hayward/server.h>
 
 static void
 handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {

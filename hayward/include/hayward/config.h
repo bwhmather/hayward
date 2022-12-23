@@ -1,5 +1,7 @@
 #ifndef _HAYWARD_CONFIG_H
 #define _HAYWARD_CONFIG_H
+#include <config.h>
+#include <hayward/haywardnag.h>
 #include <libinput.h>
 #include <stdint.h>
 #include <string.h>
@@ -10,17 +12,14 @@
 #include <xf86drmMode.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
-#include "wlr-layer-shell-unstable-v1-protocol.h"
+#include <wlr-layer-shell-unstable-v1-protocol.h>
 
-#include "hayward/input/tablet.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/window.h"
-
-#include "../include/config.h"
-#include "haywardnag.h"
+#include <hayward/input/tablet.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/window.h>
 
 // TODO: Refactor this shit
 

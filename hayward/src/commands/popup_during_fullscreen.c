@@ -1,7 +1,8 @@
+#include "hayward/commands.h"
+
 #include <strings.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 cmd_popup_during_fullscreen(int argc, char **argv) {

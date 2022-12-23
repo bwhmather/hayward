@@ -5,7 +5,7 @@
 #include <time.h>
 #include <wlr/types/wlr_compositor.h>
 
-#include "hayward/server.h"
+#include <hayward/server.h>
 
 static void
 handle_destroy(struct wl_listener *listener, void *data) {

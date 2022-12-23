@@ -1,14 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/node.h"
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/output.h"
-#include "hayward/server.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/output.h>
+#include <hayward/server.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 void
 node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {

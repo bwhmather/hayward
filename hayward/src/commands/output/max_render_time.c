@@ -1,7 +1,8 @@
+#include "hayward/commands.h"
+
 #include <strings.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 output_cmd_max_render_time(int argc, char **argv) {

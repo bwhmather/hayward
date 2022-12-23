@@ -1,12 +1,12 @@
-#include "hayward/output.h"
+#include "hayward/commands.h"
 
 #include <strings.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
+#include <hayward/output.h>
 
 // must be in order for the bsearch
 static const struct cmd_handler output_handlers[] = {

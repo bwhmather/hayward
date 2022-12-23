@@ -5,14 +5,14 @@
 #include <unistd.h>
 #include <wordexp.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
 
-#include "haywardnag/haywardnag.h"
-#include "haywardnag/types.h"
+#include <haywardnag/haywardnag.h>
+#include <haywardnag/types.h>
 
 static char *
 read_and_trim_stdin(void) {

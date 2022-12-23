@@ -1,8 +1,9 @@
+#include "hayward/commands.h"
+
 #include <drm_fourcc.h>
 #include <strings.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 output_cmd_render_bit_depth(int argc, char **argv) {

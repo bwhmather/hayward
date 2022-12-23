@@ -1,7 +1,8 @@
+#include "hayward/commands.h"
+
 #include <errno.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 cmd_force_display_urgency_hint(int argc, char **argv) {

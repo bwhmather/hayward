@@ -1,7 +1,7 @@
 #ifndef _HAYWARD_INPUT_SWITCH_H
 #define _HAYWARD_INPUT_SWITCH_H
 
-#include "hayward/input/seat.h"
+#include <hayward/input/seat.h>
 
 struct hayward_switch {
     struct hayward_seat_device *seat_device;

@@ -1,9 +1,9 @@
+#include "hayward/commands.h"
+
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/util.h"
-
-#include "hayward/commands.h"
+#include <hayward-common/util.h>
 
 struct cmd_results *
 cmd_focus_follows_mouse(int argc, char **argv) {

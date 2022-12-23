@@ -36,20 +36,20 @@
 #include <wlr/types/wlr_xdg_foreign_v1.h>
 #include <wlr/types/wlr_xdg_foreign_v2.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
+
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+
+#include <hayward/config.h>
+#include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/output.h>
+#include <hayward/tree/root.h>
 #if HAVE_XWAYLAND
-#include "hayward/xwayland.h"
+#include <hayward/xwayland.h>
 #endif
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-
-#include "hayward/config.h"
-#include "hayward/desktop/idle_inhibit_v1.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/output.h"
-#include "hayward/tree/root.h"
-
-#include "config.h"
+#include <config.h>
 
 bool
 server_privileged_prepare(struct hayward_server *server) {

@@ -1,13 +1,14 @@
+#include "hayward/commands.h"
+
 #include <limits.h>
 #include <string.h>
 #include <strings.h>
 #include <wlr/backend/libinput.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/input-manager.h"
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
 
 static void
 toggle_supported_send_events_for_device(

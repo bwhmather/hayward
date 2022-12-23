@@ -1,14 +1,14 @@
 #ifndef _HAYWARDBAR_BAR_H
 #define _HAYWARDBAR_BAR_H
+#include <haywardbar/input.h>
 #include <wayland-client.h>
 
-#include "hayward-client/pool-buffer.h"
+#include <hayward-client/pool-buffer.h>
 
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
-#include "xdg-output-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
+#include <xdg-output-unstable-v1-client-protocol.h>
 
-#include "config.h"
-#include "input.h"
+#include <config.h>
 
 struct haywardbar_config;
 struct haywardbar_output;

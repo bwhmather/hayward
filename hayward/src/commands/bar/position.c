@@ -1,10 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <string.h>
 #include <strings.h>
 
-#include "hayward-common/log.h"
-
-#include "hayward/commands.h"
+#include <hayward-common/log.h>
 
 struct cmd_results *
 bar_cmd_position(int argc, char **argv) {

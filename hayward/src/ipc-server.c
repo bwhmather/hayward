@@ -18,23 +18,23 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/desktop/transaction.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/keyboard.h"
-#include "hayward/input/seat.h"
-#include "hayward/ipc-json.h"
-#include "hayward/output.h"
-#include "hayward/server.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/commands.h>
+#include <hayward/config.h>
+#include <hayward/desktop/transaction.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/keyboard.h>
+#include <hayward/input/seat.h>
+#include <hayward/ipc-json.h>
+#include <hayward/output.h>
+#include <hayward/server.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 static int ipc_socket = -1;
 static struct wl_event_source *ipc_event_source = NULL;

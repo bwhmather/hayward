@@ -1,10 +1,10 @@
 #ifndef _HAYWARD_TREE_H
 #define _HAYWARD_TREE_H
 
-#include "hayward/output.h"
-#include "hayward/tree/column.h"
-#include "hayward/tree/window.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/output.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 void
 hayward_move_window_to_floating(struct hayward_window *window);

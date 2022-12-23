@@ -1,8 +1,8 @@
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/output.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/window.h"
+#include <hayward/commands.h>
+#include <hayward/config.h>
+#include <hayward/output.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_title_align(int argc, char **argv) {

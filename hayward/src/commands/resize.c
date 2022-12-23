@@ -1,3 +1,5 @@
+#include "hayward/commands.h"
+
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
@@ -7,13 +9,12 @@
 #include <strings.h>
 #include <wlr/util/edges.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/util.h"
+#include <hayward-common/log.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/workspace.h>
 
 #define AXIS_HORIZONTAL (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)
 #define AXIS_VERTICAL (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)

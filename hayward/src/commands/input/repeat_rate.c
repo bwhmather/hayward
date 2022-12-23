@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/input-manager.h"
+#include <hayward/commands.h>
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
 
 struct cmd_results *
 input_cmd_repeat_rate(int argc, char **argv) {

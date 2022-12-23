@@ -7,12 +7,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "haywardbar/bar.h"
-#include "haywardbar/tray/item.h"
-#include "haywardbar/tray/tray.h"
+#include <haywardbar/bar.h>
+#include <haywardbar/tray/item.h>
+#include <haywardbar/tray/tray.h>
 
 static const char *watcher_path = "/StatusNotifierWatcher";
 

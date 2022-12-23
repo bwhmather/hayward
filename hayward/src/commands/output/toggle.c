@@ -1,6 +1,7 @@
 #include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/output.h"
+
+#include <hayward/config.h>
+#include <hayward/output.h>
 
 struct cmd_results *
 output_cmd_toggle(int argc, char **argv) {

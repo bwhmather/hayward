@@ -1,15 +1,17 @@
+#include "hayward/input/libinput.h"
+
 #include <float.h>
 #include <libinput.h>
 #include <libudev.h>
 #include <limits.h>
 #include <wlr/backend/libinput.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/config.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/ipc-server.h"
-#include "hayward/output.h"
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/ipc-server.h>
+#include <hayward/output.h>
 
 static void
 log_status(enum libinput_config_status status) {

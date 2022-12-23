@@ -1,9 +1,10 @@
-#include "hayward-common/util.h"
-
 #include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
+
+#include <hayward-common/util.h>
+
+#include <hayward/config.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
 
 struct cmd_results *
 cmd_smart_borders(int argc, char **argv) {

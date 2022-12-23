@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hayward-common/ipc-client.h"
-#include "hayward-common/log.h"
+#include <hayward-common/ipc-client.h>
+#include <hayward-common/log.h>
 
-#include "haywardbar/bar.h"
+#include <haywardbar/bar.h>
 
 static struct haywardbar haywardbar;
 

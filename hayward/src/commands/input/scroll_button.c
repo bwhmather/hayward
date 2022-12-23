@@ -1,8 +1,9 @@
+#include "hayward/commands.h"
+
 #include <libevdev/libevdev.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
+#include <hayward/config.h>
+#include <hayward/input/cursor.h>
 
 struct cmd_results *
 input_cmd_scroll_button(int argc, char **argv) {

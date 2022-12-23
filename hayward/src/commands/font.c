@@ -1,11 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
 struct cmd_results *
 cmd_font(int argc, char **argv) {

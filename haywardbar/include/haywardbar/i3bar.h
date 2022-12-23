@@ -1,8 +1,8 @@
 #ifndef _HAYWARDBAR_I3BAR_H
 #define _HAYWARDBAR_I3BAR_H
 
-#include "input.h"
-#include "status_line.h"
+#include <haywardbar/input.h>
+#include <haywardbar/status_line.h>
 
 struct i3bar_block {
     struct wl_list link; // status_link::blocks

@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <wlr/types/wlr_idle.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/input/seat.h"
-#include "hayward/server.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
+#include <hayward/input/seat.h>
+#include <hayward/server.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 struct hayward_idle_inhibit_manager_v1 *
 hayward_idle_inhibit_manager_v1_create(

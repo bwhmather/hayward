@@ -2,8 +2,8 @@
 #define _HAYWARD_COMMANDS_H
 
 #include <wlr/util/edges.h>
-
-#include "config.h"
+#include <stddef.h>
+#include <hayward/config.h>
 
 struct hayward_window;
 

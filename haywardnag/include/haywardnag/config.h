@@ -1,8 +1,8 @@
 #ifndef _HAYWARDNAG_CONFIG_H
 #define _HAYWARDNAG_CONFIG_H
-#include "hayward-common/list.h"
+#include <hayward-common/list.h>
 
-#include "haywardnag/haywardnag.h"
+#include <haywardnag/haywardnag.h>
 
 int
 haywardnag_parse_options(

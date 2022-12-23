@@ -2,12 +2,12 @@
 
 #include <stdlib.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/desktop/transaction.h"
-#include "hayward/server.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
+#include <hayward/desktop/transaction.h>
+#include <hayward/server.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
 
 static void
 xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {

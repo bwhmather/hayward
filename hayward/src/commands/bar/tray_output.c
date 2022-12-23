@@ -1,13 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
+#include <hayward/config.h>
 
-#include "config.h"
+#include <config.h>
 
 struct cmd_results *
 bar_cmd_tray_output(int argc, char **argv) {

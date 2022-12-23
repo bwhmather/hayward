@@ -2,7 +2,7 @@
 #define _HAYWARD_IPC_JSON_H
 #include <json.h>
 
-#include "hayward/input/input-manager.h"
+#include <hayward/input/input-manager.h>
 
 json_object *
 ipc_json_get_version(void);

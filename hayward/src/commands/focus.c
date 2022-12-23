@@ -1,20 +1,21 @@
+#include "hayward/commands.h"
+
 #include <float.h>
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include "hayward-common/log.h"
-#include "hayward-common/stringop.h"
-#include "hayward-common/util.h"
+#include <hayward-common/log.h>
+#include <hayward-common/stringop.h>
+#include <hayward-common/util.h>
 
-#include "hayward/commands.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/input/seat.h"
-#include "hayward/output.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/root.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/workspace.h"
+#include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/output.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/workspace.h>
 
 static bool
 parse_direction(const char *name, enum wlr_direction *out) {

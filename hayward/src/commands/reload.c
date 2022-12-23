@@ -1,15 +1,16 @@
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/commands.h"
+
 #include <string.h>
 
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
-#include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/ipc-server.h"
-#include "hayward/server.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
+#include <hayward/config.h>
+#include <hayward/ipc-server.h>
+#include <hayward/server.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
 
 static void
 rebuild_textures_iterator(struct hayward_window *container, void *data) {

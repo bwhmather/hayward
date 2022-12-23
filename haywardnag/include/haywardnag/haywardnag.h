@@ -3,10 +3,10 @@
 #include <stdint.h>
 #include <strings.h>
 
-#include "hayward-client/pool-buffer.h"
-#include "hayward-common/list.h"
+#include <hayward-client/pool-buffer.h>
+#include <hayward-common/list.h>
 
-#include "haywardnag/types.h"
+#include <haywardnag/types.h>
 
 #define HAYWARDNAG_MAX_HEIGHT 500
 

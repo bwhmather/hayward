@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include <wayland-server-protocol.h>
 
 enum movement_unit {

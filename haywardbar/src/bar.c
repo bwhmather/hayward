@@ -14,25 +14,25 @@
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 
-#include "haywardbar/config.h"
-#include "haywardbar/i3bar.h"
-#include "haywardbar/input.h"
-#include "haywardbar/ipc.h"
-#include "haywardbar/render.h"
-#include "haywardbar/status_line.h"
+#include <haywardbar/config.h>
+#include <haywardbar/i3bar.h>
+#include <haywardbar/input.h>
+#include <haywardbar/ipc.h>
+#include <haywardbar/render.h>
+#include <haywardbar/status_line.h>
 
-#include "config.h"
+#include <config.h>
 #if HAVE_TRAY
-#include "haywardbar/tray/tray.h"
+#include <haywardbar/tray/tray.h>
 #endif
-#include "hayward-client/pool-buffer.h"
-#include "hayward-common/ipc-client.h"
-#include "hayward-common/list.h"
-#include "hayward-common/log.h"
-#include "hayward-common/loop.h"
+#include <hayward-client/pool-buffer.h>
+#include <hayward-common/ipc-client.h>
+#include <hayward-common/list.h>
+#include <hayward-common/log.h>
+#include <hayward-common/loop.h>
 
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
-#include "xdg-output-unstable-v1-client-protocol.h"
+#include <wlr-layer-shell-unstable-v1-client-protocol.h>
+#include <xdg-output-unstable-v1-client-protocol.h>
 
 void
 free_workspaces(struct wl_list *list) {

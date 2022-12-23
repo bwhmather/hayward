@@ -1,12 +1,13 @@
-#include "hayward-common/log.h"
-
 #include "hayward/commands.h"
-#include "hayward/config.h"
-#include "hayward/input/cursor.h"
-#include "hayward/input/input-manager.h"
-#include "hayward/tree/arrange.h"
-#include "hayward/tree/view.h"
-#include "hayward/tree/window.h"
+
+#include <hayward-common/log.h>
+
+#include <hayward/config.h>
+#include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/tree/arrange.h>
+#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 // A couple of things here:
 // - view->border should never be B_CSD when the view is tiled, even when CSD is

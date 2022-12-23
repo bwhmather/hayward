@@ -5,10 +5,10 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_output.h>
 
-#include "hayward/tree/node.h"
-#include "hayward/tree/view.h"
+#include <hayward/tree/node.h>
+#include <hayward/tree/view.h>
 
-#include "config.h"
+#include <config.h>
 
 struct hayward_server;
 struct hayward_window;

@@ -3,9 +3,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "hayward-common/log.h"
+#include <hayward-common/log.h>
 
-#include "hayward/input/seat.h"
+#include <hayward/input/seat.h>
 
 static struct hayward_text_input *
 relay_get_focusable_text_input(struct hayward_input_method_relay *relay) {
