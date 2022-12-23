@@ -5,6 +5,7 @@ import os
 import pathlib
 import re
 import shlex
+import subprocess
 import unittest
 
 import clang.cindex
@@ -27,6 +28,19 @@ for _command in _raw_commands:
         if arg.startswith(("-I", "-D", "-std"))
     ]
 
+
+DEFAULT_INCLUDE_DIRS = [
+    pathlib.Path(match.group(1))
+    for match in re.finditer(
+        "^ (.*)$",
+        subprocess.run(
+            ["cc", "-xc", "/dev/null", "-E", "-Wp,-v"],
+            capture_output=True,
+            encoding="utf-8",
+        ).stderr,
+        flags=re.MULTILINE,
+    )
+]
 
 INDEX = clang.cindex.Index.create()
 
@@ -121,7 +135,7 @@ def get_args(path, /):
 
 
 @functools.lru_cache(maxsize=None)
-def parse_path(path, /):
+def read_ast_from_path(path, /):
     return INDEX.parse(path, args=get_args(path))
 
 
@@ -135,13 +149,15 @@ def resolve_clang_path(path):
 
 @functools.lru_cache(maxsize=None)
 def include_dirs(source_path):
-    include_dirs = [source_path.parent]
+    include_dirs = []
 
     include_dirs += [
         BUILD_ROOT / pathlib.Path(arg[2:])
         for arg in get_args(source_path)
         if arg.startswith("-I")
     ]
+
+    include_dirs += DEFAULT_INCLUDE_DIRS
 
     return include_dirs
 
@@ -158,6 +174,23 @@ def resolve_include_path(source_path, include_path, /):
             return candidate_path
 
     raise Exception(f"Could not resolve {include_path}")
+
+
+@functools.lru_cache(maxsize=None)
+def _read_includes_from_path(path, /):
+    pattern = re.compile('^#include ["<](.*)[>"]$', flags=re.MULTILINE)
+
+    source = path.read_text()
+    return [
+        resolve_include_path(path, match.group(1)) for match in pattern.finditer(source)
+    ]
+
+
+def read_includes_from_path(path, /):
+    # Clang entirely removes files with an include guard or `#pragma once` from
+    # the tree when they are included a second time.  This makes the clang ast
+    # useless for finding direct includes and we need to reparse.
+    yield from _read_includes_from_path(path)
 
 
 def same_clang_path(a, b):
@@ -180,8 +213,8 @@ class DeclarationOrderTestCase(unittest.TestCase):
                 if header_path is None:
                     self.skipTest(f"No header for {source_path}")
 
-                header = parse_path(header_path)
-                source = parse_path(source_path)
+                header = read_ast_from_path(header_path)
+                source = read_ast_from_path(source_path)
 
                 header_decls = [
                     node.spelling
@@ -214,7 +247,7 @@ class DeclarationOrderTestCase(unittest.TestCase):
         decls = {}
 
         for header_path in header_paths:
-            header = parse_path(header_path)
+            header = read_ast_from_path(header_path)
             prefix = header_path.stem
 
             header_decls = [
@@ -257,7 +290,7 @@ class DeclarationOrderTestCase(unittest.TestCase):
 
         source_defs = []
         for source_path in source_paths:
-            source = parse_path(source_path)
+            source = read_ast_from_path(source_path)
             source_defs += [
                 node.spelling
                 for node in source.cursor.get_children()
@@ -269,7 +302,7 @@ class DeclarationOrderTestCase(unittest.TestCase):
             ]
 
         header_path = HAYWARD_INCLUDE_ROOT / "commands.h"
-        header = parse_path(header_path)
+        header = read_ast_from_path(header_path)
         header_decls = [
             node.spelling
             for node in header.cursor.get_children()
@@ -283,20 +316,16 @@ class DeclarationOrderTestCase(unittest.TestCase):
 
 class IncludeTestCase(unittest.TestCase):
     def test_no_circular_includes(self):
-        pattern = re.compile('^#include "(hayward/.*\\.h)"$', flags=re.MULTILINE)
-
         # Build dependency graph.
         graph = {}
         for header_path in enumerate_header_paths():
-            source = header_path.read_text()
             graph[header_path] = {
-                resolve_include_path(header_path, match.group(1))
-                for match in pattern.finditer(source)
+                dep_path
+                for dep_path in read_includes_from_path(header_path)
+                if dep_path.is_relative_to(HAYWARD_INCLUDE_ROOT)
             }
 
         # Check for cycles.
-        visited = set()
-        stack = []
         for root in graph:
             queue = {root}
             visited = set()
