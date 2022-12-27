@@ -1,12 +1,18 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
-#include <hayward-common/log.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include <hayward-common/util.h>
 
 #include <hayward/config.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+
+#include <config.h>
 
 struct cmd_results *
 cmd_urgent(int argc, char **argv) {

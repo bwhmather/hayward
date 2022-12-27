@@ -1,13 +1,15 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <strings.h>
 
-#include <hayward-common/log.h>
-
+#include <hayward/config.h>
 #include <hayward/desktop.h>
-#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+
+#include <config.h>
 
 struct cmd_results *
 cmd_opacity(int argc, char **argv) {

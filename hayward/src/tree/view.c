@@ -1,13 +1,30 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <float.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
+#include <sys/types.h>
+#include <time.h>
 #include <wayland-server-core.h>
-#include <wlr/render/wlr_renderer.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_buffer.h>
-#include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_server_decoration.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/util/box.h>
+#include <wlr/xwayland.h>
+
+#include <hayward/input/input-manager.h>
+#include <hayward/tree/node.h>
 
 #include <config.h>
 #if HAVE_XWAYLAND
@@ -20,7 +37,6 @@
 #include <hayward-common/pango.h>
 #include <hayward-common/stringop.h>
 
-#include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/desktop.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
@@ -33,6 +49,7 @@
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 #include <hayward/xdg_decoration.h>

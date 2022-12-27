@@ -1,18 +1,25 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/seat.h"
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_seat.h>
 #include <wlr/util/edges.h>
 
-#include <hayward-common/log.h>
+#include <hayward-common/list.h>
 
 #include <hayward/commands.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+
+#include <config.h>
 
 struct seatop_resize_tiling_event {
     struct hayward_window *container; // leaf container

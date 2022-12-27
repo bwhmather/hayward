@@ -1,13 +1,20 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/decoration.h"
 
+#include <stdbool.h>
 #include <stdlib.h>
-
-#include <hayward-common/log.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_server_decoration.h>
 
 #include <hayward/desktop/transaction.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
+
+#include <config.h>
 
 static void
 server_decoration_handle_destroy(struct wl_listener *listener, void *data) {

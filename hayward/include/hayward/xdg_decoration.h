@@ -1,7 +1,12 @@
 #ifndef _HAYWARD_XDG_DECORATION_H
 #define _HAYWARD_XDG_DECORATION_H
 
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
+
+#include <hayward/tree/view.h>
 
 struct hayward_xdg_decoration {
     struct wlr_xdg_toplevel_decoration_v1 *wlr_xdg_decoration;

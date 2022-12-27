@@ -1,14 +1,14 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
 #include <stdbool.h>
-#include <string.h>
-#include <strings.h>
-
-#include <hayward-common/log.h>
+#include <stdlib.h>
 
 #include <hayward/config.h>
-#include <hayward/input/input-manager.h>
+
+#include <config.h>
 
 static bool
 parse_coords(const char *str, double *x, double *y, bool *mm) {

@@ -1,11 +1,16 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/config.h"
 
-#include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
+
+#include <config.h>
 
 struct seat_config *
 new_seat_config(const char *name) {

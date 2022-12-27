@@ -1,5 +1,7 @@
 #ifndef _HAYWARD_INPUT_LIBINPUT_H
 #define _HAYWARD_INPUT_LIBINPUT_H
+#include <stdbool.h>
+
 #include <hayward/input/input-manager.h>
 
 void

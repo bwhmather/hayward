@@ -1,13 +1,13 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
-#include <errno.h>
-#include <math.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 
-#include <hayward-common/log.h>
+#include <hayward/config.h>
+
+#include <config.h>
 
 static const char min_usage[] =
     "Expected 'floating_minimum_size <width> x <height>'";

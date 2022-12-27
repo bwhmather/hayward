@@ -1,10 +1,14 @@
 #ifndef _HAYWARD_ROOT_H
 #define _HAYWARD_ROOT_H
-#include <ctype.h>
+
+#include <stdbool.h>
+#include <sys/types.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/render/wlr_texture.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 

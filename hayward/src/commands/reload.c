@@ -1,7 +1,10 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
+#include <stdbool.h>
 #include <string.h>
+#include <wayland-server-core.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
@@ -10,7 +13,10 @@
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
-#include <hayward/tree/view.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/window.h>
+
+#include <config.h>
 
 static void
 rebuild_textures_iterator(struct hayward_window *container, void *data) {

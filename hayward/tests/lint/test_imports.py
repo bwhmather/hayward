@@ -10,6 +10,7 @@ import unittest
 
 import clang.cindex
 
+
 SOURCE_ROOT = pathlib.Path(os.environ["MESON_SOURCE_ROOT"]).resolve()
 BUILD_ROOT = pathlib.Path(os.environ["MESON_BUILD_ROOT"]).resolve()
 
@@ -34,7 +35,7 @@ DEFAULT_INCLUDE_DIRS = [
     for match in re.finditer(
         "^ (.*)$",
         subprocess.run(
-            ["cc", "-xc", "/dev/null", "-E", "-Wp,-v"],
+            ["clang", "-xc", "/dev/null", "-E", "-Wp,-v"],
             capture_output=True,
             encoding="utf-8",
         ).stderr,
@@ -115,7 +116,7 @@ def source_path_for_header_path(header_path, /):
         HAYWARD_ROOT
         / header_path.relative_to(HAYWARD_INCLUDE_ROOT).parent
         / (header_path.stem + ".c")
-    ).relative_to(SOURCE_ROOT)
+    )
 
     if not source_path.exists():
         return None
@@ -124,6 +125,9 @@ def source_path_for_header_path(header_path, /):
 
 
 def get_args(path, /):
+    assert path.is_absolute()
+    assert path.is_relative_to(SOURCE_ROOT)
+
     if is_header_path(path):
         source_path = source_path_for_header_path(path)
         if source_path is None:
@@ -131,12 +135,18 @@ def get_args(path, /):
         args = CPP_ARGS[source_path]
     else:
         args = CPP_ARGS[path]
+
+    args = [*args, *(f"-I{sys_path}" for sys_path in DEFAULT_INCLUDE_DIRS)]
     return args
 
 
 @functools.lru_cache(maxsize=None)
 def read_ast_from_path(path, /):
-    return INDEX.parse(path, args=get_args(path))
+    return INDEX.parse(
+        path,
+        args=get_args(path),
+        options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD,
+    )
 
 
 def resolve_clang_path(path):
@@ -149,21 +159,18 @@ def resolve_clang_path(path):
 
 @functools.lru_cache(maxsize=None)
 def include_dirs(source_path):
-    include_dirs = []
-
-    include_dirs += [
-        BUILD_ROOT / pathlib.Path(arg[2:])
+    return [
+        (BUILD_ROOT / pathlib.Path(arg[2:])).resolve()
         for arg in get_args(source_path)
         if arg.startswith("-I")
     ]
 
-    include_dirs += DEFAULT_INCLUDE_DIRS
-
-    return include_dirs
-
 
 @functools.lru_cache(maxsize=None)
-def resolve_include_path(source_path, include_path, /):
+def resolve_include_path(include_path, /, *, source_path=None):
+    if source_path is None:
+        source_path = HAYWARD_ROOT / "server.c"
+
     assert source_path.is_absolute()
     assert isinstance(include_path, str)
 
@@ -177,13 +184,30 @@ def resolve_include_path(source_path, include_path, /):
 
 
 @functools.lru_cache(maxsize=None)
+def derive_include_from_path(include_path, /):
+    assert include_path.is_absolute()
+
+    best_include = str(include_path)
+
+    for candidate_dir in include_dirs(HAYWARD_ROOT / "server.c"):
+        if not include_path.is_relative_to(candidate_dir):
+            continue
+
+        candidate_include = str(include_path.relative_to(candidate_dir))
+        if len(candidate_include) >= len(best_include):
+            continue
+
+        best_include = candidate_include
+
+    return best_include
+
+
+@functools.lru_cache(maxsize=None)
 def _read_includes_from_path(path, /):
     pattern = re.compile('^#include ["<](.*)[>"]$', flags=re.MULTILINE)
 
     source = path.read_text()
-    return [
-        resolve_include_path(path, match.group(1)) for match in pattern.finditer(source)
-    ]
+    return [match.group(1) for match in pattern.finditer(source)]
 
 
 def read_includes_from_path(path, /):
@@ -195,6 +219,24 @@ def read_includes_from_path(path, /):
 
 def same_clang_path(a, b):
     return resolve_clang_path(a) == resolve_clang_path(b)
+
+
+def _walk_preorder(cursor, /, *, root_path):
+    yield cursor
+    for child in cursor.get_children():
+        if child.location.file is None:
+            continue
+
+        if resolve_clang_path(child.location.file.name) != root_path:
+            continue
+
+        for descendant in _walk_preorder(child, root_path=root_path):
+            yield descendant
+
+
+def walk_file_preorder(source, /):
+    root_path = resolve_clang_path(source.spelling)
+    yield from _walk_preorder(source.cursor, root_path=root_path)
 
 
 class DeclarationOrderTestCase(unittest.TestCase):
@@ -314,6 +356,9 @@ class DeclarationOrderTestCase(unittest.TestCase):
         self.assertEqual(set(header_decls), set(source_defs))
 
 
+_INCLUDE_ALIASES = {""}
+
+
 class IncludeTestCase(unittest.TestCase):
     def test_no_circular_includes(self):
         # Build dependency graph.
@@ -335,6 +380,132 @@ class IncludeTestCase(unittest.TestCase):
                 deps = graph[dep]
                 self.assertNotIn(root, deps)
                 queue.update(deps.difference(visited))
+
+    def test_exact_includes(self):
+        aliases = {
+            "json_types.h": "json.h",
+            "gobject/gobject.h": "glib-object.h",
+            "json_tokener.h": "json.h",
+            "json_object.h": "json.h",
+            "bits/stdint-uintn.h": "stdint.h",
+            "bits/stdint-intn.h": "stdint.h",
+            "bits/types/struct_timespec.h": "time.h",
+            "bits/mathcalls.h": "math.h",
+            "asm-generic/errno-base.h": "errno.h",
+            "asm-generic/ioctls.h": "sys/ioctl.h",
+            "bits/fcntl-linux.h": "fcntl.h",
+            "bits/getopt_core.h": "getopt.h",
+            "bits/getopt_ext.h": "getopt.h",
+            "bits/resource.h": "sys/resource.h",
+            "bits/sigaction.h": "signal.h",
+            "bits/signum-generic.h": "signal.h",
+            "bits/socket.h": "sys/socket.h",
+            "bits/socket_type.h": "sys/socket.h",
+            "bits/struct_stat.h": "sys/socket.h",
+            "bits/time.h": "time.h",
+            "bits/types/FILE.h": "stdio.h",
+            "bits/types/clockid_t.h": "sys/types.h",
+            "bits/types/sigset_t.h": "sys/types.h",
+            "pango/pango-attributes.h": "pango/pango.h",
+            "pango/pango-bidi-type.h": "pango/pango.h",
+            "pango/pango-break.h": "pango/pango.h",
+            "pango/pango-color.h": "pango/pango.h",
+            "pango/pango-context.h": "pango/pango.h",
+            "pango/pango-coverage.h": "pango/pango.h",
+            "pango/pango-direction.h": "pango/pango.h",
+            "pango/pango-engine.h": "pango/pango.h",
+            "pango/pango-enum-types.h": "pango/pango.h",
+            "pango/pango-features.h": "pango/pango.h",
+            "pango/pango-font.h": "pango/pango.h",
+            "pango/pango-fontmap.h": "pango/pango.h",
+            "pango/pango-fontset.h": "pango/pango.h",
+            "pango/pango-fontset-simple.h": "pango/pango.h",
+            "pango/pango-glyph.h": "pango/pango.h",
+            "pango/pango-glyph-item.h": "pango/pango.h",
+            "pango/pango-gravity.h": "pango/pango.h",
+            "pango/pango-item.h": "pango/pango.h",
+            "pango/pango-language.h": "pango/pango.h",
+            "pango/pango-layout.h": "pango/pango.h",
+            "pango/pango-matrix.h": "pango/pango.h",
+            "pango/pango-markup.h": "pango/pango.h",
+            "pango/pango-renderer.h": "pango/pango.h",
+            "pango/pango-script.h": "pango/pango.h",
+            "pango/pango-tabs.h": "pango/pango.h",
+            "pango/pango-types.h": "pango/pango.h",
+            "pango/pango-utils.h": "pango/pango.h",
+            "pango/pango-version-macros.h": "pango/pango.h",
+        }
+
+        ignored_symbols = {"NULL", "__u32"}
+
+        builtins = {
+            "ssize_t": "sys/types.h",
+        }
+
+        # Checks that all source and header files directly import the headers
+        # that they need.
+        for source_path in itertools.chain(
+            enumerate_header_paths(), enumerate_source_paths()
+        ):
+            with self.subTest(file=source_path):
+                includes = set(read_includes_from_path(source_path))
+
+                unused = set(includes)
+                unused.discard("config.h")
+                if source_path.is_relative_to(
+                    HAYWARD_INCLUDE_ROOT
+                ) and source_path.relative_to(HAYWARD_INCLUDE_ROOT) == pathlib.Path(
+                    "input/cursor.h"
+                ):
+                    unused.discard("linux/input-event-codes.h")
+
+                indirect = dict()
+
+                text = source_path.read_text()
+                source = read_ast_from_path(source_path)
+
+                for node in walk_file_preorder(source):
+                    if not node.referenced:
+                        continue
+                    ref = node.referenced
+                    if ref.spelling in builtins:
+                        ref_include = builtins[ref.spelling]
+                    else:
+                        if ref.location.file is None:
+                            continue
+                        ref_path = resolve_clang_path(ref.location.file.name)
+
+                        if ref.spelling in ignored_symbols:
+                            continue
+
+                        if ref_path == resolve_clang_path(source.spelling):
+                            continue
+
+                        ref_include = derive_include_from_path(ref_path)
+
+                    ref_include = aliases.get(ref_include, ref_include)
+                    if ref_include in includes:
+                        unused.discard(ref_include)
+                        continue
+
+                    indirect.setdefault(ref_include, set()).add(ref.spelling)
+
+                msg = f"In\n    {source_path.relative_to(SOURCE_ROOT)}\n\n"
+
+                if sorted(indirect):
+                    msg += "The following files were depended on indirectly:\n"
+                    for indirect_path, indirect_refs in sorted(indirect.items()):
+                        msg += f"  - {indirect_path} ({', '.join(indirect_refs)})\n"
+                    msg += "\n"
+
+                if sorted(unused):
+                    msg += "The following includes were unused:\n"
+                    for unused_path in unused:
+                        msg += f"  - {unused_path}\n"
+                    msg += "\n"
+
+                if indirect or unused:
+                    self.fail(msg)
 
 
 if __name__ == "__main__":

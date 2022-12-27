@@ -1,23 +1,41 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/seat.h"
 
 #include <assert.h>
-#include <linux/input-event-codes.h>
+#include <pixman.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <time.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_idle.h>
-#include <wlr/types/wlr_keyboard_group.h>
-#include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_primary_selection.h>
-#include <wlr/types/wlr_tablet_v2.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_touch.h>
 #include <wlr/types/wlr_xcursor_manager.h>
+#include <wlr/util/box.h>
+#include <wlr/xcursor.h>
+#include <wlr/xwayland.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
+
+#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop.h>
@@ -27,16 +45,14 @@
 #include <hayward/input/libinput.h>
 #include <hayward/input/switch.h>
 #include <hayward/input/tablet.h>
-#include <hayward/ipc-server.h>
+#include <hayward/input/text_input.h>
 #include <hayward/layers.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/tree/arrange.h>
-#include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
+#include <hayward/xwayland.h>
 
 #include <config.h>
 

@@ -2,7 +2,11 @@
 #define _HAYWARD_IPC_JSON_H
 #include <json.h>
 
-#include <hayward/input/input-manager.h>
+struct hayward_output;
+struct hayward_node;
+struct hayward_input_device;
+struct hayward_seat;
+struct bar_config;
 
 json_object *
 ipc_json_get_version(void);

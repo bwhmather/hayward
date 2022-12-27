@@ -1,28 +1,32 @@
-#define _POSIX_C_SOURCE 200809
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/workspace.h"
 
-#include <ctype.h>
 #include <limits.h>
+#include <math.h>
 #include <stdbool.h>
-#include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
+#include <wayland-server-core.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-#include <hayward-common/util.h>
 
-#include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
-#include <hayward/input/seat.h>
+#include <hayward/config.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/node.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+
+#include <config.h>
 
 struct workspace_config *
 workspace_find_config(const char *workspace_name) {

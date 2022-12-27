@@ -1,8 +1,17 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
+#include <stdlib.h>
 #include <strings.h>
+#include <wlr/types/wlr_tablet_tool.h>
+
+#include <hayward-common/list.h>
 
 #include <hayward/config.h>
+#include <hayward/input/tablet.h>
+
+#include <config.h>
 
 static void
 set_tool_mode(

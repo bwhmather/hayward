@@ -1,21 +1,23 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/tree/arrange.h"
-
-#include <ctype.h>
+#include <math.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
+#include <hayward/config.h>
 #include <hayward/output.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/node.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 void
 arrange_window(struct hayward_window *window) {

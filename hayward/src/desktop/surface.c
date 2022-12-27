@@ -1,11 +1,16 @@
-#define _POSIX_C_SOURCE 200112L
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/surface.h"
 
 #include <stdlib.h>
 #include <time.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_compositor.h>
 
 #include <hayward/server.h>
+
+#include <config.h>
 
 static void
 handle_destroy(struct wl_listener *listener, void *data) {

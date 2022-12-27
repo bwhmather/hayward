@@ -1,11 +1,23 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/input/text_input.h"
 
 #include <assert.h>
 #include <stdlib.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_input_method_v2.h>
+#include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_text_input_v3.h>
 
 #include <hayward-common/log.h>
 
 #include <hayward/input/seat.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 static struct hayward_text_input *
 relay_get_focusable_text_input(struct hayward_input_method_relay *relay) {

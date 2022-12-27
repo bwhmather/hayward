@@ -1,26 +1,26 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include <getopt.h>
 #include <pango/pangocairo.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/resource.h>
-#include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/un.h>
-#include <sys/wait.h>
 #include <unistd.h>
+#include <wayland-server-core.h>
 #include <wlr/util/log.h>
 #include <wlr/version.h>
 
 #include <hayward-common/ipc-client.h>
+#include <hayward-common/ipc.h>
 #include <hayward-common/log.h>
 #include <hayward-common/stringop.h>
-#include <hayward-common/util.h>
 
-#include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/haywardnag.h>
@@ -28,6 +28,8 @@
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 static bool terminate_request = false;
 static int exit_value = 0;
@@ -390,8 +392,9 @@ main(int argc, char **argv) {
         wlr_log_init(WLR_ERROR, handle_wlr_log);
     }
 
+    const char *wlr_v_str = WLR_VERSION_STR;
     hayward_log(HAYWARD_INFO, "Hayward version " HAYWARD_VERSION);
-    hayward_log(HAYWARD_INFO, "wlroots version " WLR_VERSION_STR);
+    hayward_log(HAYWARD_INFO, "wlroots version %s", wlr_v_str);
     log_kernel();
     log_distro();
     log_env();

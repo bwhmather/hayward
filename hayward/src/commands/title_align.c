@@ -1,8 +1,15 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+#include <string.h>
+
+#include <hayward-common/list.h>
+
 #include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/output.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/window.h>
+
+#include <config.h>
 
 struct cmd_results *
 cmd_title_align(int argc, char **argv) {

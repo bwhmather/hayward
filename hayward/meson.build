@@ -251,7 +251,7 @@ foreach suite, tests : test_suites
 				'MESON_BUILD_ROOT': meson.project_build_root(),
 				'MESON_SOURCE_ROOT': meson.project_source_root(),
 			},
-			timeout: 100,
+			timeout: 1000,
 		)
 	endforeach
 endforeach

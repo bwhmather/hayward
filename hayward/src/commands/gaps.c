@@ -1,15 +1,20 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
-#include <math.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
+#include <hayward-common/list.h>
 
 #include <hayward/config.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 enum gaps_op { GAPS_OP_SET, GAPS_OP_ADD, GAPS_OP_SUBTRACT, GAPS_OP_TOGGLE };
 

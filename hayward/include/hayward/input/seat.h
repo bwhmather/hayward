@@ -1,10 +1,21 @@
 #ifndef _HAYWARD_INPUT_SEAT_H
 #define _HAYWARD_INPUT_SEAT_H
 
+#include <pixman.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_data_device.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/edges.h>
+
+#include <hayward-common/list.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input-manager.h>

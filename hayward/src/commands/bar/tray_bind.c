@@ -1,6 +1,13 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
 #include <strings.h>
+#include <wayland-util.h>
 
 #include <hayward-common/log.h>
 

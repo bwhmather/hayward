@@ -1,10 +1,20 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
-#include <hayward-common/log.h>
-#include <hayward-common/util.h>
+#include <stdbool.h>
+#include <string.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 
+#include <hayward-common/log.h>
+
+#include <hayward/config.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 static struct cmd_results *
 handle_action(

@@ -1,23 +1,27 @@
-// See https://i3wm.org/docs/ipc.html for protocol information
-#define _POSIX_C_SOURCE 200112L
-#include "hayward/ipc-server.h"
-
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <json.h>
 #include <linux/input-event-codes.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_output.h>
+#include <xkbcommon/xkbcommon.h>
 
+#include <hayward-common/ipc.h>
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 #include <hayward-common/util.h>
@@ -32,9 +36,11 @@
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
+// See https://i3wm.org/docs/ipc.html for protocol information
 
 static int ipc_socket = -1;
 static struct wl_event_source *ipc_event_source = NULL;

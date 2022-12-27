@@ -1,6 +1,8 @@
 #ifndef _HAYWARD_TREE_H
 #define _HAYWARD_TREE_H
 
+#include <wlr/types/wlr_output_layout.h>
+
 #include <hayward/output.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>

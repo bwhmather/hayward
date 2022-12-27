@@ -1,21 +1,25 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
 #include <float.h>
+#include <stdbool.h>
+#include <string.h>
 #include <strings.h>
 #include <wlr/types/wlr_output_layout.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-#include <hayward-common/util.h>
 
-#include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/config.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
-#include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 static bool
 parse_direction(const char *name, enum wlr_direction *out) {

@@ -1,13 +1,15 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
 #include <string.h>
-#include <strings.h>
+#include <wlr/types/wlr_seat.h>
 
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
+#include <hayward/config.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
+
+#include <config.h>
 
 // must be in order for the bsearch
 // these handlers perform actions on the seat

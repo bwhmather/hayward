@@ -1,9 +1,19 @@
-#define _POSIX_C_SOURCE 199309L
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include <float.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_server_decoration.h>
+#include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/util/box.h>
 #include <wlr/util/edges.h>
 
 #include <hayward-common/log.h>
@@ -11,16 +21,18 @@
 #include <hayward/decoration.h>
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
-#include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/node.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 #include <hayward/xdg_decoration.h>
+
+#include <config.h>
 
 static const struct hayward_view_child_impl popup_impl;
 

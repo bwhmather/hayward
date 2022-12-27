@@ -1,14 +1,24 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/input-manager.h"
 
 #include <ctype.h>
-#include <math.h>
+#include <libinput.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/backend.h>
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_input_inhibitor.h>
-#include <wlr/types/wlr_keyboard_group.h>
+#include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
+#include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 
@@ -24,6 +34,8 @@
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>
+
+#include <config.h>
 
 #define DEFAULT_SEAT "seat0"
 

@@ -1,13 +1,13 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
 #include <string.h>
-#include <strings.h>
-
-#include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/input/input-manager.h>
+
+#include <config.h>
 
 struct cmd_results *
 input_cmd_map_to_output(int argc, char **argv) {

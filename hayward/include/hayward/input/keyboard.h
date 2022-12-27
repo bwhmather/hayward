@@ -1,6 +1,14 @@
 #ifndef _HAYWARD_INPUT_KEYBOARD_H
 #define _HAYWARD_INPUT_KEYBOARD_H
 
+#include <stddef.h>
+#include <stdint.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_keyboard.h>
+#include <xkbcommon/xkbcommon.h>
+
+#include <hayward/config.h>
 #include <hayward/input/seat.h>
 
 #define HAYWARD_KEYBOARD_PRESSED_KEYS_CAP 32

@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/config.h"
 
@@ -5,21 +6,20 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <wordexp.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
 #include <hayward-common/util.h>
 
 #include <hayward/input/keyboard.h>
-#include <hayward/output.h>
+#include <hayward/server.h>
 
 #include <config.h>
 

@@ -1,13 +1,22 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/xdg_decoration.h"
 
+#include <stdbool.h>
 #include <stdlib.h>
-
-#include <hayward-common/log.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_xdg_decoration_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 #include <hayward/desktop/transaction.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
+
+#include <config.h>
 
 static void
 xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {

@@ -1,24 +1,43 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/config.h"
 
 #include <assert.h>
 #include <drm_fourcc.h>
+#include <math.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/backend/drm.h>
-#include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/util/box.h>
+#include <xf86drmMode.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 #include <hayward-common/util.h>
 
+#include <wayland-server-protocol.h>
+
 #include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
 #include <hayward/output.h>
+#include <hayward/server.h>
 #include <hayward/tree/root.h>
+
+#include <config.h>
 
 int
 output_name_cmp(const void *item, const void *data) {

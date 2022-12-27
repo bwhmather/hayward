@@ -1,8 +1,19 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
+#include <drm_mode.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <strings.h>
+#include <wlr/backend/drm.h>
+#include <xf86drmMode.h>
 
 #include <hayward/config.h>
+
+#include <config.h>
 
 struct cmd_results *
 output_cmd_mode(int argc, char **argv) {

@@ -1,6 +1,8 @@
 #ifndef _HAYWARD_DECORATION_H
 #define _HAYWARD_DECORATION_H
 
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_server_decoration.h>
 
 struct hayward_server_decoration {

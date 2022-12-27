@@ -1,16 +1,30 @@
 #ifndef _HAYWARD_VIEW_H
 #define _HAYWARD_VIEW_H
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <time.h>
 #include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/util/box.h>
 
 #include <config.h>
+
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
 #endif
-#include <hayward/input/input-manager.h>
-#include <hayward/input/seat.h>
+
+#include <wayland-server-protocol.h>
+
+#include <hayward/config.h>
 
 struct hayward_window;
+struct hayward_view;
 struct hayward_xdg_decoration;
 
 enum hayward_view_type {

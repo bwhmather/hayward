@@ -1,6 +1,7 @@
 #ifndef HAYWARD_XWAYLAND_H
 #define HAYWARD_XWAYLAND_H
 
+#include <wayland-server-core.h>
 #include <wlr/xwayland.h>
 #include <xcb/xproto.h>
 

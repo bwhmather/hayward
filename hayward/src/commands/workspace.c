@@ -1,18 +1,23 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
 #include <ctype.h>
 #include <limits.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
 #include <hayward-common/list.h>
-#include <hayward-common/log.h>
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-#include <hayward/input/seat.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 static struct workspace_config *
 workspace_config_find_or_create(char *workspace_name) {

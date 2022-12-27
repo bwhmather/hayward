@@ -1,10 +1,23 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/input/switch.h"
 
-#include <wlr/types/wlr_idle.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_switch.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 struct hayward_switch *
 hayward_switch_create(

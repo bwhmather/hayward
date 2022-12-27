@@ -1,10 +1,16 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
-#include <hayward-common/log.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include <hayward-common/util.h>
 
 #include <hayward/config.h>
-#include <hayward/server.h>
+
+#include <config.h>
 
 struct cmd_results *
 cmd_xwayland(int argc, char **argv) {

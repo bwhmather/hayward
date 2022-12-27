@@ -1,9 +1,16 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include <hayward-common/log.h>
+
+#include <hayward/config.h>
+
+#include <config.h>
 
 struct cmd_results *
 bar_cmd_status_edge_padding(int argc, char **argv) {

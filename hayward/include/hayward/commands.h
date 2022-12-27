@@ -1,9 +1,13 @@
 #ifndef _HAYWARD_COMMANDS_H
 #define _HAYWARD_COMMANDS_H
 
-#include <wlr/util/edges.h>
 #include <stddef.h>
+#include <stdint.h>
+
+#include <hayward-common/list.h>
+
 #include <hayward/config.h>
+#include <hayward/input/seat.h>
 
 struct hayward_window;
 

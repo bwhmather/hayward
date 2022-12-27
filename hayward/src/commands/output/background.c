@@ -1,9 +1,13 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
-#include <errno.h>
 #include <libgen.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
@@ -12,7 +16,8 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-#include <hayward/haywardnag.h>
+
+#include <config.h>
 
 static const char *bg_options[] = {
     "stretch", "center", "fill", "fit", "tile",

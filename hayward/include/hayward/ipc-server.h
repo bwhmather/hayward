@@ -1,13 +1,12 @@
 #ifndef _HAYWARD_IPC_SERVER_H
 #define _HAYWARD_IPC_SERVER_H
-#include <sys/socket.h>
+#include <stdbool.h>
 
-#include <hayward-common/ipc.h>
-
-#include <hayward/config.h>
-#include <hayward/input/input-manager.h>
-#include <hayward/tree/window.h>
-
+struct bar_config;
+struct hayward_binding;
+struct hayward_workspace;
+struct hayward_input_device;
+struct hayward_window;
 struct hayward_server;
 
 void

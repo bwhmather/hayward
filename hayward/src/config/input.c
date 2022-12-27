@@ -1,13 +1,24 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/config.h"
 
 #include <float.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+#include <wayland-util.h>
+#include <wlr/util/box.h>
+#include <xkbcommon/xkbcommon.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
+#include <hayward/input/input-manager.h>
 #include <hayward/input/keyboard.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 struct input_config *
 new_input_config(const char *identifier) {

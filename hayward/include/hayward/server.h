@@ -1,9 +1,10 @@
 #ifndef _HAYWARD_SERVER_H
 #define _HAYWARD_SERVER_H
 #include <stdbool.h>
+#include <stddef.h>
 #include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/backend.h>
-#include <wlr/backend/session.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>

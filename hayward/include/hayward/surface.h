@@ -1,5 +1,6 @@
 #ifndef _HAYWARD_SURFACE_H
 #define _HAYWARD_SURFACE_H
+#include <wayland-server-core.h>
 #include <wlr/types/wlr_compositor.h>
 
 struct hayward_surface {

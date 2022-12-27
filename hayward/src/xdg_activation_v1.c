@@ -1,6 +1,13 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
+#include <wayland-server-core.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 #include <hayward/tree/view.h>
+
+#include <config.h>
 
 void
 xdg_activation_v1_handle_request_activate(

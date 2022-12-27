@@ -1,20 +1,17 @@
 #ifndef _HAYWARD_WINDOW_H
 #define _HAYWARD_WINDOW_H
-#include <stdint.h>
-#include <sys/types.h>
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <wayland-server-core.h>
+#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 
+#include <hayward/config.h>
 #include <hayward/tree/node.h>
-
-enum hayward_window_border {
-    B_NONE,
-    B_PIXEL,
-    B_NORMAL,
-    B_CSD,
-};
 
 struct hayward_seat;
 struct hayward_root;

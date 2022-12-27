@@ -1,8 +1,12 @@
 #ifndef _HAYWARD_LAYERS_H
 #define _HAYWARD_LAYERS_H
 #include <stdbool.h>
-#include <wlr/types/wlr_compositor.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/util/box.h>
+
+#include <wlr-layer-shell-unstable-v1-protocol.h>
 
 enum layer_parent {
     LAYER_PARENT_LAYER,

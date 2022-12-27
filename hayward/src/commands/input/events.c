@@ -1,14 +1,22 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
+#include <libinput.h>
 #include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <strings.h>
+#include <wayland-util.h>
 #include <wlr/backend/libinput.h>
-
-#include <hayward-common/log.h>
+#include <wlr/types/wlr_input_device.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input-manager.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 static void
 toggle_supported_send_events_for_device(

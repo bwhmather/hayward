@@ -1,25 +1,36 @@
-#define _POSIX_C_SOURCE 199309L
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include <float.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <wayland-server-core.h>
-#include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_output_layout.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/util/box.h>
 #include <wlr/xwayland.h>
+#include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
+#include <xcb/xproto.h>
 
 #include <hayward-common/log.h>
 
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
-#include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/output.h>
+#include <hayward/server.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/node.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
+#include <hayward/xwayland.h>
+
+#include <config.h>
 
 static const char *atom_map[ATOM_LAST] = {
     [NET_WM_WINDOW_TYPE_NORMAL] = "_NET_WM_WINDOW_TYPE_NORMAL",

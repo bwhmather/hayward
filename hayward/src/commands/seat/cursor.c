@@ -1,12 +1,27 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
-#include <linux/input-event-codes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <strings.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_pointer.h>
+#include <wlr/types/wlr_seat.h>
 
+#include <hayward/commands.h>
+#include <hayward/config.h>
 #include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/server.h>
+#include <hayward/tree/root.h>
+
+#include <config.h>
 
 static struct cmd_results *
 press_or_release(struct hayward_cursor *cursor, char *action, char *button_str);

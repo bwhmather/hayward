@@ -1,14 +1,17 @@
 #ifndef _HAYWARD_INPUT_INPUT_MANAGER_H
 #define _HAYWARD_INPUT_INPUT_MANAGER_H
-#include <libinput.h>
+
+#include <stdbool.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_input_inhibitor.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/config.h>
+#include <hayward/input/seat.h>
 #include <hayward/server.h>
 
 struct hayward_input_device {

@@ -1,24 +1,26 @@
-#define _XOPEN_SOURCE 700 // for realpath
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/config.h"
 
-#include <dirent.h>
+#include <fcntl.h>
 #include <libgen.h>
-#include <libinput.h>
-#include <limits.h>
 #include <linux/input-event-codes.h>
-#include <signal.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <unistd.h>
-#include <wlr/types/wlr_output.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_seat.h>
 #include <wordexp.h>
+#include <xkbcommon/xkbcommon.h>
 
-#include <hayward-common/cairo_util.h>
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 #include <hayward-common/pango.h>
@@ -26,14 +28,14 @@
 #include <hayward-common/util.h>
 
 #include <hayward/commands.h>
-#include <hayward/desktop/transaction.h>
 #include <hayward/haywardnag.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/switch.h>
+#include <hayward/server.h>
 #include <hayward/tree/arrange.h>
-#include <hayward/tree/root.h>
-#include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 struct hayward_config *config = NULL;
 

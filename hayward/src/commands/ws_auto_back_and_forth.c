@@ -1,9 +1,12 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
-#include <string.h>
-#include <strings.h>
-
 #include <hayward-common/util.h>
+
+#include <hayward/config.h>
+
+#include <config.h>
 
 struct cmd_results *
 cmd_workspace_auto_back_and_forth(int argc, char **argv) {

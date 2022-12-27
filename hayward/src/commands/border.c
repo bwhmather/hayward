@@ -1,13 +1,20 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+
+#include <config.h>
 
 // A couple of things here:
 // - view->border should never be B_CSD when the view is tiled, even when CSD is

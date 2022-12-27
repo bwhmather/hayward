@@ -1,16 +1,32 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/tablet.h"
 
+#include <libinput.h>
 #include <stdlib.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/backend/libinput.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_tablet_pad.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
+#include <tablet-unstable-v2-protocol.h>
+#include <wayland-server-protocol.h>
+
+#include <hayward/config.h>
 #include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 static void
 handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {

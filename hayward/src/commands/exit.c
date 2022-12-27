@@ -1,8 +1,9 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
-#include <stddef.h>
-
-#include <hayward/config.h>
+#include <config.h>
 
 void
 hayward_terminate(int exit_code);

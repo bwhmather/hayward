@@ -1,9 +1,17 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
+#include <stdbool.h>
+#include <wlr/backend.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
 #include <wlr/backend/wayland.h>
+#include <wlr/backend/x11.h>
 #include <wlr/config.h>
+
+#include <config.h>
 #if WLR_HAS_X11_BACKEND
 #include <wlr/backend/x11.h>
 #endif

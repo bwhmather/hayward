@@ -1,39 +1,24 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree.h"
 
-#include <assert.h>
-#include <drm_fourcc.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <sys/stat.h>
-#include <wayland-server-core.h>
-#include <wlr/render/drm_format_set.h>
-#include <wlr/types/wlr_linux_dmabuf_v1.h>
+#include <stdbool.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_subcompositor.h>
+#include <wlr/types/wlr_xdg_decoration_v1.h>
 
-#include <hayward-common/cairo_util.h>
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/pango.h>
-#include <hayward-common/stringop.h>
-
-#include <linux-dmabuf-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop.h>
-#include <hayward/desktop/transaction.h>
-#include <hayward/input/input-manager.h>
-#include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
-#include <hayward/server.h>
-#include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
 #include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 #include <hayward/xdg_decoration.h>
+
+#include <config.h>
 
 static void
 window_set_floating(struct hayward_window *window, bool enable) {

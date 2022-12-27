@@ -1,12 +1,12 @@
 #ifndef _HAYWARD_CONFIG_H
 #define _HAYWARD_CONFIG_H
-#include <config.h>
-#include <hayward/haywardnag.h>
-#include <libinput.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <string.h>
-#include <time.h>
-#include <wlr/interfaces/wlr_switch.h>
+#include <stdio.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_switch.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
 #include <xf86drmMode.h>
@@ -14,14 +14,18 @@
 
 #include <hayward-common/list.h>
 
-#include <wlr-layer-shell-unstable-v1-protocol.h>
+#include <wayland-server-protocol.h>
 
+#include <hayward/haywardnag.h>
 #include <hayward/input/tablet.h>
-#include <hayward/tree/column.h>
-#include <hayward/tree/root.h>
-#include <hayward/tree/window.h>
+
+#include <config.h>
 
 // TODO: Refactor this shit
+
+struct hayward_window;
+struct hayward_column;
+struct hayward_output;
 
 /**
  * Describes a variable created via the `set` command.
@@ -281,6 +285,13 @@ struct output_config {
     char *background_option;
     char *background_fallback;
     enum config_dpms dpms_state;
+};
+
+enum hayward_window_border {
+    B_NONE,
+    B_PIXEL,
+    B_NORMAL,
+    B_CSD,
 };
 
 /**

@@ -1,29 +1,38 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include <GLES2/gl2.h>
 #include <assert.h>
-#include <stdlib.h>
-#include <strings.h>
+#include <math.h>
+#include <pixman.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
 #include <time.h>
-#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/render/gles2.h>
 #include <wlr/render/wlr_renderer.h>
+#include <wlr/render/wlr_texture.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_damage.h>
-#include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_presentation_time.h>
+#include <wlr/types/wlr_session_lock_v1.h>
+#include <wlr/util/box.h>
 #include <wlr/util/region.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
+
+#include <wayland-server-protocol.h>
+#include <wlr-layer-shell-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/layers.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>

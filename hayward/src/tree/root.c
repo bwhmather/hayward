@@ -1,22 +1,39 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/root.h"
 
+#include <ctype.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/util.h>
 
+#include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
-#include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
+#include <hayward/server.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/node.h>
+#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 struct hayward_root *root;
 

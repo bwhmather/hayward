@@ -1,29 +1,44 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/output.h"
 
-#include <assert.h>
-#include <stdlib.h>
+#include <math.h>
+#include <pixman.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 #include <strings.h>
+#include <sys/types.h>
 #include <time.h>
 #include <wayland-server-core.h>
-#include <wlr/backend/drm.h>
+#include <wayland-util.h>
+#include <wlr/backend.h>
 #include <wlr/backend/headless.h>
-#include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
-#include <wlr/types/wlr_matrix.h>
+#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_damage.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_output_management_v1.h>
+#include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
+#include <wlr/types/wlr_session_lock_v1.h>
+#include <wlr/util/box.h>
 #include <wlr/util/region.h>
+#include <wlr/xwayland.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
+
+#include <wlr-layer-shell-unstable-v1-protocol.h>
+#include <wlr-output-power-management-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
-#include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/layers.h>
 #include <hayward/server.h>

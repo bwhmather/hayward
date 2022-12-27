@@ -1,6 +1,8 @@
 #ifndef _HAYWARD_INPUT_TABLET_H
 #define _HAYWARD_INPUT_TABLET_H
-#include <wlr/types/wlr_layer_shell_v1.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
 
 struct hayward_seat;
 struct wlr_tablet_tool;

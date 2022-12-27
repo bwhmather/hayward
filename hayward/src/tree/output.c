@@ -1,19 +1,32 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/output.h"
 
 #include <assert.h>
-#include <ctype.h>
-#include <string.h>
-#include <strings.h>
-#include <wlr/types/wlr_output_damage.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/box.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/util.h>
 
+#include <hayward/config.h>
+#include <hayward/input/input-manager.h>
 #include <hayward/ipc-server.h>
 #include <hayward/layers.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
+#include <hayward/tree/node.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 enum wlr_direction
 opposite_direction(enum wlr_direction d) {

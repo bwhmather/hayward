@@ -1,17 +1,34 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/ipc-json.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <float.h>
 #include <json.h>
-#include <libevdev/libevdev.h>
+#include <libinput.h>
+#include <linux/input-event-codes.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <wayland-util.h>
 #include <wlr/backend/libinput.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/util/box.h>
+#include <wlr/xwayland.h>
+#include <xcb/xproto.h>
 #include <xkbcommon/xkbcommon.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <wlr-layer-shell-unstable-v1-protocol.h>
+#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
@@ -19,10 +36,14 @@
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
+#include <hayward/server.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/node.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+#include <hayward/xwayland.h>
 
 #include <config.h>
 

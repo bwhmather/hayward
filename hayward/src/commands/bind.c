@@ -1,24 +1,29 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
-#include <libevdev/libevdev.h>
-#include <linux/input-event-codes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
-#include <strings.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
-#include <xkbcommon/xkbcommon-names.h>
+#include <wlr/types/wlr_switch.h>
+#include <xkbcommon/xkbcommon-keysyms.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 #include <hayward-common/stringop.h>
-#include <hayward-common/util.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/keyboard.h>
+#include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
+
+#include <config.h>
 
 int binding_order = 0;
 

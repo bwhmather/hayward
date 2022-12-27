@@ -1,8 +1,9 @@
 #ifndef _HAYWARD_COLUMN_H
 #define _HAYWARD_COLUMN_H
-#include <stdint.h>
-#include <sys/types.h>
-#include <wlr/types/wlr_compositor.h>
+
+#include <stdbool.h>
+#include <wayland-server-core.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 

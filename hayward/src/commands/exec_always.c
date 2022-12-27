@@ -1,10 +1,14 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
 #include <signal.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -14,7 +18,8 @@
 #include <hayward/config.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 struct cmd_results *
 cmd_exec_validate(int argc, char **argv) {

@@ -1,11 +1,21 @@
 #ifndef _HAYWARD_INPUT_CURSOR_H
 #define _HAYWARD_INPUT_CURSOR_H
+#include <linux/input-event-codes.h>
+#include <pixman.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_pointer_gestures_v1.h>
+#include <wlr/types/wlr_xcursor_manager.h>
 
+#include <hayward/config.h>
 #include <hayward/input/seat.h>
 
 #include <config.h>

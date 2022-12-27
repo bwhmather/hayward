@@ -1,8 +1,19 @@
-#include "hayward/desktop.h"
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+#include <stdbool.h>
+#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/box.h>
+
+#include <hayward-common/list.h>
 
 #include <hayward/output.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/root.h>
+#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+
+#include <config.h>
 
 void
 desktop_damage_surface(

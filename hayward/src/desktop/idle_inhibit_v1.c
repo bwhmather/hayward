@@ -1,14 +1,22 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/desktop/idle_inhibit_v1.h"
 
+#include <stdbool.h>
 #include <stdlib.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_idle.h>
+#include <wlr/types/wlr_idle_inhibit_v1.h>
 
 #include <hayward-common/log.h>
 
-#include <hayward/input/seat.h>
 #include <hayward/server.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+
+#include <config.h>
 
 struct hayward_idle_inhibit_manager_v1 *
 hayward_idle_inhibit_manager_v1_create(

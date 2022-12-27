@@ -1,11 +1,21 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/seat.h"
 
+#include <stdint.h>
+#include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_tablet_tool.h>
 
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
+#include <hayward/input/tablet.h>
+#include <hayward/tree/window.h>
+
+#include <config.h>
 
 struct seatop_move_floating_event {
     struct hayward_window *window;

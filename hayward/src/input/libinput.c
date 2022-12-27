@@ -1,9 +1,13 @@
-#include "hayward/input/libinput.h"
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 
 #include <float.h>
 #include <libinput.h>
 #include <libudev.h>
 #include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 #include <wlr/backend/libinput.h>
 
 #include <hayward-common/log.h>
@@ -12,6 +16,8 @@
 #include <hayward/input/input-manager.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
+
+#include <config.h>
 
 static void
 log_status(enum libinput_config_status status) {

@@ -1,9 +1,17 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
-#include <string.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <hayward-common/log.h>
 #include <hayward-common/util.h>
+
+#include <hayward/config.h>
+
+#include <config.h>
 
 // Must be in alphabetical order for bsearch
 static const struct cmd_handler bar_colors_handlers[] = {

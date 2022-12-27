@@ -1,12 +1,20 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
+#include <stdbool.h>
+#include <string.h>
 #include <strings.h>
+#include <wlr/types/wlr_output.h>
 
-#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
 #include <hayward/output.h>
+#include <hayward/tree/root.h>
+
+#include <config.h>
 
 // must be in order for the bsearch
 static const struct cmd_handler output_handlers[] = {

@@ -1,23 +1,49 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
 #include "hayward/input/keyboard.h"
 
-#include <assert.h>
+#include <errno.h>
 #include <limits.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <strings.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/backend.h>
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
-#include <wlr/types/wlr_idle.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_group.h>
+#include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_virtual_keyboard_v1.h>
+#include <xkbcommon/xkbcommon-compat.h>
+#include <xkbcommon/xkbcommon-keysyms.h>
 #include <xkbcommon/xkbcommon-names.h>
+#include <xkbcommon/xkbcommon.h>
 
+#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <hayward/commands.h>
+#include <wayland-server-protocol.h>
+
+#include <hayward/config.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/input/text_input.h>
 #include <hayward/ipc-server.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 static struct modifier_key {
     char *name;

@@ -2,6 +2,10 @@
 #define _HAYWARD_WORKSPACE_H
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <wlr/util/box.h>
+
+#include <hayward-common/list.h>
 
 #include <hayward/config.h>
 #include <hayward/tree/column.h>

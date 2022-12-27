@@ -1,18 +1,26 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/seat.h"
 
-#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_xcursor_manager.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/util/edges.h>
+#include <wlr/xcursor.h>
 
-#include <hayward-common/log.h>
-
+#include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
+
+#include <config.h>
 
 struct seatop_resize_floating_event {
     struct hayward_window *window;

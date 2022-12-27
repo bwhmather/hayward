@@ -1,9 +1,13 @@
+#define _XOPEN_SOURCE 700
+#define _POSIX_C_SOURCE 200809L
+
 #include "hayward/commands.h"
 
-#include <drm_fourcc.h>
-#include <strings.h>
+#include <string.h>
 
 #include <hayward/config.h>
+
+#include <config.h>
 
 struct cmd_results *
 output_cmd_render_bit_depth(int argc, char **argv) {

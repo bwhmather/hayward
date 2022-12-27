@@ -1,7 +1,9 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <hayward-common/list.h>

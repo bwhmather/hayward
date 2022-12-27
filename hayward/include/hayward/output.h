@@ -1,17 +1,27 @@
 #ifndef _HAYWARD_OUTPUT_H
 #define _HAYWARD_OUTPUT_H
+#include <pixman.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <time.h>
-#include <unistd.h>
 #include <wayland-server-core.h>
+#include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/box.h>
 
+#include <wayland-server-protocol.h>
+
+#include <hayward/config.h>
 #include <hayward/tree/node.h>
-#include <hayward/tree/view.h>
 
 #include <config.h>
 
 struct hayward_server;
 struct hayward_window;
+struct hayward_node;
+struct hayward_view;
 
 struct hayward_output_state {
     int x, y;

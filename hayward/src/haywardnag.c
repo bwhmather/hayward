@@ -1,19 +1,26 @@
+#define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/haywardnag.h"
 
-#include <signal.h>
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 
 #include <hayward-common/log.h>
 #include <hayward-common/util.h>
 
 #include <hayward/server.h>
+
+#include <config.h>
 
 static void
 handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {

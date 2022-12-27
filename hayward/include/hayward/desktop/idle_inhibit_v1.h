@@ -1,9 +1,10 @@
 #ifndef _HAYWARD_DESKTOP_IDLE_INHIBIT_V1_H
 #define _HAYWARD_DESKTOP_IDLE_INHIBIT_V1_H
+#include <stdbool.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_idle.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
-
-#include <hayward/server.h>
 
 enum hayward_idle_inhibit_mode {
     INHIBIT_IDLE_APPLICATION, // Application set inhibitor (when visible)
