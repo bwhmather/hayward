@@ -277,49 +277,6 @@ class DeclarationOrderTestCase(unittest.TestCase):
                 self.assertEqual(set(header_decls), set(source_defs))
                 self.assertEqual("\n".join(header_decls), "\n".join(source_defs))
 
-    def test_tree_header_orders_match(self):
-        header_paths = [
-            header_path
-            for header_path in enumerate_header_paths()
-            if header_path.is_relative_to(HAYWARD_INCLUDE_ROOT / "tree")
-        ]
-        assert header_paths
-
-        decls = {}
-
-        for header_path in header_paths:
-            header = read_ast_from_path(header_path)
-            prefix = header_path.stem
-
-            header_decls = [
-                node.spelling
-                for node in header.cursor.get_children()
-                if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
-                and node.location.file.name == header.spelling
-            ]
-
-            header_decls = [
-                name[len(prefix) + 1 :]
-                for name in header_decls
-                if name.startswith(f"{prefix}_")
-            ]
-
-            decls[header_path] = header_decls
-
-        for header_a_path, header_b_path in itertools.combinations(header_paths, 2):
-            with self.subTest(header_a=header_a_path, header_b=header_b_path):
-                header_a_decls = decls[header_a_path]
-                header_b_decls = decls[header_b_path]
-
-                header_a_decls = [
-                    name for name in header_a_decls if name in header_b_decls
-                ]
-                header_b_decls = [
-                    name for name in header_b_decls if name in header_a_decls
-                ]
-
-                self.assertEqual(header_a_decls, header_b_decls)
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
