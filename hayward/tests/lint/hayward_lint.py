@@ -236,3 +236,13 @@ def _walk_preorder(cursor, /, *, root_path):
 def walk_file_preorder(source, /):
     root_path = resolve_clang_path(source.spelling)
     yield from _walk_preorder(source.cursor, root_path=root_path)
+
+
+# We don't use `unittest.TestCase` directly as it duplicates meson's test
+# functionality.  The assertions are still handy.
+def assert_not_in(a, b, msg=None):
+    unittest.TestCase().assertNotIn(a, b, msg=msg)
+
+
+def assert_equal(a, b, msg=None):
+    unittest.TestCase().assertEqual(a, b, msg=msg)

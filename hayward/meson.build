@@ -232,6 +232,7 @@ test_suites = {
 	'lint': [
 		'imports',
 		'exact-includes',
+		'no-circular-includes',
 	],
 }
 

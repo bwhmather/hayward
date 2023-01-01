@@ -355,31 +355,5 @@ class DeclarationOrderTestCase(unittest.TestCase):
         self.assertEqual(set(header_decls), set(source_defs))
 
 
-_INCLUDE_ALIASES = {""}
-
-
-class IncludeTestCase(unittest.TestCase):
-    def test_no_circular_includes(self):
-        # Build dependency graph.
-        graph = {}
-        for header_path in enumerate_header_paths():
-            graph[header_path] = {
-                dep_path
-                for dep_path in read_includes_from_path(header_path)
-                if dep_path.is_relative_to(HAYWARD_INCLUDE_ROOT)
-            }
-
-        # Check for cycles.
-        for root in graph:
-            queue = {root}
-            visited = set()
-            while queue:
-                dep = queue.pop()
-                visited.add(dep)
-                deps = graph[dep]
-                self.assertNotIn(root, deps)
-                queue.update(deps.difference(visited))
-
-
 if __name__ == "__main__":
     unittest.main(verbosity=2)
