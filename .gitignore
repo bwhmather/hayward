@@ -1,4 +1,5 @@
 install_manifest.txt
+__pycache__/
 *.swp
 *.o
 *.a
