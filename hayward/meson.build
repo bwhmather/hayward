@@ -230,11 +230,11 @@ executable(
 
 test_suites = {
 	'lint': [
-		'imports',
 		'exact-includes',
 		'no-circular-includes',
 		'commands-and-headers-match',
 		'tree-header-orders-match',
+		'source-and-header-orders-match',
 	],
 }
 
