@@ -320,40 +320,6 @@ class DeclarationOrderTestCase(unittest.TestCase):
 
                 self.assertEqual(header_a_decls, header_b_decls)
 
-    def test_commands_and_headers_match(self):
-        source_paths = [HAYWARD_ROOT / "commands.c"]
-        source_paths += [
-            source_path
-            for source_path in enumerate_source_paths()
-            if source_path.is_relative_to(HAYWARD_ROOT / "commands")
-        ]
-        assert len(source_paths) > 1
-
-        source_defs = []
-        for source_path in source_paths:
-            source = read_ast_from_path(source_path)
-            source_defs += [
-                node.spelling
-                for node in source.cursor.get_children()
-                if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
-                and node.is_definition()
-                and node.storage_class != clang.cindex.StorageClass.STATIC
-                and resolve_clang_path(node.location.file.name)
-                == resolve_clang_path(source.spelling)
-            ]
-
-        header_path = HAYWARD_INCLUDE_ROOT / "commands.h"
-        header = read_ast_from_path(header_path)
-        header_decls = [
-            node.spelling
-            for node in header.cursor.get_children()
-            if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
-            and resolve_clang_path(node.location.file.name)
-            == resolve_clang_path(header.spelling)
-        ]
-
-        self.assertEqual(set(header_decls), set(source_defs))
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

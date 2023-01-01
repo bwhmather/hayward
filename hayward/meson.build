@@ -233,6 +233,7 @@ test_suites = {
 		'imports',
 		'exact-includes',
 		'no-circular-includes',
+		'commands-and-headers-match',
 	],
 }
 
