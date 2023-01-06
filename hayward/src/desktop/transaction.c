@@ -290,10 +290,6 @@ apply_column_state(
 
     // Damage the new location
     desktop_damage_column(column);
-
-    if (!column->node.destroying) {
-        column_discover_outputs(column);
-    }
 }
 
 static void

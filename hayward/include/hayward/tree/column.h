@@ -56,9 +56,6 @@ struct hayward_column {
     double child_total_width;
     double child_total_height;
 
-    // Outputs currently being intersected
-    list_t *outputs; // struct hayward_output
-
     float alpha;
 
     struct {
@@ -153,17 +150,6 @@ struct hayward_column *
 column_get_previous_sibling(struct hayward_column *column);
 struct hayward_column *
 column_get_next_sibling(struct hayward_column *column);
-
-/**
- * Return the output which will be used for scale purposes.
- * This is the most recently entered output.
- * If the container is not on any output, return NULL.
- */
-struct hayward_output *
-column_get_effective_output(struct hayward_column *column);
-
-void
-column_discover_outputs(struct hayward_column *column);
 
 bool
 column_has_urgent_child(struct hayward_column *column);

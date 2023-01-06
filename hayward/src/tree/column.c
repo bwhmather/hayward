@@ -33,8 +33,6 @@ column_create(void) {
     c->pending.children = create_list();
     c->current.children = create_list();
 
-    c->outputs = create_list();
-
     wl_signal_init(&c->events.destroy);
     wl_signal_emit(&root->events.new_node, &c->node);
 
@@ -55,7 +53,6 @@ column_destroy(struct hayward_column *column) {
     );
     list_free(column->pending.children);
     list_free(column->current.children);
-    list_free(column->outputs);
 
     free(column);
 }
@@ -399,58 +396,6 @@ column_get_next_sibling(struct hayward_column *column) {
     }
 
     return siblings->items[index + 1];
-}
-
-/**
- * Return the output which will be used for scale purposes.
- * This is the most recently entered output.
- */
-struct hayward_output *
-column_get_effective_output(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    if (column->outputs->length == 0) {
-        return NULL;
-    }
-    return column->outputs->items[column->outputs->length - 1];
-}
-
-void
-column_discover_outputs(struct hayward_column *column) {
-    // TODO columns can only realistically be on one output.
-    hayward_assert(column != NULL, "Expected column");
-
-    struct wlr_box column_box = {
-        .x = column->current.x,
-        .y = column->current.y,
-        .width = column->current.width,
-        .height = column->current.height,
-    };
-
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        struct wlr_box output_box;
-        output_get_box(output, &output_box);
-        struct wlr_box intersection;
-        bool intersects =
-            wlr_box_intersection(&intersection, &column_box, &output_box);
-        int index = list_find(column->outputs, output);
-
-        if (intersects && index == -1) {
-            // Send enter
-            hayward_log(
-                HAYWARD_DEBUG, "Container %p entered output %p", (void *)column,
-                (void *)output
-            );
-            list_add(column->outputs, output);
-        } else if (!intersects && index != -1) {
-            // Send leave
-            hayward_log(
-                HAYWARD_DEBUG, "Container %p left output %p", (void *)column,
-                (void *)output
-            );
-            list_del(column->outputs, index);
-        }
-    }
 }
 
 static bool
