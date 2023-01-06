@@ -148,10 +148,11 @@ window_reconcile_floating(
 
     window->pending.workspace = workspace;
     window->pending.parent = NULL;
-    window->pending.output = window_get_effective_output(window);
 
     window->pending.focused = workspace_is_visible(workspace) &&
         workspace_get_active_window(workspace) == window;
+
+    window_update_output(window);
 }
 
 void
@@ -162,11 +163,12 @@ window_reconcile_tiling(
     hayward_assert(column != NULL, "Expected column");
 
     window->pending.workspace = column->pending.workspace;
-    window->pending.output = column->pending.output;
     window->pending.parent = column;
 
     window->pending.focused =
         column->pending.focused && window == column->pending.active_child;
+
+    window_update_output(window);
 }
 
 void
@@ -174,10 +176,63 @@ window_reconcile_detached(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
 
     window->pending.workspace = NULL;
-    window->pending.output = NULL;
     window->pending.parent = NULL;
 
     window->pending.focused = false;
+
+    window_update_output(window);
+}
+
+void
+window_update_output(struct hayward_window *window) {
+    hayward_assert(window != NULL, "Expected window");
+
+    if (!window_is_attached(window)) {
+        return;
+    }
+
+    if (window_is_fullscreen(window)) {
+        hayward_assert(
+            window->pending.output != NULL,
+            "Fullscreen window must have explicit output"
+        );
+        return;
+    }
+
+    if (window_is_floating(window)) {
+        double center_x = window->pending.x + window->pending.width / 2;
+        double center_y = window->pending.y + window->pending.height / 2;
+        struct hayward_output *closest_output = NULL;
+        double closest_distance = DBL_MAX;
+        for (int i = 0; i < root->outputs->length; ++i) {
+            struct hayward_output *output = root->outputs->items[i];
+            struct wlr_box output_box;
+            double closest_x, closest_y;
+            output_get_box(output, &output_box);
+            wlr_box_closest_point(
+                &output_box, center_x, center_y, &closest_x, &closest_y
+            );
+            if (center_x == closest_x && center_y == closest_y) {
+                // The center of the floating window is on this output
+                closest_output = output;
+                break;
+            }
+            double x_dist = closest_x - center_x;
+            double y_dist = closest_y - center_y;
+            double distance = x_dist * x_dist + y_dist * y_dist;
+            if (distance < closest_distance) {
+                closest_output = output;
+                closest_distance = distance;
+            }
+        }
+        window->pending.output = closest_output;
+        return;
+    }
+
+    if (window_is_tiling(window)) {
+        window->pending.output = window->pending.parent->pending.output;
+        return;
+    }
 }
 
 void
@@ -710,45 +765,6 @@ window_floating_set_default_size(struct hayward_window *window) {
     free(box);
 }
 
-/**
- * Choose an output for the floating window's new position.
- *
- * If the center of the window intersects an output then we'll choose that
- * one, otherwise we'll choose whichever output is closest to the window's
- * center.
- */
-static struct hayward_output *
-window_floating_find_output(struct hayward_window *window) {
-    hayward_assert(window != NULL, "Expected window");
-    hayward_assert(window_is_floating(window), "Expected a floating window");
-
-    double center_x = window->pending.x + window->pending.width / 2;
-    double center_y = window->pending.y + window->pending.height / 2;
-    struct hayward_output *closest_output = NULL;
-    double closest_distance = DBL_MAX;
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        struct wlr_box output_box;
-        double closest_x, closest_y;
-        output_get_box(output, &output_box);
-        wlr_box_closest_point(
-            &output_box, center_x, center_y, &closest_x, &closest_y
-        );
-        if (center_x == closest_x && center_y == closest_y) {
-            // The center of the floating window is on this output
-            return output;
-        }
-        double x_dist = closest_x - center_x;
-        double y_dist = closest_y - center_y;
-        double distance = x_dist * x_dist + y_dist * y_dist;
-        if (distance < closest_distance) {
-            closest_output = output;
-            closest_distance = distance;
-        }
-    }
-    return closest_output;
-}
-
 void
 window_floating_move_to(struct hayward_window *window, double lx, double ly) {
     hayward_assert(window != NULL, "Expected window");
@@ -759,8 +775,7 @@ window_floating_move_to(struct hayward_window *window, double lx, double ly) {
     window->pending.content_x += lx;
     window->pending.content_y += ly;
 
-    window->pending.output = window_floating_find_output(window);
-
+    window_update_output(window);
     node_set_dirty(&window->node);
 }
 
@@ -835,6 +850,8 @@ window_set_geometry_from_content(struct hayward_window *window) {
     window->pending.width = window->pending.content_width + border_width * 2;
     window->pending.height =
         top + window->pending.content_height + border_width;
+
+    window_update_output(window);
     node_set_dirty(&window->node);
 }
 
