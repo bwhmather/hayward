@@ -42,7 +42,6 @@ struct hayward_workspace {
     int gaps_inner;
     struct side_gaps gaps_outer;
 
-    list_t *output_priority;
     bool urgent;
 
     struct hayward_workspace_state current;
@@ -74,29 +73,8 @@ bool
 workspace_is_empty(struct hayward_workspace *workspace);
 
 void
-workspace_output_raise_priority(
-    struct hayward_workspace *workspace, struct hayward_output *old_output,
-    struct hayward_output *new_output
-);
-
-void
-workspace_output_add_priority(
-    struct hayward_workspace *workspace, struct hayward_output *output
-);
-
-struct hayward_output *
-workspace_output_get_highest_available(
-    struct hayward_workspace *workspace, struct hayward_output *exclude
-);
-
-void
 workspace_detect_urgent(struct hayward_workspace *workspace);
 
-/**
- * Wrap the workspace's tiling children in a new container.
- * The new container will be the only direct tiling child of the workspace.
- * The new container is returned.
- */
 void
 workspace_detach(struct hayward_workspace *workspace);
 

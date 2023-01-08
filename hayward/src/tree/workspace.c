@@ -98,7 +98,6 @@ workspace_destroy(struct hayward_workspace *workspace) {
     );
 
     free(workspace->name);
-    list_free_items_and_destroy(workspace->output_priority);
     list_free(workspace->pending.floating);
     list_free(workspace->pending.tiling);
     list_free(workspace->current.floating);
@@ -169,90 +168,6 @@ workspace_is_empty(struct hayward_workspace *workspace) {
     }
 
     return true;
-}
-
-static int
-find_output(const void *id1, const void *id2) {
-    return strcmp(id1, id2);
-}
-
-static int
-workspace_output_get_priority(
-    struct hayward_workspace *workspace, struct hayward_output *output
-) {
-    char identifier[128];
-    output_get_identifier(identifier, sizeof(identifier), output);
-    int index_id =
-        list_seq_find(workspace->output_priority, find_output, identifier);
-    int index_name = list_seq_find(
-        workspace->output_priority, find_output, output->wlr_output->name
-    );
-    return index_name < 0 || index_id < index_name ? index_id : index_name;
-}
-
-void
-workspace_output_raise_priority(
-    struct hayward_workspace *workspace, struct hayward_output *old_output,
-    struct hayward_output *output
-) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    int old_index = workspace_output_get_priority(workspace, old_output);
-    if (old_index < 0) {
-        return;
-    }
-
-    int new_index = workspace_output_get_priority(workspace, output);
-    if (new_index < 0) {
-        char identifier[128];
-        output_get_identifier(identifier, sizeof(identifier), output);
-        list_insert(workspace->output_priority, old_index, strdup(identifier));
-    } else if (new_index > old_index) {
-        char *name = workspace->output_priority->items[new_index];
-        list_del(workspace->output_priority, new_index);
-        list_insert(workspace->output_priority, old_index, name);
-    }
-}
-
-void
-workspace_output_add_priority(
-    struct hayward_workspace *workspace, struct hayward_output *output
-) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    if (workspace_output_get_priority(workspace, output) < 0) {
-        char identifier[128];
-        output_get_identifier(identifier, sizeof(identifier), output);
-        list_add(workspace->output_priority, strdup(identifier));
-    }
-}
-
-struct hayward_output *
-workspace_output_get_highest_available(
-    struct hayward_workspace *workspace, struct hayward_output *exclude
-) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    char exclude_id[128] = {'\0'};
-    if (exclude) {
-        output_get_identifier(exclude_id, sizeof(exclude_id), exclude);
-    }
-
-    for (int i = 0; i < workspace->output_priority->length; i++) {
-        char *name = workspace->output_priority->items[i];
-        if (exclude &&
-            (strcmp(name, exclude->wlr_output->name) == 0 ||
-             strcmp(name, exclude_id) == 0)) {
-            continue;
-        }
-
-        struct hayward_output *output = output_by_name_or_id(name);
-        if (output) {
-            return output;
-        }
-    }
-
-    return NULL;
 }
 
 static bool
