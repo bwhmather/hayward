@@ -126,14 +126,31 @@ window_move_in_direction(
 
     switch (move_dir) {
     case WLR_DIRECTION_UP: {
-        // Move within column.
-        // TODO
-        return false;
+        int current_index = window_sibling_index(window);
+
+        if (current_index == 0) {
+            return window_move_to_next_output(
+                window, window->pending.output, move_dir
+            );
+        }
+
+        window_detach(window);
+        column_insert_child(old_column, window, current_index - 1);
+        return true;
     }
     case WLR_DIRECTION_DOWN: {
-        // Move within column.
-        // TODO
-        return false;
+        list_t *siblings = window_get_siblings(window);
+        int current_index = window_sibling_index(window);
+
+        if (current_index == siblings->length - 1) {
+            return window_move_to_next_output(
+                window, window->pending.output, move_dir
+            );
+        }
+
+        window_detach(window);
+        column_insert_child(old_column, window, current_index + 1);
+        return true;
     }
     case WLR_DIRECTION_LEFT: {
         if (old_column_index == 0) {
