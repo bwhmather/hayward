@@ -389,7 +389,7 @@ bool
 window_is_current_floating(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
     hayward_assert(
-        window_is_attached(window), "Window not attached to workspace"
+        window->current.workspace != NULL, "Window not attached to workspace"
     );
 
     if (!window->current.parent) {
