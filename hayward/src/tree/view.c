@@ -785,7 +785,6 @@ view_unmap(struct hayward_view *view) {
     if (parent) {
         column_consider_destroy(parent);
     } else if (workspace) {
-        // TODO (hayward) shouldn't be possible.
         workspace_consider_destroy(workspace);
     }
 
