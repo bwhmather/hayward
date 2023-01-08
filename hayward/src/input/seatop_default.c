@@ -615,7 +615,6 @@ check_focus_follows_mouse(
     struct hayward_seat *seat, struct seatop_default_event *e,
     struct hayward_node *hovered_node
 ) {
-    // TODO make surfaces and layers sticky in the same way as windows.
     struct hayward_window *focus = root_get_focused_window();
 
     // This is the case if a layer-shell surface is hovered.

@@ -872,11 +872,6 @@ window_raise_floating(struct hayward_window *window) {
     }
 }
 
-bool
-window_is_sticky(struct hayward_window *window) {
-    return window->is_sticky && window_is_floating(window);
-}
-
 list_t *
 window_get_siblings(struct hayward_window *window) {
     if (window_is_tiling(window)) {

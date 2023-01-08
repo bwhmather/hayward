@@ -301,15 +301,6 @@ cmd_move_window(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, expected_syntax);
     }
 
-    if (window_is_sticky(window) && old_output &&
-        node_has_ancestor(destination, &old_output->node)) {
-        return cmd_results_new(
-            CMD_FAILURE,
-            "Can't move sticky "
-            "window to another workspace on the same output"
-        );
-    }
-
     // save focus, in case it needs to be restored
     struct hayward_window *focus = root_get_focused_window();
 

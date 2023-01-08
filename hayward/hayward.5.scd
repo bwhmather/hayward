@@ -331,10 +331,6 @@ set|plus|minus|toggle <amount>
 *splitt*
 	Equivalent to *split toggle*
 
-*sticky* enable|disable|toggle
-	"Sticks" a floating window to the current output so that it shows up on all
-	workspaces.
-
 *swap* container with id|con_id|mark <arg>
 	Swaps the position, geometry, and fullscreen status of two containers. The
 	first container can be selected either by criteria or focus. The second

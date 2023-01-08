@@ -90,7 +90,6 @@ hayward_sources = files(
 	'src/commands/shortcuts_inhibitor.c',
 	'src/commands/smart_borders.c',
 	'src/commands/smart_gaps.c',
-	'src/commands/sticky.c',
 	'src/commands/haywardbg_command.c',
 	'src/commands/haywardnag_command.c',
 	'src/commands/tiling_drag.c',

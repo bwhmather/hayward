@@ -1274,10 +1274,6 @@ view_is_visible(struct hayward_view *view) {
         return false;
     }
 
-    if (!window_is_sticky(view->window) && workspace &&
-        !workspace_is_visible(workspace)) {
-        return false;
-    }
     // Check view isn't in a stacked container on an inactive tab
     struct hayward_window *window = view->window;
     struct hayward_column *column = window->pending.parent;

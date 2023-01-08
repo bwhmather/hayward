@@ -134,9 +134,6 @@ workspace_get_box(struct hayward_workspace *workspace, struct wlr_box *box);
 size_t
 workspace_num_tiling_views(struct hayward_workspace *workspace);
 
-size_t
-workspace_num_sticky_containers(struct hayward_workspace *workspace);
-
 struct hayward_output *
 workspace_get_active_output(struct hayward_workspace *workspace);
 struct hayward_output *

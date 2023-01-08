@@ -162,7 +162,6 @@ hayward_cmd cmd_set;
 hayward_cmd cmd_shortcuts_inhibitor;
 hayward_cmd cmd_smart_borders;
 hayward_cmd cmd_smart_gaps;
-hayward_cmd cmd_sticky;
 hayward_cmd cmd_tiling_drag;
 hayward_cmd cmd_tiling_drag_threshold;
 hayward_cmd cmd_title_align;

@@ -163,13 +163,11 @@ workspace_is_empty(struct hayward_workspace *workspace) {
     if (workspace->pending.tiling->length) {
         return false;
     }
-    // Sticky views are not considered to be part of this workspace
-    for (int i = 0; i < workspace->pending.floating->length; ++i) {
-        struct hayward_window *floater = workspace->pending.floating->items[i];
-        if (!window_is_sticky(floater)) {
-            return false;
-        }
+
+    if (workspace->pending.floating->length) {
+        return false;
     }
+
     return true;
 }
 
@@ -612,25 +610,6 @@ workspace_num_tiling_views(struct hayward_workspace *workspace) {
 
     size_t count = 0;
     workspace_for_each_window(workspace, count_tiling_views, &count);
-    return count;
-}
-
-static void
-count_sticky_containers(struct hayward_window *container, void *data) {
-    if (!window_is_sticky(container)) {
-        return;
-    }
-
-    size_t *count = data;
-    *count += 1;
-}
-
-size_t
-workspace_num_sticky_containers(struct hayward_workspace *workspace) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    size_t count = 0;
-    workspace_for_each_window(workspace, count_sticky_containers, &count);
     return count;
 }
 

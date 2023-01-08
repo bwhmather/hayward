@@ -271,7 +271,6 @@ ipc_json_create_node(
     json_object_object_add(object, "nodes", json_object_new_array());
     json_object_object_add(object, "floating_nodes", json_object_new_array());
     json_object_object_add(object, "fullscreen_mode", json_object_new_int(0));
-    json_object_object_add(object, "sticky", json_object_new_boolean(false));
 
     return object;
 }
@@ -682,9 +681,6 @@ ipc_json_describe_window(struct hayward_window *window, json_object *object) {
 
     bool urgent = view_is_urgent(window->view);
     json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
-    json_object_object_add(
-        object, "sticky", json_object_new_boolean(window->is_sticky)
-    );
 
     json_object_object_add(
         object, "fullscreen_mode",

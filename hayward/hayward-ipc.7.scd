@@ -345,9 +345,6 @@ node and will have the following properties:
 :  boolean
 :  Whether the node or any of its descendants has the urgent hint set. Note:
    This may not exist when compiled without _xwayland_ support
-|- sticky
-:  boolean
-:  Whether the node is sticky (shows on all workspaces)
 |- marks
 :  array
 :  List of marks assigned to the node
@@ -443,7 +440,6 @@ node and will have the following properties:
 	"urgent": false,
 	"floating_nodes": [
 	],
-	"sticky": false,
 	"type": "root",
 	"nodes": [
 		{
@@ -486,7 +482,6 @@ node and will have the following properties:
 			"urgent": false,
 			"floating_nodes": [
 			],
-			"sticky": false,
 			"type": "output",
 			"nodes": [
 				{
@@ -528,7 +523,6 @@ node and will have the following properties:
 					"urgent": false,
 					"floating_nodes": [
 					],
-					"sticky": false,
 					"type": "workspace"
 				}
 			]
@@ -573,7 +567,6 @@ node and will have the following properties:
 			"urgent": false,
 			"floating_nodes": [
 			],
-			"sticky": false,
 			"type": "output",
 			"active": true,
 			"primary": false,
@@ -637,7 +630,6 @@ node and will have the following properties:
 					"urgent": false,
 					"floating_nodes": [
 					],
-					"sticky": false,
 					"num": 1,
 					"output": "eDP-1",
 					"type": "workspace",
@@ -682,7 +674,6 @@ node and will have the following properties:
 							"urgent": false,
 							"floating_nodes": [
 							],
-							"sticky": false,
 							"type": "con",
 							"fullscreen_mode": 0,
 							"pid": 23959,
@@ -742,7 +733,6 @@ node and will have the following properties:
 							"urgent": false,
 							"floating_nodes": [
 							],
-							"sticky": false,
 							"type": "con",
 							"fullscreen_mode": 0,
 							"pid": 25370,

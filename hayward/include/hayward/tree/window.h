@@ -68,11 +68,6 @@ struct hayward_window {
     char *title;           // The view's title (unformatted)
     char *formatted_title; // The title displayed in the title bar
 
-    // Whether stickiness has been enabled on this window. Use
-    // `window_is_sticky_[or_child]` rather than accessing this field
-    // directly; it'll also check that the window is floating.
-    bool is_sticky;
-
     // For C_ROOT, this has no meaning
     // For other types, this is the position in layout coordinates
     // Includes borders
@@ -256,9 +251,6 @@ window_is_transient_for(
 
 void
 window_raise_floating(struct hayward_window *window);
-
-bool
-window_is_sticky(struct hayward_window *window);
 
 list_t *
 window_get_siblings(struct hayward_window *window);
