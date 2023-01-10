@@ -345,9 +345,20 @@ void
 root_set_active_workspace(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
-    if (workspace == root->pending.active_workspace) {
+    struct hayward_workspace *old_workspace = root->pending.active_workspace;
+
+    if (workspace == old_workspace) {
         return;
     }
+
+    root->pending.active_workspace = workspace;
+
+    if (old_workspace != NULL) {
+        workspace_reconcile(old_workspace);
+        node_set_dirty(&old_workspace->node);
+    }
+    workspace_reconcile(workspace);
+    node_set_dirty(&workspace->node);
 
     struct hayward_output *active_output =
         workspace_get_active_output(workspace);
@@ -355,7 +366,7 @@ root_set_active_workspace(struct hayward_workspace *workspace) {
         root->pending.active_output = active_output;
     }
 
-    root->pending.active_workspace = workspace;
+    node_set_dirty(&root->node);
 }
 
 struct hayward_workspace *

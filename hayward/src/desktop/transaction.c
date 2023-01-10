@@ -114,7 +114,11 @@ copy_root_state(
         state->workspaces = create_list();
     }
     list_cat(state->workspaces, root->pending.workspaces);
+
     state->active_workspace = root->pending.active_workspace;
+    state->active_output = root->pending.active_output;
+
+    state->focused_layer = root->pending.focused_layer;
 }
 
 static void
@@ -171,10 +175,6 @@ copy_column_state(
     // we copy the state.
     state->children = create_list();
     list_cat(state->children, column->pending.children);
-
-    state->focused = column->pending.focused;
-
-    state->active_child = column->pending.active_child;
 }
 
 static void
