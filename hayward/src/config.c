@@ -205,7 +205,6 @@ config_defaults(struct hayward_config *config) {
     config->reloading = false;
     config->active = false;
     config->failed = false;
-    config->auto_back_and_forth = false;
     config->reading = false;
     config->show_marks = true;
     config->title_align = ALIGN_LEFT;

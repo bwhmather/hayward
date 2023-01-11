@@ -234,11 +234,6 @@ set|plus|minus|toggle <amount>
 *move* [container|window] [to] mark <mark>
 	Moves the focused container to the specified mark.
 
-*move* [--no-auto-back-and-forth] [container|window] [to] workspace [number] <name>
-	Moves the focused container to the specified workspace. The string _number_
-	is optional and is used to match a workspace with the same number, even if
-	it has a different name.
-
 *move* [container|window] [to] workspace prev|next|current
 	Moves the focused container to the previous, next or current workspace on
 	this output, or if no workspaces remain, the previous or next output.
@@ -246,9 +241,6 @@ set|plus|minus|toggle <amount>
 *move* [container|window] [to] workspace prev_on_output|next_on_output
 	Moves the focused container to the previous or next workspace on this
 	output, wrapping around if already at the first or last workspace.
-
-*move* [container|window] [to] workspace back_and_forth
-	Moves the focused container to previously focused workspace.
 
 *move* [container|window] [to] output <name-or-id>|current
 	Moves the focused container to the specified output.
@@ -797,29 +789,12 @@ The default colors are:
 	state. Using _allow_ or _deny_ controls the window's ability to set itself
 	as urgent. By default, windows are allowed to set their own urgency.
 
-*workspace* [--no-auto-back-and-forth] [number] <[num:]name>
-	Switches to the specified workspace. The _num:_ portion of the name is
-	optional and will be used for ordering. If _num:_ is not given and
-	_name_ is a number, then it will be also be used for ordering.
-
-	If the _no-auto-back-and-forth_ option is given, then this command will
-	not perform a back-and-forth operation when the workspace is already
-	focused and _workspace_auto_back_and_forth_ is enabled.
-
-	If the _number_ keyword is specified and a workspace with the number
-	already exists, then the workspace with the number will be used. If a
-	workspace with the number does not exist, a new workspace will be created
-	with the name _name_.
-
 *workspace* prev|next
 	Switches to the next workspace on the current output or on the next output
 	if currently on the last workspace.
 
 *workspace* prev_on_output|next_on_output
 	Switches to the next workspace on the current output.
-
-*workspace* back_and_forth
-	Switches to the previously focused workspace.
 
 *workspace* <name> gaps inner|outer|horizontal|vertical|top|right|bottom|left
 <amount>
@@ -840,12 +815,6 @@ The default colors are:
 	workspace, use the _move_ command in combination with the _workspace_
 	criteria (non-empty workspaces only) or _workspace_ command (to switch
 	to the workspace before moving).
-
-*workspace_auto_back_and_forth* yes|no
-	When _yes_, repeating a workspace switch command will switch back to the
-	prior workspace. For example, if you are currently on workspace 1,
-	switch to workspace 2, then invoke the *workspace 2* command again, you
-	will be returned to workspace 1. Default is _no_.
 
 # CRITERIA
 

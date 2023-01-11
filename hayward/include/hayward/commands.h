@@ -173,7 +173,6 @@ hayward_cmd cmd_unbindswitch;
 hayward_cmd cmd_unbindsym;
 hayward_cmd cmd_urgent;
 hayward_cmd cmd_workspace;
-hayward_cmd cmd_workspace_auto_back_and_forth;
 hayward_cmd cmd_xwayland;
 
 hayward_cmd bar_cmd_bindcode;

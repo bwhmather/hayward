@@ -524,7 +524,6 @@ struct hayward_config {
     bool reloading;
     bool reading;
     bool validating;
-    bool auto_back_and_forth;
     bool show_marks;
     enum alignment title_align;
 

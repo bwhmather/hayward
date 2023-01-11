@@ -100,7 +100,6 @@ hayward_sources = files(
 	'src/commands/titlebar_padding.c',
 	'src/commands/urgent.c',
 	'src/commands/workspace.c',
-	'src/commands/ws_auto_back_and_forth.c',
 	'src/commands/xwayland.c',
 
 	'src/commands/bar/bind.c',
