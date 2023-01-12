@@ -41,13 +41,6 @@ struct hayward_transaction {
 struct hayward_transaction_instruction {
     struct hayward_transaction *transaction;
     struct hayward_node *node;
-    union {
-        struct hayward_root_state root_state;
-        struct hayward_output_state output_state;
-        struct hayward_workspace_state workspace_state;
-        struct hayward_column_state column_state;
-        struct hayward_window_state window_state;
-    };
     uint32_t serial;
     bool server_request;
     bool waiting;
@@ -107,7 +100,10 @@ copy_root_state(
     struct hayward_root *root,
     struct hayward_transaction_instruction *instruction
 ) {
-    struct hayward_root_state *state = &instruction->root_state;
+    struct hayward_root_state *state =
+        &instruction->node->hayward_root->committed;
+    memset(state, 0, sizeof(struct hayward_root_state));
+
     if (state->workspaces) {
         state->workspaces->length = 0;
     } else {
@@ -132,7 +128,9 @@ copy_workspace_state(
     struct hayward_workspace *workspace,
     struct hayward_transaction_instruction *instruction
 ) {
-    struct hayward_workspace_state *state = &instruction->workspace_state;
+    struct hayward_workspace_state *state =
+        &instruction->node->hayward_workspace->committed;
+    memset(state, 0, sizeof(struct hayward_workspace_state));
 
     state->x = workspace->pending.x;
     state->y = workspace->pending.y;
@@ -163,7 +161,9 @@ copy_column_state(
     struct hayward_column *column,
     struct hayward_transaction_instruction *instruction
 ) {
-    struct hayward_column_state *state = &instruction->column_state;
+    struct hayward_column_state *state =
+        &instruction->node->hayward_column->committed;
+    memset(state, 0, sizeof(struct hayward_column_state));
 
     if (state->children) {
         list_free(state->children);
@@ -182,7 +182,8 @@ copy_window_state(
     struct hayward_window *window,
     struct hayward_transaction_instruction *instruction
 ) {
-    struct hayward_window_state *state = &instruction->window_state;
+    struct hayward_window_state *state =
+        &instruction->node->hayward_window->committed;
 
     memcpy(state, &window->pending, sizeof(struct hayward_window_state));
 }
@@ -373,26 +374,32 @@ transaction_apply(struct hayward_transaction *transaction) {
 
         switch (node->type) {
         case N_ROOT:
-            apply_root_state(node->hayward_root, &instruction->root_state);
+            apply_root_state(
+                node->hayward_root, &instruction->node->hayward_root->committed
+            );
             break;
         case N_OUTPUT:
             apply_output_state(
-                node->hayward_output, &instruction->output_state
+                node->hayward_output,
+                &instruction->node->hayward_output->committed
             );
             break;
         case N_WORKSPACE:
             apply_workspace_state(
-                node->hayward_workspace, &instruction->workspace_state
+                node->hayward_workspace,
+                &instruction->node->hayward_workspace->committed
             );
             break;
         case N_COLUMN:
             apply_column_state(
-                node->hayward_column, &instruction->column_state
+                node->hayward_column,
+                &instruction->node->hayward_column->committed
             );
             break;
         case N_WINDOW:
             apply_window_state(
-                node->hayward_window, &instruction->window_state
+                node->hayward_window,
+                &instruction->node->hayward_window->committed
             );
         }
 
@@ -452,7 +459,8 @@ should_configure(
         return false;
     }
     struct hayward_window_state *cstate = &node->hayward_window->current;
-    struct hayward_window_state *istate = &instruction->window_state;
+    struct hayward_window_state *istate =
+        &instruction->node->hayward_window->committed;
 #if HAVE_XWAYLAND
     // Xwayland views are position-aware and need to be reconfigured
     // when their position changes.
@@ -488,11 +496,12 @@ transaction_commit(struct hayward_transaction *transaction) {
         bool hidden = node_is_view(node) && !node->destroying &&
             !view_is_visible(node->hayward_window->view);
         if (should_configure(node, instruction)) {
+            struct hayward_window_state *state =
+                &instruction->node->hayward_window->committed;
+
             instruction->serial = view_configure(
-                node->hayward_window->view, instruction->window_state.content_x,
-                instruction->window_state.content_y,
-                instruction->window_state.content_width,
-                instruction->window_state.content_height
+                node->hayward_window->view, state->content_x, state->content_y,
+                state->content_width, state->content_height
             );
             if (!hidden) {
                 instruction->waiting = true;
@@ -613,11 +622,13 @@ transaction_notify_view_ready_by_geometry(
 ) {
     struct hayward_transaction_instruction *instruction =
         view->window->node.instruction;
-    if (instruction != NULL &&
-        (int)instruction->window_state.content_x == (int)x &&
-        (int)instruction->window_state.content_y == (int)y &&
-        instruction->window_state.content_width == width &&
-        instruction->window_state.content_height == height) {
+
+    struct hayward_window_state *state =
+        &instruction->node->hayward_window->committed;
+
+    if (instruction != NULL && (int)state->content_x == (int)x &&
+        (int)state->content_y == (int)y && state->content_width == width &&
+        state->content_height == height) {
         set_instruction_ready(instruction);
     }
 }

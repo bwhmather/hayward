@@ -44,8 +44,9 @@ struct hayward_workspace {
 
     bool urgent;
 
-    struct hayward_workspace_state current;
     struct hayward_workspace_state pending;
+    struct hayward_workspace_state committed;
+    struct hayward_workspace_state current;
 };
 
 struct workspace_config *

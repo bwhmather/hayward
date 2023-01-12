@@ -60,8 +60,9 @@ struct hayward_root {
     // For when there's no connected outputs
     struct hayward_output *fallback_output;
 
-    struct hayward_root_state current;
     struct hayward_root_state pending;
+    struct hayward_root_state committed;
+    struct hayward_root_state current;
 
     /**
      * The nodes that are currently actually receiving input events.  These

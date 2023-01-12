@@ -39,8 +39,9 @@ struct hayward_column_state {
 struct hayward_column {
     struct hayward_node node;
 
-    struct hayward_column_state current;
     struct hayward_column_state pending;
+    struct hayward_column_state committed;
+    struct hayward_column_state current;
 
     // For C_ROOT, this has no meaning
     // For other types, this is the position in layout coordinates

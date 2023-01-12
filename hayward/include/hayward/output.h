@@ -54,8 +54,9 @@ struct hayward_output {
 
     bool enabling, enabled;
 
-    struct hayward_output_state current;
     struct hayward_output_state pending;
+    struct hayward_output_state committed;
+    struct hayward_output_state current;
 
     struct wl_listener destroy;
     struct wl_listener commit;

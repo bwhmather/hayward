@@ -62,8 +62,9 @@ struct hayward_window {
     struct hayward_node node;
     struct hayward_view *view;
 
-    struct hayward_window_state current;
     struct hayward_window_state pending;
+    struct hayward_window_state committed;
+    struct hayward_window_state current;
 
     char *title;           // The view's title (unformatted)
     char *formatted_title; // The title displayed in the title bar
