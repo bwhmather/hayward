@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/desktop/transaction.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -8,8 +10,6 @@
 #include <time.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/types/wlr_compositor.h>
-#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
@@ -29,6 +29,22 @@
 #include <hayward/tree/workspace.h>
 
 #include <config.h>
+
+static struct {
+    struct {
+        struct wl_signal transaction_commit;
+        struct wl_signal transaction_apply;
+    } events;
+} hayward_transaction_state;
+
+void
+transaction_init(void) {
+    wl_signal_init(&hayward_transaction_state.events.transaction_commit);
+    wl_signal_init(&hayward_transaction_state.events.transaction_apply);
+}
+
+void
+transaction_shutdown(void) {}
 
 struct hayward_transaction {
     struct wl_event_source *timer;
@@ -178,17 +194,6 @@ copy_column_state(
 }
 
 static void
-copy_window_state(
-    struct hayward_window *window,
-    struct hayward_transaction_instruction *instruction
-) {
-    struct hayward_window_state *state =
-        &instruction->node->hayward_window->committed;
-
-    memcpy(state, &window->pending, sizeof(struct hayward_window_state));
-}
-
-static void
 transaction_add_node(
     struct hayward_transaction *transaction, struct hayward_node *node,
     bool server_request
@@ -236,7 +241,7 @@ transaction_add_node(
         copy_column_state(node->hayward_column, instruction);
         break;
     case N_WINDOW:
-        copy_window_state(node->hayward_window, instruction);
+        hayward_assert(false, "windows now handled using events");
         break;
     }
 }
@@ -293,59 +298,6 @@ apply_column_state(
     desktop_damage_column(column);
 }
 
-static void
-apply_window_state(
-    struct hayward_window *window, struct hayward_window_state *state
-) {
-    struct hayward_view *view = window->view;
-    // Damage the old location
-    desktop_damage_window(window);
-    if (!wl_list_empty(&view->saved_buffers)) {
-        struct hayward_saved_buffer *saved_buf;
-        wl_list_for_each(saved_buf, &view->saved_buffers, link) {
-            struct wlr_box box = {
-                .x = saved_buf->x - view->saved_geometry.x,
-                .y = saved_buf->y - view->saved_geometry.y,
-                .width = saved_buf->width,
-                .height = saved_buf->height,
-            };
-            desktop_damage_box(&box);
-        }
-    }
-
-    memcpy(&window->current, state, sizeof(struct hayward_window_state));
-
-    if (!wl_list_empty(&view->saved_buffers)) {
-        if (!window->node.destroying || window->node.ntxnrefs == 1) {
-            view_remove_saved_buffer(view);
-        }
-    }
-
-    // If the view hasn't responded to the configure, center it within
-    // the window. This is important for fullscreen views which
-    // refuse to resize to the size of the output.
-    if (view->surface) {
-        view_center_surface(view);
-    }
-
-    // Damage the new location
-    desktop_damage_window(window);
-    if (view->surface) {
-        struct wlr_surface *surface = view->surface;
-        struct wlr_box box = {
-            .x = window->current.content_x - view->geometry.x,
-            .y = window->current.content_y - view->geometry.y,
-            .width = surface->current.width,
-            .height = surface->current.height,
-        };
-        desktop_damage_box(&box);
-    }
-
-    if (!window->node.destroying) {
-        window_discover_outputs(window);
-    }
-}
-
 /**
  * Apply a transaction to the "current" state of the tree.
  */
@@ -397,10 +349,8 @@ transaction_apply(struct hayward_transaction *transaction) {
             );
             break;
         case N_WINDOW:
-            apply_window_state(
-                node->hayward_window,
-                &instruction->node->hayward_window->committed
-            );
+            hayward_assert(false, "windows now handled using events");
+            break;
         }
 
         node->instruction = NULL;
@@ -420,6 +370,9 @@ transaction_progress(void) {
     if (server.queued_transaction->num_waiting > 0) {
         return;
     }
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_apply, NULL
+    );
     transaction_apply(server.queued_transaction);
     transaction_destroy(server.queued_transaction);
     server.queued_transaction = NULL;
@@ -444,44 +397,6 @@ handle_timeout(void *data) {
     return 0;
 }
 
-static bool
-should_configure(
-    struct hayward_node *node,
-    struct hayward_transaction_instruction *instruction
-) {
-    if (!node_is_view(node)) {
-        return false;
-    }
-    if (node->destroying) {
-        return false;
-    }
-    if (!instruction->server_request) {
-        return false;
-    }
-    struct hayward_window_state *cstate = &node->hayward_window->current;
-    struct hayward_window_state *istate =
-        &instruction->node->hayward_window->committed;
-#if HAVE_XWAYLAND
-    // Xwayland views are position-aware and need to be reconfigured
-    // when their position changes.
-    if (node->hayward_window->view->type == HAYWARD_VIEW_XWAYLAND) {
-        // Hayward logical coordinates are doubles, but they get truncated to
-        // integers when sent to Xwayland through `xcb_configure_window`.
-        // X11 apps will not respond to duplicate configure requests (from their
-        // truncated point of view) and cause transactions to time out.
-        if ((int)cstate->content_x != (int)istate->content_x ||
-            (int)cstate->content_y != (int)istate->content_y) {
-            return true;
-        }
-    }
-#endif
-    if (cstate->content_width == istate->content_width &&
-        cstate->content_height == istate->content_height) {
-        return false;
-    }
-    return true;
-}
-
 static void
 transaction_commit(struct hayward_transaction *transaction) {
     hayward_log(
@@ -489,45 +404,18 @@ transaction_commit(struct hayward_transaction *transaction) {
         (void *)transaction, transaction->instructions->length
     );
     transaction->num_waiting = 0;
+
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_commit, NULL
+    );
+
     for (int i = 0; i < transaction->instructions->length; ++i) {
         struct hayward_transaction_instruction *instruction =
             transaction->instructions->items[i];
         struct hayward_node *node = instruction->node;
-        bool hidden = node_is_view(node) && !node->destroying &&
-            !view_is_visible(node->hayward_window->view);
-        if (should_configure(node, instruction)) {
-            struct hayward_window_state *state =
-                &instruction->node->hayward_window->committed;
-
-            instruction->serial = view_configure(
-                node->hayward_window->view, state->content_x, state->content_y,
-                state->content_width, state->content_height
-            );
-            if (!hidden) {
-                instruction->waiting = true;
-                ++transaction->num_waiting;
-            }
-
-            // From here on we are rendering a saved buffer of the view, which
-            // means we can send a frame done event to make the client redraw it
-            // as soon as possible. Additionally, this is required if a view is
-            // mapping and its default geometry doesn't intersect an output.
-            struct timespec now;
-            clock_gettime(CLOCK_MONOTONIC, &now);
-            wlr_surface_send_frame_done(
-                node->hayward_window->view->surface, &now
-            );
-        }
-        if (!hidden && node_is_view(node) &&
-            wl_list_empty(&node->hayward_window->view->saved_buffers)) {
-            view_save_buffer(node->hayward_window->view);
-            memcpy(
-                &node->hayward_window->view->saved_geometry,
-                &node->hayward_window->view->geometry, sizeof(struct wlr_box)
-            );
-        }
         node->instruction = instruction;
     }
+
     transaction->num_configures = transaction->num_waiting;
     if (debug.txn_timings) {
         clock_gettime(CLOCK_MONOTONIC, &transaction->commit_time);
@@ -568,40 +456,8 @@ transaction_commit_pending(void) {
     struct hayward_transaction *transaction = server.pending_transaction;
     server.pending_transaction = NULL;
     server.queued_transaction = transaction;
+
     transaction_commit(transaction);
-    transaction_progress();
-}
-
-static void
-set_instruction_ready(struct hayward_transaction_instruction *instruction) {
-    struct hayward_transaction *transaction = instruction->transaction;
-    hayward_assert(node_is_view(instruction->node), "Expected view");
-
-    if (debug.txn_timings) {
-        struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        struct timespec *start = &transaction->commit_time;
-        float ms = (now.tv_sec - start->tv_sec) * 1000 +
-            (now.tv_nsec - start->tv_nsec) / 1000000.0;
-        hayward_log(
-            HAYWARD_DEBUG, "Transaction %p: %zi/%zi ready in %.1fms (%s)",
-            (void *)transaction,
-            transaction->num_configures - transaction->num_waiting + 1,
-            transaction->num_configures, ms,
-            instruction->node->hayward_window->title
-        );
-    }
-
-    // If the transaction has timed out then its num_waiting will be 0 already.
-    if (instruction->waiting && transaction->num_waiting > 0 &&
-        --transaction->num_waiting == 0) {
-        hayward_log(
-            HAYWARD_DEBUG, "Transaction %p is ready", (void *)transaction
-        );
-        wl_event_source_timer_update(transaction->timer, 0);
-    }
-
-    instruction->node->instruction = NULL;
     transaction_progress();
 }
 
@@ -609,28 +465,54 @@ void
 transaction_notify_view_ready_by_serial(
     struct hayward_view *view, uint32_t serial
 ) {
-    struct hayward_transaction_instruction *instruction =
-        view->window->node.instruction;
-    if (instruction != NULL && instruction->serial == serial) {
-        set_instruction_ready(instruction);
+    struct hayward_window *window = view->window;
+
+    if (!window->is_configuring) {
+        return;
     }
+    if (window->configure_serial == 0) {
+        return;
+    }
+    if (serial != window->configure_serial) {
+        return;
+    }
+
+    transaction_release();
 }
 
 void
 transaction_notify_view_ready_by_geometry(
     struct hayward_view *view, double x, double y, int width, int height
 ) {
-    struct hayward_transaction_instruction *instruction =
-        view->window->node.instruction;
+    struct hayward_window *window = view->window;
+    struct hayward_window_state *state = &window->committed;
 
-    struct hayward_window_state *state =
-        &instruction->node->hayward_window->committed;
-
-    if (instruction != NULL && (int)state->content_x == (int)x &&
-        (int)state->content_y == (int)y && state->content_width == width &&
-        state->content_height == height) {
-        set_instruction_ready(instruction);
+    if (!window->is_configuring) {
+        return;
     }
+    if (window->configure_serial != 0) {
+        return;
+    }
+
+    if ((int)state->content_x != (int)x || (int)state->content_y != (int)y ||
+        state->content_width != width || state->content_height != height) {
+        return;
+    }
+    transaction_release();
+}
+
+void
+transaction_add_commit_listener(struct wl_listener *listener) {
+    wl_signal_add(
+        &hayward_transaction_state.events.transaction_commit, listener
+    );
+}
+
+void
+transaction_add_apply_listener(struct wl_listener *listener) {
+    wl_signal_add(
+        &hayward_transaction_state.events.transaction_apply, listener
+    );
 }
 
 static void
@@ -736,6 +618,34 @@ validate_tree(void) {
             }
         }
     }
+}
+
+void
+transaction_acquire(void) {
+    struct hayward_transaction *transaction = server.queued_transaction;
+    hayward_assert(transaction != NULL, "No in progress transaction");
+
+    transaction->num_waiting++;
+}
+
+void
+transaction_release(void) {
+    struct hayward_transaction *transaction = server.queued_transaction;
+    hayward_assert(transaction != NULL, "No in progress transaction");
+    hayward_assert(
+        transaction->num_waiting > 0, "No active locks on transaction"
+    );
+
+    transaction->num_waiting--;
+
+    if (transaction->num_waiting == 0) {
+        hayward_log(
+            HAYWARD_DEBUG, "Transaction %p is ready", (void *)transaction
+        );
+        wl_event_source_timer_update(transaction->timer, 0);
+    }
+
+    transaction_progress();
 }
 
 static void

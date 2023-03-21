@@ -25,7 +25,7 @@ arrange_window(struct hayward_window *window) {
         return;
     }
     view_autoconfigure(window->view);
-    node_set_dirty(&window->node);
+    window_set_dirty(window);
 }
 
 static void

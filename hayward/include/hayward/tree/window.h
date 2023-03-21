@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
@@ -66,6 +67,14 @@ struct hayward_window {
     struct hayward_window_state committed;
     struct hayward_window_state current;
 
+    bool dirty;
+
+    // Identifier tracking the serial of the configure event sent during at the
+    // beginning of the current commit.  Used to discard responses for previous
+    // configures.
+    uint32_t configure_serial;
+    bool is_configuring;
+
     char *title;           // The view's title (unformatted)
     char *formatted_title; // The title displayed in the title bar
 
@@ -104,6 +113,9 @@ struct hayward_window {
     struct wlr_texture *title_unfocused;
     struct wlr_texture *title_urgent;
 
+    struct wl_listener transaction_commit;
+    struct wl_listener transaction_apply;
+
     struct {
         struct wl_signal destroy;
     } events;
@@ -117,6 +129,9 @@ window_destroy(struct hayward_window *window);
 
 void
 window_begin_destroy(struct hayward_window *window);
+
+void
+window_set_dirty(struct hayward_window *window);
 
 void
 window_detach(struct hayward_window *window);

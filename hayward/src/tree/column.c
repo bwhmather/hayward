@@ -226,7 +226,7 @@ column_add_child(struct hayward_column *parent, struct hayward_window *child) {
     window_reconcile_tiling(child, parent);
 
     window_handle_fullscreen_reparent(child);
-    node_set_dirty(&child->node);
+    window_set_dirty(child);
     node_set_dirty(&parent->node);
 }
 
@@ -258,7 +258,7 @@ column_remove_child(
     window_reconcile_detached(child);
 
     node_set_dirty(&parent->node);
-    node_set_dirty(&child->node);
+    window_set_dirty(child);
 }
 
 void
@@ -280,11 +280,11 @@ column_set_active_child(
     column->pending.active_child = window;
 
     window_reconcile_tiling(window, column);
-    node_set_dirty(&window->node);
+    window_set_dirty(window);
 
     if (prev_active) {
         window_reconcile_tiling(prev_active, column);
-        node_set_dirty(&prev_active->node);
+        window_set_dirty(prev_active);
     }
 
     node_set_dirty(&column->node);

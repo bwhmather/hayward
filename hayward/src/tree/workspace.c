@@ -281,7 +281,7 @@ workspace_add_floating(
     }
 
     node_set_dirty(&workspace->node);
-    node_set_dirty(&window->node);
+    window_set_dirty(window);
 }
 
 void

@@ -13,6 +13,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/render/wlr_renderer.h>
@@ -33,6 +35,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop.h>
+#include <hayward/desktop/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
@@ -47,6 +50,143 @@
 
 #include <config.h>
 
+static bool
+window_should_configure(struct hayward_window *window) {
+    hayward_assert(window != NULL, "Expected window");
+    if (window->node.destroying) {
+        return false;
+    }
+    // TODO if the window's view initiated the change, it should not be
+    // reconfigured.
+    struct hayward_window_state *cstate = &window->current;
+    struct hayward_window_state *nstate = &window->committed;
+
+#if HAVE_XWAYLAND
+    // Xwayland views are position-aware and need to be reconfigured
+    // when their position changes.
+    if (window->view->type == HAYWARD_VIEW_XWAYLAND) {
+        // Hayward logical coordinates are doubles, but they get truncated to
+        // integers when sent to Xwayland through `xcb_configure_window`.
+        // X11 apps will not respond to duplicate configure requests (from their
+        // truncated point of view) and cause transactions to time out.
+        if ((int)cstate->content_x != (int)nstate->content_x ||
+            (int)cstate->content_y != (int)nstate->content_y) {
+            return true;
+        }
+    }
+#endif
+    if (cstate->content_width == nstate->content_width &&
+        cstate->content_height == nstate->content_height) {
+        return false;
+    }
+    return true;
+}
+
+static void
+window_handle_transaction_commit(struct wl_listener *listener, void *data) {
+    struct hayward_window *window =
+        wl_container_of(listener, window, transaction_commit);
+
+    wl_list_remove(&listener->link);
+    transaction_add_apply_listener(&window->transaction_apply);
+
+    memcpy(
+        &window->committed, &window->pending,
+        sizeof(struct hayward_window_state)
+    );
+    window->dirty = false;
+
+    struct hayward_node *node = &window->node;
+    bool hidden = !node->destroying && !view_is_visible(window->view);
+    if (window_should_configure(window)) {
+        struct hayward_window_state *state = &window->committed;
+
+        window->configure_serial = view_configure(
+            window->view, state->content_x, state->content_y,
+            state->content_width, state->content_height
+        );
+        if (!hidden) {
+            transaction_acquire();
+            window->is_configuring = true;
+        }
+
+        // From here on we are rendering a saved buffer of the view, which
+        // means we can send a frame done event to make the client redraw it
+        // as soon as possible. Additionally, this is required if a view is
+        // mapping and its default geometry doesn't intersect an output.
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        wlr_surface_send_frame_done(window->view->surface, &now);
+    }
+    if (!hidden && wl_list_empty(&window->view->saved_buffers)) {
+        view_save_buffer(window->view);
+        memcpy(
+            &window->view->saved_geometry, &window->view->geometry,
+            sizeof(struct wlr_box)
+        );
+    }
+}
+
+static void
+window_handle_transaction_apply(struct wl_listener *listener, void *data) {
+    struct hayward_window *window =
+        wl_container_of(listener, window, transaction_apply);
+
+    wl_list_remove(&listener->link);
+    window->is_configuring = false;
+
+    struct hayward_view *view = window->view;
+    // Damage the old location
+    desktop_damage_window(window);
+    if (!wl_list_empty(&view->saved_buffers)) {
+        struct hayward_saved_buffer *saved_buf;
+        wl_list_for_each(saved_buf, &view->saved_buffers, link) {
+            struct wlr_box box = {
+                .x = saved_buf->x - view->saved_geometry.x,
+                .y = saved_buf->y - view->saved_geometry.y,
+                .width = saved_buf->width,
+                .height = saved_buf->height,
+            };
+            desktop_damage_box(&box);
+        }
+    }
+
+    memcpy(
+        &window->current, &window->committed,
+        sizeof(struct hayward_window_state)
+    );
+
+    if (!wl_list_empty(&view->saved_buffers)) {
+        if (!window->node.destroying || window->node.ntxnrefs == 1) {
+            view_remove_saved_buffer(view);
+        }
+    }
+
+    // If the view hasn't responded to the configure, center it within
+    // the window. This is important for fullscreen views which
+    // refuse to resize to the size of the output.
+    if (view->surface) {
+        view_center_surface(view);
+    }
+
+    // Damage the new location
+    desktop_damage_window(window);
+    if (view->surface) {
+        struct wlr_surface *surface = view->surface;
+        struct wlr_box box = {
+            .x = window->current.content_x - view->geometry.x,
+            .y = window->current.content_y - view->geometry.y,
+            .width = surface->current.width,
+            .height = surface->current.height,
+        };
+        desktop_damage_box(&box);
+    }
+
+    if (!window->node.destroying) {
+        window_discover_outputs(window);
+    }
+}
+
 struct hayward_window *
 window_create(struct hayward_view *view) {
     struct hayward_window *c = calloc(1, sizeof(struct hayward_window));
@@ -60,8 +200,13 @@ window_create(struct hayward_view *view) {
 
     c->outputs = create_list();
 
+    c->transaction_commit.notify = window_handle_transaction_commit;
+    c->transaction_apply.notify = window_handle_transaction_apply;
+
     wl_signal_init(&c->events.destroy);
     wl_signal_emit(&root->events.new_node, &c->node);
+
+    window_set_dirty(c);
 
     return c;
 }
@@ -105,11 +250,25 @@ window_begin_destroy(struct hayward_window *window) {
     window_end_mouse_operation(window);
 
     window->node.destroying = true;
-    node_set_dirty(&window->node);
+    window_set_dirty(window);
 
     if (window->pending.parent || window->pending.workspace) {
         window_detach(window);
     }
+}
+
+void
+window_set_dirty(struct hayward_window *window) {
+    hayward_assert(window != NULL, "Expected window");
+
+    if (window->dirty) {
+        return;
+    }
+
+    window->dirty = true;
+    transaction_add_commit_listener(&window->transaction_commit);
+
+    // TODO set view as dirty.
 }
 
 void
@@ -776,7 +935,7 @@ window_floating_move_to(struct hayward_window *window, double lx, double ly) {
     window->pending.content_y += ly;
 
     window_update_output(window);
-    node_set_dirty(&window->node);
+    window_set_dirty(window);
 }
 
 void
@@ -852,7 +1011,7 @@ window_set_geometry_from_content(struct hayward_window *window) {
         top + window->pending.content_height + border_width;
 
     window_update_output(window);
-    node_set_dirty(&window->node);
+    window_set_dirty(window);
 }
 
 bool

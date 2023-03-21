@@ -25,7 +25,6 @@
 #include <hayward/output.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -333,11 +332,9 @@ handle_commit(struct wl_listener *listener, void *data) {
         desktop_damage_view(view);
     }
 
-    if (view->window->node.instruction) {
-        transaction_notify_view_ready_by_serial(
-            view, xdg_surface->current.configure_serial
-        );
-    }
+    transaction_notify_view_ready_by_serial(
+        view, xdg_surface->current.configure_serial
+    );
 
     view_damage_from(view);
 }

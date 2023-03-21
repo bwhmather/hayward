@@ -1,7 +1,7 @@
 #ifndef _HAYWARD_TRANSACTION_H
 #define _HAYWARD_TRANSACTION_H
 #include <stdint.h>
-
+#include <wayland-server-core.h>
 /**
  * Transactions enable us to perform atomic layout updates.
  *
@@ -21,6 +21,12 @@
 
 struct hayward_transaction_instruction;
 struct hayward_view;
+
+void
+transaction_init(void);
+
+void
+transaction_shutdown(void);
 
 /**
  * Notify the transaction system that a view is ready for the new layout.
@@ -42,6 +48,25 @@ void
 transaction_notify_view_ready_by_geometry(
     struct hayward_view *view, double x, double y, int width, int height
 );
+
+void
+transaction_add_commit_listener(struct wl_listener *listener);
+
+void
+transaction_add_apply_listener(struct wl_listener *listener);
+
+/**
+ * Can be called during handling of a commit event to inform the transaction
+ * of work that needs to be done.  Once the work is done, the lock should be
+ * released.  Used by views to block the transaction once asked to reconfigure.
+ * Transactions can time out, in which eventuality the apply event will be
+ * triggered and all locks should be forgotten.
+ */
+void
+transaction_acquire(void);
+
+void
+transaction_release(void);
 
 /**
  * Find all dirty containers, create and commit a transaction containing them,

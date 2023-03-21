@@ -489,7 +489,7 @@ root_commit_focus(void) {
         view_close_popups(old_window->view);
         view_set_activated(old_window->view, false);
 
-        node_set_dirty(&old_window->node);
+        window_set_dirty(old_window);
         if (window_is_tiling(old_window)) {
             node_set_dirty(&old_window->pending.parent->node);
         }
@@ -527,7 +527,7 @@ root_commit_focus(void) {
             }
         }
 
-        node_set_dirty(&new_window->node);
+        window_set_dirty(new_window);
         if (window_is_tiling(new_window)) {
             node_set_dirty(&new_window->pending.parent->node);
         }

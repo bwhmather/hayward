@@ -9,6 +9,7 @@
 #include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
 #include <hayward/output.h>
 #include <hayward/server.h>
@@ -47,6 +48,7 @@ node_type_to_str(enum hayward_node_type type) {
 
 void
 node_set_dirty(struct hayward_node *node) {
+    hayward_assert(node->type != N_WINDOW, "Use window_set_dirty");
     if (node->dirty) {
         return;
     }

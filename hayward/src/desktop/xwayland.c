@@ -24,7 +24,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -471,11 +470,9 @@ handle_commit(struct wl_listener *listener, void *data) {
         desktop_damage_view(view);
     }
 
-    if (view->window->node.instruction) {
-        transaction_notify_view_ready_by_geometry(
-            view, xsurface->x, xsurface->y, state->width, state->height
-        );
-    }
+    transaction_notify_view_ready_by_geometry(
+        view, xsurface->x, xsurface->y, state->width, state->height
+    );
 
     view_damage_from(view);
 }
@@ -591,7 +588,7 @@ handle_request_configure(struct wl_listener *listener, void *data) {
             view->window->pending.content_width,
             view->window->pending.content_height
         );
-        node_set_dirty(&view->window->node);
+        window_set_dirty(view->window);
     } else {
         configure(
             view, view->window->current.content_x,
