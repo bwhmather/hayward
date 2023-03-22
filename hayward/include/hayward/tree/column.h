@@ -43,6 +43,8 @@ struct hayward_column {
     struct hayward_column_state committed;
     struct hayward_column_state current;
 
+    bool dirty;
+
     // For C_ROOT, this has no meaning
     // For other types, this is the position in layout coordinates
     // Includes borders
@@ -58,6 +60,9 @@ struct hayward_column {
     double child_total_height;
 
     float alpha;
+
+    struct wl_listener transaction_commit;
+    struct wl_listener transaction_apply;
 
     struct {
         struct wl_signal destroy;
@@ -75,6 +80,9 @@ column_begin_destroy(struct hayward_column *column);
 
 void
 column_consider_destroy(struct hayward_column *container);
+
+void
+column_set_dirty(struct hayward_column *column);
 
 void
 column_detach(struct hayward_column *column);

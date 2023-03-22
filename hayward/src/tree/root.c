@@ -491,7 +491,7 @@ root_commit_focus(void) {
 
         window_set_dirty(old_window);
         if (window_is_tiling(old_window)) {
-            node_set_dirty(&old_window->pending.parent->node);
+            column_set_dirty(old_window->pending.parent);
         }
     }
 
@@ -529,7 +529,7 @@ root_commit_focus(void) {
 
         window_set_dirty(new_window);
         if (window_is_tiling(new_window)) {
-            node_set_dirty(&new_window->pending.parent->node);
+            column_set_dirty(new_window->pending.parent);
         }
     }
 

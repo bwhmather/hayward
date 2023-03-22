@@ -10,6 +10,8 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
+#include <hayward/desktop.h>
+#include <hayward/desktop/transaction.h>
 #include <hayward/output.h>
 #include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
@@ -18,6 +20,52 @@
 #include <hayward/tree/workspace.h>
 
 #include <config.h>
+
+static void
+column_copy_state(
+    struct hayward_column_state *tgt, struct hayward_column_state *src
+) {
+    list_t *tgt_children = tgt->children;
+
+    memcpy(tgt, src, sizeof(struct hayward_column_state));
+
+    tgt->children = tgt_children;
+    list_clear(tgt->children);
+    list_cat(tgt->children, src->children);
+}
+
+static void
+column_handle_transaction_commit(struct wl_listener *listener, void *data) {
+    struct hayward_column *column =
+        wl_container_of(listener, column, transaction_commit);
+
+    wl_list_remove(&listener->link);
+    column->dirty = false;
+
+    transaction_add_apply_listener(&column->transaction_apply);
+
+    column_copy_state(&column->committed, &column->pending);
+}
+
+static void
+column_handle_transaction_apply(struct wl_listener *listener, void *data) {
+    struct hayward_column *column =
+        wl_container_of(listener, column, transaction_apply);
+
+    wl_list_remove(&listener->link);
+
+    // Damage the old location
+    desktop_damage_column(column);
+
+    column_copy_state(&column->current, &column->committed);
+
+    // Damage the new location
+    desktop_damage_column(column);
+
+    if (column->node.destroying) {
+        column_destroy(column);
+    }
+}
 
 struct hayward_column *
 column_create(void) {
@@ -31,7 +79,11 @@ column_create(void) {
     c->alpha = 1.0f;
 
     c->pending.children = create_list();
+    c->committed.children = create_list();
     c->current.children = create_list();
+
+    c->transaction_commit.notify = column_handle_transaction_commit;
+    c->transaction_apply.notify = column_handle_transaction_apply;
 
     wl_signal_init(&c->events.destroy);
     wl_signal_emit(&root->events.new_node, &c->node);
@@ -46,12 +98,8 @@ column_destroy(struct hayward_column *column) {
         column->node.destroying,
         "Tried to free column which wasn't marked as destroying"
     );
-    hayward_assert(
-        column->node.ntxnrefs == 0,
-        "Tried to free column "
-        "which is still referenced by transactions"
-    );
     list_free(column->pending.children);
+    list_free(column->committed.children);
     list_free(column->current.children);
 
     free(column);
@@ -62,8 +110,8 @@ column_begin_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     wl_signal_emit(&column->node.events.destroy, &column->node);
 
+    column_set_dirty(column);
     column->node.destroying = true;
-    node_set_dirty(&column->node);
 
     if (column->pending.workspace) {
         column_detach(column);
@@ -82,6 +130,31 @@ column_consider_destroy(struct hayward_column *column) {
 
     if (workspace) {
         workspace_consider_destroy(workspace);
+    }
+}
+
+void
+column_set_dirty(struct hayward_column *column) {
+    hayward_assert(column != NULL, "Expected column");
+
+    if (column->dirty) {
+        return;
+    }
+    if (column->node.destroying) {
+        return;
+    }
+
+    column->dirty = true;
+    transaction_add_commit_listener(&column->transaction_commit);
+
+    for (int i = 0; i < column->committed.children->length; i++) {
+        struct hayward_window *child = column->pending.children->items[i];
+        window_set_dirty(child);
+    }
+
+    for (int i = 0; i < column->pending.children->length; i++) {
+        struct hayward_window *child = column->pending.children->items[i];
+        window_set_dirty(child);
     }
 }
 
@@ -227,7 +300,7 @@ column_add_child(struct hayward_column *parent, struct hayward_window *child) {
 
     window_handle_fullscreen_reparent(child);
     window_set_dirty(child);
-    node_set_dirty(&parent->node);
+    column_set_dirty(parent);
 }
 
 void
@@ -257,7 +330,7 @@ column_remove_child(
 
     window_reconcile_detached(child);
 
-    node_set_dirty(&parent->node);
+    column_set_dirty(parent);
     window_set_dirty(child);
 }
 
@@ -287,7 +360,7 @@ column_set_active_child(
         window_set_dirty(prev_active);
     }
 
-    node_set_dirty(&column->node);
+    column_set_dirty(column);
 }
 
 void

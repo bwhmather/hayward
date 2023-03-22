@@ -21,7 +21,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/tree/column.h>
 #include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
@@ -94,7 +93,7 @@ transaction_destroy(struct hayward_transaction *transaction) {
                 workspace_destroy(node->hayward_workspace);
                 break;
             case N_COLUMN:
-                column_destroy(node->hayward_column);
+                hayward_assert(false, "columns now handled using events");
                 break;
             case N_WINDOW:
                 hayward_assert(false, "windows now handled using events");
@@ -173,27 +172,6 @@ copy_workspace_state(
 }
 
 static void
-copy_column_state(
-    struct hayward_column *column,
-    struct hayward_transaction_instruction *instruction
-) {
-    struct hayward_column_state *state =
-        &instruction->node->hayward_column->committed;
-    memset(state, 0, sizeof(struct hayward_column_state));
-
-    if (state->children) {
-        list_free(state->children);
-    }
-
-    memcpy(state, &column->pending, sizeof(struct hayward_column_state));
-
-    // We store a copy of the child list to avoid having it mutated after
-    // we copy the state.
-    state->children = create_list();
-    list_cat(state->children, column->pending.children);
-}
-
-static void
 transaction_add_node(
     struct hayward_transaction *transaction, struct hayward_node *node,
     bool server_request
@@ -238,7 +216,7 @@ transaction_add_node(
         copy_workspace_state(node->hayward_workspace, instruction);
         break;
     case N_COLUMN:
-        copy_column_state(node->hayward_column, instruction);
+        hayward_assert(false, "columns now handled using events");
         break;
     case N_WINDOW:
         hayward_assert(false, "windows now handled using events");
@@ -276,26 +254,6 @@ apply_workspace_state(
     list_free(workspace->current.tiling);
     memcpy(&workspace->current, state, sizeof(struct hayward_workspace_state));
     workspace_damage_whole(workspace);
-}
-
-static void
-apply_column_state(
-    struct hayward_column *column, struct hayward_column_state *state
-) {
-    // Damage the old location
-    desktop_damage_column(column);
-
-    // There are separate children lists for each instruction state, the
-    // container's current state and the container's pending state
-    // (ie. column->children). The list itself needs to be freed here.
-    // Any child containers which are being deleted will be cleaned up in
-    // transaction_destroy().
-    list_free(column->current.children);
-
-    memcpy(&column->current, state, sizeof(struct hayward_column_state));
-
-    // Damage the new location
-    desktop_damage_column(column);
 }
 
 /**
@@ -343,10 +301,7 @@ transaction_apply(struct hayward_transaction *transaction) {
             );
             break;
         case N_COLUMN:
-            apply_column_state(
-                node->hayward_column,
-                &instruction->node->hayward_column->committed
-            );
+            hayward_assert(false, "columns now handled using events");
             break;
         case N_WINDOW:
             hayward_assert(false, "windows now handled using events");

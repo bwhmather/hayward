@@ -49,6 +49,7 @@ node_type_to_str(enum hayward_node_type type) {
 void
 node_set_dirty(struct hayward_node *node) {
     hayward_assert(node->type != N_WINDOW, "Use window_set_dirty");
+    hayward_assert(node->type != N_COLUMN, "Use column_set_dirty");
     if (node->dirty) {
         return;
     }

@@ -353,7 +353,7 @@ workspace_insert_tiling(
     column_reconcile(column, workspace, output);
 
     node_set_dirty(&workspace->node);
-    node_set_dirty(&column->node);
+    column_set_dirty(column);
 }
 
 void
@@ -400,14 +400,14 @@ workspace_remove_tiling(
         if (next_active != NULL) {
             column_reconcile(next_active, workspace, output);
 
-            node_set_dirty(&next_active->node);
+            column_set_dirty(next_active);
         }
     }
 
     column_reconcile_detached(column);
 
     node_set_dirty(&workspace->node);
-    node_set_dirty(&column->node);
+    column_set_dirty(column);
 }
 
 static bool

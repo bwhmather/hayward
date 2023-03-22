@@ -148,7 +148,7 @@ arrange_column(struct hayward_column *column) {
         struct hayward_window *child = children->items[i];
         arrange_window(child);
     }
-    node_set_dirty(&column->node);
+    column_set_dirty(column);
 }
 
 static void
