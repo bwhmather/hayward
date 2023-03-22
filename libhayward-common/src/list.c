@@ -62,6 +62,11 @@ list_del(list_t *list, int index) {
 }
 
 void
+list_clear(list_t *list) {
+    list->length = 0;
+}
+
+void
 list_cat(list_t *list, list_t *source) {
     for (int i = 0; i < source->length; ++i) {
         list_add(list, source->items[i]);

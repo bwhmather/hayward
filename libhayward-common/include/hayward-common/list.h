@@ -16,6 +16,8 @@ list_add(list_t *list, void *item);
 void
 list_insert(list_t *list, int index, void *item);
 void
+list_clear(list_t *list);
+void
 list_del(list_t *list, int index);
 void
 list_cat(list_t *list, list_t *source);
