@@ -185,6 +185,10 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     if (!window->node.destroying) {
         window_discover_outputs(window);
     }
+
+    if (window->node.destroying) {
+        window_destroy(window);
+    }
 }
 
 struct hayward_window *
@@ -249,8 +253,8 @@ window_begin_destroy(struct hayward_window *window) {
 
     window_end_mouse_operation(window);
 
-    window->node.destroying = true;
     window_set_dirty(window);
+    window->node.destroying = true;
 
     if (window->pending.parent || window->pending.workspace) {
         window_detach(window);
@@ -263,6 +267,9 @@ window_set_dirty(struct hayward_window *window) {
 
     if (window->dirty) {
         return;
+    }
+    if (window->node.destroying) {
+	return;
     }
 
     window->dirty = true;

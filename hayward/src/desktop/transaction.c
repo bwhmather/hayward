@@ -97,7 +97,7 @@ transaction_destroy(struct hayward_transaction *transaction) {
                 column_destroy(node->hayward_column);
                 break;
             case N_WINDOW:
-                window_destroy(node->hayward_window);
+                hayward_assert(false, "windows now handled using events");
                 break;
             }
         }
