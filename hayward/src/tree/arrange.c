@@ -303,7 +303,7 @@ arrange_workspace(struct hayward_workspace *workspace) {
     }
 
     workspace_add_gaps(workspace);
-    node_set_dirty(&workspace->node);
+    workspace_set_dirty(workspace);
     hayward_log(
         HAYWARD_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
         workspace->pending.x, workspace->pending.y

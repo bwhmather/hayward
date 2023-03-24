@@ -17,6 +17,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/desktop/transaction.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
 #include <hayward/tree/arrange.h>
@@ -27,6 +28,57 @@
 #include <hayward/tree/window.h>
 
 #include <config.h>
+
+static void
+workspace_copy_state(
+    struct hayward_workspace_state *tgt, struct hayward_workspace_state *src
+) {
+    list_t *tgt_floating = tgt->floating;
+    list_t *tgt_tiling = tgt->tiling;
+
+    memcpy(tgt, src, sizeof(struct hayward_workspace_state));
+
+    tgt->floating = tgt_floating;
+    list_clear(tgt->floating);
+    list_cat(tgt->floating, src->floating);
+
+    tgt->tiling = tgt_tiling;
+    list_clear(tgt->tiling);
+    list_cat(tgt->tiling, src->tiling);
+}
+
+static void
+workspace_handle_transaction_commit(struct wl_listener *listener, void *data) {
+    struct hayward_workspace *workspace =
+        wl_container_of(listener, workspace, transaction_commit);
+
+    wl_list_remove(&listener->link);
+    workspace->dirty = false;
+
+    transaction_add_apply_listener(&workspace->transaction_apply);
+
+    workspace_copy_state(&workspace->committed, &workspace->pending);
+}
+
+static void
+workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
+    struct hayward_workspace *workspace =
+        wl_container_of(listener, workspace, transaction_apply);
+
+    wl_list_remove(&listener->link);
+
+    // Damage the old location
+    workspace_damage_whole(workspace);
+
+    workspace_copy_state(&workspace->current, &workspace->committed);
+
+    // Damage the new location
+    workspace_damage_whole(workspace);
+
+    if (workspace->node.destroying) {
+        workspace_destroy(workspace);
+    }
+}
 
 struct workspace_config *
 workspace_find_config(const char *workspace_name) {
@@ -48,9 +100,18 @@ workspace_create(const char *name) {
         return NULL;
     }
     node_init(&workspace->node, N_WORKSPACE, workspace);
+
+    workspace->transaction_commit.notify = workspace_handle_transaction_commit;
+    workspace->transaction_apply.notify = workspace_handle_transaction_apply;
+
     workspace->name = name ? strdup(name) : NULL;
+
     workspace->pending.floating = create_list();
     workspace->pending.tiling = create_list();
+    workspace->committed.floating = create_list();
+    workspace->committed.tiling = create_list();
+    workspace->current.floating = create_list();
+    workspace->current.tiling = create_list();
 
     workspace->gaps_outer = config->gaps_outer;
     workspace->gaps_inner = config->gaps_inner;
@@ -100,6 +161,8 @@ workspace_destroy(struct hayward_workspace *workspace) {
     free(workspace->name);
     list_free(workspace->pending.floating);
     list_free(workspace->pending.tiling);
+    list_free(workspace->committed.floating);
+    list_free(workspace->committed.tiling);
     list_free(workspace->current.floating);
     list_free(workspace->current.tiling);
     free(workspace);
@@ -114,8 +177,8 @@ workspace_begin_destroy(struct hayward_workspace *workspace) {
 
     workspace_detach(workspace);
 
+    workspace_set_dirty(workspace);
     workspace->node.destroying = true;
-    node_set_dirty(&workspace->node);
 }
 
 void
@@ -132,6 +195,40 @@ workspace_consider_destroy(struct hayward_workspace *workspace) {
     }
 
     workspace_begin_destroy(workspace);
+}
+
+void
+workspace_set_dirty(struct hayward_workspace *workspace) {
+    hayward_assert(workspace != NULL, "Expected workspace");
+
+    if (workspace->dirty) {
+        return;
+    }
+    if (workspace->node.destroying) {
+        return;
+    }
+
+    workspace->dirty = true;
+    transaction_add_commit_listener(&workspace->transaction_commit);
+
+    for (int i = 0; i < workspace->committed.floating->length; i++) {
+        struct hayward_window *window = workspace->committed.floating->items[i];
+        window_set_dirty(window);
+    }
+    for (int i = 0; i < workspace->committed.tiling->length; i++) {
+        struct hayward_column *column = workspace->committed.tiling->items[i];
+        column_set_dirty(column);
+    }
+
+    for (int i = 0; i < workspace->pending.floating->length; i++) {
+        struct hayward_window *window = workspace->pending.floating->items[i];
+        window_set_dirty(window);
+    }
+
+    for (int i = 0; i < workspace->pending.tiling->length; i++) {
+        struct hayward_column *column = workspace->pending.tiling->items[i];
+        column_set_dirty(column);
+    }
 }
 
 static bool
@@ -277,11 +374,9 @@ workspace_add_floating(
 
     if (prev_active_floating) {
         window_reconcile_floating(prev_active_floating, workspace);
-        node_set_dirty(&prev_active_floating->node);
     }
 
-    node_set_dirty(&workspace->node);
-    window_set_dirty(window);
+    workspace_set_dirty(workspace);
 }
 
 void
@@ -352,7 +447,7 @@ workspace_insert_tiling(
 
     column_reconcile(column, workspace, output);
 
-    node_set_dirty(&workspace->node);
+    workspace_set_dirty(workspace);
     column_set_dirty(column);
 }
 
@@ -406,7 +501,7 @@ workspace_remove_tiling(
 
     column_reconcile_detached(column);
 
-    node_set_dirty(&workspace->node);
+    workspace_set_dirty(workspace);
     column_set_dirty(column);
 }
 

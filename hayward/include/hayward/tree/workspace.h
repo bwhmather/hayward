@@ -36,6 +36,12 @@ struct hayward_workspace_state {
 struct hayward_workspace {
     struct hayward_node node;
 
+    struct hayward_workspace_state pending;
+    struct hayward_workspace_state committed;
+    struct hayward_workspace_state current;
+
+    bool dirty;
+
     char *name;
 
     struct side_gaps current_gaps;
@@ -44,9 +50,8 @@ struct hayward_workspace {
 
     bool urgent;
 
-    struct hayward_workspace_state pending;
-    struct hayward_workspace_state committed;
-    struct hayward_workspace_state current;
+    struct wl_listener transaction_commit;
+    struct wl_listener transaction_apply;
 };
 
 struct workspace_config *
@@ -63,6 +68,9 @@ workspace_begin_destroy(struct hayward_workspace *workspace);
 
 void
 workspace_consider_destroy(struct hayward_workspace *workspace);
+
+void
+workspace_set_dirty(struct hayward_workspace *workspace);
 
 struct hayward_workspace *
 workspace_by_name(const char *);

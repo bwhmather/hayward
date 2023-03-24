@@ -269,7 +269,7 @@ window_set_dirty(struct hayward_window *window) {
         return;
     }
     if (window->node.destroying) {
-	return;
+        return;
     }
 
     window->dirty = true;
@@ -1034,7 +1034,7 @@ window_raise_floating(struct hayward_window *window) {
     // Bring window to front by putting it at the end of the floating list.
     if (window_is_floating(window) && window->pending.workspace) {
         list_move_to_end(window->pending.workspace->pending.floating, window);
-        node_set_dirty(&window->pending.workspace->node);
+        workspace_set_dirty(window->pending.workspace);
     }
 }
 

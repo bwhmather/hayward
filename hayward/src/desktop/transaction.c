@@ -90,7 +90,7 @@ transaction_destroy(struct hayward_transaction *transaction) {
                 output_destroy(node->hayward_output);
                 break;
             case N_WORKSPACE:
-                workspace_destroy(node->hayward_workspace);
+                hayward_assert(false, "workspaces now handled using events");
                 break;
             case N_COLUMN:
                 hayward_assert(false, "columns now handled using events");
@@ -139,39 +139,6 @@ copy_output_state(
 ) {}
 
 static void
-copy_workspace_state(
-    struct hayward_workspace *workspace,
-    struct hayward_transaction_instruction *instruction
-) {
-    struct hayward_workspace_state *state =
-        &instruction->node->hayward_workspace->committed;
-    memset(state, 0, sizeof(struct hayward_workspace_state));
-
-    state->x = workspace->pending.x;
-    state->y = workspace->pending.y;
-    state->width = workspace->pending.width;
-    state->height = workspace->pending.height;
-
-    if (state->floating) {
-        state->floating->length = 0;
-    } else {
-        state->floating = create_list();
-    }
-    if (state->tiling) {
-        state->tiling->length = 0;
-    } else {
-        state->tiling = create_list();
-    }
-    list_cat(state->floating, workspace->pending.floating);
-    list_cat(state->tiling, workspace->pending.tiling);
-
-    state->focused = workspace->pending.focused;
-
-    state->active_column = workspace->pending.active_column;
-    state->focus_mode = workspace->pending.focus_mode;
-}
-
-static void
 transaction_add_node(
     struct hayward_transaction *transaction, struct hayward_node *node,
     bool server_request
@@ -213,7 +180,7 @@ transaction_add_node(
         copy_output_state(node->hayward_output, instruction);
         break;
     case N_WORKSPACE:
-        copy_workspace_state(node->hayward_workspace, instruction);
+        hayward_assert(false, "workspaces now handled using events");
         break;
     case N_COLUMN:
         hayward_assert(false, "columns now handled using events");
@@ -243,17 +210,6 @@ apply_output_state(
     output_damage_whole(output);
     memcpy(&output->current, state, sizeof(struct hayward_output_state));
     output_damage_whole(output);
-}
-
-static void
-apply_workspace_state(
-    struct hayward_workspace *workspace, struct hayward_workspace_state *state
-) {
-    workspace_damage_whole(workspace);
-    list_free(workspace->current.floating);
-    list_free(workspace->current.tiling);
-    memcpy(&workspace->current, state, sizeof(struct hayward_workspace_state));
-    workspace_damage_whole(workspace);
 }
 
 /**
@@ -295,10 +251,7 @@ transaction_apply(struct hayward_transaction *transaction) {
             );
             break;
         case N_WORKSPACE:
-            apply_workspace_state(
-                node->hayward_workspace,
-                &instruction->node->hayward_workspace->committed
-            );
+            hayward_assert(false, "workspaces now handled using events");
             break;
         case N_COLUMN:
             hayward_assert(false, "columns now handled using events");
@@ -614,10 +567,6 @@ _transaction_commit_dirty(bool server_request) {
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
         seat_commit_focus(seat);
-    }
-
-    if (!server.dirty_nodes->length) {
-        return;
     }
 
     if (!server.pending_transaction) {
