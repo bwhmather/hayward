@@ -14,13 +14,13 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <hayward/desktop.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/tree/column.h>
 #include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
