@@ -35,6 +35,9 @@ struct hayward_output_state {
 
 struct hayward_output {
     struct hayward_node node;
+
+    bool dirty;
+
     struct wlr_output *wlr_output;
     struct hayward_server *server;
     struct wl_list link;
@@ -64,6 +67,8 @@ struct hayward_output {
     struct wl_listener present;
     struct wl_listener damage_destroy;
     struct wl_listener damage_frame;
+    struct wl_listener transaction_commit;
+    struct wl_listener transaction_apply;
 
     struct {
         struct wl_signal disable;
@@ -91,6 +96,9 @@ struct hayward_output *
 output_get_in_direction(
     struct hayward_output *reference, enum wlr_direction direction
 );
+
+void
+output_set_dirty(struct hayward_output *output);
 
 void
 output_reconcile(struct hayward_output *output);

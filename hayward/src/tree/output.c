@@ -16,6 +16,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/desktop/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/ipc-server.h>
 #include <hayward/layers.h>
@@ -44,6 +45,43 @@ opposite_direction(enum wlr_direction d) {
     return 0;
 }
 
+static void
+output_handle_transaction_commit(struct wl_listener *listener, void *data) {
+    struct hayward_output *output =
+        wl_container_of(listener, output, transaction_commit);
+
+    wl_list_remove(&listener->link);
+    output->dirty = false;
+
+    transaction_add_apply_listener(&output->transaction_apply);
+
+    memcpy(
+        &output->committed, &output->pending,
+        sizeof(struct hayward_output_state)
+    );
+}
+
+static void
+output_handle_transaction_apply(struct wl_listener *listener, void *data) {
+    struct hayward_output *output =
+        wl_container_of(listener, output, transaction_apply);
+
+    wl_list_remove(&listener->link);
+
+    output_damage_whole(output);
+
+    memcpy(
+        &output->current, &output->committed,
+        sizeof(struct hayward_output_state)
+    );
+
+    output_damage_whole(output);
+
+    if (output->node.destroying) {
+        output_destroy(output);
+    }
+}
+
 struct hayward_output *
 output_create(struct wlr_output *wlr_output) {
     struct hayward_output *output = calloc(1, sizeof(struct hayward_output));
@@ -52,6 +90,9 @@ output_create(struct wlr_output *wlr_output) {
     wlr_output->data = output;
     output->detected_subpixel = wlr_output->subpixel;
     output->scale_filter = SCALE_FILTER_NEAREST;
+
+    output->transaction_commit.notify = output_handle_transaction_commit;
+    output->transaction_apply.notify = output_handle_transaction_apply;
 
     wl_signal_init(&output->events.disable);
 
@@ -63,6 +104,21 @@ output_create(struct wlr_output *wlr_output) {
     }
 
     return output;
+}
+
+void
+output_set_dirty(struct hayward_output *output) {
+    hayward_assert(output != NULL, "Expected output");
+
+    if (output->dirty) {
+        return;
+    }
+    if (output->node.destroying) {
+        return;
+    }
+
+    output->dirty = true;
+    transaction_add_commit_listener(&output->transaction_commit);
 }
 
 void
@@ -210,8 +266,8 @@ output_begin_destroy(struct hayward_output *output) {
     );
     wl_signal_emit(&output->node.events.destroy, &output->node);
 
+    output_set_dirty(output);
     output->node.destroying = true;
-    node_set_dirty(&output->node);
 }
 
 struct hayward_output *

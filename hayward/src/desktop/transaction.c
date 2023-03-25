@@ -87,7 +87,7 @@ transaction_destroy(struct hayward_transaction *transaction) {
             case N_ROOT:
                 hayward_abort("Never reached");
             case N_OUTPUT:
-                output_destroy(node->hayward_output);
+                hayward_assert(false, "outputs now handled using events");
                 break;
             case N_WORKSPACE:
                 hayward_assert(false, "workspaces now handled using events");
@@ -109,12 +109,6 @@ transaction_destroy(struct hayward_transaction *transaction) {
     }
     free(transaction);
 }
-
-static void
-copy_output_state(
-    struct hayward_output *output,
-    struct hayward_transaction_instruction *instruction
-) {}
 
 static void
 transaction_add_node(
@@ -155,7 +149,7 @@ transaction_add_node(
         hayward_assert(false, "root now handled using events");
         break;
     case N_OUTPUT:
-        copy_output_state(node->hayward_output, instruction);
+        hayward_assert(false, "outputs now handled using events");
         break;
     case N_WORKSPACE:
         hayward_assert(false, "workspaces now handled using events");
@@ -167,15 +161,6 @@ transaction_add_node(
         hayward_assert(false, "windows now handled using events");
         break;
     }
-}
-
-static void
-apply_output_state(
-    struct hayward_output *output, struct hayward_output_state *state
-) {
-    output_damage_whole(output);
-    memcpy(&output->current, state, sizeof(struct hayward_output_state));
-    output_damage_whole(output);
 }
 
 /**
@@ -209,10 +194,7 @@ transaction_apply(struct hayward_transaction *transaction) {
             hayward_assert(false, "root now handled using events");
             break;
         case N_OUTPUT:
-            apply_output_state(
-                node->hayward_output,
-                &instruction->node->hayward_output->committed
-            );
+            hayward_assert(false, "outputs now handled using events");
             break;
         case N_WORKSPACE:
             hayward_assert(false, "workspaces now handled using events");
