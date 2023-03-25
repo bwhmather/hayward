@@ -47,18 +47,9 @@ transaction_shutdown(void) {}
 
 struct hayward_transaction {
     struct wl_event_source *timer;
-    list_t *instructions; // struct hayward_transaction_instruction *
     size_t num_waiting;
     size_t num_configures;
     struct timespec commit_time;
-};
-
-struct hayward_transaction_instruction {
-    struct hayward_transaction *transaction;
-    struct hayward_node *node;
-    uint32_t serial;
-    bool server_request;
-    bool waiting;
 };
 
 static struct hayward_transaction *
@@ -66,101 +57,15 @@ transaction_create(void) {
     struct hayward_transaction *transaction =
         calloc(1, sizeof(struct hayward_transaction));
     hayward_assert(transaction, "Unable to allocate transaction");
-
-    transaction->instructions = create_list();
     return transaction;
 }
 
 static void
 transaction_destroy(struct hayward_transaction *transaction) {
-    // Free instructions
-    for (int i = 0; i < transaction->instructions->length; ++i) {
-        struct hayward_transaction_instruction *instruction =
-            transaction->instructions->items[i];
-        struct hayward_node *node = instruction->node;
-        node->ntxnrefs--;
-        if (node->instruction == instruction) {
-            node->instruction = NULL;
-        }
-        if (node->destroying && node->ntxnrefs == 0) {
-            switch (node->type) {
-            case N_ROOT:
-                hayward_abort("Never reached");
-            case N_OUTPUT:
-                hayward_assert(false, "outputs now handled using events");
-                break;
-            case N_WORKSPACE:
-                hayward_assert(false, "workspaces now handled using events");
-                break;
-            case N_COLUMN:
-                hayward_assert(false, "columns now handled using events");
-                break;
-            case N_WINDOW:
-                hayward_assert(false, "windows now handled using events");
-                break;
-            }
-        }
-        free(instruction);
-    }
-    list_free(transaction->instructions);
-
     if (transaction->timer) {
         wl_event_source_remove(transaction->timer);
     }
     free(transaction);
-}
-
-static void
-transaction_add_node(
-    struct hayward_transaction *transaction, struct hayward_node *node,
-    bool server_request
-) {
-    struct hayward_transaction_instruction *instruction = NULL;
-
-    // Check if we have an instruction for this node already, in which case we
-    // update that instead of creating a new one.
-    if (node->ntxnrefs > 0) {
-        for (int idx = 0; idx < transaction->instructions->length; idx++) {
-            struct hayward_transaction_instruction *other =
-                transaction->instructions->items[idx];
-            if (other->node == node) {
-                instruction = other;
-                break;
-            }
-        }
-    }
-
-    if (!instruction) {
-        instruction = calloc(1, sizeof(struct hayward_transaction_instruction));
-        hayward_assert(instruction, "Unable to allocate instruction");
-
-        instruction->transaction = transaction;
-        instruction->node = node;
-        instruction->server_request = server_request;
-
-        list_add(transaction->instructions, instruction);
-        node->ntxnrefs++;
-    } else if (server_request) {
-        instruction->server_request = true;
-    }
-
-    switch (node->type) {
-    case N_ROOT:
-        hayward_assert(false, "root now handled using events");
-        break;
-    case N_OUTPUT:
-        hayward_assert(false, "outputs now handled using events");
-        break;
-    case N_WORKSPACE:
-        hayward_assert(false, "workspaces now handled using events");
-        break;
-    case N_COLUMN:
-        hayward_assert(false, "columns now handled using events");
-        break;
-    case N_WINDOW:
-        hayward_assert(false, "windows now handled using events");
-        break;
-    }
 }
 
 /**
@@ -182,34 +87,6 @@ transaction_apply(struct hayward_transaction *transaction) {
             (void *)transaction, ms, ms / (1000.0f / 60)
         );
     }
-
-    // Apply the instruction state to the node's current state
-    for (int i = 0; i < transaction->instructions->length; ++i) {
-        struct hayward_transaction_instruction *instruction =
-            transaction->instructions->items[i];
-        struct hayward_node *node = instruction->node;
-
-        switch (node->type) {
-        case N_ROOT:
-            hayward_assert(false, "root now handled using events");
-            break;
-        case N_OUTPUT:
-            hayward_assert(false, "outputs now handled using events");
-            break;
-        case N_WORKSPACE:
-            hayward_assert(false, "workspaces now handled using events");
-            break;
-        case N_COLUMN:
-            hayward_assert(false, "columns now handled using events");
-            break;
-        case N_WINDOW:
-            hayward_assert(false, "windows now handled using events");
-            break;
-        }
-
-        node->instruction = NULL;
-    }
-
     cursor_rebase_all();
 }
 
@@ -254,21 +131,13 @@ handle_timeout(void *data) {
 static void
 transaction_commit(struct hayward_transaction *transaction) {
     hayward_log(
-        HAYWARD_DEBUG, "Transaction %p committing with %i instructions",
-        (void *)transaction, transaction->instructions->length
+        HAYWARD_DEBUG, "Transaction %p committing", (void *)transaction
     );
     transaction->num_waiting = 0;
 
     wl_signal_emit_mutable(
         &hayward_transaction_state.events.transaction_commit, NULL
     );
-
-    for (int i = 0; i < transaction->instructions->length; ++i) {
-        struct hayward_transaction_instruction *instruction =
-            transaction->instructions->items[i];
-        struct hayward_node *node = instruction->node;
-        node->instruction = instruction;
-    }
 
     transaction->num_configures = transaction->num_waiting;
     if (debug.txn_timings) {
@@ -521,13 +390,6 @@ _transaction_commit_dirty(bool server_request) {
             return;
         }
     }
-
-    for (int i = 0; i < server.dirty_nodes->length; ++i) {
-        struct hayward_node *node = server.dirty_nodes->items[i];
-        transaction_add_node(server.pending_transaction, node, server_request);
-        node->dirty = false;
-    }
-    server.dirty_nodes->length = 0;
 
     transaction_commit_pending();
 }

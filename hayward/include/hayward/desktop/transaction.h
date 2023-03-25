@@ -19,7 +19,6 @@
  * create and commits a transaction from the dirty containers.
  */
 
-struct hayward_transaction_instruction;
 struct hayward_view;
 
 void
