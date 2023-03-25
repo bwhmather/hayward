@@ -111,28 +111,6 @@ transaction_destroy(struct hayward_transaction *transaction) {
 }
 
 static void
-copy_root_state(
-    struct hayward_root *root,
-    struct hayward_transaction_instruction *instruction
-) {
-    struct hayward_root_state *state =
-        &instruction->node->hayward_root->committed;
-    memset(state, 0, sizeof(struct hayward_root_state));
-
-    if (state->workspaces) {
-        state->workspaces->length = 0;
-    } else {
-        state->workspaces = create_list();
-    }
-    list_cat(state->workspaces, root->pending.workspaces);
-
-    state->active_workspace = root->pending.active_workspace;
-    state->active_output = root->pending.active_output;
-
-    state->focused_layer = root->pending.focused_layer;
-}
-
-static void
 copy_output_state(
     struct hayward_output *output,
     struct hayward_transaction_instruction *instruction
@@ -174,7 +152,7 @@ transaction_add_node(
 
     switch (node->type) {
     case N_ROOT:
-        copy_root_state(node->hayward_root, instruction);
+        hayward_assert(false, "root now handled using events");
         break;
     case N_OUTPUT:
         copy_output_state(node->hayward_output, instruction);
@@ -188,18 +166,6 @@ transaction_add_node(
     case N_WINDOW:
         hayward_assert(false, "windows now handled using events");
         break;
-    }
-}
-
-static void
-apply_root_state(struct hayward_root *root, struct hayward_root_state *state) {
-    if (root->current.active_workspace != NULL) {
-        workspace_damage_whole(root->current.active_workspace);
-    }
-    list_free(root->current.workspaces);
-    memcpy(&root->current, state, sizeof(struct hayward_output_state));
-    if (root->current.active_workspace != NULL) {
-        workspace_damage_whole(root->current.active_workspace);
     }
 }
 
@@ -240,9 +206,7 @@ transaction_apply(struct hayward_transaction *transaction) {
 
         switch (node->type) {
         case N_ROOT:
-            apply_root_state(
-                node->hayward_root, &instruction->node->hayward_root->committed
-            );
+            hayward_assert(false, "root now handled using events");
             break;
         case N_OUTPUT:
             apply_output_state(

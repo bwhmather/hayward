@@ -38,6 +38,46 @@
 struct hayward_root *root;
 
 static void
+root_copy_state(
+    struct hayward_root_state *tgt, struct hayward_root_state *src
+) {
+    list_t *tgt_workspaces = tgt->workspaces;
+
+    memcpy(tgt, src, sizeof(struct hayward_root_state));
+
+    tgt->workspaces = tgt_workspaces;
+    list_clear(tgt->workspaces);
+    list_cat(tgt->workspaces, src->workspaces);
+}
+
+static void
+root_handle_transaction_commit(struct wl_listener *listener, void *data) {
+    struct hayward_root *root =
+        wl_container_of(listener, root, transaction_commit);
+
+    wl_list_remove(&listener->link);
+    root->dirty = false;
+
+    transaction_add_apply_listener(&root->transaction_apply);
+
+    root_copy_state(&root->committed, &root->pending);
+}
+
+static void
+root_handle_transaction_apply(struct wl_listener *listener, void *data) {
+    struct hayward_root *root =
+        wl_container_of(listener, root, transaction_apply);
+
+    wl_list_remove(&listener->link);
+
+    root_copy_state(&root->current, &root->committed);
+
+    if (root->node.destroying) {
+        root_destroy(root);
+    }
+}
+
+static void
 output_layout_handle_change(struct wl_listener *listener, void *data) {
     arrange_root();
     transaction_commit_dirty();
@@ -51,6 +91,10 @@ root_create(void) {
         return NULL;
     }
     node_init(&root->node, N_ROOT, root);
+
+    root->transaction_commit.notify = root_handle_transaction_commit;
+    root->transaction_apply.notify = root_handle_transaction_apply;
+
     root->output_layout = wlr_output_layout_create();
     wl_list_init(&root->all_outputs);
 #if HAVE_XWAYLAND
@@ -60,6 +104,7 @@ root_create(void) {
     wl_signal_init(&root->events.new_node);
     root->outputs = create_list();
     root->pending.workspaces = create_list();
+    root->committed.workspaces = create_list();
     root->current.workspaces = create_list();
 
     root->output_layout_change.notify = output_layout_handle_change;
@@ -73,8 +118,38 @@ void
 root_destroy(struct hayward_root *root) {
     wl_list_remove(&root->output_layout_change.link);
     list_free(root->outputs);
+    list_free(root->pending.workspaces);
+    list_free(root->committed.workspaces);
+    list_free(root->current.workspaces);
     wlr_output_layout_destroy(root->output_layout);
     free(root);
+}
+
+void
+root_set_dirty(struct hayward_root *root) {
+    hayward_assert(root != NULL, "Expected root");
+
+    if (root->dirty) {
+        return;
+    }
+    if (root->node.destroying) {
+        return;
+    }
+
+    root->dirty = true;
+    transaction_add_commit_listener(&root->transaction_commit);
+
+    for (int i = 0; i < root->committed.workspaces->length; i++) {
+        struct hayward_workspace *workspace =
+            root->committed.workspaces->items[i];
+        workspace_set_dirty(workspace);
+    }
+
+    for (int i = 0; i < root->pending.workspaces->length; i++) {
+        struct hayward_workspace *workspace =
+            root->pending.workspaces->items[i];
+        workspace_set_dirty(workspace);
+    }
 }
 
 struct pid_workspace {
@@ -288,7 +363,7 @@ root_add_workspace(struct hayward_workspace *workspace) {
     }
     workspace_reconcile(workspace);
 
-    node_set_dirty(&root->node);
+    root_set_dirty(root);
     workspace_set_dirty(workspace);
 }
 
@@ -316,7 +391,7 @@ root_remove_workspace(struct hayward_workspace *workspace) {
     workspace_reconcile_detached(workspace);
 
     workspace_set_dirty(workspace);
-    node_set_dirty(&root->node);
+    root_set_dirty(root);
 }
 
 static int
@@ -366,7 +441,7 @@ root_set_active_workspace(struct hayward_workspace *workspace) {
         root->pending.active_output = active_output;
     }
 
-    node_set_dirty(&root->node);
+    root_set_dirty(root);
 }
 
 struct hayward_workspace *

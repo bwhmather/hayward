@@ -41,6 +41,9 @@ struct hayward_root_state {
 
 struct hayward_root {
     struct hayward_node node;
+
+    bool dirty;
+
     struct wlr_output_layout *output_layout;
 
     struct wl_listener output_layout_change;
@@ -75,6 +78,9 @@ struct hayward_root {
     struct hayward_window *focused_window;
     struct hayward_workspace *focused_workspace;
 
+    struct wl_listener transaction_commit;
+    struct wl_listener transaction_apply;
+
     struct {
         struct wl_signal new_node;
     } events;
@@ -85,6 +91,9 @@ root_create(void);
 
 void
 root_destroy(struct hayward_root *root);
+
+void
+root_set_dirty(struct hayward_root *root);
 
 struct hayward_workspace *
 root_workspace_for_pid(pid_t pid);
