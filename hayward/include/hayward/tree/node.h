@@ -45,10 +45,6 @@ struct hayward_node {
     size_t ntxnrefs;
     bool destroying;
 
-    // If true, indicates that the container has pending state that differs from
-    // the current.
-    bool dirty;
-
     struct {
         struct wl_signal destroy;
     } events;
@@ -59,13 +55,6 @@ node_init(struct hayward_node *node, enum hayward_node_type type, void *thing);
 
 const char *
 node_type_to_str(enum hayward_node_type type);
-
-/**
- * Mark a node as dirty if it isn't already. Dirty nodes will be included in the
- * next transaction then unmarked as dirty.
- */
-void
-node_set_dirty(struct hayward_node *node);
 
 bool
 node_is_view(struct hayward_node *node);

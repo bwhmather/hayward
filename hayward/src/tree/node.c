@@ -46,18 +46,6 @@ node_type_to_str(enum hayward_node_type type) {
     return "";
 }
 
-void
-node_set_dirty(struct hayward_node *node) {
-    hayward_assert(node->type != N_WINDOW, "Use window_set_dirty");
-    hayward_assert(node->type != N_COLUMN, "Use column_set_dirty");
-    hayward_assert(node->type != N_WORKSPACE, "Use workspace_set_dirty");
-    if (node->dirty) {
-        return;
-    }
-    node->dirty = true;
-    list_add(server.dirty_nodes, node);
-}
-
 // TODO (hayward) rename to node_is_window.
 bool
 node_is_view(struct hayward_node *node) {
