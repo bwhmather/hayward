@@ -29,8 +29,6 @@
 #include <hayward/xwayland.h>
 #endif
 
-struct hayward_transaction;
-
 struct hayward_server {
     struct wl_display *wl_display;
     struct wl_event_loop *wl_event_loop;
@@ -118,16 +116,6 @@ struct hayward_server {
     // The timeout for transactions, after which a transaction is applied
     // regardless of readiness.
     size_t txn_timeout_ms;
-
-    // Stores a transaction after it has been committed, but is waiting for
-    // views to ack the new dimensions before being applied. A queued
-    // transaction is frozen and must not have new instructions added to it.
-    struct hayward_transaction *queued_transaction;
-
-    // Stores a pending transaction that will be committed once the existing
-    // queued transaction is applied and freed. The pending transaction can be
-    // updated with new instructions as needed.
-    struct hayward_transaction *pending_transaction;
 
     // Stores the nodes that have been marked as "dirty" and will be put into
     // the pending transaction.

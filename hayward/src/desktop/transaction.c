@@ -29,7 +29,24 @@
 
 #include <config.h>
 
+struct hayward_transaction {
+    struct wl_event_source *timer;
+    size_t num_waiting;
+    size_t num_configures;
+    struct timespec commit_time;
+};
+
 static struct {
+    // Stores a transaction after it has been committed, but is waiting for
+    // views to ack the new dimensions before being applied. A queued
+    // transaction is frozen and must not have new instructions added to it.
+    struct hayward_transaction *queued_transaction;
+
+    // Stores a pending transaction that will be committed once the existing
+    // queued transaction is applied and freed. The pending transaction can be
+    // updated with new instructions as needed.
+    struct hayward_transaction *pending_transaction;
+
     struct {
         struct wl_signal transaction_commit;
         struct wl_signal transaction_apply;
@@ -44,13 +61,6 @@ transaction_init(void) {
 
 void
 transaction_shutdown(void) {}
-
-struct hayward_transaction {
-    struct wl_event_source *timer;
-    size_t num_waiting;
-    size_t num_configures;
-    struct timespec commit_time;
-};
 
 static struct hayward_transaction *
 transaction_create(void) {
@@ -95,20 +105,20 @@ transaction_commit_pending(void);
 
 static void
 transaction_progress(void) {
-    if (!server.queued_transaction) {
+    if (!hayward_transaction_state.queued_transaction) {
         return;
     }
-    if (server.queued_transaction->num_waiting > 0) {
+    if (hayward_transaction_state.queued_transaction->num_waiting > 0) {
         return;
     }
     wl_signal_emit_mutable(
         &hayward_transaction_state.events.transaction_apply, NULL
     );
-    transaction_apply(server.queued_transaction);
-    transaction_destroy(server.queued_transaction);
-    server.queued_transaction = NULL;
+    transaction_apply(hayward_transaction_state.queued_transaction);
+    transaction_destroy(hayward_transaction_state.queued_transaction);
+    hayward_transaction_state.queued_transaction = NULL;
 
-    if (!server.pending_transaction) {
+    if (!hayward_transaction_state.pending_transaction) {
         hayward_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
         return;
     }
@@ -173,12 +183,13 @@ transaction_commit(struct hayward_transaction *transaction) {
 
 static void
 transaction_commit_pending(void) {
-    if (server.queued_transaction) {
+    if (hayward_transaction_state.queued_transaction) {
         return;
     }
-    struct hayward_transaction *transaction = server.pending_transaction;
-    server.pending_transaction = NULL;
-    server.queued_transaction = transaction;
+    struct hayward_transaction *transaction =
+        hayward_transaction_state.pending_transaction;
+    hayward_transaction_state.pending_transaction = NULL;
+    hayward_transaction_state.queued_transaction = transaction;
 
     transaction_commit(transaction);
     transaction_progress();
@@ -345,7 +356,8 @@ validate_tree(void) {
 
 void
 transaction_acquire(void) {
-    struct hayward_transaction *transaction = server.queued_transaction;
+    struct hayward_transaction *transaction =
+        hayward_transaction_state.queued_transaction;
     hayward_assert(transaction != NULL, "No in progress transaction");
 
     transaction->num_waiting++;
@@ -353,7 +365,8 @@ transaction_acquire(void) {
 
 void
 transaction_release(void) {
-    struct hayward_transaction *transaction = server.queued_transaction;
+    struct hayward_transaction *transaction =
+        hayward_transaction_state.queued_transaction;
     hayward_assert(transaction != NULL, "No in progress transaction");
     hayward_assert(
         transaction->num_waiting > 0, "No active locks on transaction"
@@ -384,9 +397,9 @@ _transaction_commit_dirty(bool server_request) {
         seat_commit_focus(seat);
     }
 
-    if (!server.pending_transaction) {
-        server.pending_transaction = transaction_create();
-        if (!server.pending_transaction) {
+    if (!hayward_transaction_state.pending_transaction) {
+        hayward_transaction_state.pending_transaction = transaction_create();
+        if (!hayward_transaction_state.pending_transaction) {
             return;
         }
     }
