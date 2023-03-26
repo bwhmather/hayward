@@ -256,7 +256,7 @@ ipc_json_create_node(
     return object;
 }
 
-static json_object *
+json_object *
 ipc_json_describe_output(struct hayward_output *output) {
     char *name = output->wlr_output->name;
 
@@ -423,7 +423,7 @@ ipc_json_describe_disabled_output(struct hayward_output *output) {
     return object;
 }
 
-static json_object *
+json_object *
 ipc_json_describe_workspace(struct hayward_workspace *workspace) {
     char *name = workspace->name;
 
@@ -461,10 +461,18 @@ ipc_json_describe_workspace(struct hayward_workspace *workspace) {
     for (int i = 0; i < workspace->pending.floating->length; ++i) {
         struct hayward_window *floater = workspace->pending.floating->items[i];
         json_object_array_add(
-            floating_array, ipc_json_describe_node_recursive(&floater->node)
+            floating_array, ipc_json_describe_window(floater)
         );
     }
     json_object_object_add(object, "floating_nodes", floating_array);
+
+    json_object *children = json_object_new_array();
+    for (int i = 0; i < workspace->pending.tiling->length; ++i) {
+        struct hayward_column *column =            workspace->pending.tiling->items[i];
+            json_object_array_add(    children, ipc_json_describe_column(column)
+            );
+    }
+    json_object_object_add(object, "nodes", children);
 
     return object;
 }
@@ -630,7 +638,7 @@ ipc_json_describe_view(struct hayward_window *c, json_object *object) {
 #endif
 }
 
-static json_object *
+json_object *
 ipc_json_describe_column(struct hayward_column *column) {
     char *name = "column";
 
@@ -670,10 +678,19 @@ ipc_json_describe_column(struct hayward_column *column) {
 
     json_object_object_add(object, "floating_nodes", json_object_new_array());
 
+    json_object *children = json_object_new_array();
+    if (column->pending.children) {
+        for (int i = 0; i < column->pending.children->length; ++i) {
+            struct hayward_window *window = column->pending.children->items[i];
+            json_object_array_add(children, ipc_json_describe_window(window));
+        }
+    }
+    json_object_object_add(object, "nodes", children);
+
     return object;
 }
 
-static json_object *
+json_object *
 ipc_json_describe_window(struct hayward_window *window) {
     char *name = window->title;
 
@@ -753,68 +770,28 @@ ipc_json_describe_window(struct hayward_window *window) {
 }
 
 json_object *
-ipc_json_describe_node(struct hayward_node *node) {
-    switch (node->type) {
-    case N_OUTPUT:
-        return ipc_json_describe_output(node->hayward_output);
-    case N_WORKSPACE:
-        return ipc_json_describe_workspace(node->hayward_workspace);
-    case N_COLUMN:
-        return ipc_json_describe_column(node->hayward_column);
-    case N_WINDOW:
-        return ipc_json_describe_window(node->hayward_window);
-    default:
-        hayward_abort("unexpected node type");
-    }
-}
+ipc_json_describe_root(struct hayward_root *root) {
+    char *name = "root";
 
-json_object *
-ipc_json_describe_node_recursive(struct hayward_node *node) {
-    json_object *object = ipc_json_describe_node(node);
-    int i;
+    struct wlr_box box;
+    root_get_box(root, &box);
+
+    json_object *object =
+        ipc_json_create_node(root->node.id, "root", name, &box);
 
     json_object *children = json_object_new_array();
-    switch (node->type) {
-    case N_ROOT:
-        for (i = 0; i < root->outputs->length; ++i) {
-            struct hayward_output *output = root->outputs->items[i];
-            json_object_array_add(
-                children, ipc_json_describe_node_recursive(&output->node)
-            );
-        }
-        for (i = 0; i < root->pending.workspaces->length; ++i) {
-            struct hayward_workspace *workspace =
-                root->pending.workspaces->items[i];
-            json_object_array_add(
-                children, ipc_json_describe_node_recursive(&workspace->node)
-            );
-        }
-        break;
-    case N_OUTPUT:
-        break;
-    case N_WORKSPACE:
-        for (i = 0; i < node->hayward_workspace->pending.tiling->length; ++i) {
-            struct hayward_window *container =
-                node->hayward_workspace->pending.tiling->items[i];
-            json_object_array_add(
-                children, ipc_json_describe_node_recursive(&container->node)
-            );
-        }
-        break;
-    case N_COLUMN:
-        if (node->hayward_column->pending.children) {
-            for (i = 0; i < node->hayward_column->pending.children->length;
-                 ++i) {
-                struct hayward_window *child =
-                    node->hayward_column->pending.children->items[i];
-                json_object_array_add(
-                    children, ipc_json_describe_node_recursive(&child->node)
-                );
-            }
-        }
-        break;
-    case N_WINDOW:
-        break;
+    for (int i = 0; i < root->outputs->length; ++i) {
+        struct hayward_output *output = root->outputs->items[i];
+        json_object_array_add(
+            children, ipc_json_describe_output(output)
+        );
+    }
+    for (int i = 0; i < root->pending.workspaces->length; ++i) {
+        struct hayward_workspace *workspace =
+            root->pending.workspaces->items[i];
+        json_object_array_add(
+            children, ipc_json_describe_workspace(workspace)
+        );
     }
 
     json_object_object_add(object, "nodes", children);

@@ -373,7 +373,7 @@ ipc_event_workspace(
     json_object_object_add(obj, "change", json_object_new_string(change));
     if (old) {
         json_object_object_add(
-            obj, "old", ipc_json_describe_node_recursive(&old->node)
+            obj, "old", ipc_json_describe_workspace(old)
         );
     } else {
         json_object_object_add(obj, "old", NULL);
@@ -381,7 +381,7 @@ ipc_event_workspace(
 
     if (new) {
         json_object_object_add(
-            obj, "current", ipc_json_describe_node_recursive(&new->node)
+            obj, "current", ipc_json_describe_workspace(new)
         );
     } else {
         json_object_object_add(obj, "current", NULL);
@@ -401,7 +401,7 @@ ipc_event_window(struct hayward_window *window, const char *change) {
     json_object *obj = json_object_new_object();
     json_object_object_add(obj, "change", json_object_new_string(change));
     json_object_object_add(
-        obj, "container", ipc_json_describe_node_recursive(&window->node)
+        obj, "container", ipc_json_describe_window(window)
     );
 
     const char *json_string = json_object_to_json_string(obj);
@@ -668,7 +668,7 @@ ipc_client_disconnect(struct ipc_client *client) {
 
 static void
 ipc_get_workspaces_callback(struct hayward_workspace *workspace, void *data) {
-    json_object *workspace_json = ipc_json_describe_node(&workspace->node);
+    json_object *workspace_json = ipc_json_describe_workspace(workspace);
     // override the default focused indicator because
     // it's set differently for the get_workspaces reply
     struct hayward_workspace *focused_workspace = root_get_active_workspace();
@@ -749,7 +749,7 @@ ipc_client_handle_command(
         json_object *outputs = json_object_new_array();
         for (int i = 0; i < root->outputs->length; ++i) {
             struct hayward_output *output = root->outputs->items[i];
-            json_object *output_json = ipc_json_describe_node(&output->node);
+            json_object *output_json = ipc_json_describe_output(output);
 
             const char *subpixel = hayward_wl_output_subpixel_to_string(
                 output->wlr_output->subpixel
@@ -873,7 +873,7 @@ ipc_client_handle_command(
     }
 
     case IPC_GET_TREE: {
-        json_object *tree = ipc_json_describe_node_recursive(&root->node);
+        json_object *tree = ipc_json_describe_root(root);
         const char *json_string = json_object_to_json_string(tree);
         ipc_send_reply(
             client, payload_type, json_string, (uint32_t)strlen(json_string)
