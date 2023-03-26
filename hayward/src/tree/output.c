@@ -204,9 +204,8 @@ output_destroy(struct hayward_output *output) {
         "Tried to free output which still had a wlr_output"
     );
     hayward_assert(
-        output->node.ntxnrefs == 0,
-        "Tried to free output "
-        "which is still referenced by transactions"
+        !output->dirty,
+        "Tried to free output which is queued for the next transaction"
     );
     wl_event_source_remove(output->repaint_timer);
     free(output);

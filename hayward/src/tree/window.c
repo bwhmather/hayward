@@ -157,9 +157,7 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     );
 
     if (!wl_list_empty(&view->saved_buffers)) {
-        if (!window->node.destroying || window->node.ntxnrefs == 1) {
-            view_remove_saved_buffer(view);
-        }
+        view_remove_saved_buffer(view);
     }
 
     // If the view hasn't responded to the configure, center it within
@@ -222,9 +220,8 @@ window_destroy(struct hayward_window *window) {
         "Tried to free window which wasn't marked as destroying"
     );
     hayward_assert(
-        window->node.ntxnrefs == 0,
-        "Tried to free window "
-        "which is still referenced by transactions"
+        !window->dirty,
+        "Tried to free window which is queued for the next transaction"
     );
     free(window->title);
     free(window->formatted_title);

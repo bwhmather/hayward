@@ -42,7 +42,6 @@ struct hayward_node {
     size_t id;
 
     struct hayward_transaction_instruction *instruction;
-    size_t ntxnrefs;
     bool destroying;
 
     struct {

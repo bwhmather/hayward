@@ -153,9 +153,8 @@ workspace_destroy(struct hayward_workspace *workspace) {
         "Tried to free workspace which wasn't marked as destroying"
     );
     hayward_assert(
-        workspace->node.ntxnrefs == 0,
-        "Tried to free workspace "
-        "which is still referenced by transactions"
+        !workspace->dirty,
+        "Tried to free workspace which is queued for the next transaction"
     );
 
     free(workspace->name);
