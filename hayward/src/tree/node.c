@@ -29,23 +29,6 @@ node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
     wl_signal_init(&node->events.destroy);
 }
 
-const char *
-node_type_to_str(enum hayward_node_type type) {
-    switch (type) {
-    case N_ROOT:
-        return "N_ROOT";
-    case N_OUTPUT:
-        return "N_OUTPUT";
-    case N_WORKSPACE:
-        return "N_WORKSPACE";
-    case N_COLUMN:
-        return "N_COLUMN";
-    case N_WINDOW:
-        return "N_WINDOW";
-    }
-    return "";
-}
-
 // TODO (hayward) rename to node_is_window.
 bool
 node_is_view(struct hayward_node *node) {
