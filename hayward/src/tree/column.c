@@ -64,7 +64,7 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
     // Damage the new location
     desktop_damage_column(column);
 
-    if (column->destroying) {
+    if (column->current.dead) {
         column_destroy(column);
     }
 }
@@ -97,7 +97,7 @@ void
 column_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     hayward_assert(
-        column->destroying,
+        column->current.dead,
         "Tried to free column which wasn't marked as destroying"
     );
     list_free(column->pending.children);
@@ -112,12 +112,13 @@ column_begin_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     wl_signal_emit(&column->node.events.destroy, &column->node);
 
-    column_set_dirty(column);
-    column->destroying = true;
+    column->pending.dead = true;
 
     if (column->pending.workspace) {
         column_detach(column);
     }
+
+    column_set_dirty(column);
 }
 
 void
@@ -140,9 +141,6 @@ column_set_dirty(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
 
     if (column->dirty) {
-        return;
-    }
-    if (column->destroying) {
         return;
     }
 

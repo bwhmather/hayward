@@ -34,6 +34,8 @@ struct hayward_column_state {
     list_t *children; // struct hayward_window
 
     struct hayward_window *active_child;
+
+    bool dead;
 };
 
 struct hayward_column {
@@ -44,7 +46,6 @@ struct hayward_column {
     struct hayward_column_state current;
 
     bool dirty;
-    bool destroying; // TODO move to state.
 
     // For C_ROOT, this has no meaning
     // For other types, this is the position in layout coordinates
