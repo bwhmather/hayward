@@ -449,14 +449,15 @@ cursor_rebase_all(void) {
 }
 
 void
-cursor_update_image(struct hayward_cursor *cursor, struct hayward_node *node) {
-    if (node && node->type == N_WINDOW) {
-        // Try a node's resize edge
-        enum wlr_edges edge =
-            find_resize_edge(node->hayward_window, NULL, cursor);
+cursor_update_image(
+    struct hayward_cursor *cursor, struct hayward_window *window
+) {
+    if (window != NULL) {
+        // Try a window's resize edge
+        enum wlr_edges edge = find_resize_edge(window, NULL, cursor);
         if (edge == WLR_EDGE_NONE) {
             cursor_set_image(cursor, "left_ptr", NULL);
-        } else if (window_is_floating(node->hayward_window)) {
+        } else if (window_is_floating(window)) {
             cursor_set_image(cursor, wlr_xcursor_get_resize_name(edge), NULL);
         } else {
             if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {

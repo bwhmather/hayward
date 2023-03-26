@@ -48,7 +48,7 @@
 #endif
 
 struct seatop_default_event {
-    struct hayward_node *previous_node;
+    struct hayward_window *previous_window;
     uint32_t pressed_buttons[HAYWARD_CURSOR_PRESSED_BUTTONS_CAP];
     size_t pressed_button_count;
 };
@@ -613,13 +613,13 @@ handle_button(
 static void
 check_focus_follows_mouse(
     struct hayward_seat *seat, struct seatop_default_event *e,
-    struct hayward_node *hovered_node
+    struct hayward_output *output, struct hayward_window *window
 ) {
     struct hayward_window *focus = root_get_focused_window();
 
     // This is the case if a layer-shell surface is hovered.
     // If it's on another output, focus the active workspace there.
-    if (!hovered_node) {
+    if (output == NULL && window == NULL) {
         struct wlr_output *wlr_output = wlr_output_layout_output_at(
             root->output_layout, seat->cursor->cursor->x,
             seat->cursor->cursor->y
@@ -637,7 +637,7 @@ check_focus_follows_mouse(
 
     // If a workspace node is hovered (eg. in the gap area), only set focus if
     // the workspace is on a different output to the previous focus.
-    if (focus && hovered_node->type == N_OUTPUT) {
+    if (focus && output != NULL && window == NULL) {
         struct wlr_output *wlr_output = wlr_output_layout_output_at(
             root->output_layout, seat->cursor->cursor->x,
             seat->cursor->cursor->y
@@ -658,15 +658,14 @@ check_focus_follows_mouse(
 
     // This is where we handle the common case. We don't want to focus inactive
     // tabs, hence the view_is_visible check.
-    if (node_is_view(hovered_node) &&
-        view_is_visible(hovered_node->hayward_window->view)) {
+    if (window != NULL && view_is_visible(window->view)) {
         // e->previous_node is the node which the cursor was over previously.
         // If focus_follows_mouse is yes and the cursor got over the view due
         // to, say, a workspace switch, we don't want to set the focus.
         // But if focus_follows_mouse is "always", we do.
-        if (hovered_node != e->previous_node ||
+        if (window != e->previous_window ||
             config->focus_follows_mouse == FOLLOWS_ALWAYS) {
-            root_set_focused_window(hovered_node->hayward_window);
+            root_set_focused_window(window);
             transaction_commit_dirty();
         }
     }
@@ -686,15 +685,8 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
         &sx, &sy
     );
 
-    struct hayward_node *node = NULL;
-    if (window != NULL) {
-        node = &window->node;
-    } else if (output != NULL) {
-        node = &output->node;
-    }
-
     if (config->focus_follows_mouse != FOLLOWS_NO) {
-        check_focus_follows_mouse(seat, e, node);
+        check_focus_follows_mouse(seat, e, output, window);
     }
 
     if (surface) {
@@ -703,7 +695,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
             wlr_seat_pointer_notify_motion(seat->wlr_seat, time_msec, sx, sy);
         }
     } else {
-        cursor_update_image(cursor, node);
+        cursor_update_image(cursor, window);
         wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
     }
 
@@ -714,7 +706,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
         }
     }
 
-    e->previous_node = node;
+    e->previous_window = window;
 }
 
 static void
@@ -733,15 +725,8 @@ handle_tablet_tool_motion(
         &sx, &sy
     );
 
-    struct hayward_node *node = NULL;
-    if (window != NULL) {
-        node = &window->node;
-    } else if (output != NULL) {
-        node = &output->node;
-    }
-
     if (config->focus_follows_mouse != FOLLOWS_NO) {
-        check_focus_follows_mouse(seat, e, node);
+        check_focus_follows_mouse(seat, e, output, window);
     }
 
     if (surface) {
@@ -754,7 +739,7 @@ handle_tablet_tool_motion(
             );
         }
     } else {
-        cursor_update_image(cursor, node);
+        cursor_update_image(cursor, window);
         wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tablet_v2_tool);
     }
 
@@ -765,7 +750,7 @@ handle_tablet_tool_motion(
         }
     }
 
-    e->previous_node = node;
+    e->previous_window = window;
 }
 
 /*----------------------------------------\
@@ -897,11 +882,9 @@ handle_rebase(struct hayward_seat *seat, uint32_t time_msec) {
         &sx, &sy
     );
 
-    e->previous_node = NULL;
+    e->previous_window = NULL;
     if (window != NULL) {
-        e->previous_node = &window->node;
-    } else if (output != NULL) {
-        e->previous_node = &output->node;
+        e->previous_window = window;
     }
 
     if (surface) {
@@ -910,7 +893,7 @@ handle_rebase(struct hayward_seat *seat, uint32_t time_msec) {
             wlr_seat_pointer_notify_motion(seat->wlr_seat, time_msec, sx, sy);
         }
     } else {
-        cursor_update_image(cursor, e->previous_node);
+        cursor_update_image(cursor, e->previous_window);
         wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
     }
 }
