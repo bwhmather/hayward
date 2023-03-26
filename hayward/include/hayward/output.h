@@ -31,13 +31,14 @@ struct hayward_output_state {
     // workspace for this output.  Null if no active workspace or no
     // fullscreen window on this output.
     struct hayward_window *fullscreen_window;
+
+    bool dead;
 };
 
 struct hayward_output {
     struct hayward_node node;
 
     bool dirty;
-    bool destroying; // TODO move to state.
 
     struct wlr_output *wlr_output;
     struct hayward_server *server;

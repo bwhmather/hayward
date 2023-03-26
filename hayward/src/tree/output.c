@@ -77,7 +77,7 @@ output_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     output_damage_whole(output);
 
-    if (output->destroying) {
+    if (output->current.dead) {
         output_destroy(output);
     }
 }
@@ -111,9 +111,6 @@ output_set_dirty(struct hayward_output *output) {
     hayward_assert(output != NULL, "Expected output");
 
     if (output->dirty) {
-        return;
-    }
-    if (output->destroying) {
         return;
     }
 
@@ -196,7 +193,7 @@ output_evacuate(struct hayward_output *output) {
 void
 output_destroy(struct hayward_output *output) {
     hayward_assert(
-        output->destroying,
+        output->current.dead,
         "Tried to free output which wasn't marked as destroying"
     );
     hayward_assert(
@@ -265,8 +262,9 @@ output_begin_destroy(struct hayward_output *output) {
     );
     wl_signal_emit(&output->node.events.destroy, &output->node);
 
+    output->pending.dead = true;
+
     output_set_dirty(output);
-    output->destroying = true;
 }
 
 struct hayward_output *
