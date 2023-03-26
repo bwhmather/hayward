@@ -48,25 +48,6 @@
 #include <config.h>
 
 static const char *
-ipc_json_node_type_description(enum hayward_node_type node_type) {
-    switch (node_type) {
-    case N_ROOT:
-        return "root";
-    case N_OUTPUT:
-        return "output";
-    case N_WORKSPACE:
-        return "workspace";
-    case N_COLUMN:
-        // TODO (hayward) Should be "column".
-        return "container";
-    case N_WINDOW:
-        // TODO (hayward) Should be "window",
-        return "container";
-    }
-    return "none";
-}
-
-static const char *
 ipc_json_layout_description(enum hayward_column_layout l) {
     switch (l) {
     case L_SPLIT:
@@ -275,8 +256,16 @@ ipc_json_create_node(
     return object;
 }
 
-static void
-ipc_json_describe_output(struct hayward_output *output, json_object *object) {
+static json_object *
+ipc_json_describe_output(struct hayward_output *output) {
+    char *name = output->wlr_output->name;
+
+    struct wlr_box box;
+    output_get_box(output, &box);
+
+    json_object *object =
+        ipc_json_create_node(output->node.id, "output", name, &box);
+
     struct wlr_output *wlr_output = output->wlr_output;
     json_object_object_add(object, "active", json_object_new_boolean(true));
     json_object_object_add(
@@ -374,6 +363,8 @@ ipc_json_describe_output(struct hayward_output *output, json_object *object) {
     json_object_object_add(
         object, "max_render_time", json_object_new_int(output->max_render_time)
     );
+
+    return object;
 }
 
 json_object *
@@ -432,10 +423,16 @@ ipc_json_describe_disabled_output(struct hayward_output *output) {
     return object;
 }
 
-static void
-ipc_json_describe_workspace(
-    struct hayward_workspace *workspace, json_object *object
-) {
+static json_object *
+ipc_json_describe_workspace(struct hayward_workspace *workspace) {
+    char *name = workspace->name;
+
+    struct wlr_box box;
+    workspace_get_box(workspace, &box);
+
+    json_object *object =
+        ipc_json_create_node(workspace->node.id, "workspace", name, &box);
+
     int num;
     if (isdigit(workspace->name[0])) {
         errno = 0;
@@ -468,6 +465,8 @@ ipc_json_describe_workspace(
         );
     }
     json_object_object_add(object, "floating_nodes", floating_array);
+
+    return object;
 }
 
 static void
@@ -631,8 +630,16 @@ ipc_json_describe_view(struct hayward_window *c, json_object *object) {
 #endif
 }
 
-static void
-ipc_json_describe_column(struct hayward_column *column, json_object *object) {
+static json_object *
+ipc_json_describe_column(struct hayward_column *column) {
+    char *name = "column";
+
+    struct wlr_box box;
+    column_get_box(column, &box);
+
+    json_object *object =
+        ipc_json_create_node(column->node.id, "container", name, &box);
+
     json_object_object_add(
         object, "focused", json_object_new_boolean(column->pending.focused)
     );
@@ -662,10 +669,30 @@ ipc_json_describe_column(struct hayward_column *column, json_object *object) {
     }
 
     json_object_object_add(object, "floating_nodes", json_object_new_array());
+
+    return object;
 }
 
-static void
-ipc_json_describe_window(struct hayward_window *window, json_object *object) {
+static json_object *
+ipc_json_describe_window(struct hayward_window *window) {
+    char *name = window->title;
+
+    struct wlr_box box;
+    window_get_box(window, &box);
+
+    struct wlr_box deco_rect = {0, 0, 0, 0};
+    window_get_deco_rect(window, &deco_rect);
+    size_t count = 1;
+    if (window->pending.parent != NULL &&
+        window->pending.parent->pending.layout == L_STACKED) {
+        count = window_get_siblings(window)->length;
+    }
+    box.y += deco_rect.height * count;
+    box.height -= deco_rect.height * count;
+
+    json_object *object =
+        ipc_json_create_node(window->node.id, "container", name, &box);
+
     json_object_object_add(
         object, "focused", json_object_new_boolean(window->pending.focused)
     );
@@ -721,49 +748,24 @@ ipc_json_describe_window(struct hayward_window *window, json_object *object) {
     );
 
     ipc_json_describe_view(window, object);
+
+    return object;
 }
 
 json_object *
 ipc_json_describe_node(struct hayward_node *node) {
-    char *name = node_get_name(node);
-
-    struct wlr_box box;
-    node_get_box(node, &box);
-
-    if (node->type == N_WINDOW) {
-        struct wlr_box deco_rect = {0, 0, 0, 0};
-        window_get_deco_rect(node->hayward_window, &deco_rect);
-        size_t count = 1;
-        if (node->hayward_window->pending.parent != NULL &&
-            node->hayward_window->pending.parent->pending.layout == L_STACKED) {
-            count = window_get_siblings(node->hayward_window)->length;
-        }
-        box.y += deco_rect.height * count;
-        box.height -= deco_rect.height * count;
-    }
-
-    json_object *object = ipc_json_create_node(
-        (int)node->id, ipc_json_node_type_description(node->type), name, &box
-    );
-
     switch (node->type) {
-    case N_ROOT:
-        break;
     case N_OUTPUT:
-        ipc_json_describe_output(node->hayward_output, object);
-        break;
+        return ipc_json_describe_output(node->hayward_output);
     case N_WORKSPACE:
-        ipc_json_describe_workspace(node->hayward_workspace, object);
-        break;
+        return ipc_json_describe_workspace(node->hayward_workspace);
     case N_COLUMN:
-        ipc_json_describe_column(node->hayward_column, object);
-        break;
+        return ipc_json_describe_column(node->hayward_column);
     case N_WINDOW:
-        ipc_json_describe_window(node->hayward_window, object);
-        break;
+        return ipc_json_describe_window(node->hayward_window);
+    default:
+        hayward_abort("unexpected node type");
     }
-
-    return object;
 }
 
 json_object *

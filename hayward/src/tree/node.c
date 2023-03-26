@@ -29,23 +29,6 @@ node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
     wl_signal_init(&node->events.destroy);
 }
 
-char *
-node_get_name(struct hayward_node *node) {
-    switch (node->type) {
-    case N_ROOT:
-        return "root";
-    case N_OUTPUT:
-        return node->hayward_output->wlr_output->name;
-    case N_WORKSPACE:
-        return node->hayward_workspace->name;
-    case N_COLUMN:
-        return "column";
-    case N_WINDOW:
-        return node->hayward_window->title;
-    }
-    return NULL;
-}
-
 void
 node_get_box(struct hayward_node *node, struct wlr_box *box) {
     switch (node->type) {
