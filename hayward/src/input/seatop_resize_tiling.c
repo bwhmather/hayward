@@ -96,7 +96,7 @@ handle_button(
             window_set_resizing(e->v_sib, false);
             arrange_column(e->v_container->pending.parent);
         }
-        transaction_commit_dirty();
+        transaction_flush();
         seatop_begin_default(seat);
     }
 }
@@ -134,7 +134,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     if (amount_y != 0) {
         window_resize_tiled(e->container, e->edge_y, amount_y);
     }
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -198,6 +198,6 @@ seatop_begin_resize_tiling(
     seat->seatop_impl = &seatop_impl;
     seat->seatop_data = e;
 
-    transaction_commit_dirty();
+    transaction_flush();
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }

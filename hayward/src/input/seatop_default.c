@@ -296,7 +296,7 @@ handle_tablet_tool_tip(
             wlr_layer_surface_v1_from_wlr_surface(surface);
         if (layer->current.keyboard_interactive) {
             root_set_focused_layer(layer);
-            transaction_commit_dirty();
+            transaction_flush();
         }
     } else if (window) {
         bool is_floating_or_child = window_is_floating(window);
@@ -333,7 +333,7 @@ handle_tablet_tool_tip(
             struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
             root_set_focused_surface(xsurface->surface);
-            transaction_commit_dirty();
+            transaction_flush();
         }
     }
 #endif
@@ -436,7 +436,7 @@ handle_button(
     if (output && !window && !surface) {
         if (state == WLR_BUTTON_PRESSED) {
             workspace_set_active_window(workspace, NULL);
-            transaction_commit_dirty();
+            transaction_flush();
         }
         seat_pointer_notify_button(seat, time_msec, button, state);
         return;
@@ -448,7 +448,7 @@ handle_button(
             wlr_layer_surface_v1_from_wlr_surface(surface);
         if (layer->current.keyboard_interactive) {
             root_set_focused_layer(layer);
-            transaction_commit_dirty();
+            transaction_flush();
         }
         if (state == WLR_BUTTON_PRESSED) {
             seatop_begin_down_on_surface(seat, surface, time_msec, sx, sy);
@@ -581,7 +581,7 @@ handle_button(
     // Handle clicking a container surface or decorations
     if (window && state == WLR_BUTTON_PRESSED) {
         root_set_focused_window(window);
-        transaction_commit_dirty();
+        transaction_flush();
         seat_pointer_notify_button(seat, time_msec, button, state);
         return;
     }
@@ -596,7 +596,7 @@ handle_button(
             struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
             root_set_focused_surface(xsurface->surface);
-            transaction_commit_dirty();
+            transaction_flush();
             seat_pointer_notify_button(seat, time_msec, button, state);
             return;
         }
@@ -630,7 +630,7 @@ check_focus_follows_mouse(
         struct hayward_output *hovered_output = wlr_output->data;
         if (focus && hovered_output != root_get_active_output()) {
             root_set_active_output(hovered_output);
-            transaction_commit_dirty();
+            transaction_flush();
         }
         return;
     }
@@ -651,7 +651,7 @@ check_focus_follows_mouse(
 
         if (hovered_output != focused_output) {
             root_set_active_output(hovered_output);
-            transaction_commit_dirty();
+            transaction_flush();
         }
         return;
     }
@@ -666,7 +666,7 @@ check_focus_follows_mouse(
         if (window != e->previous_window ||
             config->focus_follows_mouse == FOLLOWS_ALWAYS) {
             root_set_focused_window(window);
-            transaction_commit_dirty();
+            transaction_flush();
         }
     }
 }
@@ -839,7 +839,7 @@ handle_pointer_axis(
 
             struct hayward_window *new_sibling = siblings->items[desired];
             root_set_focused_window(new_sibling);
-            transaction_commit_dirty();
+            transaction_flush();
             handled = true;
         }
     }

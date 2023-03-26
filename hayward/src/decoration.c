@@ -41,7 +41,7 @@ server_decoration_handle_mode(struct wl_listener *listener, void *data) {
     view_update_csd_from_client(view, csd);
 
     arrange_window(view->window);
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 void

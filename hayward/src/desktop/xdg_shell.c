@@ -324,8 +324,9 @@ handle_commit(struct wl_listener *listener, void *data) {
         desktop_damage_view(view);
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {
+            // TODO shouldn't need to be sent a configure in the transaction.
             view_update_size(view);
-            transaction_commit_dirty_client();
+            transaction_flush();
         } else {
             view_center_surface(view);
         }
@@ -382,7 +383,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     window_set_fullscreen(window, req->fullscreen);
 
     arrange_root();
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -467,7 +468,7 @@ handle_map(struct wl_listener *listener, void *data) {
         toplevel->requested.fullscreen_output, csd
     );
 
-    transaction_commit_dirty();
+    transaction_flush();
 
     xdg_shell_view->commit.notify = handle_commit;
     wl_signal_add(

@@ -70,18 +70,7 @@ transaction_acquire(void);
 void
 transaction_release(void);
 
-/**
- * Find all dirty containers, create and commit a transaction containing them,
- * and unmark them as dirty.
- */
 void
-transaction_commit_dirty(void);
-
-/*
- * Same as transaction_commit_dirty, but signalling that this is a
- * client-initiated change has already taken effect.
- */
-void
-transaction_commit_dirty_client(void);
+transaction_flush(void);
 
 #endif

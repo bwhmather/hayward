@@ -733,7 +733,7 @@ seat_execute_command(
         ipc_event_binding(binding);
     }
 
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 /**

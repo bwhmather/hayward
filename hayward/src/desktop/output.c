@@ -834,7 +834,7 @@ damage_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&output->damage_destroy.link);
     wl_list_remove(&output->damage_frame.link);
 
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -886,7 +886,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     output->wlr_output->data = NULL;
     output->wlr_output = NULL;
 
-    transaction_commit_dirty();
+    transaction_flush();
 
     update_output_manager_config(server);
 }
@@ -915,7 +915,7 @@ handle_mode(struct wl_listener *listener, void *data) {
     }
     arrange_layers(output);
     arrange_output(output);
-    transaction_commit_dirty();
+    transaction_flush();
 
     update_output_manager_config(output->server);
 }
@@ -942,7 +942,7 @@ handle_commit(struct wl_listener *listener, void *data) {
         (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {
         arrange_layers(output);
         arrange_output(output);
-        transaction_commit_dirty();
+        transaction_flush();
 
         update_output_manager_config(output->server);
     }
@@ -1029,7 +1029,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
     apply_output_config(oc, output);
     free_output_config(oc);
 
-    transaction_commit_dirty();
+    transaction_flush();
 
     update_output_manager_config(server);
 }

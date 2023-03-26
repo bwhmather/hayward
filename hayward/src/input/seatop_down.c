@@ -150,7 +150,7 @@ seatop_begin_down(
     e->container = container;
 
     window_raise_floating(container);
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 void

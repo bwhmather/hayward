@@ -29,227 +29,19 @@
 
 #include <config.h>
 
-struct hayward_transaction {
+static struct {
+    bool queued;
+
     struct wl_event_source *timer;
     size_t num_waiting;
     size_t num_configures;
     struct timespec commit_time;
-};
-
-static struct {
-    bool queued;
-
-    // Stores a transaction after it has been committed, but is waiting for
-    // views to ack the new dimensions before being applied. A queued
-    // transaction is frozen and must not have new instructions added to it.
-    struct hayward_transaction *queued_transaction;
-
-    // Stores a pending transaction that will be committed once the existing
-    // queued transaction is applied and freed. The pending transaction can be
-    // updated with new instructions as needed.
-    struct hayward_transaction *pending_transaction;
 
     struct {
         struct wl_signal transaction_commit;
         struct wl_signal transaction_apply;
     } events;
 } hayward_transaction_state;
-
-void
-transaction_init(void) {
-    wl_signal_init(&hayward_transaction_state.events.transaction_commit);
-    wl_signal_init(&hayward_transaction_state.events.transaction_apply);
-}
-
-void
-transaction_shutdown(void) {}
-
-static struct hayward_transaction *
-transaction_create(void) {
-    struct hayward_transaction *transaction =
-        calloc(1, sizeof(struct hayward_transaction));
-    hayward_assert(transaction, "Unable to allocate transaction");
-    return transaction;
-}
-
-static void
-transaction_destroy(struct hayward_transaction *transaction) {
-    if (transaction->timer) {
-        wl_event_source_remove(transaction->timer);
-    }
-    free(transaction);
-}
-
-/**
- * Apply a transaction to the "current" state of the tree.
- */
-static void
-transaction_apply(struct hayward_transaction *transaction) {
-    hayward_log(HAYWARD_DEBUG, "Applying transaction %p", (void *)transaction);
-    if (debug.txn_timings) {
-        struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        struct timespec *commit = &transaction->commit_time;
-        float ms = (now.tv_sec - commit->tv_sec) * 1000 +
-            (now.tv_nsec - commit->tv_nsec) / 1000000.0;
-        hayward_log(
-            HAYWARD_DEBUG,
-            "Transaction %p: %.1fms waiting "
-            "(%.1f frames if 60Hz)",
-            (void *)transaction, ms, ms / (1000.0f / 60)
-        );
-    }
-    cursor_rebase_all();
-}
-
-static void
-transaction_commit_pending(void);
-
-static void
-transaction_progress(void) {
-    if (!hayward_transaction_state.queued_transaction) {
-        return;
-    }
-    if (hayward_transaction_state.queued_transaction->num_waiting > 0) {
-        return;
-    }
-    wl_signal_emit_mutable(
-        &hayward_transaction_state.events.transaction_apply, NULL
-    );
-    transaction_apply(hayward_transaction_state.queued_transaction);
-    transaction_destroy(hayward_transaction_state.queued_transaction);
-    hayward_transaction_state.queued_transaction = NULL;
-
-    if (!hayward_transaction_state.pending_transaction) {
-        hayward_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
-        return;
-    }
-
-    transaction_commit_pending();
-}
-
-static int
-handle_timeout(void *data) {
-    struct hayward_transaction *transaction = data;
-    hayward_log(
-        HAYWARD_DEBUG, "Transaction %p timed out (%zi waiting)",
-        (void *)transaction, transaction->num_waiting
-    );
-    transaction->num_waiting = 0;
-    transaction_progress();
-    return 0;
-}
-
-static void
-transaction_commit(struct hayward_transaction *transaction) {
-    hayward_log(
-        HAYWARD_DEBUG, "Transaction %p committing", (void *)transaction
-    );
-    transaction->num_waiting = 0;
-
-    wl_signal_emit_mutable(
-        &hayward_transaction_state.events.transaction_commit, NULL
-    );
-
-    transaction->num_configures = transaction->num_waiting;
-    if (debug.txn_timings) {
-        clock_gettime(CLOCK_MONOTONIC, &transaction->commit_time);
-    }
-    if (debug.noatomic) {
-        transaction->num_waiting = 0;
-    } else if (debug.txn_wait) {
-        // Force the transaction to time out even if all views are ready.
-        // We do this by inflating the waiting counter.
-        transaction->num_waiting += 1000000;
-    }
-
-    if (transaction->num_waiting) {
-        // Set up a timer which the views must respond within
-        transaction->timer = wl_event_loop_add_timer(
-            server.wl_event_loop, handle_timeout, transaction
-        );
-        if (transaction->timer) {
-            wl_event_source_timer_update(
-                transaction->timer, server.txn_timeout_ms
-            );
-        } else {
-            hayward_log_errno(
-                HAYWARD_ERROR,
-                "Unable to create transaction timer "
-                "(some imperfect frames might be rendered)"
-            );
-            transaction->num_waiting = 0;
-        }
-    }
-}
-
-static void
-transaction_commit_pending(void) {
-    if (hayward_transaction_state.queued_transaction) {
-        return;
-    }
-    struct hayward_transaction *transaction =
-        hayward_transaction_state.pending_transaction;
-    hayward_transaction_state.pending_transaction = NULL;
-    hayward_transaction_state.queued_transaction = transaction;
-
-    transaction_commit(transaction);
-    transaction_progress();
-}
-
-void
-transaction_notify_view_ready_by_serial(
-    struct hayward_view *view, uint32_t serial
-) {
-    struct hayward_window *window = view->window;
-
-    if (!window->is_configuring) {
-        return;
-    }
-    if (window->configure_serial == 0) {
-        return;
-    }
-    if (serial != window->configure_serial) {
-        return;
-    }
-
-    transaction_release();
-}
-
-void
-transaction_notify_view_ready_by_geometry(
-    struct hayward_view *view, double x, double y, int width, int height
-) {
-    struct hayward_window *window = view->window;
-    struct hayward_window_state *state = &window->committed;
-
-    if (!window->is_configuring) {
-        return;
-    }
-    if (window->configure_serial != 0) {
-        return;
-    }
-
-    if ((int)state->content_x != (int)x || (int)state->content_y != (int)y ||
-        state->content_width != width || state->content_height != height) {
-        return;
-    }
-    transaction_release();
-}
-
-void
-transaction_add_commit_listener(struct wl_listener *listener) {
-    wl_signal_add(
-        &hayward_transaction_state.events.transaction_commit, listener
-    );
-}
-
-void
-transaction_add_apply_listener(struct wl_listener *listener) {
-    wl_signal_add(
-        &hayward_transaction_state.events.transaction_apply, listener
-    );
-}
 
 static void
 validate_tree(void) {
@@ -357,69 +149,236 @@ validate_tree(void) {
 }
 
 void
+transaction_init(void) {
+    memset(&hayward_transaction_state, 0, sizeof(hayward_transaction_state));
+
+    wl_signal_init(&hayward_transaction_state.events.transaction_commit);
+    wl_signal_init(&hayward_transaction_state.events.transaction_apply);
+}
+
+void
+transaction_shutdown(void) {
+    if (hayward_transaction_state.timer) {
+        wl_event_source_remove(hayward_transaction_state.timer);
+    }
+}
+
+/**
+ * Apply a transaction to the "current" state of the tree.
+ */
+static void
+transaction_apply(void) {
+    hayward_assert(
+        hayward_transaction_state.num_waiting == 0, "Can't apply while waiting"
+    );
+
+    hayward_log(HAYWARD_DEBUG, "Applying transaction");
+
+    hayward_transaction_state.num_configures = 0;
+
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_apply, NULL
+    );
+
+    // TODO move to signal handler.
+    cursor_rebase_all();
+
+    if (debug.txn_timings) {
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        struct timespec *commit = &hayward_transaction_state.commit_time;
+        float ms = (now.tv_sec - commit->tv_sec) * 1000 +
+            (now.tv_nsec - commit->tv_nsec) / 1000000.0;
+        hayward_log(
+            HAYWARD_DEBUG, "Transaction: %.1fms waiting (%.1f frames if 60Hz)",
+            ms, ms / (1000.0f / 60)
+        );
+    }
+
+    if (!hayward_transaction_state.queued) {
+        hayward_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
+        return;
+    }
+}
+
+static void
+transaction_progress(void) {
+    if (hayward_transaction_state.num_waiting > 0) {
+        return;
+    }
+
+    transaction_apply();
+    transaction_flush();
+}
+
+static int
+handle_timeout(void *data) {
+    hayward_log(
+        HAYWARD_DEBUG, "Transaction timed out (%zi waiting)",
+        hayward_transaction_state.num_waiting
+    );
+    hayward_transaction_state.num_waiting = 0;
+    transaction_progress();
+    return 0;
+}
+
+static void
+transaction_commit(void) {
+    hayward_assert(hayward_transaction_state.queued, "No transaction queued");
+    hayward_assert(
+        hayward_transaction_state.num_waiting == 0,
+        "Can't commit when transaction is in progress"
+    );
+    hayward_assert(
+        hayward_transaction_state.num_configures == 0,
+        "Can't commit when transaction is in progress"
+    );
+
+    hayward_log(HAYWARD_DEBUG, "Committing transaction");
+
+    hayward_transaction_state.queued = false;
+
+#ifndef NDEBUG
+    // TODO register as event listener.
+    validate_tree();
+#endif
+
+    // TODO register as event listener.
+    root_commit_focus();
+
+    // TODO register as event listener.
+    struct hayward_seat *seat;
+    wl_list_for_each(seat, &server.input->seats, link) {
+        seat_commit_focus(seat);
+    }
+
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_commit, NULL
+    );
+
+    hayward_transaction_state.num_configures =
+        hayward_transaction_state.num_waiting;
+    if (debug.txn_timings) {
+        clock_gettime(CLOCK_MONOTONIC, &hayward_transaction_state.commit_time);
+    }
+    if (debug.noatomic) {
+        hayward_transaction_state.num_waiting = 0;
+    } else if (debug.txn_wait) {
+        // Force the transaction to time out even if all views are ready.
+        // We do this by inflating the waiting counter.
+        hayward_transaction_state.num_waiting += 1000000;
+    }
+
+    if (hayward_transaction_state.num_waiting) {
+        // Set up a timer which the views must respond within
+        hayward_transaction_state.timer =
+            wl_event_loop_add_timer(server.wl_event_loop, handle_timeout, NULL);
+        if (hayward_transaction_state.timer) {
+            wl_event_source_timer_update(
+                hayward_transaction_state.timer, server.txn_timeout_ms
+            );
+        } else {
+            hayward_log_errno(
+                HAYWARD_ERROR,
+                "Unable to create transaction timer "
+                "(some imperfect frames might be rendered)"
+            );
+            hayward_transaction_state.num_waiting = 0;
+        }
+    }
+
+    transaction_progress();
+}
+
+void
+transaction_notify_view_ready_by_serial(
+    struct hayward_view *view, uint32_t serial
+) {
+    struct hayward_window *window = view->window;
+
+    if (!window->is_configuring) {
+        return;
+    }
+    if (window->configure_serial == 0) {
+        return;
+    }
+    if (serial != window->configure_serial) {
+        return;
+    }
+
+    transaction_release();
+}
+
+void
+transaction_notify_view_ready_by_geometry(
+    struct hayward_view *view, double x, double y, int width, int height
+) {
+    struct hayward_window *window = view->window;
+    struct hayward_window_state *state = &window->committed;
+
+    if (!window->is_configuring) {
+        return;
+    }
+    if (window->configure_serial != 0) {
+        return;
+    }
+
+    if ((int)state->content_x != (int)x || (int)state->content_y != (int)y ||
+        state->content_width != width || state->content_height != height) {
+        return;
+    }
+    transaction_release();
+}
+
+void
+transaction_add_commit_listener(struct wl_listener *listener) {
+    wl_signal_add(
+        &hayward_transaction_state.events.transaction_commit, listener
+    );
+}
+
+void
+transaction_add_apply_listener(struct wl_listener *listener) {
+    wl_signal_add(
+        &hayward_transaction_state.events.transaction_apply, listener
+    );
+}
+
+void
 transaction_ensure_queued(void) {
     hayward_transaction_state.queued = true;
 }
 
 void
 transaction_acquire(void) {
-    struct hayward_transaction *transaction =
-        hayward_transaction_state.queued_transaction;
-    hayward_assert(transaction != NULL, "No in progress transaction");
-
-    transaction->num_waiting++;
+    hayward_transaction_state.num_waiting++;
 }
 
 void
 transaction_release(void) {
-    struct hayward_transaction *transaction =
-        hayward_transaction_state.queued_transaction;
-    hayward_assert(transaction != NULL, "No in progress transaction");
     hayward_assert(
-        transaction->num_waiting > 0, "No active locks on transaction"
+        hayward_transaction_state.num_waiting > 0, "No in progress transaction"
     );
 
-    transaction->num_waiting--;
+    hayward_transaction_state.num_waiting--;
 
-    if (transaction->num_waiting == 0) {
-        hayward_log(
-            HAYWARD_DEBUG, "Transaction %p is ready", (void *)transaction
-        );
-        wl_event_source_timer_update(transaction->timer, 0);
+    if (hayward_transaction_state.num_waiting == 0) {
+        hayward_log(HAYWARD_DEBUG, "Transaction is ready");
+        wl_event_source_timer_update(hayward_transaction_state.timer, 0);
     }
 
     transaction_progress();
 }
 
-static void
-_transaction_commit_dirty(bool server_request) {
-#ifndef NDEBUG
-    validate_tree();
-#endif
-
-    root_commit_focus();
-
-    struct hayward_seat *seat;
-    wl_list_for_each(seat, &server.input->seats, link) {
-        seat_commit_focus(seat);
+void
+transaction_flush(void) {
+    if (hayward_transaction_state.num_waiting != 0) {
+        return;
     }
 
-    if (!hayward_transaction_state.pending_transaction) {
-        hayward_transaction_state.pending_transaction = transaction_create();
-        if (!hayward_transaction_state.pending_transaction) {
-            return;
-        }
+    if (!hayward_transaction_state.queued) {
+        return;
     }
 
-    transaction_commit_pending();
-}
-
-void
-transaction_commit_dirty(void) {
-    _transaction_commit_dirty(true);
-}
-
-void
-transaction_commit_dirty_client(void) {
-    _transaction_commit_dirty(false);
+    transaction_commit();
 }

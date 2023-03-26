@@ -484,7 +484,7 @@ main(int argc, char **argv) {
     load_haywardbars();
     run_deferred_commands();
     run_deferred_bindings();
-    transaction_commit_dirty();
+    transaction_flush();
 
     if (config->haywardnag_config_errors.client != NULL) {
         haywardnag_show(&config->haywardnag_config_errors);

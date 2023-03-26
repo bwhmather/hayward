@@ -244,7 +244,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     } else {
         handle_motion_prethreshold(seat);
     }
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -323,7 +323,7 @@ finalize_move(struct hayward_seat *seat) {
         arrange_workspace(target_workspace);
     }
 
-    transaction_commit_dirty();
+    transaction_flush();
     seatop_begin_default(seat);
 }
 
@@ -387,7 +387,7 @@ seatop_begin_move_tiling_threshold(
     seat->seatop_data = e;
 
     window_raise_floating(moving_window);
-    transaction_commit_dirty();
+    transaction_flush();
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }
 

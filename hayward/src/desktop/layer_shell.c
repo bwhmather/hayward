@@ -364,7 +364,7 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -418,7 +418,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     hayward_assert(wlr_output, "wlr_layer_surface_v1 has null output");
     struct hayward_output *output = wlr_output->data;
     arrange_layers(output);
-    transaction_commit_dirty();
+    transaction_flush();
     wl_list_remove(&hayward_layer->output_destroy.link);
     hayward_layer->layer_surface->output = NULL;
 

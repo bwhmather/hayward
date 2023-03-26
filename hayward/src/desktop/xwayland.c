@@ -462,8 +462,9 @@ handle_commit(struct wl_listener *listener, void *data) {
         desktop_damage_view(view);
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {
+            // TODO shouldn't need to be sent a configure in the transaction.
             view_update_size(view);
-            transaction_commit_dirty_client();
+            transaction_flush();
         } else {
             view_center_surface(view);
         }
@@ -540,7 +541,7 @@ handle_map(struct wl_listener *listener, void *data) {
     // Put it back into the tree
     view_map(view, xsurface->surface, xsurface->fullscreen, NULL, false);
 
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -611,7 +612,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     window_set_fullscreen(view->window, xsurface->fullscreen);
 
     arrange_root();
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -673,7 +674,7 @@ handle_request_activate(struct wl_listener *listener, void *data) {
     }
     view_request_activate(view);
 
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void

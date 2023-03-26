@@ -80,7 +80,7 @@ root_handle_transaction_apply(struct wl_listener *listener, void *data) {
 static void
 output_layout_handle_change(struct wl_listener *listener, void *data) {
     arrange_root();
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 struct hayward_root *

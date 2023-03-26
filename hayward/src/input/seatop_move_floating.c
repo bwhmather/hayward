@@ -31,7 +31,7 @@ finalize_move(struct hayward_seat *seat) {
     window_floating_move_to(
         e->window, e->window->pending.x, e->window->pending.y
     );
-    transaction_commit_dirty();
+    transaction_flush();
 
     seatop_begin_default(seat);
 }
@@ -63,7 +63,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     desktop_damage_window(e->window);
     window_floating_move_to(e->window, cursor->x - e->dx, cursor->y - e->dy);
     desktop_damage_window(e->window);
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -101,7 +101,7 @@ seatop_begin_move_floating(
     seat->seatop_data = e;
 
     window_raise_floating(window);
-    transaction_commit_dirty();
+    transaction_flush();
 
     cursor_set_image(cursor, "grab", NULL);
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);

@@ -43,7 +43,7 @@ handle_button(
     if (seat->cursor->pressed_button_count == 0) {
         window_set_resizing(window, false);
         arrange_window(window); // Send configure w/o resizing hint
-        transaction_commit_dirty();
+        transaction_flush();
         seatop_begin_default(seat);
     }
 }
@@ -162,7 +162,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     window->pending.content_height += relative_grow_height;
 
     arrange_window(window);
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -210,7 +210,7 @@ seatop_begin_resize_floating(
 
     window_set_resizing(window, true);
     window_raise_floating(window);
-    transaction_commit_dirty();
+    transaction_flush();
 
     const char *image =
         edge == WLR_EDGE_NONE ? "se-resize" : wlr_xcursor_get_resize_name(edge);

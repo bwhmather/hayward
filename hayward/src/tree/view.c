@@ -583,7 +583,7 @@ handle_foreign_activate_request(struct wl_listener *listener, void *data) {
     root_set_focused_window(view->window);
     window_raise_floating(view->window);
 
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -609,7 +609,7 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
             arrange_workspace(window->pending.workspace);
         }
     }
-    transaction_commit_dirty();
+    transaction_flush();
 }
 
 static void
@@ -805,7 +805,7 @@ view_unmap(struct hayward_view *view) {
         }
     }
 
-    transaction_commit_dirty();
+    transaction_flush();
     view->surface = NULL;
 }
 
