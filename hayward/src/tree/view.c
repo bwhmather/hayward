@@ -788,7 +788,7 @@ view_unmap(struct hayward_view *view) {
         workspace_consider_destroy(workspace);
     }
 
-    if (workspace && !workspace->destroying) {
+    if (workspace && !workspace->pending.dead) {
         arrange_workspace(workspace);
         workspace_detect_urgent(workspace);
     }

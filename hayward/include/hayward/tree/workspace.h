@@ -32,6 +32,8 @@ struct hayward_workspace_state {
 
     enum hayward_focus_mode focus_mode;
     bool focused;
+
+    bool dead;
 };
 
 struct hayward_workspace {
@@ -42,7 +44,6 @@ struct hayward_workspace {
     struct hayward_workspace_state current;
 
     bool dirty;
-    bool destroying; // TODO move to state.
 
     char *name;
 

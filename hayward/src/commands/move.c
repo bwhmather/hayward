@@ -294,7 +294,7 @@ cmd_move_window(int argc, char **argv) {
         }
 
         // Re-arrange windows
-        if (old_workspace && !old_workspace->destroying) {
+        if (old_workspace && !old_workspace->pending.dead) {
             arrange_workspace(old_workspace);
         }
         // TODO (hayward) it should often be possible to get away without
@@ -365,7 +365,7 @@ cmd_move_window(int argc, char **argv) {
 
     // arrange windows
     arrange_root();
-    if (old_workspace && !old_workspace->destroying) {
+    if (old_workspace && !old_workspace->pending.dead) {
         arrange_workspace(old_workspace);
     }
     arrange_node(node_get_parent(destination));

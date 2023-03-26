@@ -75,7 +75,7 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
     // Damage the new location
     workspace_damage_whole(workspace);
 
-    if (workspace->destroying) {
+    if (workspace->current.dead) {
         workspace_destroy(workspace);
     }
 }
@@ -149,7 +149,7 @@ void
 workspace_destroy(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
     hayward_assert(
-        workspace->destroying,
+        workspace->current.dead,
         "Tried to free workspace which wasn't marked as destroying"
     );
     hayward_assert(
@@ -175,9 +175,9 @@ workspace_begin_destroy(struct hayward_workspace *workspace) {
     wl_signal_emit(&workspace->node.events.destroy, &workspace->node);
 
     workspace_detach(workspace);
+    workspace->pending.dead = true;
 
     workspace_set_dirty(workspace);
-    workspace->destroying = true;
 }
 
 void
@@ -201,9 +201,6 @@ workspace_set_dirty(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
     if (workspace->dirty) {
-        return;
-    }
-    if (workspace->destroying) {
         return;
     }
 
@@ -244,7 +241,7 @@ bool
 workspace_is_visible(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
-    if (workspace->destroying) {
+    if (workspace->pending.dead) {
         return false;
     }
 
