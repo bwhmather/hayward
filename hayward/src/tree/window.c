@@ -50,6 +50,9 @@
 
 #include <config.h>
 
+static void
+window_destroy(struct hayward_window *window);
+
 static bool
 window_should_configure(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
@@ -212,7 +215,7 @@ window_create(struct hayward_view *view) {
     return c;
 }
 
-void
+static void
 window_destroy(struct hayward_window *window) {
     hayward_assert(
         window->current.dead,

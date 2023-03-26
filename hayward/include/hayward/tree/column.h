@@ -75,9 +75,6 @@ struct hayward_column *
 column_create(void);
 
 void
-column_destroy(struct hayward_column *column);
-
-void
 column_begin_destroy(struct hayward_column *column);
 
 void

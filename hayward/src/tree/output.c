@@ -46,6 +46,9 @@ opposite_direction(enum wlr_direction d) {
 }
 
 static void
+output_destroy(struct hayward_output *output);
+
+static void
 output_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hayward_output *output =
         wl_container_of(listener, output, transaction_commit);
@@ -190,7 +193,7 @@ output_evacuate(struct hayward_output *output) {
     }
 }
 
-void
+static void
 output_destroy(struct hayward_output *output) {
     hayward_assert(
         output->current.dead,

@@ -30,6 +30,9 @@
 #include <config.h>
 
 static void
+workspace_destroy(struct hayward_workspace *workspace);
+
+static void
 workspace_copy_state(
     struct hayward_workspace_state *tgt, struct hayward_workspace_state *src
 ) {
@@ -145,7 +148,7 @@ workspace_create(const char *name) {
     return workspace;
 }
 
-void
+static void
 workspace_destroy(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
     hayward_assert(

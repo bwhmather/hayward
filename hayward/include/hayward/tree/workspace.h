@@ -64,9 +64,6 @@ struct hayward_workspace *
 workspace_create(const char *name);
 
 void
-workspace_destroy(struct hayward_workspace *workspace);
-
-void
 workspace_begin_destroy(struct hayward_workspace *workspace);
 
 void

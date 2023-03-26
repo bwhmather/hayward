@@ -24,6 +24,9 @@
 #include <config.h>
 
 static void
+column_destroy(struct hayward_column *column);
+
+static void
 column_copy_state(
     struct hayward_column_state *tgt, struct hayward_column_state *src
 ) {
@@ -93,7 +96,7 @@ column_create(void) {
     return c;
 }
 
-void
+static void
 column_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     hayward_assert(
