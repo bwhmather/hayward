@@ -298,8 +298,6 @@ server_init(struct hayward_server *server) {
         server->txn_timeout_ms = 200;
     }
 
-    server->dirty_nodes = create_list();
-
     server->input = input_manager_create(server);
     input_manager_get_default_seat(); // create seat0
 
@@ -314,7 +312,6 @@ server_fini(struct hayward_server *server) {
 #endif
     wl_display_destroy_clients(server->wl_display);
     wl_display_destroy(server->wl_display);
-    list_free(server->dirty_nodes);
 }
 
 bool

@@ -116,10 +116,6 @@ struct hayward_server {
     // The timeout for transactions, after which a transaction is applied
     // regardless of readiness.
     size_t txn_timeout_ms;
-
-    // Stores the nodes that have been marked as "dirty" and will be put into
-    // the pending transaction.
-    list_t *dirty_nodes;
 };
 
 extern struct hayward_server server;
