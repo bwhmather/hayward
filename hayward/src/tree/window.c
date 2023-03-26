@@ -312,6 +312,7 @@ window_reconcile_floating(
     struct hayward_window *window, struct hayward_workspace *workspace
 ) {
     hayward_assert(window != NULL, "Expected window");
+    hayward_assert(window_is_alive(window), "Expected live window");
     hayward_assert(workspace != NULL, "Expected workspace");
 
     window->pending.workspace = workspace;
@@ -328,6 +329,7 @@ window_reconcile_tiling(
     struct hayward_window *window, struct hayward_column *column
 ) {
     hayward_assert(window != NULL, "Expected window");
+    hayward_assert(window_is_alive(window), "Expected live window");
     hayward_assert(column != NULL, "Expected column");
 
     window->pending.workspace = column->pending.workspace;
@@ -714,6 +716,7 @@ window_fullscreen_disable(struct hayward_window *window) {
 static void
 window_fullscreen_enable(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
+    hayward_assert(window_is_alive(window), "Expected live window");
 
     struct hayward_workspace *workspace = window->pending.workspace;
     hayward_assert(workspace != NULL, "Window must be attached to a workspace");
@@ -859,6 +862,7 @@ floating_natural_resize(struct hayward_window *window) {
 void
 window_floating_resize_and_center(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
+    hayward_assert(window_is_alive(window), "Expected live window");
 
     struct hayward_output *output = window->pending.output;
     hayward_assert(output != NULL, "Expected output");
