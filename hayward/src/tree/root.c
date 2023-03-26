@@ -72,7 +72,7 @@ root_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     root_copy_state(&root->current, &root->committed);
 
-    if (root->destroying) {
+    if (root->current.dead) {
         root_destroy(root);
     }
 }
@@ -130,9 +130,6 @@ root_set_dirty(struct hayward_root *root) {
     hayward_assert(root != NULL, "Expected root");
 
     if (root->dirty) {
-        return;
-    }
-    if (root->destroying) {
         return;
     }
 

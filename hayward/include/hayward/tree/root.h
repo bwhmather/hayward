@@ -37,13 +37,14 @@ struct hayward_root_state {
      * explicitly focused surface.
      */
     struct wlr_layer_surface_v1 *focused_layer;
+
+    bool dead;
 };
 
 struct hayward_root {
     struct hayward_node node;
 
     bool dirty;
-    bool destroying; // TODO move to state.
 
     struct wlr_output_layout *output_layout;
 
