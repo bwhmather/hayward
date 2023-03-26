@@ -14,7 +14,6 @@ struct hayward_root;
 struct hayward_output;
 struct hayward_workspace;
 struct hayward_window;
-struct hayward_transaction_instruction;
 struct wlr_box;
 
 enum hayward_node_type {
@@ -40,8 +39,6 @@ struct hayward_node {
      * Primarily used in the get_tree JSON output.
      */
     size_t id;
-
-    struct hayward_transaction_instruction *instruction;
 
     struct {
         struct wl_signal destroy;
