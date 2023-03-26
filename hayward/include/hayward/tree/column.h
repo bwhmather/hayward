@@ -74,6 +74,9 @@ struct hayward_column {
 struct hayward_column *
 column_create(void);
 
+bool
+column_is_alive(struct hayward_column *column);
+
 void
 column_begin_destroy(struct hayward_column *column);
 

@@ -63,6 +63,9 @@ workspace_find_config(const char *workspace_name);
 struct hayward_workspace *
 workspace_create(const char *name);
 
+bool
+workspace_is_alive(struct hayward_workspace *workspace);
+
 void
 workspace_begin_destroy(struct hayward_workspace *workspace);
 

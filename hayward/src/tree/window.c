@@ -215,6 +215,12 @@ window_create(struct hayward_view *view) {
     return c;
 }
 
+bool
+window_is_alive(struct hayward_window *window) {
+    hayward_assert(window != NULL, "Expected window");
+    return !window->pending.dead;
+}
+
 static void
 window_destroy(struct hayward_window *window) {
     hayward_assert(

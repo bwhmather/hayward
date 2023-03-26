@@ -109,6 +109,12 @@ output_create(struct wlr_output *wlr_output) {
     return output;
 }
 
+bool
+output_is_alive(struct hayward_output *output) {
+    hayward_assert(output != NULL, "Expected output");
+    return !output->pending.dead;
+}
+
 void
 output_set_dirty(struct hayward_output *output) {
     hayward_assert(output != NULL, "Expected output");

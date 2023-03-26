@@ -96,6 +96,12 @@ column_create(void) {
     return c;
 }
 
+bool
+column_is_alive(struct hayward_column *column) {
+    hayward_assert(column != NULL, "Expected column");
+    return !column->pending.dead;
+}
+
 static void
 column_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");

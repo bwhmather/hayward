@@ -148,6 +148,12 @@ workspace_create(const char *name) {
     return workspace;
 }
 
+bool
+workspace_is_alive(struct hayward_workspace *workspace) {
+    hayward_assert(workspace != NULL, "Expected workspace");
+    return !workspace->pending.dead;
+}
+
 static void
 workspace_destroy(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");

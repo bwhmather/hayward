@@ -126,6 +126,9 @@ struct hayward_window {
 struct hayward_window *
 window_create(struct hayward_view *view);
 
+bool
+window_is_alive(struct hayward_window *window);
+
 void
 window_begin_destroy(struct hayward_window *window);
 

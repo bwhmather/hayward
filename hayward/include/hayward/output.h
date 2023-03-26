@@ -85,6 +85,9 @@ struct hayward_output {
 struct hayward_output *
 output_create(struct wlr_output *wlr_output);
 
+bool
+output_is_alive(struct hayward_output *output);
+
 void
 output_begin_destroy(struct hayward_output *output);
 
