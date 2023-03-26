@@ -42,7 +42,6 @@ struct hayward_node {
     size_t id;
 
     struct hayward_transaction_instruction *instruction;
-    bool destroying;
 
     struct {
         struct wl_signal destroy;

@@ -788,7 +788,7 @@ view_unmap(struct hayward_view *view) {
         workspace_consider_destroy(workspace);
     }
 
-    if (workspace && !workspace->node.destroying) {
+    if (workspace && !workspace->destroying) {
         arrange_workspace(workspace);
         workspace_detect_urgent(workspace);
     }
@@ -1260,7 +1260,7 @@ view_update_title(struct hayward_view *view, bool force) {
 
 bool
 view_is_visible(struct hayward_view *view) {
-    if (view->window->node.destroying) {
+    if (view->window->destroying) {
         return false;
     }
     struct hayward_workspace *workspace = view->window->pending.workspace;

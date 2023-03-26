@@ -44,6 +44,7 @@ struct hayward_column {
     struct hayward_column_state current;
 
     bool dirty;
+    bool destroying; // TODO move to state.
 
     // For C_ROOT, this has no meaning
     // For other types, this is the position in layout coordinates

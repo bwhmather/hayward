@@ -43,6 +43,7 @@ struct hayward_root {
     struct hayward_node node;
 
     bool dirty;
+    bool destroying; // TODO move to state.
 
     struct wlr_output_layout *output_layout;
 

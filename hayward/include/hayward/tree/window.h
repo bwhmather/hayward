@@ -68,6 +68,7 @@ struct hayward_window {
     struct hayward_window_state current;
 
     bool dirty;
+    bool destroying; // TODO move to state.
 
     // Identifier tracking the serial of the configure event sent during at the
     // beginning of the current commit.  Used to discard responses for previous

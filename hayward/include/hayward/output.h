@@ -37,6 +37,7 @@ struct hayward_output {
     struct hayward_node node;
 
     bool dirty;
+    bool destroying; // TODO move to state.
 
     struct wlr_output *wlr_output;
     struct hayward_server *server;

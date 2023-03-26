@@ -53,7 +53,7 @@
 static bool
 window_should_configure(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
-    if (window->node.destroying) {
+    if (window->destroying) {
         return false;
     }
     // TODO if the window's view initiated the change, it should not be
@@ -96,8 +96,7 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     );
     window->dirty = false;
 
-    struct hayward_node *node = &window->node;
-    bool hidden = !node->destroying && !view_is_visible(window->view);
+    bool hidden = !window->destroying && !view_is_visible(window->view);
     if (window_should_configure(window)) {
         struct hayward_window_state *state = &window->committed;
 
@@ -180,11 +179,11 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
         desktop_damage_box(&box);
     }
 
-    if (!window->node.destroying) {
+    if (!window->destroying) {
         window_discover_outputs(window);
     }
 
-    if (window->node.destroying) {
+    if (window->destroying) {
         window_destroy(window);
     }
 }
@@ -216,7 +215,7 @@ window_create(struct hayward_view *view) {
 void
 window_destroy(struct hayward_window *window) {
     hayward_assert(
-        window->node.destroying,
+        window->destroying,
         "Tried to free window which wasn't marked as destroying"
     );
     hayward_assert(
@@ -251,7 +250,7 @@ window_begin_destroy(struct hayward_window *window) {
     window_end_mouse_operation(window);
 
     window_set_dirty(window);
-    window->node.destroying = true;
+    window->destroying = true;
 
     if (window->pending.parent || window->pending.workspace) {
         window_detach(window);
@@ -265,7 +264,7 @@ window_set_dirty(struct hayward_window *window) {
     if (window->dirty) {
         return;
     }
-    if (window->node.destroying) {
+    if (window->destroying) {
         return;
     }
 
