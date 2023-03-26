@@ -468,9 +468,8 @@ ipc_json_describe_workspace(struct hayward_workspace *workspace) {
 
     json_object *children = json_object_new_array();
     for (int i = 0; i < workspace->pending.tiling->length; ++i) {
-        struct hayward_column *column =            workspace->pending.tiling->items[i];
-            json_object_array_add(    children, ipc_json_describe_column(column)
-            );
+        struct hayward_column *column = workspace->pending.tiling->items[i];
+        json_object_array_add(children, ipc_json_describe_column(column));
     }
     json_object_object_add(object, "nodes", children);
 
@@ -782,16 +781,12 @@ ipc_json_describe_root(struct hayward_root *root) {
     json_object *children = json_object_new_array();
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
-        json_object_array_add(
-            children, ipc_json_describe_output(output)
-        );
+        json_object_array_add(children, ipc_json_describe_output(output));
     }
     for (int i = 0; i < root->pending.workspaces->length; ++i) {
         struct hayward_workspace *workspace =
             root->pending.workspaces->items[i];
-        json_object_array_add(
-            children, ipc_json_describe_workspace(workspace)
-        );
+        json_object_array_add(children, ipc_json_describe_workspace(workspace));
     }
 
     json_object_object_add(object, "nodes", children);
