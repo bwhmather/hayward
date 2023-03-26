@@ -135,6 +135,7 @@ root_set_dirty(struct hayward_root *root) {
 
     root->dirty = true;
     transaction_add_commit_listener(&root->transaction_commit);
+    transaction_ensure_queued();
 
     for (int i = 0; i < root->committed.workspaces->length; i++) {
         struct hayward_workspace *workspace =

@@ -54,6 +54,9 @@ transaction_add_commit_listener(struct wl_listener *listener);
 void
 transaction_add_apply_listener(struct wl_listener *listener);
 
+void
+transaction_ensure_queued(void);
+
 /**
  * Can be called during handling of a commit event to inform the transaction
  * of work that needs to be done.  Once the work is done, the lock should be

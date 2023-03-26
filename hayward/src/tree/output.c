@@ -125,6 +125,7 @@ output_set_dirty(struct hayward_output *output) {
 
     output->dirty = true;
     transaction_add_commit_listener(&output->transaction_commit);
+    transaction_ensure_queued();
 }
 
 void

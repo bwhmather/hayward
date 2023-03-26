@@ -37,6 +37,8 @@ struct hayward_transaction {
 };
 
 static struct {
+    bool queued;
+
     // Stores a transaction after it has been committed, but is waiting for
     // views to ack the new dimensions before being applied. A queued
     // transaction is frozen and must not have new instructions added to it.
@@ -352,6 +354,11 @@ validate_tree(void) {
             }
         }
     }
+}
+
+void
+transaction_ensure_queued(void) {
+    hayward_transaction_state.queued = true;
 }
 
 void

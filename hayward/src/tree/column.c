@@ -155,6 +155,7 @@ column_set_dirty(struct hayward_column *column) {
 
     column->dirty = true;
     transaction_add_commit_listener(&column->transaction_commit);
+    transaction_ensure_queued();
 
     for (int i = 0; i < column->committed.children->length; i++) {
         struct hayward_window *child = column->pending.children->items[i];

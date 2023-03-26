@@ -276,8 +276,7 @@ window_set_dirty(struct hayward_window *window) {
 
     window->dirty = true;
     transaction_add_commit_listener(&window->transaction_commit);
-
-    // TODO set view as dirty.
+    transaction_ensure_queued();
 }
 
 void
