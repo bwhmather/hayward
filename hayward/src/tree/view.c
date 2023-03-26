@@ -1260,7 +1260,7 @@ view_update_title(struct hayward_view *view, bool force) {
 
 bool
 view_is_visible(struct hayward_view *view) {
-    if (view->window->destroying) {
+    if (view->window->pending.dead) {
         return false;
     }
     struct hayward_workspace *workspace = view->window->pending.workspace;

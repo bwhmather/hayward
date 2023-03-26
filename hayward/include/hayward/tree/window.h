@@ -57,6 +57,8 @@ struct hayward_window_state {
     // These are in layout coordinates.
     double content_x, content_y;
     double content_width, content_height;
+
+    bool dead;
 };
 
 struct hayward_window {
@@ -68,7 +70,6 @@ struct hayward_window {
     struct hayward_window_state current;
 
     bool dirty;
-    bool destroying; // TODO move to state.
 
     // Identifier tracking the serial of the configure event sent during at the
     // beginning of the current commit.  Used to discard responses for previous
