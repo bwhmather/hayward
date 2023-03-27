@@ -79,20 +79,3 @@ node_get_parent(struct hayward_node *node) {
     }
     return NULL;
 }
-
-list_t *
-node_get_children(struct hayward_node *node) {
-    switch (node->type) {
-    case N_ROOT:
-        return NULL;
-    case N_OUTPUT:
-        return NULL;
-    case N_WORKSPACE:
-        return node->hayward_workspace->pending.tiling;
-    case N_COLUMN:
-        return node->hayward_column->pending.children;
-    case N_WINDOW:
-        return NULL;
-    }
-    return NULL;
-}

@@ -54,7 +54,4 @@ node_get_box(struct hayward_node *node, struct wlr_box *box);
 struct hayward_node *
 node_get_parent(struct hayward_node *node);
 
-list_t *
-node_get_children(struct hayward_node *node);
-
 #endif
