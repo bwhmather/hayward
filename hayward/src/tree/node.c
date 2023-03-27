@@ -96,15 +96,3 @@ node_get_children(struct hayward_node *node) {
     }
     return NULL;
 }
-
-bool
-node_has_ancestor(struct hayward_node *node, struct hayward_node *ancestor) {
-    struct hayward_node *parent = node_get_parent(node);
-    while (parent) {
-        if (parent == ancestor) {
-            return true;
-        }
-        parent = node_get_parent(parent);
-    }
-    return false;
-}

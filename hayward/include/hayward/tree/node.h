@@ -57,7 +57,4 @@ node_get_parent(struct hayward_node *node);
 list_t *
 node_get_children(struct hayward_node *node);
 
-bool
-node_has_ancestor(struct hayward_node *node, struct hayward_node *ancestor);
-
 #endif
