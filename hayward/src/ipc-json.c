@@ -345,12 +345,8 @@ ipc_json_describe_output(struct hayward_output *output) {
     );
     json_object_object_add(object, "current_mode", current_mode_object);
 
-    struct hayward_node *parent = node_get_parent(&output->node);
-    struct wlr_box parent_box = {0, 0, 0, 0};
-
-    if (parent != NULL) {
-        node_get_box(parent, &parent_box);
-    }
+    struct wlr_box parent_box;
+    root_get_box(root, &parent_box);
 
     if (parent_box.width != 0 && parent_box.height != 0) {
         double percent = ((double)output->width / parent_box.width) *
@@ -660,11 +656,9 @@ ipc_json_describe_column(struct hayward_column *column) {
     bool urgent = column_has_urgent_child(column);
     json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
 
-    struct hayward_node *parent = node_get_parent(&column->node);
     struct wlr_box parent_box = {0, 0, 0, 0};
-
-    if (parent != NULL) {
-        node_get_box(parent, &parent_box);
+    if (column->pending.workspace != NULL) {
+        workspace_get_box(column->pending.workspace, &parent_box);
     }
 
     if (parent_box.width != 0 && parent_box.height != 0) {
@@ -730,11 +724,11 @@ ipc_json_describe_window(struct hayward_window *window) {
         json_object_new_int(window->pending.fullscreen)
     );
 
-    struct hayward_node *parent = node_get_parent(&window->node);
     struct wlr_box parent_box = {0, 0, 0, 0};
-
-    if (parent != NULL) {
-        node_get_box(parent, &parent_box);
+    if (window->pending.parent != NULL) {
+        column_get_box(window->pending.parent, &parent_box);
+    } else {
+        workspace_get_box(window->pending.workspace, &parent_box);
     }
 
     if (parent_box.width != 0 && parent_box.height != 0) {

@@ -51,7 +51,4 @@ node_init(struct hayward_node *node, enum hayward_node_type type, void *thing);
 void
 node_get_box(struct hayward_node *node, struct wlr_box *box);
 
-struct hayward_node *
-node_get_parent(struct hayward_node *node);
-
 #endif

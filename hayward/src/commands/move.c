@@ -245,7 +245,9 @@ cmd_move_window(int argc, char **argv) {
     struct hayward_column *old_parent = window->pending.parent;
     struct hayward_workspace *old_workspace = window->pending.workspace;
     struct hayward_output *old_output = window_get_output(window);
-    struct hayward_node *destination = NULL;
+
+    // save focus, in case it needs to be restored
+    struct hayward_window *focus = root_get_focused_window();
 
     // determine destination
     if (strcasecmp(argv[0], "workspace") == 0) {
@@ -313,64 +315,38 @@ cmd_move_window(int argc, char **argv) {
                 argv[1]
             );
         }
-        destination = &new_output->node;
+
+        hayward_move_window_to_output(window, new_output);
+
+        ipc_event_window(window, "move");
+
+        if (focus == window) {
+            focus = NULL;
+            if (old_parent) {
+                focus = old_parent->pending.active_child;
+            }
+            if (!focus && old_workspace) {
+                focus = workspace_get_active_window(old_workspace);
+            }
+        }
+        if (focus != NULL) {
+            root_set_focused_window(focus);
+        }
+
+        if (old_parent) {
+            column_consider_destroy(old_parent);
+        }
+        if (old_workspace) {
+            workspace_consider_destroy(old_workspace);
+        }
+
+        arrange_output(old_output);
+        arrange_output(new_output);
+
+        return cmd_results_new(CMD_SUCCESS, NULL);
     } else {
         return cmd_results_new(CMD_INVALID, expected_syntax);
     }
-
-    // save focus, in case it needs to be restored
-    struct hayward_window *focus = root_get_focused_window();
-
-    switch (destination->type) {
-    case N_WORKSPACE:
-        hayward_move_window_to_workspace(
-            window, destination->hayward_workspace
-        );
-        break;
-    case N_OUTPUT:
-        hayward_move_window_to_output(window, destination->hayward_output);
-        break;
-    case N_WINDOW:
-        // TODO (hayward)
-    case N_COLUMN:
-        hayward_move_window_to_column(window, destination->hayward_column);
-        break;
-    case N_ROOT:
-        break;
-    }
-
-    ipc_event_window(window, "move");
-
-    // restore focus
-    if (focus == window) {
-        focus = NULL;
-        if (old_parent) {
-            focus = old_parent->pending.active_child;
-        }
-        if (!focus && old_workspace) {
-            focus = workspace_get_active_window(old_workspace);
-        }
-    }
-    if (focus != NULL) {
-        root_set_focused_window(focus);
-    }
-
-    // clean-up, destroying parents if the window was the last child
-    if (old_parent) {
-        column_consider_destroy(old_parent);
-    }
-    if (old_workspace) {
-        workspace_consider_destroy(old_workspace);
-    }
-
-    // arrange windows
-    arrange_root();
-    if (old_workspace && !old_workspace->pending.dead) {
-        arrange_workspace(old_workspace);
-    }
-    arrange_node(node_get_parent(destination));
-
-    return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
 static struct cmd_results *

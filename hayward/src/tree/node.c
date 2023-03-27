@@ -49,33 +49,3 @@ node_get_box(struct hayward_node *node, struct wlr_box *box) {
         break;
     }
 }
-
-struct hayward_node *
-node_get_parent(struct hayward_node *node) {
-    switch (node->type) {
-    case N_ROOT:
-        return NULL;
-    case N_OUTPUT:
-        return &root->node;
-    case N_WORKSPACE:
-        return &root->node;
-    case N_COLUMN: {
-        struct hayward_column *column = node->hayward_column;
-        if (column->pending.workspace) {
-            return &column->pending.workspace->node;
-        }
-    }
-        return NULL;
-    case N_WINDOW: {
-        struct hayward_window *window = node->hayward_window;
-        if (window->pending.parent) {
-            return &window->pending.parent->node;
-        }
-        if (window->pending.workspace) {
-            return &window->pending.workspace->node;
-        }
-    }
-        return NULL;
-    }
-    return NULL;
-}
