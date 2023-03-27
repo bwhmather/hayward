@@ -28,24 +28,3 @@ node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
     node->hayward_root = thing;
     wl_signal_init(&node->events.destroy);
 }
-
-void
-node_get_box(struct hayward_node *node, struct wlr_box *box) {
-    switch (node->type) {
-    case N_ROOT:
-        root_get_box(root, box);
-        break;
-    case N_OUTPUT:
-        output_get_box(node->hayward_output, box);
-        break;
-    case N_WORKSPACE:
-        workspace_get_box(node->hayward_workspace, box);
-        break;
-    case N_COLUMN:
-        column_get_box(node->hayward_column, box);
-        break;
-    case N_WINDOW:
-        window_get_box(node->hayward_window, box);
-        break;
-    }
-}

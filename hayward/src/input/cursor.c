@@ -77,7 +77,7 @@ seat_column_window_at_stacked(
     double ly
 ) {
     struct wlr_box box;
-    node_get_box(&column->node, &box);
+    column_get_box(column, &box);
     if (lx < box.x || lx > box.x + box.width || ly < box.y ||
         ly > box.y + box.height) {
         return NULL;
