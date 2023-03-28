@@ -16,7 +16,6 @@
 #include <hayward/config.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>

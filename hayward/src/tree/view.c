@@ -24,7 +24,6 @@
 #include <wlr/xwayland.h>
 
 #include <hayward/input/input-manager.h>
-#include <hayward/tree/node.h>
 
 #include <config.h>
 #if HAVE_XWAYLAND

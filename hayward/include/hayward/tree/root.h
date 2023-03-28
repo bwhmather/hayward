@@ -12,7 +12,6 @@
 
 #include <hayward-common/list.h>
 
-#include <hayward/tree/node.h>
 #include <hayward/tree/window.h>
 
 #include <config.h>
@@ -42,7 +41,6 @@ struct hayward_root_state {
 };
 
 struct hayward_root {
-    struct hayward_node node;
     size_t id;
 
     bool dirty;
@@ -83,10 +81,6 @@ struct hayward_root {
 
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
-
-    struct {
-        struct wl_signal new_node;
-    } events;
 };
 
 struct hayward_root *

@@ -3,7 +3,6 @@
 #include <json.h>
 
 struct hayward_output;
-struct hayward_node;
 struct hayward_input_device;
 struct hayward_seat;
 struct hayward_window;

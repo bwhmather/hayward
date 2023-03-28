@@ -11,7 +11,6 @@
 #include <hayward/config.h>
 #include <hayward/output.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -357,26 +356,5 @@ arrange_root(void) {
         struct hayward_workspace *workspace =
             root->pending.workspaces->items[i];
         arrange_workspace(workspace);
-    }
-}
-
-void
-arrange_node(struct hayward_node *node) {
-    switch (node->type) {
-    case N_ROOT:
-        arrange_root();
-        break;
-    case N_OUTPUT:
-        arrange_output(node->hayward_output);
-        break;
-    case N_WORKSPACE:
-        arrange_workspace(node->hayward_workspace);
-        break;
-    case N_COLUMN:
-        arrange_column(node->hayward_column);
-        break;
-    case N_WINDOW:
-        arrange_window(node->hayward_window);
-        break;
     }
 }

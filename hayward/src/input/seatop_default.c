@@ -36,7 +36,6 @@
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>

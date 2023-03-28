@@ -28,7 +28,6 @@
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
@@ -90,7 +89,7 @@ root_create(void) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_root");
         return NULL;
     }
-    node_init(&root->node, N_ROOT, root);
+
     static size_t next_id = 1;
     root->id = next_id++;
 
@@ -103,7 +102,6 @@ root_create(void) {
     wl_list_init(&root->xwayland_unmanaged);
 #endif
     wl_list_init(&root->drag_icons);
-    wl_signal_init(&root->events.new_node);
     root->outputs = create_list();
     root->pending.workspaces = create_list();
     root->committed.workspaces = create_list();

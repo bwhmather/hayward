@@ -43,7 +43,6 @@
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/workspace.h>
@@ -198,7 +197,7 @@ window_create(struct hayward_view *view) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_window");
         return NULL;
     }
-    node_init(&c->node, N_WINDOW, c);
+
     static size_t next_id = 1;
     c->id = next_id++;
 
@@ -212,8 +211,6 @@ window_create(struct hayward_view *view) {
 
     c->transaction_commit.notify = window_handle_transaction_commit;
     c->transaction_apply.notify = window_handle_transaction_apply;
-
-    wl_signal_emit(&root->events.new_node, &c->node);
 
     window_set_dirty(c);
 
@@ -270,7 +267,7 @@ window_begin_destroy(struct hayward_window *window) {
         window_detach(window);
     }
 
-    wl_signal_emit(&window->events.begin_destroy, &window->node);
+    wl_signal_emit(&window->events.begin_destroy, window);
 
     window_set_dirty(window);
 }

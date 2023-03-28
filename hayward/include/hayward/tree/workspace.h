@@ -10,7 +10,6 @@
 
 #include <hayward/config.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/window.h>
 
 enum hayward_focus_mode {
@@ -37,7 +36,6 @@ struct hayward_workspace_state {
 };
 
 struct hayward_workspace {
-    struct hayward_node node;
     size_t id;
 
     struct hayward_workspace_state pending;

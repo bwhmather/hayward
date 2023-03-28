@@ -30,10 +30,6 @@
 struct hayward_cursor {
     struct hayward_seat *seat;
     struct wlr_cursor *cursor;
-    struct {
-        double x, y;
-        struct hayward_node *node;
-    } previous;
     struct wlr_xcursor_manager *xcursor_manager;
     struct wl_list tablets;
     struct wl_list tablet_pads;

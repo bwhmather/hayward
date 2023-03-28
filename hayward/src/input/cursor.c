@@ -56,7 +56,6 @@
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -1497,9 +1496,6 @@ hayward_cursor_create(struct hayward_seat *seat) {
 
     struct wlr_cursor *wlr_cursor = wlr_cursor_create();
     hayward_assert(wlr_cursor, "could not allocate wlr cursor");
-
-    cursor->previous.x = wlr_cursor->x;
-    cursor->previous.y = wlr_cursor->y;
 
     cursor->seat = seat;
     wlr_cursor_attach_output_layout(wlr_cursor, root->output_layout);

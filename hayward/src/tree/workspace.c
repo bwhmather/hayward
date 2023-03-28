@@ -22,7 +22,6 @@
 #include <hayward/output.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -102,7 +101,7 @@ workspace_create(const char *name) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_workspace");
         return NULL;
     }
-    node_init(&workspace->node, N_WORKSPACE, workspace);
+
     static size_t next_id = 1;
     workspace->id = next_id++;
 
@@ -147,7 +146,6 @@ workspace_create(const char *name) {
     root_sort_workspaces();
 
     ipc_event_workspace(NULL, workspace, "init");
-    wl_signal_emit(&root->events.new_node, &workspace->node);
 
     return workspace;
 }
@@ -193,7 +191,7 @@ workspace_begin_destroy(struct hayward_workspace *workspace) {
 
     workspace_detach(workspace);
 
-    wl_signal_emit(&workspace->events.begin_destroy, &workspace->node);
+    wl_signal_emit(&workspace->events.begin_destroy, workspace);
 
     workspace_set_dirty(workspace);
 }

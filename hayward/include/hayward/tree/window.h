@@ -12,7 +12,9 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
-#include <hayward/tree/node.h>
+
+#define MIN_SANE_W 100
+#define MIN_SANE_H 60
 
 struct hayward_seat;
 struct hayward_root;
@@ -62,7 +64,6 @@ struct hayward_window_state {
 };
 
 struct hayward_window {
-    struct hayward_node node;
     size_t id;
 
     struct hayward_view *view;

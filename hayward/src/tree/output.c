@@ -22,7 +22,6 @@
 #include <hayward/layers.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
@@ -88,7 +87,7 @@ output_handle_transaction_apply(struct wl_listener *listener, void *data) {
 struct hayward_output *
 output_create(struct wlr_output *wlr_output) {
     struct hayward_output *output = calloc(1, sizeof(struct hayward_output));
-    node_init(&output->node, N_OUTPUT, output);
+
     static size_t next_id = 1;
     output->id = next_id++;
 
@@ -144,8 +143,6 @@ output_enable(struct hayward_output *output) {
     }
 
     input_manager_configure_xcursor();
-
-    wl_signal_emit(&root->events.new_node, &output->node);
 
     arrange_layers(output);
     arrange_root();
@@ -280,7 +277,7 @@ output_begin_destroy(struct hayward_output *output) {
 
     output->pending.dead = true;
 
-    wl_signal_emit(&output->events.begin_destroy, &output->node);
+    wl_signal_emit(&output->events.begin_destroy, output);
 
     output_set_dirty(output);
 }

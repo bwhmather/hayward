@@ -15,7 +15,6 @@
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/output.h>
-#include <hayward/tree/node.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -79,7 +78,7 @@ column_create(void) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_column");
         return NULL;
     }
-    node_init(&c->node, N_COLUMN, c);
+
     static size_t next_id = 1;
     c->id = next_id++;
 
@@ -95,8 +94,6 @@ column_create(void) {
 
     c->transaction_commit.notify = column_handle_transaction_commit;
     c->transaction_apply.notify = column_handle_transaction_apply;
-
-    wl_signal_emit(&root->events.new_node, &c->node);
 
     return c;
 }
@@ -132,7 +129,7 @@ column_begin_destroy(struct hayward_column *column) {
         column_detach(column);
     }
 
-    wl_signal_emit(&column->events.begin_destroy, &column->node);
+    wl_signal_emit(&column->events.begin_destroy, column);
 
     column_set_dirty(column);
 }

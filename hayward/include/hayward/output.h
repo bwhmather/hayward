@@ -14,13 +14,11 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
-#include <hayward/tree/node.h>
 
 #include <config.h>
 
 struct hayward_server;
 struct hayward_window;
-struct hayward_node;
 struct hayward_view;
 
 struct hayward_output_state {
@@ -36,7 +34,6 @@ struct hayward_output_state {
 };
 
 struct hayward_output {
-    struct hayward_node node;
     size_t id;
 
     bool dirty;

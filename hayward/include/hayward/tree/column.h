@@ -7,8 +7,6 @@
 
 #include <hayward-common/list.h>
 
-#include <hayward/tree/node.h>
-
 enum hayward_column_layout {
     L_SPLIT,
     L_STACKED,
@@ -39,7 +37,6 @@ struct hayward_column_state {
 };
 
 struct hayward_column {
-    struct hayward_node node;
     size_t id;
 
     struct hayward_column_state pending;
