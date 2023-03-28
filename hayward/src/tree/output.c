@@ -89,6 +89,9 @@ struct hayward_output *
 output_create(struct wlr_output *wlr_output) {
     struct hayward_output *output = calloc(1, sizeof(struct hayward_output));
     node_init(&output->node, N_OUTPUT, output);
+
+    wl_signal_init(&output->events.begin_destroy);
+
     output->wlr_output = wlr_output;
     wlr_output->data = output;
     output->detected_subpixel = wlr_output->subpixel;
@@ -275,7 +278,7 @@ output_begin_destroy(struct hayward_output *output) {
 
     output->pending.dead = true;
 
-    wl_signal_emit(&output->node.events.begin_destroy, &output->node);
+    wl_signal_emit(&output->events.begin_destroy, &output->node);
 
     output_set_dirty(output);
 }

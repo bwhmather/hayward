@@ -74,6 +74,7 @@ struct hayward_output {
 
     struct {
         struct wl_signal disable;
+        struct wl_signal begin_destroy;
     } events;
 
     struct timespec last_presentation;

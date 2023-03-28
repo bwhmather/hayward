@@ -104,6 +104,8 @@ workspace_create(const char *name) {
     }
     node_init(&workspace->node, N_WORKSPACE, workspace);
 
+    wl_signal_init(&workspace->events.begin_destroy);
+
     workspace->transaction_commit.notify = workspace_handle_transaction_commit;
     workspace->transaction_apply.notify = workspace_handle_transaction_apply;
 
@@ -189,7 +191,7 @@ workspace_begin_destroy(struct hayward_workspace *workspace) {
 
     workspace_detach(workspace);
 
-    wl_signal_emit(&workspace->node.events.begin_destroy, &workspace->node);
+    wl_signal_emit(&workspace->events.begin_destroy, &workspace->node);
 
     workspace_set_dirty(workspace);
 }

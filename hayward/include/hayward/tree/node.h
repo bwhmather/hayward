@@ -39,10 +39,6 @@ struct hayward_node {
      * Primarily used in the get_tree JSON output.
      */
     size_t id;
-
-    struct {
-        struct wl_signal begin_destroy;
-    } events;
 };
 
 void

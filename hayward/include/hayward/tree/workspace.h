@@ -55,6 +55,10 @@ struct hayward_workspace {
 
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
+
+    struct {
+        struct wl_signal begin_destroy;
+    } events;
 };
 
 struct workspace_config *

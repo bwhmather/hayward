@@ -26,5 +26,4 @@ node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
     node->id = next_id++;
     node->type = type;
     node->hayward_root = thing;
-    wl_signal_init(&node->events.begin_destroy);
 }

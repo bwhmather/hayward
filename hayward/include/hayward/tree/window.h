@@ -119,6 +119,7 @@ struct hayward_window {
     struct wl_listener transaction_apply;
 
     struct {
+        struct wl_signal begin_destroy;
         struct wl_signal destroy;
     } events;
 };

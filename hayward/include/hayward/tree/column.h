@@ -67,6 +67,7 @@ struct hayward_column {
     struct wl_listener transaction_apply;
 
     struct {
+        struct wl_signal begin_destroy;
         struct wl_signal destroy;
     } events;
 };

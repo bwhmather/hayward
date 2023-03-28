@@ -80,6 +80,10 @@ column_create(void) {
         return NULL;
     }
     node_init(&c->node, N_COLUMN, c);
+
+    wl_signal_init(&c->events.begin_destroy);
+    wl_signal_init(&c->events.destroy);
+
     c->pending.layout = L_STACKED;
     c->alpha = 1.0f;
 
@@ -90,7 +94,6 @@ column_create(void) {
     c->transaction_commit.notify = column_handle_transaction_commit;
     c->transaction_apply.notify = column_handle_transaction_apply;
 
-    wl_signal_init(&c->events.destroy);
     wl_signal_emit(&root->events.new_node, &c->node);
 
     return c;
@@ -127,7 +130,7 @@ column_begin_destroy(struct hayward_column *column) {
         column_detach(column);
     }
 
-    wl_signal_emit(&column->node.events.begin_destroy, &column->node);
+    wl_signal_emit(&column->events.begin_destroy, &column->node);
 
     column_set_dirty(column);
 }
