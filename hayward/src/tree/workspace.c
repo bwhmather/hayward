@@ -103,6 +103,8 @@ workspace_create(const char *name) {
         return NULL;
     }
     node_init(&workspace->node, N_WORKSPACE, workspace);
+    static size_t next_id = 1;
+    workspace->id = next_id++;
 
     wl_signal_init(&workspace->events.begin_destroy);
 

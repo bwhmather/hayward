@@ -22,8 +22,6 @@
 
 void
 node_init(struct hayward_node *node, enum hayward_node_type type, void *thing) {
-    static size_t next_id = 1;
-    node->id = next_id++;
     node->type = type;
     node->hayward_root = thing;
 }

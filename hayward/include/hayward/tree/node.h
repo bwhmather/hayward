@@ -33,12 +33,6 @@ struct hayward_node {
         struct hayward_column *hayward_column;
         struct hayward_window *hayward_window;
     };
-
-    /**
-     * A unique ID to identify this node.
-     * Primarily used in the get_tree JSON output.
-     */
-    size_t id;
 };
 
 void

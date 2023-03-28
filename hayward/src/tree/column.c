@@ -80,6 +80,8 @@ column_create(void) {
         return NULL;
     }
     node_init(&c->node, N_COLUMN, c);
+    static size_t next_id = 1;
+    c->id = next_id++;
 
     wl_signal_init(&c->events.begin_destroy);
     wl_signal_init(&c->events.destroy);

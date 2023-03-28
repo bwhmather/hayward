@@ -38,6 +38,7 @@ struct hayward_workspace_state {
 
 struct hayward_workspace {
     struct hayward_node node;
+    size_t id;
 
     struct hayward_workspace_state pending;
     struct hayward_workspace_state committed;

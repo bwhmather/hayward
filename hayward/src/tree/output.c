@@ -89,6 +89,8 @@ struct hayward_output *
 output_create(struct wlr_output *wlr_output) {
     struct hayward_output *output = calloc(1, sizeof(struct hayward_output));
     node_init(&output->node, N_OUTPUT, output);
+    static size_t next_id = 1;
+    output->id = next_id++;
 
     wl_signal_init(&output->events.begin_destroy);
 

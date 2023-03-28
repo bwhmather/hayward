@@ -91,6 +91,8 @@ root_create(void) {
         return NULL;
     }
     node_init(&root->node, N_ROOT, root);
+    static size_t next_id = 1;
+    root->id = next_id++;
 
     root->transaction_commit.notify = root_handle_transaction_commit;
     root->transaction_apply.notify = root_handle_transaction_apply;

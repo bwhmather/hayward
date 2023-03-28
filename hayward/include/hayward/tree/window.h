@@ -63,6 +63,8 @@ struct hayward_window_state {
 
 struct hayward_window {
     struct hayward_node node;
+    size_t id;
+
     struct hayward_view *view;
 
     struct hayward_window_state pending;

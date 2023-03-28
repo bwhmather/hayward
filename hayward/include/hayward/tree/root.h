@@ -43,6 +43,7 @@ struct hayward_root_state {
 
 struct hayward_root {
     struct hayward_node node;
+    size_t id;
 
     bool dirty;
 

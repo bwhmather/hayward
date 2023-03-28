@@ -40,6 +40,7 @@ struct hayward_column_state {
 
 struct hayward_column {
     struct hayward_node node;
+    size_t id;
 
     struct hayward_column_state pending;
     struct hayward_column_state committed;

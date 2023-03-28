@@ -37,6 +37,7 @@ struct hayward_output_state {
 
 struct hayward_output {
     struct hayward_node node;
+    size_t id;
 
     bool dirty;
 

@@ -264,7 +264,7 @@ ipc_json_describe_output(struct hayward_output *output) {
     output_get_box(output, &box);
 
     json_object *object =
-        ipc_json_create_node(output->node.id, "output", name, &box);
+        ipc_json_create_node(output->id, "output", name, &box);
 
     struct wlr_output *wlr_output = output->wlr_output;
     json_object_object_add(object, "active", json_object_new_boolean(true));
@@ -427,7 +427,7 @@ ipc_json_describe_workspace(struct hayward_workspace *workspace) {
     workspace_get_box(workspace, &box);
 
     json_object *object =
-        ipc_json_create_node(workspace->node.id, "workspace", name, &box);
+        ipc_json_create_node(workspace->id, "workspace", name, &box);
 
     int num;
     if (isdigit(workspace->name[0])) {
@@ -641,7 +641,7 @@ ipc_json_describe_column(struct hayward_column *column) {
     column_get_box(column, &box);
 
     json_object *object =
-        ipc_json_create_node(column->node.id, "container", name, &box);
+        ipc_json_create_node(column->id, "container", name, &box);
 
     json_object_object_add(
         object, "focused", json_object_new_boolean(column->pending.focused)
@@ -701,7 +701,7 @@ ipc_json_describe_window(struct hayward_window *window) {
     box.height -= deco_rect.height * count;
 
     json_object *object =
-        ipc_json_create_node(window->node.id, "container", name, &box);
+        ipc_json_create_node(window->id, "container", name, &box);
 
     json_object_object_add(
         object, "focused", json_object_new_boolean(window->pending.focused)
@@ -770,7 +770,7 @@ ipc_json_describe_root(struct hayward_root *root) {
     root_get_box(root, &box);
 
     json_object *object =
-        ipc_json_create_node(root->node.id, "root", name, &box);
+        ipc_json_create_node(root->id, "root", name, &box);
 
     json_object *children = json_object_new_array();
     for (int i = 0; i < root->outputs->length; ++i) {
