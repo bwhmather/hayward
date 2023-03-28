@@ -179,12 +179,17 @@ workspace_destroy(struct hayward_workspace *workspace) {
 void
 workspace_begin_destroy(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
+    hayward_assert(workspace_is_alive(workspace), "Expected live workspace");
+
     hayward_log(HAYWARD_DEBUG, "Destroying workspace '%s'", workspace->name);
+
+    workspace->pending.dead = true;
+
     ipc_event_workspace(NULL, workspace, "empty"); // intentional
-    wl_signal_emit(&workspace->node.events.destroy, &workspace->node);
 
     workspace_detach(workspace);
-    workspace->pending.dead = true;
+
+    wl_signal_emit(&workspace->node.events.begin_destroy, &workspace->node);
 
     workspace_set_dirty(workspace);
 }

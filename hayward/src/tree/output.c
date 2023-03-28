@@ -267,12 +267,15 @@ output_disable(struct hayward_output *output) {
 void
 output_begin_destroy(struct hayward_output *output) {
     hayward_assert(!output->enabled, "Expected a disabled output");
+    hayward_assert(output_is_alive(output), "Expected live output");
+
     hayward_log(
         HAYWARD_DEBUG, "Destroying output '%s'", output->wlr_output->name
     );
-    wl_signal_emit(&output->node.events.destroy, &output->node);
 
     output->pending.dead = true;
+
+    wl_signal_emit(&output->node.events.begin_destroy, &output->node);
 
     output_set_dirty(output);
 }

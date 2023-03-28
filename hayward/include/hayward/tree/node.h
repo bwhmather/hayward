@@ -41,7 +41,7 @@ struct hayward_node {
     size_t id;
 
     struct {
-        struct wl_signal destroy;
+        struct wl_signal begin_destroy;
     } events;
 };
 

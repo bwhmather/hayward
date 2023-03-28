@@ -252,16 +252,20 @@ window_destroy(struct hayward_window *window) {
 
 void
 window_begin_destroy(struct hayward_window *window) {
-    ipc_event_window(window, "close");
+    hayward_assert(window != NULL, "Expected window");
+    hayward_assert(window_is_alive(window), "Expected live window");
 
-    wl_signal_emit(&window->node.events.destroy, &window->node);
+    window->pending.dead = true;
+
+    ipc_event_window(window, "close");
 
     window_end_mouse_operation(window);
 
-    window->pending.dead = true;
     if (window->pending.parent || window->pending.workspace) {
         window_detach(window);
     }
+
+    wl_signal_emit(&window->node.events.begin_destroy, &window->node);
 
     window_set_dirty(window);
 }

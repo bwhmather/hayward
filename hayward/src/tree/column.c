@@ -119,13 +119,15 @@ column_destroy(struct hayward_column *column) {
 void
 column_begin_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
-    wl_signal_emit(&column->node.events.destroy, &column->node);
+    hayward_assert(column_is_alive(column), "Expected live column");
 
     column->pending.dead = true;
 
     if (column->pending.workspace) {
         column_detach(column);
     }
+
+    wl_signal_emit(&column->node.events.begin_destroy, &column->node);
 
     column_set_dirty(column);
 }
