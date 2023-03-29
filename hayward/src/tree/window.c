@@ -192,29 +192,29 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
 struct hayward_window *
 window_create(struct hayward_view *view) {
-    struct hayward_window *c = calloc(1, sizeof(struct hayward_window));
-    if (!c) {
+    struct hayward_window *window = calloc(1, sizeof(struct hayward_window));
+    if (!window) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_window");
         return NULL;
     }
 
     static size_t next_id = 1;
-    c->id = next_id++;
+    window->id = next_id++;
 
-    wl_signal_init(&c->events.begin_destroy);
-    wl_signal_init(&c->events.destroy);
+    wl_signal_init(&window->events.begin_destroy);
+    wl_signal_init(&window->events.destroy);
 
-    c->view = view;
-    c->alpha = 1.0f;
+    window->view = view;
+    window->alpha = 1.0f;
 
-    c->outputs = create_list();
+    window->outputs = create_list();
 
-    c->transaction_commit.notify = window_handle_transaction_commit;
-    c->transaction_apply.notify = window_handle_transaction_apply;
+    window->transaction_commit.notify = window_handle_transaction_commit;
+    window->transaction_apply.notify = window_handle_transaction_apply;
 
-    window_set_dirty(c);
+    window_set_dirty(window);
 
-    return c;
+    return window;
 }
 
 bool
@@ -1061,8 +1061,8 @@ window_get_siblings(struct hayward_window *window) {
 }
 
 int
-window_sibling_index(struct hayward_window *child) {
-    return list_find(window_get_siblings(child), child);
+window_sibling_index(struct hayward_window *window) {
+    return list_find(window_get_siblings(window), window);
 }
 
 list_t *

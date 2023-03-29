@@ -221,11 +221,11 @@ output_destroy(struct hayward_output *output) {
 }
 
 static void
-untrack_output(struct hayward_window *container, void *data) {
+untrack_output(struct hayward_window *window, void *data) {
     struct hayward_output *output = data;
-    int index = list_find(container->outputs, output);
+    int index = list_find(window->outputs, output);
     if (index != -1) {
-        list_del(container->outputs, index);
+        list_del(window->outputs, index);
     }
 }
 
@@ -302,17 +302,17 @@ output_reconcile(struct hayward_output *output) {
 
 struct hayward_output *
 output_get_in_direction(
-    struct hayward_output *reference, enum wlr_direction direction
+    struct hayward_output *output, enum wlr_direction direction
 ) {
     hayward_assert(direction, "got invalid direction: %d", direction);
     struct wlr_box output_box;
     wlr_output_layout_get_box(
-        root->output_layout, reference->wlr_output, &output_box
+        root->output_layout, output->wlr_output, &output_box
     );
     int lx = output_box.x + output_box.width / 2;
     int ly = output_box.y + output_box.height / 2;
     struct wlr_output *wlr_adjacent = wlr_output_layout_adjacent_output(
-        root->output_layout, direction, reference->wlr_output, lx, ly
+        root->output_layout, direction, output->wlr_output, lx, ly
     );
     if (!wlr_adjacent) {
         return NULL;

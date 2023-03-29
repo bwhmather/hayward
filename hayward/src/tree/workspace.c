@@ -281,8 +281,8 @@ workspace_is_empty(struct hayward_workspace *workspace) {
 }
 
 static bool
-find_urgent_iterator(struct hayward_window *container, void *data) {
-    return container->view && view_is_urgent(container->view);
+find_urgent_iterator(struct hayward_window *window, void *data) {
+    return window->view && view_is_urgent(window->view);
 }
 
 void
@@ -620,8 +620,8 @@ workspace_get_box(struct hayward_workspace *workspace, struct wlr_box *box) {
 }
 
 static void
-count_tiling_views(struct hayward_window *container, void *data) {
-    if (!window_is_floating(container)) {
+count_tiling_views(struct hayward_window *window, void *data) {
+    if (!window_is_floating(window)) {
         size_t *count = data;
         *count += 1;
     }
