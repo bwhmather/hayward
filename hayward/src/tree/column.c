@@ -186,8 +186,7 @@ column_detach(struct hayward_column *column) {
 
 void
 column_reconcile(
-    struct hayward_column *column,
-    struct hayward_workspace *workspace,
+    struct hayward_column *column, struct hayward_workspace *workspace,
     struct hayward_output *output
 ) {
     hayward_assert(column != NULL, "Expected column");
@@ -436,16 +435,6 @@ column_sibling_index(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
 
     return list_find(column_get_siblings(column), column);
-}
-
-list_t *
-column_get_current_siblings(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-
-    if (column->current.workspace) {
-        return column->current.workspace->pending.tiling;
-    }
-    return NULL;
 }
 
 struct hayward_column *

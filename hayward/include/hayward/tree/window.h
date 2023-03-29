@@ -201,11 +201,6 @@ window_surface_at(
 );
 
 bool
-window_contents_contain_point(
-    struct hayward_window *window, double lx, double ly
-);
-
-bool
 window_contains_point(struct hayward_window *window, double lx, double ly);
 
 /**

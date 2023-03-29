@@ -186,9 +186,4 @@ root_find_workspace(
     bool (*test)(struct hayward_workspace *workspace, void *data), void *data
 );
 
-struct hayward_window *
-root_find_window(
-    bool (*test)(struct hayward_window *window, void *data), void *data
-);
-
 #endif

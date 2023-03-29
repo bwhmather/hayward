@@ -153,9 +153,6 @@ column_get_siblings(struct hayward_column *column);
 int
 column_sibling_index(struct hayward_column *child);
 
-list_t *
-column_get_current_siblings(struct hayward_column *column);
-
 struct hayward_column *
 column_get_previous_sibling(struct hayward_column *column);
 struct hayward_column *

@@ -653,18 +653,3 @@ root_find_workspace(
     }
     return NULL;
 }
-
-struct hayward_window *
-root_find_window(
-    bool (*test)(struct hayward_window *window, void *data), void *data
-) {
-    struct hayward_window *result = NULL;
-    for (int i = 0; i < root->pending.workspaces->length; ++i) {
-        struct hayward_workspace *workspace =
-            root->pending.workspaces->items[i];
-        if ((result = workspace_find_window(workspace, test, data))) {
-            return result;
-        }
-    }
-    return NULL;
-}
