@@ -305,6 +305,23 @@ static const struct hayward_view_impl view_impl = {
 };
 
 static void
+view_notify_ready_by_serial(struct hayward_view *view, uint32_t serial) {
+    struct hayward_window *window = view->window;
+
+    if (!window->is_configuring) {
+        return;
+    }
+    if (window->configure_serial == 0) {
+        return;
+    }
+    if (serial != window->configure_serial) {
+        return;
+    }
+
+    transaction_release();
+}
+
+static void
 handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, commit);
@@ -333,9 +350,7 @@ handle_commit(struct wl_listener *listener, void *data) {
         desktop_damage_view(view);
     }
 
-    transaction_notify_view_ready_by_serial(
-        view, xdg_surface->current.configure_serial
-    );
+    view_notify_ready_by_serial(view, xdg_surface->current.configure_serial);
 
     view_damage_from(view);
 }

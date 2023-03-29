@@ -442,6 +442,27 @@ get_geometry(struct hayward_view *view, struct wlr_box *box) {
 }
 
 static void
+view_notify_ready_by_geometry(
+    struct hayward_view *view, double x, double y, int width, int height
+) {
+    struct hayward_window *window = view->window;
+    struct hayward_window_state *state = &window->committed;
+
+    if (!window->is_configuring) {
+        return;
+    }
+    if (window->configure_serial != 0) {
+        return;
+    }
+
+    if ((int)state->content_x != (int)x || (int)state->content_y != (int)y ||
+        state->content_width != width || state->content_height != height) {
+        return;
+    }
+    transaction_release();
+}
+
+static void
 handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, commit);
@@ -471,7 +492,7 @@ handle_commit(struct wl_listener *listener, void *data) {
         desktop_damage_view(view);
     }
 
-    transaction_notify_view_ready_by_geometry(
+    view_notify_ready_by_geometry(
         view, xsurface->x, xsurface->y, state->width, state->height
     );
 

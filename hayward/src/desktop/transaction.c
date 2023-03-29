@@ -290,46 +290,6 @@ transaction_commit(void) {
 }
 
 void
-transaction_notify_view_ready_by_serial(
-    struct hayward_view *view, uint32_t serial
-) {
-    struct hayward_window *window = view->window;
-
-    if (!window->is_configuring) {
-        return;
-    }
-    if (window->configure_serial == 0) {
-        return;
-    }
-    if (serial != window->configure_serial) {
-        return;
-    }
-
-    transaction_release();
-}
-
-void
-transaction_notify_view_ready_by_geometry(
-    struct hayward_view *view, double x, double y, int width, int height
-) {
-    struct hayward_window *window = view->window;
-    struct hayward_window_state *state = &window->committed;
-
-    if (!window->is_configuring) {
-        return;
-    }
-    if (window->configure_serial != 0) {
-        return;
-    }
-
-    if ((int)state->content_x != (int)x || (int)state->content_y != (int)y ||
-        state->content_width != width || state->content_height != height) {
-        return;
-    }
-    transaction_release();
-}
-
-void
 transaction_add_commit_listener(struct wl_listener *listener) {
     wl_signal_add(
         &hayward_transaction_state.events.transaction_commit, listener

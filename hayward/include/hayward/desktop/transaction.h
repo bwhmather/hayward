@@ -27,27 +27,6 @@ transaction_init(void);
 void
 transaction_shutdown(void);
 
-/**
- * Notify the transaction system that a view is ready for the new layout.
- *
- * When all views in the transaction are ready, the layout will be applied.
- */
-void
-transaction_notify_view_ready_by_serial(
-    struct hayward_view *view, uint32_t serial
-);
-
-/**
- * Notify the transaction system that a view is ready for the new layout, but
- * identifying the instruction by geometry rather than by serial.
- *
- * This is used by xwayland views, as they don't have serials.
- */
-void
-transaction_notify_view_ready_by_geometry(
-    struct hayward_view *view, double x, double y, int width, int height
-);
-
 void
 transaction_add_commit_listener(struct wl_listener *listener);
 
