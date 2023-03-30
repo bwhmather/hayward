@@ -37,6 +37,17 @@
 struct hayward_root *root;
 
 static void
+root_handle_transaction_before_commit(
+    struct wl_listener *listener, void *data
+) {
+    struct hayward_root *event_root =
+        wl_container_of(listener, event_root, transaction_before_commit);
+    hayward_assert(event_root == root, "Event received by wrong root");
+
+    root_commit_focus();
+}
+
+static void
 root_copy_state(
     struct hayward_root_state *tgt, struct hayward_root_state *src
 ) {
@@ -93,6 +104,8 @@ root_create(void) {
     static size_t next_id = 1;
     root->id = next_id++;
 
+    root->transaction_before_commit.notify =
+        root_handle_transaction_before_commit;
     root->transaction_commit.notify = root_handle_transaction_commit;
     root->transaction_apply.notify = root_handle_transaction_apply;
 
@@ -111,12 +124,14 @@ root_create(void) {
     wl_signal_add(
         &root->output_layout->events.change, &root->output_layout_change
     );
+    transaction_add_before_commit_listener(&root->transaction_before_commit);
     return root;
 }
 
 void
 root_destroy(struct hayward_root *root) {
     wl_list_remove(&root->output_layout_change.link);
+    wl_list_remove(&root->transaction_before_commit.link);
     list_free(root->outputs);
     list_free(root->pending.workspaces);
     list_free(root->committed.workspaces);

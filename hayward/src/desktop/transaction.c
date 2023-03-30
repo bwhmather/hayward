@@ -249,9 +249,6 @@ transaction_commit(void) {
 #endif
 
     // TODO register as event listener.
-    root_commit_focus();
-
-    // TODO register as event listener.
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
         seat_commit_focus(seat);
