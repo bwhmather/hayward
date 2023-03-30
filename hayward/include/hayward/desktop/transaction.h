@@ -28,6 +28,9 @@ void
 transaction_shutdown(void);
 
 void
+transaction_add_before_commit_listener(struct wl_listener *listener);
+
+void
 transaction_add_commit_listener(struct wl_listener *listener);
 
 void

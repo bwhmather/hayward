@@ -37,6 +37,7 @@ static struct {
     struct timespec commit_time;
 
     struct {
+        struct wl_signal transaction_before_commit;
         struct wl_signal transaction_commit;
         struct wl_signal transaction_apply;
     } events;
@@ -151,6 +152,7 @@ void
 transaction_init(void) {
     memset(&hayward_transaction_state, 0, sizeof(hayward_transaction_state));
 
+    wl_signal_init(&hayward_transaction_state.events.transaction_before_commit);
     wl_signal_init(&hayward_transaction_state.events.transaction_commit);
     wl_signal_init(&hayward_transaction_state.events.transaction_apply);
 }
@@ -235,6 +237,10 @@ transaction_commit(void) {
 
     hayward_log(HAYWARD_DEBUG, "Committing transaction");
 
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_before_commit, NULL
+    );
+
     hayward_transaction_state.queued = false;
 
 #ifndef NDEBUG
@@ -287,6 +293,13 @@ transaction_commit(void) {
     }
 
     transaction_progress();
+}
+
+void
+transaction_add_before_commit_listener(struct wl_listener *listener) {
+    wl_signal_add(
+        &hayward_transaction_state.events.transaction_before_commit, listener
+    );
 }
 
 void
