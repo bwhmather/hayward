@@ -53,7 +53,6 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
-#include <hayward/desktop/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/output.h>
 #include <hayward/tree/root.h>
@@ -97,8 +96,6 @@ handle_drm_lease_request(struct wl_listener *listener, void *data) {
 bool
 server_init(struct hayward_server *server) {
     hayward_log(HAYWARD_DEBUG, "Initializing Wayland server");
-
-    transaction_init();
 
     server->renderer = wlr_renderer_autocreate(server->backend);
     if (!server->renderer) {

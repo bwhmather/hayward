@@ -448,6 +448,7 @@ main(int argc, char **argv) {
 
     hayward_log(HAYWARD_INFO, "Starting hayward version " HAYWARD_VERSION);
 
+    transaction_init();
     root = root_create();
 
     if (!server_init(&server)) {
