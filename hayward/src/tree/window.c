@@ -643,23 +643,6 @@ window_contains_point(struct hayward_window *window, double lx, double ly) {
     return wlr_box_contains_point(&box, lx, ly);
 }
 
-struct hayward_window *
-window_obstructing_fullscreen_window(struct hayward_window *window) {
-    struct hayward_output *output = window->pending.output;
-
-    if (output != NULL && output->pending.fullscreen_window != NULL &&
-        !window_is_fullscreen(window)) {
-        if (window_is_transient_for(
-                window, output->pending.fullscreen_window
-            )) {
-            return NULL;
-        }
-        return output->pending.fullscreen_window;
-    }
-
-    return NULL;
-}
-
 size_t
 window_titlebar_height(void) {
     return config->font_height + config->titlebar_v_padding * 2;

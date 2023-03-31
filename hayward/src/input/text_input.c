@@ -267,7 +267,7 @@ handle_pending_focused_surface_destroy(
     wl_list_init(&text_input->pending_focused_surface_destroy.link);
 }
 
-struct hayward_text_input *
+static struct hayward_text_input *
 hayward_text_input_create(
     struct hayward_input_method_relay *relay,
     struct wlr_text_input_v3 *text_input

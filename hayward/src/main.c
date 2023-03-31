@@ -51,7 +51,7 @@ hayward_terminate(int exit_code) {
     }
 }
 
-void
+static void
 sig_handler(int signal) {
     hayward_terminate(EXIT_SUCCESS);
 }

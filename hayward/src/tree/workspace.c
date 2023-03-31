@@ -31,6 +31,12 @@
 static void
 workspace_destroy(struct hayward_workspace *workspace);
 
+static struct hayward_window *
+workspace_find_window(
+    struct hayward_workspace *workspace,
+    bool (*test)(struct hayward_window *window, void *data), void *data
+);
+
 static void
 workspace_copy_state(
     struct hayward_workspace_state *tgt, struct hayward_workspace_state *src
@@ -263,21 +269,6 @@ workspace_is_visible(struct hayward_workspace *workspace) {
     }
 
     return root_get_active_workspace() == workspace;
-}
-
-bool
-workspace_is_empty(struct hayward_workspace *workspace) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    if (workspace->pending.tiling->length) {
-        return false;
-    }
-
-    if (workspace->pending.floating->length) {
-        return false;
-    }
-
-    return true;
 }
 
 static bool
@@ -648,19 +639,6 @@ workspace_get_active_output(struct hayward_workspace *workspace) {
     return NULL;
 }
 
-struct hayward_output *
-workspace_get_current_active_output(struct hayward_workspace *workspace) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    struct hayward_column *active_column = workspace->current.active_column;
-
-    if (active_column != NULL) {
-        return active_column->current.output;
-    }
-
-    return NULL;
-}
-
 struct hayward_window *
 workspace_get_active_tiling_window(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
@@ -810,20 +788,7 @@ workspace_for_each_window(
     }
 }
 
-void
-workspace_for_each_column(
-    struct hayward_workspace *workspace,
-    void (*f)(struct hayward_column *column, void *data), void *data
-) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    for (int i = 0; i < workspace->pending.tiling->length; ++i) {
-        struct hayward_column *column = workspace->pending.tiling->items[i];
-        f(column, data);
-    }
-}
-
-struct hayward_window *
+static struct hayward_window *
 workspace_find_window(
     struct hayward_workspace *workspace,
     bool (*test)(struct hayward_window *window, void *data), void *data

@@ -85,14 +85,3 @@ handle_xdg_decoration(struct wl_listener *listener, void *data) {
 
     xdg_decoration_handle_request_mode(&deco->request_mode, wlr_deco);
 }
-
-struct hayward_xdg_decoration *
-xdg_decoration_from_surface(struct wlr_surface *surface) {
-    struct hayward_xdg_decoration *deco;
-    wl_list_for_each(deco, &server.xdg_decorations, link) {
-        if (deco->wlr_xdg_decoration->surface->surface == surface) {
-            return deco;
-        }
-    }
-    return NULL;
-}

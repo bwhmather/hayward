@@ -39,7 +39,7 @@
 
 #include <config.h>
 
-int
+static int
 output_name_cmp(const void *item, const void *data) {
     const struct output_config *output = item;
     const char *name = data;

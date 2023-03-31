@@ -688,9 +688,6 @@ seat_config_get_attachment(struct seat_config *seat_config, char *identifier);
 struct seat_config *
 store_seat_config(struct seat_config *seat);
 
-int
-output_name_cmp(const void *item, const void *data);
-
 void
 output_get_identifier(
     char *identifier, size_t len, struct hayward_output *output
@@ -728,9 +725,6 @@ free_output_config(struct output_config *oc);
 
 bool
 spawn_haywardbg(void);
-
-int
-workspace_output_cmp_workspace(const void *a, const void *b);
 
 void
 free_hayward_binding(struct hayward_binding *sb);

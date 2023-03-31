@@ -84,9 +84,6 @@ workspace_by_name(const char *);
 bool
 workspace_is_visible(struct hayward_workspace *workspace);
 
-bool
-workspace_is_empty(struct hayward_workspace *workspace);
-
 void
 workspace_detect_urgent(struct hayward_workspace *workspace);
 
@@ -129,8 +126,6 @@ workspace_num_tiling_views(struct hayward_workspace *workspace);
 
 struct hayward_output *
 workspace_get_active_output(struct hayward_workspace *workspace);
-struct hayward_output *
-workspace_get_current_active_output(struct hayward_workspace *workspace);
 
 struct hayward_window *
 workspace_get_active_tiling_window(struct hayward_workspace *workspace);
@@ -160,17 +155,6 @@ void
 workspace_for_each_window(
     struct hayward_workspace *workspace,
     void (*f)(struct hayward_window *container, void *data), void *data
-);
-void
-workspace_for_each_column(
-    struct hayward_workspace *workspace,
-    void (*f)(struct hayward_column *container, void *data), void *data
-);
-
-struct hayward_window *
-workspace_find_window(
-    struct hayward_workspace *workspace,
-    bool (*test)(struct hayward_window *window, void *data), void *data
 );
 
 void

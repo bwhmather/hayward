@@ -56,12 +56,6 @@ struct hayward_text_input {
     struct wl_listener text_input_destroy;
 };
 
-struct hayward_text_input *
-hayward_text_input_create(
-    struct hayward_input_method_relay *relay,
-    struct wlr_text_input_v3 *text_input
-);
-
 void
 hayward_input_method_relay_init(
     struct hayward_seat *seat, struct hayward_input_method_relay *relay

@@ -1069,15 +1069,6 @@ do_var_replacement(char *str) {
     return str;
 }
 
-// the naming is intentional (albeit long): a workspace_output_cmp function
-// would compare two structs in full, while this method only compares the
-// workspace.
-int
-workspace_output_cmp_workspace(const void *a, const void *b) {
-    const struct workspace_config *wsa = a, *wsb = b;
-    return lenient_strcmp(wsa->workspace, wsb->workspace);
-}
-
 void
 config_update_font_height(void) {
     int prev_max_height = config->font_height;

@@ -25,7 +25,7 @@
 
 #include <config.h>
 
-int binding_order = 0;
+static int binding_order = 0;
 
 void
 free_hayward_binding(struct hayward_binding *binding) {
