@@ -91,12 +91,12 @@ output_layout_handle_change(struct wl_listener *listener, void *data) {
     transaction_flush();
 }
 
-struct hayward_root *
-root_create(void) {
-    struct hayward_root *root = calloc(1, sizeof(struct hayward_root));
+void
+root_startup(void) {
+    root = calloc(1, sizeof(struct hayward_root));
     if (!root) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_root");
-        return NULL;
+        return;
     }
 
     static size_t next_id = 1;
@@ -123,11 +123,10 @@ root_create(void) {
         &root->output_layout->events.change, &root->output_layout_change
     );
     transaction_add_before_commit_listener(&root->transaction_before_commit);
-    return root;
 }
 
 void
-root_destroy(void) {
+root_shutdown(void) {
     wl_list_remove(&root->output_layout_change.link);
     wl_list_remove(&root->transaction_before_commit.link);
     list_free(root->outputs);

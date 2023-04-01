@@ -449,7 +449,7 @@ main(int argc, char **argv) {
     hayward_log(HAYWARD_INFO, "Starting hayward version " HAYWARD_VERSION);
 
     transaction_init();
-    root = root_create();
+    root_startup();
 
     if (!server_init(&server)) {
         return 1;
@@ -497,8 +497,7 @@ shutdown:
     hayward_log(HAYWARD_INFO, "Shutting down hayward");
 
     server_fini(&server);
-    root_destroy(root);
-    root = NULL;
+    root_shutdown();
     transaction_shutdown();
 
     free(config_path);

@@ -82,14 +82,14 @@ struct hayward_root {
     struct wl_listener transaction_apply;
 };
 
-struct hayward_root *
-root_create(void);
+void
+root_startup(void);
 
 void
-root_destroy();
+root_shutdown(void);
 
 void
-root_set_dirty();
+root_set_dirty(void);
 
 struct hayward_workspace *
 root_workspace_for_pid(pid_t pid);
