@@ -76,10 +76,6 @@ struct hayward_root {
      */
     struct hayward_window *focused_window;
     struct hayward_workspace *focused_workspace;
-
-    struct wl_listener transaction_before_commit;
-    struct wl_listener transaction_commit;
-    struct wl_listener transaction_apply;
 };
 
 void

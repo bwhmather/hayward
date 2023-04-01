@@ -36,14 +36,16 @@
 
 struct hayward_root *root;
 
+struct {
+    struct wl_listener transaction_before_commit;
+    struct wl_listener transaction_commit;
+    struct wl_listener transaction_apply;
+} hayward_root;
+
 static void
 root_handle_transaction_before_commit(
     struct wl_listener *listener, void *data
 ) {
-    struct hayward_root *event_root =
-        wl_container_of(listener, event_root, transaction_before_commit);
-    hayward_assert(event_root == root, "Event received by wrong root");
-
     root_commit_focus();
 }
 
@@ -62,24 +64,16 @@ root_copy_state(
 
 static void
 root_handle_transaction_commit(struct wl_listener *listener, void *data) {
-    struct hayward_root *event_root =
-        wl_container_of(listener, root, transaction_commit);
-    hayward_assert(event_root == root, "Event received by wrong root");
-
     wl_list_remove(&listener->link);
     root->dirty = false;
 
-    transaction_add_apply_listener(&root->transaction_apply);
+    transaction_add_apply_listener(&hayward_root.transaction_apply);
 
     root_copy_state(&root->committed, &root->pending);
 }
 
 static void
 root_handle_transaction_apply(struct wl_listener *listener, void *data) {
-    struct hayward_root *event_root =
-        wl_container_of(listener, root, transaction_apply);
-    hayward_assert(event_root == root, "Event received by wrong root");
-
     wl_list_remove(&listener->link);
 
     root_copy_state(&root->current, &root->committed);
@@ -98,14 +92,15 @@ root_startup(void) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_root");
         return;
     }
+    memset(&hayward_root, 0, sizeof(hayward_root));
 
     static size_t next_id = 1;
     root->id = next_id++;
 
-    root->transaction_before_commit.notify =
+    hayward_root.transaction_before_commit.notify =
         root_handle_transaction_before_commit;
-    root->transaction_commit.notify = root_handle_transaction_commit;
-    root->transaction_apply.notify = root_handle_transaction_apply;
+    hayward_root.transaction_commit.notify = root_handle_transaction_commit;
+    hayward_root.transaction_apply.notify = root_handle_transaction_apply;
 
     root->output_layout = wlr_output_layout_create();
     wl_list_init(&root->all_outputs);
@@ -122,13 +117,15 @@ root_startup(void) {
     wl_signal_add(
         &root->output_layout->events.change, &root->output_layout_change
     );
-    transaction_add_before_commit_listener(&root->transaction_before_commit);
+    transaction_add_before_commit_listener(
+        &hayward_root.transaction_before_commit
+    );
 }
 
 void
 root_shutdown(void) {
     wl_list_remove(&root->output_layout_change.link);
-    wl_list_remove(&root->transaction_before_commit.link);
+    wl_list_remove(&hayward_root.transaction_before_commit.link);
     list_free(root->outputs);
     list_free(root->pending.workspaces);
     list_free(root->committed.workspaces);
@@ -146,7 +143,7 @@ root_set_dirty(void) {
     }
 
     root->dirty = true;
-    transaction_add_commit_listener(&root->transaction_commit);
+    transaction_add_commit_listener(&hayward_root.transaction_commit);
     transaction_ensure_queued();
 
     for (int i = 0; i < root->committed.workspaces->length; i++) {
