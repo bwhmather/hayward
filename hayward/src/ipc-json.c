@@ -345,7 +345,7 @@ ipc_json_describe_output(struct hayward_output *output) {
     json_object_object_add(object, "current_mode", current_mode_object);
 
     struct wlr_box parent_box;
-    root_get_box(root, &parent_box);
+    root_get_box(&parent_box);
 
     if (parent_box.width != 0 && parent_box.height != 0) {
         double percent = ((double)output->width / parent_box.width) *
@@ -766,7 +766,7 @@ ipc_json_describe_root(struct hayward_root *root) {
     char *name = "root";
 
     struct wlr_box box;
-    root_get_box(root, &box);
+    root_get_box(&box);
 
     json_object *object = ipc_json_create_node(root->id, "root", name, &box);
 
@@ -874,6 +874,8 @@ describe_libinput_device(struct libinput_device *device) {
             break;
         case LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE:
             accel_profile = "adaptive";
+            break;
+        default:
             break;
         }
         json_object_object_add(

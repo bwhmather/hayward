@@ -36,8 +36,6 @@ struct hayward_root_state {
      * explicitly focused surface.
      */
     struct wlr_layer_surface_v1 *focused_layer;
-
-    bool dead;
 };
 
 struct hayward_root {
@@ -88,10 +86,10 @@ struct hayward_root *
 root_create(void);
 
 void
-root_destroy(struct hayward_root *root);
+root_destroy();
 
 void
-root_set_dirty(struct hayward_root *root);
+root_set_dirty();
 
 struct hayward_workspace *
 root_workspace_for_pid(pid_t pid);
@@ -108,7 +106,7 @@ root_find_output(
 );
 
 void
-root_get_box(struct hayward_root *root, struct wlr_box *box);
+root_get_box(struct wlr_box *box);
 
 void
 root_rename_pid_workspaces(const char *old_name, const char *new_name);

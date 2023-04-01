@@ -62,8 +62,9 @@ root_copy_state(
 
 static void
 root_handle_transaction_commit(struct wl_listener *listener, void *data) {
-    struct hayward_root *root =
+    struct hayward_root *event_root =
         wl_container_of(listener, root, transaction_commit);
+    hayward_assert(event_root == root, "Event received by wrong root");
 
     wl_list_remove(&listener->link);
     root->dirty = false;
@@ -75,16 +76,13 @@ root_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
 static void
 root_handle_transaction_apply(struct wl_listener *listener, void *data) {
-    struct hayward_root *root =
+    struct hayward_root *event_root =
         wl_container_of(listener, root, transaction_apply);
+    hayward_assert(event_root == root, "Event received by wrong root");
 
     wl_list_remove(&listener->link);
 
     root_copy_state(&root->current, &root->committed);
-
-    if (root->current.dead) {
-        root_destroy(root);
-    }
 }
 
 static void
@@ -129,7 +127,7 @@ root_create(void) {
 }
 
 void
-root_destroy(struct hayward_root *root) {
+root_destroy(void) {
     wl_list_remove(&root->output_layout_change.link);
     wl_list_remove(&root->transaction_before_commit.link);
     list_free(root->outputs);
@@ -141,7 +139,7 @@ root_destroy(struct hayward_root *root) {
 }
 
 void
-root_set_dirty(struct hayward_root *root) {
+root_set_dirty(void) {
     hayward_assert(root != NULL, "Expected root");
 
     if (root->dirty) {
@@ -346,7 +344,7 @@ root_find_output(
 }
 
 void
-root_get_box(struct hayward_root *root, struct wlr_box *box) {
+root_get_box(struct wlr_box *box) {
     box->x = root->x;
     box->y = root->y;
     box->width = root->width;
@@ -376,7 +374,7 @@ root_add_workspace(struct hayward_workspace *workspace) {
     }
     workspace_reconcile(workspace);
 
-    root_set_dirty(root);
+    root_set_dirty();
     workspace_set_dirty(workspace);
 }
 
@@ -404,7 +402,7 @@ root_remove_workspace(struct hayward_workspace *workspace) {
     workspace_reconcile_detached(workspace);
 
     workspace_set_dirty(workspace);
-    root_set_dirty(root);
+    root_set_dirty();
 }
 
 static int
@@ -454,7 +452,7 @@ root_set_active_workspace(struct hayward_workspace *workspace) {
         root->pending.active_output = active_output;
     }
 
-    root_set_dirty(root);
+    root_set_dirty();
 }
 
 struct hayward_workspace *
