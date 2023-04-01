@@ -37,6 +37,17 @@
 struct hayward_root *root;
 
 struct {
+    /**
+     * The nodes that are currently actually receiving input events.  These
+     * are distinct from the state in the `current` struct, which tracks
+     * what is to be rendered.  These are updated when a transaction is
+     * submitted rather than at the end as they need to take effect
+     * immediately and all transitions need to result in IPC events which
+     * should not be skipped.
+     */
+    struct hayward_window *focused_window;
+    struct hayward_workspace *focused_workspace;
+
     struct wl_listener transaction_before_commit;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
@@ -557,10 +568,10 @@ handle_urgent_timeout(void *data) {
 
 void
 root_commit_focus(void) {
-    struct hayward_window *old_window = root->focused_window;
+    struct hayward_window *old_window = hayward_root.focused_window;
     struct hayward_window *new_window = root_get_focused_window();
 
-    struct hayward_workspace *old_workspace = root->focused_workspace;
+    struct hayward_workspace *old_workspace = hayward_root.focused_workspace;
     struct hayward_workspace *new_workspace = root_get_active_workspace();
 
     if (old_window == new_window && old_workspace == new_workspace) {
@@ -614,9 +625,8 @@ root_commit_focus(void) {
             column_set_dirty(new_window->pending.parent);
         }
     }
-
-    root->focused_workspace = new_workspace;
-    root->focused_window = new_window;
+    hayward_root.focused_workspace = new_workspace;
+    hayward_root.focused_window = new_window;
 
     // Emit ipc events
     if (new_window != old_window) {

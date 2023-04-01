@@ -65,17 +65,6 @@ struct hayward_root {
     struct hayward_root_state pending;
     struct hayward_root_state committed;
     struct hayward_root_state current;
-
-    /**
-     * The nodes that are currently actually receiving input events.  These
-     * are distinct from the state in the `current` struct, which tracks
-     * what is to be rendered.  These are updated when a transaction is
-     * submitted rather than at the end as they need to take effect
-     * immediately and all transitions need to result in IPC events which
-     * should not be skipped.
-     */
-    struct hayward_window *focused_window;
-    struct hayward_workspace *focused_workspace;
 };
 
 void
