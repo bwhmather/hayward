@@ -499,6 +499,7 @@ shutdown:
     server_fini(&server);
     root_destroy(root);
     root = NULL;
+    transaction_shutdown();
 
     free(config_path);
     free_config(config);
