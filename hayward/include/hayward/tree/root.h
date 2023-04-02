@@ -39,8 +39,6 @@ struct hayward_root_state {
 };
 
 struct hayward_root {
-    size_t id;
-
     bool dirty;
 
     struct wlr_output_layout *output_layout;

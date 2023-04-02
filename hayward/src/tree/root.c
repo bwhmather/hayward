@@ -105,9 +105,6 @@ root_startup(void) {
     }
     memset(&hayward_root, 0, sizeof(hayward_root));
 
-    static size_t next_id = 1;
-    root->id = next_id++;
-
     hayward_root.transaction_before_commit.notify =
         root_handle_transaction_before_commit;
     hayward_root.transaction_commit.notify = root_handle_transaction_commit;

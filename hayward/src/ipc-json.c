@@ -768,7 +768,7 @@ ipc_json_describe_root(struct hayward_root *root) {
     struct wlr_box box;
     root_get_box(&box);
 
-    json_object *object = ipc_json_create_node(root->id, "root", name, &box);
+    json_object *object = ipc_json_create_node(1, "root", name, &box);
 
     json_object *children = json_object_new_array();
     for (int i = 0; i < root->outputs->length; ++i) {
