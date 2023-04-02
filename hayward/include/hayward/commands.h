@@ -268,7 +268,6 @@ hayward_cmd output_cmd_toggle;
 hayward_cmd output_cmd_transform;
 
 hayward_cmd seat_cmd_attach;
-hayward_cmd seat_cmd_cursor;
 hayward_cmd seat_cmd_fallback;
 hayward_cmd seat_cmd_hide_cursor;
 hayward_cmd seat_cmd_idle_inhibit;

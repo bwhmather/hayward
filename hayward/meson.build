@@ -78,7 +78,6 @@ hayward_sources = files(
 	'src/commands/resize.c',
 	'src/commands/seat.c',
 	'src/commands/seat/attach.c',
-	'src/commands/seat/cursor.c',
 	'src/commands/seat/fallback.c',
 	'src/commands/seat/hide_cursor.c',
 	'src/commands/seat/idle.c',

@@ -12,12 +12,6 @@
 #include <config.h>
 
 // must be in order for the bsearch
-// these handlers perform actions on the seat
-static const struct cmd_handler seat_action_handlers[] = {
-    {"cursor", seat_cmd_cursor},
-};
-
-// must be in order for the bsearch
 // these handlers alter the seat config
 static const struct cmd_handler seat_handlers[] = {
     {"attach", seat_cmd_attach},
@@ -30,16 +24,6 @@ static const struct cmd_handler seat_handlers[] = {
     {"shortcuts_inhibitor", seat_cmd_shortcuts_inhibitor},
     {"xcursor_theme", seat_cmd_xcursor_theme},
 };
-
-static struct cmd_results *
-action_handlers(int argc, char **argv) {
-    struct cmd_results *res = config_subcommand(
-        argv, argc, seat_action_handlers, sizeof(seat_action_handlers)
-    );
-    free_seat_config(config->handler_context.seat_config);
-    config->handler_context.seat_config = NULL;
-    return res;
-}
 
 static struct cmd_results *
 config_handlers(int argc, char **argv) {
@@ -81,13 +65,6 @@ cmd_seat(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "Couldn't allocate config");
     }
 
-    struct cmd_results *res = NULL;
-    if (find_handler(
-            argv[1], seat_action_handlers, sizeof(seat_action_handlers)
-        )) {
-        res = action_handlers(argc - 1, argv + 1);
-    } else {
-        res = config_handlers(argc - 1, argv + 1);
-    }
+    struct cmd_results *res = config_handlers(argc - 1, argv + 1);
     return res ? res : cmd_results_new(CMD_SUCCESS, NULL);
 }
