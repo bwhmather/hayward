@@ -502,23 +502,6 @@ cmd_move_to_position(int argc, char **argv) {
             return cmd_results_new(CMD_INVALID, expected_position_syntax);
         }
         return cmd_move_to_position_pointer(window);
-    } else if (strcmp(argv[0], "center") == 0) {
-        double lx, ly;
-        if (absolute) {
-            lx = root->x + (root->width - window->pending.width) / 2;
-            ly = root->y + (root->height - window->pending.height) / 2;
-        } else {
-            struct hayward_workspace *workspace = window->pending.workspace;
-            if (!workspace) {
-                workspace = root_get_active_workspace();
-            }
-            lx = workspace->pending.x +
-                (workspace->pending.width - window->pending.width) / 2;
-            ly = workspace->pending.y +
-                (workspace->pending.height - window->pending.height) / 2;
-        }
-        window_floating_move_to(window, lx, ly);
-        return cmd_results_new(CMD_SUCCESS, NULL);
     }
 
     if (argc < 2) {

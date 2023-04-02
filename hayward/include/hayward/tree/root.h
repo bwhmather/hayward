@@ -50,9 +50,6 @@ struct hayward_root {
     // Includes disabled outputs
     struct wl_list all_outputs; // hayward_output::link
 
-    double x, y;
-    double width, height;
-
     list_t *outputs; // struct hayward_output
 
     // For when there's no connected outputs
@@ -85,9 +82,6 @@ struct hayward_output *
 root_find_output(
     bool (*test)(struct hayward_output *output, void *data), void *data
 );
-
-void
-root_get_box(struct wlr_box *box);
 
 void
 root_rename_pid_workspaces(const char *old_name, const char *new_name);

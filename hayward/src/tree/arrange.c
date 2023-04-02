@@ -340,12 +340,6 @@ arrange_root(void) {
     if (config->reloading) {
         return;
     }
-    struct wlr_box layout_box;
-    wlr_output_layout_get_box(root->output_layout, NULL, &layout_box);
-    root->x = layout_box.x;
-    root->y = layout_box.y;
-    root->width = layout_box.width;
-    root->height = layout_box.height;
 
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];

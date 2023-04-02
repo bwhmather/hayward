@@ -344,17 +344,6 @@ ipc_json_describe_output(struct hayward_output *output) {
     );
     json_object_object_add(object, "current_mode", current_mode_object);
 
-    struct wlr_box parent_box;
-    root_get_box(&parent_box);
-
-    if (parent_box.width != 0 && parent_box.height != 0) {
-        double percent = ((double)output->width / parent_box.width) *
-            ((double)output->height / parent_box.height);
-        json_object_object_add(
-            object, "percent", json_object_new_double(percent)
-        );
-    }
-
     json_object_object_add(
         object, "max_render_time", json_object_new_int(output->max_render_time)
     );
@@ -765,8 +754,7 @@ json_object *
 ipc_json_describe_root(struct hayward_root *root) {
     char *name = "root";
 
-    struct wlr_box box;
-    root_get_box(&box);
+    struct wlr_box box = {0};
 
     json_object *object = ipc_json_create_node(1, "root", name, &box);
 

@@ -350,14 +350,6 @@ root_find_output(
 }
 
 void
-root_get_box(struct wlr_box *box) {
-    box->x = root->x;
-    box->y = root->y;
-    box->width = root->width;
-    box->height = root->height;
-}
-
-void
 root_rename_pid_workspaces(const char *old_name, const char *new_name) {
     if (!pid_workspaces.prev && !pid_workspaces.next) {
         wl_list_init(&pid_workspaces);
