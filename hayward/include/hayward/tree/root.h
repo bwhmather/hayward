@@ -39,8 +39,6 @@ struct hayward_root_state {
 };
 
 struct hayward_root {
-    bool dirty;
-
     struct wlr_output_layout *output_layout;
 
     struct wl_listener output_layout_change;

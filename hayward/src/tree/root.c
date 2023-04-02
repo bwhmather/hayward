@@ -37,6 +37,8 @@
 struct hayward_root *root;
 
 struct {
+    bool dirty;
+
     /**
      * The nodes that are currently actually receiving input events.  These
      * are distinct from the state in the `current` struct, which tracks
@@ -76,7 +78,7 @@ root_copy_state(
 static void
 root_handle_transaction_commit(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
-    root->dirty = false;
+    hayward_root.dirty = false;
 
     transaction_add_apply_listener(&hayward_root.transaction_apply);
 
@@ -146,11 +148,11 @@ void
 root_set_dirty(void) {
     hayward_assert(root != NULL, "Expected root");
 
-    if (root->dirty) {
+    if (hayward_root.dirty) {
         return;
     }
 
-    root->dirty = true;
+    hayward_root.dirty = true;
     transaction_add_commit_listener(&hayward_root.transaction_commit);
     transaction_ensure_queued();
 
