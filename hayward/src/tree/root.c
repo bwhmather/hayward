@@ -60,6 +60,7 @@ struct {
     struct hayward_window *focused_window;
     struct hayward_workspace *focused_workspace;
 
+    struct wl_listener output_layout_change;
     struct wl_listener transaction_before_commit;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
@@ -133,9 +134,9 @@ root_startup(void) {
     root->committed.workspaces = create_list();
     root->current.workspaces = create_list();
 
-    root->output_layout_change.notify = output_layout_handle_change;
+    hayward_root.output_layout_change.notify = output_layout_handle_change;
     wl_signal_add(
-        &root->output_layout->events.change, &root->output_layout_change
+        &root->output_layout->events.change, &hayward_root.output_layout_change
     );
     transaction_add_before_commit_listener(
         &hayward_root.transaction_before_commit
@@ -144,7 +145,7 @@ root_startup(void) {
 
 void
 root_shutdown(void) {
-    wl_list_remove(&root->output_layout_change.link);
+    wl_list_remove(&hayward_root.output_layout_change.link);
     wl_list_remove(&hayward_root.transaction_before_commit.link);
     list_free(root->outputs);
     list_free(root->pending.workspaces);
