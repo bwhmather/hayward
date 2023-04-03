@@ -284,11 +284,6 @@ root_record_workspace_pid(pid_t pid) {
         hayward_log(HAYWARD_DEBUG, "Bailing out, no workspace");
         return;
     }
-    struct hayward_output *output = root_get_active_output();
-    if (!output) {
-        hayward_log(HAYWARD_DEBUG, "Bailing out, no output");
-        return;
-    }
 
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
