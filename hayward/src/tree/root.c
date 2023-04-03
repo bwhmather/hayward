@@ -36,8 +36,21 @@
 
 struct hayward_root *root;
 
+struct pid_workspace {
+    pid_t pid;
+    char *workspace;
+    struct timespec time_added;
+
+    struct hayward_output *output;
+    struct wl_listener output_destroy;
+
+    struct wl_list link;
+};
+
 struct {
     bool dirty;
+
+    struct wl_list pid_workspaces;
 
     /**
      * The nodes that are currently actually receiving input events.  These
@@ -169,19 +182,6 @@ root_set_dirty(void) {
     }
 }
 
-struct pid_workspace {
-    pid_t pid;
-    char *workspace;
-    struct timespec time_added;
-
-    struct hayward_output *output;
-    struct wl_listener output_destroy;
-
-    struct wl_list link;
-};
-
-static struct wl_list pid_workspaces;
-
 /**
  * Get the pid of a parent process given the pid of a child process.
  *
@@ -227,8 +227,9 @@ pid_workspace_destroy(struct pid_workspace *pw) {
 
 struct hayward_workspace *
 root_workspace_for_pid(pid_t pid) {
-    if (!pid_workspaces.prev && !pid_workspaces.next) {
-        wl_list_init(&pid_workspaces);
+    if (!hayward_root.pid_workspaces.prev &&
+        !hayward_root.pid_workspaces.next) {
+        wl_list_init(&hayward_root.pid_workspaces);
         return NULL;
     }
 
@@ -239,7 +240,7 @@ root_workspace_for_pid(pid_t pid) {
 
     do {
         struct pid_workspace *_pw = NULL;
-        wl_list_for_each(_pw, &pid_workspaces, link) {
+        wl_list_for_each(_pw, &hayward_root.pid_workspaces, link) {
             if (pid == _pw->pid) {
                 pw = _pw;
                 hayward_log(
@@ -284,8 +285,9 @@ pw_handle_output_destroy(struct wl_listener *listener, void *data) {
 void
 root_record_workspace_pid(pid_t pid) {
     hayward_log(HAYWARD_DEBUG, "Recording workspace for process %d", pid);
-    if (!pid_workspaces.prev && !pid_workspaces.next) {
-        wl_list_init(&pid_workspaces);
+    if (!hayward_root.pid_workspaces.prev &&
+        !hayward_root.pid_workspaces.next) {
+        wl_list_init(&hayward_root.pid_workspaces);
     }
 
     struct hayward_workspace *workspace = root_get_active_workspace();
@@ -305,7 +307,7 @@ root_record_workspace_pid(pid_t pid) {
     // Remove expired entries
     static const int timeout = 60;
     struct pid_workspace *old, *_old;
-    wl_list_for_each_safe(old, _old, &pid_workspaces, link) {
+    wl_list_for_each_safe(old, _old, &hayward_root.pid_workspaces, link) {
         if (now.tv_sec - old->time_added.tv_sec >= timeout) {
             pid_workspace_destroy(old);
         }
@@ -318,17 +320,18 @@ root_record_workspace_pid(pid_t pid) {
     memcpy(&pw->time_added, &now, sizeof(struct timespec));
     pw->output_destroy.notify = pw_handle_output_destroy;
     wl_signal_add(&output->wlr_output->events.destroy, &pw->output_destroy);
-    wl_list_insert(&pid_workspaces, &pw->link);
+    wl_list_insert(&hayward_root.pid_workspaces, &pw->link);
 }
 
 void
 root_remove_workspace_pid(pid_t pid) {
-    if (!pid_workspaces.prev || !pid_workspaces.next) {
+    if (!hayward_root.pid_workspaces.prev ||
+        !hayward_root.pid_workspaces.next) {
         return;
     }
 
     struct pid_workspace *pw, *tmp;
-    wl_list_for_each_safe(pw, tmp, &pid_workspaces, link) {
+    wl_list_for_each_safe(pw, tmp, &hayward_root.pid_workspaces, link) {
         if (pid == pw->pid) {
             pid_workspace_destroy(pw);
             return;
@@ -337,13 +340,14 @@ root_remove_workspace_pid(pid_t pid) {
 }
 
 void
-root_rename_pid_workspaces(const char *old_name, const char *new_name) {
-    if (!pid_workspaces.prev && !pid_workspaces.next) {
-        wl_list_init(&pid_workspaces);
+root_rename_hayward_pid_workspaces(const char *old_name, const char *new_name) {
+    if (!hayward_root.pid_workspaces.prev &&
+        !hayward_root.pid_workspaces.next) {
+        wl_list_init(&hayward_root.pid_workspaces);
     }
 
     struct pid_workspace *pw = NULL;
-    wl_list_for_each(pw, &pid_workspaces, link) {
+    wl_list_for_each(pw, &hayward_root.pid_workspaces, link) {
         if (strcmp(pw->workspace, old_name) == 0) {
             free(pw->workspace);
             pw->workspace = strdup(new_name);
