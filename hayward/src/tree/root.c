@@ -336,19 +336,6 @@ root_remove_workspace_pid(pid_t pid) {
     }
 }
 
-struct hayward_output *
-root_find_output(
-    bool (*test)(struct hayward_output *output, void *data), void *data
-) {
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        if (test(output, data)) {
-            return output;
-        }
-    }
-    return NULL;
-}
-
 void
 root_rename_pid_workspaces(const char *old_name, const char *new_name) {
     if (!pid_workspaces.prev && !pid_workspaces.next) {

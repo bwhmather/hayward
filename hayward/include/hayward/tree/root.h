@@ -78,11 +78,6 @@ root_record_workspace_pid(pid_t pid);
 void
 root_remove_workspace_pid(pid_t pid);
 
-struct hayward_output *
-root_find_output(
-    bool (*test)(struct hayward_output *output, void *data), void *data
-);
-
 void
 root_rename_pid_workspaces(const char *old_name, const char *new_name);
 
