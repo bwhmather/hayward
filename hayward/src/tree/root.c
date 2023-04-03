@@ -41,9 +41,6 @@ struct pid_workspace {
     char *workspace;
     struct timespec time_added;
 
-    struct hayward_output *output;
-    struct wl_listener output_destroy;
-
     struct wl_list link;
 };
 
@@ -219,7 +216,6 @@ get_parent_pid(pid_t child) {
 
 static void
 pid_workspace_destroy(struct pid_workspace *pw) {
-    wl_list_remove(&pw->output_destroy.link);
     wl_list_remove(&pw->link);
     free(pw->workspace);
     free(pw);
@@ -274,14 +270,6 @@ found:
     return workspace;
 }
 
-static void
-pw_handle_output_destroy(struct wl_listener *listener, void *data) {
-    struct pid_workspace *pw = wl_container_of(listener, pw, output_destroy);
-    pw->output = NULL;
-    wl_list_remove(&pw->output_destroy.link);
-    wl_list_init(&pw->output_destroy.link);
-}
-
 void
 root_record_workspace_pid(pid_t pid) {
     hayward_log(HAYWARD_DEBUG, "Recording workspace for process %d", pid);
@@ -315,11 +303,8 @@ root_record_workspace_pid(pid_t pid) {
 
     struct pid_workspace *pw = calloc(1, sizeof(struct pid_workspace));
     pw->workspace = strdup(workspace->name);
-    pw->output = output;
     pw->pid = pid;
     memcpy(&pw->time_added, &now, sizeof(struct timespec));
-    pw->output_destroy.notify = pw_handle_output_destroy;
-    wl_signal_add(&output->wlr_output->events.destroy, &pw->output_destroy);
     wl_list_insert(&hayward_root.pid_workspaces, &pw->link);
 }
 
@@ -335,22 +320,6 @@ root_remove_workspace_pid(pid_t pid) {
         if (pid == pw->pid) {
             pid_workspace_destroy(pw);
             return;
-        }
-    }
-}
-
-void
-root_rename_hayward_pid_workspaces(const char *old_name, const char *new_name) {
-    if (!hayward_root.pid_workspaces.prev &&
-        !hayward_root.pid_workspaces.next) {
-        wl_list_init(&hayward_root.pid_workspaces);
-    }
-
-    struct pid_workspace *pw = NULL;
-    wl_list_for_each(pw, &hayward_root.pid_workspaces, link) {
-        if (strcmp(pw->workspace, old_name) == 0) {
-            free(pw->workspace);
-            pw->workspace = strdup(new_name);
         }
     }
 }
