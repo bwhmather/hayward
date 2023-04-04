@@ -14,9 +14,7 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>

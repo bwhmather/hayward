@@ -3,6 +3,7 @@
 #include "hayward/tree/column.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wayland-server-core.h>
@@ -15,7 +16,6 @@
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/output.h>
-#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>

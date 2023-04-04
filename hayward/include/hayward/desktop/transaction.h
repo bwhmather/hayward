@@ -1,7 +1,8 @@
 #ifndef _HAYWARD_TRANSACTION_H
 #define _HAYWARD_TRANSACTION_H
-#include <stdint.h>
+
 #include <wayland-server-core.h>
+
 /**
  * Transactions enable us to perform atomic layout updates.
  *

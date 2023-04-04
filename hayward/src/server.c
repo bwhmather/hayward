@@ -48,7 +48,6 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/xwayland.h>
 
-#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>

@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
