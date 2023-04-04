@@ -67,10 +67,17 @@ struct {
 } hayward_root;
 
 static void
+root_validate(void);
+
+static void
 root_handle_transaction_before_commit(
     struct wl_listener *listener, void *data
 ) {
     root_commit_focus();
+
+#ifndef NDEBUG
+    root_validate();
+#endif
 }
 
 static void
@@ -618,4 +625,109 @@ root_find_workspace(
         }
     }
     return NULL;
+}
+
+static void
+root_validate(void) {
+    hayward_assert(root != NULL, "Missing root");
+
+    // Validate that there is at least one workspace.
+    struct hayward_workspace *active_workspace = root->pending.active_workspace;
+    hayward_assert(active_workspace != NULL, "No active workspace");
+    hayward_assert(
+        list_find(root->pending.workspaces, active_workspace) != -1,
+        "Active workspace missing from workspaces list"
+    );
+
+    // Validate that there is at least one output.
+    struct hayward_output *active_output = root->pending.active_output;
+    hayward_assert(active_output != NULL, "No active output");
+    if (root->outputs->length == 0) {
+        hayward_assert(
+            active_output == root->fallback_output,
+            "Expected fallback output to be active"
+        );
+    } else {
+        hayward_assert(
+            list_find(root->outputs, active_output) != -1,
+            "Expected active output to be in outputs list"
+        );
+    }
+
+    // Validate that the fallback output exists but is not in the outputs list.
+    hayward_assert(root->fallback_output != NULL, "Missing fallback output");
+    hayward_assert(
+        list_find(root->outputs, root->fallback_output) == -1,
+        "Fallback output present in outputs list"
+    );
+
+    // Validate that the correct output is focused if workspace is in tiling
+    // mode.
+    if (active_workspace->pending.focus_mode == F_TILING) {
+        if (active_workspace->pending.active_column) {
+            hayward_assert(
+                active_output ==
+                    active_workspace->pending.active_column->pending.output,
+                "Expected active output to match active column output"
+            );
+        }
+    }
+
+    // Recursively validate each workspace.
+    for (int i = 0; i < root->pending.workspaces->length; i++) {
+        struct hayward_workspace *workspace =
+            root->pending.workspaces->items[i];
+        hayward_assert(workspace != NULL, "Null workspace in workspaces list");
+
+        // Validate floating windows.
+        for (int j = 0; j < workspace->pending.floating->length; j++) {
+            struct hayward_window *window =
+                workspace->pending.floating->items[j];
+            hayward_assert(window != NULL, "NULL window in floating list");
+
+            hayward_assert(
+                window->pending.workspace == workspace,
+                "Window workspace does not match expected"
+            );
+            hayward_assert(
+                list_find(root->outputs, window->pending.output) != -1,
+                "Window output missing from list"
+            );
+            hayward_assert(
+                window->pending.parent == NULL,
+                "Floating window has parent column"
+            );
+        }
+
+        for (int j = 0; j < workspace->pending.tiling->length; j++) {
+            struct hayward_column *column = workspace->pending.tiling->items[j];
+
+            hayward_assert(
+                column->pending.workspace == workspace,
+                "Column workspace does not match expected"
+            );
+            hayward_assert(
+                list_find(root->outputs, column->pending.output) != -1,
+                "Columm output missing from list"
+            );
+
+            for (int k = 0; k < column->pending.children->length; k++) {
+                struct hayward_window *window =
+                    column->pending.children->items[k];
+
+                hayward_assert(
+                    window->pending.parent == column,
+                    "Tiling window parent link broken"
+                );
+                hayward_assert(
+                    window->pending.workspace == workspace,
+                    "Window workspace does not match parent"
+                );
+                hayward_assert(
+                    window->pending.output == column->pending.output,
+                    "Window output does not match parent"
+                );
+            }
+        }
+    }
 }
