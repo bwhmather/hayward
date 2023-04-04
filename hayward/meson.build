@@ -6,6 +6,7 @@ hayward_sources = files(
 	'src/ipc-server.c',
 	'src/lock.c',
 	'src/main.c',
+	'src/output.c',
 	'src/server.c',
 	'src/haywardnag.c',
 	'src/xdg_activation_v1.c',
@@ -14,7 +15,6 @@ hayward_sources = files(
 	'src/desktop/desktop.c',
 	'src/desktop/idle_inhibit_v1.c',
 	'src/desktop/layer_shell.c',
-	'src/desktop/output.c',
 	'src/desktop/render.c',
 	'src/desktop/surface.c',
 	'src/desktop/transaction.c',
@@ -182,7 +182,6 @@ hayward_sources = files(
 	'src/tree/view.c',
 	'src/tree/window.c',
 	'src/tree/workspace.c',
-	'src/tree/output.c',
 	'src/tree.c',
 )
 
