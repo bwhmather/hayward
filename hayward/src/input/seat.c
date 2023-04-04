@@ -39,6 +39,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop.h>
+#include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/keyboard.h>
@@ -67,6 +68,8 @@ static void
 handle_request_set_selection(struct wl_listener *listener, void *data);
 static void
 handle_request_set_primary_selection(struct wl_listener *listener, void *data);
+static void
+handle_transaction_before_commit(struct wl_listener *listener, void *data);
 
 struct hayward_seat *
 seat_create(const char *seat_name) {
@@ -122,6 +125,9 @@ seat_create(const char *seat_name) {
 
     wl_list_insert(&server.input->seats, &seat->link);
 
+    seat->transaction_before_commit.notify = handle_transaction_before_commit;
+    transaction_add_before_commit_listener(&seat->transaction_before_commit);
+
     seatop_begin_default(seat);
 
     return seat;
@@ -161,6 +167,7 @@ seat_destroy(struct hayward_seat *seat) {
     wl_list_remove(&seat->start_drag.link);
     wl_list_remove(&seat->request_set_selection.link);
     wl_list_remove(&seat->request_set_primary_selection.link);
+    wl_list_remove(&seat->transaction_before_commit.link);
     wl_list_remove(&seat->link);
     wlr_seat_destroy(seat->wlr_seat);
     for (int i = 0; i < seat->deferred_bindings->length; i++) {
@@ -438,6 +445,14 @@ handle_request_set_primary_selection(struct wl_listener *listener, void *data) {
     wlr_seat_set_primary_selection(
         seat->wlr_seat, event->source, event->serial
     );
+}
+
+static void
+handle_transaction_before_commit(struct wl_listener *listener, void *data) {
+    struct hayward_seat *seat =
+        wl_container_of(listener, seat, transaction_before_commit);
+
+    seat_commit_focus(seat);
 }
 
 static void

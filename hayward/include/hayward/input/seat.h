@@ -106,6 +106,7 @@ struct hayward_seat {
     struct wl_listener start_drag;
     struct wl_listener request_set_selection;
     struct wl_listener request_set_primary_selection;
+    struct wl_listener transaction_before_commit;
 
     struct wl_list devices;         // hayward_seat_device::link
     struct wl_list keyboard_groups; // hayward_keyboard_group::link

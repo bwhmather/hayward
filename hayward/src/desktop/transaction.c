@@ -17,7 +17,6 @@
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
-#include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
@@ -137,12 +136,6 @@ transaction_commit(void) {
     );
 
     hayward_transaction_state.queued = false;
-
-    // TODO register as event listener.
-    struct hayward_seat *seat;
-    wl_list_for_each(seat, &server.input->seats, link) {
-        seat_commit_focus(seat);
-    }
 
     wl_signal_emit_mutable(
         &hayward_transaction_state.events.transaction_commit, NULL
