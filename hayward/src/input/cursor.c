@@ -49,6 +49,7 @@
 #include <wlr-layer-shell-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
+#include <hayward/desktop/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/tablet.h>
@@ -1394,6 +1395,13 @@ handle_image_surface_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void
+handle_transaction_apply(struct wl_listener *listener, void *data) {
+    struct hayward_cursor *cursor =
+        wl_container_of(listener, cursor, transaction_apply);
+    cursor_rebase(cursor);
+}
+
+static void
 set_image_surface(struct hayward_cursor *cursor, struct wlr_surface *surface) {
     wl_list_remove(&cursor->image_surface_destroy.link);
     cursor->image_surface = surface;
@@ -1483,6 +1491,7 @@ hayward_cursor_destroy(struct hayward_cursor *cursor) {
     wl_list_remove(&cursor->tool_tip.link);
     wl_list_remove(&cursor->tool_button.link);
     wl_list_remove(&cursor->request_set_cursor.link);
+    wl_list_remove(&cursor->transaction_apply.link);
 
     wlr_xcursor_manager_destroy(cursor->xcursor_manager);
     wlr_cursor_destroy(cursor->cursor);
@@ -1573,6 +1582,9 @@ hayward_cursor_create(struct hayward_seat *seat) {
         &seat->wlr_seat->events.request_set_cursor, &cursor->request_set_cursor
     );
     cursor->request_set_cursor.notify = handle_request_pointer_set_cursor;
+
+    cursor->transaction_apply.notify = handle_transaction_apply;
+    transaction_add_apply_listener(&cursor->transaction_apply);
 
     wl_list_init(&cursor->constraint_commit.link);
     wl_list_init(&cursor->tablets);

@@ -15,7 +15,6 @@
 #include <hayward-common/log.h>
 
 #include <hayward/desktop/idle_inhibit_v1.h>
-#include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
@@ -74,9 +73,6 @@ transaction_apply(void) {
     wl_signal_emit_mutable(
         &hayward_transaction_state.events.transaction_apply, NULL
     );
-
-    // TODO move to signal handler.
-    cursor_rebase_all();
 
     if (debug.txn_timings) {
         struct timespec now;

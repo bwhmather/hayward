@@ -79,6 +79,8 @@ struct hayward_cursor {
 
     struct wl_listener constraint_commit;
 
+    struct wl_listener transaction_apply;
+
     struct wl_event_source *hide_source;
     bool hidden;
     // This field is just a cache of the field in seat_config in order to avoid
