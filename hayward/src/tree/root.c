@@ -34,35 +34,13 @@
 
 struct hayward_root *root;
 
-struct pid_workspace {
+struct hayward_pid_workspace {
     pid_t pid;
     char *workspace;
     struct timespec time_added;
 
     struct wl_list link;
 };
-
-struct {
-    bool dirty;
-
-    struct wl_list pid_workspaces;
-
-    /**
-     * The nodes that are currently actually receiving input events.  These
-     * are distinct from the state in the `current` struct, which tracks
-     * what is to be rendered.  These are updated when a transaction is
-     * submitted rather than at the end as they need to take effect
-     * immediately and all transitions need to result in IPC events which
-     * should not be skipped.
-     */
-    struct hayward_window *focused_window;
-    struct hayward_workspace *focused_workspace;
-
-    struct wl_listener output_layout_change;
-    struct wl_listener transaction_before_commit;
-    struct wl_listener transaction_commit;
-    struct wl_listener transaction_apply;
-} hayward_root;
 
 static void
 root_validate(void);
@@ -94,9 +72,9 @@ root_copy_state(
 static void
 root_handle_transaction_commit(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
-    hayward_root.dirty = false;
+    root->dirty = false;
 
-    transaction_add_apply_listener(&hayward_root.transaction_apply);
+    transaction_add_apply_listener(&root->transaction_apply);
 
     root_copy_state(&root->committed, &root->pending);
 }
@@ -121,12 +99,11 @@ root_startup(void) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_root");
         return;
     }
-    memset(&hayward_root, 0, sizeof(hayward_root));
 
-    hayward_root.transaction_before_commit.notify =
+    root->transaction_before_commit.notify =
         root_handle_transaction_before_commit;
-    hayward_root.transaction_commit.notify = root_handle_transaction_commit;
-    hayward_root.transaction_apply.notify = root_handle_transaction_apply;
+    root->transaction_commit.notify = root_handle_transaction_commit;
+    root->transaction_apply.notify = root_handle_transaction_apply;
 
     root->output_layout = wlr_output_layout_create();
     wl_list_init(&root->all_outputs);
@@ -139,19 +116,17 @@ root_startup(void) {
     root->committed.workspaces = create_list();
     root->current.workspaces = create_list();
 
-    hayward_root.output_layout_change.notify = output_layout_handle_change;
+    root->output_layout_change.notify = output_layout_handle_change;
     wl_signal_add(
-        &root->output_layout->events.change, &hayward_root.output_layout_change
+        &root->output_layout->events.change, &root->output_layout_change
     );
-    transaction_add_before_commit_listener(
-        &hayward_root.transaction_before_commit
-    );
+    transaction_add_before_commit_listener(&root->transaction_before_commit);
 }
 
 void
 root_shutdown(void) {
-    wl_list_remove(&hayward_root.output_layout_change.link);
-    wl_list_remove(&hayward_root.transaction_before_commit.link);
+    wl_list_remove(&root->output_layout_change.link);
+    wl_list_remove(&root->transaction_before_commit.link);
     list_free(root->outputs);
     list_free(root->pending.workspaces);
     list_free(root->committed.workspaces);
@@ -164,12 +139,12 @@ void
 root_set_dirty(void) {
     hayward_assert(root != NULL, "Expected root");
 
-    if (hayward_root.dirty) {
+    if (root->dirty) {
         return;
     }
 
-    hayward_root.dirty = true;
-    transaction_add_commit_listener(&hayward_root.transaction_commit);
+    root->dirty = true;
+    transaction_add_commit_listener(&root->transaction_commit);
     transaction_ensure_queued();
 
     for (int i = 0; i < root->committed.workspaces->length; i++) {
@@ -221,7 +196,7 @@ get_parent_pid(pid_t child) {
 }
 
 static void
-pid_workspace_destroy(struct pid_workspace *pw) {
+pid_workspace_destroy(struct hayward_pid_workspace *pw) {
     wl_list_remove(&pw->link);
     free(pw->workspace);
     free(pw);
@@ -229,20 +204,19 @@ pid_workspace_destroy(struct pid_workspace *pw) {
 
 struct hayward_workspace *
 root_workspace_for_pid(pid_t pid) {
-    if (!hayward_root.pid_workspaces.prev &&
-        !hayward_root.pid_workspaces.next) {
-        wl_list_init(&hayward_root.pid_workspaces);
+    if (!root->pid_workspaces.prev && !root->pid_workspaces.next) {
+        wl_list_init(&root->pid_workspaces);
         return NULL;
     }
 
     struct hayward_workspace *workspace = NULL;
-    struct pid_workspace *pw = NULL;
+    struct hayward_pid_workspace *pw = NULL;
 
     hayward_log(HAYWARD_DEBUG, "Looking up workspace for pid %d", pid);
 
     do {
-        struct pid_workspace *_pw = NULL;
-        wl_list_for_each(_pw, &hayward_root.pid_workspaces, link) {
+        struct hayward_pid_workspace *_pw = NULL;
+        wl_list_for_each(_pw, &root->pid_workspaces, link) {
             if (pid == _pw->pid) {
                 pw = _pw;
                 hayward_log(
@@ -279,9 +253,8 @@ found:
 void
 root_record_workspace_pid(pid_t pid) {
     hayward_log(HAYWARD_DEBUG, "Recording workspace for process %d", pid);
-    if (!hayward_root.pid_workspaces.prev &&
-        !hayward_root.pid_workspaces.next) {
-        wl_list_init(&hayward_root.pid_workspaces);
+    if (!root->pid_workspaces.prev && !root->pid_workspaces.next) {
+        wl_list_init(&root->pid_workspaces);
     }
 
     struct hayward_workspace *workspace = root_get_active_workspace();
@@ -295,29 +268,29 @@ root_record_workspace_pid(pid_t pid) {
 
     // Remove expired entries
     static const int timeout = 60;
-    struct pid_workspace *old, *_old;
-    wl_list_for_each_safe(old, _old, &hayward_root.pid_workspaces, link) {
+    struct hayward_pid_workspace *old, *_old;
+    wl_list_for_each_safe(old, _old, &root->pid_workspaces, link) {
         if (now.tv_sec - old->time_added.tv_sec >= timeout) {
             pid_workspace_destroy(old);
         }
     }
 
-    struct pid_workspace *pw = calloc(1, sizeof(struct pid_workspace));
+    struct hayward_pid_workspace *pw =
+        calloc(1, sizeof(struct hayward_pid_workspace));
     pw->workspace = strdup(workspace->name);
     pw->pid = pid;
     memcpy(&pw->time_added, &now, sizeof(struct timespec));
-    wl_list_insert(&hayward_root.pid_workspaces, &pw->link);
+    wl_list_insert(&root->pid_workspaces, &pw->link);
 }
 
 void
 root_remove_workspace_pid(pid_t pid) {
-    if (!hayward_root.pid_workspaces.prev ||
-        !hayward_root.pid_workspaces.next) {
+    if (!root->pid_workspaces.prev || !root->pid_workspaces.next) {
         return;
     }
 
-    struct pid_workspace *pw, *tmp;
-    wl_list_for_each_safe(pw, tmp, &hayward_root.pid_workspaces, link) {
+    struct hayward_pid_workspace *pw, *tmp;
+    wl_list_for_each_safe(pw, tmp, &root->pid_workspaces, link) {
         if (pid == pw->pid) {
             pid_workspace_destroy(pw);
             return;
@@ -520,10 +493,10 @@ handle_urgent_timeout(void *data) {
 
 void
 root_commit_focus(void) {
-    struct hayward_window *old_window = hayward_root.focused_window;
+    struct hayward_window *old_window = root->focused_window;
     struct hayward_window *new_window = root_get_focused_window();
 
-    struct hayward_workspace *old_workspace = hayward_root.focused_workspace;
+    struct hayward_workspace *old_workspace = root->focused_workspace;
     struct hayward_workspace *new_workspace = root_get_active_workspace();
 
     if (old_window == new_window && old_workspace == new_workspace) {
@@ -577,8 +550,8 @@ root_commit_focus(void) {
             column_set_dirty(new_window->pending.parent);
         }
     }
-    hayward_root.focused_workspace = new_workspace;
-    hayward_root.focused_window = new_window;
+    root->focused_workspace = new_workspace;
+    root->focused_window = new_window;
 
     // Emit ipc events
     if (new_window != old_window) {

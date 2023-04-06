@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+struct hayward_pid_workspaces;
+
 extern struct hayward_root *root;
 
 struct hayward_root_state {
@@ -38,6 +40,12 @@ struct hayward_root_state {
 };
 
 struct hayward_root {
+    struct hayward_root_state pending;
+    struct hayward_root_state committed;
+    struct hayward_root_state current;
+
+    bool dirty;
+
     struct wlr_output_layout *output_layout;
 
 #if HAVE_XWAYLAND
@@ -53,9 +61,23 @@ struct hayward_root {
     // For when there's no connected outputs
     struct hayward_output *fallback_output;
 
-    struct hayward_root_state pending;
-    struct hayward_root_state committed;
-    struct hayward_root_state current;
+    struct wl_list pid_workspaces;
+
+    /**
+     * The nodes that are currently actually receiving input events.  These
+     * are distinct from the state in the `current` struct, which tracks
+     * what is to be rendered.  These are updated when a transaction is
+     * submitted rather than at the end as they need to take effect
+     * immediately and all transitions need to result in IPC events which
+     * should not be skipped.
+     */
+    struct hayward_window *focused_window;
+    struct hayward_workspace *focused_workspace;
+
+    struct wl_listener output_layout_change;
+    struct wl_listener transaction_before_commit;
+    struct wl_listener transaction_commit;
+    struct wl_listener transaction_apply;
 };
 
 void
