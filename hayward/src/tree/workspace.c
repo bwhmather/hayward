@@ -204,12 +204,15 @@ void
 workspace_consider_destroy(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
-    if (workspace->pending.tiling->length ||
-        workspace->pending.floating->length) {
+    if (workspace->pending.tiling->length) {
         return;
     }
 
-    if (root_get_active_workspace(root) == workspace) {
+    if (workspace->pending.floating->length) {
+        return;
+    }
+
+    if (workspace->pending.focused) {
         return;
     }
 
@@ -266,7 +269,7 @@ workspace_is_visible(struct hayward_workspace *workspace) {
         return false;
     }
 
-    return root_get_active_workspace(root) == workspace;
+    return workspace->pending.focused;
 }
 
 static bool
@@ -296,7 +299,9 @@ workspace_detach(struct hayward_workspace *workspace) {
 }
 
 void
-workspace_reconcile(struct hayward_workspace *workspace) {
+workspace_reconcile(
+    struct hayward_workspace *workspace, struct hayward_root *root
+) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
     bool dirty = false;

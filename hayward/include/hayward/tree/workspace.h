@@ -91,7 +91,9 @@ void
 workspace_detach(struct hayward_workspace *workspace);
 
 void
-workspace_reconcile(struct hayward_workspace *workspace);
+workspace_reconcile(
+    struct hayward_workspace *workspace, struct hayward_root *root
+);
 void
 workspace_reconcile_detached(struct hayward_workspace *workspace);
 

@@ -337,7 +337,7 @@ root_add_workspace(
     if (root->pending.active_workspace == NULL) {
         root_set_active_workspace(root, workspace);
     }
-    workspace_reconcile(workspace);
+    workspace_reconcile(workspace, root);
 
     root_set_dirty(root);
     workspace_set_dirty(workspace);
@@ -387,10 +387,10 @@ root_set_active_workspace(
     root->pending.active_workspace = workspace;
 
     if (old_workspace != NULL) {
-        workspace_reconcile(old_workspace);
+        workspace_reconcile(old_workspace, root);
         workspace_set_dirty(old_workspace);
     }
-    workspace_reconcile(workspace);
+    workspace_reconcile(workspace, root);
     workspace_set_dirty(workspace);
 
     struct hayward_output *active_output =
