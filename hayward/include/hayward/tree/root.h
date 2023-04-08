@@ -17,8 +17,6 @@
 
 struct hayward_pid_workspaces;
 
-extern struct hayward_root *root;
-
 struct hayward_root_state {
     list_t *workspaces;
 

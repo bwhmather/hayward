@@ -26,6 +26,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
+#include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/tablet.h>
 #include <hayward/ipc-server.h>

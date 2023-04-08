@@ -18,6 +18,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
+#include <hayward/globals/root.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
 #include <hayward/tree/arrange.h>

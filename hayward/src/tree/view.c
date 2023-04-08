@@ -23,6 +23,7 @@
 #include <wlr/util/box.h>
 #include <wlr/xwayland.h>
 
+#include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 
 #include <config.h>

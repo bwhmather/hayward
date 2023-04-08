@@ -29,6 +29,7 @@
 #include <wlr-layer-shell-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>

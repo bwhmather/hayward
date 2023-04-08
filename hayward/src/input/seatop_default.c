@@ -30,6 +30,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
+#include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/tablet.h>

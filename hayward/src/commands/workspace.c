@@ -14,6 +14,7 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/root.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
 

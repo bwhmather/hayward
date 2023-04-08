@@ -28,6 +28,7 @@
 #include <hayward-common/util.h>
 
 #include <hayward/commands.h>
+#include <hayward/globals/root.h>
 #include <hayward/haywardnag.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>

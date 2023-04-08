@@ -12,6 +12,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/tree/column.h>

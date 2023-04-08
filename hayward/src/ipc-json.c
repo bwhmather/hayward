@@ -32,6 +32,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>

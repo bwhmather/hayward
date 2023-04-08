@@ -21,6 +21,7 @@
 #include <hayward/decoration.h>
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
+#include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/tree.h>

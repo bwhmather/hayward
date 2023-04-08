@@ -10,6 +10,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/root.h>
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>

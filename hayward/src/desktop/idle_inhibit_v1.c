@@ -11,6 +11,7 @@
 
 #include <hayward-common/log.h>
 
+#include <hayward/globals/root.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
