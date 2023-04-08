@@ -111,9 +111,6 @@ root_remove_workspace(
 );
 
 void
-root_sort_workspaces(struct hayward_root *root);
-
-void
 root_set_active_workspace(
     struct hayward_root *root, struct hayward_workspace *workspace
 );

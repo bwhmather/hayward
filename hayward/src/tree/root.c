@@ -308,11 +308,30 @@ root_remove_workspace_pid(struct hayward_root *root, pid_t pid) {
     }
 }
 
+static int
+sort_workspace_cmp_qsort(const void *_a, const void *_b) {
+    struct hayward_workspace *a = *(void **)_a;
+    struct hayward_workspace *b = *(void **)_b;
+
+    if (isdigit(a->name[0]) && isdigit(b->name[0])) {
+        int a_num = strtol(a->name, NULL, 10);
+        int b_num = strtol(b->name, NULL, 10);
+        return (a_num < b_num) ? -1 : (a_num > b_num);
+    } else if (isdigit(a->name[0])) {
+        return -1;
+    } else if (isdigit(b->name[0])) {
+        return 1;
+    }
+    return 0;
+}
+
 void
 root_add_workspace(
     struct hayward_root *root, struct hayward_workspace *workspace
 ) {
     list_add(root->pending.workspaces, workspace);
+    list_stable_sort(root->pending.workspaces, sort_workspace_cmp_qsort);
+
     if (root->pending.active_workspace == NULL) {
         root_set_active_workspace(root, workspace);
     }
@@ -349,28 +368,6 @@ root_remove_workspace(
 
     workspace_set_dirty(workspace);
     root_set_dirty(root);
-}
-
-static int
-sort_workspace_cmp_qsort(const void *_a, const void *_b) {
-    struct hayward_workspace *a = *(void **)_a;
-    struct hayward_workspace *b = *(void **)_b;
-
-    if (isdigit(a->name[0]) && isdigit(b->name[0])) {
-        int a_num = strtol(a->name, NULL, 10);
-        int b_num = strtol(b->name, NULL, 10);
-        return (a_num < b_num) ? -1 : (a_num > b_num);
-    } else if (isdigit(a->name[0])) {
-        return -1;
-    } else if (isdigit(b->name[0])) {
-        return 1;
-    }
-    return 0;
-}
-
-void
-root_sort_workspaces(struct hayward_root *root) {
-    list_stable_sort(root->pending.workspaces, sort_workspace_cmp_qsort);
 }
 
 void

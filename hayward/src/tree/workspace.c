@@ -150,7 +150,6 @@ workspace_create(const char *name) {
     }
 
     root_add_workspace(root, workspace);
-    root_sort_workspaces(root);
 
     ipc_event_workspace(NULL, workspace, "init");
 
