@@ -32,6 +32,9 @@
 static void
 workspace_destroy(struct hayward_workspace *workspace);
 
+static void
+workspace_damage_whole(struct hayward_workspace *workspace);
+
 static struct hayward_window *
 workspace_find_window(
     struct hayward_workspace *workspace,
@@ -816,7 +819,7 @@ workspace_find_window(
     return NULL;
 }
 
-void
+static void
 workspace_damage_whole(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 

@@ -159,7 +159,4 @@ workspace_for_each_window(
     void (*f)(struct hayward_window *container, void *data), void *data
 );
 
-void
-workspace_damage_whole(struct hayward_workspace *workspace);
-
 #endif

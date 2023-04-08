@@ -42,7 +42,6 @@ cmd_titlebar_padding(int argc, char **argv) {
 
     struct hayward_workspace *workspace = root_get_active_workspace(root);
     arrange_workspace(workspace);
-    workspace_damage_whole(workspace);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
