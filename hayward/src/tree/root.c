@@ -36,7 +36,7 @@ struct hayward_root *root;
 
 struct hayward_pid_workspace {
     pid_t pid;
-    char *workspace;
+    char *workspace_name;
     struct timespec time_added;
 
     struct wl_list link;
@@ -209,6 +209,7 @@ get_parent_pid(pid_t child) {
 static void
 pid_workspace_destroy(struct hayward_pid_workspace *pw) {
     wl_list_remove(&pw->link);
+    free(pw->workspace_name);
     free(pw);
 }
 
@@ -232,7 +233,7 @@ root_workspace_for_pid(struct hayward_root *root, pid_t pid) {
                 hayward_log(
                     HAYWARD_DEBUG,
                     "found pid_workspace for pid %d, workspace %s", pid,
-                    pw->workspace
+                    pw->workspace_name
                 );
                 goto found;
             }
@@ -241,17 +242,17 @@ root_workspace_for_pid(struct hayward_root *root, pid_t pid) {
     } while (pid > 1);
 found:
 
-    if (pw && pw->workspace) {
-        workspace = workspace_by_name(pw->workspace);
+    if (pw && pw->workspace_name) {
+        workspace = workspace_by_name(pw->workspace_name);
 
         if (!workspace) {
             hayward_log(
                 HAYWARD_DEBUG,
                 "Creating workspace %s for pid %d because it disappeared",
-                pw->workspace, pid
+                pw->workspace_name, pid
             );
 
-            workspace = workspace_create(pw->workspace);
+            workspace = workspace_create(pw->workspace_name);
             root_add_workspace(root, workspace);
         }
 
@@ -288,7 +289,7 @@ root_record_workspace_pid(struct hayward_root *root, pid_t pid) {
 
     struct hayward_pid_workspace *pw =
         calloc(1, sizeof(struct hayward_pid_workspace));
-    pw->workspace = strdup(workspace->name);
+    pw->workspace_name = strdup(workspace->name);
     pw->pid = pid;
     memcpy(&pw->time_added, &now, sizeof(struct timespec));
     wl_list_insert(&root->pid_workspaces, &pw->link);
