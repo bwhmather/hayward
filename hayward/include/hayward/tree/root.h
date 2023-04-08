@@ -80,54 +80,66 @@ struct hayward_root {
     struct wl_listener transaction_apply;
 };
 
-void
-root_startup(void);
+struct hayward_root *
+root_create(void);
 
 void
-root_shutdown(void);
+root_destroy(struct hayward_root *root);
 
 void
-root_set_dirty(void);
+root_set_dirty(struct hayward_root *root);
 
 struct hayward_workspace *
-root_workspace_for_pid(pid_t pid);
+root_workspace_for_pid(struct hayward_root *root, pid_t pid);
 
 void
-root_record_workspace_pid(pid_t pid);
+root_record_workspace_pid(struct hayward_root *root, pid_t pid);
 
 void
-root_remove_workspace_pid(pid_t pid);
+root_remove_workspace_pid(struct hayward_root *root, pid_t pid);
 
 void
-root_rename_pid_workspaces(const char *old_name, const char *new_name);
+root_rename_pid_workspaces(
+    struct hayward_root *root, const char *old_name, const char *new_name
+);
 
 void
-root_add_workspace(struct hayward_workspace *workspace);
+root_add_workspace(
+    struct hayward_root *root, struct hayward_workspace *workspace
+);
 void
-root_remove_workspace(struct hayward_workspace *workspace);
+root_remove_workspace(
+    struct hayward_root *root, struct hayward_workspace *workspace
+);
 
 void
-root_sort_workspaces(void);
+root_sort_workspaces(struct hayward_root *root);
 
 void
-root_set_active_workspace(struct hayward_workspace *workspace);
+root_set_active_workspace(
+    struct hayward_root *root, struct hayward_workspace *workspace
+);
 struct hayward_workspace *
-root_get_active_workspace(void);
+root_get_active_workspace(struct hayward_root *root);
 struct hayward_workspace *
-root_get_current_active_workspace(void);
+root_get_current_active_workspace(struct hayward_root *root);
 
 void
-root_set_active_output(struct hayward_output *output);
+root_set_active_output(
+    struct hayward_root *root, struct hayward_output *output
+);
 struct hayward_output *
-root_get_active_output(void);
+root_get_active_output(struct hayward_root *root);
 struct hayward_output *
-root_get_current_active_output(void);
+root_get_current_active_output(struct hayward_root *root);
 
 /**
  * Helper functions that traverse the tree to focus the right window.
  */
 void
-root_set_focused_window(struct hayward_window *window);
+root_set_focused_window(
+    struct hayward_root *root, struct hayward_window *window
+);
 
 /**
  * The active window is the window that is currently selected.  If the active
@@ -136,12 +148,14 @@ root_set_focused_window(struct hayward_window *window);
  * is receiving input events.
  */
 struct hayward_window *
-root_get_active_window(void);
+root_get_active_window(struct hayward_root *root);
 struct hayward_window *
-root_get_focused_window(void);
+root_get_focused_window(struct hayward_root *root);
 
 void
-root_set_focused_layer(struct wlr_layer_surface_v1 *layer);
+root_set_focused_layer(
+    struct hayward_root *root, struct wlr_layer_surface_v1 *layer
+);
 
 /**
  * Directly set the WLRoots surface that should receive input events.
@@ -149,29 +163,34 @@ root_set_focused_layer(struct wlr_layer_surface_v1 *layer);
  * This is mostly used by XWayland to focus unmanaged surfaces.
  */
 void
-root_set_focused_surface(struct wlr_surface *surface);
+root_set_focused_surface(
+    struct hayward_root *root, struct wlr_surface *surface
+);
 
 struct wlr_layer_surface_v1 *
-root_get_focused_layer(void);
+root_get_focused_layer(struct hayward_root *root);
 
 struct wlr_surface *
-root_get_focused_surface(void);
+root_get_focused_surface(struct hayward_root *root);
 
 void
-root_commit_focus(void);
+root_commit_focus(struct hayward_root *root);
 
 void
 root_for_each_workspace(
+    struct hayward_root *root,
     void (*f)(struct hayward_workspace *workspace, void *data), void *data
 );
 
 void
 root_for_each_window(
+    struct hayward_root *root,
     void (*f)(struct hayward_window *window, void *data), void *data
 );
 
 struct hayward_workspace *
 root_find_workspace(
+    struct hayward_root *root,
     bool (*test)(struct hayward_workspace *workspace, void *data), void *data
 );
 

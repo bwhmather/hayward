@@ -266,12 +266,12 @@ arrange_layers(struct hayward_output *output) {
         }
     }
 
-    struct wlr_layer_surface_v1 *current_layer = root_get_focused_layer();
+    struct wlr_layer_surface_v1 *current_layer = root_get_focused_layer(root);
 
     if (topmost != NULL) {
-        root_set_focused_layer(topmost->layer_surface);
+        root_set_focused_layer(root, topmost->layer_surface);
     } else if (current_layer != NULL && !current_layer->current.keyboard_interactive) {
-        root_set_focused_layer(NULL);
+        root_set_focused_layer(root, NULL);
     }
 }
 
@@ -315,7 +315,7 @@ handle_output_destroy(struct wl_listener *listener, void *data) {
             client, hayward_layer->layer_surface->output
         );
         if (layer) {
-            root_set_focused_layer(layer->layer_surface);
+            root_set_focused_layer(root, layer->layer_surface);
         }
     }
 
@@ -369,8 +369,8 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
 
 static void
 unmap(struct hayward_layer_surface *hayward_layer) {
-    if (root_get_focused_layer() == hayward_layer->layer_surface) {
-        root_set_focused_layer(NULL);
+    if (root_get_focused_layer(root) == hayward_layer->layer_surface) {
+        root_set_focused_layer(root, NULL);
     }
 
     cursor_rebase_all();

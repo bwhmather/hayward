@@ -255,7 +255,8 @@ finalize_move(struct hayward_seat *seat) {
     struct hayward_column *old_parent = moving_window->pending.parent;
     struct hayward_workspace *old_workspace = moving_window->pending.workspace;
 
-    struct hayward_workspace *target_workspace = root_get_active_workspace();
+    struct hayward_workspace *target_workspace =
+        root_get_active_workspace(root);
     struct hayward_output *target_output = e->target_output;
     struct hayward_window *target_window = e->target_window;
     enum wlr_edges target_edge = e->target_edge;

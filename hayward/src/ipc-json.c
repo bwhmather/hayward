@@ -270,7 +270,7 @@ ipc_json_describe_output(struct hayward_output *output) {
     json_object_object_add(
         object, "dpms", json_object_new_boolean(wlr_output->enabled)
     );
-    bool focused = root_get_active_output() == output;
+    bool focused = root_get_active_output(root) == output;
     json_object_object_add(object, "focused", json_object_new_boolean(focused));
     json_object_object_add(object, "primary", json_object_new_boolean(false));
     json_object_object_add(object, "layout", json_object_new_string("output"));
@@ -307,7 +307,7 @@ ipc_json_describe_output(struct hayward_output *output) {
         json_object_new_string(adaptive_sync_status)
     );
 
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     hayward_assert(workspace, "Expected output to have a workspace");
 
     json_object_object_add(

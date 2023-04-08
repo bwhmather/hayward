@@ -389,7 +389,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
     if (req->fullscreen && req->fullscreen_output &&
         req->fullscreen_output->data) {
-        struct hayward_workspace *workspace = root_get_active_workspace();
+        struct hayward_workspace *workspace = root_get_active_workspace(root);
         if (workspace && window->pending.workspace != workspace) {
             hayward_move_window_to_workspace(window, workspace);
         }
@@ -397,7 +397,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
 
     window_set_fullscreen(window, req->fullscreen);
 
-    arrange_root();
+    arrange_root(root);
     transaction_flush();
 }
 

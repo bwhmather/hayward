@@ -241,11 +241,11 @@ execute_command(
         }
 
         if (window == NULL) {
-            window = root_get_focused_window();
+            window = root_get_focused_window(root);
         }
 
         if (window == NULL) {
-            config->handler_context.workspace = root_get_active_workspace();
+            config->handler_context.workspace = root_get_active_workspace(root);
             config->handler_context.window = NULL;
         } else {
             config->handler_context.workspace = window->pending.workspace;

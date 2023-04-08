@@ -148,8 +148,8 @@ workspace_create(const char *name) {
         }
     }
 
-    root_add_workspace(workspace);
-    root_sort_workspaces();
+    root_add_workspace(root, workspace);
+    root_sort_workspaces(root);
 
     ipc_event_workspace(NULL, workspace, "init");
 
@@ -211,7 +211,7 @@ workspace_consider_destroy(struct hayward_workspace *workspace) {
         return;
     }
 
-    if (root_get_active_workspace() == workspace) {
+    if (root_get_active_workspace(root) == workspace) {
         return;
     }
 
@@ -257,7 +257,7 @@ _workspace_by_name(struct hayward_workspace *workspace, void *data) {
 
 struct hayward_workspace *
 workspace_by_name(const char *name) {
-    return root_find_workspace(_workspace_by_name, (void *)name);
+    return root_find_workspace(root, _workspace_by_name, (void *)name);
 }
 
 bool
@@ -268,7 +268,7 @@ workspace_is_visible(struct hayward_workspace *workspace) {
         return false;
     }
 
-    return root_get_active_workspace() == workspace;
+    return root_get_active_workspace(root) == workspace;
 }
 
 static bool
@@ -294,7 +294,7 @@ void
 workspace_detach(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
-    root_remove_workspace(workspace);
+    root_remove_workspace(root, workspace);
 }
 
 void
@@ -303,7 +303,7 @@ workspace_reconcile(struct hayward_workspace *workspace) {
 
     bool dirty = false;
 
-    bool should_focus = workspace == root_get_active_workspace();
+    bool should_focus = workspace == root_get_active_workspace(root);
     if (should_focus != workspace->pending.focused) {
         workspace->pending.focused = should_focus;
         dirty = true;
@@ -721,8 +721,8 @@ workspace_set_active_window(
         workspace->pending.active_column = new_column;
         workspace->pending.focus_mode = F_TILING;
 
-        if (root_get_active_workspace() == workspace) {
-            root_set_active_output(new_column->pending.output);
+        if (root_get_active_workspace(root) == workspace) {
+            root_set_active_output(root, new_column->pending.output);
         }
 
         column_reconcile(new_column, workspace, new_column->pending.output);

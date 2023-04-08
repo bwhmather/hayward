@@ -58,9 +58,9 @@ do_reload(void *data) {
     }
     list_free_items_and_destroy(bar_ids);
 
-    root_for_each_window(rebuild_textures_iterator, NULL);
+    root_for_each_window(root, rebuild_textures_iterator, NULL);
 
-    arrange_root();
+    arrange_root(root);
 }
 
 struct cmd_results *

@@ -70,7 +70,7 @@ handle_command(
     memcpy(class, &colors, sizeof(struct border_colors));
 
     if (config->active) {
-        root_for_each_window(rebuild_textures_iterator, NULL);
+        root_for_each_window(root, rebuild_textures_iterator, NULL);
 
         for (int i = 0; i < root->outputs->length; ++i) {
             struct hayward_output *output = root->outputs->items[i];

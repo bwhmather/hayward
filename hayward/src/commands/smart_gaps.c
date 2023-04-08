@@ -9,6 +9,7 @@
 
 #include <hayward/config.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 
 #include <config.h>
 
@@ -29,7 +30,7 @@ cmd_smart_gaps(int argc, char **argv) {
             : SMART_GAPS_OFF;
     }
 
-    arrange_root();
+    arrange_root(root);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

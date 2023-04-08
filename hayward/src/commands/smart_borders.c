@@ -10,6 +10,7 @@
 
 #include <hayward/config.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 
 #include <config.h>
 
@@ -27,7 +28,7 @@ cmd_smart_borders(int argc, char **argv) {
             parse_boolean(argv[0], true) ? ESMART_ON : ESMART_OFF;
     }
 
-    arrange_root();
+    arrange_root(root);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

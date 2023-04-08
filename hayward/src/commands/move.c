@@ -246,7 +246,7 @@ cmd_move_window(int argc, char **argv) {
     struct hayward_output *old_output = window_get_output(window);
 
     // save focus, in case it needs to be restored
-    struct hayward_window *focus = root_get_focused_window();
+    struct hayward_window *focus = root_get_focused_window(root);
 
     // determine destination
     if (strcasecmp(argv[0], "workspace") == 0) {
@@ -329,7 +329,7 @@ cmd_move_window(int argc, char **argv) {
             }
         }
         if (focus != NULL) {
-            root_set_focused_window(focus);
+            root_set_focused_window(root, focus);
         }
 
         if (old_parent) {
@@ -416,7 +416,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
     ipc_event_window(window, "move");
 
     // Hack to re-focus window
-    root_set_focused_window(window);
+    root_set_focused_window(root, window);
 
     if (old_workspace != new_workspace) {
         ipc_event_workspace(old_workspace, new_workspace, "focus");
@@ -535,7 +535,7 @@ cmd_move_to_position(int argc, char **argv) {
 
     struct hayward_workspace *workspace = window->pending.workspace;
     if (!workspace) {
-        workspace = root_get_active_workspace();
+        workspace = root_get_active_workspace(root);
     }
 
     switch (lx.unit) {

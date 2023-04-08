@@ -876,7 +876,7 @@ render_floating_window(
 
 static void
 render_floating(struct hayward_output *output, pixman_region32_t *damage) {
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     hayward_assert(workspace != NULL, "Expected active workspace");
 
     for (int i = 0; i < workspace->current.floating->length; ++i) {
@@ -904,7 +904,8 @@ output_render(
     struct wlr_output *wlr_output = output->wlr_output;
     struct wlr_renderer *renderer = output->server->renderer;
 
-    struct hayward_workspace *workspace = root_get_current_active_workspace();
+    struct hayward_workspace *workspace =
+        root_get_current_active_workspace(root);
     if (workspace == NULL) {
         return;
     }
@@ -1050,7 +1051,7 @@ output_render(
 
     render_seatops(output, damage);
 
-    struct hayward_window *focus = root_get_focused_window();
+    struct hayward_window *focus = root_get_focused_window(root);
     if (focus && focus->view) {
         render_view_popups(focus->view, output, damage, focus->alpha);
     }

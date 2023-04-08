@@ -173,7 +173,7 @@ output_enable(struct hayward_output *output) {
     input_manager_configure_xcursor();
 
     arrange_layers(output);
-    arrange_root();
+    arrange_root(root);
 }
 
 static void
@@ -271,7 +271,7 @@ output_disable(struct hayward_output *output) {
 
     output_evacuate(output);
 
-    root_for_each_window(untrack_output, output);
+    root_for_each_window(root, untrack_output, output);
 
     list_del(root->outputs, index);
     if (root->pending.active_output == output) {
@@ -286,7 +286,7 @@ output_disable(struct hayward_output *output) {
     output->enabled = false;
     output->current_mode = NULL;
 
-    arrange_root();
+    arrange_root(root);
 
     // Reconfigure all devices, since devices with map_to_output directives for
     // an output that goes offline should stop sending events as long as the
@@ -319,7 +319,7 @@ void
 output_reconcile(struct hayward_output *output) {
     hayward_assert(output != NULL, "Expected output");
 
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     if (workspace == NULL) {
         output->pending.fullscreen_window = NULL;
     }
@@ -663,7 +663,8 @@ output_for_each_surface(
         goto overlay;
     }
 
-    struct hayward_workspace *workspace = root_get_current_active_workspace();
+    struct hayward_workspace *workspace =
+        root_get_current_active_workspace(root);
 
     struct surface_iterator_data data = {
         .user_iterator = iterator,
@@ -820,7 +821,7 @@ scan_out_fullscreen_view(
     struct hayward_output *output, struct hayward_view *view
 ) {
     struct wlr_output *wlr_output = output->wlr_output;
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     hayward_assert(workspace, "Expected an active workspace");
 
     if (!wl_list_empty(&view->saved_buffers)) {
@@ -889,7 +890,8 @@ output_repaint_timer_handler(void *data) {
 
     output->wlr_output->frame_pending = false;
 
-    struct hayward_workspace *workspace = root_get_current_active_workspace();
+    struct hayward_workspace *workspace =
+        root_get_current_active_workspace(root);
     if (workspace == NULL) {
         return 0;
     }
@@ -1247,7 +1249,7 @@ handle_commit(struct wl_listener *listener, void *data) {
     }
 
     if (event->committed & WLR_OUTPUT_STATE_SCALE) {
-        root_for_each_window(update_textures, NULL);
+        root_for_each_window(root, update_textures, NULL);
     }
 
     if (event->committed &

@@ -260,7 +260,7 @@ arrange_workspace(struct hayward_workspace *workspace) {
     }
 
     // TODO TODO TODO
-    struct hayward_output *output = root_get_active_output();
+    struct hayward_output *output = root_get_active_output(root);
     if (output == NULL) {
         return;
     }

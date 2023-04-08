@@ -39,7 +39,7 @@ cmd_titlebar_padding(int argc, char **argv) {
     config->titlebar_v_padding = v_value;
     config->titlebar_h_padding = h_value;
 
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     arrange_workspace(workspace);
     workspace_damage_whole(workspace);
 

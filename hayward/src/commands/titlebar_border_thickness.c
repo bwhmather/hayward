@@ -7,7 +7,6 @@
 #include <hayward/config.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/workspace.h>
 
 #include <config.h>
 
@@ -28,9 +27,7 @@ cmd_titlebar_border_thickness(int argc, char **argv) {
 
     config->titlebar_border_thickness = value;
 
-    struct hayward_workspace *workspace = root_get_active_workspace();
-    arrange_workspace(workspace);
-    workspace_damage_whole(workspace);
+    arrange_root(root);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

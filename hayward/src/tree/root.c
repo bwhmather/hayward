@@ -43,16 +43,18 @@ struct hayward_pid_workspace {
 };
 
 static void
-root_validate(void);
+root_validate(struct hayward_root *root);
 
 static void
 root_handle_transaction_before_commit(
     struct wl_listener *listener, void *data
 ) {
-    root_commit_focus();
+    struct hayward_root *root =
+        wl_container_of(listener, root, transaction_before_commit);
+    root_commit_focus(root);
 
 #ifndef NDEBUG
-    root_validate();
+    root_validate(root);
 #endif
 }
 
@@ -71,6 +73,9 @@ root_copy_state(
 
 static void
 root_handle_transaction_commit(struct wl_listener *listener, void *data) {
+    struct hayward_root *root =
+        wl_container_of(listener, root, transaction_commit);
+
     wl_list_remove(&listener->link);
     root->dirty = false;
 
@@ -81,23 +86,28 @@ root_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
 static void
 root_handle_transaction_apply(struct wl_listener *listener, void *data) {
+    struct hayward_root *root =
+        wl_container_of(listener, root, transaction_apply);
+
     wl_list_remove(&listener->link);
 
     root_copy_state(&root->current, &root->committed);
 }
 
 static void
-output_layout_handle_change(struct wl_listener *listener, void *data) {
-    arrange_root();
+root_handle_output_layout_change(struct wl_listener *listener, void *data) {
+    struct hayward_root *root =
+        wl_container_of(listener, root, output_layout_change);
+    arrange_root(root);
     transaction_flush();
 }
 
-void
-root_startup(void) {
-    root = calloc(1, sizeof(struct hayward_root));
+struct hayward_root *
+root_create(void) {
+    struct hayward_root *root = calloc(1, sizeof(struct hayward_root));
     if (!root) {
         hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_root");
-        return;
+        return NULL;
     }
 
     root->transaction_before_commit.notify =
@@ -116,15 +126,16 @@ root_startup(void) {
     root->committed.workspaces = create_list();
     root->current.workspaces = create_list();
 
-    root->output_layout_change.notify = output_layout_handle_change;
+    root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(
         &root->output_layout->events.change, &root->output_layout_change
     );
     transaction_add_before_commit_listener(&root->transaction_before_commit);
+    return root;
 }
 
 void
-root_shutdown(void) {
+root_destroy(struct hayward_root *root) {
     wl_list_remove(&root->output_layout_change.link);
     wl_list_remove(&root->transaction_before_commit.link);
     list_free(root->outputs);
@@ -136,7 +147,7 @@ root_shutdown(void) {
 }
 
 void
-root_set_dirty(void) {
+root_set_dirty(struct hayward_root *root) {
     hayward_assert(root != NULL, "Expected root");
 
     if (root->dirty) {
@@ -198,12 +209,11 @@ get_parent_pid(pid_t child) {
 static void
 pid_workspace_destroy(struct hayward_pid_workspace *pw) {
     wl_list_remove(&pw->link);
-    free(pw->workspace);
     free(pw);
 }
 
 struct hayward_workspace *
-root_workspace_for_pid(pid_t pid) {
+root_workspace_for_pid(struct hayward_root *root, pid_t pid) {
     if (!root->pid_workspaces.prev && !root->pid_workspaces.next) {
         wl_list_init(&root->pid_workspaces);
         return NULL;
@@ -251,13 +261,13 @@ found:
 }
 
 void
-root_record_workspace_pid(pid_t pid) {
+root_record_workspace_pid(struct hayward_root *root, pid_t pid) {
     hayward_log(HAYWARD_DEBUG, "Recording workspace for process %d", pid);
     if (!root->pid_workspaces.prev && !root->pid_workspaces.next) {
         wl_list_init(&root->pid_workspaces);
     }
 
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     if (!workspace) {
         hayward_log(HAYWARD_DEBUG, "Bailing out, no workspace");
         return;
@@ -284,7 +294,7 @@ root_record_workspace_pid(pid_t pid) {
 }
 
 void
-root_remove_workspace_pid(pid_t pid) {
+root_remove_workspace_pid(struct hayward_root *root, pid_t pid) {
     if (!root->pid_workspaces.prev || !root->pid_workspaces.next) {
         return;
     }
@@ -299,19 +309,23 @@ root_remove_workspace_pid(pid_t pid) {
 }
 
 void
-root_add_workspace(struct hayward_workspace *workspace) {
+root_add_workspace(
+    struct hayward_root *root, struct hayward_workspace *workspace
+) {
     list_add(root->pending.workspaces, workspace);
     if (root->pending.active_workspace == NULL) {
-        root_set_active_workspace(workspace);
+        root_set_active_workspace(root, workspace);
     }
     workspace_reconcile(workspace);
 
-    root_set_dirty();
+    root_set_dirty(root);
     workspace_set_dirty(workspace);
 }
 
 void
-root_remove_workspace(struct hayward_workspace *workspace) {
+root_remove_workspace(
+    struct hayward_root *root, struct hayward_workspace *workspace
+) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
     int index = list_find(root->pending.workspaces, workspace);
@@ -328,13 +342,13 @@ root_remove_workspace(struct hayward_workspace *workspace) {
             next_focus = root->pending.workspaces->items[next_index];
         }
 
-        root_set_active_workspace(next_focus);
+        root_set_active_workspace(root, next_focus);
     }
 
     workspace_reconcile_detached(workspace);
 
     workspace_set_dirty(workspace);
-    root_set_dirty();
+    root_set_dirty(root);
 }
 
 static int
@@ -355,12 +369,14 @@ sort_workspace_cmp_qsort(const void *_a, const void *_b) {
 }
 
 void
-root_sort_workspaces(void) {
+root_sort_workspaces(struct hayward_root *root) {
     list_stable_sort(root->pending.workspaces, sort_workspace_cmp_qsort);
 }
 
 void
-root_set_active_workspace(struct hayward_workspace *workspace) {
+root_set_active_workspace(
+    struct hayward_root *root, struct hayward_workspace *workspace
+) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
     struct hayward_workspace *old_workspace = root->pending.active_workspace;
@@ -384,74 +400,82 @@ root_set_active_workspace(struct hayward_workspace *workspace) {
         root->pending.active_output = active_output;
     }
 
-    root_set_dirty();
+    root_set_dirty(root);
 }
 
 struct hayward_workspace *
-root_get_active_workspace(void) {
+root_get_active_workspace(struct hayward_root *root) {
     return root->pending.active_workspace;
 }
 
 struct hayward_workspace *
-root_get_current_active_workspace(void) {
+root_get_current_active_workspace(struct hayward_root *root) {
     return root->current.active_workspace;
 }
 
 void
-root_set_active_output(struct hayward_output *output) {
+root_set_active_output(
+    struct hayward_root *root, struct hayward_output *output
+) {
     hayward_assert(output != NULL, "Expected output");
     root->pending.active_output = output;
 }
 
 struct hayward_output *
-root_get_active_output(void) {
+root_get_active_output(struct hayward_root *root) {
     return root->pending.active_output;
 }
 
 struct hayward_output *
-root_get_current_active_output(void) {
+root_get_current_active_output(struct hayward_root *root) {
     return root->current.active_output;
 }
 
 void
-root_set_focused_window(struct hayward_window *window) {
+root_set_focused_window(
+    struct hayward_root *root, struct hayward_window *window
+) {
     hayward_assert(window != NULL, "Expected window");
 
     struct hayward_workspace *workspace = window->pending.workspace;
     hayward_assert(workspace != NULL, "Expected workspace");
 
-    root_set_focused_layer(NULL);
-    root_set_focused_surface(NULL);
+    root_set_focused_layer(root, NULL);
+    root_set_focused_surface(root, NULL);
 
-    root_set_active_workspace(workspace);
+    root_set_active_workspace(root, workspace);
     workspace_set_active_window(workspace, window);
 }
 
 struct hayward_window *
-root_get_active_window(void) {
-    struct hayward_workspace *workspace = root_get_active_workspace();
+root_get_active_window(struct hayward_root *root) {
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     hayward_assert(workspace != NULL, "Expected workspace");
 
     return workspace_get_active_window(workspace);
 }
 
 struct hayward_window *
-root_get_focused_window(void) {
+root_get_focused_window(struct hayward_root *root) {
     if (root->pending.focused_layer != NULL) {
         return NULL;
     }
-    return root_get_active_window();
+    return root_get_active_window(root);
 }
 
 void
-root_set_focused_layer(struct wlr_layer_surface_v1 *layer) {
+root_set_focused_layer(
+    struct hayward_root *root, struct wlr_layer_surface_v1 *layer
+) {
     root->pending.focused_layer = layer;
 }
 
 void
-root_set_focused_surface(struct wlr_surface *surface) {
+root_set_focused_surface(
+    struct hayward_root *root, struct wlr_surface *surface
+) {
     if (surface != NULL) {
-        root_set_focused_layer(NULL);
+        root_set_focused_layer(root, NULL);
 
         if (root->pending.active_workspace != NULL) {
             workspace_set_active_window(root->pending.active_workspace, NULL);
@@ -462,17 +486,17 @@ root_set_focused_surface(struct wlr_surface *surface) {
 }
 
 struct wlr_layer_surface_v1 *
-root_get_focused_layer(void) {
+root_get_focused_layer(struct hayward_root *root) {
     return root->pending.focused_layer;
 }
 
 struct wlr_surface *
-root_get_focused_surface(void) {
+root_get_focused_surface(struct hayward_root *root) {
     if (root->pending.focused_layer != NULL) {
         return root->pending.focused_layer->surface;
     }
 
-    struct hayward_window *window = root_get_focused_window();
+    struct hayward_window *window = root_get_focused_window(root);
     if (window != NULL) {
         return window->view->surface;
     }
@@ -485,19 +509,19 @@ root_get_focused_surface(void) {
 }
 
 static int
-handle_urgent_timeout(void *data) {
+root_handle_urgent_timeout(void *data) {
     struct hayward_view *view = data;
     view_set_urgent(view, false);
     return 0;
 }
 
 void
-root_commit_focus(void) {
+root_commit_focus(struct hayward_root *root) {
     struct hayward_window *old_window = root->focused_window;
-    struct hayward_window *new_window = root_get_focused_window();
+    struct hayward_window *new_window = root_get_focused_window(root);
 
     struct hayward_workspace *old_workspace = root->focused_workspace;
-    struct hayward_workspace *new_workspace = root_get_active_workspace();
+    struct hayward_workspace *new_workspace = root_get_active_workspace(root);
 
     if (old_window == new_window && old_workspace == new_workspace) {
         return;
@@ -528,7 +552,7 @@ root_commit_focus(void) {
             if (old_workspace && old_workspace != new_workspace &&
                 config->urgent_timeout > 0) {
                 view->urgent_timer = wl_event_loop_add_timer(
-                    server.wl_event_loop, handle_urgent_timeout, view
+                    server.wl_event_loop, root_handle_urgent_timeout, view
                 );
                 if (view->urgent_timer) {
                     wl_event_source_timer_update(
@@ -538,7 +562,7 @@ root_commit_focus(void) {
                     hayward_log_errno(
                         HAYWARD_ERROR, "Unable to create urgency timer"
                     );
-                    handle_urgent_timeout(view);
+                    root_handle_urgent_timeout(view);
                 }
             } else {
                 view_set_urgent(view, false);
@@ -564,6 +588,7 @@ root_commit_focus(void) {
 
 void
 root_for_each_workspace(
+    struct hayward_root *root,
     void (*f)(struct hayward_workspace *workspace, void *data), void *data
 ) {
     for (int i = 0; i < root->pending.workspaces->length; ++i) {
@@ -575,6 +600,7 @@ root_for_each_workspace(
 
 void
 root_for_each_window(
+    struct hayward_root *root,
     void (*f)(struct hayward_window *window, void *data), void *data
 ) {
     for (int i = 0; i < root->pending.workspaces->length; ++i) {
@@ -586,6 +612,7 @@ root_for_each_window(
 
 struct hayward_workspace *
 root_find_workspace(
+    struct hayward_root *root,
     bool (*test)(struct hayward_workspace *workspace, void *data), void *data
 ) {
     for (int i = 0; i < root->pending.workspaces->length; ++i) {
@@ -599,7 +626,7 @@ root_find_workspace(
 }
 
 static void
-root_validate(void) {
+root_validate(struct hayward_root *root) {
     hayward_assert(root != NULL, "Missing root");
 
     // Validate that there is at least one workspace.

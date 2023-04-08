@@ -667,7 +667,8 @@ ipc_get_workspaces_callback(struct hayward_workspace *workspace, void *data) {
     json_object *workspace_json = ipc_json_describe_workspace(workspace);
     // override the default focused indicator because
     // it's set differently for the get_workspaces reply
-    struct hayward_workspace *focused_workspace = root_get_active_workspace();
+    struct hayward_workspace *focused_workspace =
+        root_get_active_workspace(root);
     bool focused = workspace == focused_workspace;
     json_object_object_del(workspace_json, "focused");
     json_object_object_add(
@@ -774,7 +775,7 @@ ipc_client_handle_command(
 
     case IPC_GET_WORKSPACES: {
         json_object *workspaces = json_object_new_array();
-        root_for_each_workspace(ipc_get_workspaces_callback, workspaces);
+        root_for_each_workspace(root, ipc_get_workspaces_callback, workspaces);
         const char *json_string = json_object_to_json_string(workspaces);
         ipc_send_reply(
             client, payload_type, json_string, (uint32_t)strlen(json_string)

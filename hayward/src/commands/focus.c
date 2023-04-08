@@ -50,7 +50,7 @@ get_window_in_output_direction(
 ) {
     hayward_assert(output != NULL, "Expected output");
 
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     hayward_assert(workspace != NULL, "Expected workspace");
 
     if (output->pending.fullscreen_window) {
@@ -248,10 +248,10 @@ cmd_focus(int argc, char **argv) {
     struct hayward_workspace *workspace = config->handler_context.workspace;
     struct hayward_seat *seat = config->handler_context.seat;
 
-    struct hayward_output *output = root_get_active_output();
+    struct hayward_output *output = root_get_active_output(root);
     hayward_assert(output != NULL, "Expected output");
 
-    struct hayward_window *window = root_get_focused_window();
+    struct hayward_window *window = root_get_focused_window(root);
 
     if (argc == 0) {
         return cmd_results_new(
@@ -291,11 +291,11 @@ cmd_focus(int argc, char **argv) {
 
         window = get_window_in_output_direction(new_output, direction);
         if (window != NULL) {
-            root_set_focused_window(window);
+            root_set_focused_window(root, window);
         } else {
             // TODO might make more sense to move this to the root.
             workspace_set_active_window(workspace, NULL);
-            root_set_active_output(new_output);
+            root_set_active_output(root, new_output);
         }
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
@@ -307,7 +307,7 @@ cmd_focus(int argc, char **argv) {
         next_focus = window_get_in_direction_tiling(window, seat, direction);
     }
     if (next_focus) {
-        root_set_focused_window(next_focus);
+        root_set_focused_window(root, next_focus);
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

@@ -55,7 +55,7 @@ cmd_fullscreen(int argc, char **argv) {
 
     if (enable != is_fullscreen) {
         window_set_fullscreen(window, enable);
-        arrange_root();
+        arrange_root(root);
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

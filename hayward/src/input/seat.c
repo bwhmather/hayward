@@ -1012,7 +1012,7 @@ seat_commit_focus(struct hayward_seat *seat) {
     hayward_assert(seat != NULL, "Expected seat");
 
     struct wlr_surface *old_surface = seat->focused_surface;
-    struct wlr_surface *new_surface = root_get_focused_surface();
+    struct wlr_surface *new_surface = root_get_focused_surface(root);
 
     if (old_surface == new_surface) {
         return;
@@ -1051,18 +1051,18 @@ seat_set_exclusive_client(struct hayward_seat *seat, struct wl_client *client) {
         }
         return;
     }
-    struct wlr_layer_surface_v1 *focused_layer = root_get_focused_layer();
+    struct wlr_layer_surface_v1 *focused_layer = root_get_focused_layer(root);
     if (focused_layer) {
         if (wl_resource_get_client(focused_layer->resource) != client) {
-            root_set_focused_layer(NULL);
+            root_set_focused_layer(root, NULL);
         }
     }
-    struct hayward_window *focused_window = root_get_focused_window();
+    struct hayward_window *focused_window = root_get_focused_window(root);
     if (focused_window) {
         if (wl_resource_get_client(focused_window->view->surface->resource) !=
             client) {
             // TODO
-            root_set_focused_window(NULL);
+            root_set_focused_window(root, NULL);
         }
     }
     if (seat->wlr_seat->pointer_state.focused_client) {

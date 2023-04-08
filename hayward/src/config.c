@@ -34,6 +34,7 @@
 #include <hayward/input/switch.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 
 #include <config.h>
 
@@ -1078,7 +1079,7 @@ config_update_font_height(void) {
     );
 
     if (config->font_height != prev_max_height) {
-        arrange_root();
+        arrange_root(root);
     }
 }
 

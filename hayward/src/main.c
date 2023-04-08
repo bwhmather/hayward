@@ -449,7 +449,7 @@ main(int argc, char **argv) {
     hayward_log(HAYWARD_INFO, "Starting hayward version " HAYWARD_VERSION);
 
     transaction_init();
-    root_startup();
+    root = root_create();
 
     if (!server_init(&server)) {
         return 1;
@@ -473,7 +473,7 @@ main(int argc, char **argv) {
     char *workspace_name = "0";
     struct hayward_workspace *workspace = workspace_create(workspace_name);
     // free(workspace_name);
-    root_add_workspace(workspace);
+    root_add_workspace(root, workspace);
     ipc_event_workspace(NULL, workspace, "init");
 
     if (!server_start(&server)) {
@@ -497,7 +497,8 @@ shutdown:
     hayward_log(HAYWARD_INFO, "Shutting down hayward");
 
     server_fini(&server);
-    root_shutdown();
+    root_destroy(root);
+    root = NULL;
     transaction_shutdown();
 
     free(config_path);

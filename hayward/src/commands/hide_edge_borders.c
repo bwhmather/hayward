@@ -7,6 +7,7 @@
 
 #include <hayward/config.h>
 #include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 
 #include <config.h>
 
@@ -43,7 +44,7 @@ cmd_hide_edge_borders(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, expected_syntax);
     }
 
-    arrange_root();
+    arrange_root(root);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

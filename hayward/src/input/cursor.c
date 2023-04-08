@@ -146,7 +146,7 @@ seat_column_window_at(
 static struct hayward_window *
 seat_tiling_window_at(struct hayward_seat *seat, double lx, double ly) {
     for (int i = 0; i < root->outputs->length; i++) {
-        struct hayward_workspace *workspace = root_get_active_workspace();
+        struct hayward_workspace *workspace = root_get_active_workspace(root);
 
         struct wlr_box box;
         workspace_get_box(workspace, &box);
@@ -173,7 +173,7 @@ seat_floating_window_at(struct hayward_seat *seat, double lx, double ly) {
     // those at the end of the output list appear on top of floating
     // containers from other outputs, so iterate the list in reverse.
     for (int i = root->outputs->length - 1; i >= 0; --i) {
-        struct hayward_workspace *workspace = root_get_active_workspace();
+        struct hayward_workspace *workspace = root_get_active_workspace(root);
 
         // Items at the end of the list are on top, so iterate the list in
         // reverse.
@@ -206,7 +206,7 @@ surface_is_popup(struct wlr_surface *surface) {
 struct hayward_window *
 seat_window_at(struct hayward_seat *seat, double lx, double ly) {
     struct hayward_window *window;
-    struct hayward_window *focus = root_get_focused_window();
+    struct hayward_window *focus = root_get_focused_window(root);
 
     // Focused view's popups
     if (focus) {
@@ -344,7 +344,7 @@ seat_get_target_at(
 #endif
 
     // Check for fullscreen windows.
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     if (!workspace) {
         return;
     }
@@ -760,9 +760,9 @@ handle_touch_down(struct wl_listener *listener, void *data) {
             );
 
             if (window != NULL) {
-                root_set_focused_window(window);
+                root_set_focused_window(root, window);
             } else if (output != NULL) {
-                root_set_active_output(output);
+                root_set_active_output(root, output);
             }
         }
     } else if (!cursor->simulating_pointer_from_touch && (!surface || seat_is_input_allowed(seat, surface))) {
@@ -1802,7 +1802,7 @@ handle_pointer_constraint(struct wl_listener *listener, void *data) {
     hayward_constraint->destroy.notify = handle_constraint_destroy;
     wl_signal_add(&constraint->events.destroy, &hayward_constraint->destroy);
 
-    struct hayward_window *focus = root_get_focused_window();
+    struct hayward_window *focus = root_get_focused_window(root);
     if (focus != NULL) {
         struct wlr_surface *surface = focus->view->surface;
         if (surface == constraint->surface) {

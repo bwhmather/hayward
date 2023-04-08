@@ -106,7 +106,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data) {
         struct hayward_seat *seat = input_manager_current_seat();
         struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
         wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
-        root_set_focused_surface(xsurface->surface);
+        root_set_focused_surface(root, xsurface->surface);
     }
 }
 
@@ -126,7 +126,7 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
         // available. This seems to handle JetBrains issues.
         if (xsurface->parent && xsurface->parent->surface &&
             wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
-            root_set_focused_surface(xsurface->parent->surface);
+            root_set_focused_surface(root, xsurface->parent->surface);
             return;
         }
     }
@@ -138,12 +138,12 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data) {
     if (!xsurface->mapped) {
         return;
     }
-    struct hayward_window *focus = root_get_focused_window();
+    struct hayward_window *focus = root_get_focused_window(root);
     if (focus && focus->view && focus->view->pid != xsurface->pid) {
         return;
     }
 
-    root_set_focused_surface(xsurface->surface);
+    root_set_focused_surface(root, xsurface->surface);
 }
 
 static void
@@ -632,7 +632,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     }
     window_set_fullscreen(view->window, xsurface->fullscreen);
 
-    arrange_root();
+    arrange_root(root);
     transaction_flush();
 }
 
@@ -647,7 +647,7 @@ handle_request_minimize(struct wl_listener *listener, void *data) {
     }
 
     struct wlr_xwayland_minimize_event *e = data;
-    bool focused = root_get_focused_window() == view->window;
+    bool focused = root_get_focused_window(root) == view->window;
     wlr_xwayland_surface_set_minimized(xsurface, !focused && e->minimize);
 }
 

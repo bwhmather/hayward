@@ -191,7 +191,7 @@ cmd_workspace(int argc, char **argv) {
         if (!workspace) {
             return cmd_results_new(CMD_FAILURE, "No workspace to switch to");
         }
-        root_set_active_workspace(workspace);
+        root_set_active_workspace(root, workspace);
     }
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

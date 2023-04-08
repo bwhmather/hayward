@@ -218,7 +218,7 @@ gaps_set_runtime(int argc, char **argv) {
     }
 
     if (all) {
-        root_for_each_workspace(configure_gaps, &data);
+        root_for_each_workspace(root, configure_gaps, &data);
     } else {
         configure_gaps(config->handler_context.workspace, &data);
     }

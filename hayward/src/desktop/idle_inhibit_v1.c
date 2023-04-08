@@ -171,7 +171,7 @@ hayward_idle_inhibit_v1_is_active(struct hayward_idle_inhibitor_v1 *inhibitor) {
             view_from_wlr_surface(inhibitor->wlr_inhibitor->surface);
         return !view || !view->window || view_is_visible(view);
     case INHIBIT_IDLE_FOCUS:;
-        struct hayward_window *window = root_get_focused_window();
+        struct hayward_window *window = root_get_focused_window(root);
         if (window && window->view == inhibitor->view) {
             return true;
         }

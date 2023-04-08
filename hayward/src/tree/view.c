@@ -403,7 +403,7 @@ view_request_activate(struct hayward_view *view) {
     switch (config->focus_on_window_activation) {
     case FOWA_SMART:
         if (workspace_is_visible(workspace)) {
-            root_set_focused_window(view->window);
+            root_set_focused_window(root, view->window);
         } else {
             view_set_urgent(view, true);
         }
@@ -412,7 +412,7 @@ view_request_activate(struct hayward_view *view) {
         view_set_urgent(view, true);
         break;
     case FOWA_FOCUS:
-        root_set_focused_window(view->window);
+        root_set_focused_window(root, view->window);
         break;
     case FOWA_NONE:
         break;
@@ -552,7 +552,8 @@ view_populate_pid(struct hayward_view *view) {
 
 static bool
 should_focus(struct hayward_view *view) {
-    struct hayward_workspace *active_workspace = root_get_active_workspace();
+    struct hayward_workspace *active_workspace =
+        root_get_active_workspace(root);
     struct hayward_workspace *map_workspace = view->window->pending.workspace;
     struct hayward_output *map_output = view->window->pending.output;
 
@@ -579,7 +580,7 @@ handle_foreign_activate_request(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_activate_request);
 
-    root_set_focused_window(view->window);
+    root_set_focused_window(root, view->window);
     window_raise_floating(view->window);
 
     transaction_flush();
@@ -600,7 +601,7 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
 
     window_set_fullscreen(window, event->fullscreen);
     if (event->fullscreen) {
-        arrange_root();
+        arrange_root(root);
     } else {
         if (window->pending.parent) {
             arrange_column(window->pending.parent);
@@ -642,10 +643,10 @@ view_map(
     // If there is a request to be opened fullscreen on a specific output, try
     // to honor that request. Otherwise, fallback to assigns, pid mappings,
     // focused workspace, etc
-    struct hayward_workspace *workspace = root_get_active_workspace();
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
     hayward_assert(workspace != NULL, "Expected workspace");
 
-    struct hayward_output *output = root_get_active_output();
+    struct hayward_output *output = root_get_active_output(root);
     if (fullscreen_output && fullscreen_output->data) {
         output = fullscreen_output->data;
     }
@@ -756,7 +757,7 @@ view_map(
 #endif
 
     if (set_focus) {
-        root_set_focused_window(view->window);
+        root_set_focused_window(root, view->window);
     }
 
     ipc_event_window(view->window, "new");
@@ -1298,7 +1299,7 @@ view_set_urgent(struct hayward_view *view, bool enable) {
         return;
     }
     if (enable) {
-        if (root_get_focused_window() == view->window) {
+        if (root_get_focused_window(root) == view->window) {
             return;
         }
         clock_gettime(CLOCK_MONOTONIC, &view->urgent);

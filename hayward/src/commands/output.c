@@ -63,7 +63,7 @@ cmd_output(int argc, char **argv) {
                 argv[0]
             );
         }
-        struct hayward_output *hayward_output = root_get_active_output();
+        struct hayward_output *hayward_output = root_get_active_output(root);
         if (!hayward_output) {
             return cmd_results_new(CMD_FAILURE, "Unknown output");
         }
