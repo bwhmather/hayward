@@ -149,8 +149,6 @@ workspace_create(const char *name) {
         }
     }
 
-    root_add_workspace(root, workspace);
-
     ipc_event_workspace(NULL, workspace, "init");
 
     return workspace;

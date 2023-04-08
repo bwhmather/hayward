@@ -252,6 +252,7 @@ found:
             );
 
             workspace = workspace_create(pw->workspace);
+            root_add_workspace(root, workspace);
         }
 
         pid_workspace_destroy(pw);

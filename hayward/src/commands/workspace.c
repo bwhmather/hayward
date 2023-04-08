@@ -181,11 +181,13 @@ cmd_workspace(int argc, char **argv) {
             }
             if (!(workspace = workspace_by_name(argv[1]))) {
                 workspace = workspace_create(argv[1]);
+                root_add_workspace(root, workspace);
             }
         } else {
             char *name = join_args(argv, argc);
             if (!(workspace = workspace_by_name(name))) {
                 workspace = workspace_create(name);
+                root_add_workspace(root, workspace);
             }
             free(name);
         }
