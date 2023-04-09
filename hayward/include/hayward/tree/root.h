@@ -61,16 +61,6 @@ struct hayward_root {
 
     struct wl_list pid_workspaces;
 
-    /**
-     * The nodes that are currently actually receiving input events.  These
-     * are distinct from the state in the `current` struct, which tracks
-     * what is to be rendered.  These are updated when a transaction is
-     * submitted rather than at the end as they need to take effect
-     * immediately and all transitions need to result in IPC events which
-     * should not be skipped.
-     */
-    struct hayward_window *focused_window;
-
     struct wl_listener output_layout_change;
     struct wl_listener transaction_before_commit;
     struct wl_listener transaction_commit;
@@ -141,8 +131,6 @@ root_set_focused_window(
  * focused window.  The focused window will be NULL if a layer or other surface
  * is receiving input events.
  */
-struct hayward_window *
-root_get_active_window(struct hayward_root *root);
 struct hayward_window *
 root_get_focused_window(struct hayward_root *root);
 

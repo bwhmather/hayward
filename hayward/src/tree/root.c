@@ -452,19 +452,26 @@ root_set_focused_window(
 }
 
 struct hayward_window *
-root_get_active_window(struct hayward_root *root) {
-    struct hayward_workspace *workspace = root_get_active_workspace(root);
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    return workspace_get_active_window(workspace);
-}
-
-struct hayward_window *
 root_get_focused_window(struct hayward_root *root) {
     if (root->pending.focused_layer != NULL) {
         return NULL;
     }
-    return root_get_active_window(root);
+
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
+    hayward_assert(workspace != NULL, "Expected workspace");
+    return workspace_get_active_window(workspace);
+}
+
+struct hayward_window *
+root_get_committed_focused_window(struct hayward_root *root) {
+    if (root->pending.focused_layer != NULL) {
+        return NULL;
+    }
+
+    struct hayward_workspace *workspace =
+        root_get_committed_active_workspace(root);
+    hayward_assert(workspace != NULL, "Expected workspace");
+    return workspace_get_committed_active_window(workspace);
 }
 
 void
@@ -521,7 +528,7 @@ root_handle_urgent_timeout(void *data) {
 
 void
 root_commit_focus(struct hayward_root *root) {
-    struct hayward_window *old_window = root->focused_window;
+    struct hayward_window *old_window = root_get_committed_focused_window(root);
     struct hayward_window *new_window = root_get_focused_window(root);
 
     struct hayward_workspace *old_workspace =
@@ -579,7 +586,6 @@ root_commit_focus(struct hayward_root *root) {
             column_set_dirty(new_window->pending.parent);
         }
     }
-    root->focused_window = new_window;
 
     // Emit ipc events
     if (new_window != old_window) {

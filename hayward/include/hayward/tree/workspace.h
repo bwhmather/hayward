@@ -135,6 +135,8 @@ struct hayward_window *
 workspace_get_active_floating_window(struct hayward_workspace *workspace);
 struct hayward_window *
 workspace_get_active_window(struct hayward_workspace *workspace);
+struct hayward_window *
+workspace_get_committed_active_window(struct hayward_workspace *workspace);
 
 void
 workspace_set_active_window(

@@ -657,6 +657,19 @@ workspace_get_active_tiling_window(struct hayward_workspace *workspace) {
     return active_column->pending.active_child;
 }
 
+static struct hayward_window *
+workspace_get_committed_active_tiling_window(struct hayward_workspace *workspace
+) {
+    hayward_assert(workspace != NULL, "Expected workspace");
+
+    struct hayward_column *active_column = workspace->committed.active_column;
+    if (active_column == NULL) {
+        return NULL;
+    }
+
+    return active_column->committed.active_child;
+}
+
 struct hayward_window *
 workspace_get_active_floating_window(struct hayward_workspace *workspace) {
     if (workspace->pending.floating->length == 0) {
@@ -666,6 +679,17 @@ workspace_get_active_floating_window(struct hayward_workspace *workspace) {
     return workspace->pending.floating->items[0];
 }
 
+static struct hayward_window *
+workspace_get_committed_active_floating_window(
+    struct hayward_workspace *workspace
+) {
+    if (workspace->committed.floating->length == 0) {
+        return NULL;
+    }
+
+    return workspace->committed.floating->items[0];
+}
+
 struct hayward_window *
 workspace_get_active_window(struct hayward_workspace *workspace) {
     switch (workspace->pending.focus_mode) {
@@ -673,6 +697,18 @@ workspace_get_active_window(struct hayward_workspace *workspace) {
         return workspace_get_active_tiling_window(workspace);
     case F_FLOATING:
         return workspace_get_active_floating_window(workspace);
+    default:
+        hayward_abort("Invalid focus mode");
+    }
+}
+
+struct hayward_window *
+workspace_get_committed_active_window(struct hayward_workspace *workspace) {
+    switch (workspace->committed.focus_mode) {
+    case F_TILING:
+        return workspace_get_committed_active_tiling_window(workspace);
+    case F_FLOATING:
+        return workspace_get_committed_active_floating_window(workspace);
     default:
         hayward_abort("Invalid focus mode");
     }
