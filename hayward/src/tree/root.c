@@ -407,6 +407,11 @@ root_get_active_workspace(struct hayward_root *root) {
     return root->pending.active_workspace;
 }
 
+static struct hayward_workspace *
+root_get_committed_active_workspace(struct hayward_root *root) {
+    return root->committed.active_workspace;
+}
+
 struct hayward_workspace *
 root_get_current_active_workspace(struct hayward_root *root) {
     return root->current.active_workspace;
@@ -519,7 +524,8 @@ root_commit_focus(struct hayward_root *root) {
     struct hayward_window *old_window = root->focused_window;
     struct hayward_window *new_window = root_get_focused_window(root);
 
-    struct hayward_workspace *old_workspace = root->focused_workspace;
+    struct hayward_workspace *old_workspace =
+        root_get_committed_active_workspace(root);
     struct hayward_workspace *new_workspace = root_get_active_workspace(root);
 
     if (old_window == new_window && old_workspace == new_workspace) {
@@ -573,7 +579,6 @@ root_commit_focus(struct hayward_root *root) {
             column_set_dirty(new_window->pending.parent);
         }
     }
-    root->focused_workspace = new_workspace;
     root->focused_window = new_window;
 
     // Emit ipc events

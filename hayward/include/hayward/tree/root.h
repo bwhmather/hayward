@@ -70,7 +70,6 @@ struct hayward_root {
      * should not be skipped.
      */
     struct hayward_window *focused_window;
-    struct hayward_workspace *focused_workspace;
 
     struct wl_listener output_layout_change;
     struct wl_listener transaction_before_commit;
