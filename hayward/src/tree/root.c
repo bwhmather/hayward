@@ -3,6 +3,7 @@
 #include "hayward/tree/root.h"
 
 #include <ctype.h>
+#include <float.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -738,4 +739,34 @@ root_validate(struct hayward_root *root) {
             }
         }
     }
+}
+
+struct hayward_output *
+root_find_closest_output(
+    struct hayward_root *root, double target_x, double target_y
+) {
+
+    struct hayward_output *closest_output = NULL;
+    double closest_distance = DBL_MAX;
+    for (int i = 0; i < root->outputs->length; ++i) {
+        struct hayward_output *output = root->outputs->items[i];
+        struct wlr_box output_box;
+        double closest_x, closest_y;
+        output_get_box(output, &output_box);
+        wlr_box_closest_point(
+            &output_box, target_x, target_y, &closest_x, &closest_y
+        );
+        if (target_x == closest_x && target_y == closest_y) {
+            closest_output = output;
+            break;
+        }
+        double x_dist = closest_x - target_x;
+        double y_dist = closest_y - target_y;
+        double distance = x_dist * x_dist + y_dist * y_dist;
+        if (distance < closest_distance) {
+            closest_output = output;
+            closest_distance = distance;
+        }
+    }
+    return closest_output;
 }

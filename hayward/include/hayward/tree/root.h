@@ -176,4 +176,7 @@ root_find_workspace(
     bool (*test)(struct hayward_workspace *workspace, void *data), void *data
 );
 
+struct hayward_output *
+root_find_closest_output(struct hayward_root *root, double x, double y);
+
 #endif

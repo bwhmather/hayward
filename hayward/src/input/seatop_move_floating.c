@@ -13,7 +13,9 @@
 #include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/tablet.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
+#include <hayward/globals/root.h>
 
 #include <config.h>
 
@@ -26,10 +28,14 @@ static void
 finalize_move(struct hayward_seat *seat) {
     struct seatop_move_floating_event *e = seat->seatop_data;
 
-    // We "move" the window to its own location
-    // so it discovers its output again.
+    // The window is already at the right location, but we want to bind it to
+    // the correct output.
+    struct hayward_window *window = e->window;
+    struct hayward_output *output =
+        root_find_closest_output(root, window->pending.x, window->pending.y);
+
     window_floating_move_to(
-        e->window, e->window->pending.x, e->window->pending.y
+        window, output, window->pending.x, window->pending.y
     );
     transaction_flush();
 
@@ -60,8 +66,14 @@ static void
 handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     struct seatop_move_floating_event *e = seat->seatop_data;
     struct wlr_cursor *cursor = seat->cursor->cursor;
+
+    struct hayward_window *window = e->window;
+    struct hayward_output *output = window->pending.output;
+
     desktop_damage_window(e->window);
-    window_floating_move_to(e->window, cursor->x - e->dx, cursor->y - e->dy);
+    window_floating_move_to(
+        window, output, cursor->x - e->dx, cursor->y - e->dy
+    );
     desktop_damage_window(e->window);
     transaction_flush();
 }

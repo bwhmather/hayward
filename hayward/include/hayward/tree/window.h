@@ -160,20 +160,6 @@ void
 window_reconcile_detached(struct hayward_window *window);
 
 /**
- * Update a window's primary output based on its state.
- *
- * For tiling windows, we set the output to match the parent.
- *
- * For floating windows, if the center of the window intersects an output then
- * we'll choose that one, otherwise we'll choose whichever output is closest to
- * the window's center.
- *
- * For fullscreen windows, we leave the output untouched.
- */
-void
-window_update_output(struct hayward_window *window);
-
-/**
  * If the window is involved in a drag or resize operation via a mouse, this
  * ends the operation.
  */
@@ -236,7 +222,10 @@ window_floating_set_default_size(struct hayward_window *window);
  * Move a floating window to a new layout-local position.
  */
 void
-window_floating_move_to(struct hayward_window *window, double lx, double ly);
+window_floating_move_to(
+    struct hayward_window *window, struct hayward_output *output, double lx,
+    double ly
+);
 
 /**
  * Move a floating window to the center of the workspace.

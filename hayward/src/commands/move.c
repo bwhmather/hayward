@@ -389,7 +389,12 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
             ly += move_amt;
             break;
         }
-        window_floating_move_to(window, lx, ly);
+
+        double cx = lx + window->pending.width / 2;
+        double cy = ly + window->pending.height / 2;
+        struct hayward_output *output = root_find_closest_output(root, cx, cy);
+
+        window_floating_move_to(window, output, lx, ly);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
     struct hayward_workspace *old_workspace = window->pending.workspace;
@@ -458,7 +463,7 @@ cmd_move_to_position_pointer(struct hayward_window *window) {
     }
 
     /* Actually move the window. */
-    window_floating_move_to(window, lx, ly);
+    window_floating_move_to(window, output_from_wlr_output(output), lx, ly);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
@@ -579,7 +584,12 @@ cmd_move_to_position(int argc, char **argv) {
         lx.amount += workspace->pending.x;
         ly.amount += workspace->pending.y;
     }
-    window_floating_move_to(window, lx.amount, ly.amount);
+
+    double cx = lx.amount + window->pending.width / 2;
+    double cy = ly.amount + window->pending.height / 2;
+    struct hayward_output *output = root_find_closest_output(root, cx, cy);
+
+    window_floating_move_to(window, output, lx.amount, ly.amount);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 

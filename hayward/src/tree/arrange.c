@@ -289,7 +289,7 @@ arrange_workspace(struct hayward_workspace *workspace) {
             struct hayward_window *floater =
                 workspace->pending.floating->items[i];
             window_floating_move_to(
-                floater, floater->pending.x + diff_x,
+                floater, floater->pending.output, floater->pending.x + diff_x,
                 floater->pending.y + diff_y
             );
             double center_x = floater->pending.x + floater->pending.width / 2;
