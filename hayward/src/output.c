@@ -134,9 +134,9 @@ output_create(struct wlr_output *wlr_output) {
 
     wl_list_insert(&root->all_outputs, &output->link);
 
-    size_t len = sizeof(output->layers) / sizeof(output->layers[0]);
+    size_t len = sizeof(output->shell_layers) / sizeof(output->shell_layers[0]);
     for (size_t i = 0; i < len; ++i) {
-        wl_list_init(&output->layers[i]);
+        wl_list_init(&output->shell_layers[i]);
     }
 
     return output;
@@ -694,11 +694,11 @@ output_for_each_surface(
 #endif
     } else {
         output_layer_for_each_surface(
-            output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
             iterator, user_data
         );
         output_layer_for_each_surface(
-            output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], iterator,
+            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], iterator,
             user_data
         );
 
@@ -712,14 +712,14 @@ output_for_each_surface(
         );
 #endif
         output_layer_for_each_surface(
-            output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], iterator,
+            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], iterator,
             user_data
         );
     }
 
 overlay:
     output_layer_for_each_surface(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], iterator,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], iterator,
         user_data
     );
     output_drag_icons_for_each_surface(
@@ -745,7 +745,7 @@ output_has_opaque_overlay_layer_surface(struct hayward_output *output) {
     struct hayward_layer_surface *hayward_layer_surface;
     wl_list_for_each(
         hayward_layer_surface,
-        &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], link
+        &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], link
     ) {
         struct wlr_surface *wlr_surface =
             hayward_layer_surface->layer_surface->surface;
@@ -842,7 +842,7 @@ scan_out_fullscreen_view(
     }
 #endif
 
-    if (!wl_list_empty(&output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY])) {
+    if (!wl_list_empty(&output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY])) {
         return false;
     }
     if (!wl_list_empty(&root->drag_icons)) {

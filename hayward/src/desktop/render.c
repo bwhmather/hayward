@@ -1023,10 +1023,10 @@ output_render(
 
         render_layer_toplevel(
             output, damage,
-            &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]
+            &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]
         );
         render_layer_toplevel(
-            output, damage, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
+            output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
         );
 
         render_workspace(output, damage, workspace, workspace->current.focused);
@@ -1035,18 +1035,18 @@ output_render(
         render_unmanaged(output, damage, &root->xwayland_unmanaged);
 #endif
         render_layer_toplevel(
-            output, damage, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]
+            output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]
         );
 
         render_layer_popups(
             output, damage,
-            &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]
+            &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]
         );
         render_layer_popups(
-            output, damage, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
+            output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
         );
         render_layer_popups(
-            output, damage, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]
+            output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]
         );
     }
 
@@ -1059,10 +1059,10 @@ output_render(
 
 render_overlay:
     render_layer_toplevel(
-        output, damage, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]
+        output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]
     );
     render_layer_popups(
-        output, damage, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]
+        output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]
     );
     render_drag_icons(output, damage, &root->drag_icons);
 

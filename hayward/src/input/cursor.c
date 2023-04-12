@@ -318,7 +318,7 @@ seat_get_target_at(
 
     // Layer surfaces on the overlay layer are rendered at the very top.
     *surface_out = layer_surface_at(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], ox, oy,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], ox, oy,
         sx_out, sy_out
     );
     if (*surface_out != NULL) {
@@ -376,7 +376,7 @@ seat_get_target_at(
         return;
     }
     *surface_out = layer_surface_popup_at(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy, sx_out,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy, sx_out,
         sy_out
     );
     if (*surface_out != NULL) {
@@ -384,7 +384,7 @@ seat_get_target_at(
     }
 
     *surface_out = layer_surface_popup_at(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], ox, oy,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], ox, oy,
         sx_out, sy_out
     );
     if (*surface_out != NULL) {
@@ -392,7 +392,7 @@ seat_get_target_at(
     }
 
     *surface_out = layer_surface_popup_at(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox, oy,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox, oy,
         sx_out, sy_out
     );
     if (*surface_out != NULL) {
@@ -400,7 +400,7 @@ seat_get_target_at(
     }
 
     *surface_out = layer_surface_at(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy, sx_out,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy, sx_out,
         sy_out
     );
     if (*surface_out != NULL) {
@@ -415,7 +415,7 @@ seat_get_target_at(
     }
 
     *surface_out = layer_surface_at(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], ox, oy,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], ox, oy,
         sx_out, sy_out
     );
     if (*surface_out != NULL) {
@@ -423,7 +423,7 @@ seat_get_target_at(
     }
 
     *surface_out = layer_surface_at(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox, oy,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox, oy,
         sx_out, sy_out
     );
     if (*surface_out != NULL) {

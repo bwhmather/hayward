@@ -204,19 +204,19 @@ arrange_layers(struct hayward_output *output) {
 
     // Arrange exclusive surfaces from top->bottom
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
         &usable_area, true
     );
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], &usable_area,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], &usable_area,
         true
     );
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], &usable_area,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], &usable_area,
         true
     );
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
         &usable_area, true
     );
 
@@ -229,19 +229,19 @@ arrange_layers(struct hayward_output *output) {
 
     // Arrange non-exclusive surfaces from top->bottom
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
         &usable_area, false
     );
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], &usable_area,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], &usable_area,
         false
     );
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], &usable_area,
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], &usable_area,
         false
     );
     arrange_layer(
-        output, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
         &usable_area, false
     );
 
@@ -254,7 +254,7 @@ arrange_layers(struct hayward_output *output) {
     struct hayward_layer_surface *layer, *topmost = NULL;
     for (size_t i = 0; i < nlayers; ++i) {
         wl_list_for_each_reverse(
-            layer, &output->layers[layers_above_shell[i]], link
+            layer, &output->shell_layers[layers_above_shell[i]], link
         ) {
             if (layer->layer_surface->current.keyboard_interactive &&
                 layer->layer_surface->mapped) {
@@ -288,7 +288,7 @@ find_mapped_layer_by_client(
         // For now we'll only check the overlay layer
         struct hayward_layer_surface *lsurface;
         wl_list_for_each(
-            lsurface, &output->layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], link
+            lsurface, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], link
         ) {
             struct wl_resource *resource = lsurface->layer_surface->resource;
             if (wl_resource_get_client(resource) == client &&
@@ -341,7 +341,7 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
         if (layer_changed) {
             wl_list_remove(&layer->link);
             wl_list_insert(
-                &output->layers[layer_surface->current.layer], &layer->link
+                &output->shell_layers[layer_surface->current.layer], &layer->link
             );
             layer->layer = layer_surface->current.layer;
         }
@@ -750,7 +750,7 @@ handle_layer_shell_surface(struct wl_listener *listener, void *data) {
     wl_signal_add(&output->events.disable, &hayward_layer->output_destroy);
 
     wl_list_insert(
-        &output->layers[layer_surface->pending.layer], &hayward_layer->link
+        &output->shell_layers[layer_surface->pending.layer], &hayward_layer->link
     );
 
     // Temporarily set the layer's current state to pending
