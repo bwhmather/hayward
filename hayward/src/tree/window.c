@@ -337,6 +337,7 @@ window_reconcile_tiling(
     hayward_assert(column != NULL, "Expected column");
 
     window->pending.workspace = column->pending.workspace;
+    window->pending.output = column->pending.output;
     window->pending.parent = column;
 
     window->pending.focused =
