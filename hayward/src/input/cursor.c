@@ -318,8 +318,8 @@ seat_get_target_at(
 
     // Layer surfaces on the overlay layer are rendered at the very top.
     *surface_out = layer_surface_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], ox, oy,
-        sx_out, sy_out
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], ox,
+        oy, sx_out, sy_out
     );
     if (*surface_out != NULL) {
         return;
@@ -376,8 +376,8 @@ seat_get_target_at(
         return;
     }
     *surface_out = layer_surface_popup_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy, sx_out,
-        sy_out
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy,
+        sx_out, sy_out
     );
     if (*surface_out != NULL) {
         return;
@@ -392,16 +392,16 @@ seat_get_target_at(
     }
 
     *surface_out = layer_surface_popup_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox, oy,
-        sx_out, sy_out
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox,
+        oy, sx_out, sy_out
     );
     if (*surface_out != NULL) {
         return;
     }
 
     *surface_out = layer_surface_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy, sx_out,
-        sy_out
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy,
+        sx_out, sy_out
     );
     if (*surface_out != NULL) {
         return;
@@ -423,8 +423,8 @@ seat_get_target_at(
     }
 
     *surface_out = layer_surface_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox, oy,
-        sx_out, sy_out
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox,
+        oy, sx_out, sy_out
     );
     if (*surface_out != NULL) {
         return;
@@ -893,7 +893,7 @@ apply_mapping_from_region(
     double y1 = region->y1, y2 = region->y2;
 
     if (region->mm && device->type == WLR_INPUT_DEVICE_TABLET_TOOL) {
-        struct wlr_tablet *tablet = device->tablet;
+        struct wlr_tablet *tablet = wlr_tablet_from_input_device(device);
         if (tablet->width_mm == 0 || tablet->height_mm == 0) {
             return;
         }

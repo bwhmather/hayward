@@ -8,6 +8,8 @@
 
 struct hayward_switch {
     struct hayward_seat_device *seat_device;
+    struct wlr_switch *wlr;
+
     enum wlr_switch_state state;
     enum wlr_switch_type type;
 

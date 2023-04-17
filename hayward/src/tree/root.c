@@ -471,7 +471,9 @@ root_get_committed_focused_window(struct hayward_root *root) {
 
     struct hayward_workspace *workspace =
         root_get_committed_active_workspace(root);
-    hayward_assert(workspace != NULL, "Expected workspace");
+    if (workspace == NULL) {
+	return NULL;
+	}
     return workspace_get_committed_active_window(workspace);
 }
 

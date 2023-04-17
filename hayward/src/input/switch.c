@@ -28,6 +28,8 @@ hayward_switch_create(
     hayward_assert(switch_device, "could not allocate switch");
     device->switch_device = switch_device;
     switch_device->seat_device = device;
+    switch_device->wlr =
+        wlr_switch_from_input_device(device->input_device->wlr_device);
     switch_device->state = WLR_SWITCH_STATE_OFF;
     wl_list_init(&switch_device->switch_toggle.link);
     hayward_log(HAYWARD_DEBUG, "Allocated switch for device");
@@ -121,12 +123,9 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
 
 void
 hayward_switch_configure(struct hayward_switch *hayward_switch) {
-    struct wlr_input_device *wlr_device =
-        hayward_switch->seat_device->input_device->wlr_device;
     wl_list_remove(&hayward_switch->switch_toggle.link);
     wl_signal_add(
-        &wlr_device->switch_device->events.toggle,
-        &hayward_switch->switch_toggle
+        &hayward_switch->wlr->events.toggle, &hayward_switch->switch_toggle
     );
     hayward_switch->switch_toggle.notify = handle_switch_toggle;
     hayward_log(HAYWARD_DEBUG, "Configured switch for device");

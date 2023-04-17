@@ -61,6 +61,7 @@ struct hayward_shortcut_state {
 
 struct hayward_keyboard {
     struct hayward_seat_device *seat_device;
+    struct wlr_keyboard *wlr;
 
     struct xkb_keymap *keymap;
     xkb_layout_index_t effective_layout;

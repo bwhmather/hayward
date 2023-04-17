@@ -313,20 +313,30 @@ hayward_configure_tablet_pad(struct hayward_tablet_pad *tablet_pad) {
     wl_list_remove(&tablet_pad->attach.link);
     tablet_pad->attach.notify = handle_tablet_pad_attach;
     wl_signal_add(
-        &device->tablet_pad->events.attach_tablet, &tablet_pad->attach
+        &wlr_tablet_pad_from_input_device(device)->events.attach_tablet,
+        &tablet_pad->attach
     );
 
     wl_list_remove(&tablet_pad->button.link);
     tablet_pad->button.notify = handle_tablet_pad_button;
-    wl_signal_add(&device->tablet_pad->events.button, &tablet_pad->button);
+    wl_signal_add(
+        &wlr_tablet_pad_from_input_device(device)->events.button,
+        &tablet_pad->button
+    );
 
     wl_list_remove(&tablet_pad->strip.link);
     tablet_pad->strip.notify = handle_tablet_pad_strip;
-    wl_signal_add(&device->tablet_pad->events.strip, &tablet_pad->strip);
+    wl_signal_add(
+        &wlr_tablet_pad_from_input_device(device)->events.strip,
+        &tablet_pad->strip
+    );
 
     wl_list_remove(&tablet_pad->ring.link);
     tablet_pad->ring.notify = handle_tablet_pad_ring;
-    wl_signal_add(&device->tablet_pad->events.ring, &tablet_pad->ring);
+    wl_signal_add(
+        &wlr_tablet_pad_from_input_device(device)->events.ring,
+        &tablet_pad->ring
+    );
 
     /* Search for a sibling tablet */
     if (!wlr_input_device_is_libinput(device)) {

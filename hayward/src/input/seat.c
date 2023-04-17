@@ -209,7 +209,8 @@ hayward_keyboard_for_wlr_keyboard(
         if (input_device->wlr_device->type != WLR_INPUT_DEVICE_KEYBOARD) {
             continue;
         }
-        if (input_device->wlr_device->keyboard == wlr_keyboard) {
+        if (wlr_keyboard_from_input_device(input_device->wlr_device) ==
+            wlr_keyboard) {
             return seat_device->keyboard;
         }
     }
@@ -217,7 +218,8 @@ hayward_keyboard_for_wlr_keyboard(
     wl_list_for_each(group, &seat->keyboard_groups, link) {
         struct hayward_input_device *input_device =
             group->seat_device->input_device;
-        if (input_device->wlr_device->keyboard == wlr_keyboard) {
+        if (wlr_keyboard_from_input_device(input_device->wlr_device) ==
+            wlr_keyboard) {
             return group->seat_device->keyboard;
         }
     }
@@ -573,10 +575,10 @@ seat_apply_input_config(
         struct wlr_input_device *dev = hayward_device->input_device->wlr_device;
         switch (dev->type) {
         case WLR_INPUT_DEVICE_POINTER:
-            mapped_to_output = dev->pointer->output_name;
+            mapped_to_output = wlr_pointer_from_input_device(dev)->output_name;
             break;
         case WLR_INPUT_DEVICE_TOUCH:
-            mapped_to_output = dev->touch->output_name;
+            mapped_to_output = wlr_touch_from_input_device(dev)->output_name;
             break;
         default:
             mapped_to_output = NULL;
@@ -677,7 +679,8 @@ seat_configure_keyboard(
     }
     hayward_keyboard_configure(seat_device->keyboard);
     wlr_seat_set_keyboard(
-        seat->wlr_seat, seat_device->input_device->wlr_device->keyboard
+        seat->wlr_seat,
+        wlr_keyboard_from_input_device(seat_device->input_device->wlr_device)
     );
 
     // force notify reenter to pick up the new configuration.  This reuses

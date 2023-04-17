@@ -42,8 +42,10 @@ popup_get_view_coords(struct hayward_view_child *child, int *sx, int *sy) {
     struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
     wlr_xdg_popup_get_toplevel_coords(
-        wlr_popup, wlr_popup->geometry.x - wlr_popup->base->current.geometry.x,
-        wlr_popup->geometry.y - wlr_popup->base->current.geometry.y, sx, sy
+        wlr_popup,
+        wlr_popup->current.geometry.x - wlr_popup->base->current.geometry.x,
+        wlr_popup->current.geometry.y - wlr_popup->base->current.geometry.y, sx,
+        sy
     );
 }
 

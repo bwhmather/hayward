@@ -1026,7 +1026,8 @@ output_render(
             &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]
         );
         render_layer_toplevel(
-            output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
+            output, damage,
+            &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
         );
 
         render_workspace(output, damage, workspace, workspace->current.focused);
@@ -1043,7 +1044,8 @@ output_render(
             &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND]
         );
         render_layer_popups(
-            output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
+            output, damage,
+            &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM]
         );
         render_layer_popups(
             output, damage, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP]

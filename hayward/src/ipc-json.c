@@ -110,8 +110,6 @@ ipc_json_output_adaptive_sync_status_description(
         return "disabled";
     case WLR_OUTPUT_ADAPTIVE_SYNC_ENABLED:
         return "enabled";
-    case WLR_OUTPUT_ADAPTIVE_SYNC_UNKNOWN:
-        return "unknown";
     }
     return NULL;
 }
@@ -1006,7 +1004,8 @@ ipc_json_describe_input(struct hayward_input_device *device) {
     );
 
     if (device->wlr_device->type == WLR_INPUT_DEVICE_KEYBOARD) {
-        struct wlr_keyboard *keyboard = device->wlr_device->keyboard;
+        struct wlr_keyboard *keyboard =
+            wlr_keyboard_from_input_device(device->wlr_device);
         struct xkb_keymap *keymap = keyboard->keymap;
         struct xkb_state *state = keyboard->xkb_state;
 

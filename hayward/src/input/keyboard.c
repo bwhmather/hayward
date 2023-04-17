@@ -437,17 +437,13 @@ keyboard_keysyms_translated(
     struct hayward_keyboard *keyboard, xkb_keycode_t keycode,
     const xkb_keysym_t **keysyms, uint32_t *modifiers
 ) {
-    struct wlr_input_device *device =
-        keyboard->seat_device->input_device->wlr_device;
-    *modifiers = wlr_keyboard_get_modifiers(device->keyboard);
+    *modifiers = wlr_keyboard_get_modifiers(keyboard->wlr);
     xkb_mod_mask_t consumed = xkb_state_key_get_consumed_mods2(
-        device->keyboard->xkb_state, keycode, XKB_CONSUMED_MODE_XKB
+        keyboard->wlr->xkb_state, keycode, XKB_CONSUMED_MODE_XKB
     );
     *modifiers = *modifiers & ~consumed;
 
-    return xkb_state_key_get_syms(
-        device->keyboard->xkb_state, keycode, keysyms
-    );
+    return xkb_state_key_get_syms(keyboard->wlr->xkb_state, keycode, keysyms);
 }
 
 /**
@@ -464,14 +460,12 @@ keyboard_keysyms_raw(
     struct hayward_keyboard *keyboard, xkb_keycode_t keycode,
     const xkb_keysym_t **keysyms, uint32_t *modifiers
 ) {
-    struct wlr_input_device *device =
-        keyboard->seat_device->input_device->wlr_device;
-    *modifiers = wlr_keyboard_get_modifiers(device->keyboard);
+    *modifiers = wlr_keyboard_get_modifiers(keyboard->wlr);
 
     xkb_layout_index_t layout_index =
-        xkb_state_key_get_layout(device->keyboard->xkb_state, keycode);
+        xkb_state_key_get_layout(keyboard->wlr->xkb_state, keycode);
     return xkb_keymap_key_get_syms_by_level(
-        device->keyboard->keymap, keycode, layout_index, 0, keysyms
+        keyboard->wlr->keymap, keycode, layout_index, 0, keysyms
     );
 }
 
@@ -506,9 +500,7 @@ update_keyboard_state(
         &keyinfo->translated_modifiers
     );
 
-    keyinfo->code_modifiers = wlr_keyboard_get_modifiers(
-        keyboard->seat_device->input_device->wlr_device->keyboard
-    );
+    keyinfo->code_modifiers = wlr_keyboard_get_modifiers(keyboard->wlr);
 
     // Update shortcut model keyinfo
     update_shortcut_state(
@@ -563,7 +555,7 @@ handle_key_event(
     struct wlr_input_device *wlr_device =
         keyboard->seat_device->input_device->wlr_device;
     char *device_identifier = input_device_get_identifier(wlr_device);
-    bool exact_identifier = wlr_device->keyboard->group != NULL;
+    bool exact_identifier = keyboard->wlr->group != NULL;
     seat_idle_notify_activity(seat, IDLE_SOURCE_KEYBOARD);
     bool input_inhibited =
         seat->exclusive_client != NULL || server.session_lock.locked;
@@ -643,11 +635,10 @@ handle_key_event(
     // Set up (or clear) keyboard repeat for a pressed binding. Since the
     // binding may remove the keyboard, the timer needs to be updated first
     if (binding && !(binding->flags & BINDING_NOREPEAT) &&
-        wlr_device->keyboard->repeat_info.delay > 0) {
+        keyboard->wlr->repeat_info.delay > 0) {
         keyboard->repeat_binding = binding;
         if (wl_event_source_timer_update(
-                keyboard->key_repeat_source,
-                wlr_device->keyboard->repeat_info.delay
+                keyboard->key_repeat_source, keyboard->wlr->repeat_info.delay
             ) < 0) {
             hayward_log(HAYWARD_DEBUG, "failed to set key repeat timer");
         }
@@ -660,7 +651,7 @@ handle_key_event(
         handled = true;
     }
 
-    if (!handled && wlr_device->keyboard->group) {
+    if (!handled && keyboard->wlr->group) {
         // Only handle device specific bindings for keyboards in a group
         free(device_identifier);
         return;
@@ -688,7 +679,7 @@ handle_key_event(
             keyinfo.keycode, 0
         );
         if (pressed_sent) {
-            wlr_seat_set_keyboard(wlr_seat, wlr_device->keyboard);
+            wlr_seat_set_keyboard(wlr_seat, keyboard->wlr);
             wlr_seat_keyboard_notify_key(
                 wlr_seat, event->time_msec, event->keycode, event->state
             );
@@ -702,7 +693,7 @@ handle_key_event(
 
         if (kb_grab) {
             wlr_input_method_keyboard_grab_v2_set_keyboard(
-                kb_grab, wlr_device->keyboard
+                kb_grab, keyboard->wlr
             );
             wlr_input_method_keyboard_grab_v2_send_key(
                 kb_grab, event->time_msec, event->keycode, event->state
@@ -718,7 +709,7 @@ handle_key_event(
             &keyboard->state_pressed_sent, event->keycode, event->state,
             keyinfo.keycode, 0
         );
-        wlr_seat_set_keyboard(wlr_seat, wlr_device->keyboard);
+        wlr_seat_set_keyboard(wlr_seat, keyboard->wlr);
         wlr_seat_keyboard_notify_key(
             wlr_seat, event->time_msec, event->keycode, event->state
         );
@@ -789,14 +780,12 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
 static int
 handle_keyboard_repeat(void *data) {
     struct hayward_keyboard *keyboard = (struct hayward_keyboard *)data;
-    struct wlr_keyboard *wlr_device =
-        keyboard->seat_device->input_device->wlr_device->keyboard;
     if (keyboard->repeat_binding) {
-        if (wlr_device->repeat_info.rate > 0) {
+        if (keyboard->wlr->repeat_info.rate > 0) {
             // We queue the next event first, as the command might cancel it
             if (wl_event_source_timer_update(
                     keyboard->key_repeat_source,
-                    1000 / wlr_device->repeat_info.rate
+                    1000 / keyboard->wlr->repeat_info.rate
                 ) < 0) {
                 hayward_log(HAYWARD_DEBUG, "failed to update key repeat timer");
             }
@@ -833,36 +822,34 @@ determine_bar_visibility(uint32_t modifiers) {
 
 static void
 handle_modifier_event(struct hayward_keyboard *keyboard) {
-    struct wlr_input_device *wlr_device =
-        keyboard->seat_device->input_device->wlr_device;
-    if (!wlr_device->keyboard->group) {
+    if (!keyboard->wlr->group) {
         struct wlr_input_method_keyboard_grab_v2 *kb_grab =
             keyboard_get_im_grab(keyboard);
 
         if (kb_grab) {
             wlr_input_method_keyboard_grab_v2_set_keyboard(
-                kb_grab, wlr_device->keyboard
+                kb_grab, keyboard->wlr
             );
             wlr_input_method_keyboard_grab_v2_send_modifiers(
-                kb_grab, &wlr_device->keyboard->modifiers
+                kb_grab, &keyboard->wlr->modifiers
             );
         } else {
             struct wlr_seat *wlr_seat =
                 keyboard->seat_device->hayward_seat->wlr_seat;
-            wlr_seat_set_keyboard(wlr_seat, wlr_device->keyboard);
+            wlr_seat_set_keyboard(wlr_seat, keyboard->wlr);
             wlr_seat_keyboard_notify_modifiers(
-                wlr_seat, &wlr_device->keyboard->modifiers
+                wlr_seat, &keyboard->wlr->modifiers
             );
         }
 
-        uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_device->keyboard);
+        uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard->wlr);
         determine_bar_visibility(modifiers);
     }
 
-    if (wlr_device->keyboard->modifiers.group != keyboard->effective_layout) {
-        keyboard->effective_layout = wlr_device->keyboard->modifiers.group;
+    if (keyboard->wlr->modifiers.group != keyboard->effective_layout) {
+        keyboard->effective_layout = keyboard->wlr->modifiers.group;
 
-        if (!wlr_keyboard_group_from_wlr_keyboard(wlr_device->keyboard)) {
+        if (!wlr_keyboard_group_from_wlr_keyboard(keyboard->wlr)) {
             ipc_event_input("xkb_layout", keyboard->seat_device->input_device);
         }
     }
@@ -891,6 +878,8 @@ hayward_keyboard_create(
     hayward_assert(keyboard, "could not allocate hayward keyboard");
 
     keyboard->seat_device = device;
+    keyboard->wlr =
+        wlr_keyboard_from_input_device(device->input_device->wlr_device);
     device->keyboard = keyboard;
 
     wl_list_init(&keyboard->keyboard_key.link);
@@ -917,15 +906,14 @@ destroy_empty_wlr_keyboard_group(void *data) {
 static void
 hayward_keyboard_group_remove(struct hayward_keyboard *keyboard) {
     struct hayward_input_device *device = keyboard->seat_device->input_device;
-    struct wlr_keyboard *wlr_keyboard = device->wlr_device->keyboard;
-    struct wlr_keyboard_group *wlr_group = wlr_keyboard->group;
+    struct wlr_keyboard_group *wlr_group = keyboard->wlr->group;
 
     hayward_log(
         HAYWARD_DEBUG, "Removing keyboard %s from group %p", device->identifier,
         (void *)wlr_group
     );
 
-    wlr_keyboard_group_remove_keyboard(wlr_keyboard->group, wlr_keyboard);
+    wlr_keyboard_group_remove_keyboard(wlr_group, keyboard->wlr);
 
     if (wl_list_empty(&wlr_group->devices)) {
         hayward_log(
@@ -954,9 +942,7 @@ hayward_keyboard_group_remove(struct hayward_keyboard *keyboard) {
 
 static void
 hayward_keyboard_group_remove_invalid(struct hayward_keyboard *keyboard) {
-    struct hayward_input_device *device = keyboard->seat_device->input_device;
-    struct wlr_keyboard *wlr_keyboard = device->wlr_device->keyboard;
-    if (!wlr_keyboard->group) {
+    if (!keyboard->wlr->group) {
         return;
     }
 
@@ -972,7 +958,7 @@ hayward_keyboard_group_remove_invalid(struct hayward_keyboard *keyboard) {
         break;
     case KEYBOARD_GROUP_DEFAULT: /* fallthrough */
     case KEYBOARD_GROUP_SMART:;
-        struct wlr_keyboard_group *group = wlr_keyboard->group;
+        struct wlr_keyboard_group *group = keyboard->wlr->group;
         if (!wlr_keyboard_keymaps_match(
                 keyboard->keymap, group->keyboard.keymap
             ) ||
@@ -986,7 +972,6 @@ hayward_keyboard_group_remove_invalid(struct hayward_keyboard *keyboard) {
 static void
 hayward_keyboard_group_add(struct hayward_keyboard *keyboard) {
     struct hayward_input_device *device = keyboard->seat_device->input_device;
-    struct wlr_keyboard *wlr_keyboard = device->wlr_device->keyboard;
     struct hayward_seat *seat = keyboard->seat_device->hayward_seat;
     struct seat_config *sc = seat_get_config(seat);
 
@@ -1021,7 +1006,7 @@ hayward_keyboard_group_add(struct hayward_keyboard *keyboard) {
                     HAYWARD_DEBUG, "Adding keyboard %s to group %p",
                     device->identifier, (void *)wlr_group
                 );
-                wlr_keyboard_group_add_keyboard(wlr_group, wlr_keyboard);
+                wlr_keyboard_group_add_keyboard(wlr_group, keyboard->wlr);
                 return;
             }
             break;
@@ -1084,7 +1069,7 @@ hayward_keyboard_group_add(struct hayward_keyboard *keyboard) {
         HAYWARD_DEBUG, "Adding keyboard %s to group %p", device->identifier,
         (void *)hayward_group->wlr_group
     );
-    wlr_keyboard_group_add_keyboard(hayward_group->wlr_group, wlr_keyboard);
+    wlr_keyboard_group_add_keyboard(hayward_group->wlr_group, keyboard->wlr);
 
     wl_list_insert(&seat->keyboard_groups, &hayward_group->link);
 
@@ -1125,11 +1110,8 @@ void
 hayward_keyboard_configure(struct hayward_keyboard *keyboard) {
     struct input_config *input_config =
         input_device_get_config(keyboard->seat_device->input_device);
-    struct wlr_input_device *wlr_device =
-        keyboard->seat_device->input_device->wlr_device;
-
     hayward_assert(
-        !wlr_keyboard_group_from_wlr_keyboard(wlr_device->keyboard),
+        !wlr_keyboard_group_from_wlr_keyboard(keyboard->wlr),
         "hayward_keyboard_configure should not be called with a "
         "keyboard group's keyboard"
     );
@@ -1176,12 +1158,12 @@ hayward_keyboard_configure(struct hayward_keyboard *keyboard) {
 
         hayward_keyboard_group_remove_invalid(keyboard);
 
-        wlr_keyboard_set_keymap(wlr_device->keyboard, keyboard->keymap);
+        wlr_keyboard_set_keymap(keyboard->wlr, keyboard->keymap);
         wlr_keyboard_set_repeat_info(
-            wlr_device->keyboard, keyboard->repeat_rate, keyboard->repeat_delay
+            keyboard->wlr, keyboard->repeat_rate, keyboard->repeat_delay
         );
 
-        if (!wlr_device->keyboard->group) {
+        if (!keyboard->wlr->group) {
             hayward_keyboard_group_add(keyboard);
         }
 
@@ -1201,44 +1183,39 @@ hayward_keyboard_configure(struct hayward_keyboard *keyboard) {
             }
         }
         if (locked_mods) {
-            wlr_keyboard_notify_modifiers(
-                wlr_device->keyboard, 0, 0, locked_mods, 0
-            );
+            wlr_keyboard_notify_modifiers(keyboard->wlr, 0, 0, locked_mods, 0);
             uint32_t leds = 0;
             for (uint32_t i = 0; i < WLR_LED_COUNT; ++i) {
                 if (xkb_state_led_index_is_active(
-                        wlr_device->keyboard->xkb_state,
-                        wlr_device->keyboard->led_indexes[i]
+                        keyboard->wlr->xkb_state, keyboard->wlr->led_indexes[i]
                     )) {
                     leds |= (1 << i);
                 }
             }
-            if (wlr_device->keyboard->group) {
-                wlr_keyboard_led_update(
-                    &wlr_device->keyboard->group->keyboard, leds
-                );
+            if (keyboard->wlr->group) {
+                wlr_keyboard_led_update(&keyboard->wlr->group->keyboard, leds);
             } else {
-                wlr_keyboard_led_update(wlr_device->keyboard, leds);
+                wlr_keyboard_led_update(keyboard->wlr, leds);
             }
         }
     } else {
         xkb_keymap_unref(keymap);
         hayward_keyboard_group_remove_invalid(keyboard);
-        if (!wlr_device->keyboard->group) {
+        if (!keyboard->wlr->group) {
             hayward_keyboard_group_add(keyboard);
         }
     }
 
     struct wlr_seat *seat = keyboard->seat_device->hayward_seat->wlr_seat;
-    wlr_seat_set_keyboard(seat, wlr_device->keyboard);
+    wlr_seat_set_keyboard(seat, keyboard->wlr);
 
     wl_list_remove(&keyboard->keyboard_key.link);
-    wl_signal_add(&wlr_device->keyboard->events.key, &keyboard->keyboard_key);
+    wl_signal_add(&keyboard->wlr->events.key, &keyboard->keyboard_key);
     keyboard->keyboard_key.notify = handle_keyboard_key;
 
     wl_list_remove(&keyboard->keyboard_modifiers.link);
     wl_signal_add(
-        &wlr_device->keyboard->events.modifiers, &keyboard->keyboard_modifiers
+        &keyboard->wlr->events.modifiers, &keyboard->keyboard_modifiers
     );
     keyboard->keyboard_modifiers.notify = handle_keyboard_modifiers;
 
@@ -1254,12 +1231,11 @@ hayward_keyboard_destroy(struct hayward_keyboard *keyboard) {
     if (!keyboard) {
         return;
     }
-    if (keyboard->seat_device->input_device->wlr_device->keyboard->group) {
+    if (keyboard->wlr->group) {
         hayward_keyboard_group_remove(keyboard);
     }
     struct wlr_seat *wlr_seat = keyboard->seat_device->hayward_seat->wlr_seat;
-    struct hayward_input_device *device = keyboard->seat_device->input_device;
-    if (wlr_seat_get_keyboard(wlr_seat) == device->wlr_device->keyboard) {
+    if (wlr_seat_get_keyboard(wlr_seat) == keyboard->wlr) {
         wlr_seat_set_keyboard(wlr_seat, NULL);
     }
     if (keyboard->keymap) {

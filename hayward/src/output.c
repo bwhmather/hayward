@@ -698,8 +698,8 @@ output_for_each_surface(
             iterator, user_data
         );
         output_layer_for_each_surface(
-            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], iterator,
-            user_data
+            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
+            iterator, user_data
         );
 
         workspace_for_each_window(
@@ -712,15 +712,15 @@ output_for_each_surface(
         );
 #endif
         output_layer_for_each_surface(
-            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], iterator,
-            user_data
+            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
+            iterator, user_data
         );
     }
 
 overlay:
     output_layer_for_each_surface(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], iterator,
-        user_data
+        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
+        iterator, user_data
     );
     output_drag_icons_for_each_surface(
         output, &root->drag_icons, iterator, user_data
@@ -842,7 +842,8 @@ scan_out_fullscreen_view(
     }
 #endif
 
-    if (!wl_list_empty(&output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY])) {
+    if (!wl_list_empty(&output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]
+        )) {
         return false;
     }
     if (!wl_list_empty(&root->drag_icons)) {
