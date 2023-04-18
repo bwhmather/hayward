@@ -25,6 +25,9 @@ struct hayward_workspace_state {
     list_t *floating; // struct hayward_window
     list_t *tiling;   // struct hayward_column
 
+    // Cached backlink to root of tree.
+    struct hayward_root *root;
+
     // The column that should be given focus if this workspace is focused and
     // focus_mode is F_TILING.
     struct hayward_column *active_column;

@@ -298,7 +298,9 @@ void
 workspace_detach(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
-    root_remove_workspace(root, workspace);
+    if (workspace->pending.root != NULL) {
+        root_remove_workspace(workspace->pending.root, workspace);
+    }
 }
 
 void
@@ -308,6 +310,11 @@ workspace_reconcile(
     hayward_assert(workspace != NULL, "Expected workspace");
 
     bool dirty = false;
+
+    if (workspace->pending.root != root) {
+        workspace->pending.root = root;
+        dirty = true;
+    }
 
     bool should_focus = workspace == root_get_active_workspace(root);
     if (should_focus != workspace->pending.focused) {
@@ -338,6 +345,11 @@ workspace_reconcile_detached(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
 
     bool dirty = false;
+
+    if (workspace->pending.root != NULL) {
+        workspace->pending.root = NULL;
+        dirty = true;
+    }
 
     bool should_focus = false;
     if (should_focus != workspace->pending.focused) {
@@ -763,6 +775,7 @@ workspace_set_active_window(
         workspace->pending.active_column = new_column;
         workspace->pending.focus_mode = F_TILING;
 
+        struct hayward_root *root = workspace->pending.root;
         if (root_get_active_workspace(root) == workspace) {
             root_set_active_output(root, new_column->pending.output);
         }
@@ -863,6 +876,7 @@ workspace_damage_whole(struct hayward_workspace *workspace) {
         return;
     }
 
+    struct hayward_root *root = workspace->pending.root;
     for (int i = 0; i < root->outputs->length; i++) {
         struct hayward_output *output = root->outputs->items[i];
         output_damage_whole(output);
