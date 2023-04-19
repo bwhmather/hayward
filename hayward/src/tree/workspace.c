@@ -79,13 +79,16 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
-    // Damage the old location
-    workspace_damage_whole(workspace);
+    struct wlr_scene_tree *parent = root->orphans; // TODO
+    if (workspace->committed.root != NULL) {
+        parent = &workspace->committed.root->root_scene->tree;
+    }
+    wlr_scene_node_reparent(&workspace->scene_tree->node, parent);
+    wlr_scene_node_set_enabled(
+        &workspace->scene_tree->node, workspace->current.focused
+    );
 
     workspace_copy_state(&workspace->current, &workspace->committed);
-
-    // Damage the new location
-    workspace_damage_whole(workspace);
 
     if (workspace->current.dead) {
         workspace_destroy(workspace);
@@ -152,6 +155,18 @@ workspace_create(const char *name) {
         }
     }
 
+    workspace->scene_tree = wlr_scene_tree_create(root->orphans);
+    hayward_assert(workspace->scene_tree != NULL, "Allocation failed");
+
+    workspace->layers.tiling = wlr_scene_tree_create(workspace->scene_tree);
+    hayward_assert(workspace->layers.tiling != NULL, "Allocation failed");
+
+    workspace->layers.floating = wlr_scene_tree_create(workspace->scene_tree);
+    hayward_assert(workspace->layers.floating != NULL, "Allocation failed");
+
+    workspace->layers.fullscreen = wlr_scene_tree_create(workspace->scene_tree);
+    hayward_assert(workspace->layers.fullscreen != NULL, "Allocation failed");
+
     ipc_event_workspace(NULL, workspace, "init");
 
     return workspace;
@@ -174,6 +189,11 @@ workspace_destroy(struct hayward_workspace *workspace) {
         !workspace->dirty,
         "Tried to free workspace which is queued for the next transaction"
     );
+
+    wlr_scene_node_destroy(&workspace->layers.fullscreen->node);
+    wlr_scene_node_destroy(&workspace->layers.floating->node);
+    wlr_scene_node_destroy(&workspace->layers.tiling->node);
+    wlr_scene_node_destroy(&workspace->scene_tree->node);
 
     free(workspace->name);
     list_free(workspace->pending.floating);
@@ -229,7 +249,6 @@ workspace_set_dirty(struct hayward_workspace *workspace) {
     if (workspace->dirty) {
         return;
     }
-
     workspace->dirty = true;
     transaction_add_commit_listener(&workspace->transaction_commit);
     transaction_ensure_queued();

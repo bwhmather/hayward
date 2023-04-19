@@ -23,6 +23,7 @@
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 
@@ -138,20 +139,21 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     window->is_configuring = false;
 
     struct hayward_view *view = window->view;
-    // Damage the old location
-    desktop_damage_window(window);
-    if (!wl_list_empty(&view->saved_buffers)) {
-        struct hayward_saved_buffer *saved_buf;
-        wl_list_for_each(saved_buf, &view->saved_buffers, link) {
-            struct wlr_box box = {
-                .x = saved_buf->x - view->saved_geometry.x,
-                .y = saved_buf->y - view->saved_geometry.y,
-                .width = saved_buf->width,
-                .height = saved_buf->height,
-            };
-            desktop_damage_box(&box);
+
+    struct wlr_scene_tree *parent = root->orphans;
+    if (window->committed.workspace != NULL) {
+        if (window->committed.parent) {
+            parent = window->committed.parent->scene_tree;
+        } else {
+            parent = window->committed.workspace->layers.floating;
         }
     }
+    wlr_scene_node_reparent(&window->scene_tree->node, parent);
+
+    wlr_scene_rect_set_size(window->layers.border_top, 10, 10);
+    wlr_scene_rect_set_size(window->layers.border_bottom, 10, 10);
+    wlr_scene_rect_set_size(window->layers.border_left, 10, 10);
+    wlr_scene_rect_set_size(window->layers.border_right, 10, 10);
 
     memcpy(
         &window->current, &window->committed,
@@ -167,23 +169,6 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     // refuse to resize to the size of the output.
     if (view->surface) {
         view_center_surface(view);
-    }
-
-    // Damage the new location
-    desktop_damage_window(window);
-    if (view->surface) {
-        struct wlr_surface *surface = view->surface;
-        struct wlr_box box = {
-            .x = window->current.content_x - view->geometry.x,
-            .y = window->current.content_y - view->geometry.y,
-            .width = surface->current.width,
-            .height = surface->current.height,
-        };
-        desktop_damage_box(&box);
-    }
-
-    if (!window->current.dead) {
-        window_discover_outputs(window);
     }
 
     if (window->current.dead) {
@@ -213,6 +198,51 @@ window_create(struct hayward_view *view) {
     window->transaction_commit.notify = window_handle_transaction_commit;
     window->transaction_apply.notify = window_handle_transaction_apply;
 
+    window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
+    hayward_assert(window->scene_tree != NULL, "Allocation failed");
+
+    const float border_color[] = {1.0, 0.0, 0.0, 1.0};
+
+    window->layers.title_tree = wlr_scene_tree_create(window->scene_tree);
+    hayward_assert(window->layers.title_tree != NULL, "Allocation failed");
+    window->layers.title_background = wlr_scene_rect_create(
+        window->layers.title_tree, 0, 0, (const float *)border_color
+    );
+    hayward_assert(
+        window->layers.title_background != NULL, "Allocation failed"
+    );
+    window->layers.title_text =
+        wlr_scene_buffer_create(window->layers.title_tree, NULL);
+    hayward_assert(
+        window->layers.title_background != NULL, "Allocation failed"
+    );
+    window->layers.title_border = wlr_scene_rect_create(
+        window->layers.title_tree, 0, 0, (const float *)border_color
+    );
+    hayward_assert(window->layers.title_border != NULL, "Allocation failed");
+
+    window->layers.border_tree = wlr_scene_tree_create(window->scene_tree);
+    hayward_assert(window->layers.border_tree != NULL, "Allocation failed");
+    window->layers.border_top = wlr_scene_rect_create(
+        window->layers.border_tree, 0, 0, (const float *)border_color
+    );
+    hayward_assert(window->layers.border_top != NULL, "Allocation failed");
+    window->layers.border_bottom = wlr_scene_rect_create(
+        window->layers.border_tree, 0, 0, (const float *)border_color
+    );
+    hayward_assert(window->layers.border_bottom != NULL, "Allocation failed");
+    window->layers.border_left = wlr_scene_rect_create(
+        window->layers.border_tree, 0, 0, (const float *)border_color
+    );
+    hayward_assert(window->layers.border_left != NULL, "Allocation failed");
+    window->layers.border_right = wlr_scene_rect_create(
+        window->layers.border_tree, 0, 0, (const float *)border_color
+    );
+    hayward_assert(window->layers.border_right != NULL, "Allocation failed");
+
+    window->layers.content_tree = wlr_scene_tree_create(window->scene_tree);
+    hayward_assert(window->layers.content_tree != NULL, "Allocation failed");
+
     window_set_dirty(window);
 
     return window;
@@ -234,6 +264,22 @@ window_destroy(struct hayward_window *window) {
         !window->dirty,
         "Tried to free window which is queued for the next transaction"
     );
+
+    wlr_scene_node_destroy(&window->layers.content_tree->node);
+
+    wlr_scene_node_destroy(&window->layers.border_right->node);
+    wlr_scene_node_destroy(&window->layers.border_left->node);
+    wlr_scene_node_destroy(&window->layers.border_bottom->node);
+    wlr_scene_node_destroy(&window->layers.border_top->node);
+    wlr_scene_node_destroy(&window->layers.border_tree->node);
+
+    wlr_scene_node_destroy(&window->layers.title_border->node);
+    wlr_scene_node_destroy(&window->layers.title_text->node);
+    wlr_scene_node_destroy(&window->layers.title_background->node);
+    wlr_scene_node_destroy(&window->layers.title_tree->node);
+
+    wlr_scene_node_destroy(&window->scene_tree->node);
+
     free(window->title);
     free(window->formatted_title);
     wlr_texture_destroy(window->title_focused);

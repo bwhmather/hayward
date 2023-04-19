@@ -7,6 +7,7 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
@@ -117,6 +118,24 @@ struct hayward_window {
     struct wlr_texture *title_focused_tab_title;
     struct wlr_texture *title_unfocused;
     struct wlr_texture *title_urgent;
+
+    struct wlr_scene_tree *scene_tree;
+
+    struct {
+        struct wlr_scene_tree *title_tree;
+        struct wlr_scene_rect *title_background;
+        struct wlr_scene_buffer *title_text;
+        // Line separating title from content.
+        struct wlr_scene_rect *title_border;
+
+        struct wlr_scene_tree *border_tree;
+        struct wlr_scene_rect *border_top;
+        struct wlr_scene_rect *border_bottom;
+        struct wlr_scene_rect *border_left;
+        struct wlr_scene_rect *border_right;
+
+        struct wlr_scene_tree *content_tree;
+    } layers;
 
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;

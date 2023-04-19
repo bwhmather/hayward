@@ -8,6 +8,7 @@
 #include <string.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
@@ -15,7 +16,9 @@
 
 #include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
+#include <hayward/globals/root.h>
 #include <hayward/output.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
@@ -58,13 +61,13 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
-    // Damage the old location
-    desktop_damage_column(column);
+    struct wlr_scene_tree *parent = root->orphans; // TODO
+    if (column->committed.workspace != NULL) {
+        parent = column->committed.workspace->layers.tiling;
+    }
+    wlr_scene_node_reparent(&column->scene_tree->node, parent);
 
     column_copy_state(&column->current, &column->committed);
-
-    // Damage the new location
-    desktop_damage_column(column);
 
     if (column->current.dead) {
         column_destroy(column);
@@ -81,6 +84,8 @@ column_create(void) {
 
     static size_t next_id = 1;
     column->id = next_id++;
+
+    column->scene_tree = wlr_scene_tree_create(root->orphans);
 
     wl_signal_init(&column->events.begin_destroy);
     wl_signal_init(&column->events.destroy);
@@ -111,6 +116,9 @@ column_destroy(struct hayward_column *column) {
         column->current.dead,
         "Tried to free column which wasn't marked as destroying"
     );
+
+    wlr_scene_node_destroy(&column->scene_tree->node);
+
     list_free(column->pending.children);
     list_free(column->committed.children);
     list_free(column->current.children);

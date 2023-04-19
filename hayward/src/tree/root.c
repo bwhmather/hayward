@@ -127,6 +127,10 @@ root_create(void) {
     root->committed.workspaces = create_list();
     root->current.workspaces = create_list();
 
+    root->root_scene = wlr_scene_create();
+    root->orphans = wlr_scene_tree_create(&root->root_scene->tree);
+    wlr_scene_node_set_enabled(&root->orphans->node, false);
+
     root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(
         &root->output_layout->events.change, &root->output_layout_change
@@ -137,6 +141,9 @@ root_create(void) {
 
 void
 root_destroy(struct hayward_root *root) {
+    wlr_scene_node_destroy(&root->orphans->node);
+    // TODO destroy scene
+
     wl_list_remove(&root->output_layout_change.link);
     wl_list_remove(&root->transaction_before_commit.link);
     list_free(root->outputs);
@@ -154,7 +161,6 @@ root_set_dirty(struct hayward_root *root) {
     if (root->dirty) {
         return;
     }
-
     root->dirty = true;
     transaction_add_commit_listener(&root->transaction_commit);
     transaction_ensure_queued();
@@ -472,8 +478,8 @@ root_get_committed_focused_window(struct hayward_root *root) {
     struct hayward_workspace *workspace =
         root_get_committed_active_workspace(root);
     if (workspace == NULL) {
-	return NULL;
-	}
+        return NULL;
+    }
     return workspace_get_committed_active_window(workspace);
 }
 

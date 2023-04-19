@@ -10,6 +10,7 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
 #include <wayland-server-protocol.h>
@@ -40,6 +41,8 @@ struct hayward_output {
     bool dirty;
 
     struct wlr_output *wlr_output;
+    struct wlr_scene_output *scene_output;
+
     struct hayward_server *server;
     struct wl_list link;
 

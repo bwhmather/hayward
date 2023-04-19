@@ -7,6 +7,7 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
 
 #include <hayward-common/list.h>
 
@@ -60,6 +61,9 @@ struct hayward_root {
     struct hayward_output *fallback_output;
 
     struct wl_list pid_workspaces;
+
+    struct wlr_scene *root_scene;
+    struct wlr_scene_tree *orphans;
 
     struct wl_listener output_layout_change;
     struct wl_listener transaction_before_commit;

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <wayland-server-core.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
@@ -61,6 +62,8 @@ struct hayward_column {
     double child_total_height;
 
     float alpha;
+
+    struct wlr_scene_tree *scene_tree;
 
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
