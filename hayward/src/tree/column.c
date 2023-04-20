@@ -70,8 +70,21 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
     column_copy_state(&column->current, &column->committed);
 
     if (column->current.dead) {
-        column_destroy(column);
+        transaction_add_after_apply_listener(&column->transaction_after_apply);
     }
+}
+
+static void
+column_handle_transaction_after_apply(
+    struct wl_listener *listener, void *data
+) {
+    struct hayward_column *column =
+        wl_container_of(listener, column, transaction_after_apply);
+
+    wl_list_remove(&listener->link);
+
+    hayward_assert(column->current.dead, "After apply called on live column");
+    column_destroy(column);
 }
 
 struct hayward_column *
@@ -99,6 +112,8 @@ column_create(void) {
 
     column->transaction_commit.notify = column_handle_transaction_commit;
     column->transaction_apply.notify = column_handle_transaction_apply;
+    column->transaction_after_apply.notify =
+        column_handle_transaction_after_apply;
 
     return column;
 }
