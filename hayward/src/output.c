@@ -109,8 +109,21 @@ output_handle_transaction_apply(struct wl_listener *listener, void *data) {
     output_damage_whole(output);
 
     if (output->current.dead) {
-        output_destroy(output);
+        transaction_add_after_apply_listener(&output->transaction_after_apply);
     }
+}
+
+static void
+output_handle_transaction_after_apply(
+    struct wl_listener *listener, void *data
+) {
+    struct hayward_output *output =
+        wl_container_of(listener, output, transaction_after_apply);
+
+    wl_list_remove(&listener->link);
+
+    hayward_assert(output->current.dead, "After apply called on live output");
+    output_destroy(output);
 }
 
 struct hayward_output *
@@ -129,6 +142,8 @@ output_create(struct wlr_output *wlr_output) {
 
     output->transaction_commit.notify = output_handle_transaction_commit;
     output->transaction_apply.notify = output_handle_transaction_apply;
+    output->transaction_after_apply.notify =
+        output_handle_transaction_after_apply;
 
     wl_signal_init(&output->events.disable);
 
