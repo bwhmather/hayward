@@ -136,6 +136,7 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
         wl_container_of(listener, window, transaction_apply);
 
     wl_list_remove(&listener->link);
+
     window->is_configuring = false;
 
     struct hayward_view *view = window->view;
@@ -172,8 +173,21 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     }
 
     if (window->current.dead) {
-        window_destroy(window);
+        transaction_add_after_apply_listener(&window->transaction_after_apply);
     }
+}
+
+static void
+window_handle_transaction_after_apply(
+    struct wl_listener *listener, void *data
+) {
+    struct hayward_window *window =
+        wl_container_of(listener, window, transaction_after_apply);
+
+    wl_list_remove(&listener->link);
+
+    hayward_assert(window->current.dead, "After apply called on live window");
+    window_destroy(window);
 }
 
 struct hayward_window *
@@ -197,6 +211,8 @@ window_create(struct hayward_view *view) {
 
     window->transaction_commit.notify = window_handle_transaction_commit;
     window->transaction_apply.notify = window_handle_transaction_apply;
+    window->transaction_after_apply.notify =
+        window_handle_transaction_after_apply;
 
     window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
     hayward_assert(window->scene_tree != NULL, "Allocation failed");
