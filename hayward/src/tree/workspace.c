@@ -91,8 +91,24 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
     workspace_copy_state(&workspace->current, &workspace->committed);
 
     if (workspace->current.dead) {
-        workspace_destroy(workspace);
+        transaction_add_after_apply_listener(&workspace->transaction_after_apply
+        );
     }
+}
+
+static void
+workspace_handle_transaction_after_apply(
+    struct wl_listener *listener, void *data
+) {
+    struct hayward_workspace *workspace =
+        wl_container_of(listener, workspace, transaction_after_apply);
+
+    wl_list_remove(&listener->link);
+
+    hayward_assert(
+        workspace->current.dead, "After apply called on live workspace"
+    );
+    workspace_destroy(workspace);
 }
 
 struct workspace_config *
@@ -122,6 +138,8 @@ workspace_create(const char *name) {
 
     workspace->transaction_commit.notify = workspace_handle_transaction_commit;
     workspace->transaction_apply.notify = workspace_handle_transaction_apply;
+    workspace->transaction_after_apply.notify =
+        workspace_handle_transaction_after_apply;
 
     workspace->name = name ? strdup(name) : NULL;
 
