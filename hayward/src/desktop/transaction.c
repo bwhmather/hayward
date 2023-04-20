@@ -27,6 +27,7 @@ static struct {
         struct wl_signal transaction_before_commit;
         struct wl_signal transaction_commit;
         struct wl_signal transaction_apply;
+        struct wl_signal transaction_after_apply;
     } events;
 } hayward_transaction_state;
 
@@ -37,6 +38,7 @@ transaction_init(void) {
     wl_signal_init(&hayward_transaction_state.events.transaction_before_commit);
     wl_signal_init(&hayward_transaction_state.events.transaction_commit);
     wl_signal_init(&hayward_transaction_state.events.transaction_apply);
+    wl_signal_init(&hayward_transaction_state.events.transaction_after_apply);
 }
 
 void
@@ -61,6 +63,10 @@ transaction_apply(void) {
 
     wl_signal_emit_mutable(
         &hayward_transaction_state.events.transaction_apply, NULL
+    );
+
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_after_apply, NULL
     );
 
     if (debug.txn_timings) {
@@ -178,6 +184,13 @@ void
 transaction_add_apply_listener(struct wl_listener *listener) {
     wl_signal_add(
         &hayward_transaction_state.events.transaction_apply, listener
+    );
+}
+
+void
+transaction_add_after_apply_listener(struct wl_listener *listener) {
+    wl_signal_add(
+        &hayward_transaction_state.events.transaction_after_apply, listener
     );
 }
 

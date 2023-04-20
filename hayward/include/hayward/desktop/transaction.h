@@ -38,6 +38,9 @@ void
 transaction_add_apply_listener(struct wl_listener *listener);
 
 void
+transaction_add_after_apply_listener(struct wl_listener *listener);
+
+void
 transaction_ensure_queued(void);
 
 /**
