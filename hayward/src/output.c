@@ -942,6 +942,10 @@ output_repaint_timer_handler(void *data) {
         }
     }
 
+    if (output->enabled) {
+        wlr_scene_output_commit(output->scene_output);
+    }
+
     bool needs_frame;
     pixman_region32_t damage;
     pixman_region32_init(&damage);
@@ -1214,6 +1218,8 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&output->mode.link);
     wl_list_remove(&output->present.link);
 
+    wlr_scene_output_destroy(output->scene_output);
+    output->scene_output = NULL;
     output->wlr_output->data = NULL;
     output->wlr_output = NULL;
 
@@ -1332,11 +1338,15 @@ handle_new_output(struct wl_listener *listener, void *data) {
         return;
     }
 
+    struct wlr_scene_output *scene_output = wlr_scene_output_create(root->root_scene, wlr_output);
+    hayward_assert(scene_output != NULL, "Allocation failed");
+
     struct hayward_output *output = output_create(wlr_output);
     if (!output) {
         return;
     }
     output->server = server;
+    output->scene_output = scene_output;
     output->damage = wlr_output_damage_create(wlr_output);
 
     wl_signal_add(&wlr_output->events.destroy, &output->destroy);
