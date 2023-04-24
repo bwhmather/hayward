@@ -1338,7 +1338,8 @@ handle_new_output(struct wl_listener *listener, void *data) {
         return;
     }
 
-    struct wlr_scene_output *scene_output = wlr_scene_output_create(root->root_scene, wlr_output);
+    struct wlr_scene_output *scene_output =
+        wlr_scene_output_create(root->root_scene, wlr_output);
     hayward_assert(scene_output != NULL, "Allocation failed");
 
     struct hayward_output *output = output_create(wlr_output);

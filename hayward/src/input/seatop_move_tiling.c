@@ -316,7 +316,6 @@ finalize_move(struct hayward_seat *seat) {
             index == 0 ? siblings->items[1] : siblings->items[index - 1];
         moving_window->pending.width = sibling->pending.width;
         moving_window->pending.height = sibling->pending.height;
-        moving_window->width_fraction = sibling->width_fraction;
         moving_window->height_fraction = sibling->height_fraction;
     }
 

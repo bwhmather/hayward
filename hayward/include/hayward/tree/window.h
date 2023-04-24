@@ -94,13 +94,11 @@ struct hayward_window {
     // border which we use to restore when the view returns to SSD.
     enum hayward_window_border saved_border;
 
-    // The share of the space of parent window this window occupies
-    double width_fraction;
+    // The share of the space of parent column that this window occupies.
     double height_fraction;
 
-    // The share of space of the parent window that all children occupy
-    // Used for doing the resize calculations
-    double child_total_width;
+    // The share of space of the parent column that all children occupy.
+    // Used for doing the resize calculations.
     double child_total_height;
 
     // In most cases this is the same as the content x and y, but if the view

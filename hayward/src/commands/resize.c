@@ -99,7 +99,7 @@ window_resize_tiled_horizontal(
     // to avoid rounding issues
     list_t *siblings = column_get_siblings(column);
     for (int i = 0; i < siblings->length; ++i) {
-        struct hayward_window *sibling = siblings->items[i];
+        struct hayward_column *sibling = siblings->items[i];
         sibling->width_fraction =
             sibling->pending.width / sibling->child_total_width;
     }
@@ -277,11 +277,9 @@ resize_adjust_tiled(uint32_t axis, struct movement_amount *amount) {
         }
     }
 
-    double old_width = current->width_fraction;
     double old_height = current->height_fraction;
     window_resize_tiled(current, axis, amount->amount);
-    if (current->width_fraction == old_width &&
-        current->height_fraction == old_height) {
+    if (current->height_fraction == old_height) {
         return cmd_results_new(CMD_INVALID, "Cannot resize any further");
     }
     return cmd_results_new(CMD_SUCCESS, NULL);
