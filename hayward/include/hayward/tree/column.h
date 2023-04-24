@@ -56,10 +56,9 @@ struct hayward_column {
     // The share of the space of parent workspace this container occupies.
     double width_fraction;
 
-    // The share of space of the parent container that all children occupy
+    // The share of space of the parent workspace that all children occupy.
     // Used for doing the resize calculations
     double child_total_width;
-    double child_total_height;
 
     float alpha;
 
