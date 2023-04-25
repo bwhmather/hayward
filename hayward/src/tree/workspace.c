@@ -88,12 +88,12 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
         &workspace->scene_tree->node, workspace->current.focused
     );
 
-    workspace_copy_state(&workspace->current, &workspace->committed);
-
     if (workspace->current.dead) {
         transaction_add_after_apply_listener(&workspace->transaction_after_apply
         );
     }
+
+    workspace_copy_state(&workspace->current, &workspace->committed);
 }
 
 static void

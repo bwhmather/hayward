@@ -136,18 +136,13 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
         wl_container_of(listener, window, transaction_apply);
 
     wl_list_remove(&listener->link);
-
     window->is_configuring = false;
 
-    struct hayward_view *view = window->view;
-
     struct wlr_scene_tree *parent = root->orphans;
-    if (window->committed.workspace != NULL) {
-        if (window->committed.parent) {
-            parent = window->committed.parent->scene_tree;
-        } else {
-            parent = window->committed.workspace->layers.floating;
-        }
+    if (window->committed.parent) {
+        parent = window->committed.parent->scene_tree;
+    } else {
+        parent = window->committed.workspace->layers.floating;
     }
     wlr_scene_node_reparent(&window->scene_tree->node, parent);
 
@@ -156,10 +151,7 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     wlr_scene_rect_set_size(window->layers.border_left, 10, 10);
     wlr_scene_rect_set_size(window->layers.border_right, 10, 10);
 
-    memcpy(
-        &window->current, &window->committed,
-        sizeof(struct hayward_window_state)
-    );
+    struct hayward_view *view = window->view;
 
     if (!wl_list_empty(&view->saved_buffers)) {
         view_remove_saved_buffer(view);
@@ -175,6 +167,11 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     if (window->current.dead) {
         transaction_add_after_apply_listener(&window->transaction_after_apply);
     }
+
+    memcpy(
+        &window->current, &window->committed,
+        sizeof(struct hayward_window_state)
+    );
 }
 
 static void

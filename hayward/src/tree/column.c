@@ -67,11 +67,11 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
     }
     wlr_scene_node_reparent(&column->scene_tree->node, parent);
 
-    column_copy_state(&column->current, &column->committed);
-
     if (column->current.dead) {
         transaction_add_after_apply_listener(&column->transaction_after_apply);
     }
+
+    column_copy_state(&column->current, &column->committed);
 }
 
 static void
