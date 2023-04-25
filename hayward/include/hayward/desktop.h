@@ -14,9 +14,6 @@ desktop_damage_surface(
 );
 
 void
-desktop_damage_column(struct hayward_column *column);
-
-void
 desktop_damage_window(struct hayward_window *window);
 
 void

@@ -41,14 +41,6 @@ desktop_damage_window(struct hayward_window *window) {
 }
 
 void
-desktop_damage_column(struct hayward_column *column) {
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        output_damage_column(output, column);
-    }
-}
-
-void
 desktop_damage_box(struct wlr_box *box) {
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hayward_output *output = root->outputs->items[i];
