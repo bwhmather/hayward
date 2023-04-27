@@ -97,6 +97,7 @@ arrange_column_split(struct hayward_column *column) {
         child->pending.height =
             round(child->height_fraction * child_total_height);
         child_y += child->pending.height + inner_gap;
+        child->pending.shaded = false;
 
         // Make last child use remaining height of parent
         if (i == children->length - 1) {
@@ -114,13 +115,30 @@ arrange_column_stacked(struct hayward_column *column) {
     struct wlr_box box;
     column_get_box(column, &box);
 
-    list_t *children = column->pending.children;
-    for (int i = 0; i < children->length; ++i) {
-        struct hayward_window *child = children->items[i];
-        child->pending.x = box.x;
-        child->pending.y = box.y;
+    struct hayward_window *active = column->pending.active_child;
+    size_t titlebar_height = window_titlebar_height();
+
+    int y_offset = 0;
+
+    // Render titles
+    for (int i = 0; i < column->current.children->length; ++i) {
+        struct hayward_window *child = column->current.children->items[i];
+
+        child->pending.x = 0;
+        child->pending.y = y_offset;
         child->pending.width = box.width;
-        child->pending.height = box.height;
+
+        if (child == active) {
+            child->pending.height = box.height -
+                (column->current.children->length - 1) * titlebar_height;
+            child->pending.shaded = false;
+        } else {
+            child->pending.height = titlebar_height;
+            child->pending.shaded = true;
+        }
+
+        y_offset += child->pending.height;
+        ;
     }
 }
 
@@ -156,6 +174,7 @@ arrange_floating(struct hayward_workspace *workspace) {
     list_t *floating = workspace->pending.floating;
     for (int i = 0; i < floating->length; ++i) {
         struct hayward_window *floater = floating->items[i];
+        floater->pending.shaded = false;
         arrange_window(floater);
     }
 }

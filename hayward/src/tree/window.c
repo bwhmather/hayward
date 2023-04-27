@@ -151,6 +151,10 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     wlr_scene_rect_set_size(window->layers.border_left, 10, 10);
     wlr_scene_rect_set_size(window->layers.border_right, 10, 10);
 
+    wlr_scene_node_set_enabled(
+        &window->layers.content_tree->node, !window->committed.shaded
+    );
+
     struct hayward_view *view = window->view;
 
     if (!wl_list_empty(&view->saved_buffers)) {

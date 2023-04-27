@@ -24,9 +24,17 @@ struct hayward_workspace;
 struct hayward_view;
 
 struct hayward_window_state {
+    // Origin of window relative to the parent container.  When window is in
+    // tiling mode, `x` will always be zero and `y` will be the offset of the
+    // top of the titlebar relative to the top of the window.
     double x, y;
+    // Width and height of window, including borders and titlebar.  If window is
+    // shaded then height should be set to the titlebar height.
     double width, height;
 
+    // Indicates if only the titlebar of the window should be rendered.  Golden
+    // source is layout and active child of parent column.  Updated in arrange.
+    bool shaded;
     bool fullscreen;
 
     // Cached backlink to workspace containing the floating window or
