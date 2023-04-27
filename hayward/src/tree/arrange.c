@@ -87,7 +87,7 @@ arrange_column_split(struct hayward_column *column) {
     inner_gap = floor(total_gap / (children->length - 1));
 
     // Resize windows
-    double child_y = box.y;
+    double child_y = 0;
     for (int i = 0; i < children->length; ++i) {
         struct hayward_window *child = children->items[i];
         child->child_total_height = child_total_height;
