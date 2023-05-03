@@ -19,7 +19,6 @@
 #include <hayward-common/log.h>
 
 #include <hayward/decoration.h>
-#include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
@@ -119,9 +118,6 @@ popup_create(struct wlr_xdg_popup *wlr_popup, struct hayward_view *view) {
     popup->new_popup.notify = popup_handle_new_popup;
     wl_signal_add(&xdg_surface->events.destroy, &popup->destroy);
     popup->destroy.notify = popup_handle_destroy;
-
-    wl_signal_add(&xdg_surface->events.map, &popup->child.surface_map);
-    wl_signal_add(&xdg_surface->events.unmap, &popup->child.surface_unmap);
 
     popup_unconstrain(popup);
 
@@ -341,7 +337,6 @@ handle_commit(struct wl_listener *listener, void *data) {
         // The client changed its surface size in this commit. For floating
         // containers, we resize the container to match. For tiling containers,
         // we only recenter the surface.
-        desktop_damage_view(view);
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {
             // TODO shouldn't need to be sent a configure in the transaction.
@@ -350,7 +345,6 @@ handle_commit(struct wl_listener *listener, void *data) {
         } else {
             view_center_surface(view);
         }
-        desktop_damage_view(view);
     }
 
     view_notify_ready_by_serial(view, xdg_surface->current.configure_serial);

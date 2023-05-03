@@ -189,8 +189,6 @@ struct hayward_xwayland_unmanaged {
     struct wl_listener request_activate;
     struct wl_listener request_configure;
     struct wl_listener request_fullscreen;
-    struct wl_listener commit;
-    struct wl_listener set_geometry;
     struct wl_listener map;
     struct wl_listener unmap;
     struct wl_listener destroy;
@@ -217,11 +215,6 @@ struct hayward_view_child {
     struct wlr_surface *surface;
     bool mapped;
 
-    struct wl_listener surface_commit;
-    struct wl_listener surface_new_subsurface;
-    struct wl_listener surface_map;
-    struct wl_listener surface_unmap;
-    struct wl_listener surface_destroy;
     struct wl_listener view_unmap;
 };
 

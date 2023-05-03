@@ -9,7 +9,6 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_tablet_tool.h>
 
-#include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
@@ -70,11 +69,9 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     struct hayward_window *window = e->window;
     struct hayward_output *output = window->pending.output;
 
-    desktop_damage_window(e->window);
     window_floating_move_to(
         window, output, cursor->x - e->dx, cursor->y - e->dy
     );
-    desktop_damage_window(e->window);
     transaction_flush();
 }
 

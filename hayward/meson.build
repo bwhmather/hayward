@@ -12,7 +12,6 @@ hayward_sources = files(
 	'src/xdg_activation_v1.c',
 	'src/xdg_decoration.c',
 
-	'src/desktop/desktop.c',
 	'src/desktop/idle_inhibit_v1.c',
 	'src/desktop/layer_shell.c',
 	'src/desktop/surface.c',

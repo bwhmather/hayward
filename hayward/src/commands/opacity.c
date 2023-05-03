@@ -6,7 +6,6 @@
 #include <strings.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop.h>
 #include <hayward/tree/window.h>
 
 #include <config.h>
@@ -45,6 +44,5 @@ cmd_opacity(int argc, char **argv) {
     }
 
     window->alpha = val;
-    desktop_damage_window(window);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

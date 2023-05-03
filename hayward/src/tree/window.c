@@ -35,7 +35,6 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
@@ -578,7 +577,6 @@ window_update_title_textures(struct hayward_window *window) {
         window, &window->title_focused_tab_title,
         &config->border_colors.focused_tab_title
     );
-    desktop_damage_window(window);
 }
 
 bool

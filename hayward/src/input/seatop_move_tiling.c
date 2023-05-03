@@ -24,7 +24,6 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
@@ -149,8 +148,6 @@ handle_motion_postthreshold(struct hayward_seat *seat) {
     );
 
     // Damage the old location
-    desktop_damage_box(&e->drop_box);
-
     if (!target_output && !target_window) {
         // Eg. hovered over a layer surface such as haywardbar
         e->target_output = NULL;
@@ -165,7 +162,6 @@ handle_motion_postthreshold(struct hayward_seat *seat) {
         e->target_window = target_window;
         e->target_edge = WLR_EDGE_NONE;
         output_get_usable_area(target_output, &e->drop_box);
-        desktop_damage_box(&e->drop_box);
         return;
     }
 
@@ -236,7 +232,6 @@ handle_motion_postthreshold(struct hayward_seat *seat) {
     e->drop_box.width = target_window->pending.content_width;
     e->drop_box.height = target_window->pending.content_height;
     resize_box(&e->drop_box, e->target_edge, thickness);
-    desktop_damage_box(&e->drop_box);
 }
 
 static void

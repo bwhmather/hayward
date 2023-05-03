@@ -18,7 +18,6 @@
 
 #include <hayward-common/log.h>
 
-#include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
@@ -58,34 +57,6 @@ unmanaged_handle_request_configure(struct wl_listener *listener, void *data) {
 }
 
 static void
-unmanaged_handle_commit(struct wl_listener *listener, void *data) {
-    struct hayward_xwayland_unmanaged *surface =
-        wl_container_of(listener, surface, commit);
-    struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
-
-    desktop_damage_surface(xsurface->surface, surface->lx, surface->ly, false);
-}
-
-static void
-unmanaged_handle_set_geometry(struct wl_listener *listener, void *data) {
-    struct hayward_xwayland_unmanaged *surface =
-        wl_container_of(listener, surface, set_geometry);
-    struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
-
-    if (xsurface->x != surface->lx || xsurface->y != surface->ly) {
-        // Surface has moved
-        desktop_damage_surface(
-            xsurface->surface, surface->lx, surface->ly, true
-        );
-        surface->lx = xsurface->x;
-        surface->ly = xsurface->y;
-        desktop_damage_surface(
-            xsurface->surface, surface->lx, surface->ly, true
-        );
-    }
-}
-
-static void
 unmanaged_handle_map(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_unmanaged *surface =
         wl_container_of(listener, surface, map);
@@ -93,15 +64,8 @@ unmanaged_handle_map(struct wl_listener *listener, void *data) {
 
     wl_list_insert(root->xwayland_unmanaged.prev, &surface->link);
 
-    wl_signal_add(&xsurface->events.set_geometry, &surface->set_geometry);
-    surface->set_geometry.notify = unmanaged_handle_set_geometry;
-
-    wl_signal_add(&xsurface->surface->events.commit, &surface->commit);
-    surface->commit.notify = unmanaged_handle_commit;
-
     surface->lx = xsurface->x;
     surface->ly = xsurface->y;
-    desktop_damage_surface(xsurface->surface, surface->lx, surface->ly, true);
 
     if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
         struct hayward_seat *seat = input_manager_current_seat();
@@ -116,10 +80,7 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_unmanaged *surface =
         wl_container_of(listener, surface, unmap);
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
-    desktop_damage_surface(xsurface->surface, xsurface->x, xsurface->y, true);
     wl_list_remove(&surface->link);
-    wl_list_remove(&surface->set_geometry.link);
-    wl_list_remove(&surface->commit.link);
 
     struct hayward_seat *seat = input_manager_current_seat();
     if (seat->wlr_seat->keyboard_state.focused_surface == xsurface->surface) {
@@ -481,7 +442,6 @@ handle_commit(struct wl_listener *listener, void *data) {
         // The client changed its surface size in this commit. For floating
         // containers, we resize the container to match. For tiling containers,
         // we only recenter the surface.
-        desktop_damage_view(view);
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {
             // TODO shouldn't need to be sent a configure in the transaction.
@@ -490,7 +450,6 @@ handle_commit(struct wl_listener *listener, void *data) {
         } else {
             view_center_surface(view);
         }
-        desktop_damage_view(view);
     }
 
     view_notify_ready_by_geometry(

@@ -38,7 +38,6 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
@@ -874,9 +873,6 @@ subsurface_handle_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void
-view_child_damage(struct hayward_view_child *child, bool whole);
-
-static void
 view_subsurface_create(
     struct hayward_view *view, struct wlr_subsurface *wlr_subsurface
 ) {
@@ -894,8 +890,6 @@ view_subsurface_create(
     subsurface->destroy.notify = subsurface_handle_destroy;
 
     subsurface->child.mapped = true;
-
-    view_child_damage(&subsurface->child, true);
 }
 
 static void
@@ -919,59 +913,6 @@ view_child_subsurface_create(
     subsurface->destroy.notify = subsurface_handle_destroy;
 
     subsurface->child.mapped = true;
-
-    view_child_damage(&subsurface->child, true);
-}
-
-static bool
-view_child_is_mapped(struct hayward_view_child *child) {
-    while (child) {
-        if (!child->mapped) {
-            return false;
-        }
-        child = child->parent;
-    }
-    return true;
-}
-
-static void
-view_child_damage(struct hayward_view_child *child, bool whole) {
-    if (!child || !view_child_is_mapped(child) || !child->view ||
-        !child->view->window) {
-        return;
-    }
-    int sx, sy;
-    child->impl->get_view_coords(child, &sx, &sy);
-    desktop_damage_surface(
-        child->surface,
-        child->view->window->pending.content_x - child->view->geometry.x + sx,
-        child->view->window->pending.content_y - child->view->geometry.y + sy,
-        whole
-    );
-}
-
-static void
-view_child_handle_surface_commit(struct wl_listener *listener, void *data) {
-    struct hayward_view_child *child =
-        wl_container_of(listener, child, surface_commit);
-    view_child_damage(child, false);
-}
-
-static void
-view_child_handle_surface_new_subsurface(
-    struct wl_listener *listener, void *data
-) {
-    struct hayward_view_child *child =
-        wl_container_of(listener, child, surface_new_subsurface);
-    struct wlr_subsurface *subsurface = data;
-    view_child_subsurface_create(child, subsurface);
-}
-
-static void
-view_child_handle_surface_destroy(struct wl_listener *listener, void *data) {
-    struct hayward_view_child *child =
-        wl_container_of(listener, child, surface_destroy);
-    view_child_destroy(child);
 }
 
 static void
@@ -1006,30 +947,6 @@ view_child_init_subsurfaces(
     }
 }
 
-static void
-view_child_handle_surface_map(struct wl_listener *listener, void *data) {
-    struct hayward_view_child *child =
-        wl_container_of(listener, child, surface_map);
-    child->mapped = true;
-    view_child_damage(child, true);
-}
-
-static void
-view_child_handle_surface_unmap(struct wl_listener *listener, void *data) {
-    struct hayward_view_child *child =
-        wl_container_of(listener, child, surface_unmap);
-    view_child_damage(child, true);
-    child->mapped = false;
-}
-
-static void
-view_child_handle_view_unmap(struct wl_listener *listener, void *data) {
-    struct hayward_view_child *child =
-        wl_container_of(listener, child, view_unmap);
-    view_child_damage(child, true);
-    child->mapped = false;
-}
-
 void
 view_child_init(
     struct hayward_view_child *child,
@@ -1040,25 +957,6 @@ view_child_init(
     child->view = view;
     child->surface = surface;
     wl_list_init(&child->children);
-
-    wl_signal_add(&surface->events.commit, &child->surface_commit);
-    child->surface_commit.notify = view_child_handle_surface_commit;
-    wl_signal_add(
-        &surface->events.new_subsurface, &child->surface_new_subsurface
-    );
-    child->surface_new_subsurface.notify =
-        view_child_handle_surface_new_subsurface;
-    wl_signal_add(&surface->events.destroy, &child->surface_destroy);
-    child->surface_destroy.notify = view_child_handle_surface_destroy;
-
-    // Not all child views have a map/unmap event
-    child->surface_map.notify = view_child_handle_surface_map;
-    wl_list_init(&child->surface_map.link);
-    child->surface_unmap.notify = view_child_handle_surface_unmap;
-    wl_list_init(&child->surface_unmap.link);
-
-    wl_signal_add(&view->events.unmap, &child->view_unmap);
-    child->view_unmap.notify = view_child_handle_view_unmap;
 
     struct hayward_window *window = child->view->window;
     if (window != NULL) {
@@ -1074,10 +972,6 @@ view_child_init(
 
 void
 view_child_destroy(struct hayward_view_child *child) {
-    if (view_child_is_mapped(child) && child->view->window != NULL) {
-        view_child_damage(child, true);
-    }
-
     if (child->parent != NULL) {
         wl_list_remove(&child->link);
         child->parent = NULL;
@@ -1091,13 +985,6 @@ view_child_destroy(struct hayward_view_child *child) {
         // is unmapped. Unmap it directly.
         subchild->mapped = false;
     }
-
-    wl_list_remove(&child->surface_commit.link);
-    wl_list_remove(&child->surface_destroy.link);
-    wl_list_remove(&child->surface_map.link);
-    wl_list_remove(&child->surface_unmap.link);
-    wl_list_remove(&child->view_unmap.link);
-    wl_list_remove(&child->surface_new_subsurface.link);
 
     if (child->impl && child->impl->destroy) {
         child->impl->destroy(child);
@@ -1311,7 +1198,6 @@ view_set_urgent(struct hayward_view *view, bool enable) {
             view->urgent_timer = NULL;
         }
     }
-    desktop_damage_window(view->window);
 
     ipc_event_window(view->window, "urgent");
 

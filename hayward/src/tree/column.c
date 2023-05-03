@@ -14,7 +14,6 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/output.h>

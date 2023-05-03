@@ -38,7 +38,6 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
@@ -267,20 +266,8 @@ seat_is_input_allowed(struct hayward_seat *seat, struct wlr_surface *surface) {
         (seat->exclusive_client == NULL && !server.session_lock.locked);
 }
 
-static void
-drag_icon_damage_whole(struct hayward_drag_icon *icon) {
-    if (!icon->wlr_drag_icon->mapped) {
-        return;
-    }
-    desktop_damage_surface(
-        icon->wlr_drag_icon->surface, icon->x, icon->y, true
-    );
-}
-
 void
 drag_icon_update_position(struct hayward_drag_icon *icon) {
-    drag_icon_damage_whole(icon);
-
     struct wlr_drag_icon *wlr_icon = icon->wlr_drag_icon;
     struct hayward_seat *seat = icon->seat;
     struct wlr_cursor *cursor = seat->cursor->cursor;
@@ -300,8 +287,6 @@ drag_icon_update_position(struct hayward_drag_icon *icon) {
         icon->x = seat->touch_x + wlr_icon->surface->sx;
         icon->y = seat->touch_y + wlr_icon->surface->sy;
     }
-
-    drag_icon_damage_whole(icon);
 }
 
 static void
@@ -314,13 +299,11 @@ drag_icon_handle_surface_commit(struct wl_listener *listener, void *data) {
 static void
 drag_icon_handle_map(struct wl_listener *listener, void *data) {
     struct hayward_drag_icon *icon = wl_container_of(listener, icon, map);
-    drag_icon_damage_whole(icon);
 }
 
 static void
 drag_icon_handle_unmap(struct wl_listener *listener, void *data) {
     struct hayward_drag_icon *icon = wl_container_of(listener, icon, unmap);
-    drag_icon_damage_whole(icon);
 }
 
 static void
