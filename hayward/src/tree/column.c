@@ -61,11 +61,16 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
+    double x = column->committed.x;
+    double y = column->committed.y;
+
     struct wlr_scene_tree *parent = root->orphans; // TODO
+
     if (column->committed.workspace != NULL) {
         parent = column->committed.workspace->layers.tiling;
     }
     wlr_scene_node_reparent(&column->scene_tree->node, parent);
+    wlr_scene_node_set_position(&column->scene_tree->node, x, y);
 
     if (column->current.dead) {
         transaction_add_after_apply_listener(&column->transaction_after_apply);
