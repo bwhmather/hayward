@@ -134,10 +134,6 @@ void
 output_damage_window(
     struct hayward_output *output, struct hayward_window *window
 );
-void
-output_damage_column(
-    struct hayward_output *output, struct hayward_column *column
-);
 
 // this ONLY includes the enabled outputs
 struct hayward_output *
@@ -153,63 +149,10 @@ output_enable(struct hayward_output *output);
 void
 output_disable(struct hayward_output *output);
 
-bool
-output_has_opaque_overlay_layer_surface(struct hayward_output *output);
-
 void
 output_render(
     struct hayward_output *output, struct timespec *when,
     pixman_region32_t *damage
-);
-
-void
-output_surface_for_each_surface(
-    struct hayward_output *output, struct wlr_surface *surface, double ox,
-    double oy, hayward_surface_iterator_func_t iterator, void *user_data
-);
-
-void
-output_view_for_each_surface(
-    struct hayward_output *output, struct hayward_view *view,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
-
-void
-output_view_for_each_popup_surface(
-    struct hayward_output *output, struct hayward_view *view,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
-
-void
-output_layer_for_each_surface(
-    struct hayward_output *output, struct wl_list *layer_surfaces,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
-
-void
-output_layer_for_each_toplevel_surface(
-    struct hayward_output *output, struct wl_list *layer_surfaces,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
-
-void
-output_layer_for_each_popup_surface(
-    struct hayward_output *output, struct wl_list *layer_surfaces,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
-
-#if HAVE_XWAYLAND
-void
-output_unmanaged_for_each_surface(
-    struct hayward_output *output, struct wl_list *unmanaged,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
-#endif
-
-void
-output_drag_icons_for_each_surface(
-    struct hayward_output *output, struct wl_list *drag_icons,
-    hayward_surface_iterator_func_t iterator, void *user_data
 );
 
 void

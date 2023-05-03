@@ -75,6 +75,18 @@ opposite_direction(enum wlr_direction d) {
 
 static void
 output_destroy(struct hayward_output *output);
+static bool
+output_has_opaque_overlay_layer_surface(struct hayward_output *output);
+static void
+output_layer_for_each_surface(
+    struct hayward_output *output, struct wl_list *layer_surfaces,
+    hayward_surface_iterator_func_t iterator, void *user_data
+);
+static void
+output_view_for_each_surface(
+    struct hayward_output *output, struct hayward_view *view,
+    hayward_surface_iterator_func_t iterator, void *user_data
+);
 
 static void
 output_handle_transaction_commit(struct wl_listener *listener, void *data) {
@@ -468,7 +480,7 @@ output_for_each_surface_iterator(
     );
 }
 
-void
+static void
 output_surface_for_each_surface(
     struct hayward_output *output, struct wlr_surface *surface, double ox,
     double oy, hayward_surface_iterator_func_t iterator, void *user_data
@@ -489,7 +501,7 @@ output_surface_for_each_surface(
     );
 }
 
-void
+static void
 output_view_for_each_surface(
     struct hayward_output *output, struct hayward_view *view,
     hayward_surface_iterator_func_t iterator, void *user_data
@@ -508,26 +520,7 @@ output_view_for_each_surface(
     view_for_each_surface(view, output_for_each_surface_iterator, &data);
 }
 
-void
-output_view_for_each_popup_surface(
-    struct hayward_output *output, struct hayward_view *view,
-    hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct surface_iterator_data data = {
-        .user_iterator = iterator,
-        .user_data = user_data,
-        .output = output,
-        .view = view,
-        .ox = view->window->surface_x - output->lx - view->geometry.x,
-        .oy = view->window->surface_y - output->ly - view->geometry.y,
-        .width = view->window->current.content_width,
-        .height = view->window->current.content_height,
-    };
-
-    view_for_each_popup_surface(view, output_for_each_surface_iterator, &data);
-}
-
-void
+static void
 output_layer_for_each_surface(
     struct hayward_output *output, struct wl_list *layer_surfaces,
     hayward_surface_iterator_func_t iterator, void *user_data
@@ -553,50 +546,8 @@ output_layer_for_each_surface(
     }
 }
 
-void
-output_layer_for_each_toplevel_surface(
-    struct hayward_output *output, struct wl_list *layer_surfaces,
-    hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct hayward_layer_surface *layer_surface;
-    wl_list_for_each(layer_surface, layer_surfaces, link) {
-        struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
-            layer_surface->layer_surface;
-        output_surface_for_each_surface(
-            output, wlr_layer_surface_v1->surface, layer_surface->geo.x,
-            layer_surface->geo.y, iterator, user_data
-        );
-    }
-}
-
-void
-output_layer_for_each_popup_surface(
-    struct hayward_output *output, struct wl_list *layer_surfaces,
-    hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct hayward_layer_surface *layer_surface;
-    wl_list_for_each(layer_surface, layer_surfaces, link) {
-        struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
-            layer_surface->layer_surface;
-        struct wlr_surface *surface = wlr_layer_surface_v1->surface;
-        struct surface_iterator_data data = {
-            .user_iterator = iterator,
-            .user_data = user_data,
-            .output = output,
-            .view = NULL,
-            .ox = layer_surface->geo.x,
-            .oy = layer_surface->geo.y,
-            .width = surface->current.width,
-            .height = surface->current.height,
-        };
-        wlr_layer_surface_v1_for_each_popup_surface(
-            wlr_layer_surface_v1, output_for_each_surface_iterator, &data
-        );
-    }
-}
-
 #if HAVE_XWAYLAND
-void
+static void
 output_unmanaged_for_each_surface(
     struct hayward_output *output, struct wl_list *unmanaged,
     hayward_surface_iterator_func_t iterator, void *user_data
@@ -615,7 +566,7 @@ output_unmanaged_for_each_surface(
 }
 #endif
 
-void
+static void
 output_drag_icons_for_each_surface(
     struct hayward_output *output, struct wl_list *drag_icons,
     hayward_surface_iterator_func_t iterator, void *user_data
@@ -755,7 +706,7 @@ scale_box(struct wlr_box *box, float scale) {
     box->y = round(box->y * scale);
 }
 
-bool
+static bool
 output_has_opaque_overlay_layer_surface(struct hayward_output *output) {
     struct hayward_layer_surface *hayward_layer_surface;
     wl_list_for_each(
@@ -999,30 +950,6 @@ output_damage_window(
     output_view_for_each_surface(
         output, window->view, damage_surface_iterator, &whole
     );
-}
-
-static void
-damage_child_views_iterator(struct hayward_window *window, void *data) {
-    struct hayward_output *output = data;
-    output_damage_window(output, window);
-}
-
-void
-output_damage_column(
-    struct hayward_output *output, struct hayward_column *column
-) {
-    // Pad the box by 1px, because the width is a double and might be a fraction
-    struct wlr_box box = {
-        .x = column->current.x - output->lx - 1,
-        .y = column->current.y - output->ly - 1,
-        .width = column->current.width + 2,
-        .height = column->current.height + 2,
-    };
-    scale_box(&box, output->wlr_output->scale);
-    wlr_output_damage_add_box(output->damage, &box);
-
-    // Damage subsurfaces as well, which may extend outside the box
-    column_for_each_child(column, damage_child_views_iterator, output);
 }
 
 static void
