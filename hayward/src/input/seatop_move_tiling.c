@@ -64,6 +64,7 @@ handle_render(
     struct hayward_seat *seat, struct hayward_output *output,
     pixman_region32_t *damage
 ) {
+    /* TODO
     struct seatop_move_tiling_event *e = seat->seatop_data;
     if (!e->threshold_reached) {
         return;
@@ -80,6 +81,7 @@ handle_render(
     memcpy(&box, &e->drop_box, sizeof(struct wlr_box));
     scale_box(&box, output->wlr_output->scale);
     render_rect(output, damage, &box, color);
+    TODO */
 }
 
 static void

@@ -823,81 +823,6 @@ send_frame_done(
     output_for_each_surface(output, send_frame_done_iterator, data);
 }
 
-static void
-count_surface_iterator(
-    struct hayward_output *output, struct hayward_view *view,
-    struct wlr_surface *surface, struct wlr_box *box, void *data
-) {
-    size_t *n = data;
-    (*n)++;
-}
-
-static bool
-scan_out_fullscreen_view(
-    struct hayward_output *output, struct hayward_view *view
-) {
-    struct wlr_output *wlr_output = output->wlr_output;
-    struct hayward_workspace *workspace = root_get_active_workspace(root);
-    hayward_assert(workspace, "Expected an active workspace");
-
-    if (!wl_list_empty(&view->saved_buffers)) {
-        return false;
-    }
-
-    for (int i = 0; i < workspace->current.floating->length; ++i) {
-        struct hayward_window *floater = workspace->current.floating->items[i];
-        if (window_is_transient_for(floater, view->window)) {
-            return false;
-        }
-    }
-
-#if HAVE_XWAYLAND
-    if (!wl_list_empty(&root->xwayland_unmanaged)) {
-        return false;
-    }
-#endif
-
-    if (!wl_list_empty(&output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY]
-        )) {
-        return false;
-    }
-    if (!wl_list_empty(&root->drag_icons)) {
-        return false;
-    }
-
-    struct wlr_surface *surface = view->surface;
-    if (surface == NULL) {
-        return false;
-    }
-    size_t n_surfaces = 0;
-    output_view_for_each_surface(
-        output, view, count_surface_iterator, &n_surfaces
-    );
-    if (n_surfaces != 1) {
-        return false;
-    }
-
-    if (surface->buffer == NULL) {
-        return false;
-    }
-
-    if ((float)surface->current.scale != wlr_output->scale ||
-        surface->current.transform != wlr_output->transform) {
-        return false;
-    }
-
-    wlr_output_attach_buffer(wlr_output, &surface->buffer->base);
-    if (!wlr_output_test(wlr_output)) {
-        return false;
-    }
-
-    wlr_presentation_surface_sampled_on_output(
-        server.presentation, surface, wlr_output
-    );
-
-    return wlr_output_commit(wlr_output);
-}
-
 static int
 output_repaint_timer_handler(void *data) {
     struct hayward_output *output = data;
@@ -905,66 +830,9 @@ output_repaint_timer_handler(void *data) {
         return 0;
     }
 
-    output->wlr_output->frame_pending = false;
-
-    struct hayward_workspace *workspace =
-        root_get_current_active_workspace(root);
-    if (workspace == NULL) {
-        return 0;
-    }
-
-    struct hayward_window *fullscreen_window =
-        output->current.fullscreen_window;
-
-    if (fullscreen_window && !debug.noscanout) {
-        // Try to scan-out the fullscreen view
-        static bool last_scanned_out = false;
-        bool scanned_out =
-            scan_out_fullscreen_view(output, fullscreen_window->view);
-
-        if (scanned_out && !last_scanned_out) {
-            hayward_log(
-                HAYWARD_DEBUG, "Scanning out fullscreen view on %s",
-                output->wlr_output->name
-            );
-        }
-        if (last_scanned_out && !scanned_out) {
-            hayward_log(
-                HAYWARD_DEBUG, "Stopping fullscreen view scan out on %s",
-                output->wlr_output->name
-            );
-            output_damage_whole(output);
-        }
-        last_scanned_out = scanned_out;
-
-        if (scanned_out) {
-            return 0;
-        }
-    }
-
     if (output->enabled) {
         wlr_scene_output_commit(output->scene_output);
     }
-
-    bool needs_frame;
-    pixman_region32_t damage;
-    pixman_region32_init(&damage);
-    if (!wlr_output_damage_attach_render(
-            output->damage, &needs_frame, &damage
-        )) {
-        return 0;
-    }
-
-    if (needs_frame) {
-        struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-
-        output_render(output, &now, &damage);
-    } else {
-        wlr_output_rollback(output->wlr_output);
-    }
-
-    pixman_region32_fini(&damage);
 
     return 0;
 }
