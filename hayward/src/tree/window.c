@@ -138,6 +138,14 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     window->is_configuring = false;
 
+    double x = window->committed.x;
+    double y = window->committed.y;
+    double width = window->committed.width;
+    double height = window->committed.height;
+
+    int border = window->committed.border_thickness;
+    int titlebar_height = window_titlebar_height();
+
     struct wlr_scene_tree *parent = root->orphans;
     if (window->committed.parent) {
         parent = window->committed.parent->scene_tree;
@@ -146,13 +154,33 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     }
     wlr_scene_node_reparent(&window->scene_tree->node, parent);
 
-    wlr_scene_rect_set_size(window->layers.border_top, 10, 10);
-    wlr_scene_rect_set_size(window->layers.border_bottom, 10, 10);
-    wlr_scene_rect_set_size(window->layers.border_left, 10, 10);
-    wlr_scene_rect_set_size(window->layers.border_right, 10, 10);
+    wlr_scene_node_set_position(&window->scene_tree->node, x, y);
+
+    wlr_scene_node_set_position(&window->layers.border_top->node, border, 0);
+    wlr_scene_rect_set_size(
+        window->layers.border_top, width - 2 * border, border
+    );
+
+    wlr_scene_node_set_position(
+        &window->layers.border_bottom->node, border, height - border
+    );
+    wlr_scene_rect_set_size(
+        window->layers.border_top, width - 2 * border, border
+    );
+
+    wlr_scene_node_set_position(&window->layers.border_left->node, 0, 0);
+    wlr_scene_rect_set_size(window->layers.border_left, border, height);
+    wlr_scene_node_set_position(
+        &window->layers.border_left->node, width - border, 0
+    );
+    wlr_scene_rect_set_size(window->layers.border_right, border, height);
 
     wlr_scene_node_set_enabled(
         &window->layers.content_tree->node, !window->committed.shaded
+    );
+    wlr_scene_node_set_position(
+        &window->layers.content_tree->node, window->committed.border_thickness,
+        titlebar_height
     );
 
     struct hayward_view *view = window->view;
