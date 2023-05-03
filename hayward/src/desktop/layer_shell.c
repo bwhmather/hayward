@@ -678,11 +678,6 @@ handle_new_popup(struct wl_listener *listener, void *data) {
     create_popup(wlr_popup, LAYER_PARENT_LAYER, hayward_layer_surface);
 }
 
-struct hayward_layer_surface *
-layer_from_wlr_layer_surface_v1(struct wlr_layer_surface_v1 *layer_surface) {
-    return layer_surface->data;
-}
-
 void
 handle_layer_shell_surface(struct wl_listener *listener, void *data) {
     struct wlr_layer_surface_v1 *layer_surface = data;
