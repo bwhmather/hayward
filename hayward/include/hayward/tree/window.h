@@ -13,6 +13,7 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
+#include <hayward/hayward_text_buffer.h>
 
 #define MIN_SANE_W 100
 #define MIN_SANE_H 60
@@ -114,9 +115,6 @@ struct hayward_window {
     // These are in layout coordinates.
     double surface_x, surface_y;
 
-    // Outputs currently being intersected
-    list_t *outputs; // struct hayward_output
-
     float alpha;
 
     struct wlr_texture *title_focused;
@@ -130,7 +128,7 @@ struct hayward_window {
     struct {
         struct wlr_scene_tree *title_tree;
         struct wlr_scene_rect *title_background;
-        struct wlr_scene_buffer *title_text;
+        struct hayward_text_node *title_text;
         // Line separating title from content.
         struct wlr_scene_rect *title_border;
 
@@ -191,9 +189,6 @@ window_reconcile_detached(struct hayward_window *window);
  */
 void
 window_end_mouse_operation(struct hayward_window *window);
-
-void
-window_update_title_textures(struct hayward_window *window);
 
 bool
 window_is_floating(struct hayward_window *window);
@@ -297,16 +292,5 @@ struct hayward_window *
 window_get_previous_sibling(struct hayward_window *window);
 struct hayward_window *
 window_get_next_sibling(struct hayward_window *window);
-
-/**
- * Return the output which will be used for scale purposes.
- * This is the most recently entered output.
- * If the window is not on any output, return NULL.
- */
-struct hayward_output *
-window_get_effective_output(struct hayward_window *window);
-
-void
-window_discover_outputs(struct hayward_window *window);
 
 #endif

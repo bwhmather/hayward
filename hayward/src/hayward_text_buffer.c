@@ -139,8 +139,8 @@ render_backing_buffer(struct text_buffer *buffer) {
     );
 
     render_text(
-        cairo, config->font, scale, buffer->props.pango_markup,
-        "%s", buffer->text
+        cairo, config->font, scale, buffer->props.pango_markup, "%s",
+        buffer->text
     );
 
     cairo_surface_flush(surface);

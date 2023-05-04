@@ -20,11 +20,6 @@
 #include <config.h>
 
 static void
-rebuild_textures_iterator(struct hayward_window *container, void *data) {
-    window_update_title_textures(container);
-}
-
-static void
 do_reload(void *data) {
     // store bar ids to check against new bars for barconfig_update events
     list_t *bar_ids = create_list();
@@ -58,8 +53,6 @@ do_reload(void *data) {
         }
     }
     list_free_items_and_destroy(bar_ids);
-
-    root_for_each_window(root, rebuild_textures_iterator, NULL);
 
     arrange_root(root);
 }

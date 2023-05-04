@@ -37,6 +37,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
+#include <hayward/hayward_text_buffer.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
@@ -155,6 +156,25 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wlr_scene_node_set_position(&window->scene_tree->node, x, y);
 
+    wlr_scene_node_set_position(
+        window->layers.title_text->node, config->titlebar_h_padding,
+        config->titlebar_v_padding
+    );
+    hayward_text_node_set_text(
+        window->layers.title_text, window->formatted_title
+    );
+    hayward_text_node_set_max_width(
+        window->layers.title_text,
+        width - 2 * border - 2 * config->titlebar_h_padding
+    );
+
+    wlr_scene_node_set_position(
+        &window->layers.title_border->node, border, titlebar_height + border
+    );
+    wlr_scene_rect_set_size(
+        window->layers.title_border, width - 2 * border, border
+    );
+
     wlr_scene_node_set_position(&window->layers.border_top->node, border, 0);
     wlr_scene_rect_set_size(
         window->layers.border_top, width - 2 * border, border
@@ -235,8 +255,6 @@ window_create(struct hayward_view *view) {
     window->view = view;
     window->alpha = 1.0f;
 
-    window->outputs = create_list();
-
     window->transaction_commit.notify = window_handle_transaction_commit;
     window->transaction_apply.notify = window_handle_transaction_apply;
     window->transaction_after_apply.notify =
@@ -246,6 +264,7 @@ window_create(struct hayward_view *view) {
     hayward_assert(window->scene_tree != NULL, "Allocation failed");
 
     const float border_color[] = {1.0, 0.0, 0.0, 1.0};
+    const float text_color[] = {1.0, 1.0, 1.0, 1.0};
 
     window->layers.title_tree = wlr_scene_tree_create(window->scene_tree);
     hayward_assert(window->layers.title_tree != NULL, "Allocation failed");
@@ -255,8 +274,9 @@ window_create(struct hayward_view *view) {
     hayward_assert(
         window->layers.title_background != NULL, "Allocation failed"
     );
-    window->layers.title_text =
-        wlr_scene_buffer_create(window->layers.title_tree, NULL);
+    window->layers.title_text = hayward_text_node_create(
+        window->layers.title_tree, "", text_color, config->pango_markup
+    );
     hayward_assert(
         window->layers.title_background != NULL, "Allocation failed"
     );
@@ -318,7 +338,7 @@ window_destroy(struct hayward_window *window) {
     wlr_scene_node_destroy(&window->layers.border_tree->node);
 
     wlr_scene_node_destroy(&window->layers.title_border->node);
-    wlr_scene_node_destroy(&window->layers.title_text->node);
+    wlr_scene_node_destroy(window->layers.title_text->node);
     wlr_scene_node_destroy(&window->layers.title_background->node);
     wlr_scene_node_destroy(&window->layers.title_tree->node);
 
@@ -331,7 +351,6 @@ window_destroy(struct hayward_window *window) {
     wlr_texture_destroy(window->title_unfocused);
     wlr_texture_destroy(window->title_urgent);
     wlr_texture_destroy(window->title_focused_tab_title);
-    list_free(window->outputs);
 
     if (window->view->window == window) {
         window->view->window = NULL;
@@ -450,133 +469,6 @@ window_end_mouse_operation(struct hayward_window *window) {
     wl_list_for_each(seat, &server.input->seats, link) {
         seatop_unref(seat, window);
     }
-}
-
-static void
-render_titlebar_text_texture(
-    struct hayward_output *output, struct hayward_window *container,
-    struct wlr_texture **texture, struct border_colors *class,
-    bool pango_markup, char *text
-) {
-    double scale = output->wlr_output->scale;
-    int width = 0;
-    int height = config->font_height * scale;
-    int baseline;
-
-    // We must use a non-nil cairo_t for cairo_set_font_options to work.
-    // Therefore, we cannot use cairo_create(NULL).
-    cairo_surface_t *dummy_surface =
-        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 0, 0);
-    cairo_t *c = cairo_create(dummy_surface);
-    cairo_set_antialias(c, CAIRO_ANTIALIAS_BEST);
-    cairo_font_options_t *fo = cairo_font_options_create();
-    cairo_font_options_set_hint_style(fo, CAIRO_HINT_STYLE_FULL);
-    if (output->wlr_output->subpixel == WL_OUTPUT_SUBPIXEL_NONE) {
-        cairo_font_options_set_antialias(fo, CAIRO_ANTIALIAS_GRAY);
-    } else {
-        cairo_font_options_set_antialias(fo, CAIRO_ANTIALIAS_SUBPIXEL);
-        cairo_font_options_set_subpixel_order(
-            fo, to_cairo_subpixel_order(output->wlr_output->subpixel)
-        );
-    }
-    cairo_set_font_options(c, fo);
-    get_text_size(
-        c, config->font, &width, NULL, &baseline, scale, config->pango_markup,
-        "%s", text
-    );
-    cairo_surface_destroy(dummy_surface);
-    cairo_destroy(c);
-
-    if (width == 0 || height == 0) {
-        return;
-    }
-
-    if (height > config->font_height * scale) {
-        height = config->font_height * scale;
-    }
-
-    cairo_surface_t *surface =
-        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
-    cairo_status_t status = cairo_surface_status(surface);
-    if (status != CAIRO_STATUS_SUCCESS) {
-        hayward_log(
-            HAYWARD_ERROR, "cairo_image_surface_create failed: %s",
-            cairo_status_to_string(status)
-        );
-        return;
-    }
-
-    cairo_t *cairo = cairo_create(surface);
-    cairo_set_antialias(cairo, CAIRO_ANTIALIAS_BEST);
-    cairo_set_font_options(cairo, fo);
-    cairo_font_options_destroy(fo);
-    cairo_set_source_rgba(
-        cairo, class->background[0], class->background[1], class->background[2],
-        class->background[3]
-    );
-    cairo_paint(cairo);
-    PangoContext *pango = pango_cairo_create_context(cairo);
-    cairo_set_source_rgba(
-        cairo, class->text[0], class->text[1], class->text[2], class->text[3]
-    );
-    cairo_move_to(cairo, 0, config->font_baseline * scale - baseline);
-
-    render_text(cairo, config->font, scale, pango_markup, "%s", text);
-
-    cairo_surface_flush(surface);
-    unsigned char *data = cairo_image_surface_get_data(surface);
-    int stride = cairo_image_surface_get_stride(surface);
-    struct wlr_renderer *renderer = output->wlr_output->renderer;
-    *texture = wlr_texture_from_pixels(
-        renderer, DRM_FORMAT_ARGB8888, stride, width, height, data
-    );
-    cairo_surface_destroy(surface);
-    g_object_unref(pango);
-    cairo_destroy(cairo);
-}
-
-static void
-update_title_texture(
-    struct hayward_window *window, struct wlr_texture **texture,
-    struct border_colors *class
-) {
-    struct hayward_output *output = window_get_effective_output(window);
-    if (!output) {
-        return;
-    }
-    if (*texture) {
-        wlr_texture_destroy(*texture);
-        *texture = NULL;
-    }
-    if (!window->formatted_title) {
-        return;
-    }
-
-    render_titlebar_text_texture(
-        output, window, texture, class, config->pango_markup,
-        window->formatted_title
-    );
-}
-
-void
-window_update_title_textures(struct hayward_window *window) {
-    update_title_texture(
-        window, &window->title_focused, &config->border_colors.focused
-    );
-    update_title_texture(
-        window, &window->title_focused_inactive,
-        &config->border_colors.focused_inactive
-    );
-    update_title_texture(
-        window, &window->title_unfocused, &config->border_colors.unfocused
-    );
-    update_title_texture(
-        window, &window->title_urgent, &config->border_colors.urgent
-    );
-    update_title_texture(
-        window, &window->title_focused_tab_title,
-        &config->border_colors.focused_tab_title
-    );
 }
 
 bool
@@ -1127,92 +1019,4 @@ window_get_next_sibling(struct hayward_window *window) {
     }
 
     return siblings->items[index + 1];
-}
-
-/**
- * Return the output which will be used for scale purposes.
- * This is the most recently entered output.
- */
-struct hayward_output *
-window_get_effective_output(struct hayward_window *window) {
-    if (window->outputs->length == 0) {
-        return NULL;
-    }
-    return window->outputs->items[window->outputs->length - 1];
-}
-
-static void
-surface_send_enter_iterator(
-    struct wlr_surface *surface, int x, int y, void *data
-) {
-    struct wlr_output *wlr_output = data;
-    wlr_surface_send_enter(surface, wlr_output);
-}
-
-static void
-surface_send_leave_iterator(
-    struct wlr_surface *surface, int x, int y, void *data
-) {
-    struct wlr_output *wlr_output = data;
-    wlr_surface_send_leave(surface, wlr_output);
-}
-
-void
-window_discover_outputs(struct hayward_window *window) {
-    struct wlr_box window_box = {
-        .x = window->current.x,
-        .y = window->current.y,
-        .width = window->current.width,
-        .height = window->current.height,
-    };
-    struct hayward_output *old_output = window_get_effective_output(window);
-
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        struct wlr_box output_box;
-        output_get_box(output, &output_box);
-        struct wlr_box intersection;
-        bool intersects =
-            wlr_box_intersection(&intersection, &window_box, &output_box);
-        int index = list_find(window->outputs, output);
-
-        if (intersects && index == -1) {
-            // Send enter
-            hayward_log(
-                HAYWARD_DEBUG, "Container %p entered output %p", (void *)window,
-                (void *)output
-            );
-            view_for_each_surface(
-                window->view, surface_send_enter_iterator, output->wlr_output
-            );
-            if (window->view->foreign_toplevel) {
-                wlr_foreign_toplevel_handle_v1_output_enter(
-                    window->view->foreign_toplevel, output->wlr_output
-                );
-            }
-            list_add(window->outputs, output);
-        } else if (!intersects && index != -1) {
-            // Send leave
-            hayward_log(
-                HAYWARD_DEBUG, "Container %p left output %p", (void *)window,
-                (void *)output
-            );
-            view_for_each_surface(
-                window->view, surface_send_leave_iterator, output->wlr_output
-            );
-            if (window->view->foreign_toplevel) {
-                wlr_foreign_toplevel_handle_v1_output_leave(
-                    window->view->foreign_toplevel, output->wlr_output
-                );
-            }
-            list_del(window->outputs, index);
-        }
-    }
-    struct hayward_output *new_output = window_get_effective_output(window);
-    double old_scale =
-        old_output && old_output->enabled ? old_output->wlr_output->scale : -1;
-    double new_scale = new_output ? new_output->wlr_output->scale : -1;
-    if (old_scale != new_scale) {
-        window_update_title_textures(window);
-    }
 }

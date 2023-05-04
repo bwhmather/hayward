@@ -1136,8 +1136,7 @@ view_update_title(struct hayward_view *view, bool force) {
         view->window->formatted_title = NULL;
     }
 
-    // Update title after the global font height is updated
-    window_update_title_textures(view->window);
+    window_set_dirty(view->window);
 
     ipc_event_window(view->window, "title");
 

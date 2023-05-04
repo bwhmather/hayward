@@ -276,15 +276,6 @@ output_destroy(struct hayward_output *output) {
     free(output);
 }
 
-static void
-untrack_output(struct hayward_window *window, void *data) {
-    struct hayward_output *output = data;
-    int index = list_find(window->outputs, output);
-    if (index != -1) {
-        list_del(window->outputs, index);
-    }
-}
-
 void
 output_disable(struct hayward_output *output) {
     hayward_assert(output->enabled, "Expected an enabled output");
@@ -298,8 +289,6 @@ output_disable(struct hayward_output *output) {
     wl_signal_emit(&output->events.disable, output);
 
     output_evacuate(output);
-
-    root_for_each_window(root, untrack_output, output);
 
     list_del(root->outputs, index);
     if (root->pending.active_output == output) {
@@ -1053,21 +1042,12 @@ handle_mode(struct wl_listener *listener, void *data) {
 }
 
 static void
-update_textures(struct hayward_window *container, void *data) {
-    window_update_title_textures(container);
-}
-
-static void
 handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
     if (!output->enabled) {
         return;
-    }
-
-    if (event->committed & WLR_OUTPUT_STATE_SCALE) {
-        root_for_each_window(root, update_textures, NULL);
     }
 
     if (event->committed &

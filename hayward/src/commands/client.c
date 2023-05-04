@@ -19,11 +19,6 @@
 
 #include <config.h>
 
-static void
-rebuild_textures_iterator(struct hayward_window *container, void *data) {
-    window_update_title_textures(container);
-}
-
 static struct cmd_results *
 handle_command(
     int argc, char **argv, char *cmd_name, struct border_colors *class,
@@ -69,15 +64,6 @@ handle_command(
     }
 
     memcpy(class, &colors, sizeof(struct border_colors));
-
-    if (config->active) {
-        root_for_each_window(root, rebuild_textures_iterator, NULL);
-
-        for (int i = 0; i < root->outputs->length; ++i) {
-            struct hayward_output *output = root->outputs->items[i];
-            output_damage_whole(output);
-        }
-    }
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
