@@ -9,7 +9,6 @@ hayward_sources = files(
 	'src/output.c',
 	'src/server.c',
 	'src/haywardnag.c',
-	'src/hayward_text_buffer.c',
 	'src/xdg_activation_v1.c',
 	'src/xdg_decoration.c',
 
@@ -174,6 +173,8 @@ hayward_sources = files(
 	'src/commands/output/subpixel.c',
 	'src/commands/output/toggle.c',
 	'src/commands/output/transform.c',
+
+	'src/scene/text.c',
 
 	'src/tree/arrange.c',
 	'src/tree/column.c',

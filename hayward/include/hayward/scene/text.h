@@ -1,5 +1,5 @@
-#ifndef _SWAY_BUFFER_H
-#define _SWAY_BUFFER_H
+#ifndef _HAYWARD_SCENE_TEXT_H
+#define _HAYWARD_SCENE_TEXT_H
 #include <wlr/types/wlr_scene.h>
 
 struct hayward_text_node {

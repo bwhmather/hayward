@@ -1,5 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/hayward_text_buffer.h"
+#include "hayward/scene/text.h"
 
 #include <drm_fourcc.h>
 #include <stdio.h>

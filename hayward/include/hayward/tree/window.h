@@ -13,7 +13,7 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
-#include <hayward/hayward_text_buffer.h>
+#include <hayward/scene/text.h>
 
 #define MIN_SANE_W 100
 #define MIN_SANE_H 60

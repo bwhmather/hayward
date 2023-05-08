@@ -37,7 +37,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
-#include <hayward/hayward_text_buffer.h>
+#include <hayward/scene/text.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
