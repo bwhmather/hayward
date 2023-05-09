@@ -124,6 +124,7 @@ struct hayward_window {
     struct wlr_texture *title_urgent;
 
     struct wlr_scene_tree *scene_tree;
+    struct wlr_addon scene_tree_marker;
 
     struct {
         struct wlr_scene_tree *title_tree;
@@ -292,5 +293,12 @@ struct hayward_window *
 window_get_previous_sibling(struct hayward_window *window);
 struct hayward_window *
 window_get_next_sibling(struct hayward_window *window);
+
+/**
+ * Returns window for which the given node is the `scene_tree` root, otherwise
+ * returns NULL.
+ */
+struct hayward_window *
+window_for_scene_node(struct wlr_scene_node *node);
 
 #endif

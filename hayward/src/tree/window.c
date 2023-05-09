@@ -37,11 +37,11 @@
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
-#include <hayward/scene/text.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
+#include <hayward/scene/text.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
@@ -50,6 +50,9 @@
 #include <hayward/tree/workspace.h>
 
 #include <config.h>
+
+static const struct wlr_addon_interface scene_tree_marker_interface = {
+    .name = "hayward_window", .destroy = NULL};
 
 static void
 window_destroy(struct hayward_window *window);
@@ -262,6 +265,10 @@ window_create(struct hayward_view *view) {
 
     window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
     hayward_assert(window->scene_tree != NULL, "Allocation failed");
+    wlr_addon_init(
+        &window->scene_tree_marker, &window->scene_tree->node.addons, NULL,
+        &scene_tree_marker_interface
+    );
 
     const float border_color[] = {1.0, 0.0, 0.0, 1.0};
     const float text_color[] = {1.0, 1.0, 1.0, 1.0};
@@ -1019,4 +1026,18 @@ window_get_next_sibling(struct hayward_window *window) {
     }
 
     return siblings->items[index + 1];
+}
+
+struct hayward_window *
+window_for_scene_node(struct wlr_scene_node *node) {
+    struct wlr_addon *addon =
+        wlr_addon_find(&node->addons, NULL, &scene_tree_marker_interface);
+    if (addon == NULL) {
+        return NULL;
+    }
+
+    struct hayward_window *window;
+    window = wl_container_of(addon, window, scene_tree_marker);
+
+    return window;
 }
