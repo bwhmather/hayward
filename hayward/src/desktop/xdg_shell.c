@@ -18,11 +18,11 @@
 
 #include <hayward-common/log.h>
 
-#include <hayward/layers.h>
 #include <hayward/decoration.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
+#include <hayward/layers.h>
 #include <hayward/output.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>
@@ -35,7 +35,10 @@
 #include <config.h>
 
 static struct hayward_xdg_popup *
-popup_create(struct wlr_xdg_popup *wlr_popup, struct hayward_view *view, struct wlr_scene_tree *parent);
+popup_create(
+    struct wlr_xdg_popup *wlr_popup, struct hayward_view *view,
+    struct wlr_scene_tree *parent
+);
 
 static void
 popup_handle_new_popup(struct wl_listener *listener, void *data) {
@@ -79,7 +82,10 @@ popup_unconstrain(struct hayward_xdg_popup *popup) {
 }
 
 static struct hayward_xdg_popup *
-popup_create(struct wlr_xdg_popup *wlr_popup, struct hayward_view *view, struct wlr_scene_tree *parent) {
+popup_create(
+    struct wlr_xdg_popup *wlr_popup, struct hayward_view *view,
+    struct wlr_scene_tree *parent
+) {
     struct wlr_xdg_surface *xdg_surface = wlr_popup->base;
 
     struct hayward_xdg_popup *popup =
@@ -91,7 +97,8 @@ popup_create(struct wlr_xdg_popup *wlr_popup, struct hayward_view *view, struct 
     popup->scene_tree = wlr_scene_tree_create(parent);
     hayward_assert(popup->scene_tree != NULL, "Allocation failed");
 
-    popup->xdg_surface_tree = wlr_scene_xdg_surface_create(popup->scene_tree, xdg_surface);
+    popup->xdg_surface_tree =
+        wlr_scene_xdg_surface_create(popup->scene_tree, xdg_surface);
     hayward_assert(popup->xdg_surface_tree != NULL, "Allocation failed");
 
     // TODO scene descriptor.
@@ -99,7 +106,8 @@ popup_create(struct wlr_xdg_popup *wlr_popup, struct hayward_view *view, struct 
     popup->view = view;
 
     popup->wlr_xdg_popup = xdg_surface->popup;
-    struct hayward_xdg_shell_view *shell_view = wl_container_of(view, shell, view);
+    struct hayward_xdg_shell_view *shell_view =
+        wl_container_of(view, shell, view);
     xdg_surface->data = shell_view;
 
     wl_signal_add(&xdg_surface->events.new_popup, &popup->new_popup);
@@ -329,7 +337,8 @@ handle_new_popup(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xdg_shell_view, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
-    struct hayward_xdg_popup *popup = popup_create(wlr_popup, &xdg_shell_view->view, root->layers.popup);
+    struct hayward_xdg_popup *popup =
+        popup_create(wlr_popup, &xdg_shell_view->view, root->layers.popup);
     int lx, ly;
     wlr_scene_node_coords(&popup->view->content_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);
@@ -532,5 +541,7 @@ handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
     wl_signal_add(&xdg_surface->events.destroy, &xdg_shell_view->destroy);
 
     xdg_surface->data = xdg_shell_view;
-    wlr_scene_xdg_surface_create(xdg_shell_view->view.content_tree, xdg_surface);
+    wlr_scene_xdg_surface_create(
+        xdg_shell_view->view.content_tree, xdg_surface
+    );
 }

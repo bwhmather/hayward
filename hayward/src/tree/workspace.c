@@ -81,7 +81,7 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     struct wlr_scene_tree *parent = root->orphans; // TODO
     if (workspace->committed.root != NULL) {
-        parent = &workspace->committed.root->root_scene->tree;
+        parent = &workspace->committed.root->layers.workspaces;
     }
     wlr_scene_node_reparent(&workspace->scene_tree->node, parent);
     wlr_scene_node_set_enabled(

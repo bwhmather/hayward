@@ -131,6 +131,10 @@ root_create(void) {
     root->orphans = wlr_scene_tree_create(&root->root_scene->tree);
     wlr_scene_node_set_enabled(&root->orphans->node, false);
 
+    root->layers.workspaces = wlr_scene_tree_create(&root->root_scene->tree);
+    root->layers.outputs = wlr_scene_tree_create(&root->root_scene->tree);
+    root->layers.popups = wlr_scene_tree_create(&root->root_scene->tree);
+
     root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(
         &root->output_layout->events.change, &root->output_layout_change

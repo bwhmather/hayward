@@ -64,6 +64,11 @@ struct hayward_root {
 
     struct wlr_scene *root_scene;
     struct wlr_scene_tree *orphans;
+    struct {
+        struct wlr_scene_tree *workspaces;
+        struct wlr_scene_tree *outputs;
+        struct wlr_scene_tree *popups;
+    } layers;
 
     struct wl_listener output_layout_change;
     struct wl_listener transaction_before_commit;
