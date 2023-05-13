@@ -23,7 +23,6 @@
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_output_damage.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
@@ -47,7 +46,6 @@
 #include <hayward/ipc-server.h>
 #include <hayward/layers.h>
 #include <hayward/server.h>
-#include <hayward/surface.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
@@ -75,18 +73,6 @@ opposite_direction(enum wlr_direction d) {
 
 static void
 output_destroy(struct hayward_output *output);
-static bool
-output_has_opaque_overlay_layer_surface(struct hayward_output *output);
-static void
-output_layer_for_each_surface(
-    struct hayward_output *output, struct wl_list *layer_surfaces,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
-static void
-output_view_for_each_surface(
-    struct hayward_output *output, struct hayward_view *view,
-    hayward_surface_iterator_func_t iterator, void *user_data
-);
 
 static void
 output_handle_transaction_commit(struct wl_listener *listener, void *data) {
@@ -111,14 +97,10 @@ output_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
-    output_damage_whole(output);
-
     memcpy(
         &output->current, &output->committed,
         sizeof(struct hayward_output_state)
     );
-
-    output_damage_whole(output);
 
     if (output->current.dead) {
         transaction_add_after_apply_listener(&output->transaction_after_apply);
@@ -409,279 +391,6 @@ all_output_by_name_or_id(const char *name_or_id) {
     return NULL;
 }
 
-struct surface_iterator_data {
-    hayward_surface_iterator_func_t user_iterator;
-    void *user_data;
-
-    struct hayward_output *output;
-    struct hayward_view *view;
-    double ox, oy;
-    int width, height;
-};
-
-static bool
-get_surface_box(
-    struct surface_iterator_data *data, struct wlr_surface *surface, int sx,
-    int sy, struct wlr_box *surface_box
-) {
-    struct hayward_output *output = data->output;
-
-    if (!wlr_surface_has_buffer(surface)) {
-        return false;
-    }
-
-    int sw = surface->current.width;
-    int sh = surface->current.height;
-
-    struct wlr_box box = {
-        .x = floor(data->ox + sx),
-        .y = floor(data->oy + sy),
-        .width = sw,
-        .height = sh,
-    };
-    if (surface_box != NULL) {
-        memcpy(surface_box, &box, sizeof(struct wlr_box));
-    }
-
-    struct wlr_box output_box = {
-        .width = output->width,
-        .height = output->height,
-    };
-
-    struct wlr_box intersection;
-    return wlr_box_intersection(&intersection, &output_box, &box);
-}
-
-static void
-output_for_each_surface_iterator(
-    struct wlr_surface *surface, int sx, int sy, void *_data
-) {
-    struct surface_iterator_data *data = _data;
-
-    struct wlr_box box;
-    bool intersects = get_surface_box(data, surface, sx, sy, &box);
-    if (!intersects) {
-        return;
-    }
-
-    data->user_iterator(
-        data->output, data->view, surface, &box, data->user_data
-    );
-}
-
-static void
-output_surface_for_each_surface(
-    struct hayward_output *output, struct wlr_surface *surface, double ox,
-    double oy, hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct surface_iterator_data data = {
-        .user_iterator = iterator,
-        .user_data = user_data,
-        .output = output,
-        .view = NULL,
-        .ox = ox,
-        .oy = oy,
-        .width = surface->current.width,
-        .height = surface->current.height,
-    };
-
-    wlr_surface_for_each_surface(
-        surface, output_for_each_surface_iterator, &data
-    );
-}
-
-static void
-output_view_for_each_surface(
-    struct hayward_output *output, struct hayward_view *view,
-    hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct surface_iterator_data data = {
-        .user_iterator = iterator,
-        .user_data = user_data,
-        .output = output,
-        .view = view,
-        .ox = view->window->surface_x - output->lx - view->geometry.x,
-        .oy = view->window->surface_y - output->ly - view->geometry.y,
-        .width = view->window->current.content_width,
-        .height = view->window->current.content_height,
-    };
-
-    view_for_each_surface(view, output_for_each_surface_iterator, &data);
-}
-
-static void
-output_layer_for_each_surface(
-    struct hayward_output *output, struct wl_list *layer_surfaces,
-    hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct hayward_layer_surface *layer_surface;
-    wl_list_for_each(layer_surface, layer_surfaces, link) {
-        struct wlr_layer_surface_v1 *wlr_layer_surface_v1 =
-            layer_surface->layer_surface;
-        struct wlr_surface *surface = wlr_layer_surface_v1->surface;
-        struct surface_iterator_data data = {
-            .user_iterator = iterator,
-            .user_data = user_data,
-            .output = output,
-            .view = NULL,
-            .ox = layer_surface->geo.x,
-            .oy = layer_surface->geo.y,
-            .width = surface->current.width,
-            .height = surface->current.height,
-        };
-        wlr_layer_surface_v1_for_each_surface(
-            wlr_layer_surface_v1, output_for_each_surface_iterator, &data
-        );
-    }
-}
-
-#if HAVE_XWAYLAND
-static void
-output_unmanaged_for_each_surface(
-    struct hayward_output *output, struct wl_list *unmanaged,
-    hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct hayward_xwayland_unmanaged *unmanaged_surface;
-    wl_list_for_each(unmanaged_surface, unmanaged, link) {
-        struct wlr_xwayland_surface *xsurface =
-            unmanaged_surface->wlr_xwayland_surface;
-        double ox = unmanaged_surface->lx - output->lx;
-        double oy = unmanaged_surface->ly - output->ly;
-
-        output_surface_for_each_surface(
-            output, xsurface->surface, ox, oy, iterator, user_data
-        );
-    }
-}
-#endif
-
-static void
-output_drag_icons_for_each_surface(
-    struct hayward_output *output, struct wl_list *drag_icons,
-    hayward_surface_iterator_func_t iterator, void *user_data
-) {
-    struct hayward_drag_icon *drag_icon;
-    wl_list_for_each(drag_icon, drag_icons, link) {
-        double ox = drag_icon->x - output->lx;
-        double oy = drag_icon->y - output->ly;
-
-        if (drag_icon->wlr_drag_icon->mapped) {
-            output_surface_for_each_surface(
-                output, drag_icon->wlr_drag_icon->surface, ox, oy, iterator,
-                user_data
-            );
-        }
-    }
-}
-
-static void
-for_each_surface_container_iterator(
-    struct hayward_window *container, void *_data
-) {
-    if (!container->view || !view_is_visible(container->view)) {
-        return;
-    }
-
-    struct surface_iterator_data *data = _data;
-    output_view_for_each_surface(
-        data->output, container->view, data->user_iterator, data->user_data
-    );
-}
-
-static void
-output_for_each_surface(
-    struct hayward_output *output, hayward_surface_iterator_func_t iterator,
-    void *user_data
-) {
-    if (server.session_lock.locked) {
-        if (server.session_lock.lock == NULL) {
-            return;
-        }
-        struct wlr_session_lock_surface_v1 *lock_surface;
-        wl_list_for_each(
-            lock_surface, &server.session_lock.lock->surfaces, link
-        ) {
-            if (lock_surface->output != output->wlr_output) {
-                continue;
-            }
-            if (!lock_surface->mapped) {
-                continue;
-            }
-
-            output_surface_for_each_surface(
-                output, lock_surface->surface, 0.0, 0.0, iterator, user_data
-            );
-        }
-        return;
-    }
-
-    if (output_has_opaque_overlay_layer_surface(output)) {
-        goto overlay;
-    }
-
-    struct hayward_workspace *workspace =
-        root_get_current_active_workspace(root);
-
-    struct surface_iterator_data data = {
-        .user_iterator = iterator,
-        .user_data = user_data,
-        .output = output,
-        .view = NULL,
-    };
-
-    struct hayward_window *fullscreen_window =
-        output->current.fullscreen_window;
-    if (fullscreen_window) {
-        for_each_surface_container_iterator(fullscreen_window, &data);
-
-        for (int i = 0; i < workspace->current.floating->length; ++i) {
-            struct hayward_window *floater =
-                workspace->current.floating->items[i];
-            if (window_is_transient_for(floater, fullscreen_window)) {
-                for_each_surface_container_iterator(floater, &data);
-            }
-        }
-
-#if HAVE_XWAYLAND
-        output_unmanaged_for_each_surface(
-            output, &root->xwayland_unmanaged, iterator, user_data
-        );
-#endif
-    } else {
-        output_layer_for_each_surface(
-            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND],
-            iterator, user_data
-        );
-        output_layer_for_each_surface(
-            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM],
-            iterator, user_data
-        );
-
-        workspace_for_each_window(
-            workspace, for_each_surface_container_iterator, &data
-        );
-
-#if HAVE_XWAYLAND
-        output_unmanaged_for_each_surface(
-            output, &root->xwayland_unmanaged, iterator, user_data
-        );
-#endif
-        output_layer_for_each_surface(
-            output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP],
-            iterator, user_data
-        );
-    }
-
-overlay:
-    output_layer_for_each_surface(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY],
-        iterator, user_data
-    );
-    output_drag_icons_for_each_surface(
-        output, &root->drag_icons, iterator, user_data
-    );
-}
-
 static int
 scale_length(int length, int offset, float scale) {
     return round((offset + length) * scale) - round(offset * scale);
@@ -695,72 +404,114 @@ scale_box(struct wlr_box *box, float scale) {
     box->y = round(box->y * scale);
 }
 
-static bool
-output_has_opaque_overlay_layer_surface(struct hayward_output *output) {
-    struct hayward_layer_surface *hayward_layer_surface;
-    wl_list_for_each(
-        hayward_layer_surface,
-        &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], link
-    ) {
-        struct wlr_surface *wlr_surface =
-            hayward_layer_surface->layer_surface->surface;
-        pixman_box32_t output_box = {
-            .x2 = output->width,
-            .y2 = output->height,
-        };
-        pixman_region32_t surface_opaque_box;
-        pixman_region32_init(&surface_opaque_box);
-        pixman_region32_copy(&surface_opaque_box, &wlr_surface->opaque_region);
-        pixman_region32_translate(
-            &surface_opaque_box, hayward_layer_surface->geo.x,
-            hayward_layer_surface->geo.y
-        );
-        pixman_region_overlap_t contains = pixman_region32_contains_rectangle(
-            &surface_opaque_box, &output_box
-        );
-        pixman_region32_fini(&surface_opaque_box);
+struct buffer_timer {
+    struct wlr_addon addon;
+    struct wl_event_source *frame_done_timer;
+};
 
-        if (contains == PIXMAN_REGION_IN) {
-            return true;
-        }
+static int
+handle_buffer_timer(void *data) {
+    struct wlr_scene_buffer *buffer = data;
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    wlr_scene_buffer_send_frame_done(buffer, &now);
+    return 0;
+}
+
+static void
+handle_buffer_timer_destroy(struct wlr_addon *addon) {
+    struct buffer_timer *timer = wl_container_of(addon, timer, addon);
+    wl_event_source_remove(timer->frame_done_timer);
+    free(timer);
+}
+
+static const struct wlr_addon_interface buffer_timer_interface = {
+    .name = "hayward_buffer_timer", .destroy = handle_buffer_timer_destroy};
+
+static struct buffer_timer *
+buffer_timer_assign(struct wlr_scene_buffer *buffer) {
+    struct buffer_timer *timer = calloc(1, sizeof(struct buffer_timer));
+    hayward_assert(timer != NULL, "Allocation failed");
+
+    timer->frame_done_timer = wl_event_loop_add_timer(
+        server.wl_event_loop, handle_buffer_timer, buffer
+    );
+    hayward_assert(buffer != NULL, "Could not create timer");
+
+    wlr_addon_init(
+        &timer->addon, &buffer->node.addons, NULL, &buffer_timer_interface
+    );
+
+    return timer;
+}
+
+static struct buffer_timer *
+buffer_timer_try_get(struct wlr_scene_buffer *buffer) {
+    struct wlr_addon *addon =
+        wlr_addon_find(&buffer->node.addons, NULL, &buffer_timer_interface);
+    if (addon == NULL) {
+        return NULL;
     }
-    return false;
+
+    struct buffer_timer *timer;
+    timer = wl_container_of(addon, timer, addon);
+
+    return timer;
 }
 
 struct send_frame_done_data {
     struct timespec when;
     int msec_until_refresh;
+    struct hayward_output *output;
 };
 
 static void
 send_frame_done_iterator(
-    struct hayward_output *output, struct hayward_view *view,
-    struct wlr_surface *surface, struct wlr_box *box, void *user_data
+    struct wlr_scene_buffer *buffer, int x, int y, void *user_data
 ) {
+    struct send_frame_done_data *data = user_data;
+    struct hayward_output *output = data->output;
     int view_max_render_time = 0;
-    if (view != NULL) {
-        view_max_render_time = view->max_render_time;
+
+    if (buffer->primary_output != data->output->scene_output) {
+        return;
     }
 
-    struct send_frame_done_data *data = user_data;
+    struct wlr_scene_node *current = &buffer->node;
+
+    while (true) {
+        struct hayward_window *window = window_for_scene_node(current);
+        if (window != NULL) {
+            view_max_render_time = window->view->max_render_time;
+            break;
+        }
+
+        if (!current->parent) {
+            break;
+        }
+
+        current = &current->parent->node;
+    }
 
     int delay = data->msec_until_refresh - output->max_render_time -
         view_max_render_time;
 
-    if (output->max_render_time == 0 || view_max_render_time == 0 ||
-        delay < 1) {
-        wlr_surface_send_frame_done(surface, &data->when);
-    } else {
-        struct hayward_surface *hayward_surface = surface->data;
-        wl_event_source_timer_update(hayward_surface->frame_done_timer, delay);
-    }
-}
+    struct buffer_timer *timer = NULL;
 
-static void
-send_frame_done(
-    struct hayward_output *output, struct send_frame_done_data *data
-) {
-    output_for_each_surface(output, send_frame_done_iterator, data);
+    if (output->max_render_time != 0 && view_max_render_time != 0 &&
+        delay > 0) {
+        timer = buffer_timer_try_get(buffer);
+
+        if (!timer) {
+            timer = buffer_timer_assign(buffer);
+        }
+    }
+
+    if (timer) {
+        wl_event_source_timer_update(timer->frame_done_timer, delay);
+    } else {
+        wlr_scene_buffer_send_frame_done(buffer, &data->when);
+    }
 }
 
 static int
@@ -778,9 +529,8 @@ output_repaint_timer_handler(void *data) {
 }
 
 static void
-damage_handle_frame(struct wl_listener *listener, void *user_data) {
-    struct hayward_output *output =
-        wl_container_of(listener, output, damage_frame);
+handle_frame(struct wl_listener *listener, void *user_data) {
+    struct hayward_output *output = wl_container_of(listener, output, frame);
     if (!output->enabled || !output->wlr_output->enabled) {
         return;
     }
@@ -840,120 +590,10 @@ damage_handle_frame(struct wl_listener *listener, void *user_data) {
     struct send_frame_done_data data = {0};
     clock_gettime(CLOCK_MONOTONIC, &data.when);
     data.msec_until_refresh = msec_until_refresh;
-    send_frame_done(output, &data);
-}
-
-void
-output_damage_whole(struct hayward_output *output) {
-    // The output can exist with no wlr_output if it's just been disconnected
-    // and the transaction to evacuate it has't completed yet.
-    if (output && output->wlr_output && output->damage) {
-        wlr_output_damage_add_whole(output->damage);
-    }
-}
-
-static void
-damage_surface_iterator(
-    struct hayward_output *output, struct hayward_view *view,
-    struct wlr_surface *surface, struct wlr_box *_box, void *_data
-) {
-    bool *data = _data;
-    bool whole = *data;
-
-    struct wlr_box box = *_box;
-    scale_box(&box, output->wlr_output->scale);
-
-    pixman_region32_t damage;
-    pixman_region32_init(&damage);
-    wlr_surface_get_effective_damage(surface, &damage);
-    wlr_region_scale(&damage, &damage, output->wlr_output->scale);
-    if (ceil(output->wlr_output->scale) > surface->current.scale) {
-        // When scaling up a surface, it'll become blurry so we need to
-        // expand the damage region
-        wlr_region_expand(
-            &damage, &damage,
-            ceil(output->wlr_output->scale) - surface->current.scale
-        );
-    }
-    pixman_region32_translate(&damage, box.x, box.y);
-    wlr_output_damage_add(output->damage, &damage);
-    pixman_region32_fini(&damage);
-
-    if (whole) {
-        wlr_output_damage_add_box(output->damage, &box);
-    }
-
-    if (!wl_list_empty(&surface->current.frame_callback_list)) {
-        wlr_output_schedule_frame(output->wlr_output);
-    }
-}
-
-void
-output_damage_surface(
-    struct hayward_output *output, double ox, double oy,
-    struct wlr_surface *surface, bool whole
-) {
-    output_surface_for_each_surface(
-        output, surface, ox, oy, damage_surface_iterator, &whole
+    data.output = output;
+    wlr_scene_output_for_each_buffer(
+        output->scene_output, send_frame_done_iterator, &data
     );
-}
-
-void
-output_damage_from_view(
-    struct hayward_output *output, struct hayward_view *view
-) {
-    if (!view_is_visible(view)) {
-        return;
-    }
-    bool whole = false;
-    output_view_for_each_surface(output, view, damage_surface_iterator, &whole);
-}
-
-// Expecting an unscaled box in layout coordinates
-void
-output_damage_box(struct hayward_output *output, struct wlr_box *_box) {
-    struct wlr_box box;
-    memcpy(&box, _box, sizeof(struct wlr_box));
-    box.x -= output->lx;
-    box.y -= output->ly;
-    scale_box(&box, output->wlr_output->scale);
-    wlr_output_damage_add_box(output->damage, &box);
-}
-
-void
-output_damage_window(
-    struct hayward_output *output, struct hayward_window *window
-) {
-    // Pad the box by 1px, because the width is a double and might be a fraction
-    struct wlr_box box = {
-        .x = window->current.x - output->lx - 1,
-        .y = window->current.y - output->ly - 1,
-        .width = window->current.width + 2,
-        .height = window->current.height + 2,
-    };
-    scale_box(&box, output->wlr_output->scale);
-    wlr_output_damage_add_box(output->damage, &box);
-
-    // Damage subsurfaces as well, which may extend outside the box
-    bool whole = true;
-    output_view_for_each_surface(
-        output, window->view, damage_surface_iterator, &whole
-    );
-}
-
-static void
-damage_handle_destroy(struct wl_listener *listener, void *data) {
-    struct hayward_output *output =
-        wl_container_of(listener, output, damage_destroy);
-    if (!output->enabled) {
-        return;
-    }
-    output_disable(output);
-
-    wl_list_remove(&output->damage_destroy.link);
-    wl_list_remove(&output->damage_frame.link);
-
-    transaction_flush();
 }
 
 static void
@@ -1123,7 +763,6 @@ handle_new_output(struct wl_listener *listener, void *data) {
     }
     output->server = server;
     output->scene_output = scene_output;
-    output->damage = wlr_output_damage_create(wlr_output);
 
     wl_signal_add(&wlr_output->events.destroy, &output->destroy);
     output->destroy.notify = handle_destroy;
@@ -1133,10 +772,8 @@ handle_new_output(struct wl_listener *listener, void *data) {
     output->mode.notify = handle_mode;
     wl_signal_add(&wlr_output->events.present, &output->present);
     output->present.notify = handle_present;
-    wl_signal_add(&output->damage->events.frame, &output->damage_frame);
-    output->damage_frame.notify = damage_handle_frame;
-    wl_signal_add(&output->damage->events.destroy, &output->damage_destroy);
-    output->damage_destroy.notify = damage_handle_destroy;
+    wl_signal_add(&wlr_output->events.frame, &output->frame);
+    output->frame.notify = handle_frame;
 
     output->repaint_timer = wl_event_loop_add_timer(
         server->wl_event_loop, output_repaint_timer_handler, output

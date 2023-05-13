@@ -10,6 +10,7 @@
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 
@@ -62,12 +63,6 @@ struct hayward_view_impl {
     void (*set_fullscreen)(struct hayward_view *view, bool fullscreen);
     void (*set_resizing)(struct hayward_view *view, bool resizing);
     bool (*wants_floating)(struct hayward_view *view);
-    void (*for_each_surface
-    )(struct hayward_view *view, wlr_surface_iterator_func_t iterator,
-      void *user_data);
-    void (*for_each_popup_surface
-    )(struct hayward_view *view, wlr_surface_iterator_func_t iterator,
-      void *user_data);
     bool (*is_transient_for
     )(struct hayward_view *child, struct hayward_view *ancestor);
     void (*close)(struct hayward_view *view);
@@ -75,18 +70,13 @@ struct hayward_view_impl {
     void (*destroy)(struct hayward_view *view);
 };
 
-struct hayward_saved_buffer {
-    struct wlr_client_buffer *buffer;
-    int x, y;
-    int width, height;
-    enum wl_output_transform transform;
-    struct wlr_fbox source_box;
-    struct wl_list link; // hayward_view::saved_buffers
-};
-
 struct hayward_view {
     enum hayward_view_type type;
     const struct hayward_view_impl *impl;
+
+    struct wlr_scene_tree *scene_tree;
+    struct wlr_scene_tree *content_tree;
+    struct wlr_scene_tree *saved_surface_tree;
 
     struct hayward_window *window; // NULL if unmapped and transactions finished
     struct wlr_surface *surface;   // NULL for unmapped views
@@ -105,8 +95,6 @@ struct hayward_view {
     struct timespec urgent;
     bool allow_request_urgent;
     struct wl_event_source *urgent_timer;
-
-    struct wl_list saved_buffers; // hayward_saved_buffer::link
 
     // The geometry for whatever the client is committing, regardless of
     // transaction state. Updated on every commit.
@@ -135,8 +123,6 @@ struct hayward_view {
         struct wl_signal unmap;
     } events;
 
-    struct wl_listener surface_new_subsurface;
-
     int max_render_time; // In milliseconds
 
     enum seat_config_shortcuts_inhibit shortcuts_inhibit;
@@ -160,6 +146,8 @@ struct hayward_xdg_shell_view {
 struct hayward_xwayland_view {
     struct hayward_view view;
 
+    struct wlr_scene_surface *surface_scene;
+
     struct wl_listener commit;
     struct wl_listener request_move;
     struct wl_listener request_resize;
@@ -182,9 +170,8 @@ struct hayward_xwayland_view {
 
 struct hayward_xwayland_unmanaged {
     struct wlr_xwayland_surface *wlr_xwayland_surface;
-    struct wl_list link;
 
-    int lx, ly;
+    struct wlr_scene_surface *surface_scene;
 
     struct wl_listener request_activate;
     struct wl_listener request_configure;
@@ -195,38 +182,12 @@ struct hayward_xwayland_unmanaged {
     struct wl_listener override_redirect;
 };
 #endif
-struct hayward_view_child;
-
-struct hayward_view_child_impl {
-    void (*get_view_coords)(struct hayward_view_child *child, int *sx, int *sy);
-    void (*destroy)(struct hayward_view_child *child);
-};
-
-/**
- * A view child is a surface in the view tree, such as a subsurface or a popup.
- */
-struct hayward_view_child {
-    const struct hayward_view_child_impl *impl;
-    struct wl_list link;
-
-    struct hayward_view *view;
-    struct hayward_view_child *parent;
-    struct wl_list children; // hayward_view_child::link
-    struct wlr_surface *surface;
-    bool mapped;
-
-    struct wl_listener view_unmap;
-};
-
-struct hayward_subsurface {
-    struct hayward_view_child child;
-
-    struct wl_listener destroy;
-};
 
 struct hayward_xdg_popup {
-    struct hayward_view_child child;
+    struct hayward_view view;
 
+    struct wlr_scene_tree *scene_tree;
+    struct wlr_scene_tree *xdg_surface_tree;
     struct wlr_xdg_popup *wlr_xdg_popup;
 
     struct wl_listener new_popup;
@@ -337,24 +298,6 @@ void
 view_damage_from(struct hayward_view *view);
 
 /**
- * Iterate all surfaces of a view (toplevels + popups).
- */
-void
-view_for_each_surface(
-    struct hayward_view *view, wlr_surface_iterator_func_t iterator,
-    void *user_data
-);
-
-/**
- * Iterate all popup surfaces of a view.
- */
-void
-view_for_each_popup_surface(
-    struct hayward_view *view, wlr_surface_iterator_func_t iterator,
-    void *user_data
-);
-
-/**
  * Map a view, ie. make it visible in the tree.
  *
  * `fullscreen` should be set to true (and optionally `fullscreen_output`
@@ -376,16 +319,6 @@ void
 view_update_size(struct hayward_view *view);
 void
 view_center_surface(struct hayward_view *view);
-
-void
-view_child_init(
-    struct hayward_view_child *child,
-    const struct hayward_view_child_impl *impl, struct hayward_view *view,
-    struct wlr_surface *surface
-);
-
-void
-view_child_destroy(struct hayward_view_child *child);
 
 struct hayward_view *
 view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface);

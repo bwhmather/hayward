@@ -19,6 +19,7 @@
 #include <hayward-common/log.h>
 
 #include <wlr-layer-shell-unstable-v1-protocol.h>
+#include <wlr/types/wlr_scene.h>
 
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
@@ -32,76 +33,19 @@
 
 #include <config.h>
 
-static void
-apply_exclusive(
-    struct wlr_box *usable_area, uint32_t anchor, int32_t exclusive,
-    int32_t margin_top, int32_t margin_right, int32_t margin_bottom,
-    int32_t margin_left
-) {
-    if (exclusive <= 0) {
-        return;
-    }
-    struct {
-        uint32_t singular_anchor;
-        uint32_t anchor_triplet;
-        int *positive_axis;
-        int *negative_axis;
-        int margin;
-    } edges[] = {
-        // Top
-        {
-            .singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP,
-            .anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP,
-            .positive_axis = &usable_area->y,
-            .negative_axis = &usable_area->height,
-            .margin = margin_top,
-        },
-        // Bottom
-        {
-            .singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
-            .anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
-            .positive_axis = NULL,
-            .negative_axis = &usable_area->height,
-            .margin = margin_bottom,
-        },
-        // Left
-        {
-            .singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT,
-            .anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
-            .positive_axis = &usable_area->x,
-            .negative_axis = &usable_area->width,
-            .margin = margin_left,
-        },
-        // Right
-        {
-            .singular_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT,
-            .anchor_triplet = ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
-                ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM,
-            .positive_axis = NULL,
-            .negative_axis = &usable_area->width,
-            .margin = margin_right,
-        },
-    };
-    for (size_t i = 0; i < sizeof(edges) / sizeof(edges[0]); ++i) {
-        if ((anchor == edges[i].singular_anchor ||
-             anchor == edges[i].anchor_triplet) &&
-            exclusive + edges[i].margin > 0) {
-            if (edges[i].positive_axis) {
-                *edges[i].positive_axis += exclusive + edges[i].margin;
-            }
-            if (edges[i].negative_axis) {
-                *edges[i].negative_axis -= exclusive + edges[i].margin;
-            }
-            break;
-        }
-    }
+static void arrange_surface(struct hayward_output *output, const struct wlr_box *full_area,
+		struct wlr_box *usable_area, struct wlr_scene_tree *tree) {
+	struct wlr_scene_node *node;
+	wl_list_for_each(node, &tree->children, link) {
+		struct hayward_layer_surface *surface = scene_descriptor_try_get(node,
+			SWAY_SCENE_DESC_LAYER_SHELL);
+		// surface could be null during destruction
+		if (!surface) {
+			continue;
+		}
+
+		wlr_scene_layer_surface_v1_configure(surface->scene, full_area, usable_area);
+	}
 }
 
 static void

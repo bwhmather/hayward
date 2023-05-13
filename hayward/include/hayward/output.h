@@ -50,7 +50,6 @@ struct hayward_output {
     struct wlr_box usable_area;
 
     struct timespec last_frame;
-    struct wlr_output_damage *damage;
 
     int lx, ly;        // layout coords
     int width, height; // transformed buffer size
@@ -69,8 +68,7 @@ struct hayward_output {
     struct wl_listener commit;
     struct wl_listener mode;
     struct wl_listener present;
-    struct wl_listener damage_destroy;
-    struct wl_listener damage_frame;
+    struct wl_listener frame;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
     struct wl_listener transaction_after_apply;

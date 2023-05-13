@@ -58,9 +58,14 @@ view_init(
     struct hayward_view *view, enum hayward_view_type type,
     const struct hayward_view_impl *impl
 ) {
+    view->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
+    hayward_assert(view->scene_tree != NULL, "Allocation failed");
+
+    view->content_tree = wlr_scene_tree_create(view->scene_tree);
+    hayward_assert(view->content_tree != NULL, "Allocation failed");
+
     view->type = type;
     view->impl = impl;
-    wl_list_init(&view->saved_buffers);
     view->allow_request_urgent = true;
     view->shortcuts_inhibit = SHORTCUTS_INHIBIT_DEFAULT;
     wl_signal_init(&view->events.unmap);
@@ -78,9 +83,9 @@ view_destroy(struct hayward_view *view) {
         "(might have a pending transaction?)"
     );
     wl_list_remove(&view->events.unmap.listener_list);
-    if (!wl_list_empty(&view->saved_buffers)) {
-        view_remove_saved_buffer(view);
-    }
+
+    wlr_scene_node_destroy(&view->conent_tree->node);
+    wlr_scene_node_destroy(&view->scene_tree->node);
 
     free(view->title_format);
 
@@ -473,63 +478,6 @@ view_close_popups(struct hayward_view *view) {
     }
 }
 
-void
-view_damage_from(struct hayward_view *view) {
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        output_damage_from_view(output, view);
-    }
-}
-
-void
-view_for_each_surface(
-    struct hayward_view *view, wlr_surface_iterator_func_t iterator,
-    void *user_data
-) {
-    if (!view->surface) {
-        return;
-    }
-    if (view->impl->for_each_surface) {
-        view->impl->for_each_surface(view, iterator, user_data);
-    } else {
-        wlr_surface_for_each_surface(view->surface, iterator, user_data);
-    }
-}
-
-void
-view_for_each_popup_surface(
-    struct hayward_view *view, wlr_surface_iterator_func_t iterator,
-    void *user_data
-) {
-    if (!view->surface) {
-        return;
-    }
-    if (view->impl->for_each_popup_surface) {
-        view->impl->for_each_popup_surface(view, iterator, user_data);
-    }
-}
-
-static void
-view_subsurface_create(
-    struct hayward_view *view, struct wlr_subsurface *subsurface
-);
-
-static void
-view_init_subsurfaces(struct hayward_view *view, struct wlr_surface *surface);
-
-static void
-view_child_init_subsurfaces(
-    struct hayward_view_child *view_child, struct wlr_surface *surface
-);
-
-static void
-view_handle_surface_new_subsurface(struct wl_listener *listener, void *data) {
-    struct hayward_view *view =
-        wl_container_of(listener, view, surface_new_subsurface);
-    struct wlr_subsurface *subsurface = data;
-    view_subsurface_create(view, subsurface);
-}
-
 static void
 view_populate_pid(struct hayward_view *view) {
     pid_t pid;
@@ -767,8 +715,6 @@ void
 view_unmap(struct hayward_view *view) {
     wl_signal_emit(&view->events.unmap, view);
 
-    wl_list_remove(&view->surface_new_subsurface.link);
-
     if (view->urgent_timer) {
         wl_event_source_remove(view->urgent_timer);
         view->urgent_timer = NULL;
@@ -795,7 +741,6 @@ view_unmap(struct hayward_view *view) {
 
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
-        seat->cursor->image_surface = NULL;
         if (seat->cursor->active_constraint) {
             struct wlr_surface *constrain_surface =
                 seat->cursor->active_constraint->surface;
@@ -822,175 +767,10 @@ view_center_surface(struct hayward_view *view) {
     struct hayward_window *container = view->window;
     // We always center the current coordinates rather than the next, as the
     // geometry immediately affects the currently active rendering.
-    container->surface_x = fmax(
-        container->current.content_x,
-        container->current.content_x +
-            (container->current.content_width - view->geometry.width) / 2
-    );
-    container->surface_y = fmax(
-        container->current.content_y,
-        container->current.content_y +
-            (container->current.content_height - view->geometry.height) / 2
-    );
-}
-
-static const struct hayward_view_child_impl subsurface_impl;
-
-static void
-subsurface_get_view_coords(struct hayward_view_child *child, int *sx, int *sy) {
-    struct wlr_surface *surface = child->surface;
-    if (child->parent && child->parent->impl &&
-        child->parent->impl->get_view_coords) {
-        child->parent->impl->get_view_coords(child->parent, sx, sy);
-    } else {
-        *sx = *sy = 0;
-    }
-    struct wlr_subsurface *subsurface =
-        wlr_subsurface_from_wlr_surface(surface);
-    *sx += subsurface->current.x;
-    *sy += subsurface->current.y;
-}
-
-static void
-subsurface_destroy(struct hayward_view_child *child) {
-    hayward_assert(child->impl == &subsurface_impl, "Expected a subsurface");
-    struct hayward_subsurface *subsurface = (struct hayward_subsurface *)child;
-    wl_list_remove(&subsurface->destroy.link);
-    free(subsurface);
-}
-
-static const struct hayward_view_child_impl subsurface_impl = {
-    .get_view_coords = subsurface_get_view_coords,
-    .destroy = subsurface_destroy,
-};
-
-static void
-subsurface_handle_destroy(struct wl_listener *listener, void *data) {
-    struct hayward_subsurface *subsurface =
-        wl_container_of(listener, subsurface, destroy);
-    struct hayward_view_child *child = &subsurface->child;
-    view_child_destroy(child);
-}
-
-static void
-view_subsurface_create(
-    struct hayward_view *view, struct wlr_subsurface *wlr_subsurface
-) {
-    struct hayward_subsurface *subsurface =
-        calloc(1, sizeof(struct hayward_subsurface));
-    if (subsurface == NULL) {
-        hayward_log(HAYWARD_ERROR, "Allocation failed");
-        return;
-    }
-    view_child_init(
-        &subsurface->child, &subsurface_impl, view, wlr_subsurface->surface
-    );
-
-    wl_signal_add(&wlr_subsurface->events.destroy, &subsurface->destroy);
-    subsurface->destroy.notify = subsurface_handle_destroy;
-
-    subsurface->child.mapped = true;
-}
-
-static void
-view_child_subsurface_create(
-    struct hayward_view_child *child, struct wlr_subsurface *wlr_subsurface
-) {
-    struct hayward_subsurface *subsurface =
-        calloc(1, sizeof(struct hayward_subsurface));
-    if (subsurface == NULL) {
-        hayward_log(HAYWARD_ERROR, "Allocation failed");
-        return;
-    }
-    subsurface->child.parent = child;
-    wl_list_insert(&child->children, &subsurface->child.link);
-    view_child_init(
-        &subsurface->child, &subsurface_impl, child->view,
-        wlr_subsurface->surface
-    );
-
-    wl_signal_add(&wlr_subsurface->events.destroy, &subsurface->destroy);
-    subsurface->destroy.notify = subsurface_handle_destroy;
-
-    subsurface->child.mapped = true;
-}
-
-static void
-view_init_subsurfaces(struct hayward_view *view, struct wlr_surface *surface) {
-    struct wlr_subsurface *subsurface;
-    wl_list_for_each(
-        subsurface, &surface->current.subsurfaces_below, current.link
-    ) {
-        view_subsurface_create(view, subsurface);
-    }
-    wl_list_for_each(
-        subsurface, &surface->current.subsurfaces_above, current.link
-    ) {
-        view_subsurface_create(view, subsurface);
-    }
-}
-
-static void
-view_child_init_subsurfaces(
-    struct hayward_view_child *view_child, struct wlr_surface *surface
-) {
-    struct wlr_subsurface *subsurface;
-    wl_list_for_each(
-        subsurface, &surface->current.subsurfaces_below, current.link
-    ) {
-        view_child_subsurface_create(view_child, subsurface);
-    }
-    wl_list_for_each(
-        subsurface, &surface->current.subsurfaces_above, current.link
-    ) {
-        view_child_subsurface_create(view_child, subsurface);
-    }
-}
-
-void
-view_child_init(
-    struct hayward_view_child *child,
-    const struct hayward_view_child_impl *impl, struct hayward_view *view,
-    struct wlr_surface *surface
-) {
-    child->impl = impl;
-    child->view = view;
-    child->surface = surface;
-    wl_list_init(&child->children);
-
-    struct hayward_window *window = child->view->window;
-    if (window != NULL) {
-        // TODO view can overlap multiple outputs.
-        struct hayward_output *output = window->pending.output;
-        if (output != NULL) {
-            wlr_surface_send_enter(child->surface, output->wlr_output);
-        }
-    }
-
-    view_child_init_subsurfaces(child, surface);
-}
-
-void
-view_child_destroy(struct hayward_view_child *child) {
-    if (child->parent != NULL) {
-        wl_list_remove(&child->link);
-        child->parent = NULL;
-    }
-
-    struct hayward_view_child *subchild, *tmpchild;
-    wl_list_for_each_safe(subchild, tmpchild, &child->children, link) {
-        wl_list_remove(&subchild->link);
-        subchild->parent = NULL;
-        // The subchild lost its parent link, so it cannot see that the parent
-        // is unmapped. Unmap it directly.
-        subchild->mapped = false;
-    }
-
-    if (child->impl && child->impl->destroy) {
-        child->impl->destroy(child);
-    } else {
-        free(child);
-    }
+    int x =
+        (int)fmax(0, (con->current.content_width - view->geometry.width) / 2);
+    int y =
+        (int)fmax(0, (con->current.content_height - view->geometry.height) / 2);
 }
 
 struct hayward_view *
@@ -1210,44 +990,49 @@ view_is_urgent(struct hayward_view *view) {
 
 void
 view_remove_saved_buffer(struct hayward_view *view) {
-    hayward_assert(
-        !wl_list_empty(&view->saved_buffers), "Expected a saved buffer"
-    );
-    struct hayward_saved_buffer *saved_buf, *tmp;
-    wl_list_for_each_safe(saved_buf, tmp, &view->saved_buffers, link) {
-        wlr_buffer_unlock(&saved_buf->buffer->base);
-        wl_list_remove(&saved_buf->link);
-        free(saved_buf);
-    }
+    hayward_assert(view->saved_surface_tree != NULL, "Expected a saved buffer");
+    wlr_scene_node_destroy(&view->saved_surface_tree->node);
+    view->saved_surface_tree = NULL;
+    wlr_scene_node_set_enabled(&view->content_tree->node, true);
 }
 
 static void
 view_save_buffer_iterator(
-    struct wlr_surface *surface, int sx, int sy, void *data
+    struct wlr_scene_buffer *buffer, int sx, int sy, void *data
 ) {
-    struct hayward_view *view = data;
+    struct wlr_scene_tree *data;
 
-    if (surface && wlr_surface_has_buffer(surface)) {
-        wlr_buffer_lock(&surface->buffer->base);
-        struct hayward_saved_buffer *saved_buffer =
-            calloc(1, sizeof(struct hayward_saved_buffer));
-        saved_buffer->buffer = surface->buffer;
-        saved_buffer->width = surface->current.width;
-        saved_buffer->height = surface->current.height;
-        saved_buffer->x = view->window->surface_x + sx;
-        saved_buffer->y = view->window->surface_y + sy;
-        saved_buffer->transform = surface->current.transform;
-        wlr_surface_get_buffer_source_box(surface, &saved_buffer->source_box);
-        wl_list_insert(view->saved_buffers.prev, &saved_buffer->link);
-    }
+    struct wlr_scene_buffer *sbuf = wlr_scene_buffer_create(tree, NULL);
+    hayward_assert(sbuf != NULL, "Allocation failed");
+
+    wlr_scene_buffer_set_dest_size(sbuf, buffer->dst_width, buffer->dst_height);
+    wlr_scene_buffer_set_opaque_region(sbuf, &buffer->opaque_region);
+    wlr_scene_buffer_set_source_box(sbuf, &buffer->src_box);
+    wlr_scene_node_set_position(&sbuf->node, sx, sy);
+    wlr_scene_buffer_set_transform(sbuf, buffer->transform);
+    wlr_scene_buffer_set_raster_with_damage(sbuf, buffer->raster, NULL);
 }
 
 void
 view_save_buffer(struct hayward_view *view) {
     hayward_assert(
-        wl_list_empty(&view->saved_buffers), "Didn't expect saved buffer"
+        view->saved_surface_tree == NULL, "Didn't expect saved buffer"
     );
-    view_for_each_surface(view, view_save_buffer_iterator, view);
+
+    view->saved_surface_tree = wlr_scene_tree_create(view->scene_tree);
+    hayward_assert(view->saved_surface_tree != NULL, "Allocation failed");
+
+    // Enable and disable the saved surface tree like so to atomitaclly update
+    // the tree. This will prevent over damaging or other weirdness.
+    wlr_scene_node_set_enabled(&view->saved_surface_tree->node, false);
+
+    wlr_scene_node_for_each_buffer(
+        &view->content_tree->node, view_save_buffer_iterator,
+        view->saved_surface_tree
+    );
+
+    wlr_scene_node_set_enabled(&view->content_tree->node, false);
+    wlr_scene_node_set_enabled(&view->saved_surface_tree->node, true);
 }
 
 bool
@@ -1256,4 +1041,22 @@ view_is_transient_for(
 ) {
     return child->impl->is_transient_for &&
         child->impl->is_transient_for(child, ancestor);
+}
+
+static void
+send_frame_done_iterator(
+    struct wlr_scene_buffer *scene_buffer, int x, int y, void *data
+) {
+    struct timespec *when = data;
+    wl_signal_emit_mutable(&scene_buffer->events.frame_done, when);
+}
+
+void
+view_send_frame_done(struct sway_view *view) {
+    struct timespec when;
+    clock_gettime(CLOCK_MONOTONIC, &when);
+    struct wlr_scene_node *node;
+    wl_list_for_each(node, &view->content_tree->children, link) {
+        wlr_scene_node_for_each_buffer(node, send_frame_done_iterator, &when);
+    }
 }
