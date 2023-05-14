@@ -42,10 +42,10 @@ popup_create(
 
 static void
 popup_handle_new_popup(struct wl_listener *listener, void *data) {
-    struct hayward_layer_popup *popup =
+    struct hayward_xdg_popup *popup =
         wl_container_of(listener, popup, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
-    popup_create(wlr_popup, popup->toplevel, popup->xdg_surface_tree);
+    popup_create(wlr_popup, popup->view, popup->xdg_surface_tree);
 }
 
 static void
@@ -107,7 +107,7 @@ popup_create(
 
     popup->wlr_xdg_popup = xdg_surface->popup;
     struct hayward_xdg_shell_view *shell_view =
-        wl_container_of(view, shell, view);
+        wl_container_of(view, shell_view, view);
     xdg_surface->data = shell_view;
 
     wl_signal_add(&xdg_surface->events.new_popup, &popup->new_popup);
@@ -338,7 +338,7 @@ handle_new_popup(struct wl_listener *listener, void *data) {
     struct wlr_xdg_popup *wlr_popup = data;
 
     struct hayward_xdg_popup *popup =
-        popup_create(wlr_popup, &xdg_shell_view->view, root->layers.popup);
+        popup_create(wlr_popup, &xdg_shell_view->view, root->layers.popups);
     int lx, ly;
     wlr_scene_node_coords(&popup->view->content_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);

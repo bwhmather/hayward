@@ -184,7 +184,7 @@ struct hayward_xwayland_unmanaged {
 #endif
 
 struct hayward_xdg_popup {
-    struct hayward_view view;
+    struct hayward_view *view;
 
     struct wlr_scene_tree *scene_tree;
     struct wlr_scene_tree *xdg_surface_tree;
