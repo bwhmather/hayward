@@ -37,14 +37,12 @@ handle_surface_map(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, map);
     hayward_force_focus(surf->surface);
-    output_damage_whole(surf->output);
 }
 
 static void
 handle_surface_commit(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, surface_commit);
-    output_damage_surface(surf->output, 0, 0, surf->surface, false);
 }
 
 static void
@@ -79,7 +77,6 @@ handle_surface_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&surf->surface_commit.link);
     wl_list_remove(&surf->output_mode.link);
     wl_list_remove(&surf->output_commit.link);
-    output_damage_whole(surf->output);
     free(surf);
 }
 
@@ -122,12 +119,6 @@ handle_unlock(struct wl_listener *listener, void *data) {
     wl_list_remove(&server.session_lock.lock_new_surface.link);
     wl_list_remove(&server.session_lock.lock_unlock.link);
     wl_list_remove(&server.session_lock.lock_destroy.link);
-
-    // redraw everything
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        output_damage_whole(output);
-    }
 }
 
 static void
@@ -142,12 +133,6 @@ handle_abandon(struct wl_listener *listener, void *data) {
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
         seat->exclusive_client = NULL;
-    }
-
-    // redraw everything
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        output_damage_whole(output);
     }
 }
 
@@ -177,12 +162,6 @@ handle_session_lock(struct wl_listener *listener, void *data) {
     wl_signal_add(&lock->events.destroy, &server.session_lock.lock_destroy);
 
     wlr_session_lock_v1_send_locked(lock);
-
-    // redraw everything
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        output_damage_whole(output);
-    }
 }
 
 static void

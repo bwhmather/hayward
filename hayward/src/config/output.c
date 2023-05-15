@@ -594,10 +594,6 @@ apply_output_config(struct output_config *oc, struct hayward_output *output) {
         return true;
     }
 
-    if (config->reloading) {
-        output_damage_whole(output);
-    }
-
     if (oc) {
         enum scale_filter_mode scale_filter_old = output->scale_filter;
         switch (oc->scale_filter) {

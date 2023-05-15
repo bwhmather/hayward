@@ -124,7 +124,7 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         clock_gettime(CLOCK_MONOTONIC, &now);
         wlr_surface_send_frame_done(window->view->surface, &now);
     }
-    if (!hidden && wl_list_empty(&window->view->saved_buffers)) {
+    if (!hidden && window->view->saved_surface_tree == NULL) {
         view_save_buffer(window->view);
         memcpy(
             &window->view->saved_geometry, &window->view->geometry,
@@ -207,7 +207,7 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = window->view;
 
-    if (!wl_list_empty(&view->saved_buffers)) {
+    if (view->saved_surface_tree != NULL) {
         view_remove_saved_buffer(view);
     }
 

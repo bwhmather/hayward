@@ -84,7 +84,7 @@ view_destroy(struct hayward_view *view) {
     );
     wl_list_remove(&view->events.unmap.listener_list);
 
-    wlr_scene_node_destroy(&view->conent_tree->node);
+    wlr_scene_node_destroy(&view->content_tree->node);
     wlr_scene_node_destroy(&view->scene_tree->node);
 
     free(view->title_format);
@@ -622,12 +622,6 @@ view_map(
         &view->foreign_toplevel->events.destroy, &view->foreign_destroy
     );
 
-    view_init_subsurfaces(view, wlr_surface);
-    wl_signal_add(
-        &wlr_surface->events.new_subsurface, &view->surface_new_subsurface
-    );
-    view->surface_new_subsurface.notify = view_handle_surface_new_subsurface;
-
     const char *app_id;
     const char *class;
     if ((app_id = view_get_app_id(view)) != NULL) {
@@ -764,13 +758,15 @@ view_update_size(struct hayward_view *view) {
 
 void
 view_center_surface(struct hayward_view *view) {
-    struct hayward_window *container = view->window;
+    struct hayward_window *window = view->window;
     // We always center the current coordinates rather than the next, as the
     // geometry immediately affects the currently active rendering.
-    int x =
-        (int)fmax(0, (con->current.content_width - view->geometry.width) / 2);
-    int y =
-        (int)fmax(0, (con->current.content_height - view->geometry.height) / 2);
+    int x = (int
+    )fmax(0, (window->current.content_width - view->geometry.width) / 2);
+    int y = (int
+    )fmax(0, (window->current.content_height - view->geometry.height) / 2);
+
+    wlr_scene_node_set_position(&view->content_tree->node, x, y);
 }
 
 struct hayward_view *
@@ -1000,7 +996,7 @@ static void
 view_save_buffer_iterator(
     struct wlr_scene_buffer *buffer, int sx, int sy, void *data
 ) {
-    struct wlr_scene_tree *data;
+    struct wlr_scene_tree *tree = data;
 
     struct wlr_scene_buffer *sbuf = wlr_scene_buffer_create(tree, NULL);
     hayward_assert(sbuf != NULL, "Allocation failed");
@@ -1010,7 +1006,7 @@ view_save_buffer_iterator(
     wlr_scene_buffer_set_source_box(sbuf, &buffer->src_box);
     wlr_scene_node_set_position(&sbuf->node, sx, sy);
     wlr_scene_buffer_set_transform(sbuf, buffer->transform);
-    wlr_scene_buffer_set_raster_with_damage(sbuf, buffer->raster, NULL);
+    wlr_scene_buffer_set_buffer(sbuf, buffer->buffer);
 }
 
 void
@@ -1052,7 +1048,7 @@ send_frame_done_iterator(
 }
 
 void
-view_send_frame_done(struct sway_view *view) {
+view_send_frame_done(struct hayward_view *view) {
     struct timespec when;
     clock_gettime(CLOCK_MONOTONIC, &when);
     struct wlr_scene_node *node;

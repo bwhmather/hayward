@@ -316,8 +316,6 @@ handle_commit(struct wl_listener *listener, void *data) {
     }
 
     view_notify_ready_by_serial(view, xdg_surface->current.configure_serial);
-
-    view_damage_from(view);
 }
 
 static void

@@ -31,10 +31,5 @@ cmd_title_align(int argc, char **argv) {
         );
     }
 
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
-        output_damage_whole(output);
-    }
-
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

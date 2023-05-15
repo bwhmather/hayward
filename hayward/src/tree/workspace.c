@@ -32,9 +32,6 @@
 static void
 workspace_destroy(struct hayward_workspace *workspace);
 
-static void
-workspace_damage_whole(struct hayward_workspace *workspace);
-
 static struct hayward_window *
 workspace_find_window(
     struct hayward_workspace *workspace,
@@ -81,7 +78,7 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     struct wlr_scene_tree *parent = root->orphans; // TODO
     if (workspace->committed.root != NULL) {
-        parent = &workspace->committed.root->layers.workspaces;
+        parent = workspace->committed.root->layers.workspaces;
     }
     wlr_scene_node_reparent(&workspace->scene_tree->node, parent);
     wlr_scene_node_set_enabled(
@@ -327,7 +324,6 @@ workspace_detect_urgent(struct hayward_workspace *workspace) {
     if (workspace->urgent != new_urgent) {
         workspace->urgent = new_urgent;
         ipc_event_workspace(NULL, workspace, "urgent");
-        workspace_damage_whole(workspace);
     }
 }
 
@@ -903,19 +899,4 @@ workspace_find_window(
         }
     }
     return NULL;
-}
-
-static void
-workspace_damage_whole(struct hayward_workspace *workspace) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    if (!workspace_is_visible(workspace)) {
-        return;
-    }
-
-    struct hayward_root *root = workspace->pending.root;
-    for (int i = 0; i < root->outputs->length; i++) {
-        struct hayward_output *output = root->outputs->items[i];
-        output_damage_whole(output);
-    }
 }
