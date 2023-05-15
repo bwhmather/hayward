@@ -202,7 +202,7 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     );
     wlr_scene_node_set_position(
         &window->layers.content_tree->node, window->committed.border_thickness,
-        titlebar_height
+        titlebar_height + 2 * window->committed.border_thickness
     );
 
     struct hayward_view *view = window->view;
@@ -217,6 +217,8 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     if (view->surface) {
         view_center_surface(view);
     }
+
+	wlr_scene_node_reparent(&view->scene_tree->node, window->layers.content_tree);
 
     if (window->current.dead) {
         transaction_add_after_apply_listener(&window->transaction_after_apply);
