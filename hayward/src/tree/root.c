@@ -147,7 +147,6 @@ root_create(void) {
 void
 root_destroy(struct hayward_root *root) {
     wlr_scene_node_destroy(&root->orphans->node);
-    // TODO destroy scene
 
     wl_list_remove(&root->output_layout_change.link);
     wl_list_remove(&root->transaction_before_commit.link);
