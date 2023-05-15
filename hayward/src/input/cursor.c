@@ -72,215 +72,6 @@ get_current_time_msec(void) {
     return now.tv_sec * 1000 + now.tv_nsec / 1000000;
 }
 
-static struct hayward_window *
-seat_column_window_at_stacked(
-    struct hayward_seat *seat, struct hayward_column *column, double lx,
-    double ly
-) {
-    struct wlr_box box;
-    column_get_box(column, &box);
-    if (lx < box.x || lx > box.x + box.width || ly < box.y ||
-        ly > box.y + box.height) {
-        return NULL;
-    }
-
-    // Title bars
-    struct hayward_window *current = column->pending.active_child;
-    if (current == NULL) {
-        return NULL;
-    }
-    int titlebar_height = window_titlebar_height();
-
-    int y_offset = column->current.y;
-
-    for (int i = 0; i < column->current.children->length; ++i) {
-        struct hayward_window *child = column->current.children->items[i];
-
-        if (ly >= y_offset && ly < y_offset + titlebar_height) {
-            return child;
-        }
-
-        y_offset += titlebar_height;
-        if (child == current) {
-            y_offset += column->current.height -
-                titlebar_height * column->current.children->length;
-        }
-    }
-
-    // Surfaces
-    if (window_contains_point(current, lx, ly)) {
-        return current;
-    }
-
-    return NULL;
-}
-
-static struct hayward_window *
-seat_column_window_at_split(
-    struct hayward_seat *seat, struct hayward_column *column, double lx,
-    double ly
-) {
-    list_t *children = column->pending.children;
-    for (int i = 0; i < children->length; ++i) {
-        struct hayward_window *window = children->items[i];
-        if (window_contains_point(window, lx, ly)) {
-            return window;
-        }
-    }
-    return NULL;
-}
-
-struct hayward_window *
-seat_column_window_at(
-    struct hayward_seat *seat, struct hayward_column *column, double lx,
-    double ly
-) {
-    switch (column->pending.layout) {
-    case L_SPLIT:
-        return seat_column_window_at_split(seat, column, lx, ly);
-    case L_STACKED:
-        return seat_column_window_at_stacked(seat, column, lx, ly);
-    }
-    hayward_abort("Invalid layout");
-}
-
-static struct hayward_window *
-seat_tiling_window_at(struct hayward_seat *seat, double lx, double ly) {
-    for (int i = 0; i < root->outputs->length; i++) {
-        struct hayward_workspace *workspace = root_get_active_workspace(root);
-
-        struct wlr_box box;
-        workspace_get_box(workspace, &box);
-        if (!wlr_box_contains_point(&box, lx, ly)) {
-            continue;
-        }
-
-        list_t *columns = workspace->pending.tiling;
-        for (int i = 0; i < columns->length; ++i) {
-            struct hayward_column *column = columns->items[i];
-            struct hayward_window *window =
-                seat_column_window_at(seat, column, lx, ly);
-            if (window) {
-                return window;
-            }
-        }
-    }
-    return NULL;
-}
-
-static struct hayward_window *
-seat_floating_window_at(struct hayward_seat *seat, double lx, double ly) {
-    // For outputs with floating containers that overhang the output bounds,
-    // those at the end of the output list appear on top of floating
-    // containers from other outputs, so iterate the list in reverse.
-    for (int i = root->outputs->length - 1; i >= 0; --i) {
-        struct hayward_workspace *workspace = root_get_active_workspace(root);
-
-        // Items at the end of the list are on top, so iterate the list in
-        // reverse.
-        for (int k = workspace->pending.floating->length - 1; k >= 0; --k) {
-            struct hayward_window *window =
-                workspace->pending.floating->items[k];
-            if (window_contains_point(window, lx, ly)) {
-                return window;
-            }
-        }
-    }
-    return NULL;
-}
-
-static bool
-surface_is_popup(struct wlr_surface *surface) {
-    while (!wlr_surface_is_xdg_surface(surface)) {
-        if (!wlr_surface_is_subsurface(surface)) {
-            return false;
-        }
-        struct wlr_subsurface *subsurface =
-            wlr_subsurface_from_wlr_surface(surface);
-        surface = subsurface->parent;
-    }
-    struct wlr_xdg_surface *xdg_surface =
-        wlr_xdg_surface_from_wlr_surface(surface);
-    return xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP;
-}
-
-struct hayward_window *
-seat_window_at(struct hayward_seat *seat, double lx, double ly) {
-    struct hayward_window *window;
-    struct hayward_window *focus = root_get_focused_window(root);
-
-    // Focused view's popups
-    if (focus) {
-        double sx, sy;
-        struct wlr_surface *surface =
-            window_surface_at(focus, lx, ly, &sx, &sy);
-
-        if (surface && surface_is_popup(surface)) {
-            return focus;
-        }
-    }
-
-    // Floating
-    if ((window = seat_floating_window_at(seat, lx, ly))) {
-        return window;
-    }
-
-    // Tiling (non-focused)
-    if ((window = seat_tiling_window_at(seat, lx, ly))) {
-        return window;
-    }
-
-    return NULL;
-}
-
-static struct wlr_surface *
-layer_surface_at(
-    struct hayward_output *output, struct wl_list *layer, double ox, double oy,
-    double *sx, double *sy
-) {
-    struct hayward_layer_surface *hayward_layer;
-    wl_list_for_each_reverse(hayward_layer, layer, link) {
-        double _sx = ox - hayward_layer->geo.x;
-        double _sy = oy - hayward_layer->geo.y;
-        struct wlr_surface *sub = wlr_layer_surface_v1_surface_at(
-            hayward_layer->layer_surface, _sx, _sy, sx, sy
-        );
-        if (sub) {
-            return sub;
-        }
-    }
-    return NULL;
-}
-
-static bool
-surface_is_xdg_popup(struct wlr_surface *surface) {
-    if (wlr_surface_is_xdg_surface(surface)) {
-        struct wlr_xdg_surface *xdg_surface =
-            wlr_xdg_surface_from_wlr_surface(surface);
-        return xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP;
-    }
-    return false;
-}
-
-static struct wlr_surface *
-layer_surface_popup_at(
-    struct hayward_output *output, struct wl_list *layer, double ox, double oy,
-    double *sx, double *sy
-) {
-    struct hayward_layer_surface *hayward_layer;
-    wl_list_for_each_reverse(hayward_layer, layer, link) {
-        double _sx = ox - hayward_layer->geo.x;
-        double _sy = oy - hayward_layer->geo.y;
-        struct wlr_surface *sub = wlr_layer_surface_v1_surface_at(
-            hayward_layer->layer_surface, _sx, _sy, sx, sy
-        );
-        if (sub && surface_is_xdg_popup(sub)) {
-            return sub;
-        }
-    }
-    return NULL;
-}
-
 /**
  * Reports whatever objects are directly under the cursor coordinates.
  * If the coordinates do not point inside an output then nothing will be
@@ -313,121 +104,44 @@ seat_get_target_at(
     }
     *output_out = output;
 
-    double ox = lx, oy = ly;
-    wlr_output_layout_output_coords(root->output_layout, wlr_output, &ox, &oy);
+    struct wlr_scene_node *scene_node;
 
-    // Layer surfaces on the overlay layer are rendered at the very top.
-    *surface_out = layer_surface_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY], ox,
-        oy, sx_out, sy_out
-    );
-    if (*surface_out != NULL) {
-        return;
+    // Trace through parents to find first one that we recognize.
+    scene_node =
+        wlr_scene_node_at(&root->layers.popups->node, lx, ly, sx_out, sy_out);
+    while (scene_node != NULL) {
+        // TODO
+        // struct hayward_xdg_popup *popup = popup_for_scene_node(scene_node);
+        // if (popup != NULL) {
+        //      return;
+        // }
+        scene_node = &scene_node->parent->node;
     }
 
-    // Check for unmanaged views.
-#if HAVE_XWAYLAND
-    struct wl_list *unmanaged = &root->xwayland_unmanaged;
-    struct hayward_xwayland_unmanaged *unmanaged_surface;
-    wl_list_for_each_reverse(unmanaged_surface, unmanaged, link) {
-        struct wlr_xwayland_surface *xsurface =
-            unmanaged_surface->wlr_xwayland_surface;
-
-        double sx = lx - unmanaged_surface->lx;
-        double sy = ly - unmanaged_surface->ly;
-        if (wlr_surface_point_accepts_input(xsurface->surface, sx, sy)) {
-            *surface_out = xsurface->surface;
-            *sx_out = sx;
-            *sy_out = sy;
+    scene_node =
+        wlr_scene_node_at(&root->layers.outputs->node, lx, ly, sx_out, sy_out);
+    while (scene_node != NULL) {
+        struct hayward_layer_surface *layer_surface =
+            layer_surface_for_scene_node(scene_node);
+        if (layer_surface != NULL) {
+            // TODO
             return;
         }
-    }
-#endif
 
-    // Check for fullscreen windows.
-    struct hayward_workspace *workspace = root_get_active_workspace(root);
-    if (!workspace) {
-        return;
+        scene_node = &scene_node->parent->node;
     }
 
-    struct hayward_window *fullscreen_window =
-        output->pending.fullscreen_window;
-
-    if (fullscreen_window != NULL) {
-        // Try transient containers
-        for (int i = 0; i < workspace->pending.floating->length; ++i) {
-            struct hayward_window *floater =
-                workspace->pending.floating->items[i];
-            if (window_is_transient_for(floater, fullscreen_window)) {
-                if ((*surface_out =
-                         window_surface_at(floater, lx, ly, sx_out, sy_out))) {
-                    *window_out = floater;
-                    return;
-                }
-            }
-        }
-        // Try fullscreen container
-        *surface_out =
-            window_surface_at(fullscreen_window, lx, ly, sx_out, sy_out);
-        if (*surface_out != NULL) {
-            *window_out = fullscreen_window;
+    scene_node = wlr_scene_node_at(
+        &root->layers.workspaces->node, lx, ly, sx_out, sy_out
+    );
+    while (scene_node != NULL) {
+        struct hayward_window *window = window_for_scene_node(scene_node);
+        if (window != NULL) {
+            *window_out = window;
             return;
         }
-        return;
-    }
-    *surface_out = layer_surface_popup_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy,
-        sx_out, sy_out
-    );
-    if (*surface_out != NULL) {
-        return;
-    }
 
-    *surface_out = layer_surface_popup_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], ox, oy,
-        sx_out, sy_out
-    );
-    if (*surface_out != NULL) {
-        return;
-    }
-
-    *surface_out = layer_surface_popup_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox,
-        oy, sx_out, sy_out
-    );
-    if (*surface_out != NULL) {
-        return;
-    }
-
-    *surface_out = layer_surface_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_TOP], ox, oy,
-        sx_out, sy_out
-    );
-    if (*surface_out != NULL) {
-        return;
-    }
-
-    struct hayward_window *window = seat_window_at(seat, lx, ly);
-    if (window != NULL) {
-        *surface_out = window_surface_at(window, lx, ly, sx_out, sy_out);
-        *window_out = window;
-        return;
-    }
-
-    *surface_out = layer_surface_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM], ox, oy,
-        sx_out, sy_out
-    );
-    if (*surface_out != NULL) {
-        return;
-    }
-
-    *surface_out = layer_surface_at(
-        output, &output->shell_layers[ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND], ox,
-        oy, sx_out, sy_out
-    );
-    if (*surface_out != NULL) {
-        return;
+        scene_node = &scene_node->parent->node;
     }
 }
 

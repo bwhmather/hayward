@@ -4,6 +4,7 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
 #include <wlr-layer-shell-unstable-v1-protocol.h>
@@ -40,5 +41,8 @@ struct hayward_layer_popup {
 struct hayward_output;
 void
 arrange_layers(struct hayward_output *output);
+
+struct hayward_layer_surface *
+layer_surface_for_scene_node(struct wlr_scene_node *node);
 
 #endif
