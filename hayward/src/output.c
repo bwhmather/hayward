@@ -134,6 +134,13 @@ output_create(struct wlr_output *wlr_output) {
     output->detected_subpixel = wlr_output->subpixel;
     output->scale_filter = SCALE_FILTER_NEAREST;
 
+    output->scene_tree = wlr_scene_tree_create(root->layers.outputs);
+    output->layers.shell_background = wlr_scene_tree_create(output->scene_tree);
+    output->layers.shell_bottom = wlr_scene_tree_create(output->scene_tree);
+    output->layers.fullscreen = wlr_scene_tree_create(output->scene_tree);
+    output->layers.shell_top = wlr_scene_tree_create(output->scene_tree);
+    output->layers.shell_overlay = wlr_scene_tree_create(output->scene_tree);
+
     output->transaction_commit.notify = output_handle_transaction_commit;
     output->transaction_apply.notify = output_handle_transaction_apply;
     output->transaction_after_apply.notify =
@@ -255,6 +262,9 @@ output_destroy(struct hayward_output *output) {
         "Tried to free output which is queued for the next transaction"
     );
     wl_event_source_remove(output->repaint_timer);
+
+    wlr_scene_node_destroy(&output->scene_tree->node);
+
     free(output);
 }
 

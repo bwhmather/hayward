@@ -64,6 +64,8 @@ struct hayward_output {
     struct hayward_output_state committed;
     struct hayward_output_state current;
 
+    struct wlr_scene_tree *scene_tree;
+
     struct {
         struct wlr_scene_tree *shell_background;
         struct wlr_scene_tree *shell_bottom;
@@ -71,7 +73,6 @@ struct hayward_output {
         struct wlr_scene_tree *fullscreen;
         struct wlr_scene_tree *shell_top;
         struct wlr_scene_tree *shell_overlay;
-        struct wlr_scene_tree *session_lock;
     } layers;
 
     struct wl_listener destroy;
