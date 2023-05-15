@@ -266,8 +266,8 @@ window_create(struct hayward_view *view) {
     window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
     hayward_assert(window->scene_tree != NULL, "Allocation failed");
     wlr_addon_init(
-        &window->scene_tree_marker, &window->scene_tree->node.addons, NULL,
-        &scene_tree_marker_interface
+        &window->scene_tree_marker, &window->scene_tree->node.addons,
+        &scene_tree_marker_interface, &scene_tree_marker_interface
     );
 
     const float border_color[] = {1.0, 0.0, 0.0, 1.0};
@@ -1030,8 +1030,10 @@ window_get_next_sibling(struct hayward_window *window) {
 
 struct hayward_window *
 window_for_scene_node(struct wlr_scene_node *node) {
-    struct wlr_addon *addon =
-        wlr_addon_find(&node->addons, NULL, &scene_tree_marker_interface);
+    struct wlr_addon *addon = wlr_addon_find(
+        &node->addons, &scene_tree_marker_interface,
+        &scene_tree_marker_interface
+    );
     if (addon == NULL) {
         return NULL;
     }

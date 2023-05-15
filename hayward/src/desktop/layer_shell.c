@@ -383,8 +383,8 @@ handle_layer_shell_surface(struct wl_listener *listener, void *data) {
     hayward_assert(surface != NULL, "Allocation failed");
 
     wlr_addon_init(
-        &surface->scene_tree_marker, &scene_surface->tree->node.addons, NULL,
-        &scene_tree_marker_interface
+        &surface->scene_tree_marker, &scene_surface->tree->node.addons,
+        &scene_tree_marker_interface, &scene_tree_marker_interface
     );
 
     surface->output = output;
@@ -418,8 +418,10 @@ handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 
 struct hayward_layer_surface *
 layer_surface_for_scene_node(struct wlr_scene_node *node) {
-    struct wlr_addon *addon =
-        wlr_addon_find(&node->addons, NULL, &scene_tree_marker_interface);
+    struct wlr_addon *addon = wlr_addon_find(
+        &node->addons, &scene_tree_marker_interface,
+        &scene_tree_marker_interface
+    );
     if (addon == NULL) {
         return NULL;
     }

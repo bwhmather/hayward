@@ -83,7 +83,8 @@ unmanaged_handle_map(struct wl_listener *listener, void *data) {
     if (surface->surface_scene) {
         wlr_addon_init(
             &surface->surface_scene_marker,
-            &surface->surface_scene->buffer->node.addons, NULL,
+            &surface->surface_scene->buffer->node.addons,
+            &unmanaged_surface_scene_marker_interface,
             &unmanaged_surface_scene_marker_interface
         );
 

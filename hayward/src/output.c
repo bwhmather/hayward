@@ -449,7 +449,8 @@ buffer_timer_assign(struct wlr_scene_buffer *buffer) {
     hayward_assert(buffer != NULL, "Could not create timer");
 
     wlr_addon_init(
-        &timer->addon, &buffer->node.addons, NULL, &buffer_timer_interface
+        &timer->addon, &buffer->node.addons, &buffer_timer_interface,
+        &buffer_timer_interface
     );
 
     return timer;
@@ -457,8 +458,9 @@ buffer_timer_assign(struct wlr_scene_buffer *buffer) {
 
 static struct buffer_timer *
 buffer_timer_try_get(struct wlr_scene_buffer *buffer) {
-    struct wlr_addon *addon =
-        wlr_addon_find(&buffer->node.addons, NULL, &buffer_timer_interface);
+    struct wlr_addon *addon = wlr_addon_find(
+        &buffer->node.addons, &buffer_timer_interface, &buffer_timer_interface
+    );
     if (addon == NULL) {
         return NULL;
     }
