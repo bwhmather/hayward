@@ -122,11 +122,6 @@ void
 cursor_notify_key_press(struct hayward_cursor *cursor);
 
 void
-cursor_handle_activity_from_idle_source(
-    struct hayward_cursor *cursor, enum hayward_input_idle_source idle_source
-);
-
-void
 cursor_handle_activity_from_device(
     struct hayward_cursor *cursor, struct wlr_input_device *device
 );

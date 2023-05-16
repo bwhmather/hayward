@@ -218,7 +218,9 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
         view_center_surface(view);
     }
 
-	wlr_scene_node_reparent(&view->scene_tree->node, window->layers.content_tree);
+    wlr_scene_node_reparent(
+        &view->scene_tree->node, window->layers.content_tree
+    );
 
     if (window->current.dead) {
         transaction_add_after_apply_listener(&window->transaction_after_apply);

@@ -170,13 +170,6 @@ seat_remove_device(
 void
 seat_configure_xcursor(struct hayward_seat *seat);
 
-/**
- * Redirects input events to the window or surface currently marked as focused
- * in the tree.
- */
-void
-seat_commit_focus(struct hayward_seat *seat);
-
 // Force focus to a particular surface that is not part of the workspace
 // hierarchy (used for lockscreen)
 void

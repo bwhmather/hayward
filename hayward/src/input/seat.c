@@ -59,6 +59,8 @@
 
 static void
 seat_send_focus(struct hayward_seat *seat, struct wlr_surface *surface);
+static void
+seat_commit_focus(struct hayward_seat *seat);
 
 static void
 handle_request_start_drag(struct wl_listener *listener, void *data);
@@ -994,7 +996,7 @@ seat_send_unfocus(struct hayward_seat *seat, struct wlr_surface *surface) {
     wlr_seat_keyboard_notify_clear_focus(seat->wlr_seat);
 }
 
-void
+static void
 seat_commit_focus(struct hayward_seat *seat) {
     hayward_assert(seat != NULL, "Expected seat");
 

@@ -265,7 +265,7 @@ idle_source_from_device(struct wlr_input_device *device) {
     abort();
 }
 
-void
+static void
 cursor_handle_activity_from_idle_source(
     struct hayward_cursor *cursor, enum hayward_input_idle_source idle_source
 ) {
@@ -1308,53 +1308,6 @@ hayward_cursor_create(struct hayward_seat *seat) {
     cursor->cursor = wlr_cursor;
 
     return cursor;
-}
-
-/**
- * Warps the cursor to the middle of the container argument.
- * Does nothing if the cursor is already inside the container and `force` is
- * false. If container is NULL, returns without doing anything.
- */
-void
-cursor_warp_to_container(
-    struct hayward_cursor *cursor, struct hayward_window *window, bool force
-) {
-    if (!window) {
-        return;
-    }
-
-    struct wlr_box box;
-    window_get_box(window, &box);
-
-    if (!force &&
-        wlr_box_contains_point(&box, cursor->cursor->x, cursor->cursor->y)) {
-        return;
-    }
-
-    double x = window->pending.x + window->pending.width / 2.0;
-    double y = window->pending.y + window->pending.height / 2.0;
-
-    wlr_cursor_warp(cursor->cursor, NULL, x, y);
-    cursor_unhide(cursor);
-}
-
-/**
- * Warps the cursor to the middle of the workspace argument.
- * If workspace is NULL, returns without doing anything.
- */
-void
-cursor_warp_to_workspace(
-    struct hayward_cursor *cursor, struct hayward_workspace *workspace
-) {
-    if (!workspace) {
-        return;
-    }
-
-    double x = workspace->pending.x + workspace->pending.width / 2.0;
-    double y = workspace->pending.y + workspace->pending.height / 2.0;
-
-    wlr_cursor_warp(cursor->cursor, NULL, x, y);
-    cursor_unhide(cursor);
 }
 
 uint32_t
