@@ -227,6 +227,7 @@ test_suites = {
 		'commands-and-headers-match',
 		'tree-header-orders-match',
 		'source-and-header-orders-match',
+		'source-and-header-contents-match',
 	],
 }
 

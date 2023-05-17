@@ -81,64 +81,6 @@ BUILTIN_SYMBOLS = {
 IGNORED_SYMBOLS = {"NULL", "__u32"}
 
 
-def _check_path(source_path, /):
-    includes = set(read_includes_from_path(source_path))
-
-    unused = set(includes)
-    unused.discard("config.h")
-    if source_path.is_relative_to(INCLUDE_ROOT) and source_path.relative_to(
-        INCLUDE_ROOT
-    ) == pathlib.Path("input/cursor.h"):
-        unused.discard("linux/input-event-codes.h")
-
-    indirect = dict()
-
-    source = read_ast_from_path(source_path)
-
-    for node in walk_file_preorder(source):
-        if not node.referenced:
-            continue
-        ref = node.referenced
-        if ref.spelling in BUILTIN_SYMBOLS:
-            ref_include = BUILTIN_SYMBOLS[ref.spelling]
-        else:
-            if ref.location.file is None:
-                continue
-            ref_path = resolve_clang_path(ref.location.file.name)
-
-            if ref.spelling in IGNORED_SYMBOLS:
-                continue
-
-            if ref_path == resolve_clang_path(source.spelling):
-                continue
-
-            ref_include = derive_include_from_path(ref_path)
-
-        ref_include = INCLUDE_ALIASES.get(ref_include, ref_include)
-        if ref_include in includes:
-            unused.discard(ref_include)
-            continue
-
-        indirect.setdefault(ref_include, set()).add(ref.spelling)
-
-    msg = "Includes do not match requirements\n\n"
-
-    if indirect:
-        msg += "The following files were depended on indirectly:\n"
-        for indirect_path, indirect_refs in sorted(indirect.items()):
-            msg += f"  - {indirect_path} ({', '.join(indirect_refs)})\n"
-        msg += "\n"
-
-    if unused:
-        msg += "The following includes were unused:\n"
-        for unused_path in sorted(unused):
-            msg += f"  - {unused_path}\n"
-        msg += "\n"
-
-    if indirect or unused:
-        raise AssertionError(msg)
-
-
 def test():
     passed = True
 
@@ -146,16 +88,65 @@ def test():
         enumerate_header_paths(),
         enumerate_source_paths(),
     ):
-        try:
-            _check_path(source_path)
-        except Exception:
-            print(
-                "======================================================================\n"
-                + f"FAIL: {source_path.relative_to(PROJECT_ROOT)}\n"
-                + "----------------------------------------------------------------------\n",
-                file=sys.stderr,
-            )
-            traceback.print_exc()
+        includes = set(read_includes_from_path(source_path))
+
+        unused = set(includes)
+        unused.discard("config.h")
+        if source_path.is_relative_to(INCLUDE_ROOT) and source_path.relative_to(
+            INCLUDE_ROOT
+        ) == pathlib.Path("input/cursor.h"):
+            unused.discard("linux/input-event-codes.h")
+
+        indirect = dict()
+
+        source = read_ast_from_path(source_path)
+
+        for node in walk_file_preorder(source):
+            if not node.referenced:
+                continue
+            ref = node.referenced
+            if ref.spelling in BUILTIN_SYMBOLS:
+                ref_include = BUILTIN_SYMBOLS[ref.spelling]
+            else:
+                if ref.location.file is None:
+                    continue
+                ref_path = resolve_clang_path(ref.location.file.name)
+
+                if ref.spelling in IGNORED_SYMBOLS:
+                    continue
+
+                if ref_path == resolve_clang_path(source.spelling):
+                    continue
+
+                ref_include = derive_include_from_path(ref_path)
+
+            ref_include = INCLUDE_ALIASES.get(ref_include, ref_include)
+            if ref_include in includes:
+                unused.discard(ref_include)
+                continue
+
+            indirect.setdefault(ref_include, set()).add(ref.spelling)
+
+        if indirect or unused:
+            msg = "======================================================================\n"
+            msg += f"FAIL: test_exact_includes: {source_path.relative_to(PROJECT_ROOT)}\n"
+            msg += "----------------------------------------------------------------------\n"
+
+            msg += "Includes do not match requirements.\n\n"
+
+            if indirect:
+                msg += "The following files were depended on indirectly:\n"
+                for indirect_path, indirect_refs in sorted(indirect.items()):
+                    msg += f"  - {indirect_path} ({', '.join(indirect_refs)})\n"
+                msg += "\n"
+
+            if unused:
+                msg += "The following includes were unused:\n"
+                for unused_path in sorted(unused):
+                    msg += f"  - {unused_path}\n"
+                msg += "\n"
+
+            print(msg, file=sys.stderr)
             passed = False
 
     return passed

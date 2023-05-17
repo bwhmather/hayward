@@ -1,4 +1,3 @@
-import difflib
 import itertools
 import sys
 import traceback
@@ -34,14 +33,14 @@ def test():
         header = read_ast_from_path(header_path)
         source = read_ast_from_path(source_path)
 
-        header_decls = [
+        header_decls = {
             node.spelling
             for node in header.cursor.get_children()
             if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
             and resolve_clang_path(node.location.file.name)
             == resolve_clang_path(header.spelling)
-        ]
-        source_defs = [
+        }
+        source_defs = {
             node.spelling
             for node in source.cursor.get_children()
             if node.kind == clang.cindex.CursorKind.FUNCTION_DECL
@@ -49,20 +48,26 @@ def test():
             and node.storage_class != clang.cindex.StorageClass.STATIC
             and resolve_clang_path(node.location.file.name)
             == resolve_clang_path(source.spelling)
-        ]
-
-        header_decls = [symbol for symbol in header_decls if symbol in source_defs]
-        source_defs = [symbol for symbol in source_defs if symbol in header_decls]
+        }
 
         if header_decls != source_defs:
             msg = "======================================================================\n"
-            msg += f"FAIL: test_source_and_header_orders_match: {source_path.relative_to(PROJECT_ROOT)}\n"
+            msg += f"FAIL: test_source_and_header_contents_match: {source_path.relative_to(PROJECT_ROOT)}\n"
             msg += "----------------------------------------------------------------------\n"
-            msg += f"Order of definitions in {source_path.relative_to(PROJECT_ROOT)} does not match order of declarations in {header_path.relative_to(PROJECT_ROOT)}:\n"
 
-            for diff_line in difflib.ndiff(header_decls, source_defs):
-                msg += f"  {diff_line}\n"
-            msg += "\n"
+            msg += "Source file does not match header.\n\n"
+
+            if header_decls - source_defs:
+                msg += f"The following symbols were declared in {header_path.relative_to(PROJECT_ROOT)} but not defined in {source_path.relative_to(PROJECT_ROOT)}:\n"
+                for symbol in header_decls - source_defs:
+                    msg += f"  - {symbol}\n"
+                msg += "\n"
+
+            if source_defs - header_decls:
+                msg += f"The following symbols were defined in {source_path.relative_to(PROJECT_ROOT)} but not declared in {header_path.relative_to(PROJECT_ROOT)}:\n"
+                for symbol in source_defs - header_decls:
+                    msg += f"  - {symbol}\n"
+                msg += "\n"
 
             print(msg, file=sys.stderr)
             passed = False

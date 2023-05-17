@@ -147,6 +147,7 @@ def read_ast_from_path(path, /):
         options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD,
     )
 
+
 @functools.lru_cache(maxsize=None)
 def resolve_clang_path(path):
     path = pathlib.Path(path)
