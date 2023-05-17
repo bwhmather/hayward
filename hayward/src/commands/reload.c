@@ -14,8 +14,6 @@
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
-#include <hayward/tree/root.h>
-#include <hayward/tree/window.h>
 
 #include <config.h>
 

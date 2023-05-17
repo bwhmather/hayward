@@ -6,23 +6,20 @@
 #include <sys/types.h>
 #include <time.h>
 #include <wayland-server-core.h>
-#include <wayland-util.h>
-#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/util/addon.h>
 #include <wlr/util/box.h>
+
+#include <hayward/config.h>
 
 #include <config.h>
 
 #if HAVE_XWAYLAND
-#include <wlr/xwayland.h>
+#include <wlr/xwayland/xwayland.h>
 #endif
-
-#include <wayland-server-protocol.h>
-
-#include <hayward/config.h>
 
 struct hayward_window;
 struct hayward_view;
@@ -295,9 +292,6 @@ view_close(struct hayward_view *view);
 
 void
 view_close_popups(struct hayward_view *view);
-
-void
-view_damage_from(struct hayward_view *view);
 
 /**
  * Map a view, ie. make it visible in the tree.

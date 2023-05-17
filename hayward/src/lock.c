@@ -9,15 +9,12 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_session_lock_v1.h>
 
-#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/tree/root.h>
 
 #include <config.h>
 

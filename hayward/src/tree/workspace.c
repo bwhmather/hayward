@@ -11,6 +11,7 @@
 #include <strings.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
 #include <hayward-common/list.h>

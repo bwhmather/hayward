@@ -7,15 +7,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 #include <hayward-common/util.h>
 
 #include <hayward/config.h>
-#include <hayward/globals/root.h>
-#include <hayward/output.h>
-#include <hayward/tree/root.h>
-#include <hayward/tree/window.h>
 
 #include <config.h>
 

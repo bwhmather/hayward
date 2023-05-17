@@ -2,12 +2,9 @@
 #define _HAYWARD_LAYERS_H
 #include <stdbool.h>
 #include <wayland-server-core.h>
-#include <wayland-util.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/util/box.h>
-
-#include <wlr-layer-shell-unstable-v1-protocol.h>
+#include <wlr/util/addon.h>
 
 struct hayward_layer_surface {
     struct wlr_layer_surface_v1 *layer_surface;

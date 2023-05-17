@@ -21,7 +21,7 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/box.h>
-#include <wlr/xwayland.h>
+#include <wlr/xwayland/xwayland.h>
 #include <xcb/xproto.h>
 #include <xkbcommon/xkbcommon.h>
 

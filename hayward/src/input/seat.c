@@ -30,7 +30,7 @@
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/util/box.h>
 #include <wlr/xcursor.h>
-#include <wlr/xwayland.h>
+#include <wlr/xwayland/xwayland.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>

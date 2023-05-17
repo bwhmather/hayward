@@ -21,32 +21,28 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_pointer_gestures_v1.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_seat.h>
-#include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_touch.h>
 #include <wlr/types/wlr_xcursor_manager.h>
-#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 #include <wlr/util/edges.h>
 #include <wlr/util/region.h>
 #include <wlr/xcursor.h>
-#include <wlr/xwayland.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
 #include <tablet-unstable-v2-protocol.h>
 #include <wayland-server-protocol.h>
-#include <wlr-layer-shell-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
@@ -57,11 +53,9 @@
 #include <hayward/layers.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
 
 #include <config.h>
 

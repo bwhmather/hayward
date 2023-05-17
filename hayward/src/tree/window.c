@@ -2,14 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/window.h"
 
-#include <cairo.h>
-#include <drm_fourcc.h>
-#include <float.h>
-#include <glib-object.h>
 #include <limits.h>
 #include <math.h>
-#include <pango/pango.h>
-#include <pango/pangocairo.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -17,22 +11,17 @@
 #include <time.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/render/wlr_renderer.h>
 #include <wlr/render/wlr_texture.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/util/addon.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/cairo_util.h>
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/pango.h>
-
-#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>

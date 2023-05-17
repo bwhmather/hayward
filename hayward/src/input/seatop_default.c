@@ -23,7 +23,7 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/edges.h>
-#include <wlr/xwayland.h>
+#include <wlr/xwayland/xwayland.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>

@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <math.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/util/box.h>
 

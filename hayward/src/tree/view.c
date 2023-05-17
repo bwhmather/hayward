@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/tree/view.h"
+
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
@@ -11,26 +13,16 @@
 #include <time.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
-#include <wlr/xwayland.h>
-
-#include <hayward/globals/root.h>
-#include <hayward/input/input-manager.h>
-
-#include <config.h>
-#if HAVE_XWAYLAND
-#include <wlr/xwayland.h>
-#endif
-#include "hayward/tree/view.h"
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
@@ -40,7 +32,9 @@
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/transaction.h>
+#include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
+#include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
@@ -52,6 +46,11 @@
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 #include <hayward/xdg_decoration.h>
+
+#include <config.h>
+#if HAVE_XWAYLAND
+#include <wlr/xwayland/xwayland.h>
+#endif
 
 void
 view_init(
@@ -1037,22 +1036,4 @@ view_is_transient_for(
 ) {
     return child->impl->is_transient_for &&
         child->impl->is_transient_for(child, ancestor);
-}
-
-static void
-send_frame_done_iterator(
-    struct wlr_scene_buffer *scene_buffer, int x, int y, void *data
-) {
-    struct timespec *when = data;
-    wl_signal_emit_mutable(&scene_buffer->events.frame_done, when);
-}
-
-void
-view_send_frame_done(struct hayward_view *view) {
-    struct timespec when;
-    clock_gettime(CLOCK_MONOTONIC, &when);
-    struct wlr_scene_node *node;
-    wl_list_for_each(node, &view->content_tree->children, link) {
-        wlr_scene_node_for_each_buffer(node, send_frame_done_iterator, &when);
-    }
 }

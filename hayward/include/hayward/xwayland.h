@@ -2,7 +2,7 @@
 #define HAYWARD_XWAYLAND_H
 
 #include <wayland-server-core.h>
-#include <wlr/xwayland.h>
+#include <wlr/xwayland/xwayland.h>
 #include <xcb/xproto.h>
 
 enum atom_name {

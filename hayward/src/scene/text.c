@@ -1,16 +1,31 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/scene/text.h"
 
+#include <cairo.h>
 #include <drm_fourcc.h>
-#include <stdio.h>
+#include <glib-object.h>
+#include <glib/gmacros.h>
+#include <math.h>
+#include <pango/pango.h>
+#include <pango/pangocairo.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 #include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/types/wlr_buffer.h>
+#include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/cairo_util.h>
 #include <hayward-common/log.h>
 #include <hayward-common/pango.h>
+
+#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 

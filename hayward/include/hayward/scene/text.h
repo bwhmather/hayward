@@ -1,7 +1,7 @@
 #ifndef _HAYWARD_SCENE_TEXT_H
 #define _HAYWARD_SCENE_TEXT_H
+#include <stdbool.h>
 #include <wlr/types/wlr_scene.h>
-
 struct hayward_text_node {
     int width;
     int max_width;

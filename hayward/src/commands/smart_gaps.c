@@ -10,7 +10,6 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/tree/arrange.h>
-#include <hayward/tree/root.h>
 
 #include <config.h>
 

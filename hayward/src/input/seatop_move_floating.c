@@ -9,14 +9,13 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_tablet_tool.h>
 
+#include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/tablet.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 struct seatop_move_floating_event {
     struct hayward_window *window;

@@ -2,13 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <string.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/commands.h>
 #include <hayward/config.h>
-#include <hayward/globals/root.h>
-#include <hayward/output.h>
-#include <hayward/tree/root.h>
 
 #include <config.h>
 

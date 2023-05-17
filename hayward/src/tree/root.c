@@ -16,6 +16,8 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
@@ -473,7 +475,7 @@ root_get_focused_window(struct hayward_root *root) {
     return workspace_get_active_window(workspace);
 }
 
-struct hayward_window *
+static struct hayward_window *
 root_get_committed_focused_window(struct hayward_root *root) {
     if (root->pending.focused_layer != NULL) {
         return NULL;

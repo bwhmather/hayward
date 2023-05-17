@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <sys/types.h>
+#include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
@@ -94,11 +95,6 @@ root_record_workspace_pid(struct hayward_root *root, pid_t pid);
 
 void
 root_remove_workspace_pid(struct hayward_root *root, pid_t pid);
-
-void
-root_rename_pid_workspaces(
-    struct hayward_root *root, const char *old_name, const char *new_name
-);
 
 void
 root_add_workspace(

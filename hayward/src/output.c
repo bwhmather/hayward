@@ -4,7 +4,6 @@
 
 #include <assert.h>
 #include <math.h>
-#include <pixman.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -17,32 +16,24 @@
 #include <wayland-util.h>
 #include <wlr/backend.h>
 #include <wlr/backend/headless.h>
-#include <wlr/types/wlr_buffer.h>
-#include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
-#include <wlr/types/wlr_presentation_time.h>
-#include <wlr/types/wlr_session_lock_v1.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/util/addon.h>
 #include <wlr/util/box.h>
-#include <wlr/util/region.h>
-#include <wlr/xwayland.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <wlr-layer-shell-unstable-v1-protocol.h>
 #include <wlr-output-power-management-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
-#include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
 #include <hayward/layers.h>
 #include <hayward/server.h>

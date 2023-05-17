@@ -46,7 +46,6 @@
 #include <wlr/types/wlr_xdg_foreign_v2.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
-#include <wlr/xwayland.h>
 
 #include <hayward-common/log.h>
 
@@ -59,10 +58,10 @@
 
 #include <config.h>
 #if HAVE_XWAYLAND
+#include <wlr/xwayland/xwayland.h>
+
 #include <hayward/xwayland.h>
 #endif
-
-#include <config.h>
 
 bool
 server_privileged_prepare(struct hayward_server *server) {

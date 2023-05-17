@@ -35,7 +35,6 @@
 #include <hayward/input/switch.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
-#include <hayward/tree/root.h>
 
 #include <config.h>
 
