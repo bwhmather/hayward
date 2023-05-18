@@ -14,6 +14,7 @@ from hayward_lint import (
     derive_include_from_path,
     enumerate_header_paths,
     enumerate_source_paths,
+    header_path_for_source_path,
     read_ast_from_path,
     read_includes_from_path,
     resolve_clang_path,
@@ -96,6 +97,10 @@ def test():
             INCLUDE_ROOT
         ) == pathlib.Path("input/cursor.h"):
             unused.discard("linux/input-event-codes.h")
+        if source_path.is_relative_to(SOURCE_ROOT):
+            header_path = header_path_for_source_path(source_path)
+            if header_path is not None:
+                unused.discard(derive_include_from_path(header_path))
 
         indirect = dict()
 
@@ -129,7 +134,9 @@ def test():
 
         if indirect or unused:
             msg = "======================================================================\n"
-            msg += f"FAIL: test_exact_includes: {source_path.relative_to(PROJECT_ROOT)}\n"
+            msg += (
+                f"FAIL: test_exact_includes: {source_path.relative_to(PROJECT_ROOT)}\n"
+            )
             msg += "----------------------------------------------------------------------\n"
 
             msg += "Includes do not match requirements.\n\n"
