@@ -49,19 +49,19 @@ def test():
 
         if header_decls != source_defs:
             msg = "======================================================================\n"
-            msg += f"FAIL: test_source_and_header_contents_match: {source_path.relative_to(PROJECT_ROOT)}\n"
+            msg += f"FAIL: test_source_and_header_contents_match: {header_path.relative_to(PROJECT_ROOT)}\n"
             msg += "----------------------------------------------------------------------\n"
 
             msg += "Source file does not match header.\n\n"
 
             if header_decls - source_defs:
-                msg += f"The following symbols were declared in {header_path.relative_to(PROJECT_ROOT)} but not defined in {source_path.relative_to(PROJECT_ROOT)}:\n"
+                msg += f"The following symbols were not defined in {source_path.relative_to(PROJECT_ROOT)} but were declared in {header_path.relative_to(PROJECT_ROOT)}:\n"
                 for symbol in header_decls - source_defs:
                     msg += f"  - {symbol}\n"
                 msg += "\n"
 
             if source_defs - header_decls:
-                msg += f"The following symbols were defined in {source_path.relative_to(PROJECT_ROOT)} but not declared in {header_path.relative_to(PROJECT_ROOT)}:\n"
+                msg += f"The following symbols were not declared in {header_path.relative_to(PROJECT_ROOT)} but were defined in {source_path.relative_to(PROJECT_ROOT)} but:\n"
                 for symbol in source_defs - header_decls:
                     msg += f"  - {symbol}\n"
                 msg += "\n"
