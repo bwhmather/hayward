@@ -223,6 +223,7 @@ executable(
 test_suites = {
 	'lint': [
 		'exact-includes',
+		'include-guards',
 		'no-circular-includes',
 		'commands-and-headers-match',
 		'tree-header-orders-match',
