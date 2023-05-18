@@ -84,17 +84,11 @@ root_create(void);
 void
 root_destroy(struct hayward_root *root);
 
-void
-root_set_dirty(struct hayward_root *root);
-
 struct hayward_workspace *
 root_workspace_for_pid(struct hayward_root *root, pid_t pid);
 
 void
 root_record_workspace_pid(struct hayward_root *root, pid_t pid);
-
-void
-root_remove_workspace_pid(struct hayward_root *root, pid_t pid);
 
 void
 root_add_workspace(
@@ -111,8 +105,6 @@ root_set_active_workspace(
 );
 struct hayward_workspace *
 root_get_active_workspace(struct hayward_root *root);
-struct hayward_workspace *
-root_get_current_active_workspace(struct hayward_root *root);
 
 void
 root_set_active_output(
@@ -120,8 +112,6 @@ root_set_active_output(
 );
 struct hayward_output *
 root_get_active_output(struct hayward_root *root);
-struct hayward_output *
-root_get_current_active_output(struct hayward_root *root);
 
 /**
  * Helper functions that traverse the tree to focus the right window.
@@ -162,18 +152,9 @@ struct wlr_surface *
 root_get_focused_surface(struct hayward_root *root);
 
 void
-root_commit_focus(struct hayward_root *root);
-
-void
 root_for_each_workspace(
     struct hayward_root *root,
     void (*f)(struct hayward_workspace *workspace, void *data), void *data
-);
-
-void
-root_for_each_window(
-    struct hayward_root *root,
-    void (*f)(struct hayward_window *window, void *data), void *data
 );
 
 struct hayward_workspace *

@@ -24,8 +24,6 @@ ipc_json_describe_disabled_output(struct hayward_output *o);
 json_object *
 ipc_json_describe_window(struct hayward_window *window);
 json_object *
-ipc_json_describe_column(struct hayward_column *column);
-json_object *
 ipc_json_describe_workspace(struct hayward_workspace *workspace);
 json_object *
 ipc_json_describe_output(struct hayward_output *output);

@@ -485,21 +485,6 @@ window_is_floating(struct hayward_window *window) {
     return false;
 }
 
-bool
-window_is_current_floating(struct hayward_window *window) {
-    hayward_assert(window != NULL, "Expected window");
-    hayward_assert(
-        window->current.workspace != NULL, "Window not attached to workspace"
-    );
-
-    if (!window->current.parent) {
-        // hayward_assert(list_find(workspace->pending.floating, window) != -1,
-        // "Window missing from parent list");
-        return true;
-    }
-
-    return false;
-}
 
 bool
 window_is_fullscreen(struct hayward_window *window) {
@@ -509,63 +494,6 @@ window_is_fullscreen(struct hayward_window *window) {
 bool
 window_is_tiling(struct hayward_window *window) {
     return window->pending.parent != NULL;
-}
-
-struct wlr_surface *
-window_surface_at(
-    struct hayward_window *window, double lx, double ly, double *sx, double *sy
-) {
-    struct hayward_view *view = window->view;
-    double view_sx = lx - window->surface_x + view->geometry.x;
-    double view_sy = ly - window->surface_y + view->geometry.y;
-
-    double _sx, _sy;
-    struct wlr_surface *surface = NULL;
-    switch (view->type) {
-#if HAVE_XWAYLAND
-    case HAYWARD_VIEW_XWAYLAND:
-        surface =
-            wlr_surface_surface_at(view->surface, view_sx, view_sy, &_sx, &_sy);
-        break;
-#endif
-    case HAYWARD_VIEW_XDG_SHELL:
-        surface = wlr_xdg_surface_surface_at(
-            view->wlr_xdg_toplevel->base, view_sx, view_sy, &_sx, &_sy
-        );
-        break;
-    }
-    if (surface) {
-        *sx = _sx;
-        *sy = _sy;
-        return surface;
-    }
-    return NULL;
-}
-
-bool
-window_contents_contain_point(
-    struct hayward_window *window, double lx, double ly
-) {
-    struct wlr_box box = {
-        .x = window->pending.content_x,
-        .y = window->pending.content_y,
-        .width = window->pending.content_width,
-        .height = window->pending.content_height,
-    };
-
-    return wlr_box_contains_point(&box, lx, ly);
-}
-
-bool
-window_contains_point(struct hayward_window *window, double lx, double ly) {
-    struct wlr_box box = {
-        .x = window->pending.x,
-        .y = window->pending.y,
-        .width = window->pending.width,
-        .height = window->pending.height,
-    };
-
-    return wlr_box_contains_point(&box, lx, ly);
 }
 
 size_t
@@ -888,13 +816,6 @@ window_get_output(struct hayward_window *window) {
     return window->pending.output;
 }
 
-struct hayward_output *
-window_get_current_output(struct hayward_window *window) {
-    hayward_assert(window != NULL, "Expected window");
-
-    return window->current.output;
-}
-
 void
 window_get_box(struct hayward_window *window, struct wlr_box *box) {
     box->x = window->pending.x;
@@ -972,17 +893,6 @@ window_get_siblings(struct hayward_window *window) {
 int
 window_sibling_index(struct hayward_window *window) {
     return list_find(window_get_siblings(window), window);
-}
-
-list_t *
-window_get_current_siblings(struct hayward_window *window) {
-    if (window->current.parent) {
-        return window->current.parent->current.children;
-    }
-    if (window->current.workspace) {
-        return window->current.workspace->current.floating;
-    }
-    return NULL;
 }
 
 struct hayward_window *

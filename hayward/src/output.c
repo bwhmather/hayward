@@ -155,7 +155,7 @@ output_is_alive(struct hayward_output *output) {
     return !output->pending.dead;
 }
 
-void
+static void
 output_set_dirty(struct hayward_output *output) {
     hayward_assert(output != NULL, "Expected output");
 
@@ -294,7 +294,7 @@ output_disable(struct hayward_output *output) {
     input_manager_configure_all_inputs();
 }
 
-void
+static void
 output_begin_destroy(struct hayward_output *output) {
     hayward_assert(!output->enabled, "Expected a disabled output");
     hayward_assert(output_is_alive(output), "Expected live output");
@@ -390,19 +390,6 @@ all_output_by_name_or_id(const char *name_or_id) {
         }
     }
     return NULL;
-}
-
-static int
-scale_length(int length, int offset, float scale) {
-    return round((offset + length) * scale) - round(offset * scale);
-}
-
-void
-scale_box(struct wlr_box *box, float scale) {
-    box->width = scale_length(box->width, box->x, scale);
-    box->height = scale_length(box->height, box->y, scale);
-    box->x = round(box->x * scale);
-    box->y = round(box->y * scale);
 }
 
 struct buffer_timer {

@@ -168,10 +168,4 @@ workspace_get_fullscreen_window_for_output(
     struct hayward_workspace *workspace, struct hayward_output *output
 );
 
-void
-workspace_for_each_window(
-    struct hayward_workspace *workspace,
-    void (*f)(struct hayward_window *container, void *data), void *data
-);
-
 #endif

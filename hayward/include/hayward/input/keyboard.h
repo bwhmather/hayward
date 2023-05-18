@@ -22,14 +22,6 @@ uint32_t
 get_modifier_mask_by_name(const char *name);
 
 /**
- * Get modifier name from modifier mask.
- *
- * Returns the modifier name or NULL if it isn't found.
- */
-const char *
-get_modifier_name_by_mask(uint32_t modifier);
-
-/**
  * Get an array of modifier names from modifier_masks
  *
  * Populates the names array and return the number of names added.

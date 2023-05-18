@@ -47,6 +47,9 @@
 
 #include <config.h>
 
+static json_object *
+ipc_json_describe_column(struct hayward_column *column);
+
 static const char *
 ipc_json_layout_description(enum hayward_column_layout l) {
     switch (l) {
@@ -620,7 +623,7 @@ ipc_json_describe_view(struct hayward_window *c, json_object *object) {
 #endif
 }
 
-json_object *
+static json_object *
 ipc_json_describe_column(struct hayward_column *column) {
     char *name = "column";
 

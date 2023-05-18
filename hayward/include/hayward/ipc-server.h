@@ -13,9 +13,6 @@ struct hayward_server;
 void
 ipc_init(struct hayward_server *server);
 
-struct sockaddr_un *
-ipc_user_sockaddr(void);
-
 void
 ipc_event_workspace(
     struct hayward_workspace *old, struct hayward_workspace *new,

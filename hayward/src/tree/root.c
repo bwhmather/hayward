@@ -49,6 +49,9 @@ static void
 root_validate(struct hayward_root *root);
 
 static void
+root_commit_focus(struct hayward_root *root);
+
+static void
 root_handle_transaction_before_commit(
     struct wl_listener *listener, void *data
 ) {
@@ -160,7 +163,7 @@ root_destroy(struct hayward_root *root) {
     free(root);
 }
 
-void
+static void
 root_set_dirty(struct hayward_root *root) {
     hayward_assert(root != NULL, "Expected root");
 
@@ -308,21 +311,6 @@ root_record_workspace_pid(struct hayward_root *root, pid_t pid) {
     wl_list_insert(&root->pid_workspaces, &pw->link);
 }
 
-void
-root_remove_workspace_pid(struct hayward_root *root, pid_t pid) {
-    if (!root->pid_workspaces.prev || !root->pid_workspaces.next) {
-        return;
-    }
-
-    struct hayward_pid_workspace *pw, *tmp;
-    wl_list_for_each_safe(pw, tmp, &root->pid_workspaces, link) {
-        if (pid == pw->pid) {
-            pid_workspace_destroy(pw);
-            return;
-        }
-    }
-}
-
 static int
 sort_workspace_cmp_qsort(const void *_a, const void *_b) {
     struct hayward_workspace *a = *(void **)_a;
@@ -425,11 +413,6 @@ root_get_committed_active_workspace(struct hayward_root *root) {
     return root->committed.active_workspace;
 }
 
-struct hayward_workspace *
-root_get_current_active_workspace(struct hayward_root *root) {
-    return root->current.active_workspace;
-}
-
 void
 root_set_active_output(
     struct hayward_root *root, struct hayward_output *output
@@ -441,11 +424,6 @@ root_set_active_output(
 struct hayward_output *
 root_get_active_output(struct hayward_root *root) {
     return root->pending.active_output;
-}
-
-struct hayward_output *
-root_get_current_active_output(struct hayward_root *root) {
-    return root->current.active_output;
 }
 
 void
@@ -541,7 +519,7 @@ root_handle_urgent_timeout(void *data) {
     return 0;
 }
 
-void
+static void
 root_commit_focus(struct hayward_root *root) {
     struct hayward_window *old_window = root_get_committed_focused_window(root);
     struct hayward_window *new_window = root_get_focused_window(root);
@@ -620,18 +598,6 @@ root_for_each_workspace(
         struct hayward_workspace *workspace =
             root->pending.workspaces->items[i];
         f(workspace, data);
-    }
-}
-
-void
-root_for_each_window(
-    struct hayward_root *root,
-    void (*f)(struct hayward_window *window, void *data), void *data
-) {
-    for (int i = 0; i < root->pending.workspaces->length; ++i) {
-        struct hayward_workspace *workspace =
-            root->pending.workspaces->items[i];
-        workspace_for_each_window(workspace, f, data);
     }
 }
 

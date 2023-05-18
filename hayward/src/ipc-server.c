@@ -67,22 +67,22 @@ struct ipc_client {
     ipc_command_type pending_type;
 };
 
-struct sockaddr_un *
+static struct sockaddr_un *
 ipc_user_sockaddr(void);
-int
+static int
 ipc_handle_connection(int fd, uint32_t mask, void *data);
-int
+static int
 ipc_client_handle_readable(int client_fd, uint32_t mask, void *data);
-int
+static int
 ipc_client_handle_writable(int client_fd, uint32_t mask, void *data);
-void
+static void
 ipc_client_disconnect(struct ipc_client *client);
-void
+static void
 ipc_client_handle_command(
     struct ipc_client *client, uint32_t payload_length,
     ipc_command_type payload_type
 );
-bool
+static bool
 ipc_send_reply(
     struct ipc_client *client, ipc_command_type payload_type,
     const char *payload, uint32_t payload_length
@@ -160,7 +160,7 @@ ipc_init(struct hayward_server *server) {
     );
 }
 
-struct sockaddr_un *
+static struct sockaddr_un *
 ipc_user_sockaddr(void) {
     struct sockaddr_un *ipc_sockaddr = malloc(sizeof(struct sockaddr_un));
     if (ipc_sockaddr == NULL) {
@@ -185,7 +185,7 @@ ipc_user_sockaddr(void) {
     return ipc_sockaddr;
 }
 
-int
+static int
 ipc_handle_connection(int fd, uint32_t mask, void *data) {
     (void)fd;
     struct hayward_server *server = data;
@@ -250,7 +250,7 @@ ipc_handle_connection(int fd, uint32_t mask, void *data) {
     return 0;
 }
 
-int
+static int
 ipc_client_handle_readable(int client_fd, uint32_t mask, void *data) {
     struct ipc_client *client = data;
 
@@ -593,7 +593,7 @@ ipc_event_input(const char *change, struct hayward_input_device *device) {
     json_object_put(json);
 }
 
-int
+static int
 ipc_client_handle_writable(int client_fd, uint32_t mask, void *data) {
     struct ipc_client *client = data;
 
@@ -642,7 +642,7 @@ ipc_client_handle_writable(int client_fd, uint32_t mask, void *data) {
     return 0;
 }
 
-void
+static void
 ipc_client_disconnect(struct ipc_client *client) {
     hayward_assert(client != NULL, "client != NULL");
 
@@ -683,7 +683,7 @@ ipc_get_workspaces_callback(struct hayward_workspace *workspace, void *data) {
     );
 }
 
-void
+static void
 ipc_client_handle_command(
     struct ipc_client *client, uint32_t payload_length,
     ipc_command_type payload_type
@@ -986,7 +986,7 @@ exit_cleanup:
     return;
 }
 
-bool
+static bool
 ipc_send_reply(
     struct ipc_client *client, ipc_command_type payload_type,
     const char *payload, uint32_t payload_length

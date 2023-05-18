@@ -233,19 +233,6 @@ view_inhibit_idle(struct hayward_view *view) {
         hayward_idle_inhibit_v1_is_active(application_inhibitor);
 }
 
-bool
-view_ancestor_is_only_visible(struct hayward_view *view) {
-    struct hayward_window *window = view->window;
-    struct hayward_column *column = window->pending.parent;
-
-    list_t *siblings = column_get_siblings(column);
-    if (siblings && siblings->length > 1) {
-        return false;
-    }
-
-    return true;
-}
-
 static bool
 view_is_only_visible(struct hayward_view *view) {
     struct hayward_window *window = view->window;

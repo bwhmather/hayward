@@ -102,9 +102,6 @@ output_create(struct wlr_output *wlr_output);
 bool
 output_is_alive(struct hayward_output *output);
 
-void
-output_begin_destroy(struct hayward_output *output);
-
 struct hayward_output *
 output_from_wlr_output(struct wlr_output *output);
 
@@ -114,36 +111,11 @@ output_get_in_direction(
 );
 
 void
-output_set_dirty(struct hayward_output *output);
-
-void
 output_reconcile(struct hayward_output *output);
 
 typedef void (*hayward_surface_iterator_func_t
 )(struct hayward_output *output, struct hayward_view *view,
   struct wlr_surface *surface, struct wlr_box *box, void *user_data);
-
-void
-output_damage_whole(struct hayward_output *output);
-
-void
-output_damage_surface(
-    struct hayward_output *output, double ox, double oy,
-    struct wlr_surface *surface, bool whole
-);
-
-void
-output_damage_from_view(
-    struct hayward_output *output, struct hayward_view *view
-);
-
-void
-output_damage_box(struct hayward_output *output, struct wlr_box *box);
-
-void
-output_damage_window(
-    struct hayward_output *output, struct hayward_window *window
-);
 
 // this ONLY includes the enabled outputs
 struct hayward_output *
@@ -160,27 +132,9 @@ void
 output_disable(struct hayward_output *output);
 
 void
-output_render(
-    struct hayward_output *output, struct timespec *when,
-    pixman_region32_t *damage
-);
-
-void
 output_get_box(struct hayward_output *output, struct wlr_box *box);
 void
 output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
-
-void
-render_rect(
-    struct hayward_output *output, pixman_region32_t *output_damage,
-    const struct wlr_box *_box, float color[static 4]
-);
-
-void
-premultiply_alpha(float color[4], float opacity);
-
-void
-scale_box(struct wlr_box *box, float scale);
 
 enum wlr_direction
 opposite_direction(enum wlr_direction d);

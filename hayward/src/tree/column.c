@@ -145,7 +145,7 @@ column_destroy(struct hayward_column *column) {
     free(column);
 }
 
-void
+static void
 column_begin_destroy(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
     hayward_assert(column_is_alive(column), "Expected live column");
@@ -402,20 +402,6 @@ column_set_active_child(
     }
 
     column_set_dirty(column);
-}
-
-void
-column_for_each_child(
-    struct hayward_column *column,
-    void (*f)(struct hayward_window *window, void *data), void *data
-) {
-    hayward_assert(column != NULL, "Expected column");
-    if (column->pending.children) {
-        for (int i = 0; i < column->pending.children->length; ++i) {
-            struct hayward_window *child = column->pending.children->items[i];
-            f(child, data);
-        }
-    }
 }
 
 void

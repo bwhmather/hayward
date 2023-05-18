@@ -81,9 +81,6 @@ bool
 column_is_alive(struct hayward_column *column);
 
 void
-column_begin_destroy(struct hayward_column *column);
-
-void
 column_consider_destroy(struct hayward_column *container);
 
 void
@@ -134,12 +131,6 @@ column_remove_child(
 void
 column_set_active_child(
     struct hayward_column *column, struct hayward_window *window
-);
-
-void
-column_for_each_child(
-    struct hayward_column *column,
-    void (*f)(struct hayward_window *window, void *data), void *data
 );
 
 /**

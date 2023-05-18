@@ -57,7 +57,7 @@ sig_handler(int signal) {
     hayward_terminate(EXIT_SUCCESS);
 }
 
-void
+static void
 detect_proprietary(int allow_unsupported_gpu) {
     FILE *f = fopen("/proc/modules", "r");
     if (!f) {
@@ -104,7 +104,7 @@ detect_proprietary(int allow_unsupported_gpu) {
     fclose(f);
 }
 
-void
+static void
 run_as_ipc_client(char *command, char *socket_path) {
     int socketfd = ipc_open_socket(socket_path);
     uint32_t len = strlen(command);
@@ -246,7 +246,7 @@ restore_nofile_limit(void) {
     }
 }
 
-void
+static void
 enable_debug_flag(const char *flag) {
     if (strcmp(flag, "damage=highlight") == 0) {
         debug.damage = DAMAGE_HIGHLIGHT;

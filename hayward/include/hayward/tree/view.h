@@ -247,15 +247,6 @@ bool
 view_inhibit_idle(struct hayward_view *view);
 
 /**
- * Whether or not this view's most distant ancestor (possibly itself) is the
- * only visible node in its tree. If the view is tiling, there may be floating
- * views. If the view is floating, there may be tiling views or views in a
- * different floating container.
- */
-bool
-view_ancestor_is_only_visible(struct hayward_view *view);
-
-/**
  * Configure the view's position and size based on the container's position and
  * size, taking borders into consideration.
  */

@@ -74,19 +74,6 @@ get_modifier_mask_by_name(const char *name) {
     return 0;
 }
 
-const char *
-get_modifier_name_by_mask(uint32_t modifier) {
-    int i;
-    for (i = 0; i < (int)(sizeof(modifiers) / sizeof(struct modifier_key));
-         ++i) {
-        if (modifiers[i].mod == modifier) {
-            return modifiers[i].name;
-        }
-    }
-
-    return NULL;
-}
-
 int
 get_modifier_names(const char **names, uint32_t modifier_masks) {
     int length = 0;

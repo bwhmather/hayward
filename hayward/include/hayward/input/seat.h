@@ -243,16 +243,6 @@ seatop_end(struct hayward_seat *seat);
 void
 seatop_unref(struct hayward_seat *seat, struct hayward_window *container);
 
-/**
- * Instructs a seatop to render anything that it needs to render
- * (eg. dropzone for move-tiling)
- */
-void
-seatop_render(
-    struct hayward_seat *seat, struct hayward_output *output,
-    pixman_region32_t *damage
-);
-
 bool
 seatop_allows_set_cursor(struct hayward_seat *seat);
 

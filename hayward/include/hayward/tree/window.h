@@ -196,27 +196,10 @@ bool
 window_is_floating(struct hayward_window *window);
 
 bool
-window_is_current_floating(struct hayward_window *window);
-
-bool
 window_is_fullscreen(struct hayward_window *window);
 
 bool
 window_is_tiling(struct hayward_window *window);
-
-struct wlr_surface *
-window_surface_at(
-    struct hayward_window *window, double lx, double ly, double *sx, double *sy
-);
-
-bool
-window_contains_point(struct hayward_window *window, double lx, double ly);
-
-/**
- * Returns the fullscreen window obstructing this window if it exists.
- */
-struct hayward_window *
-window_obstructing_fullscreen_window(struct hayward_window *window);
 
 /**
  * Return the height of a regular title bar.
@@ -258,8 +241,6 @@ window_floating_move_to_center(struct hayward_window *window);
 
 struct hayward_output *
 window_get_output(struct hayward_window *window);
-struct hayward_output *
-window_get_current_output(struct hayward_window *window);
 
 /**
  * Get a window's box in layout coordinates.
@@ -286,9 +267,6 @@ window_get_siblings(struct hayward_window *window);
 
 int
 window_sibling_index(struct hayward_window *child);
-
-list_t *
-window_get_current_siblings(struct hayward_window *window);
 
 struct hayward_window *
 window_get_previous_sibling(struct hayward_window *window);

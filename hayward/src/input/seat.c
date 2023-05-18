@@ -1201,16 +1201,6 @@ seatop_unref(struct hayward_seat *seat, struct hayward_window *container) {
     }
 }
 
-void
-seatop_render(
-    struct hayward_seat *seat, struct hayward_output *output,
-    pixman_region32_t *damage
-) {
-    if (seat->seatop_impl->render) {
-        seat->seatop_impl->render(seat, output, damage);
-    }
-}
-
 bool
 seatop_allows_set_cursor(struct hayward_seat *seat) {
     return seat->seatop_impl->allow_set_cursor;
