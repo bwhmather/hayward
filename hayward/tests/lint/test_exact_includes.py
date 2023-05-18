@@ -5,7 +5,6 @@ need.
 import itertools
 import pathlib
 import sys
-import traceback
 
 from hayward_lint import (
     INCLUDE_ROOT,
@@ -134,9 +133,7 @@ def test():
 
         if indirect or unused:
             msg = "======================================================================\n"
-            msg += (
-                f"FAIL: test_exact_includes: {source_path.relative_to(PROJECT_ROOT)}\n"
-            )
+            msg += f"FAIL: test_exact_includes: {source_path.relative_to(PROJECT_ROOT)}\n"
             msg += "----------------------------------------------------------------------\n"
 
             msg += "Includes do not match requirements.\n\n"

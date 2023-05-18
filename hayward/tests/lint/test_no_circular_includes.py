@@ -2,8 +2,6 @@ import sys
 
 from hayward_lint import (
     INCLUDE_ROOT,
-    PROJECT_ROOT,
-    assert_not_in,
     derive_include_from_path,
     enumerate_header_paths,
     read_includes_from_path,
@@ -32,9 +30,9 @@ def test():
 
             if root in deps:
                 msg = "======================================================================\n"
-                msg += f"FAIL: test_no_circular_includes\n"
+                msg += "FAIL: test_no_circular_includes\n"
                 msg += "----------------------------------------------------------------------\n"
-                msg += f"The following headers form a cycle:\n"
+                msg += "The following headers form a cycle:\n"
                 for dep in deps:
                     msg += f"  - {dep}\n"
                 msg += "\n"
@@ -45,6 +43,7 @@ def test():
             queue.update(deps.difference(visited))
 
     return True
+
 
 if __name__ == "__main__":
     sys.exit(0 if test() else 1)

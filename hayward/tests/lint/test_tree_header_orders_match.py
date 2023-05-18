@@ -6,7 +6,6 @@ import clang.cindex
 from hayward_lint import (
     INCLUDE_ROOT,
     PROJECT_ROOT,
-    assert_equal,
     enumerate_header_paths,
     read_ast_from_path,
 )
@@ -47,15 +46,18 @@ def test():
         header_a_decls = decls[header_a_path]
         header_b_decls = decls[header_b_path]
 
-        header_a_decls = [name for name in header_a_decls if name in header_b_decls]
-        header_b_decls = [name for name in header_b_decls if name in header_a_decls]
+        header_a_decls = [
+            name for name in header_a_decls if name in header_b_decls
+        ]
+        header_b_decls = [
+            name for name in header_b_decls if name in header_a_decls
+        ]
 
         if header_a_decls != header_b_decls:
             msg = "======================================================================\n"
             msg += f"FAIL: test_tree_header_orders_match: {header_a_path.relative_to(PROJECT_ROOT)} <-> {header_b_path.relative_to(PROJECT_ROOT)}\n"
             msg += "----------------------------------------------------------------------\n"
             msg += f"Order of declarations in {header_a_path.name} does not match {header_b_path.name}:"
-
 
             for diff_line in difflib.ndiff(header_a_decls, header_b_decls):
                 msg += f"  {diff_line}\n"

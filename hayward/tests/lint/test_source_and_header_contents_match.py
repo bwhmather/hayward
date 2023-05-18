@@ -1,12 +1,9 @@
 import itertools
 import sys
-import traceback
 
 import clang.cindex
 from hayward_lint import (
     PROJECT_ROOT,
-    assert_equal,
-    enumerate_header_paths,
     enumerate_source_paths,
     header_path_for_source_path,
     read_ast_from_path,

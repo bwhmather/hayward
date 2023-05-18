@@ -4,7 +4,6 @@ import clang.cindex
 from hayward_lint import (
     INCLUDE_ROOT,
     SOURCE_ROOT,
-    assert_equal,
     enumerate_source_paths,
     read_ast_from_path,
     resolve_clang_path,
@@ -45,23 +44,19 @@ def test():
 
     if header_decls != source_defs:
         msg = "======================================================================\n"
-        msg += f"FAIL: test_commands_and_headers_match\n"
+        msg += "FAIL: test_commands_and_headers_match\n"
         msg += "----------------------------------------------------------------------\n"
 
         msg += "Command source files do not match command header.\n\n"
 
         if header_decls - source_defs:
-            msg += (
-                "The following symbols were declared in commands.h but node defined:\n"
-            )
+            msg += "The following symbols were declared in commands.h but node defined:\n"
             for symbol in header_decls - source_defs:
                 msg += f"  - {symbol}\n"
             msg += "\n"
 
         if source_defs - header_decls:
-            msg += (
-                "The following symbols were exported but not declared in commands.h:\n"
-            )
+            msg += "The following symbols were exported but not declared in commands.h:\n"
             for symbol in source_defs - header_decls:
                 msg += f"  - {symbol}\n"
             msg += "\n"

@@ -2,16 +2,12 @@
 Checks that all source and header files directly import the headers that they
 need.
 """
-import itertools
-import sys
-import re
 import difflib
+import itertools
+import re
+import sys
 
-from hayward_lint import (
-    INCLUDE_ROOT,
-    PROJECT_ROOT,
-    enumerate_header_paths,
-)
+from hayward_lint import INCLUDE_ROOT, PROJECT_ROOT, enumerate_header_paths
 
 
 def test():

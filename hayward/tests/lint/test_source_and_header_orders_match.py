@@ -1,13 +1,10 @@
 import difflib
 import itertools
 import sys
-import traceback
 
 import clang.cindex
 from hayward_lint import (
     PROJECT_ROOT,
-    assert_equal,
-    enumerate_header_paths,
     enumerate_source_paths,
     header_path_for_source_path,
     read_ast_from_path,
@@ -51,8 +48,12 @@ def test():
             == resolve_clang_path(source.spelling)
         ]
 
-        header_decls = [symbol for symbol in header_decls if symbol in source_defs]
-        source_defs = [symbol for symbol in source_defs if symbol in header_decls]
+        header_decls = [
+            symbol for symbol in header_decls if symbol in source_defs
+        ]
+        source_defs = [
+            symbol for symbol in source_defs if symbol in header_decls
+        ]
 
         if header_decls != source_defs:
             msg = "======================================================================\n"
