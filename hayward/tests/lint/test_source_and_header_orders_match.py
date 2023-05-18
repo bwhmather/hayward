@@ -61,6 +61,8 @@ def test():
             msg += f"Order of definitions in {source_path.relative_to(PROJECT_ROOT)} does not match order of declarations in {header_path.relative_to(PROJECT_ROOT)}:\n"
 
             for diff_line in difflib.ndiff(header_decls, source_defs):
+                if diff_line.startswith("?"):
+                    continue
                 msg += f"  {diff_line}\n"
             msg += "\n"
 

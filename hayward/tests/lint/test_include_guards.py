@@ -41,6 +41,8 @@ def test():
             msg += "Header include guards do not match expected:\n"
 
             for diff_line in difflib.ndiff(expected_guard, actual_guard):
+                if diff_line.startswith("?"):
+                    continue
                 msg += f"  {diff_line}"
             msg += "\n"
 
