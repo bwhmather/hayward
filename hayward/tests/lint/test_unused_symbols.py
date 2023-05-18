@@ -33,7 +33,11 @@ def test():
             line[19:].decode() for line in exported_result.stdout.splitlines()
         }
 
-        unused = {symbol for symbol in exported if symbol not in consumed}
+        unused = {
+            symbol
+            for symbol in exported
+            if symbol not in consumed and symbol != "main"
+        }
 
         if unused:
             source_path = source_path_for_object_path(object_path)
