@@ -55,6 +55,11 @@ def enumerate_header_paths():
     yield from sorted(paths)
 
 
+def enumerate_object_paths():
+    paths = [object_path for object_path in BUILD_ROOT.glob("hayward/**/*.o")]
+    yield from sorted(paths)
+
+
 def is_source_path(path, /):
     assert path.is_absolute()
 
@@ -65,6 +70,12 @@ def is_header_path(path, /):
     assert path.is_absolute()
 
     return path.suffix == ".h"
+
+
+def is_object_path(path, /):
+    assert path.is_absolute()
+
+    return path.suffix == ".o"
 
 
 def is_hayward_source_path(path, /):
@@ -86,6 +97,18 @@ def is_hayward_header_path(path, /):
         return False
 
     if not path.is_relative_to(INCLUDE_ROOT):
+        return False
+
+    return True
+
+
+def is_hayward_object_path(path, /):
+    assert path.is_absolute()
+
+    if not is_object_path(path):
+        return False
+
+    if not path.is_relative_to(BUILD_ROOT):
         return False
 
     return True
@@ -121,6 +144,38 @@ def source_path_for_header_path(header_path, /):
         return None
 
     return source_path
+
+
+def object_path_for_source_path(source_path):
+    assert is_source_path(source_path)
+    assert source_path.is_relative_to(SOURCE_ROOT)
+
+    # TODO make this more portable.
+    return (
+        BUILD_ROOT
+        / "hayward"
+        / "hayward.p"
+        / (
+            "src_"
+            + str(source_path.relative_to(SOURCE_ROOT)).replace("/", "_")
+            + ".o"
+        )
+    )
+
+
+@functools.lru_cache(maxsize=None)
+def _object_path_to_source_path_index():
+    return {
+        object_path_for_source_path(source_path): source_path
+        for source_path in enumerate_source_paths()
+    }
+
+
+def source_path_for_object_path(object_path, /):
+    assert is_object_path(object_path)
+    assert object_path.is_relative_to(BUILD_ROOT)
+
+    return _object_path_to_source_path_index()[object_path]
 
 
 def get_args(path, /):
