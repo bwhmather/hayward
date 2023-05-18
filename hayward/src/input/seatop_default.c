@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/input/seat.h"
+
+#include "hayward/input/seatop_default.h"
 
 #include <float.h>
 #include <linux/input-event-codes.h>
@@ -33,6 +34,12 @@
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
+#include <hayward/input/seat.h>
+#include <hayward/input/seatop_down.h>
+#include <hayward/input/seatop_move_floating.h>
+#include <hayward/input/seatop_move_tiling.h>
+#include <hayward/input/seatop_resize_floating.h>
+#include <hayward/input/seatop_resize_tiling.h>
 #include <hayward/input/tablet.h>
 #include <hayward/output.h>
 #include <hayward/server.h>

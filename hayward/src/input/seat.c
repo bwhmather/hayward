@@ -44,6 +44,7 @@
 #include <hayward/input/input-manager.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/libinput.h>
+#include <hayward/input/seatop_default.h>
 #include <hayward/input/switch.h>
 #include <hayward/input/tablet.h>
 #include <hayward/input/text_input.h>

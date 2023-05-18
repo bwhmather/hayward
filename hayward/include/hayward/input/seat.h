@@ -194,48 +194,6 @@ find_resize_edge(
 );
 
 void
-seatop_begin_default(struct hayward_seat *seat);
-
-void
-seatop_begin_down(
-    struct hayward_seat *seat, struct hayward_window *container,
-    uint32_t time_msec, double sx, double sy
-);
-
-void
-seatop_begin_down_on_surface(
-    struct hayward_seat *seat, struct wlr_surface *surface, uint32_t time_msec,
-    double sx, double sy
-);
-
-void
-seatop_begin_move_floating(
-    struct hayward_seat *seat, struct hayward_window *container
-);
-
-void
-seatop_begin_move_tiling_threshold(
-    struct hayward_seat *seat, struct hayward_window *container
-);
-
-void
-seatop_begin_move_tiling(
-    struct hayward_seat *seat, struct hayward_window *container
-);
-
-void
-seatop_begin_resize_floating(
-    struct hayward_seat *seat, struct hayward_window *container,
-    enum wlr_edges edge
-);
-
-void
-seatop_begin_resize_tiling(
-    struct hayward_seat *seat, struct hayward_window *container,
-    enum wlr_edges edge
-);
-
-void
 seat_pointer_notify_button(
     struct hayward_seat *seat, uint32_t time_msec, uint32_t button,
     enum wlr_button_state state

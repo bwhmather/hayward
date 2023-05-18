@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/input/seat.h"
+
+#include "hayward/input/seatop_resize_floating.h"
 
 #include <math.h>
 #include <stdbool.h>
@@ -16,6 +17,9 @@
 #include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
+#include <hayward/input/seat.h>
+#include <hayward/input/seatop_default.h>
+#include <hayward/input/seatop_resize_floating.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
