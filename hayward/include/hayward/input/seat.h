@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_INPUT_SEAT_H
-#define _HAYWARD_INPUT_SEAT_H
+#ifndef HAYWARD_INPUT_SEAT_H
+#define HAYWARD_INPUT_SEAT_H
 
 #include <pixman.h>
 #include <stdbool.h>

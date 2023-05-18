@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_INPUT_TEXT_INPUT_H
-#define _HAYWARD_INPUT_TEXT_INPUT_H
+#ifndef HAYWARD_INPUT_TEXT_INPUT_H
+#define HAYWARD_INPUT_TEXT_INPUT_H
 
 #include <wayland-server-core.h>
 #include <wayland-util.h>

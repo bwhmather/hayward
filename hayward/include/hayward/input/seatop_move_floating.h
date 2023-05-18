@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_INPUT_SEATOP_MOVE_FLOATING_H
-#define _HAYWARD_INPUT_SEATOP_MOVE_FLOATING_H
+#ifndef HAYWARD_INPUT_SEATOP_MOVE_FLOATING_H
+#define HAYWARD_INPUT_SEATOP_MOVE_FLOATING_H
 
 #include <hayward/input/seat.h>
 #include <hayward/tree/window.h>

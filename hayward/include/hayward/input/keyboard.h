@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_INPUT_KEYBOARD_H
-#define _HAYWARD_INPUT_KEYBOARD_H
+#ifndef HAYWARD_INPUT_KEYBOARD_H
+#define HAYWARD_INPUT_KEYBOARD_H
 
 #include <stddef.h>
 #include <stdint.h>

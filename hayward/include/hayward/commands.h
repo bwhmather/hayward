@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_COMMANDS_H
-#define _HAYWARD_COMMANDS_H
+#ifndef HAYWARD_COMMANDS_H
+#define HAYWARD_COMMANDS_H
 
 #include <stddef.h>
 #include <stdint.h>

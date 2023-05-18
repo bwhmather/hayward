@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_TREE_H
-#define _HAYWARD_TREE_H
+#ifndef HAYWARD_TREE_H
+#define HAYWARD_TREE_H
 
 #include <wlr/types/wlr_output_layout.h>
 

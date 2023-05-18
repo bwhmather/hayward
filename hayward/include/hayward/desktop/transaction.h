@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_TRANSACTION_H
-#define _HAYWARD_TRANSACTION_H
+#ifndef HAYWARD_DESKTOP_TRANSACTION_H
+#define HAYWARD_DESKTOP_TRANSACTION_H
 
 #include <wayland-server-core.h>
 

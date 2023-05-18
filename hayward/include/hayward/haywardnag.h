@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_HAYWARDNAG_H
-#define _HAYWARD_HAYWARDNAG_H
+#ifndef HAYWARD_HAYWARDNAG_H
+#define HAYWARD_HAYWARDNAG_H
+
 #include <stdbool.h>
 #include <wayland-server-core.h>
 

@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_INPUT_SWITCH_H
-#define _HAYWARD_INPUT_SWITCH_H
+#ifndef HAYWARD_INPUT_SWITCH_H
+#define HAYWARD_INPUT_SWITCH_H
 
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_switch.h>

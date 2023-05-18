@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_ARRANGE_H
-#define _HAYWARD_ARRANGE_H
+#ifndef HAYWARD_TREE_ARRANGE_H
+#define HAYWARD_TREE_ARRANGE_H
 
 struct hayward_window;
 struct hayward_column;

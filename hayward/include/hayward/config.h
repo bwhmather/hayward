@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_CONFIG_H
-#define _HAYWARD_CONFIG_H
+#ifndef HAYWARD_CONFIG_H
+#define HAYWARD_CONFIG_H
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

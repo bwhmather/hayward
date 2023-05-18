@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_COLUMN_H
-#define _HAYWARD_COLUMN_H
+#ifndef HAYWARD_TREE_COLUMN_H
+#define HAYWARD_TREE_COLUMN_H
 
 #include <stdbool.h>
 #include <stddef.h>

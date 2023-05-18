@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_OUTPUT_H
-#define _HAYWARD_OUTPUT_H
+#ifndef HAYWARD_OUTPUT_H
+#define HAYWARD_OUTPUT_H
+
 #include <pixman.h>
 #include <stdbool.h>
 #include <stddef.h>

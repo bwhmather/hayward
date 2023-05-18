@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_VIEW_H
-#define _HAYWARD_VIEW_H
+#ifndef HAYWARD_TREE_VIEW_H
+#define HAYWARD_TREE_VIEW_H
 
 #include <stdbool.h>
 #include <stdint.h>

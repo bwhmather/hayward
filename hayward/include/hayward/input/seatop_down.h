@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_INPUT_SEATOP_DOWN_H
-#define _HAYWARD_INPUT_SEATOP_DOWN_H
+#ifndef HAYWARD_INPUT_SEATOP_DOWN_H
+#define HAYWARD_INPUT_SEATOP_DOWN_H
 
 #include <stdint.h>
 #include <wlr/types/wlr_compositor.h>

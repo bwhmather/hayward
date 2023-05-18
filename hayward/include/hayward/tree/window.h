@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_WINDOW_H
-#define _HAYWARD_WINDOW_H
+#ifndef HAYWARD_TREE_WINDOW_H
+#define HAYWARD_TREE_WINDOW_H
 
 #include <stdbool.h>
 #include <stddef.h>

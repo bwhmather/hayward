@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_IPC_SERVER_H
-#define _HAYWARD_IPC_SERVER_H
+#ifndef HAYWARD_IPC_SERVER_H
+#define HAYWARD_IPC_SERVER_H
+
 #include <stdbool.h>
 
 struct bar_config;

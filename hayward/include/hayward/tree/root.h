@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_ROOT_H
-#define _HAYWARD_ROOT_H
+#ifndef HAYWARD_TREE_ROOT_H
+#define HAYWARD_TREE_ROOT_H
 
 #include <stdbool.h>
 #include <sys/types.h>

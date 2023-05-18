@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_DESKTOP_IDLE_INHIBIT_V1_H
-#define _HAYWARD_DESKTOP_IDLE_INHIBIT_V1_H
+#ifndef HAYWARD_DESKTOP_IDLE_INHIBIT_V1_H
+#define HAYWARD_DESKTOP_IDLE_INHIBIT_V1_H
+
 #include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>

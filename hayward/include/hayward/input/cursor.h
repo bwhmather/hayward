@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_INPUT_CURSOR_H
-#define _HAYWARD_INPUT_CURSOR_H
+#ifndef HAYWARD_INPUT_CURSOR_H
+#define HAYWARD_INPUT_CURSOR_H
+
 #include <linux/input-event-codes.h>
 #include <pixman.h>
 #include <stdbool.h>

@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_IPC_JSON_H
-#define _HAYWARD_IPC_JSON_H
+#ifndef HAYWARD_IPC_JSON_H
+#define HAYWARD_IPC_JSON_H
+
 #include <json.h>
 
 struct hayward_output;

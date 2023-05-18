@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_INPUT_INPUT_MANAGER_H
-#define _HAYWARD_INPUT_INPUT_MANAGER_H
+#ifndef HAYWARD_INPUT_INPUT_MANAGER_H
+#define HAYWARD_INPUT_INPUT_MANAGER_H
 
 #include <stdbool.h>
 #include <wayland-server-core.h>

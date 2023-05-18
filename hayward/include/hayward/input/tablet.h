@@ -1,5 +1,6 @@
-#ifndef _HAYWARD_INPUT_TABLET_H
-#define _HAYWARD_INPUT_TABLET_H
+#ifndef HAYWARD_INPUT_TABLET_H
+#define HAYWARD_INPUT_TABLET_H
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_compositor.h>

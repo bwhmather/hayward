@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_WORKSPACE_H
-#define _HAYWARD_WORKSPACE_H
+#ifndef HAYWARD_TREE_WORKSPACE_H
+#define HAYWARD_TREE_WORKSPACE_H
 
 #include <stdbool.h>
 #include <stddef.h>
