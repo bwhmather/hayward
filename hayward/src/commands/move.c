@@ -39,6 +39,22 @@ static const char expected_syntax[] =
     "'move <window> [to] workspace <name>' or "
     "'move <window|workspace> [to] output <name|direction>'";
 
+static enum wlr_direction
+opposite_direction(enum wlr_direction d) {
+    switch (d) {
+    case WLR_DIRECTION_UP:
+        return WLR_DIRECTION_DOWN;
+    case WLR_DIRECTION_DOWN:
+        return WLR_DIRECTION_UP;
+    case WLR_DIRECTION_RIGHT:
+        return WLR_DIRECTION_LEFT;
+    case WLR_DIRECTION_LEFT:
+        return WLR_DIRECTION_RIGHT;
+    }
+    hayward_assert(false, "Unknown direction");
+    return 0;
+}
+
 static struct hayward_output *
 output_in_direction(
     const char *direction_string, struct hayward_output *reference, int ref_lx,

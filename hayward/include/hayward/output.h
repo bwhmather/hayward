@@ -135,9 +135,6 @@ output_get_box(struct hayward_output *output, struct wlr_box *box);
 void
 output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
 
-enum wlr_direction
-opposite_direction(enum wlr_direction d);
-
 void
 handle_output_layout_change(struct wl_listener *listener, void *data);
 
