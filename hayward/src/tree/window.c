@@ -484,7 +484,6 @@ window_is_floating(struct hayward_window *window) {
     return false;
 }
 
-
 bool
 window_is_fullscreen(struct hayward_window *window) {
     return window->pending.fullscreen;
