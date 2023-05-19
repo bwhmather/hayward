@@ -101,8 +101,17 @@ output_create(struct wlr_output *wlr_output);
 bool
 output_is_alive(struct hayward_output *output);
 
+void
+output_enable(struct hayward_output *output);
+
+void
+output_disable(struct hayward_output *output);
+
 struct hayward_output *
 output_from_wlr_output(struct wlr_output *output);
+
+void
+output_reconcile(struct hayward_output *output);
 
 struct hayward_output *
 output_get_in_direction(
@@ -110,7 +119,9 @@ output_get_in_direction(
 );
 
 void
-output_reconcile(struct hayward_output *output);
+output_get_box(struct hayward_output *output, struct wlr_box *box);
+void
+output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
 
 typedef void (*hayward_surface_iterator_func_t
 )(struct hayward_output *output, struct hayward_view *view,
@@ -123,17 +134,6 @@ output_by_name_or_id(const char *name_or_id);
 // this includes all the outputs, including disabled ones
 struct hayward_output *
 all_output_by_name_or_id(const char *name_or_id);
-
-void
-output_enable(struct hayward_output *output);
-
-void
-output_disable(struct hayward_output *output);
-
-void
-output_get_box(struct hayward_output *output, struct wlr_box *box);
-void
-output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
 
 void
 handle_output_layout_change(struct wl_listener *listener, void *data);
