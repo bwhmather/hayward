@@ -20,13 +20,13 @@ json_object *
 ipc_json_get_binding_mode(void);
 
 json_object *
-ipc_json_describe_disabled_output(struct hayward_output *o);
-json_object *
 ipc_json_describe_window(struct hayward_window *window);
 json_object *
-ipc_json_describe_workspace(struct hayward_workspace *workspace);
-json_object *
 ipc_json_describe_output(struct hayward_output *output);
+json_object *
+ipc_json_describe_disabled_output(struct hayward_output *o);
+json_object *
+ipc_json_describe_workspace(struct hayward_workspace *workspace);
 json_object *
 ipc_json_describe_root(struct hayward_root *root);
 json_object *

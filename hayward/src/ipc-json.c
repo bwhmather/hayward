@@ -257,211 +257,6 @@ ipc_json_create_node(
     return object;
 }
 
-json_object *
-ipc_json_describe_output(struct hayward_output *output) {
-    char *name = output->wlr_output->name;
-
-    struct wlr_box box;
-    output_get_box(output, &box);
-
-    json_object *object =
-        ipc_json_create_node(output->id, "output", name, &box);
-
-    struct wlr_output *wlr_output = output->wlr_output;
-    json_object_object_add(object, "active", json_object_new_boolean(true));
-    json_object_object_add(
-        object, "dpms", json_object_new_boolean(wlr_output->enabled)
-    );
-    bool focused = root_get_active_output(root) == output;
-    json_object_object_add(object, "focused", json_object_new_boolean(focused));
-    json_object_object_add(object, "primary", json_object_new_boolean(false));
-    json_object_object_add(object, "layout", json_object_new_string("output"));
-    json_object_object_add(
-        object, "make", json_object_new_string(wlr_output->make)
-    );
-    json_object_object_add(
-        object, "model", json_object_new_string(wlr_output->model)
-    );
-    json_object_object_add(
-        object, "serial", json_object_new_string(wlr_output->serial)
-    );
-    json_object_object_add(
-        object, "scale", json_object_new_double(wlr_output->scale)
-    );
-    json_object_object_add(
-        object, "scale_filter",
-        json_object_new_string(
-            hayward_output_scale_filter_to_string(output->scale_filter)
-        )
-    );
-    json_object_object_add(
-        object, "transform",
-        json_object_new_string(
-            ipc_json_output_transform_description(wlr_output->transform)
-        )
-    );
-    const char *adaptive_sync_status =
-        ipc_json_output_adaptive_sync_status_description(
-            wlr_output->adaptive_sync_status
-        );
-    json_object_object_add(
-        object, "adaptive_sync_status",
-        json_object_new_string(adaptive_sync_status)
-    );
-
-    struct hayward_workspace *workspace = root_get_active_workspace(root);
-    hayward_assert(workspace, "Expected output to have a workspace");
-
-    json_object_object_add(
-        object, "current_workspace", json_object_new_string(workspace->name)
-    );
-
-    json_object *modes_array = json_object_new_array();
-    struct wlr_output_mode *mode;
-    wl_list_for_each(mode, &wlr_output->modes, link) {
-        json_object *mode_object = json_object_new_object();
-        json_object_object_add(
-            mode_object, "width", json_object_new_int(mode->width)
-        );
-        json_object_object_add(
-            mode_object, "height", json_object_new_int(mode->height)
-        );
-        json_object_object_add(
-            mode_object, "refresh", json_object_new_int(mode->refresh)
-        );
-        json_object_array_add(modes_array, mode_object);
-    }
-
-    json_object_object_add(object, "modes", modes_array);
-
-    json_object *current_mode_object = json_object_new_object();
-    json_object_object_add(
-        current_mode_object, "width", json_object_new_int(wlr_output->width)
-    );
-    json_object_object_add(
-        current_mode_object, "height", json_object_new_int(wlr_output->height)
-    );
-    json_object_object_add(
-        current_mode_object, "refresh", json_object_new_int(wlr_output->refresh)
-    );
-    json_object_object_add(object, "current_mode", current_mode_object);
-
-    json_object_object_add(
-        object, "max_render_time", json_object_new_int(output->max_render_time)
-    );
-
-    return object;
-}
-
-json_object *
-ipc_json_describe_disabled_output(struct hayward_output *output) {
-    struct wlr_output *wlr_output = output->wlr_output;
-
-    json_object *object = json_object_new_object();
-
-    json_object_object_add(object, "focused", json_object_new_boolean(false));
-    json_object_object_add(object, "type", json_object_new_string("output"));
-    json_object_object_add(
-        object, "name", json_object_new_string(wlr_output->name)
-    );
-    json_object_object_add(object, "active", json_object_new_boolean(false));
-    json_object_object_add(object, "dpms", json_object_new_boolean(false));
-    json_object_object_add(object, "primary", json_object_new_boolean(false));
-    json_object_object_add(
-        object, "make", json_object_new_string(wlr_output->make)
-    );
-    json_object_object_add(
-        object, "model", json_object_new_string(wlr_output->model)
-    );
-    json_object_object_add(
-        object, "serial", json_object_new_string(wlr_output->serial)
-    );
-
-    json_object *modes_array = json_object_new_array();
-    struct wlr_output_mode *mode;
-    wl_list_for_each(mode, &wlr_output->modes, link) {
-        json_object *mode_object = json_object_new_object();
-        json_object_object_add(
-            mode_object, "width", json_object_new_int(mode->width)
-        );
-        json_object_object_add(
-            mode_object, "height", json_object_new_int(mode->height)
-        );
-        json_object_object_add(
-            mode_object, "refresh", json_object_new_int(mode->refresh)
-        );
-        json_object_array_add(modes_array, mode_object);
-    }
-
-    json_object_object_add(object, "modes", modes_array);
-
-    json_object_object_add(object, "current_workspace", NULL);
-
-    json_object *rect_object = json_object_new_object();
-    json_object_object_add(rect_object, "x", json_object_new_int(0));
-    json_object_object_add(rect_object, "y", json_object_new_int(0));
-    json_object_object_add(rect_object, "width", json_object_new_int(0));
-    json_object_object_add(rect_object, "height", json_object_new_int(0));
-    json_object_object_add(object, "rect", rect_object);
-
-    json_object_object_add(object, "percent", NULL);
-
-    return object;
-}
-
-json_object *
-ipc_json_describe_workspace(struct hayward_workspace *workspace) {
-    char *name = workspace->name;
-
-    struct wlr_box box;
-    workspace_get_box(workspace, &box);
-
-    json_object *object =
-        ipc_json_create_node(workspace->id, "workspace", name, &box);
-
-    int num;
-    if (isdigit(workspace->name[0])) {
-        errno = 0;
-        char *endptr = NULL;
-        long long parsed_num = strtoll(workspace->name, &endptr, 10);
-        if (errno != 0 || parsed_num > INT32_MAX || parsed_num < 0 ||
-            endptr == workspace->name) {
-            num = -1;
-        } else {
-            num = (int)parsed_num;
-        }
-    } else {
-        num = -1;
-    }
-    json_object_object_add(object, "num", json_object_new_int(num));
-    json_object_object_add(
-        object, "focused", json_object_new_boolean(workspace->pending.focused)
-    );
-    json_object_object_add(object, "fullscreen_mode", json_object_new_int(1));
-    json_object_object_add(
-        object, "urgent", json_object_new_boolean(workspace->urgent)
-    );
-
-    // Floating
-    json_object *floating_array = json_object_new_array();
-    for (int i = 0; i < workspace->pending.floating->length; ++i) {
-        struct hayward_window *floater = workspace->pending.floating->items[i];
-        json_object_array_add(
-            floating_array, ipc_json_describe_window(floater)
-        );
-    }
-    json_object_object_add(object, "floating_nodes", floating_array);
-
-    json_object *children = json_object_new_array();
-    for (int i = 0; i < workspace->pending.tiling->length; ++i) {
-        struct hayward_column *column = workspace->pending.tiling->items[i];
-        json_object_array_add(children, ipc_json_describe_column(column));
-    }
-    json_object_object_add(object, "nodes", children);
-
-    return object;
-}
-
 static void
 window_get_deco_rect(struct hayward_window *window, struct wlr_box *deco_rect) {
     if (window->current.border != B_NORMAL || window->pending.fullscreen ||
@@ -748,6 +543,211 @@ ipc_json_describe_window(struct hayward_window *window) {
     );
 
     ipc_json_describe_view(window, object);
+
+    return object;
+}
+
+json_object *
+ipc_json_describe_output(struct hayward_output *output) {
+    char *name = output->wlr_output->name;
+
+    struct wlr_box box;
+    output_get_box(output, &box);
+
+    json_object *object =
+        ipc_json_create_node(output->id, "output", name, &box);
+
+    struct wlr_output *wlr_output = output->wlr_output;
+    json_object_object_add(object, "active", json_object_new_boolean(true));
+    json_object_object_add(
+        object, "dpms", json_object_new_boolean(wlr_output->enabled)
+    );
+    bool focused = root_get_active_output(root) == output;
+    json_object_object_add(object, "focused", json_object_new_boolean(focused));
+    json_object_object_add(object, "primary", json_object_new_boolean(false));
+    json_object_object_add(object, "layout", json_object_new_string("output"));
+    json_object_object_add(
+        object, "make", json_object_new_string(wlr_output->make)
+    );
+    json_object_object_add(
+        object, "model", json_object_new_string(wlr_output->model)
+    );
+    json_object_object_add(
+        object, "serial", json_object_new_string(wlr_output->serial)
+    );
+    json_object_object_add(
+        object, "scale", json_object_new_double(wlr_output->scale)
+    );
+    json_object_object_add(
+        object, "scale_filter",
+        json_object_new_string(
+            hayward_output_scale_filter_to_string(output->scale_filter)
+        )
+    );
+    json_object_object_add(
+        object, "transform",
+        json_object_new_string(
+            ipc_json_output_transform_description(wlr_output->transform)
+        )
+    );
+    const char *adaptive_sync_status =
+        ipc_json_output_adaptive_sync_status_description(
+            wlr_output->adaptive_sync_status
+        );
+    json_object_object_add(
+        object, "adaptive_sync_status",
+        json_object_new_string(adaptive_sync_status)
+    );
+
+    struct hayward_workspace *workspace = root_get_active_workspace(root);
+    hayward_assert(workspace, "Expected output to have a workspace");
+
+    json_object_object_add(
+        object, "current_workspace", json_object_new_string(workspace->name)
+    );
+
+    json_object *modes_array = json_object_new_array();
+    struct wlr_output_mode *mode;
+    wl_list_for_each(mode, &wlr_output->modes, link) {
+        json_object *mode_object = json_object_new_object();
+        json_object_object_add(
+            mode_object, "width", json_object_new_int(mode->width)
+        );
+        json_object_object_add(
+            mode_object, "height", json_object_new_int(mode->height)
+        );
+        json_object_object_add(
+            mode_object, "refresh", json_object_new_int(mode->refresh)
+        );
+        json_object_array_add(modes_array, mode_object);
+    }
+
+    json_object_object_add(object, "modes", modes_array);
+
+    json_object *current_mode_object = json_object_new_object();
+    json_object_object_add(
+        current_mode_object, "width", json_object_new_int(wlr_output->width)
+    );
+    json_object_object_add(
+        current_mode_object, "height", json_object_new_int(wlr_output->height)
+    );
+    json_object_object_add(
+        current_mode_object, "refresh", json_object_new_int(wlr_output->refresh)
+    );
+    json_object_object_add(object, "current_mode", current_mode_object);
+
+    json_object_object_add(
+        object, "max_render_time", json_object_new_int(output->max_render_time)
+    );
+
+    return object;
+}
+
+json_object *
+ipc_json_describe_disabled_output(struct hayward_output *output) {
+    struct wlr_output *wlr_output = output->wlr_output;
+
+    json_object *object = json_object_new_object();
+
+    json_object_object_add(object, "focused", json_object_new_boolean(false));
+    json_object_object_add(object, "type", json_object_new_string("output"));
+    json_object_object_add(
+        object, "name", json_object_new_string(wlr_output->name)
+    );
+    json_object_object_add(object, "active", json_object_new_boolean(false));
+    json_object_object_add(object, "dpms", json_object_new_boolean(false));
+    json_object_object_add(object, "primary", json_object_new_boolean(false));
+    json_object_object_add(
+        object, "make", json_object_new_string(wlr_output->make)
+    );
+    json_object_object_add(
+        object, "model", json_object_new_string(wlr_output->model)
+    );
+    json_object_object_add(
+        object, "serial", json_object_new_string(wlr_output->serial)
+    );
+
+    json_object *modes_array = json_object_new_array();
+    struct wlr_output_mode *mode;
+    wl_list_for_each(mode, &wlr_output->modes, link) {
+        json_object *mode_object = json_object_new_object();
+        json_object_object_add(
+            mode_object, "width", json_object_new_int(mode->width)
+        );
+        json_object_object_add(
+            mode_object, "height", json_object_new_int(mode->height)
+        );
+        json_object_object_add(
+            mode_object, "refresh", json_object_new_int(mode->refresh)
+        );
+        json_object_array_add(modes_array, mode_object);
+    }
+
+    json_object_object_add(object, "modes", modes_array);
+
+    json_object_object_add(object, "current_workspace", NULL);
+
+    json_object *rect_object = json_object_new_object();
+    json_object_object_add(rect_object, "x", json_object_new_int(0));
+    json_object_object_add(rect_object, "y", json_object_new_int(0));
+    json_object_object_add(rect_object, "width", json_object_new_int(0));
+    json_object_object_add(rect_object, "height", json_object_new_int(0));
+    json_object_object_add(object, "rect", rect_object);
+
+    json_object_object_add(object, "percent", NULL);
+
+    return object;
+}
+
+json_object *
+ipc_json_describe_workspace(struct hayward_workspace *workspace) {
+    char *name = workspace->name;
+
+    struct wlr_box box;
+    workspace_get_box(workspace, &box);
+
+    json_object *object =
+        ipc_json_create_node(workspace->id, "workspace", name, &box);
+
+    int num;
+    if (isdigit(workspace->name[0])) {
+        errno = 0;
+        char *endptr = NULL;
+        long long parsed_num = strtoll(workspace->name, &endptr, 10);
+        if (errno != 0 || parsed_num > INT32_MAX || parsed_num < 0 ||
+            endptr == workspace->name) {
+            num = -1;
+        } else {
+            num = (int)parsed_num;
+        }
+    } else {
+        num = -1;
+    }
+    json_object_object_add(object, "num", json_object_new_int(num));
+    json_object_object_add(
+        object, "focused", json_object_new_boolean(workspace->pending.focused)
+    );
+    json_object_object_add(object, "fullscreen_mode", json_object_new_int(1));
+    json_object_object_add(
+        object, "urgent", json_object_new_boolean(workspace->urgent)
+    );
+
+    // Floating
+    json_object *floating_array = json_object_new_array();
+    for (int i = 0; i < workspace->pending.floating->length; ++i) {
+        struct hayward_window *floater = workspace->pending.floating->items[i];
+        json_object_array_add(
+            floating_array, ipc_json_describe_window(floater)
+        );
+    }
+    json_object_object_add(object, "floating_nodes", floating_array);
+
+    json_object *children = json_object_new_array();
+    for (int i = 0; i < workspace->pending.tiling->length; ++i) {
+        struct hayward_column *column = workspace->pending.tiling->items[i];
+        json_object_array_add(children, ipc_json_describe_column(column));
+    }
+    json_object_object_add(object, "nodes", children);
 
     return object;
 }
