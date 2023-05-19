@@ -1,9 +1,9 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
 #include "hayward/input/seat.h"
 
 #include <assert.h>
-#include <pixman.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>

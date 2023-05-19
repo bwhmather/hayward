@@ -1,5 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
+#include "hayward/tree/arrange.h"
+
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -357,7 +360,7 @@ arrange_output(struct hayward_output *output) {
 }
 
 void
-arrange_root(void) {
+arrange_root(struct hayward_root *root) {
     if (config->reloading) {
         return;
     }
