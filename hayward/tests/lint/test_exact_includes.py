@@ -96,10 +96,6 @@ def test():
             INCLUDE_ROOT
         ) == pathlib.Path("input/cursor.h"):
             unused.discard("linux/input-event-codes.h")
-        if source_path.is_relative_to(SOURCE_ROOT):
-            header_path = header_path_for_source_path(source_path)
-            if header_path is not None:
-                unused.discard(derive_include_from_path(header_path))
 
         indirect = dict()
 
@@ -131,12 +127,26 @@ def test():
 
             indirect.setdefault(ref_include, set()).add(ref.spelling)
 
-        if indirect or unused:
+        missing_primary = None
+        if source_path.is_relative_to(SOURCE_ROOT):
+            header_path = header_path_for_source_path(source_path)
+            if header_path is not None:
+                ref_include = derive_include_from_path(header_path)
+                unused.discard(ref_include)
+                if ref_include not in includes:
+                    missing_primary = ref_include
+
+        if indirect or unused or missing_primary:
             msg = "======================================================================\n"
             msg += f"FAIL: test_exact_includes: {source_path.relative_to(PROJECT_ROOT)}\n"
             msg += "----------------------------------------------------------------------\n"
 
             msg += "Includes do not match requirements.\n\n"
+
+            if missing_primary:
+                msg += "The following primary include was missing:\n"
+                msg += f"  - {missing_primary}\n"
+                msg += "\n"
 
             if indirect:
                 msg += "The following files were depended on indirectly:\n"
