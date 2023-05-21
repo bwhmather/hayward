@@ -49,9 +49,15 @@ static const char *atom_map[ATOM_LAST] = {
     [NET_WM_STATE_MODAL] = "_NET_WM_STATE_MODAL",
 };
 
+static void
+surface_scene_marker_destroy(struct wlr_addon *addon) {
+    // Intentionally left blank.
+}
+
 static const struct wlr_addon_interface
     unmanaged_surface_scene_marker_interface = {
-        .name = "hayward_xwayland_unmanaged", .destroy = NULL};
+        .name = "hayward_xwayland_unmanaged",
+        .destroy = surface_scene_marker_destroy};
 
 static void
 unmanaged_handle_request_configure(struct wl_listener *listener, void *data) {

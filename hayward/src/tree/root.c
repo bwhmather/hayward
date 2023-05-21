@@ -532,7 +532,7 @@ root_commit_focus(struct hayward_root *root) {
         return;
     }
 
-    if (old_window && new_window != old_window) {
+    if (old_window && window_is_alive(old_window) && new_window != old_window) {
         view_close_popups(old_window->view);
         view_set_activated(old_window->view, false);
 

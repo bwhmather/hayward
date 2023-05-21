@@ -1104,9 +1104,9 @@ handle_image_surface_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void
-handle_transaction_apply(struct wl_listener *listener, void *data) {
+handle_transaction_after_apply(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor =
-        wl_container_of(listener, cursor, transaction_apply);
+        wl_container_of(listener, cursor, transaction_after_apply);
     cursor_rebase(cursor);
 }
 
@@ -1200,7 +1200,7 @@ hayward_cursor_destroy(struct hayward_cursor *cursor) {
     wl_list_remove(&cursor->tool_tip.link);
     wl_list_remove(&cursor->tool_button.link);
     wl_list_remove(&cursor->request_set_cursor.link);
-    wl_list_remove(&cursor->transaction_apply.link);
+    wl_list_remove(&cursor->transaction_after_apply.link);
 
     wlr_xcursor_manager_destroy(cursor->xcursor_manager);
     wlr_cursor_destroy(cursor->cursor);
@@ -1292,8 +1292,8 @@ hayward_cursor_create(struct hayward_seat *seat) {
     );
     cursor->request_set_cursor.notify = handle_request_pointer_set_cursor;
 
-    cursor->transaction_apply.notify = handle_transaction_apply;
-    transaction_add_apply_listener(&cursor->transaction_apply);
+    cursor->transaction_after_apply.notify = handle_transaction_after_apply;
+    transaction_add_apply_listener(&cursor->transaction_after_apply);
 
     wl_list_init(&cursor->constraint_commit.link);
     wl_list_init(&cursor->tablets);

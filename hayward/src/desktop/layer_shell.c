@@ -31,8 +31,13 @@
 
 #include <config.h>
 
+static void
+surface_scene_marker_destroy(struct wlr_addon *addon) {
+    // Intentionally left blank.
+}
+
 static const struct wlr_addon_interface scene_tree_marker_interface = {
-    .name = "hayward_layer_surface", .destroy = NULL};
+    .name = "hayward_layer_surface", .destroy = surface_scene_marker_destroy};
 
 struct hayward_layer_surface *
 layer_surface_for_scene_node(struct wlr_scene_node *node);

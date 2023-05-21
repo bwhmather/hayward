@@ -80,7 +80,7 @@ struct hayward_cursor {
 
     struct wl_listener constraint_commit;
 
-    struct wl_listener transaction_apply;
+    struct wl_listener transaction_after_apply;
 
     struct wl_event_source *hide_source;
     bool hidden;

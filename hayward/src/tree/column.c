@@ -71,7 +71,8 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
     wlr_scene_node_reparent(&column->scene_tree->node, parent);
     wlr_scene_node_set_position(&column->scene_tree->node, x, y);
 
-    if (column->current.dead) {
+    if (column->committed.dead) {
+        wlr_scene_node_set_enabled(&column->scene_tree->node, false);
         transaction_add_after_apply_listener(&column->transaction_after_apply);
     }
 
@@ -189,8 +190,10 @@ column_set_dirty(struct hayward_column *column) {
     transaction_ensure_queued();
 
     for (int i = 0; i < column->committed.children->length; i++) {
-        struct hayward_window *child = column->pending.children->items[i];
-        window_set_dirty(child);
+        struct hayward_window *child = column->committed.children->items[i];
+        if (window_is_alive(child)) {
+            window_set_dirty(child);
+        }
     }
 
     for (int i = 0; i < column->pending.children->length; i++) {
@@ -370,9 +373,6 @@ column_remove_child(
     }
 
     window_reconcile_detached(child);
-
-    column_set_dirty(column);
-    window_set_dirty(child);
 }
 
 void
