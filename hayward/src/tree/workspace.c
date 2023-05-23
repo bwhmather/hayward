@@ -55,11 +55,7 @@ workspace_init_scene(struct hayward_workspace *workspace) {
 }
 
 static void
-workspace_update_scene(struct hayward_workspace *workspace) {
-    wlr_scene_node_set_enabled(
-        &workspace->scene_tree->node, workspace->current.focused
-    );
-
+workspace_update_layer_tiling(struct hayward_workspace *workspace) {
     struct wl_list *link = &workspace->layers.tiling->children;
 
     if (workspace->committed.tiling->length) {
@@ -103,6 +99,63 @@ workspace_update_scene(struct hayward_workspace *workspace) {
             wlr_scene_node_reparent(node, root->orphans); // TODO
         }
     }
+}
+
+static void
+workspace_update_layer_floating(struct hayward_workspace *workspace) {
+    struct wl_list *link = &workspace->layers.floating->children;
+
+    if (workspace->committed.floating->length) {
+        // Anchor top most window at top of stack.
+        list_t *windows = workspace->committed.floating;
+        int window_index = windows->length - 1;
+
+        struct hayward_window *window = windows->items[window_index];
+        wlr_scene_node_reparent(
+            &window->scene_tree->node, workspace->layers.floating
+        );
+        wlr_scene_node_raise_to_top(&window->scene_tree->node);
+
+        struct hayward_window *prev_window = window;
+
+        // Move subsequent windows immediately below it.
+        while (window_index > 0) {
+            window_index--;
+
+            window = windows->items[window_index];
+            wlr_scene_node_reparent(
+                &window->scene_tree->node, workspace->layers.floating
+            );
+            wlr_scene_node_place_above(
+                &window->scene_tree->node, &prev_window->scene_tree->node
+            );
+
+            prev_window = window;
+        }
+
+        link = &prev_window->scene_tree->node.link;
+    }
+
+    // Iterate over any nodes that haven't been moved to the top as a result
+    // of belonging to a child and unparent them.
+    link = link->prev;
+    while (link != &workspace->layers.floating->children) {
+        struct wlr_scene_node *node = wl_container_of(link, node, link);
+        link = link->prev;
+        if (node->parent == workspace->layers.floating) {
+            wlr_scene_node_reparent(node, root->orphans); // TODO
+        }
+    }
+}
+
+static void
+workspace_update_scene(struct hayward_workspace *workspace) {
+    wlr_scene_node_set_enabled(
+        &workspace->scene_tree->node, workspace->current.focused
+    );
+
+    workspace_update_layer_tiling(workspace);
+    workspace_update_layer_floating(workspace);
 }
 
 static void
