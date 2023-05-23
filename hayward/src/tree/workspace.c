@@ -40,6 +40,77 @@ workspace_find_window(
 );
 
 static void
+workspace_init_scene(struct hayward_workspace *workspace) {
+    workspace->scene_tree = wlr_scene_tree_create(root->orphans);
+    hayward_assert(workspace->scene_tree != NULL, "Allocation failed");
+
+    workspace->layers.tiling = wlr_scene_tree_create(workspace->scene_tree);
+    hayward_assert(workspace->layers.tiling != NULL, "Allocation failed");
+
+    workspace->layers.floating = wlr_scene_tree_create(workspace->scene_tree);
+    hayward_assert(workspace->layers.floating != NULL, "Allocation failed");
+
+    workspace->layers.fullscreen = wlr_scene_tree_create(workspace->scene_tree);
+    hayward_assert(workspace->layers.fullscreen != NULL, "Allocation failed");
+}
+
+static void
+workspace_update_scene(struct hayward_workspace *workspace) {
+    wlr_scene_node_set_enabled(
+        &workspace->scene_tree->node, workspace->current.focused
+    );
+
+    struct wl_list *link = &workspace->layers.tiling->children;
+
+    if (workspace->committed.tiling->length) {
+        // Anchor top most column at top of stack.
+        list_t *columns = workspace->committed.tiling;
+        int column_index = columns->length - 1;
+
+        struct hayward_column *column = columns->items[column_index];
+        wlr_scene_node_reparent(
+            &column->scene_tree->node, workspace->layers.tiling
+        );
+        wlr_scene_node_raise_to_top(&column->scene_tree->node);
+
+        struct hayward_column *prev_column = column;
+
+        // Move subsequent columns immediately below it.
+        while (column_index > 0) {
+            column_index--;
+
+            column = columns->items[column_index];
+            wlr_scene_node_reparent(
+                &column->scene_tree->node, workspace->layers.tiling
+            );
+            wlr_scene_node_place_above(
+                &column->scene_tree->node, &prev_column->scene_tree->node
+            );
+
+            prev_column = column;
+        }
+
+        link = &prev_column->scene_tree->node.link;
+    }
+
+    // Iterate over any nodes that haven't been moved to the top as a result
+    // of belonging to a child and unparent them.
+    link = link->prev;
+    while (link != &workspace->layers.tiling->children) {
+        struct wlr_scene_node *node = wl_container_of(link, node, link);
+        link = link->prev;
+        if (node->parent == workspace->layers.tiling) {
+            wlr_scene_node_reparent(node, root->orphans); // TODO
+        }
+    }
+}
+
+static void
+workspace_destroy_scene(struct hayward_workspace *workspace) {
+    wlr_scene_node_destroy(&workspace->scene_tree->node);
+}
+
+static void
 workspace_copy_state(
     struct hayward_workspace_state *tgt, struct hayward_workspace_state *src
 ) {
@@ -82,9 +153,8 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
         parent = workspace->committed.root->layers.workspaces;
     }
     wlr_scene_node_reparent(&workspace->scene_tree->node, parent);
-    wlr_scene_node_set_enabled(
-        &workspace->scene_tree->node, workspace->current.focused
-    );
+
+    workspace_update_scene(workspace);
 
     if (workspace->committed.dead) {
         wlr_scene_node_set_enabled(&workspace->scene_tree->node, false);
@@ -172,17 +242,7 @@ workspace_create(const char *name) {
         }
     }
 
-    workspace->scene_tree = wlr_scene_tree_create(root->orphans);
-    hayward_assert(workspace->scene_tree != NULL, "Allocation failed");
-
-    workspace->layers.tiling = wlr_scene_tree_create(workspace->scene_tree);
-    hayward_assert(workspace->layers.tiling != NULL, "Allocation failed");
-
-    workspace->layers.floating = wlr_scene_tree_create(workspace->scene_tree);
-    hayward_assert(workspace->layers.floating != NULL, "Allocation failed");
-
-    workspace->layers.fullscreen = wlr_scene_tree_create(workspace->scene_tree);
-    hayward_assert(workspace->layers.fullscreen != NULL, "Allocation failed");
+    workspace_init_scene(workspace);
 
     ipc_event_workspace(NULL, workspace, "init");
 
@@ -207,10 +267,7 @@ workspace_destroy(struct hayward_workspace *workspace) {
         "Tried to free workspace which is queued for the next transaction"
     );
 
-    wlr_scene_node_destroy(&workspace->layers.fullscreen->node);
-    wlr_scene_node_destroy(&workspace->layers.floating->node);
-    wlr_scene_node_destroy(&workspace->layers.tiling->node);
-    wlr_scene_node_destroy(&workspace->scene_tree->node);
+    workspace_destroy_scene(workspace);
 
     free(workspace->name);
     list_free(workspace->pending.floating);

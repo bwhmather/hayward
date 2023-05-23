@@ -27,6 +27,7 @@
 static void
 column_init_scene(struct hayward_column *column) {
     column->scene_tree = wlr_scene_tree_create(root->orphans);
+    hayward_assert(column->scene_tree != NULL, "Allocation failed");
 }
 
 static void
@@ -125,16 +126,9 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
-    struct wlr_scene_tree *parent = root->orphans; // TODO
-    if (column->committed.workspace != NULL) {
-        parent = column->committed.workspace->layers.tiling;
-    }
-    wlr_scene_node_reparent(&column->scene_tree->node, parent);
-
     column_update_scene(column);
 
     if (column->committed.dead) {
-        wlr_scene_node_set_enabled(&column->scene_tree->node, false);
         transaction_add_after_apply_listener(&column->transaction_after_apply);
     }
 
