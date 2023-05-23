@@ -25,6 +25,71 @@
 #include <config.h>
 
 static void
+column_init_scene(struct hayward_column *column) {
+    column->scene_tree = wlr_scene_tree_create(root->orphans);
+}
+
+static void
+column_update_scene(struct hayward_column *column) {
+    double x = column->committed.x;
+    double y = column->committed.y;
+
+    wlr_scene_node_set_position(&column->scene_tree->node, x, y);
+
+    struct wl_list *link = &column->scene_tree->children;
+
+    if (column->committed.children->length) {
+        // Anchor top most child at top of stack.
+        list_t *children = column->committed.children;
+        int child_index = children->length - 1;
+
+        struct hayward_window *child = children->items[child_index];
+        wlr_scene_node_reparent(&child->scene_tree->node, column->scene_tree);
+        wlr_scene_node_raise_to_top(&child->scene_tree->node);
+
+        struct hayward_window *prev_child = child;
+
+        // Move subsequent children immediately below it.
+        while (child_index > 0) {
+            child_index--;
+
+            child = children->items[child_index];
+            wlr_scene_node_reparent(
+                &child->scene_tree->node, column->scene_tree
+            );
+            wlr_scene_node_place_above(
+                &child->scene_tree->node, &prev_child->scene_tree->node
+            );
+
+            prev_child = child;
+        }
+
+        link = &prev_child->scene_tree->node.link;
+    }
+
+    // Iterate over any nodes that haven't been moved to the top as a result
+    // of belonging to a child and unparent them.
+    link = link->prev;
+    while (link != &column->scene_tree->children) {
+        struct wlr_scene_node *node = wl_container_of(link, node, link);
+        link = link->prev;
+        if (node->parent == column->scene_tree) {
+            wlr_scene_node_reparent(node, root->orphans); // TODO
+        }
+    }
+}
+
+static void
+column_destroy_scene(struct hayward_column *column) {
+    hayward_assert(
+        wl_list_empty(&column->scene_tree->children),
+        "Can't destroy scene tree of column with children"
+    );
+
+    wlr_scene_node_destroy(&column->scene_tree->node);
+}
+
+static void
 column_destroy(struct hayward_column *column);
 
 static void
@@ -60,16 +125,13 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
-    double x = column->committed.x;
-    double y = column->committed.y;
-
     struct wlr_scene_tree *parent = root->orphans; // TODO
-
     if (column->committed.workspace != NULL) {
         parent = column->committed.workspace->layers.tiling;
     }
     wlr_scene_node_reparent(&column->scene_tree->node, parent);
-    wlr_scene_node_set_position(&column->scene_tree->node, x, y);
+
+    column_update_scene(column);
 
     if (column->committed.dead) {
         wlr_scene_node_set_enabled(&column->scene_tree->node, false);
@@ -103,7 +165,7 @@ column_create(void) {
     static size_t next_id = 1;
     column->id = next_id++;
 
-    column->scene_tree = wlr_scene_tree_create(root->orphans);
+    column_init_scene(column);
 
     wl_signal_init(&column->events.begin_destroy);
     wl_signal_init(&column->events.destroy);
@@ -137,7 +199,7 @@ column_destroy(struct hayward_column *column) {
         "Tried to free column which wasn't marked as destroying"
     );
 
-    wlr_scene_node_destroy(&column->scene_tree->node);
+    column_destroy_scene(column);
 
     list_free(column->pending.children);
     list_free(column->committed.children);

@@ -111,14 +111,6 @@ window_update_scene(struct hayward_window *window) {
     int border = window->committed.border_thickness;
     int titlebar_height = window_titlebar_height();
 
-    struct wlr_scene_tree *parent = root->orphans;
-    if (window->committed.parent) {
-        parent = window->committed.parent->scene_tree;
-    } else {
-        parent = window->committed.workspace->layers.floating;
-    }
-    wlr_scene_node_reparent(&window->scene_tree->node, parent);
-
     wlr_scene_node_set_position(&window->scene_tree->node, x, y);
 
     wlr_scene_node_set_position(
@@ -187,6 +179,11 @@ window_update_scene(struct hayward_window *window) {
 
 static void
 window_destroy_scene(struct hayward_window *window) {
+    hayward_assert(
+        &window->scene_tree->node.parent->node == &root->orphans->node,
+        "Window scene tree is still attached"
+    );
+
     wlr_scene_node_destroy(&window->scene_tree->node);
 
     free(window->title);
@@ -282,17 +279,15 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     window->is_configuring = false;
 
-    if (!window->committed.dead) {
-        window_update_scene(window);
-    } else {
+    window_update_scene(window);
+
+    if (window->committed.dead) {
         if (window->view->window == window) {
             window->view->window = NULL;
             if (window->view->destroying) {
                 view_destroy(window->view);
             }
         }
-
-        window_destroy_scene(window);
 
         transaction_add_after_apply_listener(&window->transaction_after_apply);
     }
@@ -302,7 +297,6 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
         sizeof(struct hayward_window_state)
     );
 }
-
 static void
 window_handle_transaction_after_apply(
     struct wl_listener *listener, void *data
@@ -313,6 +307,8 @@ window_handle_transaction_after_apply(
     wl_list_remove(&listener->link);
 
     hayward_assert(window->current.dead, "After apply called on live window");
+
+    window_destroy_scene(window);
 
     free(window);
 }
