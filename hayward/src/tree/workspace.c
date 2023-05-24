@@ -201,12 +201,6 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
-    struct wlr_scene_tree *parent = root->orphans; // TODO
-    if (workspace->committed.root != NULL) {
-        parent = workspace->committed.root->layers.workspaces;
-    }
-    wlr_scene_node_reparent(&workspace->scene_tree->node, parent);
-
     workspace_update_scene(workspace);
 
     if (workspace->committed.dead) {

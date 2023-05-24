@@ -52,6 +52,76 @@ static void
 root_commit_focus(struct hayward_root *root);
 
 static void
+root_init_scene(struct hayward_root *root) {
+    root->root_scene = wlr_scene_create();
+    root->orphans = wlr_scene_tree_create(&root->root_scene->tree);
+    wlr_scene_node_set_enabled(&root->orphans->node, false);
+
+    root->layers.workspaces = wlr_scene_tree_create(&root->root_scene->tree);
+    root->layers.unmanaged = wlr_scene_tree_create(&root->root_scene->tree);
+    root->layers.outputs = wlr_scene_tree_create(&root->root_scene->tree);
+    root->layers.popups = wlr_scene_tree_create(&root->root_scene->tree);
+}
+
+static void
+root_update_layer_workspaces(struct hayward_root *root) {
+    struct wl_list *link = &root->layers.workspaces->children;
+
+    if (root->committed.workspaces->length) {
+        // Anchor top most workspace at top of stack.
+        list_t *workspaces = root->committed.workspaces;
+        int workspace_index = workspaces->length - 1;
+
+        struct hayward_workspace *workspace =
+            workspaces->items[workspace_index];
+        wlr_scene_node_reparent(
+            &workspace->scene_tree->node, root->layers.workspaces
+        );
+        wlr_scene_node_raise_to_top(&workspace->scene_tree->node);
+
+        struct hayward_workspace *prev_workspace = workspace;
+
+        // Move subsequent workspaces immediately below it.
+        while (workspace_index > 0) {
+            workspace_index--;
+
+            workspace = workspaces->items[workspace_index];
+            wlr_scene_node_reparent(
+                &workspace->scene_tree->node, root->layers.workspaces
+            );
+            wlr_scene_node_place_above(
+                &workspace->scene_tree->node, &prev_workspace->scene_tree->node
+            );
+
+            prev_workspace = workspace;
+        }
+
+        link = &prev_workspace->scene_tree->node.link;
+    }
+
+    // Iterate over any nodes that haven't been moved to the top as a result
+    // of belonging to a child and unparent them.
+    link = link->prev;
+    while (link != &root->layers.workspaces->children) {
+        struct wlr_scene_node *node = wl_container_of(link, node, link);
+        link = link->prev;
+        if (node->parent == root->layers.workspaces) {
+            wlr_scene_node_reparent(node, root->orphans); // TODO
+        }
+    }
+}
+
+static void
+root_update_scene(struct hayward_root *root) {
+    root_update_layer_workspaces(root);
+}
+
+static void
+root_destroy_scene(struct hayward_root *root) {
+    wlr_scene_node_destroy(&root->root_scene->tree.node);
+}
+
+static void
 root_handle_transaction_before_commit(
     struct wl_listener *listener, void *data
 ) {
@@ -97,6 +167,8 @@ root_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
+    root_update_scene(root);
+
     root_copy_state(&root->current, &root->committed);
 }
 
@@ -132,14 +204,7 @@ root_create(void) {
     root->committed.workspaces = create_list();
     root->current.workspaces = create_list();
 
-    root->root_scene = wlr_scene_create();
-    root->orphans = wlr_scene_tree_create(&root->root_scene->tree);
-    wlr_scene_node_set_enabled(&root->orphans->node, false);
-
-    root->layers.workspaces = wlr_scene_tree_create(&root->root_scene->tree);
-    root->layers.unmanaged = wlr_scene_tree_create(&root->root_scene->tree);
-    root->layers.outputs = wlr_scene_tree_create(&root->root_scene->tree);
-    root->layers.popups = wlr_scene_tree_create(&root->root_scene->tree);
+    root_init_scene(root);
 
     root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(
@@ -151,7 +216,7 @@ root_create(void) {
 
 void
 root_destroy(struct hayward_root *root) {
-    wlr_scene_node_destroy(&root->orphans->node);
+    root_destroy_scene(root);
 
     wl_list_remove(&root->output_layout_change.link);
     wl_list_remove(&root->transaction_before_commit.link);
