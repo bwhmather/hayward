@@ -160,21 +160,26 @@ window_update_scene(struct hayward_window *window) {
     );
 
     struct hayward_view *view = window->view;
+    if (view->window != window || window->committed.dead) {
+        if  (view->scene_tree->node.parent == window->layers.content_tree) {
+            wlr_scene_node_reparent(&view->scene_tree->node, root->orphans);
+        }
+    } else {
+        if (view->saved_surface_tree != NULL) {
+            view_remove_saved_buffer(view);
+        }
 
-    if (view->saved_surface_tree != NULL) {
-        view_remove_saved_buffer(view);
+        // If the view hasn't responded to the configure, center it within
+        // the window. This is important for fullscreen views which
+        // refuse to resize to the size of the output.
+        if (view->surface) {
+            view_center_surface(view);
+        }
+
+        wlr_scene_node_reparent(
+            &view->scene_tree->node, window->layers.content_tree
+        );
     }
-
-    // If the view hasn't responded to the configure, center it within
-    // the window. This is important for fullscreen views which
-    // refuse to resize to the size of the output.
-    if (view->surface) {
-        view_center_surface(view);
-    }
-
-    wlr_scene_node_reparent(
-        &view->scene_tree->node, window->layers.content_tree
-    );
 }
 
 static void

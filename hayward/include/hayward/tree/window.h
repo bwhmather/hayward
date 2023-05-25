@@ -76,6 +76,8 @@ struct hayward_window_state {
 struct hayward_window {
     size_t id;
 
+    // Forward link to the view.  The window owns the view only if the view's
+    // window pointer also points back to the window.
     struct hayward_view *view;
 
     struct hayward_window_state pending;

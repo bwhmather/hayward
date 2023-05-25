@@ -98,8 +98,12 @@ view_destroy(struct hayward_view *view) {
 void
 view_begin_destroy(struct hayward_view *view) {
     hayward_assert(view->surface == NULL, "Tried to destroy a mapped view");
-    view->destroying = true;
 
+    // Unmapping will mark the window as dead and trigger a transaction.  It
+    // isn't safe to fully destroy the window until this transaction has
+    // completed.  Setting `view->destroying` will tell the window to clean up
+    // the view once it has finished cleaning up itself.
+    view->destroying = true;
     if (!view->window) {
         view_destroy(view);
     }
