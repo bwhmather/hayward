@@ -79,7 +79,7 @@ workspace_update_layer_tiling(struct hayward_workspace *workspace) {
             wlr_scene_node_reparent(
                 &column->scene_tree->node, workspace->layers.tiling
             );
-            wlr_scene_node_place_above(
+            wlr_scene_node_place_below(
                 &column->scene_tree->node, &prev_column->scene_tree->node
             );
 

@@ -89,7 +89,7 @@ root_update_layer_workspaces(struct hayward_root *root) {
             wlr_scene_node_reparent(
                 &workspace->scene_tree->node, root->layers.workspaces
             );
-            wlr_scene_node_place_above(
+            wlr_scene_node_place_below(
                 &workspace->scene_tree->node, &prev_workspace->scene_tree->node
             );
 

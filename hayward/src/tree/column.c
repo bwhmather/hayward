@@ -58,7 +58,7 @@ column_update_scene(struct hayward_column *column) {
             wlr_scene_node_reparent(
                 &child->scene_tree->node, column->scene_tree
             );
-            wlr_scene_node_place_above(
+            wlr_scene_node_place_below(
                 &child->scene_tree->node, &prev_child->scene_tree->node
             );
 
