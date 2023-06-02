@@ -95,7 +95,7 @@ arrange_column_split(struct hayward_column *column) {
     for (int i = 0; i < children->length; ++i) {
         struct hayward_window *child = children->items[i];
         child->child_total_height = child_total_height;
-        child->pending.x = box.x;
+        child->pending.x = 0;
         child->pending.y = child_y;
         child->pending.width = box.width;
         child->pending.height =
@@ -105,7 +105,7 @@ arrange_column_split(struct hayward_column *column) {
 
         // Make last child use remaining height of parent
         if (i == children->length - 1) {
-            child->pending.height = box.y + box.height - child->pending.y;
+            child->pending.height = box.height - child->pending.y;
         }
     }
 }
