@@ -242,8 +242,9 @@ haywardnag_parse_options(
             break;
         case 'f': // Font
             if (type) {
-                free(type->font);
-                type->font = strdup(optarg);
+                pango_font_description_free(type->font_description);
+                type->font_description =
+                    pango_font_description_from_string(optarg);
             }
             break;
         case 'l': // Detailed Message

@@ -161,7 +161,7 @@ window_update_scene(struct hayward_window *window) {
 
     struct hayward_view *view = window->view;
     if (view->window != window || window->committed.dead) {
-        if  (view->scene_tree->node.parent == window->layers.content_tree) {
+        if (view->scene_tree->node.parent == window->layers.content_tree) {
             wlr_scene_node_reparent(&view->scene_tree->node, root->orphans);
         }
     } else {

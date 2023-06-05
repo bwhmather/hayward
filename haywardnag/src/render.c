@@ -14,8 +14,8 @@ static uint32_t
 render_message(cairo_t *cairo, struct haywardnag *haywardnag) {
     int text_width, text_height;
     get_text_size(
-        cairo, haywardnag->type->font, &text_width, &text_height, NULL, 1, true,
-        "%s", haywardnag->message
+        cairo, haywardnag->type->font_description, &text_width, &text_height,
+        NULL, 1, true, "%s", haywardnag->message
     );
 
     int padding = haywardnag->type->message_padding;
@@ -29,7 +29,8 @@ render_message(cairo_t *cairo, struct haywardnag *haywardnag) {
     cairo_set_source_u32(cairo, haywardnag->type->text);
     cairo_move_to(cairo, padding, (int)(ideal_height - text_height) / 2);
     render_text(
-        cairo, haywardnag->type->font, 1, false, "%s", haywardnag->message
+        cairo, haywardnag->type->font_description, 1, false, "%s",
+        haywardnag->message
     );
 
     return ideal_surface_height;
@@ -42,8 +43,8 @@ render_details_scroll_button(
 ) {
     int text_width, text_height;
     get_text_size(
-        cairo, haywardnag->type->font, &text_width, &text_height, NULL, 1, true,
-        "%s", button->text
+        cairo, haywardnag->type->font_description, &text_width, &text_height,
+        NULL, 1, true, "%s", button->text
     );
 
     int border = haywardnag->type->button_border_thickness;
@@ -65,7 +66,9 @@ render_details_scroll_button(
         cairo, button->x + border + padding,
         button->y + border + (button->height - text_height) / 2
     );
-    render_text(cairo, haywardnag->type->font, 1, true, "%s", button->text);
+    render_text(
+        cairo, haywardnag->type->font_description, 1, true, "%s", button->text
+    );
 }
 
 static int
@@ -74,12 +77,12 @@ get_detailed_scroll_button_width(
 ) {
     int up_width, down_width, temp_height;
     get_text_size(
-        cairo, haywardnag->type->font, &up_width, &temp_height, NULL, 1, true,
-        "%s", haywardnag->details.button_up.text
+        cairo, haywardnag->type->font_description, &up_width, &temp_height,
+        NULL, 1, true, "%s", haywardnag->details.button_up.text
     );
     get_text_size(
-        cairo, haywardnag->type->font, &down_width, &temp_height, NULL, 1, true,
-        "%s", haywardnag->details.button_down.text
+        cairo, haywardnag->type->font_description, &down_width, &temp_height,
+        NULL, 1, true, "%s", haywardnag->details.button_down.text
     );
 
     int text_width = up_width > down_width ? up_width : down_width;
@@ -102,7 +105,8 @@ render_detailed(cairo_t *cairo, struct haywardnag *haywardnag, uint32_t y) {
     haywardnag->details.width = width - decor * 2;
 
     PangoLayout *layout = get_pango_layout(
-        cairo, haywardnag->type->font, haywardnag->details.message, 1, false
+        cairo, haywardnag->type->font_description, haywardnag->details.message,
+        1, false
     );
     pango_layout_set_width(
         layout, (haywardnag->details.width - padding * 2) * PANGO_SCALE
@@ -206,8 +210,8 @@ render_button(
 
     int text_width, text_height;
     get_text_size(
-        cairo, haywardnag->type->font, &text_width, &text_height, NULL, 1, true,
-        "%s", button->text
+        cairo, haywardnag->type->font_description, &text_width, &text_height,
+        NULL, 1, true, "%s", button->text
     );
 
     int border = haywardnag->type->button_border_thickness;
@@ -237,7 +241,9 @@ render_button(
 
     cairo_set_source_u32(cairo, haywardnag->type->button_text);
     cairo_move_to(cairo, button->x + padding, button->y + padding);
-    render_text(cairo, haywardnag->type->font, 1, true, "%s", button->text);
+    render_text(
+        cairo, haywardnag->type->font_description, 1, true, "%s", button->text
+    );
 
     *x = button->x - border;
 

@@ -48,16 +48,6 @@ ipc_send_workspace_command(struct haywardbar *bar, const char *ws) {
     free(command);
 }
 
-char *
-parse_font(const char *font) {
-    char *new_font = NULL;
-    if (strncmp("pango:", font, 6) == 0) {
-        font += 6;
-    }
-    new_font = strdup(font);
-    return new_font;
-}
-
 static void
 ipc_parse_colors(struct haywardbar_config *config, json_object *colors) {
     struct {
@@ -162,8 +152,9 @@ ipc_parse_config(struct haywardbar_config *config, const char *payload) {
 
     json_object *font = json_object_object_get(bar_config, "font");
     if (font) {
-        free(config->font);
-        config->font = parse_font(json_object_get_string(font));
+        pango_font_description_free(config->font_description);
+        config->font_description =
+            pango_font_description_from_string(json_object_get_string(font));
     }
 
     json_object *gaps = json_object_object_get(bar_config, "gaps");
@@ -519,7 +510,9 @@ handle_barconfig_update(
             destroy_layer_surface(output);
             wl_list_remove(&output->link);
             wl_list_insert(&bar->unused_outputs, &output->link);
-        } else if (!oldcfg->font || !newcfg->font || strcmp(oldcfg->font, newcfg->font) != 0) {
+        } else if (!pango_font_description_equal(
+                       oldcfg->font_description, newcfg->font_description
+                   )) {
             output->height = 0; // force update height
         }
     }

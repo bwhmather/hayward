@@ -1075,7 +1075,7 @@ config_update_font_height(void) {
     int prev_max_height = config->font_height;
 
     get_text_metrics(
-        config->font, &config->font_height, &config->font_baseline
+        config->font_description, &config->font_height, &config->font_baseline
     );
 
     if (config->font_height != prev_max_height) {

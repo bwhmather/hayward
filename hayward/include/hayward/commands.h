@@ -179,7 +179,6 @@ hayward_cmd bar_cmd_bindcode;
 hayward_cmd bar_cmd_binding_mode_indicator;
 hayward_cmd bar_cmd_bindsym;
 hayward_cmd bar_cmd_colors;
-hayward_cmd bar_cmd_font;
 hayward_cmd bar_cmd_gaps;
 hayward_cmd bar_cmd_haywardbar_command;
 hayward_cmd bar_cmd_height;

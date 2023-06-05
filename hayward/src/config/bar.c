@@ -43,7 +43,6 @@ free_bar_config(struct bar_config *bar) {
     free(bar->hidden_state);
     free(bar->status_command);
     free(bar->haywardbar_command);
-    free(bar->font);
     free(bar->separator_symbol);
     if (bar->bindings) {
         for (int i = 0; i < bar->bindings->length; i++) {
@@ -100,7 +99,6 @@ default_bar_config(void) {
     bar->position = strdup("bottom");
     bar->pango_markup = PANGO_MARKUP_DEFAULT;
     bar->haywardbar_command = NULL;
-    bar->font = NULL;
     bar->height = 0;
     bar->workspace_buttons = true;
     bar->wrap_scroll = false;

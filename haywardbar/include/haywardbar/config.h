@@ -1,6 +1,8 @@
 #ifndef _HAYWARDBAR_CONFIG_H
 #define _HAYWARDBAR_CONFIG_H
+
 #include <../include/config.h>
+#include <pango/pango.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <wayland-client.h>
@@ -29,7 +31,7 @@ struct haywardbar_config {
     char *status_command;
     bool pango_markup;
     uint32_t position; // zwlr_layer_surface_v1_anchor
-    char *font;
+    PangoFontDescription *font_description;
     char *sep_symbol;
     char *mode;
     char *hidden_state;

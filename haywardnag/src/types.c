@@ -38,7 +38,8 @@ haywardnag_type_new(const char *name) {
 void
 haywardnag_types_add_default(list_t *types) {
     struct haywardnag_type *type_defaults = haywardnag_type_new("<defaults>");
-    type_defaults->font = strdup("pango:Monospace 10");
+    type_defaults->font_description =
+        pango_font_description_from_string("pango:Monospace 10");
     type_defaults->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
         ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
     type_defaults->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
@@ -99,8 +100,9 @@ haywardnag_type_merge(
         return;
     }
 
-    if (src->font) {
-        dest->font = strdup(src->font);
+    if (src->font_description) {
+        dest->font_description =
+            pango_font_description_copy(src->font_description);
     }
 
     if (src->output) {
@@ -181,7 +183,7 @@ haywardnag_type_merge(
 void
 haywardnag_type_free(struct haywardnag_type *type) {
     free(type->name);
-    free(type->font);
+    pango_font_description_free(type->font_description);
     free(type->output);
     free(type);
 }

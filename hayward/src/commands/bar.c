@@ -22,7 +22,6 @@ static const struct cmd_handler bar_handlers[] = {
     {"binding_mode_indicator", bar_cmd_binding_mode_indicator},
     {"bindsym", bar_cmd_bindsym},
     {"colors", bar_cmd_colors},
-    {"font", bar_cmd_font},
     {"gaps", bar_cmd_gaps},
     {"height", bar_cmd_height},
     {"hidden_state", bar_cmd_hidden_state},

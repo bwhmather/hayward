@@ -107,7 +107,10 @@ main(int argc, char **argv) {
     hayward_log(HAYWARD_DEBUG, "Anchors: %" PRIu32, haywardnag.type->anchors);
     hayward_log(HAYWARD_DEBUG, "Type: %s", haywardnag.type->name);
     hayward_log(HAYWARD_DEBUG, "Message: %s", haywardnag.message);
-    hayward_log(HAYWARD_DEBUG, "Font: %s", haywardnag.type->font);
+    char *font =
+        pango_font_description_to_string(haywardnag.type->font_description);
+    hayward_log(HAYWARD_DEBUG, "Font: %s", font);
+    free(font);
     hayward_log(HAYWARD_DEBUG, "Buttons");
     for (int i = 0; i < haywardnag.buttons->length; i++) {
         struct haywardnag_button *button = haywardnag.buttons->items[i];

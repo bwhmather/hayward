@@ -1,10 +1,18 @@
 #ifndef _HAYWARD_STRINGOP_H
 #define _HAYWARD_STRINGOP_H
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 
 #include <hayward-common/list.h>
+
+#ifdef __GNUC__
+#define _HAYWARD_ATTRIB_PRINTF(start, end)                                     \
+    __attribute__((format(printf, start, end)))
+#else
+#define _HAYWARD_ATTRIB_PRINTF(start, end)
+#endif
 
 void
 strip_whitespace(char *str);
@@ -43,5 +51,10 @@ argsep(char **stringp, const char *delim, char *matched_delim);
 // Expand a path using shell replacements such as $HOME and ~
 bool
 expand_path(char **path);
+
+char *
+vformat_str(const char *fmt, va_list args) _HAYWARD_ATTRIB_PRINTF(1, 0);
+char *
+format_str(const char *fmt, ...) _HAYWARD_ATTRIB_PRINTF(1, 2);
 
 #endif

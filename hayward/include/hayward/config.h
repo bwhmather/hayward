@@ -1,6 +1,7 @@
 #ifndef HAYWARD_CONFIG_H
 #define HAYWARD_CONFIG_H
 
+#include <pango/pango.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -360,7 +361,6 @@ struct bar_config {
     list_t *bindings;
     char *status_command;
     enum pango_markup_config pango_markup;
-    char *font;
     int height; // -1 not defined
     bool workspace_buttons;
     bool wrap_scroll;
@@ -500,7 +500,9 @@ struct hayward_config {
     char *floating_scroll_down_cmd;
     char *floating_scroll_left_cmd;
     char *floating_scroll_right_cmd;
-    char *font;
+    char *font; // Used for IPC.
+    PangoFontDescription
+        *font_description; // Used internally for rendering and validating.
     int font_height;
     int font_baseline;
     bool pango_markup;

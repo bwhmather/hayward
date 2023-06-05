@@ -154,8 +154,8 @@ render_backing_buffer(struct text_buffer *buffer) {
     );
 
     render_text(
-        cairo, config->font, scale, buffer->props.pango_markup, "%s",
-        buffer->text
+        cairo, config->font_description, scale, buffer->props.pango_markup,
+        "%s", buffer->text
     );
 
     cairo_surface_flush(surface);
@@ -308,7 +308,7 @@ text_calc_size(struct text_buffer *buffer) {
     cairo_t *c = cairo_create(NULL);
     cairo_set_antialias(c, CAIRO_ANTIALIAS_BEST);
     get_text_size(
-        c, config->font, &props->width, NULL, &props->baseline, 1,
+        c, config->font_description, &props->width, NULL, &props->baseline, 1,
         props->pango_markup, "%s", buffer->text
     );
     cairo_destroy(c);

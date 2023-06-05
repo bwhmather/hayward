@@ -1140,10 +1140,7 @@ ipc_json_describe_bar_config(struct bar_config *bar) {
         json, "status_command",
         bar->status_command ? json_object_new_string(bar->status_command) : NULL
     );
-    json_object_object_add(
-        json, "font",
-        json_object_new_string((bar->font) ? bar->font : config->font)
-    );
+    json_object_object_add(json, "font", json_object_new_string(config->font));
 
     json_object *gaps = json_object_new_object();
     json_object_object_add(gaps, "top", json_object_new_int(bar->gaps.top));

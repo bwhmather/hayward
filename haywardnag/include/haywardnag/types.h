@@ -1,6 +1,7 @@
 #ifndef _HAYWARDNAG_TYPES_H
 #define _HAYWARDNAG_TYPES_H
 
+#include <pango/pango.h>
 #include <stdint.h>
 #include <sys/types.h>
 
@@ -9,7 +10,7 @@
 struct haywardnag_type {
     char *name;
 
-    char *font;
+    PangoFontDescription *font_description;
     char *output;
     uint32_t anchors;
     int32_t layer; // enum zwlr_layer_shell_v1_layer or -1 if unset

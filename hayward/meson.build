@@ -102,7 +102,6 @@ hayward_sources = files(
 	'src/commands/bar/bind.c',
 	'src/commands/bar/binding_mode_indicator.c',
 	'src/commands/bar/colors.c',
-	'src/commands/bar/font.c',
 	'src/commands/bar/gaps.c',
 	'src/commands/bar/height.c',
 	'src/commands/bar/hidden_state.c',
