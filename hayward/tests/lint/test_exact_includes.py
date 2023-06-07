@@ -76,6 +76,7 @@ INCLUDE_ALIASES = {
 
 BUILTIN_SYMBOLS = {
     "ssize_t": "sys/types.h",
+    "pid_t": "sys/types.h",
 }
 
 IGNORED_SYMBOLS = {"NULL", "__u32"}
