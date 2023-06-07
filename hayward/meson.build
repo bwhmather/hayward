@@ -14,7 +14,6 @@ hayward_sources = files(
 
 	'src/desktop/idle_inhibit_v1.c',
 	'src/desktop/layer_shell.c',
-	'src/desktop/surface.c',
 	'src/desktop/transaction.c',
 	'src/desktop/xdg_shell.c',
 
