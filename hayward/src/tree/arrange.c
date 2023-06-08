@@ -142,7 +142,6 @@ arrange_column_stacked(struct hayward_column *column) {
         }
 
         y_offset += child->pending.height;
-        ;
     }
 }
 
