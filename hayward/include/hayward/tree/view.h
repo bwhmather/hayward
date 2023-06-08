@@ -246,13 +246,6 @@ view_configure(
 bool
 view_inhibit_idle(struct hayward_view *view);
 
-/**
- * Configure the view's position and size based on the container's position and
- * size, taking borders into consideration.
- */
-void
-view_autoconfigure(struct hayward_view *view);
-
 void
 view_set_activated(struct hayward_view *view, bool activated);
 

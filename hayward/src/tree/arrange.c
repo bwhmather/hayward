@@ -28,7 +28,63 @@ arrange_window(struct hayward_window *window) {
     if (config->reloading) {
         return;
     }
-    view_autoconfigure(window->view);
+
+    struct hayward_workspace *workspace = window->pending.workspace;
+    struct hayward_output *output = workspace_get_active_output(workspace);
+
+    if (window->pending.fullscreen) {
+        window->pending.content_x = output->lx;
+        window->pending.content_y = output->ly;
+        window->pending.content_width = output->width;
+        window->pending.content_height = output->height;
+    } else {
+        window->pending.border_top = window->pending.border_bottom = true;
+        window->pending.border_left = window->pending.border_right = true;
+
+        double content_x, content_y, content_width, content_height;
+        switch (window->pending.border) {
+        default:
+        case B_CSD:
+        case B_NONE:
+            content_x = window->pending.x;
+            content_y = window->pending.y;
+            content_width = window->pending.width;
+            content_height = window->pending.height;
+            break;
+        case B_PIXEL:
+            content_x =
+                window->pending.border_thickness * window->pending.border_left;
+            content_y =
+                window->pending.border_thickness * window->pending.border_top;
+            content_width = window->pending.width -
+                window->pending.border_thickness * window->pending.border_left -
+                window->pending.border_thickness * window->pending.border_right;
+            content_height = window->pending.height -
+                window->pending.border_thickness * window->pending.border_top -
+                window->pending.border_thickness *
+                    window->pending.border_bottom;
+            break;
+        case B_NORMAL:
+            // Height is: 1px border + 3px pad + title height + 3px pad + 1px
+            // border
+            content_x =
+                window->pending.border_thickness * window->pending.border_left;
+            content_y = window_titlebar_height();
+            content_width = window->pending.width -
+                window->pending.border_thickness * window->pending.border_left -
+                window->pending.border_thickness * window->pending.border_right;
+            content_height = window->pending.height - window_titlebar_height() -
+                window->pending.border_thickness *
+                    window->pending.border_bottom;
+            break;
+        }
+
+        window->pending.content_x = content_x;
+        window->pending.content_y = content_y;
+        window->pending.content_width = content_width;
+        window->pending.content_height = content_height;
+    }
+
     window_set_dirty(window);
 }
 
