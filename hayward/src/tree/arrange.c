@@ -181,8 +181,8 @@ arrange_column_stacked(struct hayward_column *column) {
     int y_offset = 0;
 
     // Render titles
-    for (int i = 0; i < column->current.children->length; ++i) {
-        struct hayward_window *child = column->current.children->items[i];
+    for (int i = 0; i < column->pending.children->length; ++i) {
+        struct hayward_window *child = column->pending.children->items[i];
 
         child->pending.x = 0;
         child->pending.y = y_offset;
@@ -190,7 +190,7 @@ arrange_column_stacked(struct hayward_column *column) {
 
         if (child == active) {
             child->pending.height = box.height -
-                (column->current.children->length - 1) * titlebar_height;
+                (column->pending.children->length - 1) * titlebar_height;
             child->pending.shaded = false;
         } else {
             child->pending.height = titlebar_height;
