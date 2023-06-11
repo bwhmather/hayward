@@ -151,7 +151,7 @@ workspace_update_layer_floating(struct hayward_workspace *workspace) {
 static void
 workspace_update_scene(struct hayward_workspace *workspace) {
     wlr_scene_node_set_enabled(
-        &workspace->scene_tree->node, workspace->current.focused
+        &workspace->scene_tree->node, workspace->committed.focused
     );
 
     workspace_update_layer_tiling(workspace);
