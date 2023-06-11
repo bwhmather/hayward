@@ -607,12 +607,13 @@ view_update_size(struct hayward_view *view) {
 void
 view_center_surface(struct hayward_view *view) {
     struct hayward_window *window = view->window;
+
     // We always center the current coordinates rather than the next, as the
     // geometry immediately affects the currently active rendering.
     int x = (int
-    )fmax(0, (window->current.content_width - view->geometry.width) / 2);
+    )fmax(0, (window->committed.content_width - view->geometry.width) / 2);
     int y = (int
-    )fmax(0, (window->current.content_height - view->geometry.height) / 2);
+    )fmax(0, (window->committed.content_height - view->geometry.height) / 2);
 
     wlr_scene_node_set_position(&view->content_tree->node, x, y);
 }
