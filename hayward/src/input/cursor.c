@@ -66,6 +66,28 @@ get_current_time_msec(void) {
     return now.tv_sec * 1000 + now.tv_nsec / 1000000;
 }
 
+static struct wlr_surface *
+scene_node_try_get_surface(struct wlr_scene_node *scene_node) {
+    if (scene_node == NULL) {
+        return NULL;
+    }
+
+    if (scene_node->type != WLR_SCENE_NODE_BUFFER) {
+        return NULL;
+    }
+
+    struct wlr_scene_buffer *scene_buffer =
+        wlr_scene_buffer_from_node(scene_node);
+    struct wlr_scene_surface *scene_surface =
+        wlr_scene_surface_from_buffer(scene_buffer);
+
+    if (scene_surface == NULL) {
+        return NULL;
+    }
+
+    return scene_surface->surface;
+}
+
 /**
  * Reports whatever objects are directly under the cursor coordinates.
  * If the coordinates do not point inside an output then nothing will be
@@ -103,6 +125,7 @@ seat_get_target_at(
     // Trace through parents to find first one that we recognize.
     scene_node =
         wlr_scene_node_at(&root->layers.popups->node, lx, ly, sx_out, sy_out);
+    *surface_out = scene_node_try_get_surface(scene_node);
     while (scene_node != NULL) {
         // TODO
         // struct hayward_xdg_popup *popup = popup_for_scene_node(scene_node);
@@ -114,6 +137,7 @@ seat_get_target_at(
 
     scene_node =
         wlr_scene_node_at(&root->layers.outputs->node, lx, ly, sx_out, sy_out);
+    *surface_out = scene_node_try_get_surface(scene_node);
     while (scene_node != NULL) {
         struct hayward_layer_surface *layer_surface =
             layer_surface_for_scene_node(scene_node);
@@ -128,6 +152,7 @@ seat_get_target_at(
     scene_node = wlr_scene_node_at(
         &root->layers.workspaces->node, lx, ly, sx_out, sy_out
     );
+    *surface_out = scene_node_try_get_surface(scene_node);
     while (scene_node != NULL) {
         struct hayward_window *window = window_for_scene_node(scene_node);
         if (window != NULL) {
@@ -137,6 +162,8 @@ seat_get_target_at(
 
         scene_node = &scene_node->parent->node;
     }
+
+    *surface_out = NULL;
 }
 
 void
