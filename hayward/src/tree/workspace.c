@@ -123,6 +123,10 @@ workspace_update_layer_floating(struct hayward_workspace *workspace) {
             window_index--;
 
             window = windows->items[window_index];
+            if (window->committed.fullscreen) {
+                continue;
+            }
+
             wlr_scene_node_reparent(
                 &window->scene_tree->node, workspace->layers.floating
             );

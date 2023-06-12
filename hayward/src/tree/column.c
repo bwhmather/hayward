@@ -55,6 +55,10 @@ column_update_scene(struct hayward_column *column) {
             child_index--;
 
             child = children->items[child_index];
+            if (child->committed.fullscreen) {
+                continue;
+            }
+
             wlr_scene_node_reparent(
                 &child->scene_tree->node, column->scene_tree
             );

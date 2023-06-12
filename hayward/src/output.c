@@ -49,6 +49,43 @@ static void
 output_destroy(struct hayward_output *output);
 
 static void
+output_init_scene(struct hayward_output *output) {
+    output->scene_tree = wlr_scene_tree_create(root->layers.outputs);
+    output->layers.shell_background = wlr_scene_tree_create(output->scene_tree);
+    output->layers.shell_bottom = wlr_scene_tree_create(output->scene_tree);
+    output->layers.fullscreen = wlr_scene_tree_create(output->scene_tree);
+    output->layers.shell_top = wlr_scene_tree_create(output->scene_tree);
+    output->layers.shell_overlay = wlr_scene_tree_create(output->scene_tree);
+}
+
+static void
+output_update_scene(struct hayward_output *output) {
+    struct hayward_window *fullscreen_window =
+        output->committed.fullscreen_window;
+
+    if (!wl_list_empty(&output->layers.fullscreen->children)) {
+        struct wl_list *link = output->layers.fullscreen->children.next;
+        struct wlr_scene_node *node = wl_container_of(link, node, link);
+
+        if (fullscreen_window == NULL ||
+            node != &fullscreen_window->scene_tree->node) {
+            wlr_scene_node_reparent(node, root->orphans);
+        }
+    }
+
+    if (fullscreen_window != NULL) {
+        wlr_scene_node_reparent(
+            &fullscreen_window->scene_tree->node, output->layers.fullscreen
+        );
+    }
+}
+
+static void
+output_destroy_scene(struct hayward_output *output) {
+    wlr_scene_node_destroy(&output->scene_tree->node);
+}
+
+static void
 output_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hayward_output *output =
         wl_container_of(listener, output, transaction_commit);
@@ -71,14 +108,16 @@ output_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
 
+    output_update_scene(output);
+
+    if (output->committed.dead) {
+        transaction_add_after_apply_listener(&output->transaction_after_apply);
+    }
+
     memcpy(
         &output->current, &output->committed,
         sizeof(struct hayward_output_state)
     );
-
-    if (output->current.dead) {
-        transaction_add_after_apply_listener(&output->transaction_after_apply);
-    }
 }
 
 static void
@@ -108,12 +147,7 @@ output_create(struct wlr_output *wlr_output) {
     output->detected_subpixel = wlr_output->subpixel;
     output->scale_filter = SCALE_FILTER_NEAREST;
 
-    output->scene_tree = wlr_scene_tree_create(root->layers.outputs);
-    output->layers.shell_background = wlr_scene_tree_create(output->scene_tree);
-    output->layers.shell_bottom = wlr_scene_tree_create(output->scene_tree);
-    output->layers.fullscreen = wlr_scene_tree_create(output->scene_tree);
-    output->layers.shell_top = wlr_scene_tree_create(output->scene_tree);
-    output->layers.shell_overlay = wlr_scene_tree_create(output->scene_tree);
+    output_init_scene(output);
 
     output->transaction_commit.notify = output_handle_transaction_commit;
     output->transaction_apply.notify = output_handle_transaction_apply;
@@ -237,7 +271,7 @@ output_destroy(struct hayward_output *output) {
     );
     wl_event_source_remove(output->repaint_timer);
 
-    wlr_scene_node_destroy(&output->scene_tree->node);
+    output_destroy_scene(output);
 
     free(output);
 }
@@ -309,6 +343,8 @@ output_reconcile(struct hayward_output *output) {
 
     output->pending.fullscreen_window =
         workspace_get_fullscreen_window_for_output(workspace, output);
+
+    output_set_dirty(output);
 }
 
 struct hayward_output *
