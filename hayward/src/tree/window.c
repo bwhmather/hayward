@@ -108,11 +108,18 @@ window_update_scene(struct hayward_window *window) {
     double width = window->committed.width;
     double height = window->committed.height;
 
-    int border = window->committed.border_thickness;
+    int border_thickness = window->committed.border_thickness;
+    int border_left = window->committed.border_left ? border_thickness : 0;
+    int border_right = window->committed.border_right ? border_thickness : 0;
+    int border_top = window->committed.border_top ? border_thickness : 0;
+    int border_bottom = window->committed.border_bottom ? border_thickness : 0;
+    int border_title = window->committed.border_thickness;
+
     int titlebar_height = window_titlebar_height();
 
     wlr_scene_node_set_position(&window->scene_tree->node, x, y);
 
+    // Title text.
     wlr_scene_node_set_position(
         window->layers.title_text->node, config->titlebar_h_padding,
         config->titlebar_v_padding
@@ -122,41 +129,69 @@ window_update_scene(struct hayward_window *window) {
     );
     hayward_text_node_set_max_width(
         window->layers.title_text,
-        width - 2 * border - 2 * config->titlebar_h_padding
+        width - border_left - border_right - 2 * config->titlebar_h_padding
     );
 
+    // Title border.
+    wlr_scene_node_set_enabled(
+        &window->layers.title_border->node, border_title != 0
+    );
     wlr_scene_node_set_position(
-        &window->layers.title_border->node, border, titlebar_height + border
+        &window->layers.title_border->node, border_left,
+        titlebar_height + border_top
     );
     wlr_scene_rect_set_size(
-        window->layers.title_border, width - 2 * border, border
+        window->layers.title_border, width - border_left - border_right,
+        border_title
     );
 
-    wlr_scene_node_set_position(&window->layers.border_top->node, border, 0);
-    wlr_scene_rect_set_size(
-        window->layers.border_top, width - 2 * border, border
+    // Border top.
+    wlr_scene_node_set_enabled(
+        &window->layers.border_top->node, border_top != 0
     );
-
     wlr_scene_node_set_position(
-        &window->layers.border_bottom->node, border, height - border
+        &window->layers.border_top->node, border_left, 0
     );
     wlr_scene_rect_set_size(
-        window->layers.border_top, width - 2 * border, border
+        window->layers.border_top, width - border_left - border_right,
+        border_top
     );
 
+    // Border bottom.
+    wlr_scene_node_set_enabled(
+        &window->layers.border_bottom->node, border_bottom != 0
+    );
+    wlr_scene_node_set_position(
+        &window->layers.border_bottom->node, border_left, height - border_bottom
+    );
+    wlr_scene_rect_set_size(
+        window->layers.border_top, width - border_left - border_right,
+        border_bottom
+    );
+
+    // Border left.
+    wlr_scene_node_set_enabled(
+        &window->layers.border_left->node, border_left != 0
+    );
     wlr_scene_node_set_position(&window->layers.border_left->node, 0, 0);
-    wlr_scene_rect_set_size(window->layers.border_left, border, height);
-    wlr_scene_node_set_position(
-        &window->layers.border_left->node, width - border, 0
-    );
-    wlr_scene_rect_set_size(window->layers.border_right, border, height);
+    wlr_scene_rect_set_size(window->layers.border_left, border_left, height);
 
+    // Border right.
+    wlr_scene_node_set_enabled(
+        &window->layers.border_right->node, border_right != 0
+    );
+    wlr_scene_node_set_position(
+        &window->layers.border_left->node, width - border_right, 0
+    );
+    wlr_scene_rect_set_size(window->layers.border_right, border_right, height);
+
+    // Content.
     wlr_scene_node_set_enabled(
         &window->layers.content_tree->node, !window->committed.shaded
     );
     wlr_scene_node_set_position(
         &window->layers.content_tree->node, window->committed.border_thickness,
-        titlebar_height + 2 * window->committed.border_thickness
+        titlebar_height + border_top + border_title
     );
 
     struct hayward_view *view = window->view;
