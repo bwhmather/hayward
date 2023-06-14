@@ -108,18 +108,56 @@ window_update_scene(struct hayward_window *window) {
     double width = window->committed.width;
     double height = window->committed.height;
 
-    int border_thickness = window->committed.border_thickness;
-    int border_left = window->committed.border_left ? border_thickness : 0;
-    int border_right = window->committed.border_right ? border_thickness : 0;
-    int border_top = window->committed.border_top ? border_thickness : 0;
-    int border_bottom = window->committed.border_bottom ? border_thickness : 0;
-    int border_title = window->committed.border_thickness;
-
-    int titlebar_height = window_titlebar_height();
-
     wlr_scene_node_set_position(&window->scene_tree->node, x, y);
 
+    int border_thickness = window->committed.border_thickness;
+
+    int border_left = 0;
+    int border_right = 0;
+    int border_top = 0;
+    int border_bottom = 0;
+    int border_title = 0;
+    int titlebar_height = 0;
+
+    if (window->committed.fullscreen) {
+        // Intentionally blank,
+    } else if (window->committed.shaded) {
+        border_left = border_thickness;
+        border_right = border_thickness;
+        border_top = border_thickness;
+        border_bottom = 0;
+        border_title = border_thickness;
+        titlebar_height = window_titlebar_height();
+    } else {
+        switch (window->pending.border) {
+        default:
+        case B_CSD:
+            break;
+        case B_NONE:
+            break;
+        case B_PIXEL:
+            border_left = border_thickness;
+            border_right = border_thickness;
+            border_top = border_thickness;
+            border_bottom = border_thickness;
+            border_title = 0;
+            titlebar_height = 0;
+            break;
+        case B_NORMAL:
+            border_left = border_thickness;
+            border_right = border_thickness;
+            border_top = border_thickness;
+            border_bottom = border_thickness;
+            border_title = border_thickness;
+            titlebar_height = window_titlebar_height();
+            break;
+        }
+    }
+
     // Title text.
+    wlr_scene_node_set_enabled(
+        window->layers.title_text->node, titlebar_height != 0
+    );
     wlr_scene_node_set_position(
         window->layers.title_text->node, config->titlebar_h_padding,
         config->titlebar_v_padding
