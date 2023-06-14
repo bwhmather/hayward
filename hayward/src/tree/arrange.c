@@ -381,22 +381,15 @@ arrange_workspace(struct hayward_workspace *workspace) {
     }
 
     workspace_add_gaps(workspace);
-    workspace_set_dirty(workspace);
     hayward_log(
         HAYWARD_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
         workspace->pending.x, workspace->pending.y
     );
-    if (output->pending.fullscreen_window) {
-        struct hayward_window *fs = output->pending.fullscreen_window;
-        fs->pending.x = output->lx;
-        fs->pending.y = output->ly;
-        fs->pending.width = output->width;
-        fs->pending.height = output->height;
-        arrange_window(fs);
-    } else {
-        arrange_tiling(workspace);
-        arrange_floating(workspace);
-    }
+
+    arrange_tiling(workspace);
+    arrange_floating(workspace);
+
+    workspace_set_dirty(workspace);
 }
 
 void
@@ -412,6 +405,15 @@ arrange_output(struct hayward_output *output) {
     output->ly = output_box.y;
     output->width = output_box.width;
     output->height = output_box.height;
+
+    if (output->pending.fullscreen_window) {
+        struct hayward_window *fs = output->pending.fullscreen_window;
+        fs->pending.x = output->lx;
+        fs->pending.y = output->ly;
+        fs->pending.width = output->width;
+        fs->pending.height = output->height;
+        arrange_window(fs);
+    }
 }
 
 void
