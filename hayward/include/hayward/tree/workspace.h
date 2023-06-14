@@ -5,7 +5,6 @@
 #include <stddef.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 
@@ -21,8 +20,6 @@ enum hayward_focus_mode {
 struct hayward_view;
 
 struct hayward_workspace_state {
-    double x, y;
-    int width, height;
     list_t *floating; // struct hayward_window
     list_t *tiling;   // struct hayward_column
 
@@ -49,10 +46,6 @@ struct hayward_workspace {
     bool dirty;
 
     char *name;
-
-    struct side_gaps current_gaps;
-    int gaps_inner;
-    struct side_gaps gaps_outer;
 
     bool urgent;
 
@@ -132,9 +125,6 @@ workspace_remove_tiling(
 
 void
 workspace_add_gaps(struct hayward_workspace *workspace);
-
-void
-workspace_get_box(struct hayward_workspace *workspace, struct wlr_box *box);
 
 size_t
 workspace_num_tiling_views(struct hayward_workspace *workspace);

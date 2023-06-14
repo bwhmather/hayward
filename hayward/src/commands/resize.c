@@ -15,11 +15,11 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/output.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
 
 #include <config.h>
 
@@ -316,7 +316,7 @@ resize_set_tiled(
             if (parent->pending.layout != L_SPLIT) {
                 height->amount = parent->pending.height * height->amount / 100;
             } else {
-                height->amount = window->pending.workspace->pending.height *
+                height->amount = window->pending.output->pending.height *
                     height->amount / 100;
             }
             height->unit = MOVEMENT_UNIT_PX;
@@ -350,7 +350,7 @@ resize_set_floating(
         case MOVEMENT_UNIT_PPT:
             // Convert to px
             width->amount =
-                window->pending.workspace->pending.width * width->amount / 100;
+                window->pending.output->pending.width * width->amount / 100;
             width->unit = MOVEMENT_UNIT_PX;
             // Falls through
         case MOVEMENT_UNIT_PX:
@@ -370,8 +370,8 @@ resize_set_floating(
         switch (height->unit) {
         case MOVEMENT_UNIT_PPT:
             // Convert to px
-            height->amount = window->pending.workspace->pending.height *
-                height->amount / 100;
+            height->amount =
+                window->pending.output->pending.height * height->amount / 100;
             height->unit = MOVEMENT_UNIT_PX;
             // Falls through
         case MOVEMENT_UNIT_PX:

@@ -266,8 +266,8 @@ window_get_deco_rect(struct hayward_window *window, struct wlr_box *deco_rect) {
     }
 
     if (window_is_floating(window)) {
-        deco_rect->x = window->pending.x - window->pending.workspace->pending.x;
-        deco_rect->y = window->pending.y - window->pending.workspace->pending.y;
+        deco_rect->x = window->pending.x;
+        deco_rect->y = window->pending.y;
         deco_rect->width = window->pending.width;
         deco_rect->height = window_titlebar_height();
     } else {
@@ -442,8 +442,8 @@ ipc_json_describe_column(struct hayward_column *column) {
     json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
 
     struct wlr_box parent_box = {0, 0, 0, 0};
-    if (column->pending.workspace != NULL) {
-        workspace_get_box(column->pending.workspace, &parent_box);
+    if (column->pending.output != NULL) {
+        output_get_box(column->pending.output, &parent_box);
     }
 
     if (parent_box.width != 0 && parent_box.height != 0) {
@@ -513,7 +513,7 @@ ipc_json_describe_window(struct hayward_window *window) {
     if (window->pending.parent != NULL) {
         column_get_box(window->pending.parent, &parent_box);
     } else {
-        workspace_get_box(window->pending.workspace, &parent_box);
+        output_get_box(window->pending.output, &parent_box);
     }
 
     if (parent_box.width != 0 && parent_box.height != 0) {
@@ -703,8 +703,7 @@ json_object *
 ipc_json_describe_workspace(struct hayward_workspace *workspace) {
     char *name = workspace->name;
 
-    struct wlr_box box;
-    workspace_get_box(workspace, &box);
+    struct wlr_box box = {0};
 
     json_object *object =
         ipc_json_create_node(workspace->id, "workspace", name, &box);

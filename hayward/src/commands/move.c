@@ -556,10 +556,7 @@ cmd_move_to_position(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, "Invalid y position specified");
     }
 
-    struct hayward_workspace *workspace = window->pending.workspace;
-    if (!workspace) {
-        workspace = root_get_active_workspace(root);
-    }
+    struct hayward_output *output = window->pending.output;
 
     switch (lx.unit) {
     case MOVEMENT_UNIT_PPT:
@@ -569,7 +566,7 @@ cmd_move_to_position(int argc, char **argv) {
             );
         }
         // Convert to px
-        lx.amount = workspace->pending.width * lx.amount / 100;
+        lx.amount = output->pending.width * lx.amount / 100;
         lx.unit = MOVEMENT_UNIT_PX;
         // Falls through
     case MOVEMENT_UNIT_PX:
@@ -587,7 +584,7 @@ cmd_move_to_position(int argc, char **argv) {
             );
         }
         // Convert to px
-        ly.amount = workspace->pending.height * ly.amount / 100;
+        ly.amount = output->pending.height * ly.amount / 100;
         ly.unit = MOVEMENT_UNIT_PX;
         // Falls through
     case MOVEMENT_UNIT_PX:
@@ -597,13 +594,9 @@ cmd_move_to_position(int argc, char **argv) {
         hayward_abort("invalid y unit");
     }
     if (!absolute) {
-        lx.amount += workspace->pending.x;
-        ly.amount += workspace->pending.y;
+        lx.amount += output->pending.x;
+        ly.amount += output->pending.y;
     }
-
-    double cx = lx.amount + window->pending.width / 2;
-    double cy = ly.amount + window->pending.height / 2;
-    struct hayward_output *output = root_find_closest_output(root, cx, cy);
 
     window_floating_move_to(window, output, lx.amount, ly.amount);
     return cmd_results_new(CMD_SUCCESS, NULL);

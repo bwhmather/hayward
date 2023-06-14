@@ -101,8 +101,6 @@ arrange_column_split(struct hayward_column *column) {
         return;
     }
 
-    struct hayward_workspace *workspace = column->pending.workspace;
-
     // Count the number of new windows we are resizing, and how much space
     // is currently occupied
     int new_children = 0;
@@ -137,14 +135,7 @@ arrange_column_split(struct hayward_column *column) {
         child->height_fraction /= total_height_fraction;
     }
 
-    // Calculate gap size
-    double inner_gap = workspace->gaps_inner;
-    double total_gap = fmin(
-        inner_gap * (children->length - 1),
-        fmax(0, box.height - MIN_SANE_H * children->length)
-    );
-    double child_total_height = box.height - total_gap;
-    inner_gap = floor(total_gap / (children->length - 1));
+    double child_total_height = box.height;
 
     // Resize windows
     double child_y = 0;
@@ -156,7 +147,7 @@ arrange_column_split(struct hayward_column *column) {
         child->pending.width = box.width;
         child->pending.height =
             round(child->height_fraction * child_total_height);
-        child_y += child->pending.height + inner_gap;
+        child_y += child->pending.height;
         child->pending.shaded = false;
 
         // Make last child use remaining height of parent
@@ -298,14 +289,7 @@ arrange_tiling(struct hayward_workspace *workspace) {
             column->width_fraction /= total_width_fraction;
         }
 
-        // Calculate gap size.
-        double inner_gap = workspace->gaps_inner;
-        double total_gap = fmin(
-            inner_gap * (total_columns - 1),
-            fmax(0, box.width - MIN_SANE_W * columns->length)
-        );
-        double columns_total_width = box.width - total_gap;
-        inner_gap = floor(total_gap / (total_columns - 1));
+        double columns_total_width = box.width;
 
         // Resize columns.
         double column_x = box.x;
@@ -317,7 +301,7 @@ arrange_tiling(struct hayward_workspace *workspace) {
             column->pending.width =
                 round(column->width_fraction * columns_total_width);
             column->pending.height = box.height;
-            column_x += column->pending.width + inner_gap;
+            column_x += column->pending.width;
 
             // Make last child use remaining width of parent.
             if (j == total_columns - 1) {
@@ -338,53 +322,7 @@ arrange_workspace(struct hayward_workspace *workspace) {
         return;
     }
 
-    // TODO TODO TODO
-    struct hayward_output *output = root_get_active_output(root);
-    if (output == NULL) {
-        return;
-    }
-
-    struct wlr_box *area = &output->usable_area;
-    hayward_log(
-        HAYWARD_DEBUG, "Usable area for workspace: %dx%d@%d,%d", area->width,
-        area->height, area->x, area->y
-    );
-
-    bool first_arrange =
-        workspace->pending.width == 0 && workspace->pending.height == 0;
-    double prev_x = workspace->pending.x - workspace->current_gaps.left;
-    double prev_y = workspace->pending.y - workspace->current_gaps.top;
-    workspace->pending.width = area->width;
-    workspace->pending.height = area->height;
-    workspace->pending.x = output->lx + area->x;
-    workspace->pending.y = output->ly + area->y;
-
-    // Adjust any floating containers.
-    double diff_x = workspace->pending.x - prev_x;
-    double diff_y = workspace->pending.y - prev_y;
-    if (!first_arrange && (diff_x != 0 || diff_y != 0)) {
-        for (int i = 0; i < workspace->pending.floating->length; ++i) {
-            struct hayward_window *floater =
-                workspace->pending.floating->items[i];
-            window_floating_move_to(
-                floater, floater->pending.output, floater->pending.x + diff_x,
-                floater->pending.y + diff_y
-            );
-            double center_x = floater->pending.x + floater->pending.width / 2;
-            double center_y = floater->pending.y + floater->pending.height / 2;
-            struct wlr_box workspace_box;
-            workspace_get_box(workspace, &workspace_box);
-            if (!wlr_box_contains_point(&workspace_box, center_x, center_y)) {
-                window_floating_move_to_center(floater);
-            }
-        }
-    }
-
-    workspace_add_gaps(workspace);
-    hayward_log(
-        HAYWARD_DEBUG, "Arranging workspace '%s' at %f, %f", workspace->name,
-        workspace->pending.x, workspace->pending.y
-    );
+    hayward_log(HAYWARD_DEBUG, "Arranging workspace '%s'", workspace->name);
 
     arrange_tiling(workspace);
     arrange_floating(workspace);

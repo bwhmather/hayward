@@ -852,7 +852,7 @@ window_floating_set_default_size(struct hayward_window *window) {
         &min_width, &max_width, &min_height, &max_height
     );
     struct wlr_box box = {0};
-    workspace_get_box(window->pending.workspace, &box);
+    output_get_box(window->pending.output, &box);
 
     double width = fmax(min_width, fmin(box.width * 0.5, max_width));
     double height = fmax(min_height, fmin(box.height * 0.75, max_height));

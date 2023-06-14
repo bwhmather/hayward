@@ -2,8 +2,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/workspace.h"
 
-#include <limits.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -12,7 +10,6 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
@@ -269,29 +266,6 @@ workspace_create(const char *name) {
     workspace->committed.tiling = create_list();
     workspace->current.floating = create_list();
     workspace->current.tiling = create_list();
-
-    workspace->gaps_outer = config->gaps_outer;
-    workspace->gaps_inner = config->gaps_inner;
-    if (name) {
-        struct workspace_config *wsc = workspace_find_config(name);
-        if (wsc) {
-            if (wsc->gaps_outer.top != INT_MIN) {
-                workspace->gaps_outer.top = wsc->gaps_outer.top;
-            }
-            if (wsc->gaps_outer.right != INT_MIN) {
-                workspace->gaps_outer.right = wsc->gaps_outer.right;
-            }
-            if (wsc->gaps_outer.bottom != INT_MIN) {
-                workspace->gaps_outer.bottom = wsc->gaps_outer.bottom;
-            }
-            if (wsc->gaps_outer.left != INT_MIN) {
-                workspace->gaps_outer.left = wsc->gaps_outer.left;
-            }
-            if (wsc->gaps_inner != INT_MIN) {
-                workspace->gaps_inner = wsc->gaps_inner;
-            }
-        }
-    }
 
     workspace_init_scene(workspace);
 
@@ -668,107 +642,6 @@ workspace_remove_tiling(
 
     workspace_set_dirty(workspace);
     column_set_dirty(column);
-}
-
-static bool
-workspace_has_single_visible_container(struct hayward_workspace *workspace) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    if (workspace->pending.tiling->length != 1) {
-        return false;
-    }
-
-    struct hayward_column *column = workspace->pending.tiling->items[0];
-    if (column->pending.layout == L_STACKED) {
-        return true;
-    }
-
-    if (column->pending.children->length == 1) {
-        return true;
-    }
-
-    return false;
-}
-
-void
-workspace_add_gaps(struct hayward_workspace *workspace) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-
-    if (config->smart_gaps == SMART_GAPS_ON &&
-        workspace_has_single_visible_container(workspace)) {
-        workspace->current_gaps.top = 0;
-        workspace->current_gaps.right = 0;
-        workspace->current_gaps.bottom = 0;
-        workspace->current_gaps.left = 0;
-        return;
-    }
-
-    if (config->smart_gaps == SMART_GAPS_INVERSE_OUTER &&
-        !workspace_has_single_visible_container(workspace)) {
-        workspace->current_gaps.top = 0;
-        workspace->current_gaps.right = 0;
-        workspace->current_gaps.bottom = 0;
-        workspace->current_gaps.left = 0;
-    } else {
-        workspace->current_gaps = workspace->gaps_outer;
-    }
-
-    // Add inner gaps and make sure we don't turn out negative
-    workspace->current_gaps.top =
-        fmax(0, workspace->current_gaps.top + workspace->gaps_inner);
-    workspace->current_gaps.right =
-        fmax(0, workspace->current_gaps.right + workspace->gaps_inner);
-    workspace->current_gaps.bottom =
-        fmax(0, workspace->current_gaps.bottom + workspace->gaps_inner);
-    workspace->current_gaps.left =
-        fmax(0, workspace->current_gaps.left + workspace->gaps_inner);
-
-    // Now that we have the total gaps calculated we may need to clamp them in
-    // case they've made the available area too small
-    if (workspace->pending.width - workspace->current_gaps.left -
-                workspace->current_gaps.right <
-            MIN_SANE_W &&
-        workspace->current_gaps.left + workspace->current_gaps.right > 0) {
-        int total_gap = fmax(0, workspace->pending.width - MIN_SANE_W);
-        double left_gap_frac =
-            ((double)workspace->current_gaps.left /
-             ((double)workspace->current_gaps.left +
-              (double)workspace->current_gaps.right));
-        workspace->current_gaps.left = left_gap_frac * total_gap;
-        workspace->current_gaps.right =
-            total_gap - workspace->current_gaps.left;
-    }
-    if (workspace->pending.height - workspace->current_gaps.top -
-                workspace->current_gaps.bottom <
-            MIN_SANE_H &&
-        workspace->current_gaps.top + workspace->current_gaps.bottom > 0) {
-        int total_gap = fmax(0, workspace->pending.height - MIN_SANE_H);
-        double top_gap_frac =
-            ((double)workspace->current_gaps.top /
-             ((double)workspace->current_gaps.top +
-              (double)workspace->current_gaps.bottom));
-        workspace->current_gaps.top = top_gap_frac * total_gap;
-        workspace->current_gaps.bottom =
-            total_gap - workspace->current_gaps.top;
-    }
-
-    workspace->pending.x += workspace->current_gaps.left;
-    workspace->pending.y += workspace->current_gaps.top;
-    workspace->pending.width -=
-        workspace->current_gaps.left + workspace->current_gaps.right;
-    workspace->pending.height -=
-        workspace->current_gaps.top + workspace->current_gaps.bottom;
-}
-
-void
-workspace_get_box(struct hayward_workspace *workspace, struct wlr_box *box) {
-    hayward_assert(workspace != NULL, "Expected workspace");
-    hayward_assert(box != NULL, "Expected box");
-
-    box->x = workspace->pending.x;
-    box->y = workspace->pending.y;
-    box->width = workspace->pending.width;
-    box->height = workspace->pending.height;
 }
 
 size_t
