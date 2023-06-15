@@ -47,6 +47,22 @@ scene_tree_marker_destroy(struct wlr_addon *addon) {
 static const struct wlr_addon_interface scene_tree_marker_interface = {
     .name = "hayward_window", .destroy = scene_tree_marker_destroy};
 
+static struct border_colors *
+window_get_committed_colors(struct hayward_window *window) {
+    if (view_is_urgent(window->view)) {
+        return &config->border_colors.urgent;
+    }
+    if (window->committed.focused) {
+        return &config->border_colors.focused;
+    }
+    if (window->committed.parent &&
+        window->committed.parent->committed.active_child == window) {
+        return &config->border_colors.focused_inactive;
+    }
+
+    return &config->border_colors.unfocused;
+}
+
 static void
 window_init_scene(struct hayward_window *window) {
     window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
@@ -154,6 +170,8 @@ window_update_scene(struct hayward_window *window) {
         }
     }
 
+    struct border_colors *colors = window_get_committed_colors(window);
+
     // Title text.
     wlr_scene_node_set_enabled(
         window->layers.title_text->node, titlebar_height != 0
@@ -169,6 +187,7 @@ window_update_scene(struct hayward_window *window) {
         window->layers.title_text,
         width - border_left - border_right - 2 * config->titlebar_h_padding
     );
+    hayward_text_node_set_color(window->layers.title_text, colors->text);
 
     // Title border.
     wlr_scene_node_set_enabled(
@@ -182,6 +201,7 @@ window_update_scene(struct hayward_window *window) {
         window->layers.title_border, width - border_left - border_right,
         border_title
     );
+    wlr_scene_rect_set_color(window->layers.title_border, colors->border);
 
     // Border top.
     wlr_scene_node_set_enabled(
@@ -194,6 +214,7 @@ window_update_scene(struct hayward_window *window) {
         window->layers.border_top, width - border_left - border_right,
         border_top
     );
+    wlr_scene_rect_set_color(window->layers.border_top, colors->border);
 
     // Border bottom.
     wlr_scene_node_set_enabled(
@@ -206,6 +227,7 @@ window_update_scene(struct hayward_window *window) {
         window->layers.border_top, width - border_left - border_right,
         border_bottom
     );
+    wlr_scene_rect_set_color(window->layers.border_bottom, colors->border);
 
     // Border left.
     wlr_scene_node_set_enabled(
@@ -213,6 +235,7 @@ window_update_scene(struct hayward_window *window) {
     );
     wlr_scene_node_set_position(&window->layers.border_left->node, 0, 0);
     wlr_scene_rect_set_size(window->layers.border_left, border_left, height);
+    wlr_scene_rect_set_color(window->layers.border_left, colors->border);
 
     // Border right.
     wlr_scene_node_set_enabled(
@@ -222,6 +245,7 @@ window_update_scene(struct hayward_window *window) {
         &window->layers.border_left->node, width - border_right, 0
     );
     wlr_scene_rect_set_size(window->layers.border_right, border_right, height);
+    wlr_scene_rect_set_color(window->layers.border_right, colors->border);
 
     // Content.
     wlr_scene_node_set_enabled(
