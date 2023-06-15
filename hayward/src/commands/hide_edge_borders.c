@@ -15,7 +15,7 @@ struct cmd_results *
 cmd_hide_edge_borders(int argc, char **argv) {
     const char *expected_syntax =
         "Expected 'hide_edge_borders [--i3] "
-        "none|vertical|horizontal|both|smart|smart_no_gaps";
+        "none|vertical|horizontal|both";
 
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "hide_edge_borders", EXPECTED_AT_LEAST, 1))) {
@@ -34,12 +34,6 @@ cmd_hide_edge_borders(int argc, char **argv) {
         config->hide_edge_borders = E_HORIZONTAL;
     } else if (strcmp(argv[0], "both") == 0) {
         config->hide_edge_borders = E_BOTH;
-    } else if (strcmp(argv[0], "smart") == 0) {
-        config->hide_edge_borders = E_NONE;
-        config->hide_edge_borders_smart = ESMART_ON;
-    } else if (strcmp(argv[0], "smart_no_gaps") == 0) {
-        config->hide_edge_borders = E_NONE;
-        config->hide_edge_borders_smart = ESMART_NO_GAPS;
     } else {
         return cmd_results_new(CMD_INVALID, expected_syntax);
     }

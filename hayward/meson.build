@@ -83,7 +83,6 @@ hayward_sources = files(
 	'src/commands/seat/xcursor_theme.c',
 	'src/commands/set.c',
 	'src/commands/shortcuts_inhibitor.c',
-	'src/commands/smart_borders.c',
 	'src/commands/haywardbg_command.c',
 	'src/commands/haywardnag_command.c',
 	'src/commands/tiling_drag.c',

@@ -14,7 +14,6 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <hayward/config.h>
 #include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/ipc-server.h>
@@ -226,17 +225,6 @@ workspace_handle_transaction_after_apply(
         workspace->current.dead, "After apply called on live workspace"
     );
     workspace_destroy(workspace);
-}
-
-struct workspace_config *
-workspace_find_config(const char *workspace_name) {
-    for (int i = 0; i < config->workspace_configs->length; ++i) {
-        struct workspace_config *wsc = config->workspace_configs->items[i];
-        if (strcmp(wsc->workspace, workspace_name) == 0) {
-            return wsc;
-        }
-    }
-    return NULL;
 }
 
 struct hayward_workspace *

@@ -296,33 +296,6 @@ enum hayward_window_border {
     B_CSD,
 };
 
-/**
- * Stores size of gaps for each side
- */
-struct side_gaps {
-    int top;
-    int right;
-    int bottom;
-    int left;
-};
-
-enum smart_gaps_mode {
-    SMART_GAPS_OFF,
-    SMART_GAPS_ON,
-    SMART_GAPS_INVERSE_OUTER,
-};
-
-/**
- * Stores configuration for a workspace, regardless of whether the workspace
- * exists.
- */
-struct workspace_config {
-    char *workspace;
-    list_t *outputs;
-    int gaps_inner;
-    struct side_gaps gaps_outer;
-};
-
 enum pango_markup_config {
     PANGO_MARKUP_DISABLED = false,
     PANGO_MARKUP_ENABLED = true,
@@ -369,7 +342,6 @@ struct bar_config {
     bool strip_workspace_name;
     bool binding_mode_indicator;
     bool verbose;
-    struct side_gaps gaps;
     int status_padding;
     int status_edge_padding;
     uint32_t workspace_min_width;
@@ -434,13 +406,6 @@ enum edge_border_types {
     E_BOTH,       /**< hide vertical and horizontal edge borders */
 };
 
-enum edge_border_smart_types {
-    ESMART_OFF,
-    ESMART_ON, /**< hide edges if precisely one window is present in workspace
-                */
-    ESMART_NO_GAPS, /**< hide edges if one window and gaps to edge is zero */
-};
-
 enum hayward_popup_during_fullscreen {
     POPUP_SMART,
     POPUP_IGNORE,
@@ -482,7 +447,6 @@ struct hayward_config {
     list_t *modes;
     list_t *bars;
     list_t *cmd_queue;
-    list_t *workspace_configs;
     list_t *output_configs;
     list_t *input_configs;
     list_t *input_type_configs;
@@ -533,10 +497,6 @@ struct hayward_config {
     bool tiling_drag;
     int tiling_drag_threshold;
 
-    enum smart_gaps_mode smart_gaps;
-    int gaps_inner;
-    struct side_gaps gaps_outer;
-
     list_t *config_chain;
     bool user_config_path;
     const char *current_config_path;
@@ -549,7 +509,6 @@ struct hayward_config {
     int border_thickness;
     int floating_border_thickness;
     enum edge_border_types hide_edge_borders;
-    enum edge_border_smart_types hide_edge_borders_smart;
 
     // border colors
     struct {
@@ -754,9 +713,6 @@ free_bar_config(struct bar_config *bar);
 
 void
 free_bar_binding(struct bar_binding *binding);
-
-void
-free_workspace_config(struct workspace_config *wsc);
 
 /**
  * Updates the value of config->font_height based on the metrics for title's

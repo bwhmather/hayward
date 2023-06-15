@@ -66,9 +66,6 @@ struct hayward_workspace {
     } events;
 };
 
-struct workspace_config *
-workspace_find_config(const char *workspace_name);
-
 struct hayward_workspace *
 workspace_create(const char *name);
 

@@ -135,8 +135,6 @@ config_defaults(struct hayward_config *config) {
         goto cleanup;
     if (!(config->bars = create_list()))
         goto cleanup;
-    if (!(config->workspace_configs = create_list()))
-        goto cleanup;
     if (!(config->criteria = create_list()))
         goto cleanup;
     if (!(config->no_focus = create_list()))
@@ -212,13 +210,6 @@ config_defaults(struct hayward_config *config) {
     config->tiling_drag = true;
     config->tiling_drag_threshold = 9;
 
-    config->smart_gaps = SMART_GAPS_OFF;
-    config->gaps_inner = 0;
-    config->gaps_outer.top = 0;
-    config->gaps_outer.right = 0;
-    config->gaps_outer.bottom = 0;
-    config->gaps_outer.left = 0;
-
     if (!(config->active_bar_modifiers = create_list()))
         goto cleanup;
 
@@ -236,7 +227,6 @@ config_defaults(struct hayward_config *config) {
     config->border_thickness = 2;
     config->floating_border_thickness = 2;
     config->hide_edge_borders = E_NONE;
-    config->hide_edge_borders_smart = ESMART_OFF;
 
     config->has_focused_tab_title = false;
 
@@ -966,12 +956,6 @@ free_config(struct hayward_config *config) {
         list_free(config->bars);
     }
     list_free(config->cmd_queue);
-    if (config->workspace_configs) {
-        for (int i = 0; i < config->workspace_configs->length; i++) {
-            free_workspace_config(config->workspace_configs->items[i]);
-        }
-        list_free(config->workspace_configs);
-    }
     if (config->output_configs) {
         for (int i = 0; i < config->output_configs->length; i++) {
             free_output_config(config->output_configs->items[i]);
