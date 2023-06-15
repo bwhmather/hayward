@@ -172,6 +172,21 @@ window_update_scene(struct hayward_window *window) {
 
     struct border_colors *colors = window_get_committed_colors(window);
 
+    // Title background.
+    wlr_scene_node_set_enabled(
+        &window->layers.title_background->node, titlebar_height != 0
+    );
+    wlr_scene_node_set_position(
+        &window->layers.title_background->node, border_left, border_top
+    );
+    wlr_scene_rect_set_size(
+        window->layers.title_background, width - border_left - border_right,
+        titlebar_height
+    );
+    wlr_scene_rect_set_color(
+        window->layers.title_background, colors->background
+    );
+
     // Title text.
     wlr_scene_node_set_enabled(
         window->layers.title_text->node, titlebar_height != 0
