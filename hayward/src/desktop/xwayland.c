@@ -169,7 +169,7 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data) {
 static void
 handle_map(struct wl_listener *listener, void *data);
 
-struct hayward_xwayland_view *
+static struct hayward_xwayland_view *
 create_xwayland_view(struct wlr_xwayland_surface *xsurface);
 
 static void
