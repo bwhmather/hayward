@@ -120,9 +120,6 @@ workspace_remove_tiling(
     struct hayward_workspace *workspace, struct hayward_column *column
 );
 
-void
-workspace_add_gaps(struct hayward_workspace *workspace);
-
 size_t
 workspace_num_tiling_views(struct hayward_workspace *workspace);
 
