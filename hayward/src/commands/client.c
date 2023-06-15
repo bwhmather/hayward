@@ -25,17 +25,8 @@ handle_command(
         return error;
     }
 
-    if (argc > 3 && strcmp(cmd_name, "client.focused_tab_title") == 0) {
-        hayward_log(
-            HAYWARD_ERROR,
-            "Warning: indicator and child_border colors have no effect for %s",
-            cmd_name
-        );
-    }
-
     struct border_colors colors = {0};
     const char *ind_hex = argc > 3 ? argv[3] : default_indicator;
-    const char *child_hex = argc > 4 ? argv[4] : argv[1]; // def to background
 
     struct {
         const char *name;
@@ -45,8 +36,7 @@ handle_command(
         {"border", argv[0], colors.border},
         {"background", argv[1], colors.background},
         {"text", argv[2], colors.text},
-        {"indicator", ind_hex, colors.indicator},
-        {"child_border", child_hex, colors.child_border}};
+        {"indicator", ind_hex, colors.indicator}};
     for (size_t i = 0; i < sizeof(properties) / sizeof(properties[0]); i++) {
         uint32_t color;
         if (!parse_color(properties[i].hex, &color)) {

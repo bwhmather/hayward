@@ -396,7 +396,6 @@ struct border_colors {
     float background[4];
     float text[4];
     float indicator[4];
-    float child_border[4];
 };
 
 enum edge_border_types {

@@ -235,7 +235,6 @@ config_defaults(struct hayward_config *config) {
     color_to_rgba(config->border_colors.focused.background, 0x285577FF);
     color_to_rgba(config->border_colors.focused.text, 0xFFFFFFFF);
     color_to_rgba(config->border_colors.focused.indicator, 0x2E9EF4FF);
-    color_to_rgba(config->border_colors.focused.child_border, 0x285577FF);
 
     color_to_rgba(config->border_colors.focused_inactive.border, 0x333333FF);
     color_to_rgba(
@@ -243,27 +242,21 @@ config_defaults(struct hayward_config *config) {
     );
     color_to_rgba(config->border_colors.focused_inactive.text, 0xFFFFFFFF);
     color_to_rgba(config->border_colors.focused_inactive.indicator, 0x484E50FF);
-    color_to_rgba(
-        config->border_colors.focused_inactive.child_border, 0x5F676AFF
-    );
 
     color_to_rgba(config->border_colors.unfocused.border, 0x333333FF);
     color_to_rgba(config->border_colors.unfocused.background, 0x222222FF);
     color_to_rgba(config->border_colors.unfocused.text, 0x888888FF);
     color_to_rgba(config->border_colors.unfocused.indicator, 0x292D2EFF);
-    color_to_rgba(config->border_colors.unfocused.child_border, 0x222222FF);
 
     color_to_rgba(config->border_colors.urgent.border, 0x2F343AFF);
     color_to_rgba(config->border_colors.urgent.background, 0x900000FF);
     color_to_rgba(config->border_colors.urgent.text, 0xFFFFFFFF);
     color_to_rgba(config->border_colors.urgent.indicator, 0x900000FF);
-    color_to_rgba(config->border_colors.urgent.child_border, 0x900000FF);
 
     color_to_rgba(config->border_colors.placeholder.border, 0x000000FF);
     color_to_rgba(config->border_colors.placeholder.background, 0x0C0C0CFF);
     color_to_rgba(config->border_colors.placeholder.text, 0xFFFFFFFF);
     color_to_rgba(config->border_colors.placeholder.indicator, 0x000000FF);
-    color_to_rgba(config->border_colors.placeholder.child_border, 0x0C0C0CFF);
 
     color_to_rgba(config->border_colors.background, 0xFFFFFFFF);
 

@@ -13,9 +13,8 @@
 
 struct cmd_results *
 cmd_hide_edge_borders(int argc, char **argv) {
-    const char *expected_syntax =
-        "Expected 'hide_edge_borders [--i3] "
-        "none|vertical|horizontal|both";
+    const char *expected_syntax = "Expected 'hide_edge_borders [--i3] "
+                                  "none|vertical|horizontal|both";
 
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "hide_edge_borders", EXPECTED_AT_LEAST, 1))) {
