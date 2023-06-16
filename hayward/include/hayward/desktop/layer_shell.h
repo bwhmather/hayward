@@ -1,11 +1,19 @@
-#ifndef HAYWARD_LAYERS_H
-#define HAYWARD_LAYERS_H
+#ifndef HAYWARD_DESKTOP_LAYER_SHELL_H
+#define HAYWARD_DESKTOP_LAYER_SHELL_H
 
 #include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
+
+struct hayward_output;
+
+struct hayward_layer_shell {
+    struct wlr_layer_shell_v1 *layer_shell;
+
+    struct wl_listener new_surface;
+};
 
 struct hayward_layer_surface {
     struct wlr_layer_surface_v1 *layer_surface;
@@ -36,9 +44,11 @@ struct hayward_layer_popup {
     struct wl_listener new_popup;
 };
 
-struct hayward_output;
 void
 arrange_layers(struct hayward_output *output);
+
+struct hayward_layer_shell *
+hayward_layer_shell_create(struct wl_display *wl_display);
 
 struct hayward_layer_surface *
 layer_surface_for_scene_node(struct wlr_scene_node *node);

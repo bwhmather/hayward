@@ -13,7 +13,6 @@
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
@@ -22,6 +21,8 @@
 #include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_xdg_shell.h>
+
+#include <hayward/desktop/layer_shell.h>
 
 #include <config.h>
 #if HAVE_XWAYLAND
@@ -53,8 +54,7 @@ struct hayward_server {
     struct wlr_idle *idle;
     struct hayward_idle_inhibit_manager_v1 *idle_inhibit_manager_v1;
 
-    struct wlr_layer_shell_v1 *layer_shell;
-    struct wl_listener layer_shell_surface;
+    struct hayward_layer_shell *layer_shell;
 
     struct wlr_xdg_shell *xdg_shell;
     struct wl_listener xdg_shell_surface;
@@ -147,8 +147,6 @@ handle_new_output(struct wl_listener *listener, void *data);
 
 void
 handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
-void
-handle_layer_shell_surface(struct wl_listener *listener, void *data);
 void
 hayward_session_lock_init(void);
 void

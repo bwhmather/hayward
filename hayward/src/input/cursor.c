@@ -45,11 +45,11 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
+#include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/tablet.h>
-#include <hayward/layers.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>

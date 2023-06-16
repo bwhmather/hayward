@@ -23,7 +23,6 @@
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_idle.h>
 #include <wlr/types/wlr_input_method_v2.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
@@ -51,6 +50,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/output.h>
@@ -140,11 +140,7 @@ server_init(struct hayward_server *server) {
         server->wl_display, server->idle
     );
 
-    server->layer_shell = wlr_layer_shell_v1_create(server->wl_display);
-    wl_signal_add(
-        &server->layer_shell->events.new_surface, &server->layer_shell_surface
-    );
-    server->layer_shell_surface.notify = handle_layer_shell_surface;
+    server->layer_shell = hayward_layer_shell_create(server->wl_display);
 
     server->xdg_shell =
         wlr_xdg_shell_create(server->wl_display, HAYWARD_XDG_SHELL_VERSION);

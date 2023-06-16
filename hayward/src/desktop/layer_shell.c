@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/desktop/layer_shell.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -23,7 +25,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/layers.h>
 #include <hayward/output.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
@@ -344,8 +345,8 @@ handle_new_popup(struct wl_listener *listener, void *data) {
     create_popup(wlr_popup, layer_surface, layer_surface->popups);
 }
 
-void
-handle_layer_shell_surface(struct wl_listener *listener, void *data) {
+static void
+handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_layer_surface_v1 *wlr_layer_surface = data;
     hayward_log(
         HAYWARD_DEBUG,
@@ -417,6 +418,28 @@ handle_layer_shell_surface(struct wl_listener *listener, void *data) {
     wlr_layer_surface->current = wlr_layer_surface->pending;
     arrange_layers(output);
     wlr_layer_surface->current = old_state;
+}
+
+struct hayward_layer_shell *
+hayward_layer_shell_create(struct wl_display *wl_display) {
+    struct hayward_layer_shell *layer_shell =
+        calloc(1, sizeof(struct hayward_layer_shell));
+    if (layer_shell == NULL) {
+        return NULL;
+    }
+
+    layer_shell->layer_shell = wlr_layer_shell_v1_create(wl_display);
+    if (layer_shell->layer_shell == NULL) {
+        free(layer_shell);
+        return NULL;
+    }
+
+    layer_shell->new_surface.notify = handle_new_surface;
+    wl_signal_add(
+        &layer_shell->layer_shell->events.new_surface, &layer_shell->new_surface
+    );
+
+    return layer_shell;
 }
 
 struct hayward_layer_surface *
