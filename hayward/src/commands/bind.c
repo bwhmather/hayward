@@ -17,11 +17,11 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
+#include <hayward/transaction.h>
 
 #include <config.h>
 

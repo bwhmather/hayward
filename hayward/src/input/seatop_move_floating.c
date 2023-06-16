@@ -11,12 +11,12 @@
 #include <wlr/types/wlr_tablet_tool.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
 #include <hayward/input/tablet.h>
+#include <hayward/transaction.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 

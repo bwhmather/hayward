@@ -1,6 +1,6 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/desktop/transaction.h"
+#include "hayward/transaction.h"
 
 #include <stdbool.h>
 #include <stddef.h>

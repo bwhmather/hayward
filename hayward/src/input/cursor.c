@@ -45,7 +45,6 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
@@ -53,6 +52,7 @@
 #include <hayward/layers.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>

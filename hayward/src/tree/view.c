@@ -31,7 +31,6 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
-#include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
@@ -39,6 +38,7 @@
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>

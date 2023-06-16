@@ -8,13 +8,13 @@ hayward_sources = files(
 	'src/main.c',
 	'src/output.c',
 	'src/server.c',
+	'src/transaction.c',
 	'src/haywardnag.c',
 	'src/xdg_activation_v1.c',
 	'src/xdg_decoration.c',
 
 	'src/desktop/idle_inhibit_v1.c',
 	'src/desktop/layer_shell.c',
-	'src/desktop/transaction.c',
 	'src/desktop/xdg_shell.c',
 
 	'src/input/input-manager.c',

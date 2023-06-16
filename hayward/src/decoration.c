@@ -9,8 +9,8 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_server_decoration.h>
 
-#include <hayward/desktop/transaction.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 

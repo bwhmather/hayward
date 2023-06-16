@@ -20,12 +20,12 @@
 #include <hayward-common/log.h>
 
 #include <hayward/decoration.h>
-#include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move_floating.h>
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/output.h>
+#include <hayward/transaction.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>

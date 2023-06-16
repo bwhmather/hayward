@@ -9,8 +9,8 @@
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
-#include <hayward/desktop/transaction.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>

@@ -20,13 +20,13 @@
 
 #include <hayward-common/log.h>
 
-#include <hayward/desktop/transaction.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move_floating.h>
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
