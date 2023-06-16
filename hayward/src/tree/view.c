@@ -24,7 +24,6 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 #include <hayward-common/pango.h>
 #include <hayward-common/stringop.h>
