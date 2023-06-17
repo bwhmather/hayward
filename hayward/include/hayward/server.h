@@ -20,9 +20,9 @@
 #include <wlr/types/wlr_server_decoration.h>
 #include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_text_input_v3.h>
-#include <wlr/types/wlr_xdg_shell.h>
 
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/xdg_shell.h>
 
 #include <config.h>
 #if HAVE_XWAYLAND
@@ -56,8 +56,7 @@ struct hayward_server {
 
     struct hayward_layer_shell *layer_shell;
 
-    struct wlr_xdg_shell *xdg_shell;
-    struct wl_listener xdg_shell_surface;
+    struct hayward_xdg_shell *xdg_shell;
 
     struct wlr_tablet_manager_v2 *tablet_v2;
 
@@ -149,8 +148,6 @@ void
 handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
 void
 hayward_session_lock_init(void);
-void
-handle_xdg_shell_surface(struct wl_listener *listener, void *data);
 #if HAVE_XWAYLAND
 void
 handle_xwayland_surface(struct wl_listener *listener, void *data);

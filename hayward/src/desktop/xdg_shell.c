@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/desktop/xdg_shell.h"
+
 #include <float.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -35,6 +37,8 @@
 #include <hayward/xdg_decoration.h>
 
 #include <config.h>
+
+#define HAYWARD_XDG_SHELL_VERSION 2
 
 static struct hayward_xdg_popup *
 popup_create(
@@ -509,8 +513,8 @@ view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface) {
     return xdg_surface->data;
 }
 
-void
-handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
+static void
+handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_xdg_surface *xdg_surface = data;
 
     if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
@@ -544,4 +548,27 @@ handle_xdg_shell_surface(struct wl_listener *listener, void *data) {
     wlr_scene_xdg_surface_create(
         xdg_shell_view->view.content_tree, xdg_surface
     );
+}
+
+struct hayward_xdg_shell *
+hayward_xdg_shell_create(struct wl_display *wl_display) {
+    struct hayward_xdg_shell *xdg_shell =
+        calloc(1, sizeof(struct hayward_xdg_shell));
+    if (xdg_shell == NULL) {
+        return NULL;
+    }
+
+    xdg_shell->xdg_shell =
+        wlr_xdg_shell_create(wl_display, HAYWARD_XDG_SHELL_VERSION);
+    if (xdg_shell->xdg_shell == NULL) {
+        free(xdg_shell);
+        return NULL;
+    }
+
+    xdg_shell->new_surface.notify = handle_new_surface;
+    wl_signal_add(
+        &xdg_shell->xdg_shell->events.new_surface, &xdg_shell->new_surface
+    );
+
+    return xdg_shell;
 }

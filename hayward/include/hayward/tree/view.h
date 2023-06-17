@@ -125,20 +125,6 @@ struct hayward_view {
     enum seat_config_shortcuts_inhibit shortcuts_inhibit;
 };
 
-struct hayward_xdg_shell_view {
-    struct hayward_view view;
-
-    struct wl_listener commit;
-    struct wl_listener request_move;
-    struct wl_listener request_resize;
-    struct wl_listener request_fullscreen;
-    struct wl_listener set_title;
-    struct wl_listener set_app_id;
-    struct wl_listener new_popup;
-    struct wl_listener map;
-    struct wl_listener unmap;
-    struct wl_listener destroy;
-};
 #if HAVE_XWAYLAND
 struct hayward_xwayland_view {
     struct hayward_view view;
@@ -181,17 +167,6 @@ struct hayward_xwayland_unmanaged {
     struct wl_listener override_redirect;
 };
 #endif
-
-struct hayward_xdg_popup {
-    struct hayward_view *view;
-
-    struct wlr_scene_tree *scene_tree;
-    struct wlr_scene_tree *xdg_surface_tree;
-    struct wlr_xdg_popup *wlr_xdg_popup;
-
-    struct wl_listener new_popup;
-    struct wl_listener destroy;
-};
 
 void
 view_init(
@@ -300,8 +275,6 @@ view_update_size(struct hayward_view *view);
 void
 view_center_surface(struct hayward_view *view);
 
-struct hayward_view *
-view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface);
 #if HAVE_XWAYLAND
 struct hayward_view *
 view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface);

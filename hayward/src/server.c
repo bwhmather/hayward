@@ -44,13 +44,13 @@
 #include <wlr/types/wlr_xdg_foreign_v1.h>
 #include <wlr/types/wlr_xdg_foreign_v2.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
-#include <wlr/types/wlr_xdg_shell.h>
 
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/xdg_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/output.h>
@@ -89,8 +89,6 @@ handle_drm_lease_request(struct wl_listener *listener, void *data) {
         wlr_drm_lease_request_v1_reject(req);
     }
 }
-
-#define HAYWARD_XDG_SHELL_VERSION 2
 
 bool
 server_init(struct hayward_server *server) {
@@ -142,12 +140,7 @@ server_init(struct hayward_server *server) {
 
     server->layer_shell = hayward_layer_shell_create(server->wl_display);
 
-    server->xdg_shell =
-        wlr_xdg_shell_create(server->wl_display, HAYWARD_XDG_SHELL_VERSION);
-    wl_signal_add(
-        &server->xdg_shell->events.new_surface, &server->xdg_shell_surface
-    );
-    server->xdg_shell_surface.notify = handle_xdg_shell_surface;
+    server->xdg_shell = hayward_xdg_shell_create(server->wl_display);
 
     server->tablet_v2 = wlr_tablet_v2_create(server->wl_display);
 
