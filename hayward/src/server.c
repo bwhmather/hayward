@@ -38,7 +38,6 @@
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_viewporter.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
-#include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_foreign_registry.h>
 #include <wlr/types/wlr_xdg_foreign_v1.h>
 #include <wlr/types/wlr_xdg_foreign_v2.h>
@@ -49,6 +48,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
@@ -153,13 +153,7 @@ server_init(struct hayward_server *server) {
     wl_list_init(&server->decorations);
 
     server->xdg_decoration_manager =
-        wlr_xdg_decoration_manager_v1_create(server->wl_display);
-    wl_signal_add(
-        &server->xdg_decoration_manager->events.new_toplevel_decoration,
-        &server->xdg_decoration
-    );
-    server->xdg_decoration.notify = handle_xdg_decoration;
-    wl_list_init(&server->xdg_decorations);
+        hayward_xdg_decoration_manager_create(server->wl_display);
 
     server->relative_pointer_manager =
         wlr_relative_pointer_manager_v1_create(server->wl_display);

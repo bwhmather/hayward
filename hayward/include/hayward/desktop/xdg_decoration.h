@@ -17,4 +17,15 @@ struct hayward_xdg_decoration {
     struct wl_listener request_mode;
 };
 
+struct hayward_xdg_decoration_manager {
+    struct wlr_xdg_decoration_manager_v1 *xdg_decoration_manager;
+
+    struct wl_list xdg_decorations; // hayward_xdg_decoration::link
+
+    struct wl_listener new_toplevel_decoration;
+};
+
+struct hayward_xdg_decoration_manager *
+hayward_xdg_decoration_manager_create(struct wl_display *wl_display);
+
 #endif

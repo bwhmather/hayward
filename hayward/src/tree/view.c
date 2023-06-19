@@ -31,6 +31,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
@@ -47,7 +48,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-#include <hayward/desktop/xdg_decoration.h>
 
 #include <config.h>
 

@@ -22,6 +22,7 @@
 #include <wlr/types/wlr_text_input_v3.h>
 
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 
@@ -68,9 +69,7 @@ struct hayward_server {
     struct wl_listener server_decoration;
     struct wl_list decorations; // hayward_server_decoration::link
 
-    struct wlr_xdg_decoration_manager_v1 *xdg_decoration_manager;
-    struct wl_listener xdg_decoration;
-    struct wl_list xdg_decorations; // hayward_xdg_decoration::link
+    struct hayward_xdg_decoration_manager *xdg_decoration_manager;
 
     struct wlr_drm_lease_v1_manager *drm_lease_manager;
     struct wl_listener drm_lease_request;
@@ -144,8 +143,6 @@ void
 hayward_session_lock_init(void);
 void
 handle_server_decoration(struct wl_listener *listener, void *data);
-void
-handle_xdg_decoration(struct wl_listener *listener, void *data);
 void
 handle_pointer_constraint(struct wl_listener *listener, void *data);
 void

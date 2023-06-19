@@ -22,6 +22,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/decoration.h>
+#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move_floating.h>
@@ -34,7 +35,6 @@
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-#include <hayward/desktop/xdg_decoration.h>
 
 #include <config.h>
 

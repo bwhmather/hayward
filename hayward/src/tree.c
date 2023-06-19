@@ -10,13 +10,13 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-#include <hayward/desktop/xdg_decoration.h>
 
 #include <config.h>
 
