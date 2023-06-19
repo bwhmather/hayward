@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include "hayward/desktop/xwayland.h"
+
 #include <float.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,13 +27,11 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move_floating.h>
 #include <hayward/input/seatop_resize_floating.h>
-#include <hayward/server.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/xwayland.h>
 
 #include <config.h>
 
@@ -108,7 +108,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data) {
 
     if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
         struct hayward_seat *seat = input_manager_current_seat();
-        struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
+        struct wlr_xwayland *xwayland = surface->xwayland->xwayland;
         wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
         root_set_focused_surface(root, xsurface->surface);
     }
@@ -170,7 +170,9 @@ static void
 handle_map(struct wl_listener *listener, void *data);
 
 static struct hayward_xwayland_view *
-create_xwayland_view(struct wlr_xwayland_surface *xsurface);
+create_xwayland_view(
+    struct hayward_xwayland *xwayland, struct wlr_xwayland_surface *xsurface
+);
 
 static void
 unmanaged_handle_override_redirect(struct wl_listener *listener, void *data) {
@@ -186,14 +188,16 @@ unmanaged_handle_override_redirect(struct wl_listener *listener, void *data) {
     unmanaged_handle_destroy(&surface->destroy, NULL);
     xsurface->data = NULL;
     struct hayward_xwayland_view *xwayland_view =
-        create_xwayland_view(xsurface);
+        create_xwayland_view(surface->xwayland, xsurface);
     if (mapped) {
         handle_map(&xwayland_view->map, xsurface);
     }
 }
 
 static struct hayward_xwayland_unmanaged *
-create_unmanaged(struct wlr_xwayland_surface *xsurface) {
+create_unmanaged(
+    struct hayward_xwayland *xwayland, struct wlr_xwayland_surface *xsurface
+) {
     struct hayward_xwayland_unmanaged *surface =
         calloc(1, sizeof(struct hayward_xwayland_unmanaged));
     if (surface == NULL) {
@@ -202,6 +206,7 @@ create_unmanaged(struct wlr_xwayland_surface *xsurface) {
     }
 
     surface->wlr_xwayland_surface = xsurface;
+    surface->xwayland = xwayland;
 
     wl_signal_add(
         &xsurface->events.request_configure, &surface->request_configure
@@ -326,11 +331,12 @@ set_fullscreen(struct hayward_view *view, bool fullscreen) {
 
 static bool
 wants_floating(struct hayward_view *view) {
-    if (xwayland_view_from_view(view) == NULL) {
+    struct hayward_xwayland_view *xwayland_view = xwayland_view_from_view(view);
+    if (xwayland_view == NULL) {
         return false;
     }
     struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
-    struct hayward_xwayland *xwayland = &server.xwayland;
+    struct hayward_xwayland *xwayland = xwayland_view->xwayland;
 
     if (surface->modal) {
         return true;
@@ -582,7 +588,8 @@ handle_override_redirect(struct wl_listener *listener, void *data) {
 
     handle_destroy(&xwayland_view->destroy, view);
     xsurface->data = NULL;
-    struct hayward_xwayland_unmanaged *unmanaged = create_unmanaged(xsurface);
+    struct hayward_xwayland_unmanaged *unmanaged =
+        create_unmanaged(xwayland_view->xwayland, xsurface);
     if (mapped) {
         unmanaged_handle_map(&unmanaged->map, xsurface);
     }
@@ -754,8 +761,10 @@ view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface) {
     return xsurface->data;
 }
 
-struct hayward_xwayland_view *
-create_xwayland_view(struct wlr_xwayland_surface *xsurface) {
+static struct hayward_xwayland_view *
+create_xwayland_view(
+    struct hayward_xwayland *xwayland, struct wlr_xwayland_surface *xsurface
+) {
     hayward_log(
         HAYWARD_DEBUG, "New xwayland surface title='%s' class='%s'",
         xsurface->title, xsurface->class
@@ -767,6 +776,7 @@ create_xwayland_view(struct wlr_xwayland_surface *xsurface) {
 
     view_init(&xwayland_view->view, HAYWARD_VIEW_XWAYLAND, &view_impl);
     xwayland_view->view.wlr_xwayland_surface = xsurface;
+    xwayland_view->xwayland = xwayland;
 
     wl_signal_add(&xsurface->events.destroy, &xwayland_view->destroy);
     xwayland_view->destroy.notify = handle_destroy;
@@ -838,24 +848,25 @@ create_xwayland_view(struct wlr_xwayland_surface *xsurface) {
     return xwayland_view;
 }
 
-void
-handle_xwayland_surface(struct wl_listener *listener, void *data) {
+static void
+handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_surface *xsurface = data;
+    struct hayward_xwayland *xwayland =
+        wl_container_of(listener, xwayland, new_surface);
 
     if (xsurface->override_redirect) {
         hayward_log(HAYWARD_DEBUG, "New xwayland unmanaged surface");
-        create_unmanaged(xsurface);
+        create_unmanaged(xwayland, xsurface);
         return;
     }
 
-    create_xwayland_view(xsurface);
+    create_xwayland_view(xwayland, xsurface);
 }
 
-void
-handle_xwayland_ready(struct wl_listener *listener, void *data) {
-    struct hayward_server *server =
-        wl_container_of(listener, server, xwayland_ready);
-    struct hayward_xwayland *xwayland = &server->xwayland;
+static void
+handle_ready(struct wl_listener *listener, void *data) {
+    struct hayward_xwayland *xwayland =
+        wl_container_of(listener, xwayland, ready);
 
     xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
     int err = xcb_connection_has_error(xcb_conn);
@@ -889,4 +900,42 @@ handle_xwayland_ready(struct wl_listener *listener, void *data) {
     }
 
     xcb_disconnect(xcb_conn);
+}
+
+struct hayward_xwayland *
+hayward_xwayland_create(
+    struct wl_display *wl_display, struct wlr_compositor *compositor, bool lazy
+) {
+    struct hayward_xwayland *xwayland =
+        calloc(1, sizeof(struct hayward_xwayland));
+    if (xwayland == NULL) {
+        return NULL;
+    }
+
+    xwayland->xwayland = wlr_xwayland_create(wl_display, compositor, lazy);
+
+    if (!xwayland->xwayland) {
+        free(xwayland);
+        unsetenv("DISPLAY");
+        return NULL;
+    } else {
+        xwayland->new_surface.notify = handle_new_surface;
+        wl_signal_add(
+            &xwayland->xwayland->events.new_surface, &xwayland->new_surface
+        );
+
+        xwayland->ready.notify = handle_ready;
+        wl_signal_add(&xwayland->xwayland->events.ready, &xwayland->ready);
+
+        setenv("DISPLAY", xwayland->xwayland->display_name, true);
+
+        /* xcursor configured by the default seat */
+        return xwayland;
+    }
+}
+
+void
+hayward_xwayland_destroy(struct hayward_xwayland *xwayland) {
+    wlr_xwayland_destroy(xwayland->xwayland);
+    free(xwayland);
 }

@@ -39,6 +39,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
@@ -54,7 +55,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/xwayland.h>
 
 #include <config.h>
 
@@ -893,32 +893,32 @@ seat_configure_xcursor(struct hayward_seat *seat) {
         }
 
 #if HAVE_XWAYLAND
-        if (server.xwayland.wlr_xwayland &&
-            (!server.xwayland.xcursor_manager ||
+        if (server.xwayland != NULL &&
+            (!server.xwayland->xcursor_manager ||
              !xcursor_manager_is_named(
-                 server.xwayland.xcursor_manager, cursor_theme
+                 server.xwayland->xcursor_manager, cursor_theme
              ) ||
-             server.xwayland.xcursor_manager->size != cursor_size)) {
+             server.xwayland->xcursor_manager->size != cursor_size)) {
 
-            wlr_xcursor_manager_destroy(server.xwayland.xcursor_manager);
+            wlr_xcursor_manager_destroy(server.xwayland->xcursor_manager);
 
-            server.xwayland.xcursor_manager =
+            server.xwayland->xcursor_manager =
                 wlr_xcursor_manager_create(cursor_theme, cursor_size);
             hayward_assert(
-                server.xwayland.xcursor_manager,
+                server.xwayland->xcursor_manager,
                 "Cannot create XCursor manager for theme"
             );
 
-            wlr_xcursor_manager_load(server.xwayland.xcursor_manager, 1);
+            wlr_xcursor_manager_load(server.xwayland->xcursor_manager, 1);
             struct wlr_xcursor *xcursor = wlr_xcursor_manager_get_xcursor(
-                server.xwayland.xcursor_manager, "left_ptr", 1
+                server.xwayland->xcursor_manager, "left_ptr", 1
             );
             if (xcursor != NULL) {
                 struct wlr_xcursor_image *image = xcursor->images[0];
                 wlr_xwayland_set_cursor(
-                    server.xwayland.wlr_xwayland, image->buffer,
-                    image->width * 4, image->width, image->height,
-                    image->hotspot_x, image->hotspot_y
+                    server.xwayland->xwayland, image->buffer, image->width * 4,
+                    image->width, image->height, image->hotspot_x,
+                    image->hotspot_y
                 );
             }
         }

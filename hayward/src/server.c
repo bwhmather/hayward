@@ -4,7 +4,6 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
@@ -51,17 +50,13 @@
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/desktop/xdg_shell.h>
+#include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/output.h>
 #include <hayward/tree/root.h>
 
 #include <config.h>
-#if HAVE_XWAYLAND
-#include <wlr/xwayland/xwayland.h>
-
-#include <hayward/xwayland.h>
-#endif
 
 bool
 server_privileged_prepare(struct hayward_server *server) {
@@ -288,7 +283,7 @@ void
 server_fini(struct hayward_server *server) {
     // TODO: free hayward-specific resources
 #if HAVE_XWAYLAND
-    wlr_xwayland_destroy(server->xwayland.wlr_xwayland);
+    hayward_xwayland_destroy(server->xwayland);
 #endif
     wl_display_destroy_clients(server->wl_display);
     wl_display_destroy(server->wl_display);
@@ -302,30 +297,12 @@ server_start(struct hayward_server *server) {
             HAYWARD_DEBUG, "Initializing Xwayland (lazy=%d)",
             config->xwayland == XWAYLAND_MODE_LAZY
         );
-        server->xwayland.wlr_xwayland = wlr_xwayland_create(
+        server->xwayland = hayward_xwayland_create(
             server->wl_display, server->compositor,
             config->xwayland == XWAYLAND_MODE_LAZY
         );
-        if (!server->xwayland.wlr_xwayland) {
+        if (!server->xwayland) {
             hayward_log(HAYWARD_ERROR, "Failed to start Xwayland");
-            unsetenv("DISPLAY");
-        } else {
-            wl_signal_add(
-                &server->xwayland.wlr_xwayland->events.new_surface,
-                &server->xwayland_surface
-            );
-            server->xwayland_surface.notify = handle_xwayland_surface;
-            wl_signal_add(
-                &server->xwayland.wlr_xwayland->events.ready,
-                &server->xwayland_ready
-            );
-            server->xwayland_ready.notify = handle_xwayland_ready;
-
-            setenv(
-                "DISPLAY", server->xwayland.wlr_xwayland->display_name, true
-            );
-
-            /* xcursor configured by the default seat */
         }
     }
 #endif

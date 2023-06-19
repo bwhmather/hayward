@@ -23,11 +23,9 @@
 
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/desktop/xdg_shell.h>
+#include <hayward/desktop/xwayland.h>
 
 #include <config.h>
-#if HAVE_XWAYLAND
-#include <hayward/xwayland.h>
-#endif
 
 struct hayward_server {
     struct wl_display *wl_display;
@@ -61,9 +59,7 @@ struct hayward_server {
     struct wlr_tablet_manager_v2 *tablet_v2;
 
 #if HAVE_XWAYLAND
-    struct hayward_xwayland xwayland;
-    struct wl_listener xwayland_surface;
-    struct wl_listener xwayland_ready;
+    struct hayward_xwayland *xwayland;
 #endif
 
     struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
@@ -148,10 +144,6 @@ void
 handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
 void
 hayward_session_lock_init(void);
-#if HAVE_XWAYLAND
-void
-handle_xwayland_surface(struct wl_listener *listener, void *data);
-#endif
 void
 handle_server_decoration(struct wl_listener *listener, void *data);
 void

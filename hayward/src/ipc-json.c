@@ -32,6 +32,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
@@ -43,7 +44,6 @@
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-#include <hayward/xwayland.h>
 
 #include <config.h>
 
@@ -121,7 +121,7 @@ ipc_json_output_adaptive_sync_status_description(
 static const char *
 ipc_json_xwindow_type_description(struct hayward_view *view) {
     struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
-    struct hayward_xwayland *xwayland = &server.xwayland;
+    struct hayward_xwayland *xwayland = server.xwayland;
 
     for (size_t i = 0; i < surface->window_type_len; ++i) {
         xcb_atom_t type = surface->window_type[i];

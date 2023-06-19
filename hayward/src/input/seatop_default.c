@@ -30,6 +30,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
@@ -50,9 +51,6 @@
 #include <hayward/tree/workspace.h>
 
 #include <config.h>
-#if HAVE_XWAYLAND
-#include <hayward/xwayland.h>
-#endif
 
 struct seatop_default_event {
     struct hayward_window *previous_window;
@@ -337,7 +335,7 @@ handle_tablet_tool_tip(
             wlr_xwayland_surface_from_wlr_surface(surface);
         if (xsurface->override_redirect &&
             wlr_xwayland_or_surface_wants_focus(xsurface)) {
-            struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
+            struct wlr_xwayland *xwayland = server.xwayland->xwayland;
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
             root_set_focused_surface(root, xsurface->surface);
             transaction_flush();
@@ -600,7 +598,7 @@ handle_button(
             wlr_xwayland_surface_from_wlr_surface(surface);
         if (xsurface->override_redirect &&
             wlr_xwayland_or_surface_wants_focus(xsurface)) {
-            struct wlr_xwayland *xwayland = server.xwayland.wlr_xwayland;
+            struct wlr_xwayland *xwayland = server.xwayland->xwayland;
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
             root_set_focused_surface(root, xsurface->surface);
             transaction_flush();

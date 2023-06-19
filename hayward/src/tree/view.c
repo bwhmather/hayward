@@ -23,6 +23,7 @@
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
+#include <wlr/xwayland/xwayland.h>
 
 #include <hayward-common/log.h>
 #include <hayward-common/pango.h>
@@ -31,6 +32,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/xdg_shell.h>
+#include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
@@ -48,9 +50,6 @@
 #include <hayward/xdg_decoration.h>
 
 #include <config.h>
-#if HAVE_XWAYLAND
-#include <wlr/xwayland/xwayland.h>
-#endif
 
 void
 view_init(

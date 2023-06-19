@@ -10,16 +10,12 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
-#include <wlr/util/addon.h>
 #include <wlr/util/box.h>
+#include <wlr/xwayland/xwayland.h>
 
 #include <hayward/config.h>
 
 #include <config.h>
-
-#if HAVE_XWAYLAND
-#include <wlr/xwayland/xwayland.h>
-#endif
 
 struct hayward_window;
 struct hayward_view;
@@ -124,49 +120,6 @@ struct hayward_view {
 
     enum seat_config_shortcuts_inhibit shortcuts_inhibit;
 };
-
-#if HAVE_XWAYLAND
-struct hayward_xwayland_view {
-    struct hayward_view view;
-
-    struct wlr_scene_surface *surface_scene;
-
-    struct wl_listener commit;
-    struct wl_listener request_move;
-    struct wl_listener request_resize;
-    struct wl_listener request_maximize;
-    struct wl_listener request_minimize;
-    struct wl_listener request_configure;
-    struct wl_listener request_fullscreen;
-    struct wl_listener request_activate;
-    struct wl_listener set_title;
-    struct wl_listener set_class;
-    struct wl_listener set_role;
-    struct wl_listener set_window_type;
-    struct wl_listener set_hints;
-    struct wl_listener set_decorations;
-    struct wl_listener map;
-    struct wl_listener unmap;
-    struct wl_listener destroy;
-    struct wl_listener override_redirect;
-};
-
-struct hayward_xwayland_unmanaged {
-    struct wlr_xwayland_surface *wlr_xwayland_surface;
-
-    struct wlr_scene_surface *surface_scene;
-    struct wlr_addon surface_scene_marker;
-
-    struct wl_listener request_activate;
-    struct wl_listener request_configure;
-    struct wl_listener request_fullscreen;
-    struct wl_listener set_geometry;
-    struct wl_listener map;
-    struct wl_listener unmap;
-    struct wl_listener destroy;
-    struct wl_listener override_redirect;
-};
-#endif
 
 void
 view_init(
@@ -275,10 +228,6 @@ view_update_size(struct hayward_view *view);
 void
 view_center_surface(struct hayward_view *view);
 
-#if HAVE_XWAYLAND
-struct hayward_view *
-view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface);
-#endif
 struct hayward_view *
 view_from_wlr_surface(struct wlr_surface *surface);
 
