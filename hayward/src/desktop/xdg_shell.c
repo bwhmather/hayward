@@ -21,7 +21,7 @@
 
 #include <hayward-common/log.h>
 
-#include <hayward/decoration.h>
+#include <hayward/desktop/server_decoration.h>
 #include <hayward/desktop/xdg_decoration.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>

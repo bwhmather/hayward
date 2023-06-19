@@ -1,5 +1,5 @@
-#ifndef HAYWARD_DECORATION_H
-#define HAYWARD_DECORATION_H
+#ifndef HAYWARD_DESKTOP_SERVER_DECORATION_H
+#define HAYWARD_DESKTOP_SERVER_DECORATION_H
 
 #include <wayland-server-core.h>
 #include <wayland-util.h>

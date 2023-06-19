@@ -1,7 +1,6 @@
 hayward_sources = files(
 	'src/commands.c',
 	'src/config.c',
-	'src/decoration.c',
 	'src/ipc-json.c',
 	'src/ipc-server.c',
 	'src/lock.c',
@@ -14,6 +13,7 @@ hayward_sources = files(
 
 	'src/desktop/idle_inhibit_v1.c',
 	'src/desktop/layer_shell.c',
+	'src/desktop/server_decoration.c',
 	'src/desktop/xdg_decoration.c',
 	'src/desktop/xdg_shell.c',
 
