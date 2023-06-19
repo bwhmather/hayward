@@ -554,7 +554,7 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
     return binding_add(binding, mode_bindings, bindtype, argv[0], warn);
 }
 
-struct cmd_results *
+static struct cmd_results *
 cmd_bind_or_unbind_switch(int argc, char **argv, bool unbind) {
     int minargs = 2;
     char *bindtype = "bindswitch";
