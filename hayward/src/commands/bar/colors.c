@@ -13,6 +13,29 @@
 
 #include <config.h>
 
+static struct cmd_results *
+bar_colors_cmd_active_workspace(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_background(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_binding_mode(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_focused_background(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_focused_separator(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_focused_statusline(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_focused_workspace(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_inactive_workspace(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_separator(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_statusline(int argc, char **argv);
+static struct cmd_results *
+bar_colors_cmd_urgent_workspace(int argc, char **argv);
+
 // Must be in alphabetical order for bsearch
 static const struct cmd_handler bar_colors_handlers[] = {
     {"active_workspace", bar_colors_cmd_active_workspace},
@@ -91,7 +114,7 @@ bar_cmd_colors(int argc, char **argv) {
     );
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_active_workspace(int argc, char **argv) {
     char **colors[3] = {
         &(config->current_bar->colors.active_workspace_border),
@@ -100,14 +123,14 @@ bar_colors_cmd_active_workspace(int argc, char **argv) {
     return parse_three_colors(colors, "active_workspace", argc, argv);
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_background(int argc, char **argv) {
     return parse_single_color(
         &(config->current_bar->colors.background), "background", argc, argv
     );
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_focused_background(int argc, char **argv) {
     return parse_single_color(
         &(config->current_bar->colors.focused_background), "focused_background",
@@ -115,7 +138,7 @@ bar_colors_cmd_focused_background(int argc, char **argv) {
     );
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_binding_mode(int argc, char **argv) {
     char **colors[3] = {
         &(config->current_bar->colors.binding_mode_border),
@@ -124,7 +147,7 @@ bar_colors_cmd_binding_mode(int argc, char **argv) {
     return parse_three_colors(colors, "binding_mode", argc, argv);
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_focused_workspace(int argc, char **argv) {
     char **colors[3] = {
         &(config->current_bar->colors.focused_workspace_border),
@@ -133,7 +156,7 @@ bar_colors_cmd_focused_workspace(int argc, char **argv) {
     return parse_three_colors(colors, "focused_workspace", argc, argv);
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_inactive_workspace(int argc, char **argv) {
     char **colors[3] = {
         &(config->current_bar->colors.inactive_workspace_border),
@@ -142,14 +165,14 @@ bar_colors_cmd_inactive_workspace(int argc, char **argv) {
     return parse_three_colors(colors, "inactive_workspace", argc, argv);
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_separator(int argc, char **argv) {
     return parse_single_color(
         &(config->current_bar->colors.separator), "separator", argc, argv
     );
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_focused_separator(int argc, char **argv) {
     return parse_single_color(
         &(config->current_bar->colors.focused_separator), "focused_separator",
@@ -157,14 +180,14 @@ bar_colors_cmd_focused_separator(int argc, char **argv) {
     );
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_statusline(int argc, char **argv) {
     return parse_single_color(
         &(config->current_bar->colors.statusline), "statusline", argc, argv
     );
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_focused_statusline(int argc, char **argv) {
     return parse_single_color(
         &(config->current_bar->colors.focused_statusline), "focused_statusline",
@@ -172,7 +195,7 @@ bar_colors_cmd_focused_statusline(int argc, char **argv) {
     );
 }
 
-struct cmd_results *
+static struct cmd_results *
 bar_colors_cmd_urgent_workspace(int argc, char **argv) {
     char **colors[3] = {
         &(config->current_bar->colors.urgent_workspace_border),

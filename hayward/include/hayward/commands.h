@@ -202,18 +202,6 @@ hayward_cmd bar_cmd_workspace_buttons;
 hayward_cmd bar_cmd_workspace_min_width;
 hayward_cmd bar_cmd_wrap_scroll;
 
-hayward_cmd bar_colors_cmd_active_workspace;
-hayward_cmd bar_colors_cmd_background;
-hayward_cmd bar_colors_cmd_binding_mode;
-hayward_cmd bar_colors_cmd_focused_background;
-hayward_cmd bar_colors_cmd_focused_separator;
-hayward_cmd bar_colors_cmd_focused_statusline;
-hayward_cmd bar_colors_cmd_focused_workspace;
-hayward_cmd bar_colors_cmd_inactive_workspace;
-hayward_cmd bar_colors_cmd_separator;
-hayward_cmd bar_colors_cmd_statusline;
-hayward_cmd bar_colors_cmd_urgent_workspace;
-
 hayward_cmd input_cmd_accel_profile;
 hayward_cmd input_cmd_calibration_matrix;
 hayward_cmd input_cmd_click_method;
