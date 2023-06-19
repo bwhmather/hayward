@@ -16,7 +16,7 @@
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-#include <hayward/xdg_decoration.h>
+#include <hayward/desktop/xdg_decoration.h>
 
 #include <config.h>
 
