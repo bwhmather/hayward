@@ -102,7 +102,7 @@ new_output_config(const char *name) {
     return oc;
 }
 
-void
+static void
 merge_output_config(struct output_config *dst, struct output_config *src) {
     if (src->enabled != -1) {
         dst->enabled = src->enabled;

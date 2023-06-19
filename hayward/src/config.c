@@ -40,6 +40,12 @@
 
 struct hayward_config *config = NULL;
 
+static bool
+read_config(
+    FILE *file, struct hayward_config *config,
+    struct haywardnag_instance *haywardnag
+);
+
 static struct xkb_state *
 keysym_translation_state_create(struct xkb_rule_names rules) {
     struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
@@ -692,7 +698,7 @@ expand_line(const char *block, const char *line, bool add_brace) {
     return expanded;
 }
 
-bool
+static bool
 read_config(
     FILE *file, struct hayward_config *config,
     struct haywardnag_instance *haywardnag

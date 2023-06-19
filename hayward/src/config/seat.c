@@ -12,6 +12,9 @@
 
 #include <config.h>
 
+static void
+merge_seat_config(struct seat_config *dest, struct seat_config *source);
+
 struct seat_config *
 new_seat_config(const char *name) {
     struct seat_config *seat = calloc(1, sizeof(struct seat_config));
@@ -126,7 +129,7 @@ merge_seat_attachment_config(
     // nothing to merge yet, but there will be some day
 }
 
-void
+static void
 merge_seat_config(struct seat_config *dest, struct seat_config *source) {
     if (source->fallback != -1) {
         dest->fallback = source->fallback;
@@ -191,18 +194,6 @@ merge_seat_config(struct seat_config *dest, struct seat_config *source) {
     if (source->idle_wake_sources != UINT32_MAX) {
         dest->idle_wake_sources = source->idle_wake_sources;
     }
-}
-
-struct seat_config *
-copy_seat_config(struct seat_config *seat) {
-    struct seat_config *copy = new_seat_config(seat->name);
-    if (copy == NULL) {
-        return NULL;
-    }
-
-    merge_seat_config(copy, seat);
-
-    return copy;
 }
 
 void

@@ -20,6 +20,13 @@
 
 #include <config.h>
 
+static int
+input_identifier_cmp(const void *item, const void *data) {
+    const struct input_config *ic = item;
+    const char *identifier = data;
+    return strcmp(ic->identifier, identifier);
+}
+
 struct input_config *
 new_input_config(const char *identifier) {
     struct input_config *input = calloc(1, sizeof(struct input_config));
@@ -416,11 +423,4 @@ free_input_config(struct input_config *ic) {
     free(ic->mapped_to_region);
     list_free_items_and_destroy(ic->tools);
     free(ic);
-}
-
-int
-input_identifier_cmp(const void *item, const void *data) {
-    const struct input_config *ic = item;
-    const char *identifier = data;
-    return strcmp(ic->identifier, identifier);
 }

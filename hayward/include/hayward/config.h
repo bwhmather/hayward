@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_switch.h>
@@ -563,15 +562,6 @@ load_include_configs(
 );
 
 /**
- * Reads the config from the given FILE.
- */
-bool
-read_config(
-    FILE *file, struct hayward_config *config,
-    struct haywardnag_instance *haywardnag
-);
-
-/**
  * Run the commands that were deferred when reading the config file.
  */
 void
@@ -605,9 +595,6 @@ free_hayward_variable(struct hayward_variable *var);
 char *
 do_var_replacement(char *str);
 
-int
-input_identifier_cmp(const void *item, const void *data);
-
 struct input_config *
 new_input_config(const char *identifier);
 
@@ -632,12 +619,6 @@ struct seat_config *
 new_seat_config(const char *name);
 
 void
-merge_seat_config(struct seat_config *dst, struct seat_config *src);
-
-struct seat_config *
-copy_seat_config(struct seat_config *seat);
-
-void
 free_seat_config(struct seat_config *ic);
 
 struct seat_attachment_config *
@@ -659,9 +640,6 @@ hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
 
 struct output_config *
 new_output_config(const char *name);
-
-void
-merge_output_config(struct output_config *dst, struct output_config *src);
 
 bool
 apply_output_config(struct output_config *oc, struct hayward_output *output);
