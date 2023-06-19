@@ -19,6 +19,9 @@
 
 #include <config.h>
 
+static void
+handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
+
 struct hayward_idle_inhibit_manager_v1 *
 hayward_idle_inhibit_manager_v1_create(
     struct wl_display *wl_display, struct wlr_idle *idle
@@ -89,7 +92,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     destroy_inhibitor(inhibitor);
 }
 
-void
+static void
 handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
     struct wlr_idle_inhibitor_v1 *wlr_inhibitor = data;
     struct hayward_idle_inhibit_manager_v1 *manager =

@@ -141,8 +141,6 @@ void
 handle_new_output(struct wl_listener *listener, void *data);
 
 void
-handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
-void
 hayward_session_lock_init(void);
 void
 handle_server_decoration(struct wl_listener *listener, void *data);
