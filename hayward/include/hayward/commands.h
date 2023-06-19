@@ -143,7 +143,6 @@ hayward_cmd cmd_haywardbg_command;
 hayward_cmd cmd_haywardnag_command;
 hayward_cmd cmd_hide_edge_borders;
 hayward_cmd cmd_include;
-hayward_cmd cmd_inhibit_idle;
 hayward_cmd cmd_input;
 hayward_cmd cmd_kill;
 hayward_cmd cmd_layout;

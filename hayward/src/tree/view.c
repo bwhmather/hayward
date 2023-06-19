@@ -214,26 +214,14 @@ view_configure(
 
 bool
 view_inhibit_idle(struct hayward_view *view) {
-    struct hayward_idle_inhibitor_v1 *user_inhibitor =
-        hayward_idle_inhibit_v1_user_inhibitor_for_view(view);
-
     struct hayward_idle_inhibitor_v1 *application_inhibitor =
         hayward_idle_inhibit_v1_application_inhibitor_for_view(view);
 
-    if (!user_inhibitor && !application_inhibitor) {
+    if (!application_inhibitor) {
         return false;
     }
 
-    if (!user_inhibitor) {
-        return hayward_idle_inhibit_v1_is_active(application_inhibitor);
-    }
-
-    if (!application_inhibitor) {
-        return hayward_idle_inhibit_v1_is_active(user_inhibitor);
-    }
-
-    return hayward_idle_inhibit_v1_is_active(user_inhibitor) ||
-        hayward_idle_inhibit_v1_is_active(application_inhibitor);
+    return hayward_idle_inhibit_v1_is_active(application_inhibitor);
 }
 
 void

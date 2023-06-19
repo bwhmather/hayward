@@ -70,20 +70,6 @@ destroy_inhibitor(struct hayward_idle_inhibitor_v1 *inhibitor) {
     free(inhibitor);
 }
 
-void
-hayward_idle_inhibit_v1_user_inhibitor_destroy(
-    struct hayward_idle_inhibitor_v1 *inhibitor
-) {
-    if (!inhibitor) {
-        return;
-    }
-    hayward_assert(
-        inhibitor->mode != INHIBIT_IDLE_APPLICATION,
-        "User should not be able to destroy application inhibitor"
-    );
-    destroy_inhibitor(inhibitor);
-}
-
 static void
 handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_idle_inhibitor_v1 *inhibitor =
@@ -114,41 +100,6 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
     wl_signal_add(&wlr_inhibitor->events.destroy, &inhibitor->destroy);
 
     hayward_idle_inhibit_v1_check_active(manager);
-}
-
-void
-hayward_idle_inhibit_v1_user_inhibitor_register(
-    struct hayward_view *view, enum hayward_idle_inhibit_mode mode
-) {
-    struct hayward_idle_inhibitor_v1 *inhibitor =
-        calloc(1, sizeof(struct hayward_idle_inhibitor_v1));
-    if (!inhibitor) {
-        return;
-    }
-
-    inhibitor->manager = server.idle_inhibit_manager_v1;
-    inhibitor->mode = mode;
-    inhibitor->view = view;
-    wl_list_insert(&inhibitor->manager->inhibitors, &inhibitor->link);
-
-    inhibitor->destroy.notify = handle_destroy;
-    wl_signal_add(&view->events.unmap, &inhibitor->destroy);
-
-    hayward_idle_inhibit_v1_check_active(inhibitor->manager);
-}
-
-struct hayward_idle_inhibitor_v1 *
-hayward_idle_inhibit_v1_user_inhibitor_for_view(struct hayward_view *view) {
-    struct hayward_idle_inhibitor_v1 *inhibitor;
-    wl_list_for_each(
-        inhibitor, &server.idle_inhibit_manager_v1->inhibitors, link
-    ) {
-        if (inhibitor->mode != INHIBIT_IDLE_APPLICATION &&
-            inhibitor->view == view) {
-            return inhibitor;
-        }
-    }
-    return NULL;
 }
 
 struct hayward_idle_inhibitor_v1 *

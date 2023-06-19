@@ -113,7 +113,6 @@ static const struct cmd_handler command_handlers[] = {
     {"exit", cmd_exit},
     {"floating", cmd_floating},
     {"fullscreen", cmd_fullscreen},
-    {"inhibit_idle", cmd_inhibit_idle},
     {"kill", cmd_kill},
     {"layout", cmd_layout},
     {"max_render_time", cmd_max_render_time},

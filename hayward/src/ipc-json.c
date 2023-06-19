@@ -154,23 +154,6 @@ ipc_json_xwindow_type_description(struct hayward_view *view) {
 }
 #endif
 
-static const char *
-ipc_json_user_idle_inhibitor_description(enum hayward_idle_inhibit_mode mode) {
-    switch (mode) {
-    case INHIBIT_IDLE_FOCUS:
-        return "focus";
-    case INHIBIT_IDLE_FULLSCREEN:
-        return "fullscreen";
-    case INHIBIT_IDLE_OPEN:
-        return "open";
-    case INHIBIT_IDLE_VISIBLE:
-        return "visible";
-    case INHIBIT_IDLE_APPLICATION:
-        return NULL;
-    }
-    return NULL;
-}
-
 json_object *
 ipc_json_get_version(void) {
     int major = 0, minor = 0, patch = 0;
@@ -331,22 +314,6 @@ ipc_json_describe_view(struct hayward_window *c, json_object *object) {
     );
 
     json_object *idle_inhibitors = json_object_new_object();
-
-    struct hayward_idle_inhibitor_v1 *user_inhibitor =
-        hayward_idle_inhibit_v1_user_inhibitor_for_view(c->view);
-
-    if (user_inhibitor) {
-        json_object_object_add(
-            idle_inhibitors, "user",
-            json_object_new_string(
-                ipc_json_user_idle_inhibitor_description(user_inhibitor->mode)
-            )
-        );
-    } else {
-        json_object_object_add(
-            idle_inhibitors, "user", json_object_new_string("none")
-        );
-    }
 
     struct hayward_idle_inhibitor_v1 *application_inhibitor =
         hayward_idle_inhibit_v1_application_inhibitor_for_view(c->view);

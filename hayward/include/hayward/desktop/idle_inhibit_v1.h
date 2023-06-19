@@ -43,19 +43,6 @@ hayward_idle_inhibit_v1_check_active(
     struct hayward_idle_inhibit_manager_v1 *manager
 );
 
-void
-hayward_idle_inhibit_v1_user_inhibitor_destroy(
-    struct hayward_idle_inhibitor_v1 *inhibitor
-);
-
-void
-hayward_idle_inhibit_v1_user_inhibitor_register(
-    struct hayward_view *view, enum hayward_idle_inhibit_mode mode
-);
-
-struct hayward_idle_inhibitor_v1 *
-hayward_idle_inhibit_v1_user_inhibitor_for_view(struct hayward_view *view);
-
 struct hayward_idle_inhibitor_v1 *
 hayward_idle_inhibit_v1_application_inhibitor_for_view(struct hayward_view *view
 );
