@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <wayland-server-core.h>
-#include <wayland-util.h>
 #include <wlr/backend.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/wlr_renderer.h>
@@ -17,11 +16,11 @@
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
-#include <wlr/types/wlr_server_decoration.h>
 #include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_text_input_v3.h>
 
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/server_decoration.h>
 #include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
@@ -65,10 +64,7 @@ struct hayward_server {
 
     struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
 
-    struct wlr_server_decoration_manager *server_decoration_manager;
-    struct wl_listener server_decoration;
-    struct wl_list decorations; // hayward_server_decoration::link
-
+    struct hayward_server_decoration_manager *server_decoration_manager;
     struct hayward_xdg_decoration_manager *xdg_decoration_manager;
 
     struct wlr_drm_lease_v1_manager *drm_lease_manager;
@@ -141,8 +137,6 @@ handle_new_output(struct wl_listener *listener, void *data);
 
 void
 hayward_session_lock_init(void);
-void
-handle_server_decoration(struct wl_listener *listener, void *data);
 void
 handle_pointer_constraint(struct wl_listener *listener, void *data);
 void

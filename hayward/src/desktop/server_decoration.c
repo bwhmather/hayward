@@ -9,7 +9,6 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_server_decoration.h>
 
-#include <hayward/server.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
@@ -44,8 +43,10 @@ server_decoration_handle_mode(struct wl_listener *listener, void *data) {
     transaction_flush();
 }
 
-void
-handle_server_decoration(struct wl_listener *listener, void *data) {
+static void
+handle_new_decoration(struct wl_listener *listener, void *data) {
+    struct hayward_server_decoration_manager *manager =
+        wl_container_of(listener, manager, new_decoration);
     struct wlr_server_decoration *wlr_deco = data;
 
     struct hayward_server_decoration *deco = calloc(1, sizeof(*deco));
@@ -61,13 +62,45 @@ handle_server_decoration(struct wl_listener *listener, void *data) {
     wl_signal_add(&wlr_deco->events.mode, &deco->mode);
     deco->mode.notify = server_decoration_handle_mode;
 
-    wl_list_insert(&server.decorations, &deco->link);
+    wl_list_insert(&manager->decorations, &deco->link);
+}
+
+struct hayward_server_decoration_manager *
+hayward_server_decoration_manager_create(struct wl_display *wl_display) {
+    struct hayward_server_decoration_manager *manager =
+        calloc(1, sizeof(struct hayward_server_decoration_manager));
+    if (manager == NULL) {
+        return NULL;
+    }
+
+    manager->server_decoration_manager =
+        wlr_server_decoration_manager_create(wl_display);
+    if (manager->server_decoration_manager == NULL) {
+        free(manager);
+        return NULL;
+    }
+    wlr_server_decoration_manager_set_default_mode(
+        manager->server_decoration_manager,
+        WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
+    );
+
+    wl_list_init(&manager->decorations);
+
+    manager->new_decoration.notify = handle_new_decoration;
+    wl_signal_add(
+        &manager->server_decoration_manager->events.new_decoration,
+        &manager->new_decoration
+    );
+    return manager;
 }
 
 struct hayward_server_decoration *
-decoration_from_surface(struct wlr_surface *surface) {
+decoration_from_surface(
+    struct hayward_server_decoration_manager *manager,
+    struct wlr_surface *surface
+) {
     struct hayward_server_decoration *deco;
-    wl_list_for_each(deco, &server.decorations, link) {
+    wl_list_for_each(deco, &manager->decorations, link) {
         if (deco->wlr_server_decoration->surface == surface) {
             return deco;
         }

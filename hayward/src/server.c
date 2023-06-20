@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <wayland-server-core.h>
-#include <wayland-util.h>
 #include <wlr/backend.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
@@ -32,7 +31,6 @@
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
-#include <wlr/types/wlr_server_decoration.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_text_input_v3.h>
@@ -48,6 +46,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/server_decoration.h>
 #include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
@@ -133,27 +132,18 @@ server_init(struct hayward_server *server) {
         server->wl_display, server->idle
     );
 
-    server->layer_shell = hayward_layer_shell_create(server->wl_display);
-
-    server->xdg_shell = hayward_xdg_shell_create(server->wl_display);
-
-    server->tablet_v2 = wlr_tablet_v2_create(server->wl_display);
-
     server->server_decoration_manager =
-        wlr_server_decoration_manager_create(server->wl_display);
-    wlr_server_decoration_manager_set_default_mode(
-        server->server_decoration_manager,
-        WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
-    );
-    wl_signal_add(
-        &server->server_decoration_manager->events.new_decoration,
-        &server->server_decoration
-    );
-    server->server_decoration.notify = handle_server_decoration;
-    wl_list_init(&server->decorations);
-
+        hayward_server_decoration_manager_create(server->wl_display);
     server->xdg_decoration_manager =
         hayward_xdg_decoration_manager_create(server->wl_display);
+
+    server->layer_shell = hayward_layer_shell_create(server->wl_display);
+
+    server->xdg_shell = hayward_xdg_shell_create(
+        server->wl_display, server->server_decoration_manager
+    );
+
+    server->tablet_v2 = wlr_tablet_v2_create(server->wl_display);
 
     server->relative_pointer_manager =
         wlr_relative_pointer_manager_v1_create(server->wl_display);

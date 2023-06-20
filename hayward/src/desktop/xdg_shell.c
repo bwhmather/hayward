@@ -445,8 +445,10 @@ handle_map(struct wl_listener *listener, void *data) {
             view->xdg_decoration->wlr_xdg_decoration->requested_mode;
         csd = mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
     } else {
-        struct hayward_server_decoration *deco =
-            decoration_from_surface(toplevel->base->surface);
+        struct hayward_server_decoration *deco = decoration_from_surface(
+            xdg_shell_view->xdg_shell->server_decoration_manager,
+            toplevel->base->surface
+        );
         csd = !deco ||
             deco->wlr_server_decoration->mode ==
                 WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
@@ -515,6 +517,8 @@ view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface) {
 
 static void
 handle_new_surface(struct wl_listener *listener, void *data) {
+    struct hayward_xdg_shell *xdg_shell =
+        wl_container_of(listener, xdg_shell, new_surface);
     struct wlr_xdg_surface *xdg_surface = data;
 
     if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
@@ -531,6 +535,8 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         calloc(1, sizeof(struct hayward_xdg_shell_view));
     hayward_assert(xdg_shell_view, "Failed to allocate view");
+
+    xdg_shell_view->xdg_shell = xdg_shell;
 
     view_init(&xdg_shell_view->view, HAYWARD_VIEW_XDG_SHELL, &view_impl);
     xdg_shell_view->view.wlr_xdg_toplevel = xdg_surface->toplevel;
@@ -551,7 +557,10 @@ handle_new_surface(struct wl_listener *listener, void *data) {
 }
 
 struct hayward_xdg_shell *
-hayward_xdg_shell_create(struct wl_display *wl_display) {
+hayward_xdg_shell_create(
+    struct wl_display *wl_display,
+    struct hayward_server_decoration_manager *decoration_manager
+) {
     struct hayward_xdg_shell *xdg_shell =
         calloc(1, sizeof(struct hayward_xdg_shell));
     if (xdg_shell == NULL) {
@@ -564,6 +573,8 @@ hayward_xdg_shell_create(struct wl_display *wl_display) {
         free(xdg_shell);
         return NULL;
     }
+
+    xdg_shell->server_decoration_manager = decoration_manager;
 
     xdg_shell->new_surface.notify = handle_new_surface;
     wl_signal_add(
