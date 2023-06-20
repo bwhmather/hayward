@@ -21,6 +21,7 @@
 
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/desktop/server_decoration.h>
+#include <hayward/desktop/xdg_activation_v1.h>
 #include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
@@ -98,8 +99,7 @@ struct hayward_server {
     struct wlr_text_input_manager_v3 *text_input;
     struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 
-    struct wlr_xdg_activation_v1 *xdg_activation_v1;
-    struct wl_listener xdg_activation_v1_request_activate;
+    struct hayward_xdg_activation_v1 *xdg_activation_v1;
 
     // The timeout for transactions, after which a transaction is applied
     // regardless of readiness.
@@ -139,9 +139,5 @@ void
 hayward_session_lock_init(void);
 void
 handle_pointer_constraint(struct wl_listener *listener, void *data);
-void
-xdg_activation_v1_handle_request_activate(
-    struct wl_listener *listener, void *data
-);
 
 #endif

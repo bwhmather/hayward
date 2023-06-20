@@ -35,7 +35,6 @@
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/types/wlr_viewporter.h>
-#include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_foreign_registry.h>
 #include <wlr/types/wlr_xdg_foreign_v1.h>
 #include <wlr/types/wlr_xdg_foreign_v2.h>
@@ -47,6 +46,7 @@
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/desktop/server_decoration.h>
+#include <hayward/desktop/xdg_activation_v1.h>
 #include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
@@ -211,13 +211,7 @@ server_init(struct hayward_server *server) {
     wlr_xdg_foreign_v2_create(server->wl_display, foreign_registry);
 
     server->xdg_activation_v1 =
-        wlr_xdg_activation_v1_create(server->wl_display);
-    server->xdg_activation_v1_request_activate.notify =
-        xdg_activation_v1_handle_request_activate;
-    wl_signal_add(
-        &server->xdg_activation_v1->events.request_activate,
-        &server->xdg_activation_v1_request_activate
-    );
+        hayward_xdg_activation_v1_create(server->wl_display);
 
     // Avoid using "wayland-0" as display socket
     char name_candidate[16];
