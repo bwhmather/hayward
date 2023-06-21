@@ -69,7 +69,7 @@ static void
 cursor_update_image(
     struct hayward_cursor *cursor, struct hayward_window *window
 ) {
-    if (window != NULL) {
+    if (window != NULL && window_is_alive(window)) {
         // Try a window's resize edge
         enum wlr_edges edge = find_resize_edge(window, NULL, cursor);
         if (edge == WLR_EDGE_NONE) {
