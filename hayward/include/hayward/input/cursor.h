@@ -111,10 +111,6 @@ void
 cursor_rebase(struct hayward_cursor *cursor);
 void
 cursor_rebase_all(void);
-void
-cursor_update_image(
-    struct hayward_cursor *cursor, struct hayward_window *window
-);
 
 int
 cursor_get_timeout(struct hayward_cursor *cursor);

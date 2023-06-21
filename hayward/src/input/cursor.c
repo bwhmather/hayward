@@ -34,9 +34,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/util/box.h>
-#include <wlr/util/edges.h>
 #include <wlr/util/region.h>
-#include <wlr/xcursor.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
@@ -181,29 +179,6 @@ cursor_rebase_all(void) {
     struct hayward_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) {
         cursor_rebase(seat->cursor);
-    }
-}
-
-void
-cursor_update_image(
-    struct hayward_cursor *cursor, struct hayward_window *window
-) {
-    if (window != NULL) {
-        // Try a window's resize edge
-        enum wlr_edges edge = find_resize_edge(window, NULL, cursor);
-        if (edge == WLR_EDGE_NONE) {
-            cursor_set_image(cursor, "left_ptr", NULL);
-        } else if (window_is_floating(window)) {
-            cursor_set_image(cursor, wlr_xcursor_get_resize_name(edge), NULL);
-        } else {
-            if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
-                cursor_set_image(cursor, "column-resize", NULL);
-            } else {
-                cursor_set_image(cursor, "row-resize", NULL);
-            }
-        }
-    } else {
-        cursor_set_image(cursor, "left_ptr", NULL);
     }
 }
 

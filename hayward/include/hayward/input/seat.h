@@ -13,7 +13,6 @@
 #include <wlr/types/wlr_pointer.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_tablet_tool.h>
-#include <wlr/util/edges.h>
 
 #include <hayward-common/list.h>
 
@@ -186,12 +185,6 @@ seat_get_config(struct hayward_seat *seat);
 
 struct seat_config *
 seat_get_config_by_name(const char *name);
-
-enum wlr_edges
-find_resize_edge(
-    struct hayward_window *cont, struct wlr_surface *surface,
-    struct hayward_cursor *cursor
-);
 
 void
 seat_pointer_notify_button(
