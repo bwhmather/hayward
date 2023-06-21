@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+#include <wlr/backend.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_input_inhibitor.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
@@ -12,7 +13,6 @@
 
 #include <hayward/config.h>
 #include <hayward/input/seat.h>
-#include <hayward/server.h>
 
 struct hayward_input_device {
     char *identifier;
@@ -66,7 +66,9 @@ void
 input_manager_verify_fallback_seat(void);
 
 struct hayward_input_manager *
-input_manager_create(struct hayward_server *server);
+input_manager_create(
+    struct wl_display *wl_display, struct wlr_backend *backend
+);
 
 void
 input_manager_configure_all_inputs(void);

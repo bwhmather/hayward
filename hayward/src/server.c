@@ -251,7 +251,7 @@ server_init(struct hayward_server *server) {
         server->txn_timeout_ms = 200;
     }
 
-    server->input = input_manager_create(server);
+    server->input = input_manager_create(server->wl_display, server->backend);
     input_manager_get_default_seat(); // create seat0
 
     return true;
