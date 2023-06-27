@@ -175,6 +175,7 @@ output_is_alive(struct hayward_output *output) {
 static void
 output_set_dirty(struct hayward_output *output) {
     hayward_assert(output != NULL, "Expected output");
+    hayward_assert(transaction_in_progress(), "Expected active transaction");
 
     if (output->dirty) {
         return;
@@ -638,6 +639,9 @@ static void
 handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, destroy);
     struct hayward_server *server = output->server;
+
+    transaction_begin();
+
     output_begin_destroy(output);
 
     if (output->enabled) {
@@ -656,14 +660,17 @@ handle_destroy(struct wl_listener *listener, void *data) {
     output->wlr_output->data = NULL;
     output->wlr_output = NULL;
 
-    transaction_flush();
-
     update_output_manager_config(server);
+
+    transaction_flush();
 }
 
 static void
 handle_mode(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, mode);
+
+    transaction_begin();
+
     if (!output->enabled && !output->enabling) {
         struct output_config *oc = find_output_config(output);
         if (output->wlr_output->current_mode != NULL && (!oc || oc->enabled)) {
@@ -678,16 +685,20 @@ handle_mode(struct wl_listener *listener, void *data) {
             );
             apply_output_config(oc, output);
         }
+
+        transaction_flush();
         return;
     }
     if (!output->enabled) {
+        transaction_flush();
         return;
     }
     arrange_layers(output);
     arrange_output(output);
-    transaction_flush();
 
     update_output_manager_config(output->server);
+
+    transaction_flush();
 }
 
 static void
@@ -701,11 +712,12 @@ handle_commit(struct wl_listener *listener, void *data) {
 
     if (event->committed &
         (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {
+        transaction_begin();
         arrange_layers(output);
         arrange_output(output);
-        transaction_flush();
 
         update_output_manager_config(output->server);
+        transaction_flush();
     }
 }
 
@@ -766,8 +778,11 @@ handle_new_output(struct wl_listener *listener, void *data) {
         wlr_scene_output_create(root->root_scene, wlr_output);
     hayward_assert(scene_output != NULL, "Allocation failed");
 
+    transaction_begin();
+
     struct hayward_output *output = output_create(wlr_output);
     if (!output) {
+        transaction_flush();
         return;
     }
     output->server = server;
@@ -792,9 +807,9 @@ handle_new_output(struct wl_listener *listener, void *data) {
     apply_output_config(oc, output);
     free_output_config(oc);
 
-    transaction_flush();
-
     update_output_manager_config(server);
+
+    transaction_flush();
 }
 
 void

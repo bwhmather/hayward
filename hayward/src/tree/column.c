@@ -240,6 +240,7 @@ column_consider_destroy(struct hayward_column *column) {
 void
 column_set_dirty(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
+    hayward_assert(transaction_in_progress(), "Expected active transaction");
 
     if (column->dirty) {
         return;

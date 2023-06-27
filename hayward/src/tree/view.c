@@ -363,6 +363,8 @@ handle_foreign_activate_request(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_activate_request);
 
+    transaction_begin();
+
     root_set_focused_window(root, view->window);
     window_raise_floating(view->window);
 
@@ -376,6 +378,8 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
     struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
     struct hayward_window *window = view->window;
+
+    transaction_begin();
 
     if (event->fullscreen && event->output && event->output->data) {
         struct hayward_output *output = event->output->data;
@@ -579,7 +583,6 @@ view_unmap(struct hayward_view *view) {
         }
     }
 
-    transaction_flush();
     view->surface = NULL;
 }
 

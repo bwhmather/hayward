@@ -65,9 +65,11 @@ handle_button(
 ) {
     seat_pointer_notify_button(seat, time_msec, button, state);
 
+    transaction_begin();
     if (seat->cursor->pressed_button_count == 0) {
         seatop_begin_default(seat);
     }
+    transaction_flush();
 }
 
 static void
@@ -153,7 +155,6 @@ seatop_begin_down(
     e->container = container;
 
     window_raise_floating(container);
-    transaction_flush();
 }
 
 void

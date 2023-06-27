@@ -177,7 +177,6 @@ root_handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hayward_root *root =
         wl_container_of(listener, root, output_layout_change);
     arrange_root(root);
-    transaction_flush();
 }
 
 struct hayward_root *
@@ -231,6 +230,7 @@ root_destroy(struct hayward_root *root) {
 static void
 root_set_dirty(struct hayward_root *root) {
     hayward_assert(root != NULL, "Expected root");
+    hayward_assert(transaction_in_progress(), "Expected active transaction");
 
     if (root->dirty) {
         return;

@@ -725,6 +725,7 @@ ipc_client_handle_command(
             line = strtok(NULL, "\n");
         }
 
+        transaction_begin();
         list_t *res_list = execute_command(buf, NULL, NULL);
         transaction_flush();
         char *json = cmd_results_to_json(res_list);

@@ -732,8 +732,6 @@ seat_execute_command(
     if (success) {
         ipc_event_binding(binding);
     }
-
-    transaction_flush();
 }
 
 /**

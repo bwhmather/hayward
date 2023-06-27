@@ -445,6 +445,8 @@ main(int argc, char **argv) {
     hayward_log(HAYWARD_INFO, "Starting hayward version " HAYWARD_VERSION);
 
     transaction_init();
+    transaction_begin();
+
     root = root_create();
 
     if (!server_init(&server)) {
@@ -471,12 +473,14 @@ main(int argc, char **argv) {
     char *workspace_name = "0";
     struct hayward_workspace *workspace = workspace_create(workspace_name);
     root_add_workspace(root, workspace);
+    transaction_flush();
 
     if (!server_start(&server)) {
         hayward_terminate(EXIT_FAILURE);
         goto shutdown;
     }
 
+    transaction_begin();
     config->active = true;
     load_haywardbars();
     run_deferred_commands();

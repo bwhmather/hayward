@@ -488,6 +488,7 @@ void
 window_set_dirty(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
     hayward_assert(window_is_alive(window), "Expected live window");
+    hayward_assert(transaction_in_progress(), "Expected active transaction");
 
     if (window->dirty) {
         return;

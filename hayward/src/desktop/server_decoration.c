@@ -35,6 +35,8 @@ server_decoration_handle_mode(struct wl_listener *listener, void *data) {
         return;
     }
 
+    transaction_begin();
+
     bool csd = deco->wlr_server_decoration->mode ==
         WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
     view_update_csd_from_client(view, csd);

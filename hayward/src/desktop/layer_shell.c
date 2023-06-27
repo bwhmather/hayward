@@ -183,6 +183,7 @@ handle_node_destroy(struct wl_listener *listener, void *data) {
     }
 
     if (layer_surface->output) {
+        transaction_begin();
         arrange_layers(layer_surface->output);
         transaction_flush();
     }
@@ -207,6 +208,8 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
         layer_surface->layer_surface;
     uint32_t committed = wlr_layer_surface->current.committed;
 
+    transaction_begin();
+
     if (committed & WLR_LAYER_SURFACE_V1_STATE_LAYER) {
         enum zwlr_layer_shell_v1_layer layer_type =
             wlr_layer_surface->current.layer;
@@ -220,7 +223,6 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
     if (committed || wlr_layer_surface->mapped != layer_surface->mapped) {
         layer_surface->mapped = wlr_layer_surface->mapped;
         arrange_layers(layer_surface->output);
-        transaction_flush();
     }
 
     int lx, ly;

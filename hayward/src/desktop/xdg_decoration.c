@@ -45,6 +45,8 @@ xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
         floating = window_is_floating(view->window);
         bool csd = false;
         csd = client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+
+        transaction_begin();
         view_update_csd_from_client(view, csd);
         arrange_window(view->window);
         transaction_flush();

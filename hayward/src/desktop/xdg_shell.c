@@ -314,6 +314,7 @@ handle_commit(struct wl_listener *listener, void *data) {
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {
             // TODO shouldn't need to be sent a configure in the transaction.
+            transaction_begin();
             view_update_size(view);
             transaction_flush();
         } else {
@@ -329,7 +330,10 @@ handle_set_title(struct wl_listener *listener, void *data) {
     struct hayward_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, set_title);
     struct hayward_view *view = &xdg_shell_view->view;
+
+    transaction_begin();
     view_update_title(view, false);
+    transaction_flush();
 }
 
 static void
@@ -341,11 +345,13 @@ handle_new_popup(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xdg_shell_view, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
+    transaction_begin();
     struct hayward_xdg_popup *popup =
         popup_create(wlr_popup, &xdg_shell_view->view, root->layers.popups);
     int lx, ly;
     wlr_scene_node_coords(&popup->view->content_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);
+    transaction_flush();
 }
 
 static void
@@ -359,6 +365,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
         return;
     }
 
+    transaction_begin();
     struct hayward_window *window = view->window;
     struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
     if (req->fullscreen && req->fullscreen_output &&
@@ -385,9 +392,14 @@ handle_request_move(struct wl_listener *listener, void *data) {
     }
     struct wlr_xdg_toplevel_move_event *e = data;
     struct hayward_seat *seat = e->seat->seat->data;
+
+    transaction_begin();
+
     if (e->serial == seat->last_button_serial) {
         seatop_begin_move_floating(seat, view->window);
     }
+
+    transaction_flush();
 }
 
 static void
@@ -400,9 +412,13 @@ handle_request_resize(struct wl_listener *listener, void *data) {
     }
     struct wlr_xdg_toplevel_resize_event *e = data;
     struct hayward_seat *seat = e->seat->seat->data;
+
+    transaction_begin();
+
     if (e->serial == seat->last_button_serial) {
         seatop_begin_resize_floating(seat, view->window, e->edges);
     }
+    transaction_flush();
 }
 
 static void
@@ -413,6 +429,7 @@ handle_unmap(struct wl_listener *listener, void *data) {
 
     hayward_assert(view->surface, "Cannot unmap unmapped view");
 
+    transaction_begin();
     view_unmap(view);
 
     wl_list_remove(&xdg_shell_view->commit.link);
@@ -422,6 +439,8 @@ handle_unmap(struct wl_listener *listener, void *data) {
     wl_list_remove(&xdg_shell_view->request_resize.link);
     wl_list_remove(&xdg_shell_view->set_title.link);
     wl_list_remove(&xdg_shell_view->set_app_id.link);
+
+    transaction_flush();
 }
 
 static void
@@ -430,6 +449,8 @@ handle_map(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xdg_shell_view, map);
     struct hayward_view *view = &xdg_shell_view->view;
     struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
+
+    transaction_begin();
 
     view->natural_width = toplevel->base->current.geometry.width;
     view->natural_height = toplevel->base->current.geometry.height;
@@ -458,8 +479,6 @@ handle_map(struct wl_listener *listener, void *data) {
         view, toplevel->base->surface, toplevel->requested.fullscreen,
         toplevel->requested.fullscreen_output, csd
     );
-
-    transaction_flush();
 
     xdg_shell_view->commit.notify = handle_commit;
     wl_signal_add(
@@ -492,6 +511,8 @@ handle_map(struct wl_listener *listener, void *data) {
 
     xdg_shell_view->set_app_id.notify = handle_set_app_id;
     wl_signal_add(&toplevel->events.set_app_id, &xdg_shell_view->set_app_id);
+
+    transaction_flush();
 }
 
 static void
@@ -500,6 +521,9 @@ handle_destroy(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xdg_shell_view, destroy);
     struct hayward_view *view = &xdg_shell_view->view;
     hayward_assert(view->surface == NULL, "Tried to destroy a mapped view");
+
+    transaction_begin();
+
     wl_list_remove(&xdg_shell_view->destroy.link);
     wl_list_remove(&xdg_shell_view->map.link);
     wl_list_remove(&xdg_shell_view->unmap.link);
@@ -508,6 +532,8 @@ handle_destroy(struct wl_listener *listener, void *data) {
         view->xdg_decoration->view = NULL;
     }
     view_begin_destroy(view);
+
+    transaction_flush();
 }
 
 struct hayward_view *
@@ -530,6 +556,9 @@ handle_new_surface(struct wl_listener *listener, void *data) {
         HAYWARD_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'",
         xdg_surface->toplevel->title, xdg_surface->toplevel->app_id
     );
+
+    transaction_begin();
+
     wlr_xdg_surface_ping(xdg_surface);
 
     struct hayward_xdg_shell_view *xdg_shell_view =
@@ -554,6 +583,8 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     wlr_scene_xdg_surface_create(
         xdg_shell_view->view.content_tree, xdg_surface
     );
+
+    transaction_flush();
 }
 
 struct hayward_xdg_shell *

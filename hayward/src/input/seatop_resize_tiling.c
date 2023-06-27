@@ -89,6 +89,7 @@ handle_button(
     struct seatop_resize_tiling_event *e = seat->seatop_data;
 
     if (seat->cursor->pressed_button_count == 0) {
+        transaction_begin();
         if (e->h_container) {
             column_set_resizing(e->h_container, false);
             column_set_resizing(e->h_sib, false);
@@ -99,8 +100,8 @@ handle_button(
             window_set_resizing(e->v_sib, false);
             arrange_column(e->v_container->pending.parent);
         }
-        transaction_flush();
         seatop_begin_default(seat);
+        transaction_flush();
     }
 }
 

@@ -332,6 +332,7 @@ workspace_consider_destroy(struct hayward_workspace *workspace) {
 void
 workspace_set_dirty(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
+    hayward_assert(transaction_in_progress(), "Expected active transaction");
 
     if (workspace->dirty) {
         return;

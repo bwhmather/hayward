@@ -239,6 +239,8 @@ handle_motion_postthreshold(struct hayward_seat *seat) {
 static void
 handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     struct seatop_move_tiling_event *e = seat->seatop_data;
+
+    transaction_begin();
     if (e->threshold_reached) {
         handle_motion_postthreshold(seat);
     } else {
@@ -323,7 +325,6 @@ finalize_move(struct hayward_seat *seat) {
         arrange_workspace(target_workspace);
     }
 
-    transaction_flush();
     seatop_begin_default(seat);
 }
 
@@ -334,7 +335,9 @@ handle_button(
     enum wlr_button_state state
 ) {
     if (seat->cursor->pressed_button_count == 0) {
+        transaction_begin();
         finalize_move(seat);
+        transaction_flush();
     }
 }
 
@@ -344,13 +347,17 @@ handle_tablet_tool_tip(
     uint32_t time_msec, enum wlr_tablet_tool_tip_state state
 ) {
     if (state == WLR_TABLET_TOOL_TIP_UP) {
+        transaction_begin();
         finalize_move(seat);
+        transaction_flush();
     }
 }
 
 static void
 handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
     struct seatop_move_tiling_event *e = seat->seatop_data;
+
+    transaction_begin();
     if (e->target_window == container) {
         e->target_output = NULL;
         e->target_window = NULL;
@@ -358,6 +365,7 @@ handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
     if (e->moving_window == container) {
         seatop_begin_default(seat);
     }
+    transaction_flush();
 }
 
 static const struct hayward_seatop_impl seatop_impl = {
@@ -372,11 +380,14 @@ void
 seatop_begin_move_tiling_threshold(
     struct hayward_seat *seat, struct hayward_window *moving_window
 ) {
+    transaction_begin();
+
     seatop_end(seat);
 
     struct seatop_move_tiling_event *e =
         calloc(1, sizeof(struct seatop_move_tiling_event));
     if (!e) {
+        transaction_flush();
         return;
     }
     e->moving_window = moving_window;
@@ -387,8 +398,9 @@ seatop_begin_move_tiling_threshold(
     seat->seatop_data = e;
 
     window_raise_floating(moving_window);
-    transaction_flush();
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
+
+    transaction_flush();
 }
 
 void

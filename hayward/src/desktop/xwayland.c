@@ -109,8 +109,11 @@ unmanaged_handle_map(struct wl_listener *listener, void *data) {
     if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
         struct hayward_seat *seat = input_manager_current_seat();
         struct wlr_xwayland *xwayland = surface->xwayland->xwayland;
+
+        transaction_begin();
         wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
         root_set_focused_surface(root, xsurface->surface);
+        transaction_flush();
     }
 }
 
@@ -133,8 +136,10 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
         // available. This seems to handle JetBrains issues.
         if (xsurface->parent && xsurface->parent->surface &&
             wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
+
+            transaction_begin();
             root_set_focused_surface(root, xsurface->parent->surface);
-            return;
+            transaction_flush();
         }
     }
 }
@@ -150,7 +155,9 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data) {
         return;
     }
 
+    transaction_begin();
     root_set_focused_surface(root, xsurface->surface);
+    transaction_flush();
 }
 
 static void
@@ -370,8 +377,10 @@ handle_set_decorations(struct wl_listener *listener, void *data) {
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
 
+    transaction_begin();
     bool csd = xsurface->decorations != WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
     view_update_csd_from_client(view, csd);
+    transaction_flush();
 }
 
 static bool
@@ -496,6 +505,7 @@ handle_commit(struct wl_listener *listener, void *data) {
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {
             // TODO shouldn't need to be sent a configure in the transaction.
+            transaction_begin();
             view_update_size(view);
             transaction_flush();
         } else {
@@ -562,6 +572,8 @@ handle_map(struct wl_listener *listener, void *data) {
 
     view->natural_width = xsurface->width;
     view->natural_height = xsurface->height;
+
+    transaction_begin();
 
     // Wire up the commit listener here, because xwayland map/unmap can change
     // the underlying wlr_surface
@@ -640,6 +652,9 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     if (!xsurface->mapped) {
         return;
     }
+
+    transaction_begin();
+
     window_set_fullscreen(view->window, xsurface->fullscreen);
 
     arrange_root(root);
@@ -703,6 +718,9 @@ handle_request_activate(struct wl_listener *listener, void *data) {
     if (!xsurface->mapped) {
         return;
     }
+
+    transaction_begin();
+
     view_request_activate(view);
 
     transaction_flush();

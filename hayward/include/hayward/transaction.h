@@ -43,6 +43,15 @@ transaction_add_after_apply_listener(struct wl_listener *listener);
 void
 transaction_ensure_queued(void);
 
+void
+transaction_begin(void);
+
+bool
+transaction_in_progress(void);
+
+void
+transaction_flush(void);
+
 /**
  * Can be called during handling of a commit event to inform the transaction
  * of work that needs to be done.  Once the work is done, the lock should be
@@ -55,8 +64,5 @@ transaction_acquire(void);
 
 void
 transaction_release(void);
-
-void
-transaction_flush(void);
 
 #endif
