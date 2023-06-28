@@ -113,64 +113,6 @@ handle_timeout(void *data) {
     return 0;
 }
 
-static void
-transaction_commit(void) {
-    hayward_assert(hayward_transaction_state.queued, "No transaction queued");
-    hayward_assert(
-        hayward_transaction_state.num_waiting == 0,
-        "Can't commit when transaction is in progress"
-    );
-    hayward_assert(
-        hayward_transaction_state.num_configures == 0,
-        "Can't commit when transaction is in progress"
-    );
-
-    hayward_log(HAYWARD_DEBUG, "Committing transaction");
-
-    wl_signal_emit_mutable(
-        &hayward_transaction_state.events.transaction_before_commit, NULL
-    );
-
-    hayward_transaction_state.queued = false;
-
-    wl_signal_emit_mutable(
-        &hayward_transaction_state.events.transaction_commit, NULL
-    );
-
-    hayward_transaction_state.num_configures =
-        hayward_transaction_state.num_waiting;
-    if (debug.txn_timings) {
-        clock_gettime(CLOCK_MONOTONIC, &hayward_transaction_state.commit_time);
-    }
-    if (debug.noatomic) {
-        hayward_transaction_state.num_waiting = 0;
-    } else if (debug.txn_wait) {
-        // Force the transaction to time out even if all views are ready.
-        // We do this by inflating the waiting counter.
-        hayward_transaction_state.num_waiting += 1000000;
-    }
-
-    if (hayward_transaction_state.num_waiting) {
-        // Set up a timer which the views must respond within
-        hayward_transaction_state.timer =
-            wl_event_loop_add_timer(server.wl_event_loop, handle_timeout, NULL);
-        if (hayward_transaction_state.timer) {
-            wl_event_source_timer_update(
-                hayward_transaction_state.timer, server.txn_timeout_ms
-            );
-        } else {
-            hayward_log_errno(
-                HAYWARD_ERROR,
-                "Unable to create transaction timer "
-                "(some imperfect frames might be rendered)"
-            );
-            hayward_transaction_state.num_waiting = 0;
-        }
-    }
-
-    transaction_progress();
-}
-
 void
 transaction_add_before_commit_listener(struct wl_listener *listener) {
     wl_signal_add(
@@ -222,20 +164,64 @@ transaction_flush_(void) {
     hayward_assert(
         hayward_transaction_state.depth > 0, "Transaction has not yet begun"
     );
-    hayward_transaction_state.depth -= 1;
-    if (hayward_transaction_state.depth != 0) {
+    if (hayward_transaction_state.depth != 1) {
+        hayward_transaction_state.depth -= 1;
         return;
     }
 
     if (hayward_transaction_state.num_waiting != 0) {
+        hayward_transaction_state.depth -= 1;
         return;
     }
 
     if (!hayward_transaction_state.queued) {
+        hayward_transaction_state.depth -= 1;
         return;
     }
 
-    transaction_commit();
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_before_commit, NULL
+    );
+
+    hayward_transaction_state.depth -= 1;
+    hayward_transaction_state.queued = false;
+
+    wl_signal_emit_mutable(
+        &hayward_transaction_state.events.transaction_commit, NULL
+    );
+
+    hayward_transaction_state.num_configures =
+        hayward_transaction_state.num_waiting;
+    if (debug.txn_timings) {
+        clock_gettime(CLOCK_MONOTONIC, &hayward_transaction_state.commit_time);
+    }
+    if (debug.noatomic) {
+        hayward_transaction_state.num_waiting = 0;
+    } else if (debug.txn_wait) {
+        // Force the transaction to time out even if all views are ready.
+        // We do this by inflating the waiting counter.
+        hayward_transaction_state.num_waiting += 1000000;
+    }
+
+    if (hayward_transaction_state.num_waiting) {
+        // Set up a timer which the views must respond within
+        hayward_transaction_state.timer =
+            wl_event_loop_add_timer(server.wl_event_loop, handle_timeout, NULL);
+        if (hayward_transaction_state.timer) {
+            wl_event_source_timer_update(
+                hayward_transaction_state.timer, server.txn_timeout_ms
+            );
+        } else {
+            hayward_log_errno(
+                HAYWARD_ERROR,
+                "Unable to create transaction timer "
+                "(some imperfect frames might be rendered)"
+            );
+            hayward_transaction_state.num_waiting = 0;
+        }
+    }
+
+    transaction_progress();
 }
 
 void
