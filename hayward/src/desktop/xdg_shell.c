@@ -48,7 +48,7 @@ popup_create(
 
 static void
 popup_handle_new_popup(struct wl_listener *listener, void *data) {
-        transaction_begin();
+    transaction_begin();
 
     struct hayward_xdg_popup *popup =
         wl_container_of(listener, popup, new_popup);
@@ -287,7 +287,9 @@ static const struct hayward_view_impl view_impl = {
 
 static void
 view_notify_ready_by_serial(struct hayward_view *view, uint32_t serial) {
-    hayward_assert(!transaction_in_progress(), "Can't notify configured during transaction");
+    hayward_assert(
+        !transaction_in_progress(), "Can't notify configured during transaction"
+    );
 
     struct hayward_window *window = view->window;
 
@@ -379,7 +381,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     struct hayward_view *view = &xdg_shell_view->view;
 
     if (!toplevel->base->mapped) {
-    transaction_flush();
+        transaction_flush();
         return;
     }
 

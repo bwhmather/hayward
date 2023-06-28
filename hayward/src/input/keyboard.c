@@ -42,6 +42,7 @@
 #include <hayward/input/text_input.h>
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 
 #include <config.h>
 
@@ -707,20 +708,30 @@ handle_key_event(
 
 static void
 handle_keyboard_key(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_keyboard *keyboard =
         wl_container_of(listener, keyboard, keyboard_key);
     handle_key_event(keyboard, data);
+
+    transaction_flush();
 }
 
 static void
 handle_keyboard_group_key(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_keyboard_group *hayward_group =
         wl_container_of(listener, hayward_group, keyboard_key);
     handle_key_event(hayward_group->seat_device->keyboard, data);
+
+    transaction_flush();
 }
 
 static void
 handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_keyboard_group *hayward_group =
         wl_container_of(listener, hayward_group, enter);
     struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
@@ -733,10 +744,14 @@ handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
             keyboard, *keycode, WL_KEYBOARD_KEY_STATE_PRESSED, &keyinfo
         );
     }
+
+    transaction_flush();
 }
 
 static void
 handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_keyboard_group *hayward_group =
         wl_container_of(listener, hayward_group, leave);
     struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
@@ -758,10 +773,12 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
     }
 
     if (!pressed_sent) {
+        transaction_flush();
         return;
     }
 
     // TODO force refocus so that focused layer picks up new keyboard state.
+    transaction_flush();
 }
 
 static int
@@ -844,16 +861,24 @@ handle_modifier_event(struct hayward_keyboard *keyboard) {
 
 static void
 handle_keyboard_modifiers(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_keyboard *keyboard =
         wl_container_of(listener, keyboard, keyboard_modifiers);
     handle_modifier_event(keyboard);
+
+    transaction_flush();
 }
 
 static void
 handle_keyboard_group_modifiers(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_keyboard_group *group =
         wl_container_of(listener, group, keyboard_modifiers);
     handle_modifier_event(group->seat_device->keyboard);
+
+    transaction_flush();
 }
 
 struct hayward_keyboard *

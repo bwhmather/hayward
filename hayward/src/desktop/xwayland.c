@@ -91,7 +91,7 @@ unmanaged_handle_set_geometry(struct wl_listener *listener, void *data) {
 
 static void
 unmanaged_handle_map(struct wl_listener *listener, void *data) {
-transaction_begin();
+    transaction_begin();
 
     struct hayward_xwayland_unmanaged *surface =
         wl_container_of(listener, surface, map);
@@ -489,7 +489,9 @@ static void
 view_notify_ready_by_geometry(
     struct hayward_view *view, double x, double y, int width, int height
 ) {
-    hayward_assert(!transaction_in_progress(), "Can't notify configured during transaction");
+    hayward_assert(
+        !transaction_in_progress(), "Can't notify configured during transaction"
+    );
 
     struct hayward_window *window = view->window;
     struct hayward_window_state *state = &window->committed;
@@ -759,7 +761,7 @@ handle_request_resize(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_resize_event *e = data;
     struct hayward_seat *seat = input_manager_current_seat();
     seatop_begin_resize_floating(seat, view->window, e->edges);
-        transaction_begin();
+    transaction_begin();
 }
 
 static void
@@ -961,7 +963,7 @@ handle_ready(struct wl_listener *listener, void *data) {
     int err = xcb_connection_has_error(xcb_conn);
     if (err) {
         hayward_log(HAYWARD_ERROR, "XCB connect failed: %d", err);
-            transaction_flush();
+        transaction_flush();
         return;
     }
 

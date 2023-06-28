@@ -16,6 +16,7 @@
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 
 #include <config.h>
 

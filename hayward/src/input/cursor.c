@@ -1083,7 +1083,7 @@ handle_pointer_pinch_begin(struct wl_listener *listener, void *data) {
         event->fingers
     );
 
-    transaction_end();
+    transaction_flush();
 }
 
 static void

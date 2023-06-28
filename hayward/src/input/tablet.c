@@ -25,6 +25,7 @@
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 
 #include <config.h>
 
@@ -292,7 +293,7 @@ handle_tablet_pad_button(struct wl_listener *listener, void *data) {
     struct wlr_tablet_pad_button_event *event = data;
 
     if (!pad->current_surface) {
-    transaction_flush();
+        transaction_flush();
         return;
     }
 

@@ -27,7 +27,7 @@ server_decoration_handle_destroy(struct wl_listener *listener, void *data) {
 
 static void
 server_decoration_handle_mode(struct wl_listener *listener, void *data) {
-        transaction_begin();
+    transaction_begin();
 
     struct hayward_server_decoration *deco =
         wl_container_of(listener, deco, mode);
@@ -48,7 +48,7 @@ server_decoration_handle_mode(struct wl_listener *listener, void *data) {
 
 static void
 handle_new_decoration(struct wl_listener *listener, void *data) {
-        transaction_begin();
+    transaction_begin();
 
     struct hayward_server_decoration_manager *manager =
         wl_container_of(listener, manager, new_decoration);

@@ -163,7 +163,7 @@ handle_output_destroy(struct wl_listener *listener, void *data) {
 
 static void
 handle_node_destroy(struct wl_listener *listener, void *data) {
-        transaction_begin();
+    transaction_begin();
 
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, node_destroy);
@@ -203,7 +203,7 @@ handle_node_destroy(struct wl_listener *listener, void *data) {
 
 static void
 handle_surface_commit(struct wl_listener *listener, void *data) {
-        transaction_begin();
+    transaction_begin();
 
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, surface_commit);
