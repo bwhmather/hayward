@@ -49,9 +49,7 @@ handle_button(
     enum wlr_button_state state
 ) {
     if (seat->cursor->pressed_button_count == 0) {
-        transaction_begin();
         finalize_move(seat);
-        transaction_flush();
     }
 }
 
@@ -61,9 +59,7 @@ handle_tablet_tool_tip(
     uint32_t time_msec, enum wlr_tablet_tool_tip_state state
 ) {
     if (state == WLR_TABLET_TOOL_TIP_UP) {
-        transaction_begin();
         finalize_move(seat);
-        transaction_flush();
     }
 }
 static void
@@ -74,20 +70,16 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     struct hayward_window *window = e->window;
     struct hayward_output *output = window->pending.output;
 
-    transaction_begin();
     window_floating_move_to(
         window, output, cursor->x - e->dx, cursor->y - e->dy
     );
-    transaction_flush();
 }
 
 static void
 handle_unref(struct hayward_seat *seat, struct hayward_window *window) {
     struct seatop_move_floating_event *e = seat->seatop_data;
     if (e->window == window) {
-        transaction_begin();
         seatop_begin_default(seat);
-        transaction_flush();
     }
 }
 

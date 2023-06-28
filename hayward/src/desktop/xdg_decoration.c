@@ -32,6 +32,8 @@ xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {
 
 static void
 xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
+        transaction_begin();
+
     struct hayward_xdg_decoration *deco =
         wl_container_of(listener, deco, request_mode);
     struct hayward_view *view = deco->view;
@@ -45,8 +47,6 @@ xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
         floating = window_is_floating(view->window);
         bool csd = false;
         csd = client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
-
-        transaction_begin();
         view_update_csd_from_client(view, csd);
         arrange_window(view->window);
         transaction_flush();
@@ -64,6 +64,8 @@ xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
 
 static void
 handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
+        transaction_begin();
+
     struct hayward_xdg_decoration_manager *manager =
         wl_container_of(listener, manager, new_toplevel_decoration);
     struct wlr_xdg_toplevel_decoration_v1 *wlr_deco = data;
@@ -87,6 +89,8 @@ handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
     wl_list_insert(&manager->xdg_decorations, &deco->link);
 
     xdg_decoration_handle_request_mode(&deco->request_mode, wlr_deco);
+
+    transaction_flush();
 }
 
 struct hayward_xdg_decoration_manager *

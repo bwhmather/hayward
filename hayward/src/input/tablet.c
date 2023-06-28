@@ -30,6 +30,8 @@
 
 static void
 handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_pad *pad =
         wl_container_of(listener, pad, tablet_destroy);
 
@@ -37,6 +39,8 @@ handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&pad->tablet_destroy.link);
     wl_list_init(&pad->tablet_destroy.link);
+
+    transaction_flush();
 }
 
 static void
@@ -129,6 +133,8 @@ hayward_tablet_destroy(struct hayward_tablet *tablet) {
 
 static void
 handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_tool *tool =
         wl_container_of(listener, tool, set_cursor);
     struct wlr_tablet_v2_event_cursor *event = data;
@@ -157,10 +163,14 @@ handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
         cursor, event->surface, event->hotspot_x, event->hotspot_y,
         focused_client
     );
+
+    transaction_flush();
 }
 
 static void
 handle_tablet_tool_destroy(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_tool *tool =
         wl_container_of(listener, tool, tool_destroy);
 
@@ -168,6 +178,8 @@ handle_tablet_tool_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&tool->set_cursor.link);
 
     free(tool);
+
+    transaction_flush();
 }
 
 void
@@ -218,6 +230,8 @@ hayward_tablet_tool_configure(
 
 static void
 handle_tablet_pad_attach(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, attach);
     struct wlr_tablet_tool *wlr_tool = data;
     struct hayward_tablet_tool *tool = wlr_tool->data;
@@ -227,10 +241,14 @@ handle_tablet_pad_attach(struct wl_listener *listener, void *data) {
     }
 
     attach_tablet_pad(pad, tool->tablet);
+
+    transaction_flush();
 }
 
 static void
 handle_tablet_pad_ring(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, ring);
     struct wlr_tablet_pad_ring_event *event = data;
 
@@ -242,14 +260,19 @@ handle_tablet_pad_ring(struct wl_listener *listener, void *data) {
         pad->tablet_v2_pad, event->ring, event->position,
         event->source == WLR_TABLET_PAD_RING_SOURCE_FINGER, event->time_msec
     );
+
+    transaction_flush();
 }
 
 static void
 handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, strip);
     struct wlr_tablet_pad_strip_event *event = data;
 
     if (!pad->current_surface) {
+        transaction_flush();
         return;
     }
 
@@ -257,14 +280,19 @@ handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
         pad->tablet_v2_pad, event->strip, event->position,
         event->source == WLR_TABLET_PAD_STRIP_SOURCE_FINGER, event->time_msec
     );
+
+    transaction_flush();
 }
 
 static void
 handle_tablet_pad_button(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, button);
     struct wlr_tablet_pad_button_event *event = data;
 
     if (!pad->current_surface) {
+    transaction_flush();
         return;
     }
 
@@ -276,6 +304,7 @@ handle_tablet_pad_button(struct wl_listener *listener, void *data) {
         pad->tablet_v2_pad, event->button, event->time_msec,
         (enum zwp_tablet_pad_v2_button_state)event->state
     );
+    transaction_flush();
 }
 
 struct hayward_tablet_pad *
@@ -386,6 +415,8 @@ hayward_tablet_pad_destroy(struct hayward_tablet_pad *tablet_pad) {
 
 static void
 handle_pad_tablet_surface_destroy(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_tablet_pad *tablet_pad =
         wl_container_of(listener, tablet_pad, surface_destroy);
 
@@ -395,6 +426,8 @@ handle_pad_tablet_surface_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&tablet_pad->surface_destroy.link);
     wl_list_init(&tablet_pad->surface_destroy.link);
     tablet_pad->current_surface = NULL;
+
+    transaction_flush();
 }
 
 void

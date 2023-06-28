@@ -45,13 +45,9 @@ handle_button(
     struct hayward_window *window = e->window;
 
     if (seat->cursor->pressed_button_count == 0) {
-        transaction_begin();
-
         window_set_resizing(window, false);
         arrange_window(window); // Send configure w/o resizing hint
         seatop_begin_default(seat);
-
-        transaction_flush();
     }
 }
 
@@ -61,8 +57,6 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     struct hayward_window *window = e->window;
     enum wlr_edges edge = e->edge;
     struct hayward_cursor *cursor = seat->cursor;
-
-    transaction_begin();
 
     // The amount the mouse has moved since the start of the resize operation
     // Positive is down/right
@@ -171,7 +165,6 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     window->pending.content_height += relative_grow_height;
 
     arrange_window(window);
-    transaction_flush();
 }
 
 static void
@@ -217,8 +210,6 @@ seatop_begin_resize_floating(
     seat->seatop_impl = &seatop_impl;
     seat->seatop_data = e;
 
-    transaction_begin();
-
     window_set_resizing(window, true);
     window_raise_floating(window);
 
@@ -226,6 +217,4 @@ seatop_begin_resize_floating(
         edge == WLR_EDGE_NONE ? "se-resize" : wlr_xcursor_get_resize_name(edge);
     cursor_set_image(seat->cursor, image, NULL);
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
-
-    transaction_flush();
 }

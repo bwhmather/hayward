@@ -353,6 +353,8 @@ pointer_motion(
 
 static void
 handle_pointer_motion_relative(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, motion);
     struct wlr_pointer_motion_event *e = data;
     cursor_handle_activity_from_device(cursor, &e->pointer->base);
@@ -361,10 +363,14 @@ handle_pointer_motion_relative(struct wl_listener *listener, void *data) {
         cursor, e->time_msec, &e->pointer->base, e->delta_x, e->delta_y,
         e->unaccel_dx, e->unaccel_dy
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, motion_absolute);
     struct wlr_pointer_motion_absolute_event *event = data;
@@ -381,6 +387,8 @@ handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
     pointer_motion(
         cursor, event->time_msec, &event->pointer->base, dx, dy, dx, dy
     );
+
+    transaction_flush();
 }
 
 void
@@ -397,6 +405,8 @@ dispatch_cursor_button(
 
 static void
 handle_pointer_button(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, button);
     struct wlr_pointer_button_event *event = data;
 
@@ -415,6 +425,8 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
         cursor, &event->pointer->base, event->time_msec, event->button,
         event->state
     );
+
+    transaction_flush();
 }
 
 void
@@ -426,20 +438,30 @@ dispatch_cursor_axis(
 
 static void
 handle_pointer_axis(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, axis);
     struct wlr_pointer_axis_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     dispatch_cursor_axis(cursor, event);
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_frame(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, frame);
     wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
+
+    transaction_flush();
 }
 
 static void
 handle_touch_down(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, touch_down);
     struct wlr_touch_down_event *event = data;
@@ -494,10 +516,14 @@ handle_touch_down(struct wl_listener *listener, void *data) {
             WLR_BUTTON_PRESSED
         );
     }
+
+    transaction_flush();
 }
 
 static void
 handle_touch_up(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, touch_up);
     struct wlr_touch_up_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->touch->base);
@@ -515,10 +541,14 @@ handle_touch_up(struct wl_listener *listener, void *data) {
     } else {
         wlr_seat_touch_notify_up(wlr_seat, event->time_msec, event->touch_id);
     }
+
+    transaction_flush();
 }
 
 static void
 handle_touch_motion(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, touch_motion);
     struct wlr_touch_motion_event *event = data;
@@ -564,10 +594,14 @@ handle_touch_motion(struct wl_listener *listener, void *data) {
             wlr_seat, event->time_msec, event->touch_id, sx, sy
         );
     }
+
+    transaction_flush();
 }
 
 static void
 handle_touch_frame(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, touch_frame);
 
@@ -583,6 +617,8 @@ handle_touch_frame(struct wl_listener *listener, void *data) {
     } else {
         wlr_seat_touch_notify_frame(wlr_seat);
     }
+
+    transaction_flush();
 }
 
 static double
@@ -623,7 +659,6 @@ handle_tablet_tool_position(
     bool change_x, bool change_y, double x, double y, double dx, double dy,
     int32_t time_msec
 ) {
-
     if (!change_x && !change_y) {
         return;
     }
@@ -686,6 +721,8 @@ handle_tablet_tool_position(
 
 static void
 handle_tool_axis(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, tool_axis);
     struct wlr_tablet_tool_axis_event *event = data;
@@ -748,10 +785,14 @@ handle_tool_axis(struct wl_listener *listener, void *data) {
             hayward_tool->tablet_v2_tool, event->wheel_delta, 0
         );
     }
+
+    transaction_flush();
 }
 
 static void
 handle_tool_tip(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, tool_tip);
     struct wlr_tablet_tool_tip_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
@@ -799,6 +840,8 @@ handle_tool_tip(struct wl_listener *listener, void *data) {
             seat, hayward_tool, event->time_msec, event->state
         );
     }
+
+    transaction_flush();
 }
 
 static struct hayward_tablet *
@@ -816,6 +859,8 @@ get_tablet_for_device(
 
 static void
 handle_tool_proximity(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, tool_proximity);
     struct wlr_tablet_tool_proximity_event *event = data;
@@ -827,6 +872,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
             get_tablet_for_device(cursor, &event->tablet->base);
         if (!tablet) {
             hayward_log(HAYWARD_ERROR, "no tablet for tablet tool");
+            transaction_flush();
             return;
         }
         hayward_tablet_tool_configure(tablet, tool);
@@ -835,6 +881,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
     struct hayward_tablet_tool *hayward_tool = tool->data;
     if (!hayward_tool) {
         hayward_log(HAYWARD_ERROR, "tablet tool not initialized");
+        transaction_flush();
         return;
     }
 
@@ -842,6 +889,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
         wlr_tablet_v2_tablet_tool_notify_proximity_out(
             hayward_tool->tablet_v2_tool
         );
+        transaction_flush();
         return;
     }
 
@@ -849,10 +897,14 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
         cursor, hayward_tool, true, true, event->x, event->y, 0, 0,
         event->time_msec
     );
+
+    transaction_flush();
 }
 
 static void
 handle_tool_button(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, tool_button);
     struct wlr_tablet_tool_button_event *event = data;
@@ -899,6 +951,7 @@ handle_tool_button(struct wl_listener *listener, void *data) {
             break;
         }
         wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
+        transaction_flush();
         return;
     }
 
@@ -906,6 +959,7 @@ handle_tool_button(struct wl_listener *listener, void *data) {
         hayward_tool->tablet_v2_tool, event->button,
         (enum zwp_tablet_pad_v2_button_state)event->state
     );
+    transaction_flush();
 }
 
 static void
@@ -954,28 +1008,39 @@ check_constraint_region(struct hayward_cursor *cursor) {
 
 static void
 handle_constraint_commit(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, constraint_commit);
     struct wlr_pointer_constraint_v1 *constraint = cursor->active_constraint;
     assert(constraint->surface == data);
 
     check_constraint_region(cursor);
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_constraint_set_region(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_pointer_constraint *hayward_constraint =
         wl_container_of(listener, hayward_constraint, set_region);
     struct hayward_cursor *cursor = hayward_constraint->cursor;
 
     cursor->active_confine_requires_warp = true;
+
+    transaction_flush();
 }
 
 static void
 handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, request_set_cursor);
     if (!seatop_allows_set_cursor(cursor->seat)) {
+        transaction_flush();
         return;
     }
     struct wlr_seat_pointer_request_set_cursor_event *event = data;
@@ -993,6 +1058,7 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
         hayward_log(
             HAYWARD_DEBUG, "denying request to set cursor from unfocused client"
         );
+        transaction_flush();
         return;
     }
 
@@ -1000,10 +1066,14 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
         cursor, event->surface, event->hotspot_x, event->hotspot_y,
         focused_client
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_pinch_begin(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, pinch_begin);
     struct wlr_pointer_pinch_begin_event *event = data;
@@ -1012,10 +1082,14 @@ handle_pointer_pinch_begin(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->fingers
     );
+
+    transaction_end();
 }
 
 static void
 handle_pointer_pinch_update(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, pinch_update);
     struct wlr_pointer_pinch_update_event *event = data;
@@ -1024,10 +1098,14 @@ handle_pointer_pinch_update(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->dx, event->dy, event->scale, event->rotation
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_pinch_end(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, pinch_end);
     struct wlr_pointer_pinch_end_event *event = data;
@@ -1036,10 +1114,14 @@ handle_pointer_pinch_end(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->cancelled
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_swipe_begin(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, swipe_begin);
     struct wlr_pointer_swipe_begin_event *event = data;
@@ -1048,10 +1130,14 @@ handle_pointer_swipe_begin(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->fingers
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_swipe_update(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, swipe_update);
     struct wlr_pointer_swipe_update_event *event = data;
@@ -1060,10 +1146,14 @@ handle_pointer_swipe_update(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->dx, event->dy
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_swipe_end(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, swipe_end);
     struct wlr_pointer_swipe_end_event *event = data;
@@ -1072,10 +1162,14 @@ handle_pointer_swipe_end(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->cancelled
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_hold_begin(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, hold_begin);
     struct wlr_pointer_hold_begin_event *event = data;
@@ -1084,10 +1178,14 @@ handle_pointer_hold_begin(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->fingers
     );
+
+    transaction_flush();
 }
 
 static void
 handle_pointer_hold_end(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, hold_end);
     struct wlr_pointer_hold_end_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
@@ -1095,14 +1193,20 @@ handle_pointer_hold_end(struct wl_listener *listener, void *data) {
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec,
         event->cancelled
     );
+
+    transaction_flush();
 }
 
 static void
 handle_image_surface_destroy(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, image_surface_destroy);
     cursor_set_image(cursor, NULL, cursor->image_client);
     cursor_rebase(cursor);
+
+    transaction_flush();
 }
 
 static void
@@ -1426,6 +1530,8 @@ warp_to_constraint_cursor_hint(struct hayward_cursor *cursor) {
 
 void
 handle_constraint_destroy(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_pointer_constraint *hayward_constraint =
         wl_container_of(listener, hayward_constraint, destroy);
     struct wlr_pointer_constraint_v1 *constraint = data;
@@ -1445,10 +1551,14 @@ handle_constraint_destroy(struct wl_listener *listener, void *data) {
     }
 
     free(hayward_constraint);
+
+    transaction_flush();
 }
 
 void
 handle_pointer_constraint(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct wlr_pointer_constraint_v1 *constraint = data;
     struct hayward_seat *seat = constraint->seat->data;
 
@@ -1473,6 +1583,8 @@ handle_pointer_constraint(struct wl_listener *listener, void *data) {
             hayward_cursor_constrain(seat->cursor, constraint);
         }
     }
+
+    transaction_flush();
 }
 
 void

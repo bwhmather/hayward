@@ -16,7 +16,7 @@
 #include <config.h>
 
 static struct {
-    bool entered;
+    int depth;
     bool queued;
 
     struct wl_event_source *timer;
@@ -205,24 +205,27 @@ transaction_ensure_queued(void) {
 }
 
 void
-transaction_begin(void) {
+transaction_begin_(void) {
     hayward_assert(
-        !hayward_transaction_state.entered, "Transaction has already begun"
+        hayward_transaction_state.depth < 3, "Something funky is happening"
     );
-    hayward_transaction_state.entered = true;
+    hayward_transaction_state.depth += 1;
 }
 
 bool
 transaction_in_progress(void) {
-    return hayward_transaction_state.entered = true;
+    return hayward_transaction_state.depth > 0;
 }
 
 void
-transaction_flush(void) {
+transaction_flush_(void) {
     hayward_assert(
-        hayward_transaction_state.entered, "Transaction has not yet begun"
+        hayward_transaction_state.depth > 0, "Transaction has not yet begun"
     );
-    hayward_transaction_state.entered = false;
+    hayward_transaction_state.depth -= 1;
+    if (hayward_transaction_state.depth != 0) {
+        return;
+    }
 
     if (hayward_transaction_state.num_waiting != 0) {
         return;

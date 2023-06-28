@@ -306,6 +306,7 @@ handle_tablet_tool_tip(
 ) {
     if (state == WLR_TABLET_TOOL_TIP_UP) {
         wlr_tablet_v2_tablet_tool_notify_up(tool->tablet_v2_tool);
+        transaction_flush();
         return;
     }
 
@@ -325,8 +326,6 @@ handle_tablet_tool_tip(
         "Expected null-surface tablet input to route through pointer emulation"
     );
 
-    transaction_begin();
-
     if (wlr_surface_is_layer_surface(surface)) {
         // Handle tapping a layer surface.
         struct wlr_layer_surface_v1 *layer =
@@ -335,7 +334,6 @@ handle_tablet_tool_tip(
         if (layer->current.keyboard_interactive) {
             root_set_focused_layer(root, layer);
         }
-        transaction_flush();
     } else if (window) {
         bool is_floating_or_child = window_is_floating(window);
         bool is_fullscreen_or_child = window_is_fullscreen(window);
@@ -347,8 +345,6 @@ handle_tablet_tool_tip(
         if (is_floating_or_child && !is_fullscreen_or_child && mod_pressed) {
             root_set_focused_window(root, window);
             seatop_begin_move_floating(seat, window);
-
-            transaction_flush();
             return;
         }
 
@@ -356,8 +352,6 @@ handle_tablet_tool_tip(
         if (config->tiling_drag && mod_pressed && !is_floating_or_child &&
             !window->pending.fullscreen) {
             seatop_begin_move_tiling(seat, window);
-
-            transaction_flush();
             return;
         }
 
@@ -374,18 +368,14 @@ handle_tablet_tool_tip(
             wlr_xwayland_or_surface_wants_focus(xsurface)) {
             struct wlr_xwayland *xwayland = server.xwayland->xwayland;
 
-            transaction_begin();
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
             root_set_focused_surface(root, xsurface->surface);
-            transaction_flush();
         }
     }
 #endif
 
     wlr_tablet_v2_tablet_tool_notify_down(tool->tablet_v2_tool);
     wlr_tablet_tool_v2_start_implicit_grab(tool->tablet_v2_tool);
-
-    transaction_flush();
 }
 
 /*----------------------------------\
@@ -470,14 +460,11 @@ handle_button(
     struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
     uint32_t modifiers = keyboard ? wlr_keyboard_get_modifiers(keyboard) : 0;
 
-    transaction_begin();
-
     // Handle mouse bindings
     if (trigger_pointer_button_binding(
             seat, device, button, state, modifiers, on_titlebar, on_border,
             on_contents, on_workspace
         )) {
-        transaction_flush();
         return;
     }
 
@@ -485,11 +472,8 @@ handle_button(
     if (output && !window && !surface) {
         if (state == WLR_BUTTON_PRESSED) {
             workspace_set_active_window(workspace, NULL);
-            transaction_flush();
         }
         seat_pointer_notify_button(seat, time_msec, button, state);
-
-        transaction_flush();
         return;
     }
 
@@ -499,14 +483,11 @@ handle_button(
             wlr_layer_surface_v1_from_wlr_surface(surface);
         if (layer->current.keyboard_interactive) {
             root_set_focused_layer(root, layer);
-            transaction_flush();
         }
         if (state == WLR_BUTTON_PRESSED) {
             seatop_begin_down_on_surface(seat, surface, time_msec, sx, sy);
         }
         seat_pointer_notify_button(seat, time_msec, button, state);
-
-        transaction_flush();
         return;
     }
 
@@ -527,8 +508,6 @@ handle_button(
         seatop_begin_resize_tiling(
             seat, window, edge
         ); // TODO (hayward) will only ever take a window.
-
-        transaction_flush();
         return;
     }
 
@@ -563,8 +542,6 @@ handle_button(
             seatop_begin_resize_tiling(
                 seat, window, edge
             ); // TODO (hayward) should only accept windows.
-
-            transaction_flush();
             return;
         }
     }
@@ -578,8 +555,6 @@ handle_button(
             seatop_begin_move_floating(
                 seat, window
             ); // TODO (hayward) should only accept windows.
-
-            transaction_flush();
             return;
         }
     }
@@ -590,8 +565,6 @@ handle_button(
         // Via border
         if (button == BTN_LEFT && resize_edge != WLR_EDGE_NONE) {
             seatop_begin_resize_floating(seat, window, resize_edge);
-
-            transaction_flush();
             return;
         }
 
@@ -609,8 +582,6 @@ handle_button(
                 ? WLR_EDGE_BOTTOM
                 : WLR_EDGE_TOP;
             seatop_begin_resize_floating(seat, window, edge);
-
-            transaction_flush();
             return;
         }
     }
@@ -630,19 +601,14 @@ handle_button(
         } else {
             seatop_begin_move_tiling(seat, window);
         }
-
-        transaction_flush();
         return;
     }
 
     // Handle mousedown on a container surface
     if (surface && window && state == WLR_BUTTON_PRESSED) {
-        transaction_begin();
         root_set_focused_window(root, window);
         seatop_begin_down(seat, window, time_msec, sx, sy);
         seat_pointer_notify_button(seat, time_msec, button, WLR_BUTTON_PRESSED);
-
-        transaction_flush();
         return;
     }
 
@@ -650,8 +616,6 @@ handle_button(
     if (window && state == WLR_BUTTON_PRESSED) {
         root_set_focused_window(root, window);
         seat_pointer_notify_button(seat, time_msec, button, state);
-
-        transaction_flush();
         return;
     }
 
@@ -666,16 +630,12 @@ handle_button(
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
             root_set_focused_surface(root, xsurface->surface);
             seat_pointer_notify_button(seat, time_msec, button, state);
-
-            transaction_flush();
             return;
         }
     }
 #endif
 
     seat_pointer_notify_button(seat, time_msec, button, state);
-
-    transaction_flush();
 }
 
 /*------------------------------------------\
@@ -754,8 +714,6 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
         &sx, &sy
     );
 
-    transaction_begin();
-
     if (config->focus_follows_mouse != FOLLOWS_NO) {
         check_focus_follows_mouse(seat, e, output, window);
     }
@@ -778,8 +736,6 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     }
 
     e->previous_window = window;
-
-    transaction_flush();
 }
 
 static void
@@ -797,8 +753,6 @@ handle_tablet_tool_motion(
         seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface,
         &sx, &sy
     );
-
-    transaction_begin();
 
     if (config->focus_follows_mouse != FOLLOWS_NO) {
         check_focus_follows_mouse(seat, e, output, window);
@@ -826,8 +780,6 @@ handle_tablet_tool_motion(
     }
 
     e->previous_window = window;
-
-    transaction_flush();
 }
 
 /*----------------------------------------\
@@ -896,8 +848,6 @@ handle_pointer_axis(
         on_border, on_contents, on_workspace, dev_id
     );
 
-    transaction_begin();
-
     if (binding) {
         seat_execute_command(seat, binding);
         handled = true;
@@ -919,7 +869,6 @@ handle_pointer_axis(
 
             struct hayward_window *new_sibling = siblings->items[desired];
             root_set_focused_window(root, new_sibling);
-            transaction_flush();
             handled = true;
         }
     }
@@ -943,8 +892,6 @@ handle_pointer_axis(
             round(scroll_factor * event->delta_discrete), event->source
         );
     }
-
-    transaction_flush();
 }
 
 /*----------------------------------\

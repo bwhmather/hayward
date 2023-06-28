@@ -814,9 +814,14 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
 void
 handle_output_layout_change(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_server *server =
         wl_container_of(listener, server, output_layout_change);
+
     update_output_manager_config(server);
+
+    transaction_flush();
 }
 
 static void

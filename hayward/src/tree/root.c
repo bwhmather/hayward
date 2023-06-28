@@ -176,7 +176,9 @@ static void
 root_handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hayward_root *root =
         wl_container_of(listener, root, output_layout_change);
+    transaction_begin();
     arrange_root(root);
+    transaction_flush();
 }
 
 struct hayward_root *

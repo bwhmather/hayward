@@ -101,6 +101,8 @@ execute_binding(struct hayward_switch *hayward_switch) {
 
 static void
 handle_switch_toggle(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     struct hayward_switch *hayward_switch =
         wl_container_of(listener, hayward_switch, switch_toggle);
     struct wlr_switch_toggle_event *event = data;
@@ -119,6 +121,8 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
     hayward_switch->type = event->switch_type;
     hayward_switch->state = event->switch_state;
     execute_binding(hayward_switch);
+
+    transaction_flush();
 }
 
 void

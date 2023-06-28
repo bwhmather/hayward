@@ -27,6 +27,8 @@ server_decoration_handle_destroy(struct wl_listener *listener, void *data) {
 
 static void
 server_decoration_handle_mode(struct wl_listener *listener, void *data) {
+        transaction_begin();
+
     struct hayward_server_decoration *deco =
         wl_container_of(listener, deco, mode);
     struct hayward_view *view =
@@ -35,18 +37,19 @@ server_decoration_handle_mode(struct wl_listener *listener, void *data) {
         return;
     }
 
-    transaction_begin();
-
     bool csd = deco->wlr_server_decoration->mode ==
         WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
     view_update_csd_from_client(view, csd);
 
     arrange_window(view->window);
+
     transaction_flush();
 }
 
 static void
 handle_new_decoration(struct wl_listener *listener, void *data) {
+        transaction_begin();
+
     struct hayward_server_decoration_manager *manager =
         wl_container_of(listener, manager, new_decoration);
     struct wlr_server_decoration *wlr_deco = data;
@@ -65,6 +68,8 @@ handle_new_decoration(struct wl_listener *listener, void *data) {
     deco->mode.notify = server_decoration_handle_mode;
 
     wl_list_insert(&manager->decorations, &deco->link);
+
+    transaction_flush();
 }
 
 struct hayward_server_decoration_manager *
