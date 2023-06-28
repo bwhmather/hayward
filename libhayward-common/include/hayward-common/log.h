@@ -29,26 +29,28 @@ hayward_log_init(hayward_log_importance_t verbosity);
 void
 _hayward_vlog(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
-    const char *format, va_list args
-) ATTRIB_PRINTF(4, 0);
+    const char *function, const char *format, va_list args
+) ATTRIB_PRINTF(5, 0);
 void
 _hayward_log(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
-    const char *format, ...
-) ATTRIB_PRINTF(4, 5);
+    const char *function, const char *format, ...
+) ATTRIB_PRINTF(5, 6);
 void
 _hayward_vlog_errno(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
-    const char *format, va_list args
-) ATTRIB_PRINTF(4, 0);
+    const char *function, const char *format, va_list args
+) ATTRIB_PRINTF(5, 0);
 void
 _hayward_log_errno(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
+    const char *function, const char *format, ...
+) ATTRIB_PRINTF(5, 6);
+noreturn void
+_hayward_abort(
+    const char *filename, long int lineno, const char *function,
     const char *format, ...
 ) ATTRIB_PRINTF(4, 5);
-noreturn void
-_hayward_abort(const char *filename, long int lineno, const char *format, ...)
-    ATTRIB_PRINTF(3, 4);
 void
 _hayward_assert(
     bool condition, const char *filename, long int lineno, const char *function,
@@ -64,16 +66,18 @@ _hayward_assert(
 #endif
 
 #define hayward_log(VERB, ...)                                                 \
-    _hayward_log(VERB, _HAYWARD_FILENAME, __LINE__, ##__VA_ARGS__)
+    _hayward_log(VERB, _HAYWARD_FILENAME, __LINE__, __func__, ##__VA_ARGS__)
 
 #define hayward_vlog(VERB, FMT, ARGS)                                          \
-    _hayward_vlog(VERB, _HAYWARD_FILENAME, __LINE__, FMT, ARGS)
+    _hayward_vlog(VERB, _HAYWARD_FILENAME, __LINE__, __func__, FMT, ARGS)
 
 #define hayward_log_errno(VERB, ...)                                           \
-    _hayward_log_errno(VERB, _HAYWARD_FILENAME, __LINE__, ##__VA_ARGS__)
+    _hayward_log_errno(                                                        \
+        VERB, _HAYWARD_FILENAME, __LINE__, __func__, ##__VA_ARGS__             \
+    )
 
 #define hayward_abort(...)                                                     \
-    _hayward_abort(_HAYWARD_FILENAME, __LINE__, ##__VA_ARGS__)
+    _hayward_abort(_HAYWARD_FILENAME, __LINE__, __func__, ##__VA_ARGS__)
 
 #define hayward_assert(COND, ...)                                              \
     _hayward_assert(COND, _HAYWARD_FILENAME, __LINE__, __func__, ##__VA_ARGS__)

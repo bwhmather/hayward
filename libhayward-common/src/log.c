@@ -91,7 +91,7 @@ hayward_log_init(hayward_log_importance_t verbosity) {
 void
 _hayward_vlog(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
-    const char *format, va_list args
+    const char *function, const char *format, va_list args
 ) {
     init_start_time();
 
@@ -101,7 +101,7 @@ _hayward_vlog(
 
     hayward_print_verbosity_stderr(verbosity);
     hayward_print_timestamp_stderr();
-    hayward_print_location_stderr(filename, lineno, NULL);
+    hayward_print_location_stderr(filename, lineno, function);
 
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
@@ -110,18 +110,18 @@ _hayward_vlog(
 void
 _hayward_log(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
-    const char *format, ...
+    const char *function, const char *format, ...
 ) {
     va_list args;
     va_start(args, format);
-    _hayward_vlog(verbosity, filename, lineno, format, args);
+    _hayward_vlog(verbosity, filename, lineno, function, format, args);
     va_end(args);
 }
 
 void
 _hayward_vlog_errno(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
-    const char *format, va_list args
+    const char *function, const char *format, va_list args
 ) {
     init_start_time();
 
@@ -131,7 +131,7 @@ _hayward_vlog_errno(
 
     hayward_print_verbosity_stderr(verbosity);
     hayward_print_timestamp_stderr();
-    hayward_print_location_stderr(filename, lineno, NULL);
+    hayward_print_location_stderr(filename, lineno, function);
 
     vfprintf(stderr, format, args);
     fprintf(stderr, ": %s\n", strerror(errno));
@@ -140,19 +140,22 @@ _hayward_vlog_errno(
 void
 _hayward_log_errno(
     hayward_log_importance_t verbosity, const char *filename, long int lineno,
-    const char *format, ...
+    const char *function, const char *format, ...
 ) {
     va_list args;
     va_start(args, format);
-    _hayward_vlog(verbosity, filename, lineno, format, args);
+    _hayward_vlog(verbosity, filename, lineno, function, format, args);
     va_end(args);
 }
 
 noreturn void
-_hayward_abort(const char *filename, long int lineno, const char *format, ...) {
+_hayward_abort(
+    const char *filename, long int lineno, const char *function,
+    const char *format, ...
+) {
     va_list args;
     va_start(args, format);
-    _hayward_vlog(HAYWARD_ERROR, filename, lineno, format, args);
+    _hayward_vlog(HAYWARD_ERROR, filename, lineno, function, format, args);
     va_end(args);
 
     raise(SIGABRT);
