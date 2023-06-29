@@ -33,6 +33,7 @@
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 #include <hayward/tree/view.h>
 
 #include <config.h>
@@ -224,6 +225,8 @@ static void
 handle_device_destroy(struct wl_listener *listener, void *data) {
     struct wlr_input_device *device = data;
 
+    transaction_begin();
+
     struct hayward_input_device *input_device =
         input_hayward_device_from_wlr(device);
 
@@ -244,6 +247,8 @@ handle_device_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&input_device->device_destroy.link);
     free(input_device->identifier);
     free(input_device);
+
+    transaction_flush();
 }
 
 static void
@@ -251,6 +256,8 @@ handle_new_input(struct wl_listener *listener, void *data) {
     struct hayward_input_manager *input =
         wl_container_of(listener, input, new_input);
     struct wlr_input_device *device = data;
+
+    transaction_begin();
 
     struct hayward_input_device *input_device =
         calloc(1, sizeof(struct hayward_input_device));
@@ -306,30 +313,44 @@ handle_new_input(struct wl_listener *listener, void *data) {
     }
 
     ipc_event_input("added", input_device);
+
+    transaction_flush();
 }
 
 static void
 handle_inhibit_activate(struct wl_listener *listener, void *data) {
     struct hayward_input_manager *input_manager =
         wl_container_of(listener, input_manager, inhibit_activate);
+
+    transaction_begin();
+
     struct hayward_seat *seat;
     wl_list_for_each(seat, &input_manager->seats, link) {
         seat_set_exclusive_client(seat, input_manager->inhibit->active_client);
     }
+
+    transaction_flush();
 }
 
 static void
 handle_inhibit_deactivate(struct wl_listener *listener, void *data) {
     struct hayward_input_manager *input_manager =
         wl_container_of(listener, input_manager, inhibit_deactivate);
+
+    transaction_begin();
+
     struct hayward_seat *seat;
     if (server.session_lock.locked) {
         // Don't deactivate the grab of a screenlocker
+        transaction_flush();
         return;
     }
+
     wl_list_for_each(seat, &input_manager->seats, link) {
         seat_set_exclusive_client(seat, NULL);
     }
+
+    transaction_flush();
 }
 
 static void
@@ -339,12 +360,16 @@ handle_keyboard_shortcuts_inhibitor_destroy(
     struct hayward_keyboard_shortcuts_inhibitor *hayward_inhibitor =
         wl_container_of(listener, hayward_inhibitor, destroy);
 
+    transaction_begin();
+
     hayward_log(HAYWARD_DEBUG, "Removing keyboard shortcuts inhibitor");
 
     // hayward_seat::keyboard_shortcuts_inhibitors
     wl_list_remove(&hayward_inhibitor->link);
     wl_list_remove(&hayward_inhibitor->destroy.link);
     free(hayward_inhibitor);
+
+    transaction_flush();
 }
 
 static void
@@ -355,6 +380,8 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(
         listener, input_manager, keyboard_shortcuts_inhibit_new_inhibitor
     );
     struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor = data;
+
+    transaction_begin();
 
     hayward_log(HAYWARD_DEBUG, "Adding keyboard shortcuts inhibitor");
 
@@ -405,10 +432,13 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(
          * manually later which is why we do this check here where the
          * inhibitor is already attached to its seat and ready for use.
          */
+        transaction_flush();
         return;
     }
 
     wlr_keyboard_shortcuts_inhibitor_v1_activate(inhibitor);
+
+    transaction_flush();
 }
 
 void
@@ -416,6 +446,9 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
     struct hayward_input_manager *input_manager =
         wl_container_of(listener, input_manager, virtual_keyboard_new);
     struct wlr_virtual_keyboard_v1 *keyboard = data;
+
+    transaction_begin();
+
     struct wlr_input_device *device = &keyboard->keyboard.base;
 
     // TODO: Amend protocol to allow NULL seat
@@ -441,6 +474,8 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
     input_device->device_destroy.notify = handle_device_destroy;
 
     seat_add_device(seat, input_device);
+
+    transaction_flush();
 }
 
 void
@@ -448,6 +483,9 @@ handle_virtual_pointer(struct wl_listener *listener, void *data) {
     struct hayward_input_manager *input_manager =
         wl_container_of(listener, input_manager, virtual_pointer_new);
     struct wlr_virtual_pointer_v1_new_pointer_event *event = data;
+
+    transaction_begin();
+
     struct wlr_virtual_pointer_v1 *pointer = event->new_pointer;
     struct wlr_input_device *device = &pointer->pointer.base;
 
@@ -479,6 +517,8 @@ handle_virtual_pointer(struct wl_listener *listener, void *data) {
             seat->cursor->cursor, device, event->suggested_output
         );
     }
+
+    transaction_flush();
 }
 
 struct hayward_input_manager *

@@ -706,7 +706,10 @@ handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
+    transaction_begin();
+
     if (!output->enabled) {
+        transaction_flush();
         return;
     }
 
@@ -717,8 +720,9 @@ handle_commit(struct wl_listener *listener, void *data) {
         arrange_output(output);
 
         update_output_manager_config(output->server);
-        transaction_flush();
     }
+
+    transaction_flush();
 }
 
 static void
@@ -742,7 +746,10 @@ handle_new_output(struct wl_listener *listener, void *data) {
         wl_container_of(listener, server, new_output);
     struct wlr_output *wlr_output = data;
 
+    transaction_begin();
+
     if (wlr_output == root->fallback_output->wlr_output) {
+        transaction_flush();
         return;
     }
 
@@ -764,6 +771,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
                 server->drm_lease_manager, wlr_output
             );
         }
+        transaction_flush();
         return;
     }
 
@@ -771,14 +779,13 @@ handle_new_output(struct wl_listener *listener, void *data) {
             wlr_output, server->allocator, server->renderer
         )) {
         hayward_log(HAYWARD_ERROR, "Failed to init output render");
+        transaction_flush();
         return;
     }
 
     struct wlr_scene_output *scene_output =
         wlr_scene_output_create(root->root_scene, wlr_output);
     hayward_assert(scene_output != NULL, "Allocation failed");
-
-    transaction_begin();
 
     struct hayward_output *output = output_create(wlr_output);
     if (!output) {
@@ -814,10 +821,10 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
 void
 handle_output_layout_change(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_server *server =
         wl_container_of(listener, server, output_layout_change);
+
+    transaction_begin();
 
     update_output_manager_config(server);
 
@@ -901,7 +908,11 @@ handle_output_manager_apply(struct wl_listener *listener, void *data) {
         wl_container_of(listener, server, output_manager_apply);
     struct wlr_output_configuration_v1 *config = data;
 
+    transaction_begin();
+
     output_manager_apply(server, config, false);
+
+    transaction_flush();
 }
 
 void
@@ -910,13 +921,19 @@ handle_output_manager_test(struct wl_listener *listener, void *data) {
         wl_container_of(listener, server, output_manager_test);
     struct wlr_output_configuration_v1 *config = data;
 
+    transaction_begin();
+
     output_manager_apply(server, config, true);
+
+    transaction_flush();
 }
 
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     struct wlr_output_power_v1_set_mode_event *event = data;
     struct hayward_output *output = event->output->data;
+
+    transaction_begin();
 
     struct output_config *oc = new_output_config(output->wlr_output->name);
     switch (event->mode) {
@@ -929,4 +946,6 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     }
     oc = store_output_config(oc);
     apply_output_config(oc, output);
+
+    transaction_flush();
 }

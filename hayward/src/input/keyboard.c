@@ -708,34 +708,39 @@ handle_key_event(
 
 static void
 handle_keyboard_key(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_keyboard *keyboard =
         wl_container_of(listener, keyboard, keyboard_key);
-    handle_key_event(keyboard, data);
+    struct wlr_keyboard_key_event *event = data;
+
+    transaction_begin();
+
+    handle_key_event(keyboard, event);
 
     transaction_flush();
 }
 
 static void
 handle_keyboard_group_key(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_keyboard_group *hayward_group =
         wl_container_of(listener, hayward_group, keyboard_key);
-    handle_key_event(hayward_group->seat_device->keyboard, data);
+    struct wlr_keyboard_key_event *event = data;
+
+    transaction_begin();
+
+    handle_key_event(hayward_group->seat_device->keyboard, event);
 
     transaction_flush();
 }
 
 static void
 handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_keyboard_group *hayward_group =
         wl_container_of(listener, hayward_group, enter);
-    struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
     struct wl_array *keycodes = data;
+
+    transaction_begin();
+
+    struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
 
     uint32_t *keycode;
     wl_array_for_each(keycode, keycodes) {
@@ -750,12 +755,13 @@ handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
 
 static void
 handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_keyboard_group *hayward_group =
         wl_container_of(listener, hayward_group, leave);
-    struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
     struct wl_array *keycodes = data;
+
+    transaction_begin();
+
+    struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
 
     bool pressed_sent = false;
 
@@ -861,10 +867,11 @@ handle_modifier_event(struct hayward_keyboard *keyboard) {
 
 static void
 handle_keyboard_modifiers(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_keyboard *keyboard =
         wl_container_of(listener, keyboard, keyboard_modifiers);
+
+    transaction_begin();
+
     handle_modifier_event(keyboard);
 
     transaction_flush();
@@ -872,10 +879,11 @@ handle_keyboard_modifiers(struct wl_listener *listener, void *data) {
 
 static void
 handle_keyboard_group_modifiers(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_keyboard_group *group =
         wl_container_of(listener, group, keyboard_modifiers);
+
+    transaction_begin();
+
     handle_modifier_event(group->seat_device->keyboard);
 
     transaction_flush();

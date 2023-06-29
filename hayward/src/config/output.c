@@ -36,6 +36,7 @@
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 #include <hayward/tree/root.h>
 
 #include <config.h>
@@ -847,9 +848,14 @@ static void
 handle_haywardbg_client_destroy(struct wl_listener *listener, void *data) {
     struct hayward_config *hayward_config =
         wl_container_of(listener, hayward_config, haywardbg_client_destroy);
+
+    transaction_begin();
+
     wl_list_remove(&hayward_config->haywardbg_client_destroy.link);
     wl_list_init(&hayward_config->haywardbg_client_destroy.link);
     hayward_config->haywardbg_client = NULL;
+
+    transaction_flush();
 }
 
 static bool

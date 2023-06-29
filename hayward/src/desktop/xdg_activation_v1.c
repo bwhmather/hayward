@@ -8,6 +8,7 @@
 #include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
+#include <hayward/transaction.h>
 #include <hayward/tree/view.h>
 
 #include <config.h>
@@ -16,18 +17,28 @@ static void
 handle_request_activate(struct wl_listener *listener, void *data) {
     const struct wlr_xdg_activation_v1_request_activate_event *event = data;
 
+    transaction_begin();
+
     if (!wlr_surface_is_xdg_surface(event->surface)) {
+        transaction_flush();
         return;
     }
 
     struct wlr_xdg_surface *xdg_surface =
         wlr_xdg_surface_from_wlr_surface(event->surface);
     struct hayward_view *view = xdg_surface->data;
-    if (!xdg_surface->mapped || view == NULL) {
+    if (!xdg_surface->mapped) {
+        transaction_flush();
+        return;
+    }
+    if (view == NULL) {
+        transaction_flush();
         return;
     }
 
     view_request_activate(view);
+
+    transaction_flush();
 }
 
 struct hayward_xdg_activation_v1 *

@@ -15,6 +15,7 @@
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/transaction.h>
 
 #include <config.h>
 
@@ -33,29 +34,46 @@ static void
 handle_surface_map(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, map);
+
+    transaction_begin();
+
     hayward_force_focus(surf->surface);
+
+    transaction_flush();
 }
 
 static void
 handle_surface_commit(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, surface_commit);
+
+    transaction_begin();
+
+    transaction_flush();
 }
 
 static void
 handle_output_mode(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, output_mode);
+
+    transaction_begin();
+
     wlr_session_lock_surface_v1_configure(
         surf->lock_surface, surf->output->width, surf->output->height
     );
+
+    transaction_flush();
 }
 
 static void
 handle_output_commit(struct wl_listener *listener, void *data) {
-    struct wlr_output_event_commit *event = data;
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, output_commit);
+    struct wlr_output_event_commit *event = data;
+
+    transaction_begin();
+
     if (event->committed &
         (WLR_OUTPUT_STATE_MODE | WLR_OUTPUT_STATE_SCALE |
          WLR_OUTPUT_STATE_TRANSFORM)) {
@@ -63,25 +81,36 @@ handle_output_commit(struct wl_listener *listener, void *data) {
             surf->lock_surface, surf->output->width, surf->output->height
         );
     }
+
+    transaction_flush();
 }
 
 static void
 handle_surface_destroy(struct wl_listener *listener, void *data) {
     struct hayward_session_lock_surface *surf =
         wl_container_of(listener, surf, destroy);
+
+    transaction_begin();
+
     wl_list_remove(&surf->map.link);
     wl_list_remove(&surf->destroy.link);
     wl_list_remove(&surf->surface_commit.link);
     wl_list_remove(&surf->output_mode.link);
     wl_list_remove(&surf->output_commit.link);
     free(surf);
+
+    transaction_flush();
 }
 
 static void
 handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_session_lock_surface_v1 *lock_surface = data;
+
+    transaction_begin();
+
     struct hayward_session_lock_surface *surf = calloc(1, sizeof(*surf));
     if (surf == NULL) {
+        transaction_flush();
         return;
     }
 
@@ -105,10 +134,14 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     wl_signal_add(&output->wlr_output->events.mode, &surf->output_mode);
     surf->output_commit.notify = handle_output_commit;
     wl_signal_add(&output->wlr_output->events.commit, &surf->output_commit);
+
+    transaction_flush();
 }
 
 static void
 handle_unlock(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     hayward_log(HAYWARD_DEBUG, "session unlocked");
     server.session_lock.locked = false;
     server.session_lock.lock = NULL;
@@ -116,10 +149,14 @@ handle_unlock(struct wl_listener *listener, void *data) {
     wl_list_remove(&server.session_lock.lock_new_surface.link);
     wl_list_remove(&server.session_lock.lock_unlock.link);
     wl_list_remove(&server.session_lock.lock_destroy.link);
+
+    transaction_flush();
 }
 
 static void
 handle_abandon(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     hayward_log(HAYWARD_INFO, "session lock abandoned");
     server.session_lock.lock = NULL;
 
@@ -131,15 +168,21 @@ handle_abandon(struct wl_listener *listener, void *data) {
     wl_list_for_each(seat, &server.input->seats, link) {
         seat->exclusive_client = NULL;
     }
+
+    transaction_flush();
 }
 
 static void
 handle_session_lock(struct wl_listener *listener, void *data) {
     struct wlr_session_lock_v1 *lock = data;
+
+    transaction_begin();
+
     struct wl_client *client = wl_resource_get_client(lock->resource);
 
     if (server.session_lock.lock) {
         wlr_session_lock_v1_destroy(lock);
+        transaction_flush();
         return;
     }
 
@@ -159,13 +202,19 @@ handle_session_lock(struct wl_listener *listener, void *data) {
     wl_signal_add(&lock->events.destroy, &server.session_lock.lock_destroy);
 
     wlr_session_lock_v1_send_locked(lock);
+
+    transaction_flush();
 }
 
 static void
 handle_session_lock_destroy(struct wl_listener *listener, void *data) {
+    transaction_begin();
+
     assert(server.session_lock.lock == NULL);
     wl_list_remove(&server.session_lock.new_lock.link);
     wl_list_remove(&server.session_lock.manager_destroy.link);
+
+    transaction_flush();
 }
 
 void

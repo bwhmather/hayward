@@ -157,16 +157,20 @@ handle_output_destroy(struct wl_listener *listener, void *data) {
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, output_destroy);
 
+    transaction_begin();
+
     layer_surface->output = NULL;
     wlr_scene_node_destroy(&layer_surface->scene->tree->node);
+
+    transaction_flush();
 }
 
 static void
 handle_node_destroy(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, node_destroy);
+
+    transaction_begin();
 
     wlr_addon_finish(&layer_surface->scene_tree_marker);
 
@@ -203,10 +207,10 @@ handle_node_destroy(struct wl_listener *listener, void *data) {
 
 static void
 handle_surface_commit(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, surface_commit);
+
+    transaction_begin();
 
     struct wlr_layer_surface_v1 *wlr_layer_surface =
         layer_surface->layer_surface;
@@ -236,10 +240,10 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
 
 static void
 handle_map(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, map);
+
+    transaction_begin();
 
     struct wlr_layer_surface_v1 *wlr_layer_surface =
         layer_surface->scene->layer_surface;
@@ -260,10 +264,10 @@ handle_map(struct wl_listener *listener, void *data) {
 
 static void
 handle_unmap(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, unmap);
+
+    transaction_begin();
 
     struct wlr_layer_surface_v1 *focused = root_get_focused_layer(root);
     if (layer_surface->layer_surface == focused) {
@@ -277,10 +281,10 @@ handle_unmap(struct wl_listener *listener, void *data) {
 
 static void
 popup_handle_destroy(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_layer_popup *popup =
         wl_container_of(listener, popup, destroy);
+
+    transaction_begin();
 
     wl_list_remove(&popup->destroy.link);
     wl_list_remove(&popup->new_popup.link);
@@ -345,11 +349,12 @@ create_popup(
 
 static void
 popup_handle_new_popup(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_layer_popup *hayward_layer_popup =
         wl_container_of(listener, hayward_layer_popup, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
+
+    transaction_begin();
+
     create_popup(
         wlr_popup, hayward_layer_popup->toplevel, hayward_layer_popup->scene
     );
@@ -359,11 +364,12 @@ popup_handle_new_popup(struct wl_listener *listener, void *data) {
 
 static void
 handle_new_popup(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
+
+    transaction_begin();
+
     create_popup(wlr_popup, layer_surface, layer_surface->popups);
 
     transaction_flush();
@@ -371,9 +377,10 @@ handle_new_popup(struct wl_listener *listener, void *data) {
 
 static void
 handle_new_surface(struct wl_listener *listener, void *data) {
+    struct wlr_layer_surface_v1 *wlr_layer_surface = data;
+
     transaction_begin();
 
-    struct wlr_layer_surface_v1 *wlr_layer_surface = data;
     hayward_log(
         HAYWARD_DEBUG,
         "new layer surface: namespace %s layer %d anchor %" PRIu32

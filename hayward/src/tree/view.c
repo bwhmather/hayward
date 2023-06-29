@@ -377,9 +377,9 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
         wl_container_of(listener, view, foreign_fullscreen_request);
     struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
-    struct hayward_window *window = view->window;
-
     transaction_begin();
+
+    struct hayward_window *window = view->window;
 
     if (event->fullscreen && event->output && event->output->data) {
         struct hayward_output *output = event->output->data;
@@ -396,6 +396,7 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
             arrange_workspace(window->pending.workspace);
         }
     }
+
     transaction_flush();
 }
 
@@ -403,7 +404,12 @@ static void
 handle_foreign_close_request(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_close_request);
+
+    transaction_begin();
+
     view_close(view);
+
+    transaction_flush();
 }
 
 static void
@@ -411,10 +417,14 @@ handle_foreign_destroy(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_destroy);
 
+    transaction_begin();
+
     wl_list_remove(&view->foreign_activate_request.link);
     wl_list_remove(&view->foreign_fullscreen_request.link);
     wl_list_remove(&view->foreign_close_request.link);
     wl_list_remove(&view->foreign_destroy.link);
+
+    transaction_flush();
 }
 
 void

@@ -306,7 +306,6 @@ handle_tablet_tool_tip(
 ) {
     if (state == WLR_TABLET_TOOL_TIP_UP) {
         wlr_tablet_v2_tablet_tool_notify_up(tool->tablet_v2_tool);
-        transaction_flush();
         return;
     }
 

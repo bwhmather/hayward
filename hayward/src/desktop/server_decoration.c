@@ -17,10 +17,11 @@
 
 static void
 server_decoration_handle_destroy(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_server_decoration *deco =
         wl_container_of(listener, deco, destroy);
+
+    transaction_begin();
+
     wl_list_remove(&deco->destroy.link);
     wl_list_remove(&deco->mode.link);
     wl_list_remove(&deco->link);
@@ -31,10 +32,11 @@ server_decoration_handle_destroy(struct wl_listener *listener, void *data) {
 
 static void
 server_decoration_handle_mode(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_server_decoration *deco =
         wl_container_of(listener, deco, mode);
+
+    transaction_begin();
+
     struct hayward_view *view =
         view_from_wlr_surface(deco->wlr_server_decoration->surface);
     if (view == NULL || view->surface != deco->wlr_server_decoration->surface) {
@@ -53,11 +55,11 @@ server_decoration_handle_mode(struct wl_listener *listener, void *data) {
 
 static void
 handle_new_decoration(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_server_decoration_manager *manager =
         wl_container_of(listener, manager, new_decoration);
     struct wlr_server_decoration *wlr_deco = data;
+
+    transaction_begin();
 
     struct hayward_server_decoration *deco = calloc(1, sizeof(*deco));
     if (deco == NULL) {

@@ -21,6 +21,9 @@ static void
 xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_xdg_decoration *deco =
         wl_container_of(listener, deco, destroy);
+
+    transaction_begin();
+
     if (deco->view) {
         deco->view->xdg_decoration = NULL;
     }
@@ -28,14 +31,17 @@ xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&deco->request_mode.link);
     wl_list_remove(&deco->link);
     free(deco);
+
+    transaction_flush();
 }
 
 static void
 xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_xdg_decoration *deco =
         wl_container_of(listener, deco, request_mode);
+
+    transaction_begin();
+
     struct hayward_view *view = deco->view;
     enum wlr_xdg_toplevel_decoration_v1_mode mode =
         WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
@@ -66,11 +72,12 @@ xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
 
 static void
 handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
-    transaction_begin();
-
     struct hayward_xdg_decoration_manager *manager =
         wl_container_of(listener, manager, new_toplevel_decoration);
     struct wlr_xdg_toplevel_decoration_v1 *wlr_deco = data;
+
+    transaction_begin();
+
     struct hayward_xdg_shell_view *xdg_shell_view = wlr_deco->surface->data;
 
     struct hayward_xdg_decoration *deco = calloc(1, sizeof(*deco));
@@ -98,7 +105,6 @@ handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
 
 struct hayward_xdg_decoration_manager *
 hayward_xdg_decoration_manager_create(struct wl_display *wl_display) {
-
     struct hayward_xdg_decoration_manager *manager =
         calloc(1, sizeof(struct hayward_xdg_decoration_manager));
     if (manager == NULL) {
