@@ -147,7 +147,7 @@ transaction_ensure_queued(void) {
 }
 
 void
-transaction_begin_(void) {
+transaction_begin(void) {
     hayward_assert(
         hayward_transaction_state.depth < 3, "Something funky is happening"
     );
@@ -160,7 +160,7 @@ transaction_in_progress(void) {
 }
 
 void
-transaction_flush_(void) {
+transaction_flush(void) {
     hayward_assert(
         hayward_transaction_state.depth > 0, "Transaction has not yet begun"
     );
