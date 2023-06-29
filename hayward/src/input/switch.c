@@ -124,7 +124,7 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
     hayward_switch->state = event->switch_state;
     execute_binding(hayward_switch);
 
-    transaction_flush();
+    transaction_end();
 }
 
 void

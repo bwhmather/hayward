@@ -368,7 +368,7 @@ handle_foreign_activate_request(struct wl_listener *listener, void *data) {
     root_set_focused_window(root, view->window);
     window_raise_floating(view->window);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -397,7 +397,7 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
         }
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -409,7 +409,7 @@ handle_foreign_close_request(struct wl_listener *listener, void *data) {
 
     view_close(view);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -424,7 +424,7 @@ handle_foreign_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&view->foreign_close_request.link);
     wl_list_remove(&view->foreign_destroy.link);
 
-    transaction_flush();
+    transaction_end();
 }
 
 void

@@ -162,7 +162,7 @@ handle_output_destroy(struct wl_listener *listener, void *data) {
     layer_surface->output = NULL;
     wlr_scene_node_destroy(&layer_surface->scene->tree->node);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -202,7 +202,7 @@ handle_node_destroy(struct wl_listener *listener, void *data) {
 
     free(layer_surface);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -235,7 +235,7 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
     wlr_scene_node_coords(&layer_surface->scene->tree->node, &lx, &ly);
     wlr_scene_node_set_position(&layer_surface->popups->node, lx, ly);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -259,7 +259,7 @@ handle_map(struct wl_listener *listener, void *data) {
 
     cursor_rebase_all();
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -276,7 +276,7 @@ handle_unmap(struct wl_listener *listener, void *data) {
 
     cursor_rebase_all();
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -290,7 +290,7 @@ popup_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&popup->new_popup.link);
     free(popup);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -359,7 +359,7 @@ popup_handle_new_popup(struct wl_listener *listener, void *data) {
         wlr_popup, hayward_layer_popup->toplevel, hayward_layer_popup->scene
     );
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -372,7 +372,7 @@ handle_new_popup(struct wl_listener *listener, void *data) {
 
     create_popup(wlr_popup, layer_surface, layer_surface->popups);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -452,7 +452,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     arrange_layers(output);
     wlr_layer_surface->current = old_state;
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_layer_shell *

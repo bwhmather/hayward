@@ -20,7 +20,7 @@ handle_request_activate(struct wl_listener *listener, void *data) {
     transaction_begin();
 
     if (!wlr_surface_is_xdg_surface(event->surface)) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -28,17 +28,17 @@ handle_request_activate(struct wl_listener *listener, void *data) {
         wlr_xdg_surface_from_wlr_surface(event->surface);
     struct hayward_view *view = xdg_surface->data;
     if (!xdg_surface->mapped) {
-        transaction_flush();
+        transaction_end();
         return;
     }
     if (view == NULL) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
     view_request_activate(view);
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_xdg_activation_v1 *

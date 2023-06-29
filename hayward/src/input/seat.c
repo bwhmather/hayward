@@ -301,7 +301,7 @@ drag_icon_handle_surface_commit(struct wl_listener *listener, void *data) {
 
     drag_icon_update_position(icon);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -343,7 +343,7 @@ drag_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&drag->destroy.link);
     free(drag);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -359,7 +359,7 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
         )) {
         wlr_seat_start_pointer_drag(seat->wlr_seat, event->drag, event->serial);
 
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -371,7 +371,7 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
             seat->wlr_seat, event->drag, event->serial, point
         );
 
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -385,7 +385,7 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
     );
     wlr_data_source_destroy(event->drag->source);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -399,7 +399,7 @@ handle_start_drag(struct wl_listener *listener, void *data) {
     if (drag == NULL) {
         hayward_log(HAYWARD_ERROR, "Allocation failed");
 
-        transaction_flush();
+        transaction_end();
         return;
     }
     drag->seat = seat;
@@ -416,7 +416,7 @@ handle_start_drag(struct wl_listener *listener, void *data) {
         if (icon == NULL) {
             hayward_log(HAYWARD_ERROR, "Allocation failed");
 
-            transaction_flush();
+            transaction_end();
             return;
         }
         icon->seat = seat;
@@ -440,7 +440,7 @@ handle_start_drag(struct wl_listener *listener, void *data) {
     }
     seatop_begin_default(seat);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -453,7 +453,7 @@ handle_request_set_selection(struct wl_listener *listener, void *data) {
 
     wlr_seat_set_selection(seat->wlr_seat, event->source, event->serial);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -468,7 +468,7 @@ handle_request_set_primary_selection(struct wl_listener *listener, void *data) {
         seat->wlr_seat, event->source, event->serial
     );
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void

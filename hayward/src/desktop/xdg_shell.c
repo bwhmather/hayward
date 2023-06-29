@@ -56,7 +56,7 @@ popup_handle_new_popup(struct wl_listener *listener, void *data) {
 
     popup_create(wlr_popup, popup->view, popup->xdg_surface_tree);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -70,7 +70,7 @@ popup_handle_destroy(struct wl_listener *listener, void *data) {
     wlr_scene_node_destroy(&popup->scene_tree->node);
     free(popup);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -336,7 +336,7 @@ handle_commit(struct wl_listener *listener, void *data) {
         }
     }
 
-    transaction_flush();
+    transaction_end();
 
     view_notify_ready_by_serial(view, xdg_surface->current.configure_serial);
 }
@@ -352,7 +352,7 @@ handle_set_title(struct wl_listener *listener, void *data) {
 
     view_update_title(view, false);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -371,7 +371,7 @@ handle_new_popup(struct wl_listener *listener, void *data) {
     int lx, ly;
     wlr_scene_node_coords(&popup->view->content_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -385,7 +385,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     struct hayward_view *view = &xdg_shell_view->view;
 
     if (!toplevel->base->mapped) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -403,7 +403,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
 
     arrange_root(root);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -416,11 +416,11 @@ handle_request_move(struct wl_listener *listener, void *data) {
     struct hayward_view *view = &xdg_shell_view->view;
 
     if (!window_is_floating(view->window)) {
-        transaction_flush();
+        transaction_end();
         return;
     }
     if (view->window->pending.fullscreen) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -431,7 +431,7 @@ handle_request_move(struct wl_listener *listener, void *data) {
         seatop_begin_move_floating(seat, view->window);
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -444,7 +444,7 @@ handle_request_resize(struct wl_listener *listener, void *data) {
     struct hayward_view *view = &xdg_shell_view->view;
 
     if (!window_is_floating(view->window)) {
-        transaction_flush();
+        transaction_end();
         return;
     }
     struct wlr_xdg_toplevel_resize_event *e = data;
@@ -453,7 +453,7 @@ handle_request_resize(struct wl_listener *listener, void *data) {
     if (e->serial == seat->last_button_serial) {
         seatop_begin_resize_floating(seat, view->window, e->edges);
     }
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -477,7 +477,7 @@ handle_unmap(struct wl_listener *listener, void *data) {
     wl_list_remove(&xdg_shell_view->set_title.link);
     wl_list_remove(&xdg_shell_view->set_app_id.link);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -550,7 +550,7 @@ handle_map(struct wl_listener *listener, void *data) {
     xdg_shell_view->set_app_id.notify = handle_set_app_id;
     wl_signal_add(&toplevel->events.set_app_id, &xdg_shell_view->set_app_id);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -572,7 +572,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     }
     view_begin_destroy(view);
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_view *
@@ -590,7 +590,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
 
     if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
         hayward_log(HAYWARD_DEBUG, "New xdg_shell popup");
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -624,7 +624,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
         xdg_shell_view->view.content_tree, xdg_surface
     );
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_xdg_shell *

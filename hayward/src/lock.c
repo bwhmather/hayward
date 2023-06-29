@@ -39,7 +39,7 @@ handle_surface_map(struct wl_listener *listener, void *data) {
 
     hayward_force_focus(surf->surface);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -49,7 +49,7 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
 
     transaction_begin();
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -63,7 +63,7 @@ handle_output_mode(struct wl_listener *listener, void *data) {
         surf->lock_surface, surf->output->width, surf->output->height
     );
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -82,7 +82,7 @@ handle_output_commit(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -99,7 +99,7 @@ handle_surface_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&surf->output_commit.link);
     free(surf);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -110,7 +110,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
 
     struct hayward_session_lock_surface *surf = calloc(1, sizeof(*surf));
     if (surf == NULL) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -135,7 +135,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     surf->output_commit.notify = handle_output_commit;
     wl_signal_add(&output->wlr_output->events.commit, &surf->output_commit);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -150,7 +150,7 @@ handle_unlock(struct wl_listener *listener, void *data) {
     wl_list_remove(&server.session_lock.lock_unlock.link);
     wl_list_remove(&server.session_lock.lock_destroy.link);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -169,7 +169,7 @@ handle_abandon(struct wl_listener *listener, void *data) {
         seat->exclusive_client = NULL;
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -182,7 +182,7 @@ handle_session_lock(struct wl_listener *listener, void *data) {
 
     if (server.session_lock.lock) {
         wlr_session_lock_v1_destroy(lock);
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -203,7 +203,7 @@ handle_session_lock(struct wl_listener *listener, void *data) {
 
     wlr_session_lock_v1_send_locked(lock);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -214,7 +214,7 @@ handle_session_lock_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&server.session_lock.new_lock.link);
     wl_list_remove(&server.session_lock.manager_destroy.link);
 
-    transaction_flush();
+    transaction_end();
 }
 
 void

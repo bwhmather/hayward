@@ -81,7 +81,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     hayward_log(HAYWARD_DEBUG, "Hayward idle inhibitor destroyed");
     destroy_inhibitor(inhibitor);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -97,7 +97,7 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
     struct hayward_idle_inhibitor_v1 *inhibitor =
         calloc(1, sizeof(struct hayward_idle_inhibitor_v1));
     if (!inhibitor) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -111,7 +111,7 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
 
     hayward_idle_inhibit_v1_check_active(manager);
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_idle_inhibitor_v1 *

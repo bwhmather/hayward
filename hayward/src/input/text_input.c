@@ -52,7 +52,7 @@ handle_im_commit(struct wl_listener *listener, void *data) {
 
     struct hayward_text_input *text_input = relay_get_focused_text_input(relay);
     if (!text_input) {
-        transaction_flush();
+        transaction_end();
         return;
     }
     assert(context == relay->input_method);
@@ -77,7 +77,7 @@ handle_im_commit(struct wl_listener *listener, void *data) {
     }
     wlr_text_input_v3_send_done(text_input->input);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -98,7 +98,7 @@ handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -123,7 +123,7 @@ handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
     relay->input_method_keyboard_grab_destroy.notify =
         handle_im_keyboard_grab_destroy;
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -163,7 +163,7 @@ handle_im_destroy(struct wl_listener *listener, void *data) {
         wlr_text_input_v3_send_leave(text_input->input);
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -206,13 +206,13 @@ handle_text_input_enable(struct wl_listener *listener, void *data) {
         hayward_log(
             HAYWARD_INFO, "Enabling text input when input method is gone"
         );
-        transaction_flush();
+        transaction_end();
         return;
     }
     wlr_input_method_v2_send_activate(text_input->relay->input_method);
     relay_send_im_state(text_input->relay, text_input->input);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -226,7 +226,7 @@ handle_text_input_commit(struct wl_listener *listener, void *data) {
         hayward_log(
             HAYWARD_INFO, "Inactive text input tried to commit an update"
         );
-        transaction_flush();
+        transaction_end();
         return;
     }
     hayward_log(HAYWARD_DEBUG, "Text input committed update");
@@ -234,12 +234,12 @@ handle_text_input_commit(struct wl_listener *listener, void *data) {
         hayward_log(
             HAYWARD_INFO, "Text input committed, but input method is gone"
         );
-        transaction_flush();
+        transaction_end();
         return;
     }
     relay_send_im_state(text_input->relay, text_input->input);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -268,13 +268,13 @@ handle_text_input_disable(struct wl_listener *listener, void *data) {
         hayward_log(
             HAYWARD_DEBUG, "Disabling text input, but no longer focused"
         );
-        transaction_flush();
+        transaction_end();
         return;
     }
 
     relay_disable_text_input(text_input->relay, text_input);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -295,7 +295,7 @@ handle_text_input_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&text_input->link);
     free(text_input);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -313,7 +313,7 @@ handle_pending_focused_surface_destroy(
     wl_list_remove(&text_input->pending_focused_surface_destroy.link);
     wl_list_init(&text_input->pending_focused_surface_destroy.link);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static struct hayward_text_input *
@@ -358,13 +358,13 @@ relay_handle_text_input(struct wl_listener *listener, void *data) {
     transaction_begin();
 
     if (relay->seat->wlr_seat != wlr_text_input->seat) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
     hayward_text_input_create(relay, wlr_text_input);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -376,7 +376,7 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
     transaction_begin();
 
     if (relay->seat->wlr_seat != input_method->seat) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -386,7 +386,7 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
         );
         wlr_input_method_v2_send_unavailable(input_method);
 
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -414,7 +414,7 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
         text_input_set_pending_focused_surface(text_input, NULL);
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 void

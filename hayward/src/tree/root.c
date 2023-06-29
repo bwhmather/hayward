@@ -181,7 +181,7 @@ root_handle_output_layout_change(struct wl_listener *listener, void *data) {
 
     arrange_root(root);
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_root *

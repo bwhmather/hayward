@@ -16,7 +16,7 @@
  * the updates all at the same time.
  *
  * When we want to make adjustments to the layout, we change the pending state
- * in containers, mark them as dirty and call transaction_commit_dirty(). This
+ * in containers, mark them as dirty and call transaction_end(). This
  * create and commits a transaction from the dirty containers.
  */
 
@@ -50,7 +50,7 @@ bool
 transaction_in_progress(void);
 
 void
-transaction_flush(void);
+transaction_end(void);
 
 /**
  * Can be called during handling of a commit event to inform the transaction

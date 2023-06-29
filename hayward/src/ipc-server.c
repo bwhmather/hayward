@@ -727,7 +727,7 @@ ipc_client_handle_command(
 
         transaction_begin();
         list_t *res_list = execute_command(buf, NULL, NULL);
-        transaction_flush();
+        transaction_end();
         char *json = cmd_results_to_json(res_list);
         int length = strlen(json);
         ipc_send_reply(client, payload_type, json, (uint32_t)length);

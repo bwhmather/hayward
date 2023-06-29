@@ -473,7 +473,7 @@ main(int argc, char **argv) {
     char *workspace_name = "0";
     struct hayward_workspace *workspace = workspace_create(workspace_name);
     root_add_workspace(root, workspace);
-    transaction_flush();
+    transaction_end();
 
     if (!server_start(&server)) {
         hayward_terminate(EXIT_FAILURE);
@@ -485,7 +485,7 @@ main(int argc, char **argv) {
     load_haywardbars();
     run_deferred_commands();
     run_deferred_bindings();
-    transaction_flush();
+    transaction_end();
 
     if (config->haywardnag_config_errors.client != NULL) {
         haywardnag_show(&config->haywardnag_config_errors);

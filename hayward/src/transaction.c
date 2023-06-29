@@ -98,7 +98,7 @@ transaction_progress(void) {
 
     if (hayward_transaction_state.queued) {
         transaction_begin();
-        transaction_flush();
+        transaction_end();
     }
 }
 
@@ -160,7 +160,7 @@ transaction_in_progress(void) {
 }
 
 void
-transaction_flush(void) {
+transaction_end(void) {
     hayward_assert(
         hayward_transaction_state.depth > 0, "Transaction has not yet begun"
     );

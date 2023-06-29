@@ -34,7 +34,7 @@ handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {
     wl_list_init(&haywardnag->client_destroy.link);
     haywardnag->client = NULL;
 
-    transaction_flush();
+    transaction_end();
 }
 
 bool

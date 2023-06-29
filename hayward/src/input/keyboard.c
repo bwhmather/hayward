@@ -716,7 +716,7 @@ handle_keyboard_key(struct wl_listener *listener, void *data) {
 
     handle_key_event(keyboard, event);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -729,7 +729,7 @@ handle_keyboard_group_key(struct wl_listener *listener, void *data) {
 
     handle_key_event(hayward_group->seat_device->keyboard, event);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -750,7 +750,7 @@ handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -779,12 +779,12 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
     }
 
     if (!pressed_sent) {
-        transaction_flush();
+        transaction_end();
         return;
     }
 
     // TODO force refocus so that focused layer picks up new keyboard state.
-    transaction_flush();
+    transaction_end();
 }
 
 static int
@@ -874,7 +874,7 @@ handle_keyboard_modifiers(struct wl_listener *listener, void *data) {
 
     handle_modifier_event(keyboard);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -886,7 +886,7 @@ handle_keyboard_group_modifiers(struct wl_listener *listener, void *data) {
 
     handle_modifier_event(group->seat_device->keyboard);
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_keyboard *

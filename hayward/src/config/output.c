@@ -855,7 +855,7 @@ handle_haywardbg_client_destroy(struct wl_listener *listener, void *data) {
     wl_list_init(&hayward_config->haywardbg_client_destroy.link);
     hayward_config->haywardbg_client = NULL;
 
-    transaction_flush();
+    transaction_end();
 }
 
 static bool

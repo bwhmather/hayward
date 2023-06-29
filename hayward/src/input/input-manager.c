@@ -248,7 +248,7 @@ handle_device_destroy(struct wl_listener *listener, void *data) {
     free(input_device->identifier);
     free(input_device);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -314,7 +314,7 @@ handle_new_input(struct wl_listener *listener, void *data) {
 
     ipc_event_input("added", input_device);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -329,7 +329,7 @@ handle_inhibit_activate(struct wl_listener *listener, void *data) {
         seat_set_exclusive_client(seat, input_manager->inhibit->active_client);
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -342,7 +342,7 @@ handle_inhibit_deactivate(struct wl_listener *listener, void *data) {
     struct hayward_seat *seat;
     if (server.session_lock.locked) {
         // Don't deactivate the grab of a screenlocker
-        transaction_flush();
+        transaction_end();
         return;
     }
 
@@ -350,7 +350,7 @@ handle_inhibit_deactivate(struct wl_listener *listener, void *data) {
         seat_set_exclusive_client(seat, NULL);
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -369,7 +369,7 @@ handle_keyboard_shortcuts_inhibitor_destroy(
     wl_list_remove(&hayward_inhibitor->destroy.link);
     free(hayward_inhibitor);
 
-    transaction_flush();
+    transaction_end();
 }
 
 static void
@@ -432,13 +432,13 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(
          * manually later which is why we do this check here where the
          * inhibitor is already attached to its seat and ready for use.
          */
-        transaction_flush();
+        transaction_end();
         return;
     }
 
     wlr_keyboard_shortcuts_inhibitor_v1_activate(inhibitor);
 
-    transaction_flush();
+    transaction_end();
 }
 
 void
@@ -475,7 +475,7 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
 
     seat_add_device(seat, input_device);
 
-    transaction_flush();
+    transaction_end();
 }
 
 void
@@ -518,7 +518,7 @@ handle_virtual_pointer(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_flush();
+    transaction_end();
 }
 
 struct hayward_input_manager *
