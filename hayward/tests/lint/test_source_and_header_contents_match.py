@@ -61,7 +61,7 @@ def test():
                 msg += "\n"
 
             if source_defs - header_decls:
-                msg += f"The following symbols were not declared in {header_path.relative_to(PROJECT_ROOT)} but were defined in {source_path.relative_to(PROJECT_ROOT)} but:\n"
+                msg += f"The following symbols were not declared in {header_path.relative_to(PROJECT_ROOT)} but were defined in {source_path.relative_to(PROJECT_ROOT)}:\n"
                 for symbol in source_defs - header_decls:
                     msg += f"  - {symbol}\n"
                 msg += "\n"
