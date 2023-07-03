@@ -35,6 +35,7 @@
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
@@ -363,12 +364,12 @@ handle_foreign_activate_request(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_activate_request);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     root_set_focused_window(root, view->window);
     window_raise_floating(view->window);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -377,7 +378,7 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
         wl_container_of(listener, view, foreign_fullscreen_request);
     struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_window *window = view->window;
 
@@ -397,7 +398,7 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
         }
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -405,11 +406,11 @@ handle_foreign_close_request(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_close_request);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     view_close(view);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -417,14 +418,14 @@ handle_foreign_destroy(struct wl_listener *listener, void *data) {
     struct hayward_view *view =
         wl_container_of(listener, view, foreign_destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wl_list_remove(&view->foreign_activate_request.link);
     wl_list_remove(&view->foreign_fullscreen_request.link);
     wl_list_remove(&view->foreign_close_request.link);
     wl_list_remove(&view->foreign_destroy.link);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

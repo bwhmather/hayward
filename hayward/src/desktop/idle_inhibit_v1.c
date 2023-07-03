@@ -12,6 +12,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/root.h>
@@ -76,12 +77,12 @@ handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_idle_inhibitor_v1 *inhibitor =
         wl_container_of(listener, inhibitor, destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     hayward_log(HAYWARD_DEBUG, "Hayward idle inhibitor destroyed");
     destroy_inhibitor(inhibitor);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -90,14 +91,14 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
         wl_container_of(listener, manager, new_idle_inhibitor_v1);
     struct wlr_idle_inhibitor_v1 *wlr_inhibitor = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     hayward_log(HAYWARD_DEBUG, "New hayward idle inhibitor");
 
     struct hayward_idle_inhibitor_v1 *inhibitor =
         calloc(1, sizeof(struct hayward_idle_inhibitor_v1));
     if (!inhibitor) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -111,7 +112,7 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
 
     hayward_idle_inhibit_v1_check_active(manager);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hayward_idle_inhibitor_v1 *

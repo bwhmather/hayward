@@ -1,7 +1,18 @@
 #ifndef HAYWARD_TRANSACTION_H
 #define HAYWARD_TRANSACTION_H
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
+#include <time.h>
 #include <wayland-server-core.h>
+
+#include <hayward-common/log.h>
+
+#include <hayward/desktop/idle_inhibit_v1.h>
+#include <hayward/server.h>
+
+#include <config.h>
 
 /**
  * Transactions enable us to perform atomic layout updates.
@@ -20,37 +31,49 @@
  * create and commits a transaction from the dirty containers.
  */
 
-struct hayward_view;
+struct hayward_transaction_manager {
+    int depth;
+    bool queued;
+
+    struct wl_event_source *timer;
+    size_t num_waiting;
+    size_t num_configures;
+    struct timespec commit_time;
+
+    struct {
+        struct wl_signal before_commit;
+        struct wl_signal commit;
+        struct wl_signal apply;
+        struct wl_signal after_apply;
+    } events;
+};
+
+struct hayward_transaction_manager *
+hayward_transaction_manager_create();
 
 void
-transaction_init(void);
+hayward_transaction_manager_destroy(struct hayward_transaction_manager *manager
+);
 
 void
-transaction_shutdown(void);
+hayward_transaction_manager_ensure_queued(
+    struct hayward_transaction_manager *manager
+);
 
 void
-transaction_add_before_commit_listener(struct wl_listener *listener);
-
-void
-transaction_add_commit_listener(struct wl_listener *listener);
-
-void
-transaction_add_apply_listener(struct wl_listener *listener);
-
-void
-transaction_add_after_apply_listener(struct wl_listener *listener);
-
-void
-transaction_ensure_queued(void);
-
-void
-transaction_begin(void);
+hayward_transaction_manager_begin_transaction(
+    struct hayward_transaction_manager *manager
+);
 
 bool
-transaction_in_progress(void);
+hayward_transaction_manager_transaction_in_progress(
+    struct hayward_transaction_manager *manager
+);
 
 void
-transaction_end(void);
+hayward_transaction_manager_end_transaction(
+    struct hayward_transaction_manager *manager
+);
 
 /**
  * Can be called during handling of a commit event to inform the transaction
@@ -60,9 +83,13 @@ transaction_end(void);
  * triggered and all locks should be forgotten.
  */
 void
-transaction_acquire(void);
+hayward_transaction_manager_acquire_commit_lock(
+    struct hayward_transaction_manager *manager
+);
 
 void
-transaction_release(void);
+hayward_transaction_manager_release_commit_lock(
+    struct hayward_transaction_manager *manager
+);
 
 #endif

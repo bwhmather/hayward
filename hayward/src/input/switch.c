@@ -13,6 +13,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
@@ -106,7 +107,7 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
         wl_container_of(listener, hayward_switch, switch_toggle);
     struct wlr_switch_toggle_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_seat *seat = hayward_switch->seat_device->hayward_seat;
     seat_idle_notify_activity(seat, IDLE_SOURCE_SWITCH);
@@ -124,7 +125,7 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
     hayward_switch->state = event->switch_state;
     execute_binding(hayward_switch);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

@@ -18,6 +18,7 @@
 #include <hayward-common/log.h>
 #include <hayward-common/util.h>
 
+#include <hayward/globals/transaction.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
 
@@ -28,13 +29,13 @@ handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {
     struct haywardnag_instance *haywardnag =
         wl_container_of(listener, haywardnag, client_destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wl_list_remove(&haywardnag->client_destroy.link);
     wl_list_init(&haywardnag->client_destroy.link);
     haywardnag->client = NULL;
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 bool

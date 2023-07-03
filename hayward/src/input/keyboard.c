@@ -36,6 +36,7 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
@@ -712,11 +713,11 @@ handle_keyboard_key(struct wl_listener *listener, void *data) {
         wl_container_of(listener, keyboard, keyboard_key);
     struct wlr_keyboard_key_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     handle_key_event(keyboard, event);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -725,11 +726,11 @@ handle_keyboard_group_key(struct wl_listener *listener, void *data) {
         wl_container_of(listener, hayward_group, keyboard_key);
     struct wlr_keyboard_key_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     handle_key_event(hayward_group->seat_device->keyboard, event);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -738,7 +739,7 @@ handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
         wl_container_of(listener, hayward_group, enter);
     struct wl_array *keycodes = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
 
@@ -750,7 +751,7 @@ handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -759,7 +760,7 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
         wl_container_of(listener, hayward_group, leave);
     struct wl_array *keycodes = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_keyboard *keyboard = hayward_group->seat_device->keyboard;
 
@@ -779,12 +780,12 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
     }
 
     if (!pressed_sent) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     // TODO force refocus so that focused layer picks up new keyboard state.
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static int
@@ -870,11 +871,11 @@ handle_keyboard_modifiers(struct wl_listener *listener, void *data) {
     struct hayward_keyboard *keyboard =
         wl_container_of(listener, keyboard, keyboard_modifiers);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     handle_modifier_event(keyboard);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -882,11 +883,11 @@ handle_keyboard_group_modifiers(struct wl_listener *listener, void *data) {
     struct hayward_keyboard_group *group =
         wl_container_of(listener, group, keyboard_modifiers);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     handle_modifier_event(group->seat_device->keyboard);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hayward_keyboard *

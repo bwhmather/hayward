@@ -32,6 +32,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
@@ -93,7 +94,9 @@ output_handle_transaction_commit(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     output->dirty = false;
 
-    transaction_add_apply_listener(&output->transaction_apply);
+    wl_signal_add(
+        &transaction_manager->events.apply, &output->transaction_apply
+    );
 
     memcpy(
         &output->committed, &output->pending,
@@ -111,7 +114,10 @@ output_handle_transaction_apply(struct wl_listener *listener, void *data) {
     output_update_scene(output);
 
     if (output->committed.dead) {
-        transaction_add_after_apply_listener(&output->transaction_after_apply);
+        wl_signal_add(
+            &transaction_manager->events.after_apply,
+            &output->transaction_after_apply
+        );
     }
 
     memcpy(
@@ -175,15 +181,21 @@ output_is_alive(struct hayward_output *output) {
 static void
 output_set_dirty(struct hayward_output *output) {
     hayward_assert(output != NULL, "Expected output");
-    hayward_assert(transaction_in_progress(), "Expected active transaction");
+    hayward_assert(
+        hayward_transaction_manager_transaction_in_progress(transaction_manager
+        ),
+        "Expected active transaction"
+    );
 
     if (output->dirty) {
         return;
     }
 
     output->dirty = true;
-    transaction_add_commit_listener(&output->transaction_commit);
-    transaction_ensure_queued();
+    wl_signal_add(
+        &transaction_manager->events.commit, &output->transaction_commit
+    );
+    hayward_transaction_manager_ensure_queued(transaction_manager);
 }
 
 void
@@ -640,7 +652,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, destroy);
     struct hayward_server *server = output->server;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     output_begin_destroy(output);
 
@@ -662,14 +674,14 @@ handle_destroy(struct wl_listener *listener, void *data) {
 
     update_output_manager_config(server);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_mode(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, mode);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (!output->enabled && !output->enabling) {
         struct output_config *oc = find_output_config(output);
@@ -686,11 +698,11 @@ handle_mode(struct wl_listener *listener, void *data) {
             apply_output_config(oc, output);
         }
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!output->enabled) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     arrange_layers(output);
@@ -698,7 +710,7 @@ handle_mode(struct wl_listener *listener, void *data) {
 
     update_output_manager_config(output->server);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -706,23 +718,23 @@ handle_commit(struct wl_listener *listener, void *data) {
     struct hayward_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (!output->enabled) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     if (event->committed &
         (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {
-        transaction_begin();
+        hayward_transaction_manager_begin_transaction(transaction_manager);
         arrange_layers(output);
         arrange_output(output);
 
         update_output_manager_config(output->server);
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -746,10 +758,10 @@ handle_new_output(struct wl_listener *listener, void *data) {
         wl_container_of(listener, server, new_output);
     struct wlr_output *wlr_output = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (wlr_output == root->fallback_output->wlr_output) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -771,7 +783,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
                 server->drm_lease_manager, wlr_output
             );
         }
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -779,7 +791,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
             wlr_output, server->allocator, server->renderer
         )) {
         hayward_log(HAYWARD_ERROR, "Failed to init output render");
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -789,7 +801,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
     struct hayward_output *output = output_create(wlr_output);
     if (!output) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     output->server = server;
@@ -816,7 +828,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
     update_output_manager_config(server);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
@@ -824,11 +836,11 @@ handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hayward_server *server =
         wl_container_of(listener, server, output_layout_change);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     update_output_manager_config(server);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -908,11 +920,11 @@ handle_output_manager_apply(struct wl_listener *listener, void *data) {
         wl_container_of(listener, server, output_manager_apply);
     struct wlr_output_configuration_v1 *config = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     output_manager_apply(server, config, false);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
@@ -921,11 +933,11 @@ handle_output_manager_test(struct wl_listener *listener, void *data) {
         wl_container_of(listener, server, output_manager_test);
     struct wlr_output_configuration_v1 *config = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     output_manager_apply(server, config, true);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
@@ -933,7 +945,7 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     struct wlr_output_power_v1_set_mode_event *event = data;
     struct hayward_output *output = event->output->data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct output_config *oc = new_output_config(output->wlr_output->name);
     switch (event->mode) {
@@ -947,5 +959,5 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     oc = store_output_config(oc);
     apply_output_config(oc, output);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }

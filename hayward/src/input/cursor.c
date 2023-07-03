@@ -45,6 +45,7 @@
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/tablet.h>
@@ -356,7 +357,7 @@ handle_pointer_motion_relative(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, motion);
     struct wlr_pointer_motion_event *e = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &e->pointer->base);
 
@@ -365,7 +366,7 @@ handle_pointer_motion_relative(struct wl_listener *listener, void *data) {
         e->unaccel_dx, e->unaccel_dy
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -373,7 +374,7 @@ handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, motion_absolute);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_pointer_motion_absolute_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
@@ -390,7 +391,7 @@ handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
         cursor, event->time_msec, &event->pointer->base, dx, dy, dx, dy
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
@@ -410,7 +411,7 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, button);
     struct wlr_pointer_button_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (event->state == WLR_BUTTON_PRESSED) {
         cursor->pressed_button_count++;
@@ -428,7 +429,7 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
         event->state
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
@@ -443,23 +444,23 @@ handle_pointer_axis(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, axis);
     struct wlr_pointer_axis_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     dispatch_cursor_axis(cursor, event);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_frame(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, frame);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -468,7 +469,7 @@ handle_touch_down(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, touch_down);
     struct wlr_touch_down_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->touch->base);
     cursor_hide(cursor);
@@ -522,7 +523,7 @@ handle_touch_down(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -530,7 +531,7 @@ handle_touch_up(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, touch_up);
     struct wlr_touch_up_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->touch->base);
 
@@ -548,7 +549,7 @@ handle_touch_up(struct wl_listener *listener, void *data) {
         wlr_seat_touch_notify_up(wlr_seat, event->time_msec, event->touch_id);
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -557,7 +558,7 @@ handle_touch_motion(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, touch_motion);
     struct wlr_touch_motion_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->touch->base);
 
@@ -602,7 +603,7 @@ handle_touch_motion(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -610,7 +611,7 @@ handle_touch_frame(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, touch_frame);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_seat *wlr_seat = cursor->seat->wlr_seat;
 
@@ -625,7 +626,7 @@ handle_touch_frame(struct wl_listener *listener, void *data) {
         wlr_seat_touch_notify_frame(wlr_seat);
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static double
@@ -732,7 +733,7 @@ handle_tool_axis(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, tool_axis);
     struct wlr_tablet_tool_axis_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
@@ -794,7 +795,7 @@ handle_tool_axis(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -802,7 +803,7 @@ handle_tool_tip(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, tool_tip);
     struct wlr_tablet_tool_tip_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
@@ -850,7 +851,7 @@ handle_tool_tip(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static struct hayward_tablet *
@@ -872,7 +873,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, tool_proximity);
     struct wlr_tablet_tool_proximity_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
@@ -883,7 +884,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
         if (!tablet) {
             hayward_log(HAYWARD_ERROR, "no tablet for tablet tool");
 
-            transaction_end();
+            hayward_transaction_manager_end_transaction(transaction_manager);
             return;
         }
         hayward_tablet_tool_configure(tablet, tool);
@@ -893,7 +894,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
     if (!hayward_tool) {
         hayward_log(HAYWARD_ERROR, "tablet tool not initialized");
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -902,7 +903,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
             hayward_tool->tablet_v2_tool
         );
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -911,7 +912,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
         event->time_msec
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -920,7 +921,7 @@ handle_tool_button(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, tool_button);
     struct wlr_tablet_tool_button_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
@@ -966,7 +967,7 @@ handle_tool_button(struct wl_listener *listener, void *data) {
         }
         wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -975,7 +976,7 @@ handle_tool_button(struct wl_listener *listener, void *data) {
         (enum zwp_tablet_pad_v2_button_state)event->state
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1027,14 +1028,14 @@ handle_constraint_commit(struct wl_listener *listener, void *data) {
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, constraint_commit);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_pointer_constraint_v1 *constraint = cursor->active_constraint;
     assert(constraint->surface == data);
 
     check_constraint_region(cursor);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1042,13 +1043,13 @@ handle_pointer_constraint_set_region(struct wl_listener *listener, void *data) {
     struct hayward_pointer_constraint *hayward_constraint =
         wl_container_of(listener, hayward_constraint, set_region);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_cursor *cursor = hayward_constraint->cursor;
 
     cursor->active_confine_requires_warp = true;
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1057,10 +1058,10 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, request_set_cursor);
     struct wlr_seat_pointer_request_set_cursor_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (!seatop_allows_set_cursor(cursor->seat)) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -1077,7 +1078,7 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
         hayward_log(
             HAYWARD_DEBUG, "denying request to set cursor from unfocused client"
         );
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -1086,7 +1087,7 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
         focused_client
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1095,7 +1096,7 @@ handle_pointer_pinch_begin(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, pinch_begin);
     struct wlr_pointer_pinch_begin_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_pinch_begin(
@@ -1103,7 +1104,7 @@ handle_pointer_pinch_begin(struct wl_listener *listener, void *data) {
         event->fingers
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1112,7 +1113,7 @@ handle_pointer_pinch_update(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, pinch_update);
     struct wlr_pointer_pinch_update_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_pinch_update(
@@ -1120,7 +1121,7 @@ handle_pointer_pinch_update(struct wl_listener *listener, void *data) {
         event->dx, event->dy, event->scale, event->rotation
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1129,7 +1130,7 @@ handle_pointer_pinch_end(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, pinch_end);
     struct wlr_pointer_pinch_end_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_pinch_end(
@@ -1137,7 +1138,7 @@ handle_pointer_pinch_end(struct wl_listener *listener, void *data) {
         event->cancelled
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1146,7 +1147,7 @@ handle_pointer_swipe_begin(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, swipe_begin);
     struct wlr_pointer_swipe_begin_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_swipe_begin(
@@ -1154,7 +1155,7 @@ handle_pointer_swipe_begin(struct wl_listener *listener, void *data) {
         event->fingers
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1163,7 +1164,7 @@ handle_pointer_swipe_update(struct wl_listener *listener, void *data) {
         wl_container_of(listener, cursor, swipe_update);
     struct wlr_pointer_swipe_update_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_swipe_update(
@@ -1171,12 +1172,12 @@ handle_pointer_swipe_update(struct wl_listener *listener, void *data) {
         event->dx, event->dy
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_swipe_end(struct wl_listener *listener, void *data) {
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, swipe_end);
@@ -1187,12 +1188,12 @@ handle_pointer_swipe_end(struct wl_listener *listener, void *data) {
         event->cancelled
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_hold_begin(struct wl_listener *listener, void *data) {
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, hold_begin);
@@ -1203,12 +1204,12 @@ handle_pointer_hold_begin(struct wl_listener *listener, void *data) {
         event->fingers
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_hold_end(struct wl_listener *listener, void *data) {
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_cursor *cursor = wl_container_of(listener, cursor, hold_end);
     struct wlr_pointer_hold_end_event *event = data;
@@ -1218,19 +1219,19 @@ handle_pointer_hold_end(struct wl_listener *listener, void *data) {
         event->cancelled
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_image_surface_destroy(struct wl_listener *listener, void *data) {
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_cursor *cursor =
         wl_container_of(listener, cursor, image_surface_destroy);
     cursor_set_image(cursor, NULL, cursor->image_client);
     cursor_rebase(cursor);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1423,7 +1424,9 @@ hayward_cursor_create(struct hayward_seat *seat) {
     cursor->request_set_cursor.notify = handle_request_pointer_set_cursor;
 
     cursor->transaction_after_apply.notify = handle_transaction_after_apply;
-    transaction_add_apply_listener(&cursor->transaction_after_apply);
+    wl_signal_add(
+        &transaction_manager->events.apply, &cursor->transaction_after_apply
+    );
 
     wl_list_init(&cursor->constraint_commit.link);
     wl_list_init(&cursor->tablets);
@@ -1554,7 +1557,7 @@ warp_to_constraint_cursor_hint(struct hayward_cursor *cursor) {
 
 void
 handle_constraint_destroy(struct wl_listener *listener, void *data) {
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_pointer_constraint *hayward_constraint =
         wl_container_of(listener, hayward_constraint, destroy);
@@ -1576,12 +1579,12 @@ handle_constraint_destroy(struct wl_listener *listener, void *data) {
 
     free(hayward_constraint);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
 handle_pointer_constraint(struct wl_listener *listener, void *data) {
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_pointer_constraint_v1 *constraint = data;
     struct hayward_seat *seat = constraint->seat->data;
@@ -1608,7 +1611,7 @@ handle_pointer_constraint(struct wl_listener *listener, void *data) {
         }
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

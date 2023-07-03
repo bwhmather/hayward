@@ -15,6 +15,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
 #include <hayward/transaction.h>
@@ -189,7 +190,9 @@ workspace_handle_transaction_commit(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     workspace->dirty = false;
 
-    transaction_add_apply_listener(&workspace->transaction_apply);
+    wl_signal_add(
+        &transaction_manager->events.apply, &workspace->transaction_apply
+    );
 
     workspace_copy_state(&workspace->committed, &workspace->pending);
 }
@@ -205,7 +208,9 @@ workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     if (workspace->committed.dead) {
         wlr_scene_node_set_enabled(&workspace->scene_tree->node, false);
-        transaction_add_after_apply_listener(&workspace->transaction_after_apply
+        wl_signal_add(
+            &transaction_manager->events.after_apply,
+            &workspace->transaction_after_apply
         );
     }
 
@@ -332,14 +337,20 @@ workspace_consider_destroy(struct hayward_workspace *workspace) {
 void
 workspace_set_dirty(struct hayward_workspace *workspace) {
     hayward_assert(workspace != NULL, "Expected workspace");
-    hayward_assert(transaction_in_progress(), "Expected active transaction");
+    hayward_assert(
+        hayward_transaction_manager_transaction_in_progress(transaction_manager
+        ),
+        "Expected active transaction"
+    );
 
     if (workspace->dirty) {
         return;
     }
     workspace->dirty = true;
-    transaction_add_commit_listener(&workspace->transaction_commit);
-    transaction_ensure_queued();
+    wl_signal_add(
+        &transaction_manager->events.commit, &workspace->transaction_commit
+    );
+    hayward_transaction_manager_ensure_queued(transaction_manager);
 
     for (int i = 0; i < workspace->committed.floating->length; i++) {
         struct hayward_window *window = workspace->committed.floating->items[i];

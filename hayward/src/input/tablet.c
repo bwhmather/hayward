@@ -21,6 +21,7 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
@@ -34,14 +35,14 @@ handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {
     struct hayward_tablet_pad *pad =
         wl_container_of(listener, pad, tablet_destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     pad->tablet = NULL;
 
     wl_list_remove(&pad->tablet_destroy.link);
     wl_list_init(&pad->tablet_destroy.link);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -138,11 +139,11 @@ handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
         wl_container_of(listener, tool, set_cursor);
     struct wlr_tablet_v2_event_cursor *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_cursor *cursor = tool->seat->cursor;
     if (!seatop_allows_set_cursor(cursor->seat)) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -159,7 +160,7 @@ handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
             HAYWARD_DEBUG, "denying request to set cursor from unfocused client"
         );
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -168,7 +169,7 @@ handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
         focused_client
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -176,14 +177,14 @@ handle_tablet_tool_destroy(struct wl_listener *listener, void *data) {
     struct hayward_tablet_tool *tool =
         wl_container_of(listener, tool, tool_destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wl_list_remove(&tool->tool_destroy.link);
     wl_list_remove(&tool->set_cursor.link);
 
     free(tool);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
@@ -237,18 +238,18 @@ handle_tablet_pad_attach(struct wl_listener *listener, void *data) {
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, attach);
     struct wlr_tablet_tool *wlr_tool = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_tablet_tool *tool = wlr_tool->data;
 
     if (!tool) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     attach_tablet_pad(pad, tool->tablet);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -256,10 +257,10 @@ handle_tablet_pad_ring(struct wl_listener *listener, void *data) {
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, ring);
     struct wlr_tablet_pad_ring_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (!pad->current_surface) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -268,7 +269,7 @@ handle_tablet_pad_ring(struct wl_listener *listener, void *data) {
         event->source == WLR_TABLET_PAD_RING_SOURCE_FINGER, event->time_msec
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -276,10 +277,10 @@ handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, strip);
     struct wlr_tablet_pad_strip_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (!pad->current_surface) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -288,7 +289,7 @@ handle_tablet_pad_strip(struct wl_listener *listener, void *data) {
         event->source == WLR_TABLET_PAD_STRIP_SOURCE_FINGER, event->time_msec
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -296,10 +297,10 @@ handle_tablet_pad_button(struct wl_listener *listener, void *data) {
     struct hayward_tablet_pad *pad = wl_container_of(listener, pad, button);
     struct wlr_tablet_pad_button_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (!pad->current_surface) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -312,7 +313,7 @@ handle_tablet_pad_button(struct wl_listener *listener, void *data) {
         (enum zwp_tablet_pad_v2_button_state)event->state
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hayward_tablet_pad *
@@ -426,7 +427,7 @@ handle_pad_tablet_surface_destroy(struct wl_listener *listener, void *data) {
     struct hayward_tablet_pad *tablet_pad =
         wl_container_of(listener, tablet_pad, surface_destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wlr_tablet_v2_tablet_pad_notify_leave(
         tablet_pad->tablet_v2_pad, tablet_pad->current_surface
@@ -435,7 +436,7 @@ handle_pad_tablet_surface_destroy(struct wl_listener *listener, void *data) {
     wl_list_init(&tablet_pad->surface_destroy.link);
     tablet_pad->current_surface = NULL;
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

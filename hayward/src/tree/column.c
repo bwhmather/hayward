@@ -15,6 +15,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/output.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/root.h>
@@ -118,7 +119,9 @@ column_handle_transaction_commit(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     column->dirty = false;
 
-    transaction_add_apply_listener(&column->transaction_apply);
+    wl_signal_add(
+        &transaction_manager->events.apply, &column->transaction_apply
+    );
 
     column_copy_state(&column->committed, &column->pending);
 }
@@ -133,7 +136,10 @@ column_handle_transaction_apply(struct wl_listener *listener, void *data) {
     column_update_scene(column);
 
     if (column->committed.dead) {
-        transaction_add_after_apply_listener(&column->transaction_after_apply);
+        wl_signal_add(
+            &transaction_manager->events.after_apply,
+            &column->transaction_after_apply
+        );
     }
 
     column_copy_state(&column->current, &column->committed);
@@ -240,15 +246,21 @@ column_consider_destroy(struct hayward_column *column) {
 void
 column_set_dirty(struct hayward_column *column) {
     hayward_assert(column != NULL, "Expected column");
-    hayward_assert(transaction_in_progress(), "Expected active transaction");
+    hayward_assert(
+        hayward_transaction_manager_transaction_in_progress(transaction_manager
+        ),
+        "Expected active transaction"
+    );
 
     if (column->dirty) {
         return;
     }
 
     column->dirty = true;
-    transaction_add_commit_listener(&column->transaction_commit);
-    transaction_ensure_queued();
+    wl_signal_add(
+        &transaction_manager->events.commit, &column->transaction_commit
+    );
+    hayward_transaction_manager_ensure_queued(transaction_manager);
 
     for (int i = 0; i < column->committed.children->length; i++) {
         struct hayward_window *child = column->committed.children->items[i];

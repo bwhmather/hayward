@@ -41,6 +41,7 @@
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/keyboard.h>
@@ -129,7 +130,10 @@ seat_create(const char *seat_name) {
     wl_list_insert(&server.input->seats, &seat->link);
 
     seat->transaction_before_commit.notify = handle_transaction_before_commit;
-    transaction_add_before_commit_listener(&seat->transaction_before_commit);
+    wl_signal_add(
+        &transaction_manager->events.before_commit,
+        &seat->transaction_before_commit
+    );
 
     seatop_begin_default(seat);
 
@@ -297,11 +301,11 @@ drag_icon_handle_surface_commit(struct wl_listener *listener, void *data) {
     struct hayward_drag_icon *icon =
         wl_container_of(listener, icon, surface_commit);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     drag_icon_update_position(icon);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -330,7 +334,7 @@ static void
 drag_handle_destroy(struct wl_listener *listener, void *data) {
     struct hayward_drag *drag = wl_container_of(listener, drag, destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     // Focus enter isn't sent during drag, so refocus the focused node, layer
     // surface or unmanaged surface.
@@ -343,7 +347,7 @@ drag_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&drag->destroy.link);
     free(drag);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -352,14 +356,14 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
         wl_container_of(listener, seat, request_start_drag);
     struct wlr_seat_request_start_drag_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (wlr_seat_validate_pointer_grab_serial(
             seat->wlr_seat, event->origin, event->serial
         )) {
         wlr_seat_start_pointer_drag(seat->wlr_seat, event->drag, event->serial);
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -371,7 +375,7 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
             seat->wlr_seat, event->drag, event->serial, point
         );
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -385,7 +389,7 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
     );
     wlr_data_source_destroy(event->drag->source);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -393,13 +397,13 @@ handle_start_drag(struct wl_listener *listener, void *data) {
     struct hayward_seat *seat = wl_container_of(listener, seat, start_drag);
     struct wlr_drag *wlr_drag = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_drag *drag = calloc(1, sizeof(struct hayward_drag));
     if (drag == NULL) {
         hayward_log(HAYWARD_ERROR, "Allocation failed");
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     drag->seat = seat;
@@ -416,7 +420,7 @@ handle_start_drag(struct wl_listener *listener, void *data) {
         if (icon == NULL) {
             hayward_log(HAYWARD_ERROR, "Allocation failed");
 
-            transaction_end();
+            hayward_transaction_manager_end_transaction(transaction_manager);
             return;
         }
         icon->seat = seat;
@@ -440,7 +444,7 @@ handle_start_drag(struct wl_listener *listener, void *data) {
     }
     seatop_begin_default(seat);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -449,11 +453,11 @@ handle_request_set_selection(struct wl_listener *listener, void *data) {
         wl_container_of(listener, seat, request_set_selection);
     struct wlr_seat_request_set_selection_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wlr_seat_set_selection(seat->wlr_seat, event->source, event->serial);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -462,13 +466,13 @@ handle_request_set_primary_selection(struct wl_listener *listener, void *data) {
         wl_container_of(listener, seat, request_set_primary_selection);
     struct wlr_seat_request_set_primary_selection_event *event = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wlr_seat_set_primary_selection(
         seat->wlr_seat, event->source, event->serial
     );
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void

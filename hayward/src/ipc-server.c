@@ -32,6 +32,7 @@
 #include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
@@ -725,9 +726,9 @@ ipc_client_handle_command(
             line = strtok(NULL, "\n");
         }
 
-        transaction_begin();
+        hayward_transaction_manager_begin_transaction(transaction_manager);
         list_t *res_list = execute_command(buf, NULL, NULL);
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         char *json = cmd_results_to_json(res_list);
         int length = strlen(json);
         ipc_send_reply(client, payload_type, json, (uint32_t)length);

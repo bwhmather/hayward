@@ -23,6 +23,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
@@ -155,7 +156,7 @@ root_handle_transaction_commit(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     root->dirty = false;
 
-    transaction_add_apply_listener(&root->transaction_apply);
+    wl_signal_add(&transaction_manager->events.apply, &root->transaction_apply);
 
     root_copy_state(&root->committed, &root->pending);
 }
@@ -177,11 +178,11 @@ root_handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hayward_root *root =
         wl_container_of(listener, root, output_layout_change);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     arrange_root(root);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hayward_root *
@@ -214,7 +215,10 @@ root_create(void) {
     wl_signal_add(
         &root->output_layout->events.change, &root->output_layout_change
     );
-    transaction_add_before_commit_listener(&root->transaction_before_commit);
+    wl_signal_add(
+        &transaction_manager->events.before_commit,
+        &root->transaction_before_commit
+    );
     return root;
 }
 
@@ -235,14 +239,20 @@ root_destroy(struct hayward_root *root) {
 static void
 root_set_dirty(struct hayward_root *root) {
     hayward_assert(root != NULL, "Expected root");
-    hayward_assert(transaction_in_progress(), "Expected active transaction");
+    hayward_assert(
+        hayward_transaction_manager_transaction_in_progress(transaction_manager
+        ),
+        "Expected active transaction"
+    );
 
     if (root->dirty) {
         return;
     }
     root->dirty = true;
-    transaction_add_commit_listener(&root->transaction_commit);
-    transaction_ensure_queued();
+    wl_signal_add(
+        &transaction_manager->events.commit, &root->transaction_commit
+    );
+    hayward_transaction_manager_ensure_queued(transaction_manager);
 
     for (int i = 0; i < root->committed.workspaces->length; i++) {
         struct hayward_workspace *workspace =

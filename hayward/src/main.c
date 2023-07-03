@@ -24,6 +24,7 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/haywardnag.h>
 #include <hayward/ipc-server.h>
 #include <hayward/server.h>
@@ -444,8 +445,8 @@ main(int argc, char **argv) {
 
     hayward_log(HAYWARD_INFO, "Starting hayward version " HAYWARD_VERSION);
 
-    transaction_init();
-    transaction_begin();
+    transaction_manager = hayward_transaction_manager_create();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     root = root_create();
 
@@ -473,19 +474,19 @@ main(int argc, char **argv) {
     char *workspace_name = "0";
     struct hayward_workspace *workspace = workspace_create(workspace_name);
     root_add_workspace(root, workspace);
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 
     if (!server_start(&server)) {
         hayward_terminate(EXIT_FAILURE);
         goto shutdown;
     }
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
     config->active = true;
     load_haywardbars();
     run_deferred_commands();
     run_deferred_bindings();
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 
     if (config->haywardnag_config_errors.client != NULL) {
         haywardnag_show(&config->haywardnag_config_errors);
@@ -499,7 +500,7 @@ shutdown:
     server_fini(&server);
     root_destroy(root);
     root = NULL;
-    transaction_shutdown();
+    hayward_transaction_manager_destroy(transaction_manager);
 
     free(config_path);
     free_config(config);

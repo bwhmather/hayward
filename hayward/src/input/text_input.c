@@ -14,6 +14,7 @@
 
 #include <hayward-common/log.h>
 
+#include <hayward/globals/transaction.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
@@ -48,11 +49,11 @@ handle_im_commit(struct wl_listener *listener, void *data) {
         wl_container_of(listener, relay, input_method_commit);
     struct wlr_input_method_v2 *context = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     struct hayward_text_input *text_input = relay_get_focused_text_input(relay);
     if (!text_input) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     assert(context == relay->input_method);
@@ -77,7 +78,7 @@ handle_im_commit(struct wl_listener *listener, void *data) {
     }
     wlr_text_input_v3_send_done(text_input->input);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -86,7 +87,7 @@ handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *data) {
         wl_container_of(listener, relay, input_method_keyboard_grab_destroy);
     struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     wl_list_remove(&relay->input_method_keyboard_grab_destroy.link);
 
@@ -98,7 +99,7 @@ handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *data) {
         );
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -107,7 +108,7 @@ handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
         wl_container_of(listener, relay, input_method_grab_keyboard);
     struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     // send modifier state to grab
     struct wlr_keyboard *active_keyboard =
@@ -123,7 +124,7 @@ handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
     relay->input_method_keyboard_grab_destroy.notify =
         handle_im_keyboard_grab_destroy;
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -149,7 +150,7 @@ handle_im_destroy(struct wl_listener *listener, void *data) {
         wl_container_of(listener, relay, input_method_destroy);
     struct wlr_input_method_v2 *context = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     assert(context == relay->input_method);
     relay->input_method = NULL;
@@ -163,7 +164,7 @@ handle_im_destroy(struct wl_listener *listener, void *data) {
         wlr_text_input_v3_send_leave(text_input->input);
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -200,19 +201,19 @@ handle_text_input_enable(struct wl_listener *listener, void *data) {
     struct hayward_text_input *text_input =
         wl_container_of(listener, text_input, text_input_enable);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (text_input->relay->input_method == NULL) {
         hayward_log(
             HAYWARD_INFO, "Enabling text input when input method is gone"
         );
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     wlr_input_method_v2_send_activate(text_input->relay->input_method);
     relay_send_im_state(text_input->relay, text_input->input);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -220,13 +221,13 @@ handle_text_input_commit(struct wl_listener *listener, void *data) {
     struct hayward_text_input *text_input =
         wl_container_of(listener, text_input, text_input_commit);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (!text_input->input->current_enabled) {
         hayward_log(
             HAYWARD_INFO, "Inactive text input tried to commit an update"
         );
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     hayward_log(HAYWARD_DEBUG, "Text input committed update");
@@ -234,12 +235,12 @@ handle_text_input_commit(struct wl_listener *listener, void *data) {
         hayward_log(
             HAYWARD_INFO, "Text input committed, but input method is gone"
         );
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     relay_send_im_state(text_input->relay, text_input->input);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -262,19 +263,19 @@ handle_text_input_disable(struct wl_listener *listener, void *data) {
     struct hayward_text_input *text_input =
         wl_container_of(listener, text_input, text_input_disable);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (text_input->input->focused_surface == NULL) {
         hayward_log(
             HAYWARD_DEBUG, "Disabling text input, but no longer focused"
         );
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     relay_disable_text_input(text_input->relay, text_input);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -282,7 +283,7 @@ handle_text_input_destroy(struct wl_listener *listener, void *data) {
     struct hayward_text_input *text_input =
         wl_container_of(listener, text_input, text_input_destroy);
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (text_input->input->current_enabled) {
         relay_disable_text_input(text_input->relay, text_input);
@@ -295,7 +296,7 @@ handle_text_input_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&text_input->link);
     free(text_input);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -306,14 +307,14 @@ handle_pending_focused_surface_destroy(
         wl_container_of(listener, text_input, pending_focused_surface_destroy);
     struct wlr_surface *surface = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     assert(text_input->pending_focused_surface == surface);
     text_input->pending_focused_surface = NULL;
     wl_list_remove(&text_input->pending_focused_surface_destroy.link);
     wl_list_init(&text_input->pending_focused_surface_destroy.link);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static struct hayward_text_input *
@@ -355,16 +356,16 @@ relay_handle_text_input(struct wl_listener *listener, void *data) {
         wl_container_of(listener, relay, text_input_new);
     struct wlr_text_input_v3 *wlr_text_input = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (relay->seat->wlr_seat != wlr_text_input->seat) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     hayward_text_input_create(relay, wlr_text_input);
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -373,10 +374,10 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
         wl_container_of(listener, relay, input_method_new);
     struct wlr_input_method_v2 *input_method = data;
 
-    transaction_begin();
+    hayward_transaction_manager_begin_transaction(transaction_manager);
 
     if (relay->seat->wlr_seat != input_method->seat) {
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -386,7 +387,7 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
         );
         wlr_input_method_v2_send_unavailable(input_method);
 
-        transaction_end();
+        hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -414,7 +415,7 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
         text_input_set_pending_focused_surface(text_input, NULL);
     }
 
-    transaction_end();
+    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

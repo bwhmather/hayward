@@ -24,6 +24,7 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/globals/transaction.h>
 #include <hayward/input/input-manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
@@ -350,7 +351,9 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         wl_container_of(listener, window, transaction_commit);
 
     wl_list_remove(&listener->link);
-    transaction_add_apply_listener(&window->transaction_apply);
+    wl_signal_add(
+        &transaction_manager->events.apply, &window->transaction_apply
+    );
 
     memcpy(
         &window->committed, &window->pending,
@@ -367,7 +370,8 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
             state->content_width, state->content_height
         );
         if (!hidden) {
-            transaction_acquire();
+            hayward_transaction_manager_acquire_commit_lock(transaction_manager
+            );
             window->is_configuring = true;
         }
 
@@ -406,7 +410,10 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
             }
         }
 
-        transaction_add_after_apply_listener(&window->transaction_after_apply);
+        wl_signal_add(
+            &transaction_manager->events.after_apply,
+            &window->transaction_after_apply
+        );
     }
 
     memcpy(
@@ -488,15 +495,21 @@ void
 window_set_dirty(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
     hayward_assert(window_is_alive(window), "Expected live window");
-    hayward_assert(transaction_in_progress(), "Expected active transaction");
+    hayward_assert(
+        hayward_transaction_manager_transaction_in_progress(transaction_manager
+        ),
+        "Expected active transaction"
+    );
 
     if (window->dirty) {
         return;
     }
 
     window->dirty = true;
-    transaction_add_commit_listener(&window->transaction_commit);
-    transaction_ensure_queued();
+    wl_signal_add(
+        &transaction_manager->events.commit, &window->transaction_commit
+    );
+    hayward_transaction_manager_ensure_queued(transaction_manager);
 }
 
 void
