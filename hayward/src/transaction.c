@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
-#include <wayland-util.h>
 #include <wayland-server-core.h>
+#include <wayland-util.h>
 
 #include <hayward-common/log.h>
 
@@ -138,6 +138,12 @@ void
 hayward_transaction_manager_ensure_queued(
     struct hayward_transaction_manager *transaction_manager
 ) {
+    hayward_assert(transaction_manager != NULL, "Expected transaction manager");
+    hayward_assert(
+        transaction_manager->depth > 0,
+        "Can only ensure queued while building transaction"
+    );
+
     transaction_manager->queued = true;
 }
 
@@ -229,6 +235,12 @@ void
 hayward_transaction_manager_acquire_commit_lock(
     struct hayward_transaction_manager *transaction_manager
 ) {
+    hayward_assert(transaction_manager != NULL, "Expected transaction manager");
+    hayward_assert(
+        transaction_manager->phase == HAYWARD_TRANSACTION_COMMIT,
+        "Can only acquire commit lock during commit"
+    );
+
     transaction_manager->num_waiting++;
 }
 
@@ -236,8 +248,14 @@ void
 hayward_transaction_manager_release_commit_lock(
     struct hayward_transaction_manager *transaction_manager
 ) {
+    hayward_assert(transaction_manager != NULL, "Expected transaction manager");
     hayward_assert(
-        transaction_manager->num_waiting > 0, "No in progress transaction"
+        transaction_manager->phase == HAYWARD_TRANSACTION_WAITING_CONFIRM,
+        "Can only release commit lock while transaction manager is waiting"
+    );
+    hayward_assert(
+        transaction_manager->num_waiting > 0,
+        "All commit locks have already been released"
     );
 
     transaction_manager->num_waiting--;
