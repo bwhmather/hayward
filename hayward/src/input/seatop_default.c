@@ -44,7 +44,6 @@
 #include <hayward/input/tablet.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>

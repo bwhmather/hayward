@@ -16,7 +16,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
 #include <hayward/input/tablet.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 

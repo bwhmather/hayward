@@ -21,7 +21,6 @@
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc-server.h>
-#include <hayward/transaction.h>
 
 #include <config.h>
 

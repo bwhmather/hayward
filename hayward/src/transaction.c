@@ -3,9 +3,9 @@
 #include "hayward/transaction.h"
 
 #include <stdbool.h>
-#include <stddef.h>
-#include <string.h>
+#include <stdlib.h>
 #include <time.h>
+#include <wayland-util.h>
 #include <wayland-server-core.h>
 
 #include <hayward-common/log.h>

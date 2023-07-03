@@ -3,14 +3,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <string.h>
 #include <time.h>
 #include <wayland-server-core.h>
-
-#include <hayward-common/log.h>
-
-#include <hayward/desktop/idle_inhibit_v1.h>
-#include <hayward/server.h>
 
 #include <config.h>
 

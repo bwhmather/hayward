@@ -17,7 +17,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>

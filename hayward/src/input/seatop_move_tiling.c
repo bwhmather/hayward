@@ -31,7 +31,6 @@
 #include <hayward/input/tablet.h>
 #include <hayward/ipc-server.h>
 #include <hayward/output.h>
-#include <hayward/transaction.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
