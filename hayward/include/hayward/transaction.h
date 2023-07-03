@@ -31,14 +31,24 @@
  * create and commits a transaction from the dirty containers.
  */
 
+enum hayward_transaction_phase {
+    HAYWARD_TRANSACTION_IDLE,
+    HAYWARD_TRANSACTION_BEFORE_COMMIT,
+    HAYWARD_TRANSACTION_COMMIT,
+    HAYWARD_TRANSACTION_WAITING_CONFIRM,
+    HAYWARD_TRANSACTION_APPLY,
+    HAYWARD_TRANSACTION_AFTER_APPLY,
+};
+
 struct hayward_transaction_manager {
     int depth;
     bool queued;
 
+    enum hayward_transaction_phase phase;
     struct wl_event_source *timer;
-    size_t num_waiting;
-    size_t num_configures;
     struct timespec commit_time;
+    size_t num_configures;
+    size_t num_waiting;
 
     struct {
         struct wl_signal before_commit;

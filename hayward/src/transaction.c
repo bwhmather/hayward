@@ -75,8 +75,10 @@ transaction_apply(struct hayward_transaction_manager *transaction_manager) {
 
     transaction_manager->num_configures = 0;
 
+    transaction_manager->phase = HAYWARD_TRANSACTION_APPLY;
     wl_signal_emit_mutable(&transaction_manager->events.apply, NULL);
 
+    transaction_manager->phase = HAYWARD_TRANSACTION_AFTER_APPLY;
     wl_signal_emit_mutable(&transaction_manager->events.after_apply, NULL);
 
     if (debug.txn_timings) {
@@ -93,13 +95,19 @@ transaction_apply(struct hayward_transaction_manager *transaction_manager) {
 
     if (!transaction_manager->queued) {
         hayward_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
-        return;
     }
+
+    transaction_manager->phase = HAYWARD_TRANSACTION_IDLE;
 }
 
 static void
 transaction_progress(struct hayward_transaction_manager *transaction_manager) {
     hayward_assert(transaction_manager != NULL, "Expected transaction manager");
+    hayward_assert(
+        transaction_manager->phase == HAYWARD_TRANSACTION_WAITING_CONFIRM,
+        "Expected transaction to be waiting for confirmations"
+    );
+
     if (transaction_manager->num_waiting > 0) {
         return;
     }
@@ -172,12 +180,16 @@ hayward_transaction_manager_end_transaction(
         return;
     }
 
+    transaction_manager->phase = HAYWARD_TRANSACTION_BEFORE_COMMIT;
     wl_signal_emit_mutable(&transaction_manager->events.before_commit, NULL);
 
     transaction_manager->depth -= 1;
     transaction_manager->queued = false;
 
+    transaction_manager->phase = HAYWARD_TRANSACTION_COMMIT;
     wl_signal_emit_mutable(&transaction_manager->events.commit, NULL);
+
+    transaction_manager->phase = HAYWARD_TRANSACTION_WAITING_CONFIRM;
 
     transaction_manager->num_configures = transaction_manager->num_waiting;
     if (debug.txn_timings) {
