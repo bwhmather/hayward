@@ -394,7 +394,7 @@ handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
     hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
-void
+static void
 dispatch_cursor_button(
     struct hayward_cursor *cursor, struct wlr_input_device *device,
     uint32_t time_msec, uint32_t button, enum wlr_button_state state
@@ -432,7 +432,7 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
     hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
-void
+static void
 dispatch_cursor_axis(
     struct hayward_cursor *cursor, struct wlr_pointer_axis_event *event
 ) {
@@ -1555,7 +1555,7 @@ warp_to_constraint_cursor_hint(struct hayward_cursor *cursor) {
     }
 }
 
-void
+static void
 handle_constraint_destroy(struct wl_listener *listener, void *data) {
     hayward_transaction_manager_begin_transaction(transaction_manager);
 
