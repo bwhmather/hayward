@@ -381,10 +381,6 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     }
     if (!hidden && window->view->saved_surface_tree == NULL) {
         view_save_buffer(window->view);
-        memcpy(
-            &window->view->saved_geometry, &window->view->geometry,
-            sizeof(struct wlr_box)
-        );
     }
 
     memcpy(

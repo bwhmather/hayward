@@ -93,10 +93,6 @@ struct hayward_view {
     // transaction state. Updated on every commit.
     struct wlr_box geometry;
 
-    // The "old" geometry during a transaction. Used to damage the old location
-    // when a transaction is applied.
-    struct wlr_box saved_geometry;
-
     struct wlr_foreign_toplevel_handle_v1 *foreign_toplevel;
     struct wl_listener foreign_activate_request;
     struct wl_listener foreign_fullscreen_request;
