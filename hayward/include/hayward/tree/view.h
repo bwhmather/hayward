@@ -68,8 +68,11 @@ struct hayward_view {
     const struct hayward_view_impl *impl;
 
     struct wlr_scene_tree *scene_tree;
-    struct wlr_scene_tree *content_tree;
-    struct wlr_scene_tree *saved_surface_tree;
+
+    struct {
+        struct wlr_scene_tree *content_tree;
+        struct wlr_scene_tree *saved_surface_tree;
+    } layers;
 
     struct hayward_window *window; // NULL if unmapped and transactions finished
     struct wlr_surface *surface;   // NULL for unmapped views

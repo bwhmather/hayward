@@ -372,7 +372,7 @@ handle_new_popup(struct wl_listener *listener, void *data) {
     struct hayward_xdg_popup *popup =
         popup_create(wlr_popup, &xdg_shell_view->view, root->layers.popups);
     int lx, ly;
-    wlr_scene_node_coords(&popup->view->content_tree->node, &lx, &ly);
+    wlr_scene_node_coords(&popup->view->layers.content_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);
     hayward_transaction_manager_end_transaction(transaction_manager);
 }
@@ -624,7 +624,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
 
     xdg_surface->data = xdg_shell_view;
     wlr_scene_xdg_surface_create(
-        xdg_shell_view->view.content_tree, xdg_surface
+        xdg_shell_view->view.layers.content_tree, xdg_surface
     );
 
     hayward_transaction_manager_end_transaction(transaction_manager);

@@ -60,8 +60,8 @@ view_init(
     view->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
     hayward_assert(view->scene_tree != NULL, "Allocation failed");
 
-    view->content_tree = wlr_scene_tree_create(view->scene_tree);
-    hayward_assert(view->content_tree != NULL, "Allocation failed");
+    view->layers.content_tree = wlr_scene_tree_create(view->scene_tree);
+    hayward_assert(view->layers.content_tree != NULL, "Allocation failed");
 
     view->type = type;
     view->impl = impl;
@@ -83,7 +83,7 @@ view_destroy(struct hayward_view *view) {
     );
     wl_list_remove(&view->events.unmap.listener_list);
 
-    wlr_scene_node_destroy(&view->content_tree->node);
+    wlr_scene_node_destroy(&view->layers.content_tree->node);
     wlr_scene_node_destroy(&view->scene_tree->node);
 
     free(view->title_format);
@@ -616,7 +616,7 @@ view_center_surface(struct hayward_view *view) {
     int y = (int
     )fmax(0, (window->committed.content_height - view->geometry.height) / 2);
 
-    wlr_scene_node_set_position(&view->content_tree->node, x, y);
+    wlr_scene_node_set_position(&view->layers.content_tree->node, x, y);
 }
 
 struct hayward_view *
@@ -854,35 +854,37 @@ view_freeze_buffer_iterator(
 void
 view_freeze_buffer(struct hayward_view *view) {
     hayward_assert(
-        view->saved_surface_tree == NULL, "Didn't expect saved buffer"
+        view->layers.saved_surface_tree == NULL, "Didn't expect saved buffer"
     );
 
-    view->saved_surface_tree = wlr_scene_tree_create(view->scene_tree);
-    hayward_assert(view->saved_surface_tree != NULL, "Allocation failed");
+    view->layers.saved_surface_tree = wlr_scene_tree_create(view->scene_tree);
+    hayward_assert(
+        view->layers.saved_surface_tree != NULL, "Allocation failed"
+    );
 
     // Enable and disable the saved surface tree like so to atomitaclly update
     // the tree. This will prevent over damaging or other weirdness.
-    wlr_scene_node_set_enabled(&view->saved_surface_tree->node, false);
+    wlr_scene_node_set_enabled(&view->layers.saved_surface_tree->node, false);
 
     wlr_scene_node_for_each_buffer(
-        &view->content_tree->node, view_freeze_buffer_iterator,
-        view->saved_surface_tree
+        &view->layers.content_tree->node, view_freeze_buffer_iterator,
+        view->layers.saved_surface_tree
     );
 
-    wlr_scene_node_set_enabled(&view->content_tree->node, false);
-    wlr_scene_node_set_enabled(&view->saved_surface_tree->node, true);
+    wlr_scene_node_set_enabled(&view->layers.content_tree->node, false);
+    wlr_scene_node_set_enabled(&view->layers.saved_surface_tree->node, true);
 }
 
 void
 view_unfreeze_buffer(struct hayward_view *view) {
-    if (view->saved_surface_tree == NULL) {
+    if (view->layers.saved_surface_tree == NULL) {
         return;
     }
 
-    wlr_scene_node_destroy(&view->saved_surface_tree->node);
-    view->saved_surface_tree = NULL;
+    wlr_scene_node_destroy(&view->layers.saved_surface_tree->node);
+    view->layers.saved_surface_tree = NULL;
 
-    wlr_scene_node_set_enabled(&view->content_tree->node, true);
+    wlr_scene_node_set_enabled(&view->layers.content_tree->node, true);
 }
 
 bool
