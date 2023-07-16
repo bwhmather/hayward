@@ -316,13 +316,13 @@ window_destroy_scene(struct hayward_window *window) {
 static bool
 window_should_configure(struct hayward_window *window) {
     hayward_assert(window != NULL, "Expected window");
-    if (window->committed.dead) {
+    if (window->pending.dead) {
         return false;
     }
     // TODO if the window's view initiated the change, it should not be
     // reconfigured.
-    struct hayward_window_state *cstate = &window->current;
-    struct hayward_window_state *nstate = &window->committed;
+    struct hayward_window_state *cstate = &window->committed;
+    struct hayward_window_state *nstate = &window->pending;
 
 #if HAVE_XWAYLAND
     // Xwayland views are position-aware and need to be reconfigured
@@ -355,15 +355,11 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         &transaction_manager->events.apply, &window->transaction_apply
     );
 
-    memcpy(
-        &window->committed, &window->pending,
-        sizeof(struct hayward_window_state)
-    );
     window->dirty = false;
 
-    bool hidden = !window->committed.dead && !view_is_visible(window->view);
+    bool hidden = !window->pending.dead && !view_is_visible(window->view);
     if (window_should_configure(window)) {
-        struct hayward_window_state *state = &window->committed;
+        struct hayward_window_state *state = &window->pending;
 
         window->configure_serial = view_configure(
             window->view, state->content_x, state->content_y,
@@ -390,6 +386,11 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
             sizeof(struct wlr_box)
         );
     }
+
+    memcpy(
+        &window->committed, &window->pending,
+        sizeof(struct hayward_window_state)
+    );
 }
 
 static void
