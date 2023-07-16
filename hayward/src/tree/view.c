@@ -834,16 +834,8 @@ view_is_urgent(struct hayward_view *view) {
     return view->urgent.tv_sec || view->urgent.tv_nsec;
 }
 
-void
-view_remove_saved_buffer(struct hayward_view *view) {
-    hayward_assert(view->saved_surface_tree != NULL, "Expected a saved buffer");
-    wlr_scene_node_destroy(&view->saved_surface_tree->node);
-    view->saved_surface_tree = NULL;
-    wlr_scene_node_set_enabled(&view->content_tree->node, true);
-}
-
 static void
-view_save_buffer_iterator(
+view_freeze_buffer_iterator(
     struct wlr_scene_buffer *buffer, int sx, int sy, void *data
 ) {
     struct wlr_scene_tree *tree = data;
@@ -860,7 +852,7 @@ view_save_buffer_iterator(
 }
 
 void
-view_save_buffer(struct hayward_view *view) {
+view_freeze_buffer(struct hayward_view *view) {
     hayward_assert(
         view->saved_surface_tree == NULL, "Didn't expect saved buffer"
     );
@@ -873,12 +865,24 @@ view_save_buffer(struct hayward_view *view) {
     wlr_scene_node_set_enabled(&view->saved_surface_tree->node, false);
 
     wlr_scene_node_for_each_buffer(
-        &view->content_tree->node, view_save_buffer_iterator,
+        &view->content_tree->node, view_freeze_buffer_iterator,
         view->saved_surface_tree
     );
 
     wlr_scene_node_set_enabled(&view->content_tree->node, false);
     wlr_scene_node_set_enabled(&view->saved_surface_tree->node, true);
+}
+
+void
+view_unfreeze_buffer(struct hayward_view *view) {
+    if (view->saved_surface_tree == NULL) {
+        return;
+    }
+
+    wlr_scene_node_destroy(&view->saved_surface_tree->node);
+    view->saved_surface_tree = NULL;
+
+    wlr_scene_node_set_enabled(&view->content_tree->node, true);
 }
 
 bool

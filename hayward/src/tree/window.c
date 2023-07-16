@@ -278,10 +278,6 @@ window_update_scene(struct hayward_window *window) {
             wlr_scene_node_reparent(&view->scene_tree->node, root->orphans);
         }
     } else {
-        if (view->saved_surface_tree != NULL) {
-            view_remove_saved_buffer(view);
-        }
-
         // If the view hasn't responded to the configure, center it within
         // the window. This is important for fullscreen views which
         // refuse to resize to the size of the output.
@@ -378,9 +374,8 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         struct timespec now;
         clock_gettime(CLOCK_MONOTONIC, &now);
         wlr_surface_send_frame_done(window->view->surface, &now);
-    }
-    if (!hidden && window->view->saved_surface_tree == NULL) {
-        view_save_buffer(window->view);
+
+        view_freeze_buffer(window->view);
     }
 
     memcpy(
@@ -396,6 +391,8 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&listener->link);
     window->is_configuring = false;
+
+    view_unfreeze_buffer(window->view);
 
     window_update_scene(window);
 

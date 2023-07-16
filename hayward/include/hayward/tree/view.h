@@ -249,10 +249,10 @@ bool
 view_is_urgent(struct hayward_view *view);
 
 void
-view_remove_saved_buffer(struct hayward_view *view);
+view_freeze_buffer(struct hayward_view *view);
 
 void
-view_save_buffer(struct hayward_view *view);
+view_unfreeze_buffer(struct hayward_view *view);
 
 bool
 view_is_transient_for(
