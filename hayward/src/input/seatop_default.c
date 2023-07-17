@@ -324,15 +324,15 @@ handle_tablet_tool_tip(
         "Expected null-surface tablet input to route through pointer emulation"
     );
 
+    struct wlr_layer_surface_v1 *layer =
+        wlr_layer_surface_v1_try_from_wlr_surface(surface);
 #if HAVE_XWAYLAND
     struct wlr_xwayland_surface *xsurface =
         wlr_xwayland_surface_try_from_wlr_surface(surface);
 #endif
 
-    if (wlr_surface_is_layer_surface(surface)) {
+    if (layer != NULL) {
         // Handle tapping a layer surface.
-        struct wlr_layer_surface_v1 *layer =
-            wlr_layer_surface_v1_from_wlr_surface(surface);
 
         if (layer->current.keyboard_interactive) {
             root_set_focused_layer(root, layer);
@@ -479,17 +479,19 @@ handle_button(
     }
 
     // Handle clicking a layer surface
-    if (surface && wlr_surface_is_layer_surface(surface)) {
+    if (surface != NULL) {
         struct wlr_layer_surface_v1 *layer =
-            wlr_layer_surface_v1_from_wlr_surface(surface);
-        if (layer->current.keyboard_interactive) {
-            root_set_focused_layer(root, layer);
+            wlr_layer_surface_v1_try_from_wlr_surface(surface);
+        if (layer != NULL) {
+            if (layer->current.keyboard_interactive) {
+                root_set_focused_layer(root, layer);
+            }
+            if (state == WLR_BUTTON_PRESSED) {
+                seatop_begin_down_on_surface(seat, surface, time_msec, sx, sy);
+            }
+            seat_pointer_notify_button(seat, time_msec, button, state);
+            return;
         }
-        if (state == WLR_BUTTON_PRESSED) {
-            seatop_begin_down_on_surface(seat, surface, time_msec, sx, sy);
-        }
-        seat_pointer_notify_button(seat, time_msec, button, state);
-        return;
     }
 
     // Handle tiling resize via border

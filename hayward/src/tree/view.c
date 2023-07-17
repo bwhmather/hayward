@@ -641,7 +641,7 @@ view_from_wlr_surface(struct wlr_surface *wlr_surface) {
         }
         return view_from_wlr_surface(subsurface->parent);
     }
-    if (wlr_surface_is_layer_surface(wlr_surface)) {
+    if (wlr_layer_surface_v1_try_from_wlr_surface(wlr_surface)) {
         return NULL;
     }
 
