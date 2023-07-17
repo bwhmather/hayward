@@ -78,7 +78,7 @@ scene_node_try_get_surface(struct wlr_scene_node *scene_node) {
     struct wlr_scene_buffer *scene_buffer =
         wlr_scene_buffer_from_node(scene_node);
     struct wlr_scene_surface *scene_surface =
-        wlr_scene_surface_from_buffer(scene_buffer);
+        wlr_scene_surface_try_from_buffer(scene_buffer);
 
     if (scene_surface == NULL) {
         return NULL;
