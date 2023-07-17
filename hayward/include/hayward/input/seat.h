@@ -61,7 +61,8 @@ struct hayward_drag_icon {
     struct wlr_drag_icon *wlr_drag_icon;
     struct wl_list link; // hayward_root::drag_icons
 
-    double x, y; // in layout-local coordinates
+    double x, y; // In layout-local coordinates.
+    int dx, dy;  // Offset in surface-local coordinates.
 
     struct wl_listener surface_commit;
     struct wl_listener map;
