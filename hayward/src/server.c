@@ -62,7 +62,8 @@ server_privileged_prepare(struct hayward_server *server) {
     hayward_log(HAYWARD_DEBUG, "Preparing Wayland server initialization");
     server->wl_display = wl_display_create();
     server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
-    server->backend = wlr_backend_autocreate(server->wl_display, &server->session);
+    server->backend =
+        wlr_backend_autocreate(server->wl_display, &server->session);
 
     if (!server->backend) {
         hayward_log(HAYWARD_ERROR, "Unable to create backend");
@@ -88,8 +89,7 @@ bool
 server_init(struct hayward_server *server) {
     hayward_log(HAYWARD_DEBUG, "Initializing Wayland server");
 
-    server->renderer =
-        wlr_renderer_autocreate(server->backend);
+    server->renderer = wlr_renderer_autocreate(server->backend);
     if (!server->renderer) {
         hayward_log(HAYWARD_ERROR, "Failed to create renderer");
         return false;
@@ -99,8 +99,9 @@ server_init(struct hayward_server *server) {
 
     if (wlr_renderer_get_dmabuf_texture_formats(server->renderer) != NULL) {
         wlr_drm_create(server->wl_display, server->renderer);
-        server->linux_dmabuf_v1 =
-            wlr_linux_dmabuf_v1_create(server->wl_display, server->renderer);
+        server->linux_dmabuf_v1 = wlr_linux_dmabuf_v1_create_with_renderer(
+            server->wl_display, 4, server->renderer
+        );
     }
 
     server->allocator =
