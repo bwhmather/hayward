@@ -20,13 +20,13 @@ handle_request_activate(struct wl_listener *listener, void *data) {
 
     hayward_transaction_manager_begin_transaction(transaction_manager);
 
-    if (!wlr_surface_is_xdg_surface(event->surface)) {
+    struct wlr_xdg_surface *xdg_surface =
+        wlr_xdg_surface_try_from_wlr_surface(event->surface);
+    if (xdg_surface == NULL) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
-    struct wlr_xdg_surface *xdg_surface =
-        wlr_xdg_surface_from_wlr_surface(event->surface);
     struct hayward_view *view = xdg_surface->data;
     if (!xdg_surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
