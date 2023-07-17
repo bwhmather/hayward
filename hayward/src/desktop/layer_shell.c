@@ -33,6 +33,8 @@
 
 #include <config.h>
 
+#define HAYWARD_LAYER_SHELL_VERSION 4
+
 static void
 surface_scene_marker_destroy(struct wlr_addon *addon) {
     // Intentionally left blank.
@@ -464,7 +466,8 @@ hayward_layer_shell_create(struct wl_display *wl_display) {
         return NULL;
     }
 
-    layer_shell->layer_shell = wlr_layer_shell_v1_create(wl_display);
+    layer_shell->layer_shell =
+        wlr_layer_shell_v1_create(wl_display, HAYWARD_LAYER_SHELL_VERSION);
     if (layer_shell->layer_shell == NULL) {
         free(layer_shell);
         return NULL;
