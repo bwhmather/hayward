@@ -27,7 +27,6 @@ struct hayward_session_lock_surface {
     struct wl_listener map;
     struct wl_listener destroy;
     struct wl_listener surface_commit;
-    struct wl_listener output_mode;
     struct wl_listener output_commit;
 };
 
@@ -49,20 +48,6 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
         wl_container_of(listener, surf, surface_commit);
 
     hayward_transaction_manager_begin_transaction(transaction_manager);
-
-    hayward_transaction_manager_end_transaction(transaction_manager);
-}
-
-static void
-handle_output_mode(struct wl_listener *listener, void *data) {
-    struct hayward_session_lock_surface *surf =
-        wl_container_of(listener, surf, output_mode);
-
-    hayward_transaction_manager_begin_transaction(transaction_manager);
-
-    wlr_session_lock_surface_v1_configure(
-        surf->lock_surface, surf->output->width, surf->output->height
-    );
 
     hayward_transaction_manager_end_transaction(transaction_manager);
 }
@@ -96,7 +81,6 @@ handle_surface_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&surf->map.link);
     wl_list_remove(&surf->destroy.link);
     wl_list_remove(&surf->surface_commit.link);
-    wl_list_remove(&surf->output_mode.link);
     wl_list_remove(&surf->output_commit.link);
     free(surf);
 
@@ -131,8 +115,6 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     wl_signal_add(&lock_surface->events.destroy, &surf->destroy);
     surf->surface_commit.notify = handle_surface_commit;
     wl_signal_add(&surf->surface->events.commit, &surf->surface_commit);
-    surf->output_mode.notify = handle_output_mode;
-    wl_signal_add(&output->wlr_output->events.mode, &surf->output_mode);
     surf->output_commit.notify = handle_output_commit;
     wl_signal_add(&output->wlr_output->events.commit, &surf->output_commit);
 

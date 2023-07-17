@@ -664,7 +664,6 @@ handle_destroy(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&output->destroy.link);
     wl_list_remove(&output->commit.link);
-    wl_list_remove(&output->mode.link);
     wl_list_remove(&output->present.link);
 
     wlr_scene_output_destroy(output->scene_output);
@@ -678,11 +677,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void
-handle_mode(struct wl_listener *listener, void *data) {
-    struct hayward_output *output = wl_container_of(listener, output, mode);
-
-    hayward_transaction_manager_begin_transaction(transaction_manager);
-
+update_mode(struct hayward_output *output) {
     if (!output->enabled && !output->enabling) {
         struct output_config *oc = find_output_config(output);
         if (output->wlr_output->current_mode != NULL && (!oc || oc->enabled)) {
@@ -709,8 +704,6 @@ handle_mode(struct wl_listener *listener, void *data) {
     arrange_output(output);
 
     update_output_manager_config(output->server);
-
-    hayward_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -719,6 +712,10 @@ handle_commit(struct wl_listener *listener, void *data) {
     struct wlr_output_event_commit *event = data;
 
     hayward_transaction_manager_begin_transaction(transaction_manager);
+
+    if (event->committed & WLR_OUTPUT_STATE_MODE) {
+        update_mode(output);
+    }
 
     if (!output->enabled) {
         hayward_transaction_manager_end_transaction(transaction_manager);
@@ -811,8 +808,6 @@ handle_new_output(struct wl_listener *listener, void *data) {
     output->destroy.notify = handle_destroy;
     wl_signal_add(&wlr_output->events.commit, &output->commit);
     output->commit.notify = handle_commit;
-    wl_signal_add(&wlr_output->events.mode, &output->mode);
-    output->mode.notify = handle_mode;
     wl_signal_add(&wlr_output->events.present, &output->present);
     output->present.notify = handle_present;
     wl_signal_add(&wlr_output->events.frame, &output->frame);
