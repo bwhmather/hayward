@@ -112,7 +112,7 @@ server_init(struct hayward_server *server) {
     }
 
     server->compositor =
-        wlr_compositor_create(server->wl_display, server->renderer);
+        wlr_compositor_create(server->wl_display, 5, server->renderer);
     wlr_subcompositor_create(server->wl_display);
 
     server->data_device_manager =
