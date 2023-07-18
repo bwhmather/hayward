@@ -480,7 +480,7 @@ window_begin_destroy(struct hayward_window *window) {
         window_detach(window);
     }
 
-    wl_signal_emit(&window->events.begin_destroy, window);
+    wl_signal_emit_mutable(&window->events.begin_destroy, window);
 
     window_set_dirty(window);
     window->pending.dead = true;

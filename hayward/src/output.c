@@ -299,7 +299,7 @@ output_disable(struct hayward_output *output) {
     hayward_log(
         HAYWARD_DEBUG, "Disabling output '%s'", output->wlr_output->name
     );
-    wl_signal_emit(&output->events.disable, output);
+    wl_signal_emit_mutable(&output->events.disable, output);
 
     output_evacuate(output);
 
@@ -335,7 +335,7 @@ output_begin_destroy(struct hayward_output *output) {
 
     output->pending.dead = true;
 
-    wl_signal_emit(&output->events.begin_destroy, output);
+    wl_signal_emit_mutable(&output->events.begin_destroy, output);
 
     output_set_dirty(output);
 }

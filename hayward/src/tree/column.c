@@ -223,7 +223,7 @@ column_begin_destroy(struct hayward_column *column) {
         column_detach(column);
     }
 
-    wl_signal_emit(&column->events.begin_destroy, column);
+    wl_signal_emit_mutable(&column->events.begin_destroy, column);
 
     column_set_dirty(column);
 }

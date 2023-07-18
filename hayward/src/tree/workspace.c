@@ -310,7 +310,7 @@ workspace_begin_destroy(struct hayward_workspace *workspace) {
 
     workspace_detach(workspace);
 
-    wl_signal_emit(&workspace->events.begin_destroy, workspace);
+    wl_signal_emit_mutable(&workspace->events.begin_destroy, workspace);
 
     workspace_set_dirty(workspace);
 }
