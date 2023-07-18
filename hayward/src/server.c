@@ -31,6 +31,7 @@
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_screencopy_v1.h>
+#include <wlr/types/wlr_single_pixel_buffer_v1.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/types/wlr_text_input_v3.h>
@@ -206,6 +207,7 @@ server_init(struct hayward_server *server) {
     wlr_data_control_manager_v1_create(server->wl_display);
     wlr_primary_selection_v1_device_manager_create(server->wl_display);
     wlr_viewporter_create(server->wl_display);
+    wlr_single_pixel_buffer_manager_v1_create(server->wl_display);
 
     struct wlr_xdg_foreign_registry *foreign_registry =
         wlr_xdg_foreign_registry_create(server->wl_display);
