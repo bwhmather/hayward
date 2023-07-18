@@ -1,6 +1,7 @@
 #ifndef HAYWARD_SERVER_H
 #define HAYWARD_SERVER_H
 
+#include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <wayland-server-core.h>

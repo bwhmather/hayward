@@ -14,8 +14,6 @@
 #include <strings.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/backend.h>
-#include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/types/wlr_input_device.h>

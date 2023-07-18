@@ -1,11 +1,11 @@
 #ifndef HAYWARD_TREE_WINDOW_H
 #define HAYWARD_TREE_WINDOW_H
 
+#include <wlr/render/wlr_texture.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <wayland-server-core.h>
-#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
