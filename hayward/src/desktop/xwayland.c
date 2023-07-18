@@ -610,11 +610,11 @@ handle_unmap(struct wl_listener *listener, void *data) {
 static void
 handle_map(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, map);
-    struct wlr_xwayland_surface *xsurface = data;
 
     hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xwayland_view->view;
+    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
 
     view->natural_width = xsurface->width;
     view->natural_height = xsurface->height;
@@ -665,10 +665,10 @@ handle_associate(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
 
     wl_signal_add(&xsurface->surface->events.map, &xwayland_view->map);
-    xwayland_view->map.notify = unmanaged_handle_map;
+    xwayland_view->map.notify = handle_map;
 
     wl_signal_add(&xsurface->surface->events.unmap, &xwayland_view->unmap);
-    xwayland_view->unmap.notify = unmanaged_handle_unmap;
+    xwayland_view->unmap.notify = handle_unmap;
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
