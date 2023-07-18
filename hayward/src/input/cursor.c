@@ -185,7 +185,7 @@ cursor_rebase_all(void) {
 
 static void
 cursor_hide(struct hayward_cursor *cursor) {
-    wlr_cursor_set_image(cursor->cursor, NULL, 0, 0, 0, 0, 0, 0);
+    wlr_cursor_unset_image(cursor->cursor);
     cursor->hidden = true;
     wlr_seat_pointer_notify_clear_focus(cursor->seat->wlr_seat);
 }
@@ -1271,10 +1271,10 @@ cursor_set_image(
     }
 
     if (!image) {
-        wlr_cursor_set_image(cursor->cursor, NULL, 0, 0, 0, 0, 0, 0);
+        wlr_cursor_unset_image(cursor->cursor);
     } else if (!current_image || strcmp(current_image, image) != 0) {
-        wlr_xcursor_manager_set_cursor_image(
-            cursor->xcursor_manager, image, cursor->cursor
+        wlr_cursor_set_xcursor(cursor->cursor,
+            cursor->xcursor_manager, image
         );
     }
 }
