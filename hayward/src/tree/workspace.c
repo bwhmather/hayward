@@ -460,6 +460,10 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *windo
 
     list_add(workspace->pending.floating, window);
 
+    if (window->pending.output == NULL) {
+        window->pending.output = root_get_active_output(workspace->pending.root);
+    }
+
     window_reconcile_floating(window, workspace);
 
     if (prev_active_floating) {
