@@ -167,7 +167,7 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data) {
 
     hayward_transaction_manager_begin_transaction(transaction_manager);
 
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -217,7 +217,7 @@ unmanaged_handle_override_redirect(struct wl_listener *listener, void *data) {
 
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
 
-    bool mapped = xsurface->mapped;
+    bool mapped = xsurface->surface->mapped;
     if (mapped) {
         unmanaged_handle_unmap(&surface->unmap, NULL);
     }
@@ -251,9 +251,9 @@ create_unmanaged(
         &xsurface->events.request_configure, &surface->request_configure
     );
     surface->request_configure.notify = unmanaged_handle_request_configure;
-    wl_signal_add(&xsurface->events.map, &surface->map);
+    wl_signal_add(&xsurface->surface->events.map, &surface->map);
     surface->map.notify = unmanaged_handle_map;
-    wl_signal_add(&xsurface->events.unmap, &surface->unmap);
+    wl_signal_add(&xsurface->surface->events.unmap, &surface->unmap);
     surface->unmap.notify = unmanaged_handle_unmap;
     wl_signal_add(&xsurface->events.destroy, &surface->destroy);
     surface->destroy.notify = unmanaged_handle_destroy;
@@ -651,7 +651,7 @@ handle_override_redirect(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
 
-    bool mapped = xsurface->mapped;
+    bool mapped = xsurface->surface->mapped;
     if (mapped) {
         handle_unmap(&xwayland_view->unmap, NULL);
     }
@@ -677,7 +677,7 @@ handle_request_configure(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         wlr_xwayland_surface_configure(
             xsurface, ev->x, ev->y, ev->width, ev->height
         );
@@ -718,7 +718,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -740,7 +740,7 @@ handle_request_minimize(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -760,7 +760,7 @@ handle_request_move(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -788,7 +788,7 @@ handle_request_resize(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -810,7 +810,7 @@ handle_request_activate(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -829,7 +829,7 @@ handle_set_title(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -862,7 +862,7 @@ handle_set_hints(struct wl_listener *listener, void *data) {
 
     struct hayward_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (!xsurface->mapped) {
+    if (!xsurface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -957,10 +957,10 @@ create_xwayland_view(
     );
     xwayland_view->set_decorations.notify = handle_set_decorations;
 
-    wl_signal_add(&xsurface->events.unmap, &xwayland_view->unmap);
+    wl_signal_add(&xsurface->surface->events.unmap, &xwayland_view->unmap);
     xwayland_view->unmap.notify = handle_unmap;
 
-    wl_signal_add(&xsurface->events.map, &xwayland_view->map);
+    wl_signal_add(&xsurface->surface->events.map, &xwayland_view->map);
     xwayland_view->map.notify = handle_map;
 
     wl_signal_add(

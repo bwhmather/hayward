@@ -435,9 +435,9 @@ handle_start_drag(struct wl_listener *listener, void *data) {
             &wlr_drag_icon->surface->events.commit, &icon->surface_commit
         );
         icon->unmap.notify = drag_icon_handle_unmap;
-        wl_signal_add(&wlr_drag_icon->events.unmap, &icon->unmap);
+        wl_signal_add(&wlr_drag_icon->surface->events.unmap, &icon->unmap);
         icon->map.notify = drag_icon_handle_map;
-        wl_signal_add(&wlr_drag_icon->events.map, &icon->map);
+        wl_signal_add(&wlr_drag_icon->surface->events.map, &icon->map);
         icon->destroy.notify = drag_icon_handle_destroy;
         wl_signal_add(&wlr_drag_icon->events.destroy, &icon->destroy);
 

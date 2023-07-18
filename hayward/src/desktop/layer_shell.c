@@ -147,7 +147,7 @@ find_mapped_layer_by_client(
                 layer_surface->layer_surface;
             struct wl_resource *resource = wlr_layer_surface->resource;
             if (wl_resource_get_client(resource) == client &&
-                wlr_layer_surface->mapped) {
+                wlr_layer_surface->surface->mapped) {
                 return layer_surface;
             }
         }
@@ -229,8 +229,8 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
         );
     }
 
-    if (committed || wlr_layer_surface->mapped != layer_surface->mapped) {
-        layer_surface->mapped = wlr_layer_surface->mapped;
+    if (committed || wlr_layer_surface->surface->mapped != layer_surface->mapped) {
+        layer_surface->mapped = wlr_layer_surface->surface->mapped;
         arrange_layers(layer_surface->output);
     }
 
@@ -434,9 +434,9 @@ handle_new_surface(struct wl_listener *listener, void *data) {
         &wlr_layer_surface->surface->events.commit, &surface->surface_commit
     );
     surface->map.notify = handle_map;
-    wl_signal_add(&wlr_layer_surface->events.map, &surface->map);
+    wl_signal_add(&wlr_layer_surface->surface->events.map, &surface->map);
     surface->unmap.notify = handle_unmap;
-    wl_signal_add(&wlr_layer_surface->events.unmap, &surface->unmap);
+    wl_signal_add(&wlr_layer_surface->surface->events.unmap, &surface->unmap);
     surface->new_popup.notify = handle_new_popup;
     wl_signal_add(&wlr_layer_surface->events.new_popup, &surface->new_popup);
 

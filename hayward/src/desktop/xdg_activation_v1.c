@@ -28,7 +28,7 @@ handle_request_activate(struct wl_listener *listener, void *data) {
     }
 
     struct hayward_view *view = xdg_surface->data;
-    if (!xdg_surface->mapped) {
+    if (!xdg_surface->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }

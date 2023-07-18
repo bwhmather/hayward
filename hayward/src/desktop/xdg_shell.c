@@ -387,7 +387,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     struct wlr_xdg_toplevel *toplevel = xdg_shell_view->view.wlr_xdg_toplevel;
     struct hayward_view *view = &xdg_shell_view->view;
 
-    if (!toplevel->base->mapped) {
+    if (!toplevel->base->surface->mapped) {
         hayward_transaction_manager_end_transaction(transaction_manager);
         return;
     }
@@ -614,10 +614,10 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     xdg_shell_view->view.wlr_xdg_toplevel = xdg_surface->toplevel;
 
     xdg_shell_view->map.notify = handle_map;
-    wl_signal_add(&xdg_surface->events.map, &xdg_shell_view->map);
+    wl_signal_add(&xdg_surface->surface->events.map, &xdg_shell_view->map);
 
     xdg_shell_view->unmap.notify = handle_unmap;
-    wl_signal_add(&xdg_surface->events.unmap, &xdg_shell_view->unmap);
+    wl_signal_add(&xdg_surface->surface->events.unmap, &xdg_shell_view->unmap);
 
     xdg_shell_view->destroy.notify = handle_destroy;
     wl_signal_add(&xdg_surface->events.destroy, &xdg_shell_view->destroy);
