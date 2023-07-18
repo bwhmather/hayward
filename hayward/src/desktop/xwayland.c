@@ -162,6 +162,37 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
 }
 
 static void
+unmanaged_handle_associate(struct wl_listener *listener, void *data) {
+    struct hayward_xwayland_unmanaged *surface =
+        wl_container_of(listener, surface, associate);
+
+    hayward_transaction_manager_begin_transaction(transaction_manager);
+
+    struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
+
+    wl_signal_add(&xsurface->surface->events.map, &surface->map);
+    surface->map.notify = unmanaged_handle_map;
+
+    wl_signal_add(&xsurface->surface->events.unmap, &surface->unmap);
+    surface->unmap.notify = unmanaged_handle_unmap;
+
+    hayward_transaction_manager_end_transaction(transaction_manager);
+}
+
+static void
+unmanaged_handle_dissociate(struct wl_listener *listener, void *data) {
+    struct hayward_xwayland_unmanaged *surface =
+        wl_container_of(listener, surface, dissociate);
+
+    hayward_transaction_manager_begin_transaction(transaction_manager);
+
+    wl_list_remove(&surface->map.link);
+    wl_list_remove(&surface->unmap.link);
+
+    hayward_transaction_manager_end_transaction(transaction_manager);
+}
+
+static void
 unmanaged_handle_request_activate(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_surface *xsurface = data;
 
@@ -251,10 +282,10 @@ create_unmanaged(
         &xsurface->events.request_configure, &surface->request_configure
     );
     surface->request_configure.notify = unmanaged_handle_request_configure;
-    wl_signal_add(&xsurface->surface->events.map, &surface->map);
-    surface->map.notify = unmanaged_handle_map;
-    wl_signal_add(&xsurface->surface->events.unmap, &surface->unmap);
-    surface->unmap.notify = unmanaged_handle_unmap;
+    wl_signal_add(&xsurface->events.associate, &surface->associate);
+    surface->associate.notify = unmanaged_handle_associate;
+    wl_signal_add(&xsurface->events.dissociate, &surface->dissociate);
+    surface->dissociate.notify = unmanaged_handle_dissociate;
     wl_signal_add(&xsurface->events.destroy, &surface->destroy);
     surface->destroy.notify = unmanaged_handle_destroy;
     wl_signal_add(
@@ -668,6 +699,38 @@ handle_override_redirect(struct wl_listener *listener, void *data) {
 }
 
 static void
+handle_associate(struct wl_listener *listener, void *data) {
+    struct hayward_xwayland_view *xwayland_view =
+        wl_container_of(listener, xwayland_view, associate);
+
+    hayward_transaction_manager_begin_transaction(transaction_manager);
+
+    struct hayward_view *view = &xwayland_view->view;
+    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+
+    wl_signal_add(&xsurface->surface->events.map, &xwayland_view->map);
+    xwayland_view->map.notify = unmanaged_handle_map;
+
+    wl_signal_add(&xsurface->surface->events.unmap, &xwayland_view->unmap);
+    xwayland_view->unmap.notify = unmanaged_handle_unmap;
+
+    hayward_transaction_manager_end_transaction(transaction_manager);
+}
+
+static void
+handle_dissociate(struct wl_listener *listener, void *data) {
+    struct hayward_xwayland_view *xwayland_view =
+        wl_container_of(listener, xwayland_view, dissociate);
+
+    hayward_transaction_manager_begin_transaction(transaction_manager);
+
+    wl_list_remove(&xwayland_view->map.link);
+    wl_list_remove(&xwayland_view->unmap.link);
+
+    hayward_transaction_manager_end_transaction(transaction_manager);
+}
+
+static void
 handle_request_configure(struct wl_listener *listener, void *data) {
     struct hayward_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_configure);
@@ -957,11 +1020,11 @@ create_xwayland_view(
     );
     xwayland_view->set_decorations.notify = handle_set_decorations;
 
-    wl_signal_add(&xsurface->surface->events.unmap, &xwayland_view->unmap);
-    xwayland_view->unmap.notify = handle_unmap;
+    wl_signal_add(&xsurface->events.dissociate, &xwayland_view->dissociate);
+    xwayland_view->dissociate.notify = handle_dissociate;
 
-    wl_signal_add(&xsurface->surface->events.map, &xwayland_view->map);
-    xwayland_view->map.notify = handle_map;
+    wl_signal_add(&xsurface->events.associate, &xwayland_view->associate);
+    xwayland_view->associate.notify = handle_associate;
 
     wl_signal_add(
         &xsurface->events.set_override_redirect,
@@ -976,12 +1039,11 @@ create_xwayland_view(
 
 static void
 handle_new_surface(struct wl_listener *listener, void *data) {
+    struct hayward_xwayland *xwayland =
+        wl_container_of(listener, xwayland, new_surface);
     struct wlr_xwayland_surface *xsurface = data;
 
     hayward_transaction_manager_begin_transaction(transaction_manager);
-
-    struct hayward_xwayland *xwayland =
-        wl_container_of(listener, xwayland, new_surface);
 
     if (xsurface->override_redirect) {
         hayward_log(HAYWARD_DEBUG, "New xwayland unmanaged surface");

@@ -5,9 +5,9 @@
 
 #include <stdlib.h>
 #include <wayland-server-core.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
-#include <wlr/types/wlr_compositor.h>
 
 #include <hayward/globals/transaction.h>
 #include <hayward/transaction.h>

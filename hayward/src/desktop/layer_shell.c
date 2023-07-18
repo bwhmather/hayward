@@ -229,7 +229,8 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
         );
     }
 
-    if (committed || wlr_layer_surface->surface->mapped != layer_surface->mapped) {
+    if (committed ||
+        wlr_layer_surface->surface->mapped != layer_surface->mapped) {
         layer_surface->mapped = wlr_layer_surface->surface->mapped;
         arrange_layers(layer_surface->output);
     }

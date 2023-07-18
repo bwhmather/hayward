@@ -63,6 +63,8 @@ struct hayward_xwayland_view {
     struct wl_listener set_decorations;
     struct wl_listener map;
     struct wl_listener unmap;
+    struct wl_listener associate;
+    struct wl_listener dissociate;
     struct wl_listener destroy;
     struct wl_listener override_redirect;
 };
@@ -81,6 +83,8 @@ struct hayward_xwayland_unmanaged {
     struct wl_listener set_geometry;
     struct wl_listener map;
     struct wl_listener unmap;
+    struct wl_listener associate;
+    struct wl_listener dissociate;
     struct wl_listener destroy;
     struct wl_listener override_redirect;
 };

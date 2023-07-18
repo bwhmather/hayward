@@ -1273,9 +1273,7 @@ cursor_set_image(
     if (!image) {
         wlr_cursor_unset_image(cursor->cursor);
     } else if (!current_image || strcmp(current_image, image) != 0) {
-        wlr_cursor_set_xcursor(cursor->cursor,
-            cursor->xcursor_manager, image
-        );
+        wlr_cursor_set_xcursor(cursor->cursor, cursor->xcursor_manager, image);
     }
 }
 
