@@ -298,6 +298,7 @@ window_destroy_scene(struct hayward_window *window) {
         "Window scene tree is still attached"
     );
 
+    wlr_addon_finish(&window->scene_tree_marker);
     wlr_scene_node_destroy(&window->scene_tree->node);
 
     free(window->title);

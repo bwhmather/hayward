@@ -163,6 +163,7 @@ handle_output_destroy(struct wl_listener *listener, void *data) {
     hayward_transaction_manager_begin_transaction(transaction_manager);
 
     layer_surface->output = NULL;
+    wlr_addon_finish(&layer_surface->scene_tree_marker);
     wlr_scene_node_destroy(&layer_surface->scene->tree->node);
 
     hayward_transaction_manager_end_transaction(transaction_manager);

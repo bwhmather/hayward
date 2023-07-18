@@ -141,6 +141,7 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
 
     if (surface->surface_scene) {
+        wlr_addon_finish(&surface->surface_scene_marker);
         wl_list_remove(&surface->set_geometry.link);
 
         wlr_scene_node_destroy(&surface->surface_scene->buffer->node);
