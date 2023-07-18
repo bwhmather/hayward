@@ -544,7 +544,7 @@ output_repaint_timer_handler(void *data) {
     }
 
     if (output->enabled) {
-        wlr_scene_output_commit(output->scene_output);
+        wlr_scene_output_commit(output->scene_output, NULL);
     }
 
     return 0;
