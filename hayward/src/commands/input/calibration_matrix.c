@@ -30,18 +30,14 @@ input_cmd_calibration_matrix(int argc, char **argv) {
         float x = parse_float(item);
         if (isnan(x)) {
             return cmd_results_new(
-                CMD_FAILURE, "calibration_matrix: unable to parse float: %s",
-                item
+                CMD_FAILURE, "calibration_matrix: unable to parse float: %s", item
             );
         }
         parsed[i] = x;
     }
 
     ic->calibration_matrix.configured = true;
-    memcpy(
-        ic->calibration_matrix.matrix, parsed,
-        sizeof(ic->calibration_matrix.matrix)
-    );
+    memcpy(ic->calibration_matrix.matrix, parsed, sizeof(ic->calibration_matrix.matrix));
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

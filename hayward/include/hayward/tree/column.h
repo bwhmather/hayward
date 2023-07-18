@@ -1,5 +1,5 @@
-#ifndef HAYWARD_TREE_COLUMN_H
-#define HAYWARD_TREE_COLUMN_H
+#ifndef HWD_TREE_COLUMN_H
+#define HWD_TREE_COLUMN_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -9,41 +9,41 @@
 
 #include <hayward-common/list.h>
 
-enum hayward_column_layout {
+enum hwd_column_layout {
     L_SPLIT,
     L_STACKED,
 };
 
-struct hayward_column_state {
+struct hwd_column_state {
     // Container properties
-    enum hayward_column_layout layout;
+    enum hwd_column_layout layout;
     double x, y;
     double width, height;
 
     // Cached backlink to containing workspace.
-    struct hayward_workspace *workspace;
+    struct hwd_workspace *workspace;
 
     // Backling to output.  This is actually the golden source, but should
     // always be updated using the reconciliation functions.
-    struct hayward_output *output;
+    struct hwd_output *output;
 
     // Cached flag indicating whether the column contains the focused
     // window.  Should only be updated using the reconciliation functions.
     bool focused;
 
-    list_t *children; // struct hayward_window
+    list_t *children; // struct hwd_window
 
-    struct hayward_window *active_child;
+    struct hwd_window *active_child;
 
     bool dead;
 };
 
-struct hayward_column {
+struct hwd_column {
     size_t id;
 
-    struct hayward_column_state pending;
-    struct hayward_column_state committed;
-    struct hayward_column_state current;
+    struct hwd_column_state pending;
+    struct hwd_column_state committed;
+    struct hwd_column_state current;
 
     bool dirty;
 
@@ -74,86 +74,76 @@ struct hayward_column {
     } events;
 };
 
-struct hayward_column *
+struct hwd_column *
 column_create(void);
 
 bool
-column_is_alive(struct hayward_column *column);
+column_is_alive(struct hwd_column *column);
 
 void
-column_consider_destroy(struct hayward_column *container);
+column_consider_destroy(struct hwd_column *container);
 
 void
-column_set_dirty(struct hayward_column *column);
+column_set_dirty(struct hwd_column *column);
 
 void
-column_detach(struct hayward_column *column);
+column_detach(struct hwd_column *column);
 
 void
 column_reconcile(
-    struct hayward_column *column, struct hayward_workspace *workspace,
-    struct hayward_output *output
+    struct hwd_column *column, struct hwd_workspace *workspace, struct hwd_output *output
 );
 void
-column_reconcile_detached(struct hayward_column *column);
+column_reconcile_detached(struct hwd_column *column);
 
 /**
  * Search a container's descendants a container based on test criteria. Returns
  * the first container that passes the test.
  */
-struct hayward_window *
+struct hwd_window *
 column_find_child(
-    struct hayward_column *container,
-    bool (*test)(struct hayward_window *view, void *data), void *data
+    struct hwd_column *container, bool (*test)(struct hwd_window *view, void *data), void *data
 );
 
 void
-column_insert_child(
-    struct hayward_column *parent, struct hayward_window *child, int i
-);
+column_insert_child(struct hwd_column *parent, struct hwd_window *child, int i);
 
 /**
  * Side should be 0 to add before, or 1 to add after.
  */
 void
-column_add_sibling(
-    struct hayward_window *parent, struct hayward_window *child, bool after
-);
+column_add_sibling(struct hwd_window *parent, struct hwd_window *child, bool after);
 
 void
-column_add_child(struct hayward_column *parent, struct hayward_window *child);
+column_add_child(struct hwd_column *parent, struct hwd_window *child);
 
 void
-column_remove_child(
-    struct hayward_column *parent, struct hayward_window *child
-);
+column_remove_child(struct hwd_column *parent, struct hwd_window *child);
 
 void
-column_set_active_child(
-    struct hayward_column *column, struct hayward_window *window
-);
+column_set_active_child(struct hwd_column *column, struct hwd_window *window);
 
 /**
  * Get a column's box in layout coordinates.
  */
 void
-column_get_box(struct hayward_column *column, struct wlr_box *box);
+column_get_box(struct hwd_column *column, struct wlr_box *box);
 
 void
-column_set_resizing(struct hayward_column *column, bool resizing);
+column_set_resizing(struct hwd_column *column, bool resizing);
 
 list_t *
-column_get_siblings(struct hayward_column *column);
+column_get_siblings(struct hwd_column *column);
 
 int
-column_sibling_index(struct hayward_column *child);
+column_sibling_index(struct hwd_column *child);
 
-struct hayward_column *
-column_get_previous_sibling(struct hayward_column *column);
-struct hayward_column *
-column_get_next_sibling(struct hayward_column *column);
+struct hwd_column *
+column_get_previous_sibling(struct hwd_column *column);
+struct hwd_column *
+column_get_next_sibling(struct hwd_column *column);
 
 bool
-column_has_urgent_child(struct hayward_column *column);
+column_has_urgent_child(struct hwd_column *column);
 
 #endif

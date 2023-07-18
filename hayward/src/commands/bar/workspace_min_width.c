@@ -24,22 +24,16 @@ bar_cmd_workspace_min_width(int argc, char **argv) {
     int min_width = strtol(argv[0], &end, 10);
     if (min_width < 0 || (*end != '\0' && strcasecmp(end, "px") != 0)) {
         return cmd_results_new(
-            CMD_INVALID,
-            "[Bar %s] Invalid minimum workspace button width value: %s",
-            bar->id, argv[0]
+            CMD_INVALID, "[Bar %s] Invalid minimum workspace button width value: %s", bar->id,
+            argv[0]
         );
     }
 
     if (argc == 2 && strcasecmp(argv[1], "px") != 0) {
-        return cmd_results_new(
-            CMD_INVALID, "Expected 'workspace_min_width <px> [px]'"
-        );
+        return cmd_results_new(CMD_INVALID, "Expected 'workspace_min_width <px> [px]'");
     }
 
-    hayward_log(
-        HAYWARD_DEBUG, "[Bar %s] Setting minimum workspace button width to %d",
-        bar->id, min_width
-    );
+    hwd_log(HWD_DEBUG, "[Bar %s] Setting minimum workspace button width to %d", bar->id, min_width);
     config->current_bar->workspace_min_width = min_width;
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

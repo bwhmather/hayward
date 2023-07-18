@@ -58,7 +58,7 @@ cmd_input(int argc, char **argv) {
         return error;
     }
 
-    hayward_log(HAYWARD_DEBUG, "entering input block: %s", argv[0]);
+    hwd_log(HWD_DEBUG, "entering input block: %s", argv[0]);
 
     config->handler_context.input_config = new_input_config(argv[0]);
     if (!config->handler_context.input_config) {
@@ -67,38 +67,28 @@ cmd_input(int argc, char **argv) {
 
     struct cmd_results *res;
 
-    if (find_handler(
-            argv[1], input_config_handlers, sizeof(input_config_handlers)
-        )) {
+    if (find_handler(argv[1], input_config_handlers, sizeof(input_config_handlers))) {
         if (config->reading) {
             res = config_subcommand(
-                argv + 1, argc - 1, input_config_handlers,
-                sizeof(input_config_handlers)
+                argv + 1, argc - 1, input_config_handlers, sizeof(input_config_handlers)
             );
         } else {
-            res = cmd_results_new(
-                CMD_FAILURE, "Can only be used in config file."
-            );
+            res = cmd_results_new(CMD_FAILURE, "Can only be used in config file.");
         }
     } else {
-        res = config_subcommand(
-            argv + 1, argc - 1, input_handlers, sizeof(input_handlers)
-        );
+        res = config_subcommand(argv + 1, argc - 1, input_handlers, sizeof(input_handlers));
     }
 
-    if ((!res || res->status == CMD_SUCCESS) &&
-        strcmp(argv[1], "xkb_switch_layout") != 0) {
+    if ((!res || res->status == CMD_SUCCESS) && strcmp(argv[1], "xkb_switch_layout") != 0) {
         char *error = NULL;
-        struct input_config *ic =
-            store_input_config(config->handler_context.input_config, &error);
+        struct input_config *ic = store_input_config(config->handler_context.input_config, &error);
         if (!ic) {
             free_input_config(config->handler_context.input_config);
             if (res) {
                 free_cmd_results(res);
             }
             res = cmd_results_new(
-                CMD_FAILURE, "Failed to compile keymap: %s",
-                error ? error : "(details unavailable)"
+                CMD_FAILURE, "Failed to compile keymap: %s", error ? error : "(details unavailable)"
             );
             free(error);
             return res;

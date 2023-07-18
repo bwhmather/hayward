@@ -44,16 +44,14 @@ seat_cmd_hide_cursor(int argc, char **argv) {
     } else {
         if (strcmp(argv[0], "when-typing") != 0) {
             return cmd_results_new(
-                CMD_INVALID,
-                "Expected 'hide_cursor <timeout>|when-typing [enable|disable]'"
+                CMD_INVALID, "Expected 'hide_cursor <timeout>|when-typing [enable|disable]'"
             );
         }
-        seat_config->hide_cursor_when_typing = parse_boolean(argv[1], true)
-            ? HIDE_WHEN_TYPING_ENABLE
-            : HIDE_WHEN_TYPING_DISABLE;
+        seat_config->hide_cursor_when_typing =
+            parse_boolean(argv[1], true) ? HIDE_WHEN_TYPING_ENABLE : HIDE_WHEN_TYPING_DISABLE;
 
         // Invalidate all the caches for this config
-        struct hayward_seat *seat = NULL;
+        struct hwd_seat *seat = NULL;
         wl_list_for_each(seat, &server.input->seats, link) {
             seat->cursor->hide_when_typing = HIDE_WHEN_TYPING_DEFAULT;
         }

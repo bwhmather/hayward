@@ -1,5 +1,5 @@
-#ifndef HAYWARD_TREE_H
-#define HAYWARD_TREE_H
+#ifndef HWD_TREE_H
+#define HWD_TREE_H
 
 #include <wlr/types/wlr_output_layout.h>
 
@@ -9,10 +9,10 @@
 #include <hayward/tree/workspace.h>
 
 void
-hayward_move_window_to_floating(struct hayward_window *window);
+hwd_move_window_to_floating(struct hwd_window *window);
 
 void
-hayward_move_window_to_tiling(struct hayward_window *window);
+hwd_move_window_to_tiling(struct hwd_window *window);
 
 /**
  * Detaches a window from its current column, and by extension workspace, and
@@ -27,9 +27,8 @@ hayward_move_window_to_tiling(struct hayward_window *window);
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void
-hayward_move_window_to_column_from_direction(
-    struct hayward_window *window, struct hayward_column *column,
-    enum wlr_direction move_dir
+hwd_move_window_to_column_from_direction(
+    struct hwd_window *window, struct hwd_column *column, enum wlr_direction move_dir
 );
 
 /**
@@ -45,24 +44,17 @@ hayward_move_window_to_column_from_direction(
  * The old workspace and old columns will not be automatically cleaned up.
  */
 void
-hayward_move_window_to_column(
-    struct hayward_window *window, struct hayward_column *destination
+hwd_move_window_to_column(struct hwd_window *window, struct hwd_column *destination);
+
+void
+hwd_move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *workspace);
+
+void
+hwd_move_window_to_output_from_direction(
+    struct hwd_window *window, struct hwd_output *output, enum wlr_direction move_dir
 );
 
 void
-hayward_move_window_to_workspace(
-    struct hayward_window *window, struct hayward_workspace *workspace
-);
-
-void
-hayward_move_window_to_output_from_direction(
-    struct hayward_window *window, struct hayward_output *output,
-    enum wlr_direction move_dir
-);
-
-void
-hayward_move_window_to_output(
-    struct hayward_window *window, struct hayward_output *output
-);
+hwd_move_window_to_output(struct hwd_window *window, struct hwd_output *output);
 
 #endif

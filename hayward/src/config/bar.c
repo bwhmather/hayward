@@ -198,17 +198,16 @@ static void
 invoke_haywardbar(struct bar_config *bar) {
     int sockets[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-        hayward_log_errno(HAYWARD_ERROR, "socketpair failed");
+        hwd_log_errno(HWD_ERROR, "socketpair failed");
         return;
     }
-    if (!hayward_set_cloexec(sockets[0], true) ||
-        !hayward_set_cloexec(sockets[1], true)) {
+    if (!hwd_set_cloexec(sockets[0], true) || !hwd_set_cloexec(sockets[1], true)) {
         return;
     }
 
     bar->client = wl_client_create(server.wl_display, sockets[0]);
     if (bar->client == NULL) {
-        hayward_log_errno(HAYWARD_ERROR, "wl_client_create failed");
+        hwd_log_errno(HWD_ERROR, "wl_client_create failed");
         return;
     }
 
@@ -217,7 +216,7 @@ invoke_haywardbar(struct bar_config *bar) {
 
     pid_t pid = fork();
     if (pid < 0) {
-        hayward_log(HAYWARD_ERROR, "Failed to create fork for haywardbar");
+        hwd_log(HWD_ERROR, "Failed to create fork for haywardbar");
         return;
     } else if (pid == 0) {
         // Remove the SIGUSR1 handler that wlroots adds for xwayland
@@ -230,24 +229,21 @@ invoke_haywardbar(struct bar_config *bar) {
 
         pid = fork();
         if (pid < 0) {
-            hayward_log_errno(HAYWARD_ERROR, "fork failed");
+            hwd_log_errno(HWD_ERROR, "fork failed");
             _exit(EXIT_FAILURE);
         } else if (pid == 0) {
-            if (!hayward_set_cloexec(sockets[1], false)) {
+            if (!hwd_set_cloexec(sockets[1], false)) {
                 _exit(EXIT_FAILURE);
             }
 
             char wayland_socket_str[16];
-            snprintf(
-                wayland_socket_str, sizeof(wayland_socket_str), "%d", sockets[1]
-            );
+            snprintf(wayland_socket_str, sizeof(wayland_socket_str), "%d", sockets[1]);
             setenv("WAYLAND_SOCKET", wayland_socket_str, true);
 
             // run custom haywardbar
             char *const cmd[] = {
-                bar->haywardbar_command ? bar->haywardbar_command
-                                        : "haywardbar",
-                "-b", bar->id, NULL};
+                bar->haywardbar_command ? bar->haywardbar_command : "haywardbar", "-b", bar->id,
+                NULL};
             execvp(cmd[0], cmd);
             _exit(EXIT_FAILURE);
         }
@@ -255,16 +251,16 @@ invoke_haywardbar(struct bar_config *bar) {
     }
 
     if (close(sockets[1]) != 0) {
-        hayward_log_errno(HAYWARD_ERROR, "close failed");
+        hwd_log_errno(HWD_ERROR, "close failed");
         return;
     }
 
     if (waitpid(pid, NULL, 0) < 0) {
-        hayward_log_errno(HAYWARD_ERROR, "waitpid failed");
+        hwd_log_errno(HWD_ERROR, "waitpid failed");
         return;
     }
 
-    hayward_log(HAYWARD_DEBUG, "Spawned haywardbar %s", bar->id);
+    hwd_log(HWD_DEBUG, "Spawned haywardbar %s", bar->id);
     return;
 }
 
@@ -273,7 +269,7 @@ load_haywardbar(struct bar_config *bar) {
     if (bar->client != NULL) {
         wl_client_destroy(bar->client);
     }
-    hayward_log(HAYWARD_DEBUG, "Invoking haywardbar for bar id '%s'", bar->id);
+    hwd_log(HWD_DEBUG, "Invoking haywardbar for bar id '%s'", bar->id);
     invoke_haywardbar(bar);
 }
 

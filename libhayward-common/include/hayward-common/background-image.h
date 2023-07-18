@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_BACKGROUND_IMAGE_H
-#define _HAYWARD_BACKGROUND_IMAGE_H
+#ifndef _HWD_BACKGROUND_IMAGE_H
+#define _HWD_BACKGROUND_IMAGE_H
 #include <hayward-common/cairo_util.h>
 
 enum background_mode {
@@ -18,8 +18,8 @@ cairo_surface_t *
 load_background_image(const char *path);
 void
 render_background_image(
-    cairo_t *cairo, cairo_surface_t *image, enum background_mode mode,
-    int buffer_width, int buffer_height
+    cairo_t *cairo, cairo_surface_t *image, enum background_mode mode, int buffer_width,
+    int buffer_height
 );
 
 #endif

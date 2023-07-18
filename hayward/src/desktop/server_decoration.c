@@ -18,53 +18,49 @@
 
 static void
 server_decoration_handle_destroy(struct wl_listener *listener, void *data) {
-    struct hayward_server_decoration *deco =
-        wl_container_of(listener, deco, destroy);
+    struct hwd_server_decoration *deco = wl_container_of(listener, deco, destroy);
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     wl_list_remove(&deco->destroy.link);
     wl_list_remove(&deco->mode.link);
     wl_list_remove(&deco->link);
     free(deco);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 server_decoration_handle_mode(struct wl_listener *listener, void *data) {
-    struct hayward_server_decoration *deco =
-        wl_container_of(listener, deco, mode);
+    struct hwd_server_decoration *deco = wl_container_of(listener, deco, mode);
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    struct hayward_view *view =
-        view_from_wlr_surface(deco->wlr_server_decoration->surface);
+    struct hwd_view *view = view_from_wlr_surface(deco->wlr_server_decoration->surface);
     if (view == NULL || view->surface != deco->wlr_server_decoration->surface) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
-    bool csd = deco->wlr_server_decoration->mode ==
-        WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
+    bool csd = deco->wlr_server_decoration->mode == WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
     view_update_csd_from_client(view, csd);
 
     arrange_window(view->window);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_new_decoration(struct wl_listener *listener, void *data) {
-    struct hayward_server_decoration_manager *manager =
+    struct hwd_server_decoration_manager *manager =
         wl_container_of(listener, manager, new_decoration);
     struct wlr_server_decoration *wlr_deco = data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    struct hayward_server_decoration *deco = calloc(1, sizeof(*deco));
+    struct hwd_server_decoration *deco = calloc(1, sizeof(*deco));
     if (deco == NULL) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -78,44 +74,40 @@ handle_new_decoration(struct wl_listener *listener, void *data) {
 
     wl_list_insert(&manager->decorations, &deco->link);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
-struct hayward_server_decoration_manager *
-hayward_server_decoration_manager_create(struct wl_display *wl_display) {
-    struct hayward_server_decoration_manager *manager =
-        calloc(1, sizeof(struct hayward_server_decoration_manager));
+struct hwd_server_decoration_manager *
+hwd_server_decoration_manager_create(struct wl_display *wl_display) {
+    struct hwd_server_decoration_manager *manager =
+        calloc(1, sizeof(struct hwd_server_decoration_manager));
     if (manager == NULL) {
         return NULL;
     }
 
-    manager->server_decoration_manager =
-        wlr_server_decoration_manager_create(wl_display);
+    manager->server_decoration_manager = wlr_server_decoration_manager_create(wl_display);
     if (manager->server_decoration_manager == NULL) {
         free(manager);
         return NULL;
     }
     wlr_server_decoration_manager_set_default_mode(
-        manager->server_decoration_manager,
-        WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
+        manager->server_decoration_manager, WLR_SERVER_DECORATION_MANAGER_MODE_SERVER
     );
 
     wl_list_init(&manager->decorations);
 
     manager->new_decoration.notify = handle_new_decoration;
     wl_signal_add(
-        &manager->server_decoration_manager->events.new_decoration,
-        &manager->new_decoration
+        &manager->server_decoration_manager->events.new_decoration, &manager->new_decoration
     );
     return manager;
 }
 
-struct hayward_server_decoration *
+struct hwd_server_decoration *
 decoration_from_surface(
-    struct hayward_server_decoration_manager *manager,
-    struct wlr_surface *surface
+    struct hwd_server_decoration_manager *manager, struct wlr_surface *surface
 ) {
-    struct hayward_server_decoration *deco;
+    struct hwd_server_decoration *deco;
     wl_list_for_each(deco, &manager->decorations, link) {
         if (deco->wlr_server_decoration->surface == surface) {
             return deco;

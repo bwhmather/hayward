@@ -26,7 +26,7 @@
 #include <config.h>
 
 struct seatop_resize_floating_event {
-    struct hayward_window *window;
+    struct hwd_window *window;
     enum wlr_edges edge;
     bool preserve_ratio;
     double ref_lx, ref_ly;               // cursor's x/y at start of op
@@ -36,12 +36,11 @@ struct seatop_resize_floating_event {
 
 static void
 handle_button(
-    struct hayward_seat *seat, uint32_t time_msec,
-    struct wlr_input_device *device, uint32_t button,
+    struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
 ) {
     struct seatop_resize_floating_event *e = seat->seatop_data;
-    struct hayward_window *window = e->window;
+    struct hwd_window *window = e->window;
 
     if (seat->cursor->pressed_button_count == 0) {
         window_set_resizing(window, false);
@@ -51,11 +50,11 @@ handle_button(
 }
 
 static void
-handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
+handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     struct seatop_resize_floating_event *e = seat->seatop_data;
-    struct hayward_window *window = e->window;
+    struct hwd_window *window = e->window;
     enum wlr_edges edge = e->edge;
-    struct hayward_cursor *cursor = seat->cursor;
+    struct hwd_cursor *cursor = seat->cursor;
 
     // The amount the mouse has moved since the start of the resize operation
     // Positive is down/right
@@ -80,10 +79,9 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
         grow_height = e->ref_height * max_multiplier;
     }
 
-    struct hayward_window_state *state = &window->current;
+    struct hwd_window_state *state = &window->current;
     double border_width = 0.0;
-    if (window->current.border == B_NORMAL ||
-        window->current.border == B_PIXEL) {
+    if (window->current.border == B_NORMAL || window->current.border == B_PIXEL) {
         border_width = state->border_thickness * 2;
     }
     double border_height = 0.0;
@@ -98,9 +96,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     double width = e->ref_width + grow_width;
     double height = e->ref_height + grow_height;
     int min_width, max_width, min_height, max_height;
-    floating_calculate_constraints(
-        &min_width, &max_width, &min_height, &max_height
-    );
+    floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
     width = fmin(width, max_width - border_width);
     width = fmax(width, min_width + border_width);
     width = fmax(width, 1);
@@ -112,8 +108,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
     if (window->view) {
         double view_min_width, view_max_width, view_min_height, view_max_height;
         view_get_constraints(
-            window->view, &view_min_width, &view_max_width, &view_min_height,
-            &view_max_height
+            window->view, &view_min_width, &view_max_width, &view_min_height, &view_max_height
         );
         width = fmin(width, view_max_width - border_width);
         width = fmax(width, view_min_width + border_width);
@@ -167,14 +162,14 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
 }
 
 static void
-handle_unref(struct hayward_seat *seat, struct hayward_window *window) {
+handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
     struct seatop_resize_floating_event *e = seat->seatop_data;
     if (e->window == window) {
         seatop_begin_default(seat);
     }
 }
 
-static const struct hayward_seatop_impl seatop_impl = {
+static const struct hwd_seatop_impl seatop_impl = {
     .button = handle_button,
     .pointer_motion = handle_pointer_motion,
     .unref = handle_unref,
@@ -182,21 +177,18 @@ static const struct hayward_seatop_impl seatop_impl = {
 
 void
 seatop_begin_resize_floating(
-    struct hayward_seat *seat, struct hayward_window *window,
-    enum wlr_edges edge
+    struct hwd_seat *seat, struct hwd_window *window, enum wlr_edges edge
 ) {
     seatop_end(seat);
 
-    struct seatop_resize_floating_event *e =
-        calloc(1, sizeof(struct seatop_resize_floating_event));
+    struct seatop_resize_floating_event *e = calloc(1, sizeof(struct seatop_resize_floating_event));
     if (!e) {
         return;
     }
     e->window = window;
 
     struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat->wlr_seat);
-    e->preserve_ratio =
-        keyboard && (wlr_keyboard_get_modifiers(keyboard) & WLR_MODIFIER_SHIFT);
+    e->preserve_ratio = keyboard && (wlr_keyboard_get_modifiers(keyboard) & WLR_MODIFIER_SHIFT);
 
     e->edge = edge == WLR_EDGE_NONE ? WLR_EDGE_BOTTOM | WLR_EDGE_RIGHT : edge;
     e->ref_lx = seat->cursor->cursor->x;
@@ -212,8 +204,7 @@ seatop_begin_resize_floating(
     window_set_resizing(window, true);
     window_raise_floating(window);
 
-    const char *image =
-        edge == WLR_EDGE_NONE ? "se-resize" : wlr_xcursor_get_resize_name(edge);
+    const char *image = edge == WLR_EDGE_NONE ? "se-resize" : wlr_xcursor_get_resize_name(edge);
     cursor_set_image(seat->cursor, image, NULL);
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
 }

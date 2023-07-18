@@ -67,35 +67,27 @@ output_cmd_transform(int argc, char **argv) {
     struct output_config *output = config->handler_context.output_config;
     config->handler_context.leftovers.argc = argc - 1;
     config->handler_context.leftovers.argv = argv + 1;
-    if (argc > 1 &&
-        (strcmp(argv[1], "clockwise") == 0 ||
-         strcmp(argv[1], "anticlockwise") == 0)) {
+    if (argc > 1 && (strcmp(argv[1], "clockwise") == 0 || strcmp(argv[1], "anticlockwise") == 0)) {
         if (config->reloading) {
             return cmd_results_new(
-                CMD_INVALID,
-                "Relative transforms cannot be used in the configuration file"
+                CMD_INVALID, "Relative transforms cannot be used in the configuration file"
             );
         }
-        hayward_assert(output->name != NULL, "Output config name not set");
+        hwd_assert(output->name != NULL, "Output config name not set");
         if (strcmp(output->name, "*") == 0) {
-            return cmd_results_new(
-                CMD_INVALID, "Cannot apply relative transform to all outputs."
-            );
+            return cmd_results_new(CMD_INVALID, "Cannot apply relative transform to all outputs.");
         }
-        struct hayward_output *s_output = output_by_name_or_id(output->name);
+        struct hwd_output *s_output = output_by_name_or_id(output->name);
         if (s_output == NULL) {
             return cmd_results_new(
-                CMD_INVALID,
-                "Cannot apply relative transform to unknown output %s",
-                output->name
+                CMD_INVALID, "Cannot apply relative transform to unknown output %s", output->name
             );
         }
         if (strcmp(argv[1], "anticlockwise") == 0) {
             transform = invert_rotation_direction(transform);
         }
         struct wlr_output *w_output = s_output->wlr_output;
-        transform =
-            wlr_output_transform_compose(w_output->transform, transform);
+        transform = wlr_output_transform_compose(w_output->transform, transform);
         config->handler_context.leftovers.argv += 1;
         config->handler_context.leftovers.argc -= 1;
     }

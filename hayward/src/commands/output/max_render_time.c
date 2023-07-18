@@ -16,9 +16,7 @@ output_cmd_max_render_time(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "Missing output config");
     }
     if (!argc) {
-        return cmd_results_new(
-            CMD_INVALID, "Missing max render time argument."
-        );
+        return cmd_results_new(CMD_INVALID, "Missing max render time argument.");
     }
 
     int max_render_time;

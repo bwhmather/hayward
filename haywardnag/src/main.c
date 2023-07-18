@@ -18,7 +18,7 @@ sig_handler(int signal) {
 }
 
 void
-hayward_terminate(int code) {
+hwd_terminate(int code) {
     haywardnag_destroy(&haywardnag);
     exit(code);
 }
@@ -36,19 +36,17 @@ main(int argc, char **argv) {
 
     char *config_path = NULL;
     bool debug = false;
-    status = haywardnag_parse_options(
-        argc, argv, NULL, NULL, NULL, &config_path, &debug
-    );
+    status = haywardnag_parse_options(argc, argv, NULL, NULL, NULL, &config_path, &debug);
     if (status != 0) {
         goto cleanup;
     }
-    hayward_log_init(debug ? HAYWARD_DEBUG : HAYWARD_ERROR);
+    hwd_log_init(debug ? HWD_DEBUG : HWD_ERROR);
 
     if (!config_path) {
         config_path = haywardnag_get_config_path();
     }
     if (config_path) {
-        hayward_log(HAYWARD_DEBUG, "Loading config file: %s", config_path);
+        hwd_log(HWD_DEBUG, "Loading config file: %s", config_path);
         status = haywardnag_load_config(config_path, &haywardnag, types);
         if (status != 0) {
             goto cleanup;
@@ -62,18 +60,14 @@ main(int argc, char **argv) {
         struct haywardnag_type *type_args = haywardnag_type_new("<args>");
         list_add(types, type_args);
 
-        status = haywardnag_parse_options(
-            argc, argv, &haywardnag, types, type_args, NULL, NULL
-        );
+        status = haywardnag_parse_options(argc, argv, &haywardnag, types, type_args, NULL, NULL);
         if (status != 0) {
             goto cleanup;
         }
     }
 
     if (!haywardnag.message) {
-        hayward_log(
-            HAYWARD_ERROR, "No message passed. Please provide --message/-m"
-        );
+        hwd_log(HWD_ERROR, "No message passed. Please provide --message/-m");
         status = EXIT_FAILURE;
         goto cleanup;
     }
@@ -103,18 +97,17 @@ main(int argc, char **argv) {
         list_add(haywardnag.buttons, &haywardnag.details.button_details);
     }
 
-    hayward_log(HAYWARD_DEBUG, "Output: %s", haywardnag.type->output);
-    hayward_log(HAYWARD_DEBUG, "Anchors: %" PRIu32, haywardnag.type->anchors);
-    hayward_log(HAYWARD_DEBUG, "Type: %s", haywardnag.type->name);
-    hayward_log(HAYWARD_DEBUG, "Message: %s", haywardnag.message);
-    char *font =
-        pango_font_description_to_string(haywardnag.type->font_description);
-    hayward_log(HAYWARD_DEBUG, "Font: %s", font);
+    hwd_log(HWD_DEBUG, "Output: %s", haywardnag.type->output);
+    hwd_log(HWD_DEBUG, "Anchors: %" PRIu32, haywardnag.type->anchors);
+    hwd_log(HWD_DEBUG, "Type: %s", haywardnag.type->name);
+    hwd_log(HWD_DEBUG, "Message: %s", haywardnag.message);
+    char *font = pango_font_description_to_string(haywardnag.type->font_description);
+    hwd_log(HWD_DEBUG, "Font: %s", font);
     free(font);
-    hayward_log(HAYWARD_DEBUG, "Buttons");
+    hwd_log(HWD_DEBUG, "Buttons");
     for (int i = 0; i < haywardnag.buttons->length; i++) {
         struct haywardnag_button *button = haywardnag.buttons->items[i];
-        hayward_log(HAYWARD_DEBUG, "\t[%s] `%s`", button->text, button->action);
+        hwd_log(HWD_DEBUG, "\t[%s] `%s`", button->text, button->action);
     }
 
     signal(SIGTERM, sig_handler);

@@ -246,7 +246,7 @@ unescape_string(char *string) {
 
 char *
 join_args(char **argv, int argc) {
-    hayward_assert(argc > 0, "argc should be positive");
+    hwd_assert(argc > 0, "argc should be positive");
 
     int len = 0, i;
     for (i = 0; i < argc; ++i) {
@@ -351,13 +351,13 @@ vformat_str(const char *fmt, va_list args) {
 
     int len = vsnprintf(NULL, 0, fmt, args);
     if (len < 0) {
-        hayward_log_errno(HAYWARD_ERROR, "vsnprintf(\"%s\") failed", fmt);
+        hwd_log_errno(HWD_ERROR, "vsnprintf(\"%s\") failed", fmt);
         goto out;
     }
 
     str = malloc(len + 1);
     if (str == NULL) {
-        hayward_log_errno(HAYWARD_ERROR, "malloc() failed");
+        hwd_log_errno(HWD_ERROR, "malloc() failed");
         goto out;
     }
 

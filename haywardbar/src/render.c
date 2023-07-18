@@ -42,13 +42,11 @@ choose_text_aa_mode(struct render_context *ctx, uint32_t fontcolor) {
     uint32_t balpha = ctx->background_color & 0xFF;
 
     // Subpixel antialiasing requires blend be done in cairo, not compositor
-    cairo_font_options_t *fo =
-        salpha == balpha ? ctx->textaa_sharp : ctx->textaa_safe;
+    cairo_font_options_t *fo = salpha == balpha ? ctx->textaa_sharp : ctx->textaa_safe;
     cairo_set_font_options(ctx->cairo, fo);
 
     // Color emojis, being semitransparent bitmaps, are leaky with 'SOURCE'
-    cairo_operator_t op =
-        salpha == 0xFF ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE;
+    cairo_operator_t op = salpha == 0xFF ? CAIRO_OPERATOR_OVER : CAIRO_OPERATOR_SOURCE;
     cairo_set_operator(ctx->cairo, op);
 }
 
@@ -68,13 +66,9 @@ render_status_line_error(struct render_context *ctx, double *x) {
     int margin = 3;
     double ws_vertical_padding = output->bar->config->status_padding;
 
-    PangoFontDescription *font_description =
-        output->bar->config->font_description;
+    PangoFontDescription *font_description = output->bar->config->font_description;
     int text_width, text_height;
-    get_text_size(
-        cairo, font_description, &text_width, &text_height, NULL, 1, false,
-        "%s", error
-    );
+    get_text_size(cairo, font_description, &text_width, &text_height, NULL, 1, false, "%s", error);
 
     uint32_t ideal_height = text_height + ws_vertical_padding * 2;
     uint32_t ideal_surface_height = ideal_height;
@@ -101,14 +95,14 @@ render_status_line_text(struct render_context *ctx, double *x) {
 
     cairo_t *cairo = ctx->cairo;
     struct haywardbar_config *config = output->bar->config;
-    uint32_t fontcolor = output->focused ? config->colors.focused_statusline
-                                         : config->colors.statusline;
+    uint32_t fontcolor =
+        output->focused ? config->colors.focused_statusline : config->colors.statusline;
     cairo_set_source_u32(cairo, fontcolor);
 
     int text_width, text_height;
     get_text_size(
-        cairo, config->font_description, &text_width, &text_height, NULL, 1,
-        config->pango_markup, "%s", text
+        cairo, config->font_description, &text_width, &text_height, NULL, 1, config->pango_markup,
+        "%s", text
     );
 
     double ws_vertical_padding = config->status_padding;
@@ -125,17 +119,14 @@ render_status_line_text(struct render_context *ctx, double *x) {
     double text_y = height / 2.0 - text_height / 2.0;
     cairo_move_to(cairo, *x, (int)floor(text_y));
     choose_text_aa_mode(ctx, fontcolor);
-    render_text(
-        cairo, config->font_description, 1, config->pango_markup, "%s", text
-    );
+    render_text(cairo, config->font_description, 1, config->pango_markup, "%s", text);
     *x -= margin;
     return output->height;
 }
 
 static void
 render_sharp_rectangle(
-    cairo_t *cairo, uint32_t color, double x, double y, double width,
-    double height
+    cairo_t *cairo, uint32_t color, double x, double y, double width, double height
 ) {
     cairo_save(cairo);
     cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
@@ -147,10 +138,7 @@ render_sharp_rectangle(
 }
 
 static void
-render_sharp_line(
-    cairo_t *cairo, uint32_t color, double x, double y, double width,
-    double height
-) {
+render_sharp_line(cairo_t *cairo, uint32_t color, double x, double y, double width, double height) {
     if (width > 1 && height > 1) {
         render_sharp_rectangle(cairo, color, x, y, width, height);
     } else {
@@ -178,14 +166,14 @@ render_sharp_line(
 
 static enum hotspot_event_handling
 block_hotspot_callback(
-    struct haywardbar_output *output, struct haywardbar_hotspot *hotspot,
-    double x, double y, uint32_t button, void *data
+    struct haywardbar_output *output, struct haywardbar_hotspot *hotspot, double x, double y,
+    uint32_t button, void *data
 ) {
     struct i3bar_block *block = data;
     struct status_line *status = output->bar->status;
     return i3bar_block_send_click(
-        status, block, x, y, x - (double)hotspot->x, y - (double)hotspot->y,
-        (double)hotspot->width, (double)hotspot->height, output->scale, button
+        status, block, x, y, x - (double)hotspot->x, y - (double)hotspot->y, (double)hotspot->width,
+        (double)hotspot->height, output->scale, button
     );
 }
 
@@ -196,8 +184,7 @@ i3bar_block_unref_callback(void *data) {
 
 static uint32_t
 render_status_block(
-    struct render_context *ctx, struct i3bar_block *block, double *x, bool edge,
-    bool use_short_text
+    struct render_context *ctx, struct i3bar_block *block, double *x, bool edge, bool use_short_text
 ) {
     if (!block->full_text || !*block->full_text) {
         return 0;
@@ -213,8 +200,8 @@ render_status_block(
     struct haywardbar_config *config = output->bar->config;
     int text_width, text_height;
     get_text_size(
-        cairo, config->font_description, &text_width, &text_height, NULL, 1,
-        block->markup, "%s", text
+        cairo, config->font_description, &text_width, &text_height, NULL, 1, block->markup, "%s",
+        text
     );
 
     int margin = 3;
@@ -224,8 +211,8 @@ render_status_block(
     if (block->min_width_str) {
         int w;
         get_text_size(
-            cairo, config->font_description, &w, NULL, NULL, 1, block->markup,
-            "%s", block->min_width_str
+            cairo, config->font_description, &w, NULL, NULL, 1, block->markup, "%s",
+            block->min_width_str
         );
         block->min_width = w;
     }
@@ -255,13 +242,12 @@ render_status_block(
     if (!edge) {
         if (config->sep_symbol) {
             get_text_size(
-                cairo, config->font_description, &sep_width, &sep_height, NULL,
-                1, false, "%s", config->sep_symbol
+                cairo, config->font_description, &sep_width, &sep_height, NULL, 1, false, "%s",
+                config->sep_symbol
             );
             uint32_t _ideal_height = sep_height + ws_vertical_padding * 2;
             uint32_t _ideal_surface_height = _ideal_height;
-            if (!output->bar->config->height &&
-                output->height < _ideal_surface_height) {
+            if (!output->bar->config->height && output->height < _ideal_surface_height) {
                 return _ideal_surface_height;
             }
             if (block->separator && sep_width > sep_block_width) {
@@ -275,8 +261,7 @@ render_status_block(
 
     uint32_t height = output->height;
     if (output->bar->status->click_events) {
-        struct haywardbar_hotspot *hotspot =
-            calloc(1, sizeof(struct haywardbar_hotspot));
+        struct haywardbar_hotspot *hotspot = calloc(1, sizeof(struct haywardbar_hotspot));
         hotspot->x = *x;
         hotspot->y = 0;
         hotspot->width = width;
@@ -292,37 +277,26 @@ render_status_block(
     double y_pos = ws_vertical_padding;
     double render_height = height - ws_vertical_padding * 2;
 
-    uint32_t bg_color = block->urgent
-        ? config->colors.urgent_workspace.background
-        : block->background;
+    uint32_t bg_color =
+        block->urgent ? config->colors.urgent_workspace.background : block->background;
     if (bg_color) {
-        render_sharp_rectangle(
-            cairo, bg_color, x_pos, y_pos, block_width, render_height
-        );
+        render_sharp_rectangle(cairo, bg_color, x_pos, y_pos, block_width, render_height);
         ctx->background_color = bg_color;
     }
 
-    uint32_t border_color =
-        block->urgent ? config->colors.urgent_workspace.border : block->border;
+    uint32_t border_color = block->urgent ? config->colors.urgent_workspace.border : block->border;
     if (block->border_set || block->urgent) {
         if (block->border_top > 0) {
-            render_sharp_line(
-                cairo, border_color, x_pos, y_pos, block_width,
-                block->border_top
-            );
+            render_sharp_line(cairo, border_color, x_pos, y_pos, block_width, block->border_top);
         }
         if (block->border_bottom > 0) {
             render_sharp_line(
-                cairo, border_color, x_pos,
-                y_pos + render_height - block->border_bottom, block_width,
-                block->border_bottom
+                cairo, border_color, x_pos, y_pos + render_height - block->border_bottom,
+                block_width, block->border_bottom
             );
         }
         if (block->border_left > 0) {
-            render_sharp_line(
-                cairo, border_color, x_pos, y_pos, block->border_left,
-                render_height
-            );
+            render_sharp_line(cairo, border_color, x_pos, y_pos, block->border_left, render_height);
         }
         x_pos += block->border_left + margin;
     }
@@ -337,8 +311,8 @@ render_status_block(
     }
     double text_y = height / 2.0 - text_height / 2.0;
     cairo_move_to(cairo, offset, (int)floor(text_y));
-    uint32_t color = output->focused ? config->colors.focused_statusline
-                                     : config->colors.statusline;
+    uint32_t color =
+        output->focused ? config->colors.focused_statusline : config->colors.statusline;
     color = block->color_set ? block->color : color;
     color = block->urgent ? config->colors.urgent_workspace.text : color;
     cairo_set_source_u32(cairo, color);
@@ -350,8 +324,7 @@ render_status_block(
         x_pos += margin;
         if (block->border_right > 0) {
             render_sharp_line(
-                cairo, border_color, x_pos, y_pos, block->border_right,
-                render_height
+                cairo, border_color, x_pos, y_pos, block->border_right, render_height
             );
         }
         x_pos += block->border_right;
@@ -369,10 +342,7 @@ render_status_block(
             double sep_y = height / 2.0 - sep_height / 2.0;
             cairo_move_to(cairo, offset, (int)floor(sep_y));
             choose_text_aa_mode(ctx, color);
-            render_text(
-                cairo, config->font_description, 1, false, "%s",
-                config->sep_symbol
-            );
+            render_text(cairo, config->font_description, 1, false, "%s", config->sep_symbol);
         } else {
             cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
             cairo_set_line_width(cairo, 1);
@@ -386,8 +356,8 @@ render_status_block(
 
 static void
 predict_status_block_pos(
-    cairo_t *cairo, struct haywardbar_output *output, struct i3bar_block *block,
-    double *x, bool edge
+    cairo_t *cairo, struct haywardbar_output *output, struct i3bar_block *block, double *x,
+    bool edge
 ) {
     if (!block->full_text || !*block->full_text) {
         return;
@@ -397,8 +367,8 @@ predict_status_block_pos(
 
     int text_width, text_height;
     get_text_size(
-        cairo, config->font_description, &text_width, &text_height, NULL, 1,
-        block->markup, "%s", block->full_text
+        cairo, config->font_description, &text_width, &text_height, NULL, 1, block->markup, "%s",
+        block->full_text
     );
 
     int margin = 3;
@@ -409,8 +379,8 @@ predict_status_block_pos(
     if (block->min_width_str) {
         int w;
         get_text_size(
-            cairo, config->font_description, &w, NULL, NULL, 1, block->markup,
-            "%s", block->min_width_str
+            cairo, config->font_description, &w, NULL, NULL, 1, block->markup, "%s",
+            block->min_width_str
         );
         block->min_width = w;
     }
@@ -437,13 +407,12 @@ predict_status_block_pos(
     if (!edge) {
         if (config->sep_symbol) {
             get_text_size(
-                cairo, config->font_description, &sep_width, &sep_height, NULL,
-                1, false, "%s", config->sep_symbol
+                cairo, config->font_description, &sep_width, &sep_height, NULL, 1, false, "%s",
+                config->sep_symbol
             );
             uint32_t _ideal_height = sep_height + ws_vertical_padding * 2;
             uint32_t _ideal_surface_height = _ideal_height;
-            if (!output->bar->config->height &&
-                output->height < _ideal_surface_height) {
+            if (!output->bar->config->height && output->height < _ideal_surface_height) {
                 return;
             }
             if (sep_width > sep_block_width) {
@@ -457,9 +426,7 @@ predict_status_block_pos(
 }
 
 static double
-predict_status_line_pos(
-    cairo_t *cairo, struct haywardbar_output *output, double x
-) {
+predict_status_line_pos(cairo_t *cairo, struct haywardbar_output *output, double x) {
     bool edge = x == output->width;
     struct i3bar_block *block;
     wl_list_for_each(block, &output->bar->status->blocks, link) {
@@ -471,23 +438,21 @@ predict_status_line_pos(
 
 static uint32_t
 predict_workspace_button_length(
-    cairo_t *cairo, struct haywardbar_output *output,
-    struct haywardbar_workspace *ws
+    cairo_t *cairo, struct haywardbar_output *output, struct haywardbar_workspace *ws
 ) {
     struct haywardbar_config *config = output->bar->config;
 
     int text_width, text_height;
     get_text_size(
-        cairo, config->font_description, &text_width, &text_height, NULL, 1,
-        config->pango_markup, "%s", ws->label
+        cairo, config->font_description, &text_width, &text_height, NULL, 1, config->pango_markup,
+        "%s", ws->label
     );
 
     int ws_vertical_padding = WS_VERTICAL_PADDING;
     int ws_horizontal_padding = WS_HORIZONTAL_PADDING;
     int border_width = BORDER_WIDTH;
 
-    uint32_t ideal_height =
-        ws_vertical_padding * 2 + text_height + border_width * 2;
+    uint32_t ideal_height = ws_vertical_padding * 2 + text_height + border_width * 2;
     uint32_t ideal_surface_height = ideal_height;
     if (!output->bar->config->height && output->height < ideal_surface_height) {
         return 0;
@@ -501,9 +466,7 @@ predict_workspace_button_length(
 }
 
 static uint32_t
-predict_workspace_buttons_length(
-    cairo_t *cairo, struct haywardbar_output *output
-) {
+predict_workspace_buttons_length(cairo_t *cairo, struct haywardbar_output *output) {
     uint32_t width = 0;
     if (output->bar->config->workspace_buttons) {
         struct haywardbar_workspace *ws;
@@ -515,9 +478,7 @@ predict_workspace_buttons_length(
 }
 
 static uint32_t
-predict_binding_mode_indicator_length(
-    cairo_t *cairo, struct haywardbar_output *output
-) {
+predict_binding_mode_indicator_length(cairo_t *cairo, struct haywardbar_output *output) {
     const char *mode = output->bar->mode;
     if (!mode) {
         return 0;
@@ -539,8 +500,7 @@ predict_binding_mode_indicator_length(
     int ws_horizontal_padding = WS_HORIZONTAL_PADDING;
     int border_width = BORDER_WIDTH;
 
-    uint32_t ideal_height =
-        text_height + ws_vertical_padding * 2 + border_width * 2;
+    uint32_t ideal_height = text_height + ws_vertical_padding * 2 + border_width * 2;
     uint32_t ideal_surface_height = ideal_height;
     if (!output->bar->config->height && output->height < ideal_surface_height) {
         return 0;
@@ -615,8 +575,7 @@ render_binding_mode_indicator(struct render_context *ctx, double x) {
     int ws_horizontal_padding = WS_HORIZONTAL_PADDING;
     int border_width = BORDER_WIDTH;
 
-    uint32_t ideal_height =
-        text_height + ws_vertical_padding * 2 + border_width * 2;
+    uint32_t ideal_height = text_height + ws_vertical_padding * 2 + border_width * 2;
     uint32_t ideal_surface_height = ideal_height;
     if (!output->bar->config->height && output->height < ideal_surface_height) {
         return ideal_surface_height;
@@ -647,17 +606,14 @@ render_binding_mode_indicator(struct render_context *ctx, double x) {
     cairo_set_source_u32(cairo, config->colors.binding_mode.text);
     cairo_move_to(cairo, x + width / 2 - text_width / 2, (int)floor(text_y));
     choose_text_aa_mode(ctx, config->colors.binding_mode.text);
-    render_text(
-        cairo, config->font_description, 1, output->bar->mode_pango_markup,
-        "%s", mode
-    );
+    render_text(cairo, config->font_description, 1, output->bar->mode_pango_markup, "%s", mode);
     return output->height;
 }
 
 static enum hotspot_event_handling
 workspace_hotspot_callback(
-    struct haywardbar_output *output, struct haywardbar_hotspot *hotspot,
-    double x, double y, uint32_t button, void *data
+    struct haywardbar_output *output, struct haywardbar_hotspot *hotspot, double x, double y,
+    uint32_t button, void *data
 ) {
     if (button != BTN_LEFT) {
         return HOTSPOT_PROCESS;
@@ -667,9 +623,7 @@ workspace_hotspot_callback(
 }
 
 static uint32_t
-render_workspace_button(
-    struct render_context *ctx, struct haywardbar_workspace *ws, double *x
-) {
+render_workspace_button(struct render_context *ctx, struct haywardbar_workspace *ws, double *x) {
     struct haywardbar_output *output = ctx->output;
     struct haywardbar_config *config = output->bar->config;
     struct box_colors box_colors;
@@ -688,16 +642,15 @@ render_workspace_button(
     cairo_t *cairo = ctx->cairo;
     int text_width, text_height;
     get_text_size(
-        cairo, config->font_description, &text_width, &text_height, NULL, 1,
-        config->pango_markup, "%s", ws->label
+        cairo, config->font_description, &text_width, &text_height, NULL, 1, config->pango_markup,
+        "%s", ws->label
     );
 
     int ws_vertical_padding = WS_VERTICAL_PADDING;
     int ws_horizontal_padding = WS_HORIZONTAL_PADDING;
     int border_width = BORDER_WIDTH;
 
-    uint32_t ideal_height =
-        ws_vertical_padding * 2 + text_height + border_width * 2;
+    uint32_t ideal_height = ws_vertical_padding * 2 + text_height + border_width * 2;
     uint32_t ideal_surface_height = ideal_height;
     if (!output->bar->config->height && output->height < ideal_surface_height) {
         return ideal_surface_height;
@@ -728,13 +681,9 @@ render_workspace_button(
     cairo_set_source_u32(cairo, box_colors.text);
     cairo_move_to(cairo, *x + width / 2 - text_width / 2, (int)floor(text_y));
     choose_text_aa_mode(ctx, box_colors.text);
-    render_text(
-        cairo, config->font_description, 1, config->pango_markup, "%s",
-        ws->label
-    );
+    render_text(cairo, config->font_description, 1, config->pango_markup, "%s", ws->label);
 
-    struct haywardbar_hotspot *hotspot =
-        calloc(1, sizeof(struct haywardbar_hotspot));
+    struct haywardbar_hotspot *hotspot = calloc(1, sizeof(struct haywardbar_hotspot));
     hotspot->x = *x;
     hotspot->y = 0;
     hotspot->width = width;
@@ -765,9 +714,7 @@ render_to_cairo(struct render_context *ctx) {
     cairo_paint(cairo);
 
     int th;
-    get_text_size(
-        cairo, config->font_description, NULL, &th, NULL, 1, false, " "
-    );
+    get_text_size(cairo, config->font_description, NULL, &th, NULL, 1, false, " ");
     uint32_t max_height = (th + WS_VERTICAL_PADDING * 4);
     /*
      * Each render_* function takes the actual height of the bar, and returns
@@ -804,9 +751,7 @@ render_to_cairo(struct render_context *ctx) {
 }
 
 static void
-output_frame_handle_done(
-    void *data, struct wl_callback *callback, uint32_t time
-) {
+output_frame_handle_done(void *data, struct wl_callback *callback, uint32_t time) {
     wl_callback_destroy(callback);
     struct haywardbar_output *output = data;
     output->frame_scheduled = false;
@@ -816,8 +761,7 @@ output_frame_handle_done(
     }
 }
 
-static const struct wl_callback_listener output_frame_listener = {
-    .done = output_frame_handle_done};
+static const struct wl_callback_listener output_frame_listener = {.done = output_frame_handle_done};
 
 void
 render_frame(struct haywardbar_output *output) {
@@ -831,8 +775,7 @@ render_frame(struct haywardbar_output *output) {
     struct render_context ctx = {0};
     ctx.output = output;
 
-    cairo_surface_t *recorder =
-        cairo_recording_surface_create(CAIRO_CONTENT_COLOR_ALPHA, NULL);
+    cairo_surface_t *recorder = cairo_recording_surface_create(CAIRO_CONTENT_COLOR_ALPHA, NULL);
     cairo_t *cairo = cairo_create(recorder);
     cairo_scale(cairo, output->scale, output->scale);
     cairo_set_antialias(cairo, CAIRO_ANTIALIAS_BEST);
@@ -848,9 +791,7 @@ render_frame(struct haywardbar_output *output) {
         fo = cairo_font_options_create();
         cairo_font_options_set_hint_style(fo, CAIRO_HINT_STYLE_FULL);
         cairo_font_options_set_antialias(fo, CAIRO_ANTIALIAS_SUBPIXEL);
-        cairo_font_options_set_subpixel_order(
-            fo, to_cairo_subpixel_order(output->subpixel)
-        );
+        cairo_font_options_set_subpixel_order(fo, to_cairo_subpixel_order(output->subpixel));
         ctx.textaa_sharp = fo;
     }
 
@@ -867,14 +808,11 @@ render_frame(struct haywardbar_output *output) {
         // Reconfigure surface
         zwlr_layer_surface_v1_set_size(output->layer_surface, 0, height);
         zwlr_layer_surface_v1_set_margin(
-            output->layer_surface, output->bar->config->gaps.top,
-            output->bar->config->gaps.right, output->bar->config->gaps.bottom,
-            output->bar->config->gaps.left
+            output->layer_surface, output->bar->config->gaps.top, output->bar->config->gaps.right,
+            output->bar->config->gaps.bottom, output->bar->config->gaps.left
         );
         if (strcmp(output->bar->config->mode, "dock") == 0) {
-            zwlr_layer_surface_v1_set_exclusive_zone(
-                output->layer_surface, height
-            );
+            zwlr_layer_surface_v1_set_exclusive_zone(output->layer_surface, height);
         }
         // TODO: this could infinite loop if the compositor assigns us a
         // different height than what we asked for
@@ -899,24 +837,19 @@ render_frame(struct haywardbar_output *output) {
         cairo_paint(shm);
 
         wl_surface_set_buffer_scale(output->surface, output->scale);
-        wl_surface_attach(
-            output->surface, output->current_buffer->buffer, 0, 0
-        );
+        wl_surface_attach(output->surface, output->current_buffer->buffer, 0, 0);
         wl_surface_damage(output->surface, 0, 0, output->width, output->height);
 
         uint32_t bg_alpha = ctx.background_color & 0xFF;
         if (bg_alpha == 0xFF) {
-            struct wl_region *region =
-                wl_compositor_create_region(output->bar->compositor);
+            struct wl_region *region = wl_compositor_create_region(output->bar->compositor);
             wl_region_add(region, 0, 0, INT32_MAX, INT32_MAX);
             wl_surface_set_opaque_region(output->surface, region);
             wl_region_destroy(region);
         }
 
         struct wl_callback *frame_callback = wl_surface_frame(output->surface);
-        wl_callback_add_listener(
-            frame_callback, &output_frame_listener, output
-        );
+        wl_callback_add_listener(frame_callback, &output_frame_listener, output);
         output->frame_scheduled = true;
 
         wl_surface_commit(output->surface);

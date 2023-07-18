@@ -44,10 +44,7 @@ list_add(list_t *list, void *item) {
 void
 list_insert(list_t *list, int index, void *item) {
     list_resize(list);
-    memmove(
-        &list->items[index + 1], &list->items[index],
-        sizeof(void *) * (list->length - index)
-    );
+    memmove(&list->items[index + 1], &list->items[index], sizeof(void *) * (list->length - index));
     list->length++;
     list->items[index] = item;
 }
@@ -55,10 +52,7 @@ list_insert(list_t *list, int index, void *item) {
 void
 list_del(list_t *list, int index) {
     list->length--;
-    memmove(
-        &list->items[index], &list->items[index + 1],
-        sizeof(void *) * (list->length - index)
-    );
+    memmove(&list->items[index], &list->items[index + 1], sizeof(void *) * (list->length - index));
 }
 
 void
@@ -79,10 +73,7 @@ list_qsort(list_t *list, int compare(const void *left, const void *right)) {
 }
 
 int
-list_seq_find(
-    list_t *list, int compare(const void *item, const void *data),
-    const void *data
-) {
+list_seq_find(list_t *list, int compare(const void *item, const void *data), const void *data) {
     for (int i = 0; i < list->length; i++) {
         void *item = list->items[i];
         if (compare(item, data) == 0) {
@@ -117,7 +108,7 @@ list_move_to_end(list_t *list, void *item) {
             break;
         }
     }
-    hayward_assert(i < list->length, "Item not found in list");
+    hwd_assert(i < list->length, "Item not found in list");
     list_del(list, i);
     list_add(list, item);
 }
@@ -136,8 +127,7 @@ list_rotate(list_t *list, int from, int to) {
 
 static void
 list_inplace_merge(
-    list_t *list, int left, int last, int mid,
-    int compare(const void *a, const void *b)
+    list_t *list, int left, int last, int mid, int compare(const void *a, const void *b)
 ) {
     int right = mid + 1;
 
@@ -158,9 +148,7 @@ list_inplace_merge(
 }
 
 static void
-list_inplace_sort(
-    list_t *list, int first, int last, int compare(const void *a, const void *b)
-) {
+list_inplace_sort(list_t *list, int first, int last, int compare(const void *a, const void *b)) {
     if (first >= last) {
         return;
     } else if ((last - first) == 1) {

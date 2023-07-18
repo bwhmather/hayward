@@ -1,5 +1,5 @@
-#ifndef HAYWARD_TRANSACTION_H
-#define HAYWARD_TRANSACTION_H
+#ifndef HWD_TRANSACTION_H
+#define HWD_TRANSACTION_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,20 +25,20 @@
  * create and commits a transaction from the dirty containers.
  */
 
-enum hayward_transaction_phase {
-    HAYWARD_TRANSACTION_IDLE,
-    HAYWARD_TRANSACTION_BEFORE_COMMIT,
-    HAYWARD_TRANSACTION_COMMIT,
-    HAYWARD_TRANSACTION_WAITING_CONFIRM,
-    HAYWARD_TRANSACTION_APPLY,
-    HAYWARD_TRANSACTION_AFTER_APPLY,
+enum hwd_transaction_phase {
+    HWD_TRANSACTION_IDLE,
+    HWD_TRANSACTION_BEFORE_COMMIT,
+    HWD_TRANSACTION_COMMIT,
+    HWD_TRANSACTION_WAITING_CONFIRM,
+    HWD_TRANSACTION_APPLY,
+    HWD_TRANSACTION_AFTER_APPLY,
 };
 
-struct hayward_transaction_manager {
+struct hwd_transaction_manager {
     int depth;
     bool queued;
 
-    enum hayward_transaction_phase phase;
+    enum hwd_transaction_phase phase;
     struct wl_event_source *timer;
     struct timespec commit_time;
     size_t num_configures;
@@ -52,32 +52,23 @@ struct hayward_transaction_manager {
     } events;
 };
 
-struct hayward_transaction_manager *
-hayward_transaction_manager_create();
+struct hwd_transaction_manager *
+hwd_transaction_manager_create();
 
 void
-hayward_transaction_manager_destroy(struct hayward_transaction_manager *manager
-);
+hwd_transaction_manager_destroy(struct hwd_transaction_manager *manager);
 
 void
-hayward_transaction_manager_ensure_queued(
-    struct hayward_transaction_manager *manager
-);
+hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *manager);
 
 void
-hayward_transaction_manager_begin_transaction(
-    struct hayward_transaction_manager *manager
-);
+hwd_transaction_manager_begin_transaction(struct hwd_transaction_manager *manager);
 
 bool
-hayward_transaction_manager_transaction_in_progress(
-    struct hayward_transaction_manager *manager
-);
+hwd_transaction_manager_transaction_in_progress(struct hwd_transaction_manager *manager);
 
 void
-hayward_transaction_manager_end_transaction(
-    struct hayward_transaction_manager *manager
-);
+hwd_transaction_manager_end_transaction(struct hwd_transaction_manager *manager);
 
 /**
  * Can be called during handling of a commit event to inform the transaction
@@ -87,13 +78,9 @@ hayward_transaction_manager_end_transaction(
  * triggered and all locks should be forgotten.
  */
 void
-hayward_transaction_manager_acquire_commit_lock(
-    struct hayward_transaction_manager *manager
-);
+hwd_transaction_manager_acquire_commit_lock(struct hwd_transaction_manager *manager);
 
 void
-hayward_transaction_manager_release_commit_lock(
-    struct hayward_transaction_manager *manager
-);
+hwd_transaction_manager_release_commit_lock(struct hwd_transaction_manager *manager);
 
 #endif

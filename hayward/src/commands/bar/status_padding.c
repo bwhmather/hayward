@@ -21,13 +21,11 @@ bar_cmd_status_padding(int argc, char **argv) {
     char *end;
     int padding = strtol(argv[0], &end, 10);
     if (strlen(end) || padding < 0) {
-        return cmd_results_new(
-            CMD_INVALID, "Padding must be a positive integer"
-        );
+        return cmd_results_new(CMD_INVALID, "Padding must be a positive integer");
     }
     config->current_bar->status_padding = padding;
-    hayward_log(
-        HAYWARD_DEBUG, "Status padding on bar %s: %d", config->current_bar->id,
+    hwd_log(
+        HWD_DEBUG, "Status padding on bar %s: %d", config->current_bar->id,
         config->current_bar->status_padding
     );
     return cmd_results_new(CMD_SUCCESS, NULL);

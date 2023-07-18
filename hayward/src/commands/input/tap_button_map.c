@@ -26,9 +26,7 @@ input_cmd_tap_button_map(int argc, char **argv) {
     } else if (strcasecmp(argv[0], "lmr") == 0) {
         ic->tap_button_map = LIBINPUT_CONFIG_TAP_MAP_LMR;
     } else {
-        return cmd_results_new(
-            CMD_INVALID, "Expected 'tap_button_map <lrm|lmr>'"
-        );
+        return cmd_results_new(CMD_INVALID, "Expected 'tap_button_map <lrm|lmr>'");
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

@@ -1,15 +1,15 @@
-#ifndef HAYWARD_IPC_JSON_H
-#define HAYWARD_IPC_JSON_H
+#ifndef HWD_IPC_JSON_H
+#define HWD_IPC_JSON_H
 
 #include <json.h>
 
-struct hayward_output;
-struct hayward_input_device;
-struct hayward_seat;
-struct hayward_window;
-struct hayward_column;
-struct hayward_workspace;
-struct hayward_root;
+struct hwd_output;
+struct hwd_input_device;
+struct hwd_seat;
+struct hwd_window;
+struct hwd_column;
+struct hwd_workspace;
+struct hwd_root;
 
 struct bar_config;
 
@@ -20,19 +20,19 @@ json_object *
 ipc_json_get_binding_mode(void);
 
 json_object *
-ipc_json_describe_window(struct hayward_window *window);
+ipc_json_describe_window(struct hwd_window *window);
 json_object *
-ipc_json_describe_output(struct hayward_output *output);
+ipc_json_describe_output(struct hwd_output *output);
 json_object *
-ipc_json_describe_disabled_output(struct hayward_output *o);
+ipc_json_describe_disabled_output(struct hwd_output *o);
 json_object *
-ipc_json_describe_workspace(struct hayward_workspace *workspace);
+ipc_json_describe_workspace(struct hwd_workspace *workspace);
 json_object *
-ipc_json_describe_root(struct hayward_root *root);
+ipc_json_describe_root(struct hwd_root *root);
 json_object *
-ipc_json_describe_input(struct hayward_input_device *device);
+ipc_json_describe_input(struct hwd_input_device *device);
 json_object *
-ipc_json_describe_seat(struct hayward_seat *seat);
+ipc_json_describe_seat(struct hwd_seat *seat);
 json_object *
 ipc_json_describe_bar_config(struct bar_config *bar);
 

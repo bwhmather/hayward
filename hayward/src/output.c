@@ -47,10 +47,10 @@
 #include <config.h>
 
 static void
-output_destroy(struct hayward_output *output);
+output_destroy(struct hwd_output *output);
 
 static void
-output_init_scene(struct hayward_output *output) {
+output_init_scene(struct hwd_output *output) {
     output->scene_tree = wlr_scene_tree_create(root->layers.outputs);
     output->layers.shell_background = wlr_scene_tree_create(output->scene_tree);
     output->layers.shell_bottom = wlr_scene_tree_create(output->scene_tree);
@@ -60,88 +60,68 @@ output_init_scene(struct hayward_output *output) {
 }
 
 static void
-output_update_scene(struct hayward_output *output) {
-    struct hayward_window *fullscreen_window =
-        output->committed.fullscreen_window;
+output_update_scene(struct hwd_output *output) {
+    struct hwd_window *fullscreen_window = output->committed.fullscreen_window;
 
     if (!wl_list_empty(&output->layers.fullscreen->children)) {
         struct wl_list *link = output->layers.fullscreen->children.next;
         struct wlr_scene_node *node = wl_container_of(link, node, link);
 
-        if (fullscreen_window == NULL ||
-            node != &fullscreen_window->scene_tree->node) {
+        if (fullscreen_window == NULL || node != &fullscreen_window->scene_tree->node) {
             wlr_scene_node_reparent(node, root->orphans);
         }
     }
 
     if (fullscreen_window != NULL) {
-        wlr_scene_node_reparent(
-            &fullscreen_window->scene_tree->node, output->layers.fullscreen
-        );
+        wlr_scene_node_reparent(&fullscreen_window->scene_tree->node, output->layers.fullscreen);
     }
 }
 
 static void
-output_destroy_scene(struct hayward_output *output) {
+output_destroy_scene(struct hwd_output *output) {
     wlr_scene_node_destroy(&output->scene_tree->node);
 }
 
 static void
 output_handle_transaction_commit(struct wl_listener *listener, void *data) {
-    struct hayward_output *output =
-        wl_container_of(listener, output, transaction_commit);
+    struct hwd_output *output = wl_container_of(listener, output, transaction_commit);
 
     wl_list_remove(&listener->link);
     output->dirty = false;
 
-    wl_signal_add(
-        &transaction_manager->events.apply, &output->transaction_apply
-    );
+    wl_signal_add(&transaction_manager->events.apply, &output->transaction_apply);
 
-    memcpy(
-        &output->committed, &output->pending,
-        sizeof(struct hayward_output_state)
-    );
+    memcpy(&output->committed, &output->pending, sizeof(struct hwd_output_state));
 }
 
 static void
 output_handle_transaction_apply(struct wl_listener *listener, void *data) {
-    struct hayward_output *output =
-        wl_container_of(listener, output, transaction_apply);
+    struct hwd_output *output = wl_container_of(listener, output, transaction_apply);
 
     wl_list_remove(&listener->link);
 
     output_update_scene(output);
 
     if (output->committed.dead) {
-        wl_signal_add(
-            &transaction_manager->events.after_apply,
-            &output->transaction_after_apply
-        );
+        wl_signal_add(&transaction_manager->events.after_apply, &output->transaction_after_apply);
     }
 
-    memcpy(
-        &output->current, &output->committed,
-        sizeof(struct hayward_output_state)
-    );
+    memcpy(&output->current, &output->committed, sizeof(struct hwd_output_state));
 }
 
 static void
-output_handle_transaction_after_apply(
-    struct wl_listener *listener, void *data
-) {
-    struct hayward_output *output =
-        wl_container_of(listener, output, transaction_after_apply);
+output_handle_transaction_after_apply(struct wl_listener *listener, void *data) {
+    struct hwd_output *output = wl_container_of(listener, output, transaction_after_apply);
 
     wl_list_remove(&listener->link);
 
-    hayward_assert(output->current.dead, "After apply called on live output");
+    hwd_assert(output->current.dead, "After apply called on live output");
     output_destroy(output);
 }
 
-struct hayward_output *
+struct hwd_output *
 output_create(struct wlr_output *wlr_output) {
-    struct hayward_output *output = calloc(1, sizeof(struct hayward_output));
+    struct hwd_output *output = calloc(1, sizeof(struct hwd_output));
 
     static size_t next_id = 1;
     output->id = next_id++;
@@ -157,8 +137,7 @@ output_create(struct wlr_output *wlr_output) {
 
     output->transaction_commit.notify = output_handle_transaction_commit;
     output->transaction_apply.notify = output_handle_transaction_apply;
-    output->transaction_after_apply.notify =
-        output_handle_transaction_after_apply;
+    output->transaction_after_apply.notify = output_handle_transaction_after_apply;
 
     wl_signal_init(&output->events.disable);
 
@@ -173,17 +152,16 @@ output_create(struct wlr_output *wlr_output) {
 }
 
 bool
-output_is_alive(struct hayward_output *output) {
-    hayward_assert(output != NULL, "Expected output");
+output_is_alive(struct hwd_output *output) {
+    hwd_assert(output != NULL, "Expected output");
     return !output->pending.dead;
 }
 
 static void
-output_set_dirty(struct hayward_output *output) {
-    hayward_assert(output != NULL, "Expected output");
-    hayward_assert(
-        hayward_transaction_manager_transaction_in_progress(transaction_manager
-        ),
+output_set_dirty(struct hwd_output *output) {
+    hwd_assert(output != NULL, "Expected output");
+    hwd_assert(
+        hwd_transaction_manager_transaction_in_progress(transaction_manager),
         "Expected active transaction"
     );
 
@@ -192,15 +170,13 @@ output_set_dirty(struct hayward_output *output) {
     }
 
     output->dirty = true;
-    wl_signal_add(
-        &transaction_manager->events.commit, &output->transaction_commit
-    );
-    hayward_transaction_manager_ensure_queued(transaction_manager);
+    wl_signal_add(&transaction_manager->events.commit, &output->transaction_commit);
+    hwd_transaction_manager_ensure_queued(transaction_manager);
 }
 
 void
-output_enable(struct hayward_output *output) {
-    hayward_assert(!output->enabled, "output is already enabled");
+output_enable(struct hwd_output *output) {
+    hwd_assert(!output->enabled, "output is already enabled");
     output->enabled = true;
     list_add(root->outputs, output);
     if (root->pending.active_output == NULL ||
@@ -215,8 +191,8 @@ output_enable(struct hayward_output *output) {
 }
 
 static void
-output_evacuate(struct hayward_output *output) {
-    struct hayward_output *new_output = NULL;
+output_evacuate(struct hwd_output *output) {
+    struct hwd_output *new_output = NULL;
     if (root->outputs->length > 1) {
         new_output = root->outputs->items[0];
         if (new_output == output) {
@@ -225,12 +201,11 @@ output_evacuate(struct hayward_output *output) {
     }
 
     for (int i = 0; i < root->pending.workspaces->length; i++) {
-        struct hayward_workspace *workspace =
-            root->pending.workspaces->items[i];
+        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
 
         // Move tiling windows.
         for (int j = 0; j < workspace->pending.tiling->length; j++) {
-            struct hayward_column *column = workspace->pending.tiling->items[j];
+            struct hwd_column *column = workspace->pending.tiling->items[j];
 
             if (column->pending.output != output) {
                 continue;
@@ -238,8 +213,7 @@ output_evacuate(struct hayward_output *output) {
 
             column->pending.output = new_output;
             for (int k = 0; k < column->pending.children->length; k++) {
-                struct hayward_window *window =
-                    column->pending.children->items[k];
+                struct hwd_window *window = column->pending.children->items[k];
 
                 window->pending.fullscreen = false;
                 window->pending.output = output;
@@ -249,8 +223,7 @@ output_evacuate(struct hayward_output *output) {
         }
 
         for (int j = 0; j < workspace->pending.floating->length; j++) {
-            struct hayward_window *window =
-                workspace->pending.floating->items[j];
+            struct hwd_window *window = workspace->pending.floating->items[j];
 
             if (window->pending.output != output) {
                 continue;
@@ -269,19 +242,10 @@ output_evacuate(struct hayward_output *output) {
 }
 
 static void
-output_destroy(struct hayward_output *output) {
-    hayward_assert(
-        output->current.dead,
-        "Tried to free output which wasn't marked as destroying"
-    );
-    hayward_assert(
-        output->wlr_output == NULL,
-        "Tried to free output which still had a wlr_output"
-    );
-    hayward_assert(
-        !output->dirty,
-        "Tried to free output which is queued for the next transaction"
-    );
+output_destroy(struct hwd_output *output) {
+    hwd_assert(output->current.dead, "Tried to free output which wasn't marked as destroying");
+    hwd_assert(output->wlr_output == NULL, "Tried to free output which still had a wlr_output");
+    hwd_assert(!output->dirty, "Tried to free output which is queued for the next transaction");
     wl_event_source_remove(output->repaint_timer);
 
     output_destroy_scene(output);
@@ -290,15 +254,13 @@ output_destroy(struct hayward_output *output) {
 }
 
 void
-output_disable(struct hayward_output *output) {
-    hayward_assert(output->enabled, "Expected an enabled output");
+output_disable(struct hwd_output *output) {
+    hwd_assert(output->enabled, "Expected an enabled output");
 
     int index = list_find(root->outputs, output);
-    hayward_assert(index >= 0, "Output not found in root node");
+    hwd_assert(index >= 0, "Output not found in root node");
 
-    hayward_log(
-        HAYWARD_DEBUG, "Disabling output '%s'", output->wlr_output->name
-    );
+    hwd_log(HWD_DEBUG, "Disabling output '%s'", output->wlr_output->name);
     wl_signal_emit_mutable(&output->events.disable, output);
 
     output_evacuate(output);
@@ -308,8 +270,7 @@ output_disable(struct hayward_output *output) {
         if (root->outputs->length == 0) {
             root->pending.active_output = root->fallback_output;
         } else {
-            root->pending.active_output =
-                root->outputs->items[index - 1 < 0 ? 0 : index - 1];
+            root->pending.active_output = root->outputs->items[index - 1 < 0 ? 0 : index - 1];
         }
     }
 
@@ -325,13 +286,11 @@ output_disable(struct hayward_output *output) {
 }
 
 static void
-output_begin_destroy(struct hayward_output *output) {
-    hayward_assert(!output->enabled, "Expected a disabled output");
-    hayward_assert(output_is_alive(output), "Expected live output");
+output_begin_destroy(struct hwd_output *output) {
+    hwd_assert(!output->enabled, "Expected a disabled output");
+    hwd_assert(output_is_alive(output), "Expected live output");
 
-    hayward_log(
-        HAYWARD_DEBUG, "Destroying output '%s'", output->wlr_output->name
-    );
+    hwd_log(HWD_DEBUG, "Destroying output '%s'", output->wlr_output->name);
 
     output->pending.dead = true;
 
@@ -340,16 +299,16 @@ output_begin_destroy(struct hayward_output *output) {
     output_set_dirty(output);
 }
 
-struct hayward_output *
+struct hwd_output *
 output_from_wlr_output(struct wlr_output *output) {
     return output->data;
 }
 
 void
-output_reconcile(struct hayward_output *output) {
-    hayward_assert(output != NULL, "Expected output");
+output_reconcile(struct hwd_output *output) {
+    hwd_assert(output != NULL, "Expected output");
 
-    struct hayward_workspace *workspace = root_get_active_workspace(root);
+    struct hwd_workspace *workspace = root_get_active_workspace(root);
     if (workspace == NULL) {
         output->pending.fullscreen_window = NULL;
     }
@@ -360,15 +319,11 @@ output_reconcile(struct hayward_output *output) {
     output_set_dirty(output);
 }
 
-struct hayward_output *
-output_get_in_direction(
-    struct hayward_output *output, enum wlr_direction direction
-) {
-    hayward_assert(direction, "got invalid direction: %d", direction);
+struct hwd_output *
+output_get_in_direction(struct hwd_output *output, enum wlr_direction direction) {
+    hwd_assert(direction, "got invalid direction: %d", direction);
     struct wlr_box output_box;
-    wlr_output_layout_get_box(
-        root->output_layout, output->wlr_output, &output_box
-    );
+    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
     int lx = output_box.x + output_box.width / 2;
     int ly = output_box.y + output_box.height / 2;
     struct wlr_output *wlr_adjacent = wlr_output_layout_adjacent_output(
@@ -381,7 +336,7 @@ output_get_in_direction(
 }
 
 void
-output_get_box(struct hayward_output *output, struct wlr_box *box) {
+output_get_box(struct hwd_output *output, struct wlr_box *box) {
     box->x = output->lx;
     box->y = output->ly;
     box->width = output->width;
@@ -389,17 +344,17 @@ output_get_box(struct hayward_output *output, struct wlr_box *box) {
 }
 
 void
-output_get_usable_area(struct hayward_output *output, struct wlr_box *box) {
+output_get_usable_area(struct hwd_output *output, struct wlr_box *box) {
     box->x = output->usable_area.x;
     box->y = output->usable_area.y;
     box->width = output->usable_area.width;
     box->height = output->usable_area.height;
 }
 
-struct hayward_output *
+struct hwd_output *
 output_by_name_or_id(const char *name_or_id) {
     for (int i = 0; i < root->outputs->length; ++i) {
-        struct hayward_output *output = root->outputs->items[i];
+        struct hwd_output *output = root->outputs->items[i];
         char identifier[128];
         output_get_identifier(identifier, sizeof(identifier), output);
         if (strcasecmp(identifier, name_or_id) == 0 ||
@@ -410,9 +365,9 @@ output_by_name_or_id(const char *name_or_id) {
     return NULL;
 }
 
-struct hayward_output *
+struct hwd_output *
 all_output_by_name_or_id(const char *name_or_id) {
-    struct hayward_output *output;
+    struct hwd_output *output;
     wl_list_for_each(output, &root->all_outputs, link) {
         char identifier[128];
         output_get_identifier(identifier, sizeof(identifier), output);
@@ -446,21 +401,19 @@ handle_buffer_timer_destroy(struct wlr_addon *addon) {
 }
 
 static const struct wlr_addon_interface buffer_timer_interface = {
-    .name = "hayward_buffer_timer", .destroy = handle_buffer_timer_destroy};
+    .name = "hwd_buffer_timer", .destroy = handle_buffer_timer_destroy};
 
 static struct buffer_timer *
 buffer_timer_assign(struct wlr_scene_buffer *buffer) {
     struct buffer_timer *timer = calloc(1, sizeof(struct buffer_timer));
-    hayward_assert(timer != NULL, "Allocation failed");
+    hwd_assert(timer != NULL, "Allocation failed");
 
-    timer->frame_done_timer = wl_event_loop_add_timer(
-        server.wl_event_loop, handle_buffer_timer, buffer
-    );
-    hayward_assert(buffer != NULL, "Could not create timer");
+    timer->frame_done_timer =
+        wl_event_loop_add_timer(server.wl_event_loop, handle_buffer_timer, buffer);
+    hwd_assert(buffer != NULL, "Could not create timer");
 
     wlr_addon_init(
-        &timer->addon, &buffer->node.addons, &buffer_timer_interface,
-        &buffer_timer_interface
+        &timer->addon, &buffer->node.addons, &buffer_timer_interface, &buffer_timer_interface
     );
 
     return timer;
@@ -468,9 +421,8 @@ buffer_timer_assign(struct wlr_scene_buffer *buffer) {
 
 static struct buffer_timer *
 buffer_timer_try_get(struct wlr_scene_buffer *buffer) {
-    struct wlr_addon *addon = wlr_addon_find(
-        &buffer->node.addons, &buffer_timer_interface, &buffer_timer_interface
-    );
+    struct wlr_addon *addon =
+        wlr_addon_find(&buffer->node.addons, &buffer_timer_interface, &buffer_timer_interface);
     if (addon == NULL) {
         return NULL;
     }
@@ -484,15 +436,13 @@ buffer_timer_try_get(struct wlr_scene_buffer *buffer) {
 struct send_frame_done_data {
     struct timespec when;
     int msec_until_refresh;
-    struct hayward_output *output;
+    struct hwd_output *output;
 };
 
 static void
-send_frame_done_iterator(
-    struct wlr_scene_buffer *buffer, int x, int y, void *user_data
-) {
+send_frame_done_iterator(struct wlr_scene_buffer *buffer, int x, int y, void *user_data) {
     struct send_frame_done_data *data = user_data;
-    struct hayward_output *output = data->output;
+    struct hwd_output *output = data->output;
     int view_max_render_time = 0;
 
     if (buffer->primary_output != data->output->scene_output) {
@@ -502,7 +452,7 @@ send_frame_done_iterator(
     struct wlr_scene_node *current = &buffer->node;
 
     while (true) {
-        struct hayward_window *window = window_for_scene_node(current);
+        struct hwd_window *window = window_for_scene_node(current);
         if (window != NULL) {
             view_max_render_time = window->view->max_render_time;
             break;
@@ -515,13 +465,11 @@ send_frame_done_iterator(
         current = &current->parent->node;
     }
 
-    int delay = data->msec_until_refresh - output->max_render_time -
-        view_max_render_time;
+    int delay = data->msec_until_refresh - output->max_render_time - view_max_render_time;
 
     struct buffer_timer *timer = NULL;
 
-    if (output->max_render_time != 0 && view_max_render_time != 0 &&
-        delay > 0) {
+    if (output->max_render_time != 0 && view_max_render_time != 0 && delay > 0) {
         timer = buffer_timer_try_get(buffer);
 
         if (!timer) {
@@ -538,7 +486,7 @@ send_frame_done_iterator(
 
 static int
 output_repaint_timer_handler(void *data) {
-    struct hayward_output *output = data;
+    struct hwd_output *output = data;
     if (output->wlr_output == NULL) {
         return 0;
     }
@@ -552,7 +500,7 @@ output_repaint_timer_handler(void *data) {
 
 static void
 handle_frame(struct wl_listener *listener, void *user_data) {
-    struct hayward_output *output = wl_container_of(listener, output, frame);
+    struct hwd_output *output = wl_container_of(listener, output, frame);
     if (!output->enabled || !output->wlr_output->enabled) {
         return;
     }
@@ -563,8 +511,7 @@ handle_frame(struct wl_listener *listener, void *user_data) {
 
     if (output->max_render_time != 0) {
         struct timespec now;
-        clockid_t presentation_clock =
-            wlr_backend_get_presentation_clock(server.backend);
+        clockid_t presentation_clock = wlr_backend_get_presentation_clock(server.backend);
         clock_gettime(presentation_clock, &now);
 
         const long NSEC_IN_SECONDS = 1000000000;
@@ -585,8 +532,7 @@ handle_frame(struct wl_listener *listener, void *user_data) {
         // without potential disastrous negative overflows that could occur if
         // tv_sec was not checked.
         if (predicted_refresh.tv_sec >= now.tv_sec) {
-            long nsec_until_refresh =
-                (predicted_refresh.tv_sec - now.tv_sec) * NSEC_IN_SECONDS +
+            long nsec_until_refresh = (predicted_refresh.tv_sec - now.tv_sec) * NSEC_IN_SECONDS +
                 (predicted_refresh.tv_nsec - now.tv_nsec);
 
             // We want msec_until_refresh to be conservative, that is, floored.
@@ -613,17 +559,14 @@ handle_frame(struct wl_listener *listener, void *user_data) {
     clock_gettime(CLOCK_MONOTONIC, &data.when);
     data.msec_until_refresh = msec_until_refresh;
     data.output = output;
-    wlr_scene_output_for_each_buffer(
-        output->scene_output, send_frame_done_iterator, &data
-    );
+    wlr_scene_output_for_each_buffer(output->scene_output, send_frame_done_iterator, &data);
 }
 
 static void
-update_output_manager_config(struct hayward_server *server) {
-    struct wlr_output_configuration_v1 *config =
-        wlr_output_configuration_v1_create();
+update_output_manager_config(struct hwd_server *server) {
+    struct wlr_output_configuration_v1 *config = wlr_output_configuration_v1_create();
 
-    struct hayward_output *output;
+    struct hwd_output *output;
     wl_list_for_each(output, &root->all_outputs, link) {
         if (output == root->fallback_output) {
             continue;
@@ -631,12 +574,9 @@ update_output_manager_config(struct hayward_server *server) {
         struct wlr_output_configuration_head_v1 *config_head =
             wlr_output_configuration_head_v1_create(config, output->wlr_output);
         struct wlr_box output_box;
-        wlr_output_layout_get_box(
-            root->output_layout, output->wlr_output, &output_box
-        );
+        wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
         // We mark the output enabled even if it is switched off by DPMS
-        config_head->state.enabled =
-            output->current_mode != NULL && output->enabled;
+        config_head->state.enabled = output->current_mode != NULL && output->enabled;
         config_head->state.mode = output->current_mode;
         if (!wlr_box_empty(&output_box)) {
             config_head->state.x = output_box.x;
@@ -649,10 +589,10 @@ update_output_manager_config(struct hayward_server *server) {
 
 static void
 handle_destroy(struct wl_listener *listener, void *data) {
-    struct hayward_output *output = wl_container_of(listener, output, destroy);
-    struct hayward_server *server = output->server;
+    struct hwd_output *output = wl_container_of(listener, output, destroy);
+    struct hwd_server *server = output->server;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     output_begin_destroy(output);
 
@@ -673,19 +613,19 @@ handle_destroy(struct wl_listener *listener, void *data) {
 
     update_output_manager_config(server);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
-update_mode(struct hayward_output *output) {
+update_mode(struct hwd_output *output) {
     if (!output->enabled && !output->enabling) {
         struct output_config *oc = find_output_config(output);
         if (output->wlr_output->current_mode != NULL && (!oc || oc->enabled)) {
             // We want to enable this output, but it didn't work last time,
             // possibly because we hadn't enough CRTCs. Try again now that the
             // output has a mode.
-            hayward_log(
-                HAYWARD_DEBUG,
+            hwd_log(
+                HWD_DEBUG,
                 "Output %s has gained a CRTC, "
                 "trying to enable it",
                 output->wlr_output->name
@@ -693,11 +633,11 @@ update_mode(struct hayward_output *output) {
             apply_output_config(oc, output);
         }
 
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!output->enabled) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     arrange_layers(output);
@@ -708,35 +648,34 @@ update_mode(struct hayward_output *output) {
 
 static void
 handle_commit(struct wl_listener *listener, void *data) {
-    struct hayward_output *output = wl_container_of(listener, output, commit);
+    struct hwd_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     if (event->committed & WLR_OUTPUT_STATE_MODE) {
         update_mode(output);
     }
 
     if (!output->enabled) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
-    if (event->committed &
-        (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {
-        hayward_transaction_manager_begin_transaction(transaction_manager);
+    if (event->committed & (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {
+        hwd_transaction_manager_begin_transaction(transaction_manager);
         arrange_layers(output);
         arrange_output(output);
 
         update_output_manager_config(output->server);
     }
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_present(struct wl_listener *listener, void *data) {
-    struct hayward_output *output = wl_container_of(listener, output, present);
+    struct hwd_output *output = wl_container_of(listener, output, present);
     struct wlr_output_event_present *output_event = data;
 
     if (!output->enabled || !output_event->presented) {
@@ -751,14 +690,13 @@ static unsigned int last_headless_num = 0;
 
 void
 handle_new_output(struct wl_listener *listener, void *data) {
-    struct hayward_server *server =
-        wl_container_of(listener, server, new_output);
+    struct hwd_server *server = wl_container_of(listener, server, new_output);
     struct wlr_output *wlr_output = data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     if (wlr_output == root->fallback_output->wlr_output) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -768,37 +706,32 @@ handle_new_output(struct wl_listener *listener, void *data) {
         wlr_output_set_name(wlr_output, name);
     }
 
-    hayward_log(
-        HAYWARD_DEBUG, "New output %p: %s (non-desktop: %d)",
-        (void *)wlr_output, wlr_output->name, wlr_output->non_desktop
+    hwd_log(
+        HWD_DEBUG, "New output %p: %s (non-desktop: %d)", (void *)wlr_output, wlr_output->name,
+        wlr_output->non_desktop
     );
 
     if (wlr_output->non_desktop) {
-        hayward_log(HAYWARD_DEBUG, "Not configuring non-desktop output");
+        hwd_log(HWD_DEBUG, "Not configuring non-desktop output");
         if (server->drm_lease_manager) {
-            wlr_drm_lease_v1_manager_offer_output(
-                server->drm_lease_manager, wlr_output
-            );
+            wlr_drm_lease_v1_manager_offer_output(server->drm_lease_manager, wlr_output);
         }
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
-    if (!wlr_output_init_render(
-            wlr_output, server->allocator, server->renderer
-        )) {
-        hayward_log(HAYWARD_ERROR, "Failed to init output render");
-        hayward_transaction_manager_end_transaction(transaction_manager);
+    if (!wlr_output_init_render(wlr_output, server->allocator, server->renderer)) {
+        hwd_log(HWD_ERROR, "Failed to init output render");
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
-    struct wlr_scene_output *scene_output =
-        wlr_scene_output_create(root->root_scene, wlr_output);
-    hayward_assert(scene_output != NULL, "Allocation failed");
+    struct wlr_scene_output *scene_output = wlr_scene_output_create(root->root_scene, wlr_output);
+    hwd_assert(scene_output != NULL, "Allocation failed");
 
-    struct hayward_output *output = output_create(wlr_output);
+    struct hwd_output *output = output_create(wlr_output);
     if (!output) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     output->server = server;
@@ -813,9 +746,8 @@ handle_new_output(struct wl_listener *listener, void *data) {
     wl_signal_add(&wlr_output->events.frame, &output->frame);
     output->frame.notify = handle_frame;
 
-    output->repaint_timer = wl_event_loop_add_timer(
-        server->wl_event_loop, output_repaint_timer_handler, output
-    );
+    output->repaint_timer =
+        wl_event_loop_add_timer(server->wl_event_loop, output_repaint_timer_handler, output);
 
     struct output_config *oc = find_output_config(output);
     apply_output_config(oc, output);
@@ -823,25 +755,23 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
     update_output_manager_config(server);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
 handle_output_layout_change(struct wl_listener *listener, void *data) {
-    struct hayward_server *server =
-        wl_container_of(listener, server, output_layout_change);
+    struct hwd_server *server = wl_container_of(listener, server, output_layout_change);
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     update_output_manager_config(server);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 output_manager_apply(
-    struct hayward_server *server, struct wlr_output_configuration_v1 *config,
-    bool test_only
+    struct hwd_server *server, struct wlr_output_configuration_v1 *config, bool test_only
 ) {
     // TODO: perform atomic tests on the whole backend atomically
 
@@ -850,7 +780,7 @@ output_manager_apply(
     bool ok = true;
     wl_list_for_each(config_head, &config->heads, link) {
         struct wlr_output *wlr_output = config_head->state.output;
-        struct hayward_output *output = wlr_output->data;
+        struct hwd_output *output = wlr_output->data;
         if (!output->enabled || config_head->state.enabled) {
             continue;
         }
@@ -868,7 +798,7 @@ output_manager_apply(
     // Then enable outputs that need to
     wl_list_for_each(config_head, &config->heads, link) {
         struct wlr_output *wlr_output = config_head->state.output;
-        struct hayward_output *output = wlr_output->data;
+        struct hwd_output *output = wlr_output->data;
         if (!config_head->state.enabled) {
             continue;
         }
@@ -911,36 +841,34 @@ output_manager_apply(
 
 void
 handle_output_manager_apply(struct wl_listener *listener, void *data) {
-    struct hayward_server *server =
-        wl_container_of(listener, server, output_manager_apply);
+    struct hwd_server *server = wl_container_of(listener, server, output_manager_apply);
     struct wlr_output_configuration_v1 *config = data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     output_manager_apply(server, config, false);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
 handle_output_manager_test(struct wl_listener *listener, void *data) {
-    struct hayward_server *server =
-        wl_container_of(listener, server, output_manager_test);
+    struct hwd_server *server = wl_container_of(listener, server, output_manager_test);
     struct wlr_output_configuration_v1 *config = data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     output_manager_apply(server, config, true);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     struct wlr_output_power_v1_set_mode_event *event = data;
-    struct hayward_output *output = event->output->data;
+    struct hwd_output *output = event->output->data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct output_config *oc = new_output_config(output->wlr_output->name);
     switch (event->mode) {
@@ -954,5 +882,5 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     oc = store_output_config(oc);
     apply_output_config(oc, output);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }

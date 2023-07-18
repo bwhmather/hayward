@@ -26,9 +26,7 @@ input_cmd_accel_profile(int argc, char **argv) {
     } else if (strcasecmp(argv[0], "flat") == 0) {
         ic->accel_profile = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
     } else {
-        return cmd_results_new(
-            CMD_INVALID, "Expected 'accel_profile <adaptive|flat>'"
-        );
+        return cmd_results_new(CMD_INVALID, "Expected 'accel_profile <adaptive|flat>'");
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

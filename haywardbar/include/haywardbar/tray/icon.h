@@ -38,8 +38,8 @@ finish_themes(list_t *themes, list_t *basedirs);
  */
 char *
 find_icon(
-    list_t *themes, list_t *basedirs, char *name, int size, char *theme,
-    int *min_size, int *max_size
+    list_t *themes, list_t *basedirs, char *name, int size, char *theme, int *min_size,
+    int *max_size
 );
 
 #endif

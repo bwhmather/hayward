@@ -26,13 +26,13 @@
 #include <config.h>
 
 static void
-column_init_scene(struct hayward_column *column) {
+column_init_scene(struct hwd_column *column) {
     column->scene_tree = wlr_scene_tree_create(root->orphans);
-    hayward_assert(column->scene_tree != NULL, "Allocation failed");
+    hwd_assert(column->scene_tree != NULL, "Allocation failed");
 }
 
 static void
-column_update_scene(struct hayward_column *column) {
+column_update_scene(struct hwd_column *column) {
     double x = column->committed.x;
     double y = column->committed.y;
 
@@ -45,11 +45,11 @@ column_update_scene(struct hayward_column *column) {
         list_t *children = column->committed.children;
         int child_index = children->length - 1;
 
-        struct hayward_window *child = children->items[child_index];
+        struct hwd_window *child = children->items[child_index];
         wlr_scene_node_reparent(&child->scene_tree->node, column->scene_tree);
         wlr_scene_node_raise_to_top(&child->scene_tree->node);
 
-        struct hayward_window *prev_child = child;
+        struct hwd_window *prev_child = child;
 
         // Move subsequent children immediately below it.
         while (child_index > 0) {
@@ -60,12 +60,8 @@ column_update_scene(struct hayward_column *column) {
                 continue;
             }
 
-            wlr_scene_node_reparent(
-                &child->scene_tree->node, column->scene_tree
-            );
-            wlr_scene_node_place_below(
-                &child->scene_tree->node, &prev_child->scene_tree->node
-            );
+            wlr_scene_node_reparent(&child->scene_tree->node, column->scene_tree);
+            wlr_scene_node_place_below(&child->scene_tree->node, &prev_child->scene_tree->node);
 
             prev_child = child;
         }
@@ -86,8 +82,8 @@ column_update_scene(struct hayward_column *column) {
 }
 
 static void
-column_destroy_scene(struct hayward_column *column) {
-    hayward_assert(
+column_destroy_scene(struct hwd_column *column) {
+    hwd_assert(
         wl_list_empty(&column->scene_tree->children),
         "Can't destroy scene tree of column with children"
     );
@@ -96,15 +92,13 @@ column_destroy_scene(struct hayward_column *column) {
 }
 
 static void
-column_destroy(struct hayward_column *column);
+column_destroy(struct hwd_column *column);
 
 static void
-column_copy_state(
-    struct hayward_column_state *tgt, struct hayward_column_state *src
-) {
+column_copy_state(struct hwd_column_state *tgt, struct hwd_column_state *src) {
     list_t *tgt_children = tgt->children;
 
-    memcpy(tgt, src, sizeof(struct hayward_column_state));
+    memcpy(tgt, src, sizeof(struct hwd_column_state));
 
     tgt->children = tgt_children;
     list_clear(tgt->children);
@@ -113,56 +107,46 @@ column_copy_state(
 
 static void
 column_handle_transaction_commit(struct wl_listener *listener, void *data) {
-    struct hayward_column *column =
-        wl_container_of(listener, column, transaction_commit);
+    struct hwd_column *column = wl_container_of(listener, column, transaction_commit);
 
     wl_list_remove(&listener->link);
     column->dirty = false;
 
-    wl_signal_add(
-        &transaction_manager->events.apply, &column->transaction_apply
-    );
+    wl_signal_add(&transaction_manager->events.apply, &column->transaction_apply);
 
     column_copy_state(&column->committed, &column->pending);
 }
 
 static void
 column_handle_transaction_apply(struct wl_listener *listener, void *data) {
-    struct hayward_column *column =
-        wl_container_of(listener, column, transaction_apply);
+    struct hwd_column *column = wl_container_of(listener, column, transaction_apply);
 
     wl_list_remove(&listener->link);
 
     column_update_scene(column);
 
     if (column->committed.dead) {
-        wl_signal_add(
-            &transaction_manager->events.after_apply,
-            &column->transaction_after_apply
-        );
+        wl_signal_add(&transaction_manager->events.after_apply, &column->transaction_after_apply);
     }
 
     column_copy_state(&column->current, &column->committed);
 }
 
 static void
-column_handle_transaction_after_apply(
-    struct wl_listener *listener, void *data
-) {
-    struct hayward_column *column =
-        wl_container_of(listener, column, transaction_after_apply);
+column_handle_transaction_after_apply(struct wl_listener *listener, void *data) {
+    struct hwd_column *column = wl_container_of(listener, column, transaction_after_apply);
 
     wl_list_remove(&listener->link);
 
-    hayward_assert(column->current.dead, "After apply called on live column");
+    hwd_assert(column->current.dead, "After apply called on live column");
     column_destroy(column);
 }
 
-struct hayward_column *
+struct hwd_column *
 column_create(void) {
-    struct hayward_column *column = calloc(1, sizeof(struct hayward_column));
+    struct hwd_column *column = calloc(1, sizeof(struct hwd_column));
     if (!column) {
-        hayward_log(HAYWARD_ERROR, "Unable to allocate hayward_column");
+        hwd_log(HWD_ERROR, "Unable to allocate hwd_column");
         return NULL;
     }
 
@@ -183,25 +167,21 @@ column_create(void) {
 
     column->transaction_commit.notify = column_handle_transaction_commit;
     column->transaction_apply.notify = column_handle_transaction_apply;
-    column->transaction_after_apply.notify =
-        column_handle_transaction_after_apply;
+    column->transaction_after_apply.notify = column_handle_transaction_after_apply;
 
     return column;
 }
 
 bool
-column_is_alive(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
+column_is_alive(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
     return !column->pending.dead;
 }
 
 static void
-column_destroy(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(
-        column->current.dead,
-        "Tried to free column which wasn't marked as destroying"
-    );
+column_destroy(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column->current.dead, "Tried to free column which wasn't marked as destroying");
 
     column_destroy_scene(column);
 
@@ -213,9 +193,9 @@ column_destroy(struct hayward_column *column) {
 }
 
 static void
-column_begin_destroy(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(column_is_alive(column), "Expected live column");
+column_begin_destroy(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column_is_alive(column), "Expected live column");
 
     column->pending.dead = true;
 
@@ -229,9 +209,9 @@ column_begin_destroy(struct hayward_column *column) {
 }
 
 void
-column_consider_destroy(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    struct hayward_workspace *workspace = column->pending.workspace;
+column_consider_destroy(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+    struct hwd_workspace *workspace = column->pending.workspace;
 
     if (column->pending.children->length) {
         return;
@@ -244,11 +224,10 @@ column_consider_destroy(struct hayward_column *column) {
 }
 
 void
-column_set_dirty(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(
-        hayward_transaction_manager_transaction_in_progress(transaction_manager
-        ),
+column_set_dirty(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(
+        hwd_transaction_manager_transaction_in_progress(transaction_manager),
         "Expected active transaction"
     );
 
@@ -257,28 +236,26 @@ column_set_dirty(struct hayward_column *column) {
     }
 
     column->dirty = true;
-    wl_signal_add(
-        &transaction_manager->events.commit, &column->transaction_commit
-    );
-    hayward_transaction_manager_ensure_queued(transaction_manager);
+    wl_signal_add(&transaction_manager->events.commit, &column->transaction_commit);
+    hwd_transaction_manager_ensure_queued(transaction_manager);
 
     for (int i = 0; i < column->committed.children->length; i++) {
-        struct hayward_window *child = column->committed.children->items[i];
+        struct hwd_window *child = column->committed.children->items[i];
         if (window_is_alive(child)) {
             window_set_dirty(child);
         }
     }
 
     for (int i = 0; i < column->pending.children->length; i++) {
-        struct hayward_window *child = column->pending.children->items[i];
+        struct hwd_window *child = column->pending.children->items[i];
         window_set_dirty(child);
     }
 }
 
 void
-column_detach(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    struct hayward_workspace *workspace = column->pending.workspace;
+column_detach(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+    struct hwd_workspace *workspace = column->pending.workspace;
 
     if (workspace == NULL) {
         return;
@@ -289,58 +266,51 @@ column_detach(struct hayward_column *column) {
 
 void
 column_reconcile(
-    struct hayward_column *column, struct hayward_workspace *workspace,
-    struct hayward_output *output
+    struct hwd_column *column, struct hwd_workspace *workspace, struct hwd_output *output
 ) {
-    hayward_assert(column != NULL, "Expected column");
+    hwd_assert(column != NULL, "Expected column");
 
     column->pending.workspace = workspace;
     column->pending.output = output;
 
-    if (workspace_is_visible(workspace) &&
-        workspace->pending.focus_mode == F_TILING &&
+    if (workspace_is_visible(workspace) && workspace->pending.focus_mode == F_TILING &&
         column == workspace->pending.active_column) {
         column->pending.focused = true;
     } else {
         column->pending.focused = false;
     }
 
-    for (int child_index = 0; child_index < column->pending.children->length;
-         child_index++) {
-        struct hayward_window *child =
-            column->pending.children->items[child_index];
+    for (int child_index = 0; child_index < column->pending.children->length; child_index++) {
+        struct hwd_window *child = column->pending.children->items[child_index];
         window_reconcile_tiling(child, column);
     }
 }
 
 void
-column_reconcile_detached(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
+column_reconcile_detached(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
 
     column->pending.workspace = NULL;
     column->pending.output = NULL;
 
     column->pending.focused = false;
 
-    for (int child_index = 0; child_index < column->pending.children->length;
-         child_index++) {
-        struct hayward_window *child =
-            column->pending.children->items[child_index];
+    for (int child_index = 0; child_index < column->pending.children->length; child_index++) {
+        struct hwd_window *child = column->pending.children->items[child_index];
         window_reconcile_tiling(child, column);
     }
 }
 
-struct hayward_window *
+struct hwd_window *
 column_find_child(
-    struct hayward_column *column,
-    bool (*test)(struct hayward_window *window, void *data), void *data
+    struct hwd_column *column, bool (*test)(struct hwd_window *window, void *data), void *data
 ) {
-    hayward_assert(column != NULL, "Expected column");
+    hwd_assert(column != NULL, "Expected column");
     if (!column->pending.children) {
         return NULL;
     }
     for (int i = 0; i < column->pending.children->length; ++i) {
-        struct hayward_window *child = column->pending.children->items[i];
+        struct hwd_window *child = column->pending.children->items[i];
         if (test(child, data)) {
             return child;
         }
@@ -349,17 +319,12 @@ column_find_child(
 }
 
 void
-column_insert_child(
-    struct hayward_column *column, struct hayward_window *child, int i
-) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(child != NULL, "Expected child");
-    hayward_assert(
-        i >= 0 && i <= column->pending.children->length,
-        "Expected index to be in bounds"
-    );
+column_insert_child(struct hwd_column *column, struct hwd_window *child, int i) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(child != NULL, "Expected child");
+    hwd_assert(i >= 0 && i <= column->pending.children->length, "Expected index to be in bounds");
 
-    hayward_assert(
+    hwd_assert(
         !child->pending.workspace && !child->pending.parent,
         "Windows must be detatched before they can be added to a column"
     );
@@ -374,23 +339,21 @@ column_insert_child(
 }
 
 void
-column_add_sibling(
-    struct hayward_window *fixed, struct hayward_window *active, bool after
-) {
-    hayward_assert(fixed != NULL, "Expected fixed window");
-    hayward_assert(active != NULL, "Expected window");
-    hayward_assert(
+column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool after) {
+    hwd_assert(fixed != NULL, "Expected fixed window");
+    hwd_assert(active != NULL, "Expected window");
+    hwd_assert(
         !active->pending.workspace && !active->pending.parent,
         "Windows must be detatched before they can be added to a column"
     );
 
-    struct hayward_column *column = fixed->pending.parent;
-    hayward_assert(column != NULL, "Expected fixed window to be tiled");
+    struct hwd_column *column = fixed->pending.parent;
+    hwd_assert(column != NULL, "Expected fixed window to be tiled");
 
     list_t *siblings = column->pending.children;
 
     int index = list_find(siblings, fixed);
-    hayward_assert(index != -1, "Could not find sibling in child array");
+    hwd_assert(index != -1, "Could not find sibling in child array");
 
     list_insert(siblings, index + after, active);
 
@@ -401,10 +364,10 @@ column_add_sibling(
 }
 
 void
-column_add_child(struct hayward_column *column, struct hayward_window *child) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(child != NULL, "Expected window");
-    hayward_assert(
+column_add_child(struct hwd_column *column, struct hwd_window *child) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(child != NULL, "Expected window");
+    hwd_assert(
         !child->pending.workspace && !child->pending.workspace,
         "Windows must be detatched before they can be added to a column"
     );
@@ -421,17 +384,13 @@ column_add_child(struct hayward_column *column, struct hayward_window *child) {
 }
 
 void
-column_remove_child(
-    struct hayward_column *column, struct hayward_window *child
-) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(child != NULL, "Expected window");
-    hayward_assert(
-        child->pending.parent == column, "Window is not a child of column"
-    );
+column_remove_child(struct hwd_column *column, struct hwd_window *child) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(child != NULL, "Expected window");
+    hwd_assert(child->pending.parent == column, "Window is not a child of column");
 
     int index = list_find(column->pending.children, child);
-    hayward_assert(index != -1, "Window missing from column child list");
+    hwd_assert(index != -1, "Window missing from column child list");
 
     list_del(column->pending.children, index);
 
@@ -449,16 +408,12 @@ column_remove_child(
 }
 
 void
-column_set_active_child(
-    struct hayward_column *column, struct hayward_window *window
-) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(window != NULL, "Expected window");
-    hayward_assert(
-        window->pending.parent == column, "Window is not a child of column"
-    );
+column_set_active_child(struct hwd_column *column, struct hwd_window *window) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(window != NULL, "Expected window");
+    hwd_assert(window->pending.parent == column, "Window is not a child of column");
 
-    struct hayward_window *prev_active = column->pending.active_child;
+    struct hwd_window *prev_active = column->pending.active_child;
 
     if (window == prev_active) {
         return;
@@ -478,9 +433,9 @@ column_set_active_child(
 }
 
 void
-column_get_box(struct hayward_column *column, struct wlr_box *box) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(box != NULL, "Expected box");
+column_get_box(struct hwd_column *column, struct wlr_box *box) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(box != NULL, "Expected box");
 
     box->x = column->pending.x;
     box->y = column->pending.y;
@@ -493,22 +448,22 @@ column_get_box(struct hayward_column *column, struct wlr_box *box) {
  * have just finished) an interactive resize
  */
 void
-column_set_resizing(struct hayward_column *column, bool resizing) {
-    hayward_assert(column != NULL, "Expected column");
+column_set_resizing(struct hwd_column *column, bool resizing) {
+    hwd_assert(column != NULL, "Expected column");
 
     if (!column) {
         return;
     }
 
     for (int i = 0; i < column->pending.children->length; ++i) {
-        struct hayward_window *child = column->pending.children->items[i];
+        struct hwd_window *child = column->pending.children->items[i];
         window_set_resizing(child, resizing);
     }
 }
 
 list_t *
-column_get_siblings(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
+column_get_siblings(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
 
     if (column->pending.workspace) {
         return column->pending.workspace->pending.tiling;
@@ -517,18 +472,16 @@ column_get_siblings(struct hayward_column *column) {
 }
 
 int
-column_sibling_index(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
+column_sibling_index(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
 
     return list_find(column_get_siblings(column), column);
 }
 
-struct hayward_column *
-column_get_previous_sibling(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(
-        column->pending.workspace, "Column is not attached to a workspace"
-    );
+struct hwd_column *
+column_get_previous_sibling(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column->pending.workspace, "Column is not attached to a workspace");
 
     list_t *siblings = column->pending.workspace->pending.tiling;
     int index = list_find(siblings, column);
@@ -540,12 +493,10 @@ column_get_previous_sibling(struct hayward_column *column) {
     return siblings->items[index - 1];
 }
 
-struct hayward_column *
-column_get_next_sibling(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
-    hayward_assert(
-        column->pending.workspace, "Column is not attached to a workspace"
-    );
+struct hwd_column *
+column_get_next_sibling(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column->pending.workspace, "Column is not attached to a workspace");
 
     list_t *siblings = column->pending.workspace->pending.tiling;
     int index = list_find(siblings, column);
@@ -562,12 +513,12 @@ column_get_next_sibling(struct hayward_column *column) {
 }
 
 static bool
-find_urgent_iterator(struct hayward_window *window, void *data) {
+find_urgent_iterator(struct hwd_window *window, void *data) {
     return window->view && view_is_urgent(window->view);
 }
 
 bool
-column_has_urgent_child(struct hayward_column *column) {
-    hayward_assert(column != NULL, "Expected column");
+column_has_urgent_child(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
     return column_find_child(column, find_urgent_iterator, NULL);
 }

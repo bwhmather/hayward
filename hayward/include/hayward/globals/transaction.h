@@ -1,7 +1,7 @@
-#ifndef HAYWARD_GLOBALS_TRANSACTION_H
-#define HAYWARD_GLOBALS_TRANSACTION_H
+#ifndef HWD_GLOBALS_TRANSACTION_H
+#define HWD_GLOBALS_TRANSACTION_H
 
-struct hayward_transaction_manager;
-extern struct hayward_transaction_manager *transaction_manager;
+struct hwd_transaction_manager;
+extern struct hwd_transaction_manager *transaction_manager;
 
 #endif

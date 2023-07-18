@@ -1,5 +1,5 @@
-#ifndef HAYWARD_INPUT_CURSOR_H
-#define HAYWARD_INPUT_CURSOR_H
+#ifndef HWD_INPUT_CURSOR_H
+#define HWD_INPUT_CURSOR_H
 
 #include <linux/input-event-codes.h>
 #include <pixman.h>
@@ -20,15 +20,15 @@
 
 #include <config.h>
 
-#define HAYWARD_CURSOR_PRESSED_BUTTONS_CAP 32
+#define HWD_CURSOR_PRESSED_BUTTONS_CAP 32
 
-#define HAYWARD_SCROLL_UP KEY_MAX + 1
-#define HAYWARD_SCROLL_DOWN KEY_MAX + 2
-#define HAYWARD_SCROLL_LEFT KEY_MAX + 3
-#define HAYWARD_SCROLL_RIGHT KEY_MAX + 4
+#define HWD_SCROLL_UP KEY_MAX + 1
+#define HWD_SCROLL_DOWN KEY_MAX + 2
+#define HWD_SCROLL_LEFT KEY_MAX + 3
+#define HWD_SCROLL_RIGHT KEY_MAX + 4
 
-struct hayward_cursor {
-    struct hayward_seat *seat;
+struct hwd_cursor {
+    struct hwd_seat *seat;
     struct wlr_cursor *cursor;
     struct wlr_xcursor_manager *xcursor_manager;
     struct wl_list tablets;
@@ -91,14 +91,13 @@ struct hayward_cursor {
     size_t pressed_button_count;
 };
 
-struct hayward_workspace;
-struct hayward_window;
+struct hwd_workspace;
+struct hwd_window;
 
 void
 seat_get_target_at(
-    struct hayward_seat *seat, double lx, double ly,
-    struct hayward_output **output_out, struct hayward_window **window_out,
-    struct wlr_surface **surface_out, double *sx_out, double *sy_out
+    struct hwd_seat *seat, double lx, double ly, struct hwd_output **output_out,
+    struct hwd_window **window_out, struct wlr_surface **surface_out, double *sx_out, double *sy_out
 );
 
 /**
@@ -107,39 +106,35 @@ seat_get_target_at(
  * This chooses a cursor icon and sends a motion event to the surface.
  */
 void
-cursor_rebase(struct hayward_cursor *cursor);
+cursor_rebase(struct hwd_cursor *cursor);
 void
 cursor_rebase_all(void);
 
 int
-cursor_get_timeout(struct hayward_cursor *cursor);
+cursor_get_timeout(struct hwd_cursor *cursor);
 
 void
-cursor_notify_key_press(struct hayward_cursor *cursor);
+cursor_notify_key_press(struct hwd_cursor *cursor);
 
 void
-cursor_handle_activity_from_device(
-    struct hayward_cursor *cursor, struct wlr_input_device *device
-);
+cursor_handle_activity_from_device(struct hwd_cursor *cursor, struct wlr_input_device *device);
 
 void
-cursor_unhide(struct hayward_cursor *cursor);
+cursor_unhide(struct hwd_cursor *cursor);
 
 void
-cursor_set_image(
-    struct hayward_cursor *cursor, const char *image, struct wl_client *client
-);
+cursor_set_image(struct hwd_cursor *cursor, const char *image, struct wl_client *client);
 
 void
 cursor_set_image_surface(
-    struct hayward_cursor *cursor, struct wlr_surface *surface,
-    int32_t hotspot_x, int32_t hotspot_y, struct wl_client *client
+    struct hwd_cursor *cursor, struct wlr_surface *surface, int32_t hotspot_x, int32_t hotspot_y,
+    struct wl_client *client
 );
 
 void
-hayward_cursor_destroy(struct hayward_cursor *cursor);
-struct hayward_cursor *
-hayward_cursor_create(struct hayward_seat *seat);
+hwd_cursor_destroy(struct hwd_cursor *cursor);
+struct hwd_cursor *
+hwd_cursor_create(struct hwd_seat *seat);
 
 uint32_t
 get_mouse_bindsym(const char *name, char **error);
@@ -155,8 +150,6 @@ const char *
 get_mouse_button_name(uint32_t button);
 
 void
-hayward_cursor_constrain(
-    struct hayward_cursor *cursor, struct wlr_pointer_constraint_v1 *constraint
-);
+hwd_cursor_constrain(struct hwd_cursor *cursor, struct wlr_pointer_constraint_v1 *constraint);
 
 #endif

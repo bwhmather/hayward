@@ -26,33 +26,28 @@ cmd_layout(int argc, char **argv) {
     }
     if (!root->outputs->length) {
         return cmd_results_new(
-            CMD_INVALID,
-            "Can't run this command while there's no outputs connected."
+            CMD_INVALID, "Can't run this command while there's no outputs connected."
         );
     }
-    struct hayward_window *window = config->handler_context.window;
-    struct hayward_workspace *workspace = config->handler_context.workspace;
+    struct hwd_window *window = config->handler_context.window;
+    struct hwd_workspace *workspace = config->handler_context.workspace;
 
     if (!window) {
         return cmd_results_new(CMD_INVALID, "No window selected");
     }
 
     if (window_is_floating(window)) {
-        return cmd_results_new(
-            CMD_FAILURE, "Unable to change the layout of floating containers"
-        );
+        return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating containers");
     }
 
-    struct hayward_column *column = window->pending.parent;
+    struct hwd_column *column = window->pending.parent;
     if (!column) {
-        return cmd_results_new(
-            CMD_FAILURE, "Window is not a member of a column"
-        );
+        return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
     }
 
-    enum hayward_column_layout old_layout = column->pending.layout;
+    enum hwd_column_layout old_layout = column->pending.layout;
 
-    enum hayward_column_layout new_layout;
+    enum hwd_column_layout new_layout;
     if (strcasecmp(argv[0], "split") == 0) {
         new_layout = L_SPLIT;
     } else if (strcasecmp(argv[0], "stacking") == 0) {

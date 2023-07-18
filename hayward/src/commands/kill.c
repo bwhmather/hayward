@@ -10,7 +10,7 @@
 
 struct cmd_results *
 cmd_kill(int argc, char **argv) {
-    struct hayward_window *window = config->handler_context.window;
+    struct hwd_window *window = config->handler_context.window;
     if (window == NULL) {
         return cmd_results_new(CMD_INVALID, "Can only kill windows");
     }

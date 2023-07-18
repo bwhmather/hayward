@@ -14,8 +14,6 @@ char *
 haywardnag_get_config_path(void);
 
 int
-haywardnag_load_config(
-    char *path, struct haywardnag *haywardnag, list_t *types
-);
+haywardnag_load_config(char *path, struct haywardnag *haywardnag, list_t *types);
 
 #endif

@@ -16,13 +16,13 @@
 // sort in order of longest->shortest
 static int
 compare_set_qsort(const void *_l, const void *_r) {
-    struct hayward_variable const *l = *(void **)_l;
-    struct hayward_variable const *r = *(void **)_r;
+    struct hwd_variable const *l = *(void **)_l;
+    struct hwd_variable const *r = *(void **)_r;
     return strlen(r->name) - strlen(l->name);
 }
 
 void
-free_hayward_variable(struct hayward_variable *var) {
+free_hwd_variable(struct hwd_variable *var) {
     if (!var) {
         return;
     }
@@ -39,12 +39,10 @@ cmd_set(int argc, char **argv) {
     }
 
     if (argv[0][0] != '$') {
-        return cmd_results_new(
-            CMD_INVALID, "variable '%s' must start with $", argv[0]
-        );
+        return cmd_results_new(CMD_INVALID, "variable '%s' must start with $", argv[0]);
     }
 
-    struct hayward_variable *var = NULL;
+    struct hwd_variable *var = NULL;
     // Find old variable if it exists
     int i;
     for (i = 0; i < config->symbols->length; ++i) {
@@ -57,7 +55,7 @@ cmd_set(int argc, char **argv) {
     if (var) {
         free(var->value);
     } else {
-        var = malloc(sizeof(struct hayward_variable));
+        var = malloc(sizeof(struct hwd_variable));
         if (!var) {
             return cmd_results_new(CMD_FAILURE, "Unable to allocate variable");
         }

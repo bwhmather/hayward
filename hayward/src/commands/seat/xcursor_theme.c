@@ -25,15 +25,12 @@ seat_cmd_xcursor_theme(int argc, char **argv) {
         char *end;
         size = strtoul(argv[1], &end, 10);
         if (*end) {
-            return cmd_results_new(
-                CMD_INVALID, "Expected a positive integer size"
-            );
+            return cmd_results_new(CMD_INVALID, "Expected a positive integer size");
         }
     }
 
     free(config->handler_context.seat_config->xcursor_theme.name);
-    config->handler_context.seat_config->xcursor_theme.name =
-        strdup(theme_name);
+    config->handler_context.seat_config->xcursor_theme.name = strdup(theme_name);
     config->handler_context.seat_config->xcursor_theme.size = size;
 
     return cmd_results_new(CMD_SUCCESS, NULL);

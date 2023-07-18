@@ -20,9 +20,7 @@ cmd_focus_follows_mouse(int argc, char **argv) {
     } else if (strcmp(argv[0], "always") == 0) {
         config->focus_follows_mouse = FOLLOWS_ALWAYS;
     } else {
-        return cmd_results_new(
-            CMD_FAILURE, "Expected 'focus_follows_mouse no|yes|always'"
-        );
+        return cmd_results_new(CMD_FAILURE, "Expected 'focus_follows_mouse no|yes|always'");
     }
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

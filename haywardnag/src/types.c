@@ -20,7 +20,7 @@ struct haywardnag_type *
 haywardnag_type_new(const char *name) {
     struct haywardnag_type *type = calloc(1, sizeof(struct haywardnag_type));
     if (!type) {
-        hayward_abort("Failed to allocate type: %s", name);
+        hwd_abort("Failed to allocate type: %s", name);
     }
     type->name = strdup(name);
     type->bar_border_thickness = -1;
@@ -38,10 +38,9 @@ haywardnag_type_new(const char *name) {
 void
 haywardnag_types_add_default(list_t *types) {
     struct haywardnag_type *type_defaults = haywardnag_type_new("<defaults>");
-    type_defaults->font_description =
-        pango_font_description_from_string("pango:Monospace 10");
-    type_defaults->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
-        ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+    type_defaults->font_description = pango_font_description_from_string("pango:Monospace 10");
+    type_defaults->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+        ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
     type_defaults->layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
     type_defaults->button_background = 0x333333FF;
     type_defaults->details_background = 0x333333FF;
@@ -93,16 +92,13 @@ haywardnag_type_get(list_t *types, char *name) {
 }
 
 void
-haywardnag_type_merge(
-    struct haywardnag_type *dest, struct haywardnag_type *src
-) {
+haywardnag_type_merge(struct haywardnag_type *dest, struct haywardnag_type *src) {
     if (!dest || !src) {
         return;
     }
 
     if (src->font_description) {
-        dest->font_description =
-            pango_font_description_copy(src->font_description);
+        dest->font_description = pango_font_description_copy(src->font_description);
     }
 
     if (src->output) {

@@ -24,9 +24,8 @@ input_cmd_xkb_options(int argc, char **argv) {
 
     ic->xkb_options = strdup(argv[0]);
 
-    hayward_log(
-        HAYWARD_DEBUG, "set-xkb_options for config: %s options: %s",
-        ic->identifier, ic->xkb_options
+    hwd_log(
+        HWD_DEBUG, "set-xkb_options for config: %s options: %s", ic->identifier, ic->xkb_options
     );
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

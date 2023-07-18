@@ -21,8 +21,7 @@ seat_cmd_fallback(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "No seat defined");
     }
 
-    config->handler_context.seat_config->fallback =
-        parse_boolean(argv[0], false);
+    config->handler_context.seat_config->fallback = parse_boolean(argv[0], false);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

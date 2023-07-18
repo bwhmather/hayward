@@ -1,13 +1,13 @@
-#ifndef HAYWARD_INPUT_SWITCH_H
-#define HAYWARD_INPUT_SWITCH_H
+#ifndef HWD_INPUT_SWITCH_H
+#define HWD_INPUT_SWITCH_H
 
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_switch.h>
 
 #include <hayward/input/seat.h>
 
-struct hayward_switch {
-    struct hayward_seat_device *seat_device;
+struct hwd_switch {
+    struct hwd_seat_device *seat_device;
     struct wlr_switch *wlr;
 
     enum wlr_switch_state state;
@@ -16,18 +16,16 @@ struct hayward_switch {
     struct wl_listener switch_toggle;
 };
 
-struct hayward_switch *
-hayward_switch_create(
-    struct hayward_seat *seat, struct hayward_seat_device *device
-);
+struct hwd_switch *
+hwd_switch_create(struct hwd_seat *seat, struct hwd_seat_device *device);
 
 void
-hayward_switch_configure(struct hayward_switch *hayward_switch);
+hwd_switch_configure(struct hwd_switch *hwd_switch);
 
 void
-hayward_switch_destroy(struct hayward_switch *hayward_switch);
+hwd_switch_destroy(struct hwd_switch *hwd_switch);
 
 void
-hayward_switch_retrigger_bindings_for_all(void);
+hwd_switch_retrigger_bindings_for_all(void);
 
 #endif

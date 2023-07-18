@@ -57,10 +57,10 @@ seat_cmd_pointer_constraint(int argc, char **argv) {
         /* fallthrough */
     case OP_ESCAPE:;
         bool wildcard = !strcmp(seat_config->name, "*");
-        struct hayward_seat *seat = NULL;
+        struct hwd_seat *seat = NULL;
         wl_list_for_each(seat, &server.input->seats, link) {
             if (wildcard || !strcmp(seat->wlr_seat->name, seat_config->name)) {
-                hayward_cursor_constrain(seat->cursor, NULL);
+                hwd_cursor_constrain(seat->cursor, NULL);
             }
         }
         break;

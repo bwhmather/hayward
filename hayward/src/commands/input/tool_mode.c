@@ -15,8 +15,7 @@
 
 static void
 set_tool_mode(
-    struct input_config *ic, enum wlr_tablet_tool_type type,
-    enum hayward_tablet_tool_mode mode
+    struct input_config *ic, enum wlr_tablet_tool_type type, enum hwd_tablet_tool_mode mode
 ) {
     for (int i = 0; i < ic->tools->length; i++) {
         struct input_config_tool *tool = ic->tools->items[i];
@@ -46,11 +45,11 @@ input_cmd_tool_mode(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "No input device defined.");
     }
 
-    enum hayward_tablet_tool_mode tool_mode;
+    enum hwd_tablet_tool_mode tool_mode;
     if (!strcasecmp(argv[1], "absolute")) {
-        tool_mode = HAYWARD_TABLET_TOOL_MODE_ABSOLUTE;
+        tool_mode = HWD_TABLET_TOOL_MODE_ABSOLUTE;
     } else if (!strcasecmp(argv[1], "relative")) {
-        tool_mode = HAYWARD_TABLET_TOOL_MODE_RELATIVE;
+        tool_mode = HWD_TABLET_TOOL_MODE_RELATIVE;
     } else {
         goto invalid_command;
     }
@@ -83,7 +82,5 @@ input_cmd_tool_mode(int argc, char **argv) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 
 invalid_command:
-    return cmd_results_new(
-        CMD_INVALID, "Expected 'tool_mode <tool> <absolute|relative>'"
-    );
+    return cmd_results_new(CMD_INVALID, "Expected 'tool_mode <tool> <absolute|relative>'");
 }

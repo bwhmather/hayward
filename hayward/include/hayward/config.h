@@ -1,5 +1,5 @@
-#ifndef HAYWARD_CONFIG_H
-#define HAYWARD_CONFIG_H
+#ifndef HWD_CONFIG_H
+#define HWD_CONFIG_H
 
 #include <pango/pango.h>
 #include <stdbool.h>
@@ -24,14 +24,14 @@
 
 // TODO: Refactor this shit
 
-struct hayward_window;
-struct hayward_column;
-struct hayward_output;
+struct hwd_window;
+struct hwd_column;
+struct hwd_output;
 
 /**
  * Describes a variable created via the `set` command.
  */
-struct hayward_variable {
+struct hwd_variable {
     char *name;
     char *value;
 };
@@ -53,14 +53,13 @@ enum binding_flags {
     BINDING_CODE = 1 << 5,      // keyboard only; convert keysyms into keycodes
     BINDING_RELOAD = 1 << 6,    // switch only; (re)trigger binding on reload
     BINDING_INHIBITED = 1 << 7, // keyboard only: ignore shortcut inhibitor
-    BINDING_NOREPEAT =
-        1 << 8, // keyboard only; do not trigger when repeating a held key
+    BINDING_NOREPEAT = 1 << 8,  // keyboard only; do not trigger when repeating a held key
 };
 
 /**
  * A key (or mouse) binding and an associated command.
  */
-struct hayward_binding {
+struct hwd_binding {
     enum binding_input_type type;
     int order;
     char *input;
@@ -72,18 +71,18 @@ struct hayward_binding {
     char *command;
 };
 
-enum hayward_switch_trigger {
-    HAYWARD_SWITCH_TRIGGER_OFF,
-    HAYWARD_SWITCH_TRIGGER_ON,
-    HAYWARD_SWITCH_TRIGGER_TOGGLE,
+enum hwd_switch_trigger {
+    HWD_SWITCH_TRIGGER_OFF,
+    HWD_SWITCH_TRIGGER_ON,
+    HWD_SWITCH_TRIGGER_TOGGLE,
 };
 
 /**
  * A laptop switch binding and an associated command.
  */
-struct hayward_switch_binding {
+struct hwd_switch_binding {
     enum wlr_switch_type type;
-    enum hayward_switch_trigger trigger;
+    enum hwd_switch_trigger trigger;
     uint32_t flags;
     char *command;
 };
@@ -91,7 +90,7 @@ struct hayward_switch_binding {
 /**
  * Focus on window activation.
  */
-enum hayward_fowa {
+enum hwd_fowa {
     FOWA_SMART,
     FOWA_URGENT,
     FOWA_FOCUS,
@@ -101,7 +100,7 @@ enum hayward_fowa {
 /**
  * A "mode" of keybindings created via the `mode` command.
  */
-struct hayward_mode {
+struct hwd_mode {
     char *name;
     list_t *keysym_bindings;
     list_t *keycode_bindings;
@@ -129,7 +128,7 @@ enum input_config_mapped_to {
 
 struct input_config_tool {
     enum wlr_tablet_tool_type type;
-    enum hayward_tablet_tool_mode mode;
+    enum hwd_tablet_tool_mode mode;
 };
 
 /**
@@ -214,7 +213,7 @@ enum seat_keyboard_grouping {
     KEYBOARD_GROUP_SMART, // keymap and repeat info
 };
 
-enum hayward_input_idle_source {
+enum hwd_input_idle_source {
     IDLE_SOURCE_KEYBOARD = 1 << 0,
     IDLE_SOURCE_POINTER = 1 << 1,
     IDLE_SOURCE_TOUCH = 1 << 2,
@@ -288,7 +287,7 @@ struct output_config {
     enum config_dpms dpms_state;
 };
 
-enum hayward_window_border {
+enum hwd_window_border {
     B_NONE,
     B_PIXEL,
     B_NORMAL,
@@ -404,7 +403,7 @@ enum edge_border_types {
     E_BOTH,       /**< hide vertical and horizontal edge borders */
 };
 
-enum hayward_popup_during_fullscreen {
+enum hwd_popup_during_fullscreen {
     POPUP_SMART,
     POPUP_IGNORE,
     POPUP_LEAVE,
@@ -438,7 +437,7 @@ enum xwayland_mode {
 /**
  * The configuration struct. The result of loading a config file.
  */
-struct hayward_config {
+struct hwd_config {
     char *haywardnag_command;
     struct haywardnag_instance haywardnag_config_errors;
     list_t *symbols;
@@ -452,7 +451,7 @@ struct hayward_config {
     list_t *criteria;
     list_t *no_focus;
     list_t *active_bar_modifiers;
-    struct hayward_mode *current_mode;
+    struct hwd_mode *current_mode;
     struct bar_config *current_bar;
     uint32_t floating_mod;
     bool floating_mod_inverse;
@@ -462,9 +461,8 @@ struct hayward_config {
     char *floating_scroll_down_cmd;
     char *floating_scroll_left_cmd;
     char *floating_scroll_right_cmd;
-    char *font; // Used for IPC.
-    PangoFontDescription
-        *font_description; // Used internally for rendering and validating.
+    char *font;                             // Used for IPC.
+    PangoFontDescription *font_description; // Used internally for rendering and validating.
     int font_height;
     int font_baseline;
     bool pango_markup;
@@ -472,8 +470,8 @@ struct hayward_config {
     int titlebar_h_padding;
     int titlebar_v_padding;
     size_t urgent_timeout;
-    enum hayward_fowa focus_on_window_activation;
-    enum hayward_popup_during_fullscreen popup_during_fullscreen;
+    enum hwd_fowa focus_on_window_activation;
+    enum hwd_popup_during_fullscreen popup_during_fullscreen;
     enum xwayland_mode xwayland;
 
     // haywardbg
@@ -502,8 +500,8 @@ struct hayward_config {
     int current_config_line_number;
     char *current_config_line;
 
-    enum hayward_window_border border;
-    enum hayward_window_border floating_border;
+    enum hwd_window_border border;
+    enum hwd_window_border floating_border;
     int border_thickness;
     int floating_border_thickness;
     enum edge_border_types hide_edge_borders;
@@ -535,9 +533,9 @@ struct hayward_config {
         struct input_config *input_config;
         struct output_config *output_config;
         struct seat_config *seat_config;
-        struct hayward_seat *seat;
-        struct hayward_workspace *workspace;
-        struct hayward_window *window;
+        struct hwd_seat *seat;
+        struct hwd_workspace *workspace;
+        struct hwd_window *window;
         struct {
             int argc;
             char **argv;
@@ -557,8 +555,7 @@ load_main_config(const char *path, bool is_active, bool validating);
  */
 void
 load_include_configs(
-    const char *path, struct hayward_config *config,
-    struct haywardnag_instance *haywardnag
+    const char *path, struct hwd_config *config, struct haywardnag_instance *haywardnag
 );
 
 /**
@@ -583,10 +580,10 @@ config_add_haywardnag_warning(char *fmt, ...);
  * Free config struct
  */
 void
-free_config(struct hayward_config *config);
+free_config(struct hwd_config *config);
 
 void
-free_hayward_variable(struct hayward_variable *var);
+free_hwd_variable(struct hwd_variable *var);
 
 /**
  * Does variable replacement for a string based on the config's currently loaded
@@ -605,9 +602,7 @@ struct input_config *
 store_input_config(struct input_config *ic, char **error);
 
 void
-input_config_fill_rule_names(
-    struct input_config *ic, struct xkb_rule_names *rules
-);
+input_config_fill_rule_names(struct input_config *ic, struct xkb_rule_names *rules);
 
 void
 free_input_config(struct input_config *ic);
@@ -631,27 +626,25 @@ struct seat_config *
 store_seat_config(struct seat_config *seat);
 
 void
-output_get_identifier(
-    char *identifier, size_t len, struct hayward_output *output
-);
+output_get_identifier(char *identifier, size_t len, struct hwd_output *output);
 
 const char *
-hayward_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
+hwd_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
 
 struct output_config *
 new_output_config(const char *name);
 
 bool
-apply_output_config(struct output_config *oc, struct hayward_output *output);
+apply_output_config(struct output_config *oc, struct hwd_output *output);
 
 bool
-test_output_config(struct output_config *oc, struct hayward_output *output);
+test_output_config(struct output_config *oc, struct hwd_output *output);
 
 struct output_config *
 store_output_config(struct output_config *oc);
 
 struct output_config *
-find_output_config(struct hayward_output *output);
+find_output_config(struct hwd_output *output);
 
 void
 apply_output_config_to_outputs(struct output_config *oc);
@@ -666,15 +659,13 @@ bool
 spawn_haywardbg(void);
 
 void
-free_hayward_binding(struct hayward_binding *sb);
+free_hwd_binding(struct hwd_binding *sb);
 
 void
-free_switch_binding(struct hayward_switch_binding *binding);
+free_switch_binding(struct hwd_switch_binding *binding);
 
 void
-seat_execute_command(
-    struct hayward_seat *seat, struct hayward_binding *binding
-);
+seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding);
 
 void
 load_haywardbar(struct bar_config *bar);
@@ -706,15 +697,15 @@ config_update_font_height(void);
  * Return false in case the conversion is unsuccessful.
  */
 bool
-translate_binding(struct hayward_binding *binding);
+translate_binding(struct hwd_binding *binding);
 
 void
 translate_keysyms(struct input_config *input_config);
 
 void
-binding_add_translated(struct hayward_binding *binding, list_t *bindings);
+binding_add_translated(struct hwd_binding *binding, list_t *bindings);
 
 /* Global config singleton. */
-extern struct hayward_config *config;
+extern struct hwd_config *config;
 
 #endif

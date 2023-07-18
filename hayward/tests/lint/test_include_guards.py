@@ -21,7 +21,7 @@ def test():
                 header.readline(),
             ]
 
-        guard_name = "HAYWARD_" + re.sub(
+        guard_name = "HWD_" + re.sub(
             "[-/.]", "_", str(header_path.relative_to(INCLUDE_ROOT)).upper()
         )
 

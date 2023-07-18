@@ -53,9 +53,7 @@ output_cmd_mode(int argc, char **argv) {
             ++end;
             output->refresh_rate = strtof(end, &end);
             if (strcasecmp("Hz", end) != 0) {
-                return cmd_results_new(
-                    CMD_INVALID, "Invalid mode refresh rate."
-                );
+                return cmd_results_new(CMD_INVALID, "Invalid mode refresh rate.");
             }
         }
     } else {
@@ -63,9 +61,7 @@ output_cmd_mode(int argc, char **argv) {
         argc--;
         argv++;
         if (!argc) {
-            return cmd_results_new(
-                CMD_INVALID, "Missing mode argument (height)."
-            );
+            return cmd_results_new(CMD_INVALID, "Missing mode argument (height).");
         }
         output->height = strtol(*argv, &end, 10);
         if (*end) {
@@ -91,8 +87,7 @@ parse_modeline(char **argv, drmModeModeInfo *mode) {
     mode->vsync_end = strtol(argv[7], NULL, 10);
     mode->vtotal = strtol(argv[8], NULL, 10);
 
-    mode->vrefresh =
-        mode->clock * 1000.0 * 1000.0 / mode->htotal / mode->vtotal;
+    mode->vrefresh = mode->clock * 1000.0 * 1000.0 / mode->htotal / mode->vtotal;
     if (strcasecmp(argv[9], "+hsync") == 0) {
         mode->flags |= DRM_MODE_FLAG_PHSYNC;
     } else if (strcasecmp(argv[9], "-hsync") == 0) {
@@ -110,8 +105,8 @@ parse_modeline(char **argv, drmModeModeInfo *mode) {
     }
 
     snprintf(
-        mode->name, sizeof(mode->name), "%dx%d@%d", mode->hdisplay,
-        mode->vdisplay, mode->vrefresh / 1000
+        mode->name, sizeof(mode->name), "%dx%d@%d", mode->hdisplay, mode->vdisplay,
+        mode->vrefresh / 1000
     );
 
     return true;

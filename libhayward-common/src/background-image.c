@@ -23,7 +23,7 @@ parse_background_mode(const char *mode) {
     } else if (strcmp(mode, "solid_color") == 0) {
         return BACKGROUND_MODE_SOLID_COLOR;
     }
-    hayward_log(HAYWARD_ERROR, "Unsupported background mode: %s", mode);
+    hwd_log(HWD_ERROR, "Unsupported background mode: %s", mode);
     return BACKGROUND_MODE_INVALID;
 }
 
@@ -90,11 +90,11 @@ gdk_cairo_image_surface_create_from_pixbuf(const GdkPixbuf *gdkbuf) {
          * ------
          * tested as equal to lround(z/255.0) for uint z in [0..0xfe02]
          */
-#define PREMUL_ALPHA(x, a, b, z)                                               \
-    G_STMT_START {                                                             \
-        z = a * b + 0x80;                                                      \
-        x = (z + (z >> 8)) >> 8;                                               \
-    }                                                                          \
+#define PREMUL_ALPHA(x, a, b, z)                                                                   \
+    G_STMT_START {                                                                                 \
+        z = a * b + 0x80;                                                                          \
+        x = (z + (z >> 8)) >> 8;                                                                   \
+    }                                                                                              \
     G_STMT_END
         int i;
         for (i = h; i; --i) {
@@ -134,9 +134,7 @@ load_background_image(const char *path) {
     GError *err = NULL;
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, &err);
     if (!pixbuf) {
-        hayward_log(
-            HAYWARD_ERROR, "Failed to load background image (%s).", err->message
-        );
+        hwd_log(HWD_ERROR, "Failed to load background image (%s).", err->message);
         return NULL;
     }
     image = gdk_cairo_image_surface_create_from_pixbuf(pixbuf);
@@ -145,21 +143,21 @@ load_background_image(const char *path) {
     image = cairo_image_surface_create_from_png(path);
 #endif // HAVE_GDK_PIXBUF
     if (!image) {
-        hayward_log(HAYWARD_ERROR, "Failed to read background image.");
+        hwd_log(HWD_ERROR, "Failed to read background image.");
         return NULL;
     }
     if (cairo_surface_status(image) != CAIRO_STATUS_SUCCESS) {
 #if !HAVE_GDK_PIXBUF
-        hayward_log(
-            HAYWARD_ERROR,
+        hwd_log(
+            HWD_ERROR,
             "Failed to read background image: %s."
             "\nHayward was compiled without gdk_pixbuf support, so only"
             "\nPNG images can be loaded. This is the likely cause.",
             cairo_status_to_string(cairo_surface_status(image))
         );
 #else
-        hayward_log(
-            HAYWARD_ERROR, "Failed to read background image: %s.",
+        hwd_log(
+            HWD_ERROR, "Failed to read background image: %s.",
             cairo_status_to_string(cairo_surface_status(image))
         );
 #endif // HAVE_GDK_PIXBUF
@@ -170,8 +168,8 @@ load_background_image(const char *path) {
 
 void
 render_background_image(
-    cairo_t *cairo, cairo_surface_t *image, enum background_mode mode,
-    int buffer_width, int buffer_height
+    cairo_t *cairo, cairo_surface_t *image, enum background_mode mode, int buffer_width,
+    int buffer_height
 ) {
     double width = cairo_image_surface_get_width(image);
     double height = cairo_image_surface_get_height(image);
@@ -179,9 +177,7 @@ render_background_image(
     cairo_save(cairo);
     switch (mode) {
     case BACKGROUND_MODE_STRETCH:
-        cairo_scale(
-            cairo, (double)buffer_width / width, (double)buffer_height / height
-        );
+        cairo_scale(cairo, (double)buffer_width / width, (double)buffer_height / height);
         cairo_set_source_surface(cairo, image, 0, 0);
         break;
     case BACKGROUND_MODE_FILL: {
@@ -197,9 +193,7 @@ render_background_image(
         } else {
             double scale = (double)buffer_height / height;
             cairo_scale(cairo, scale, scale);
-            cairo_set_source_surface(
-                cairo, image, (double)buffer_width / 2 / scale - width / 2, 0
-            );
+            cairo_set_source_surface(cairo, image, (double)buffer_width / 2 / scale - width / 2, 0);
         }
         break;
     }
@@ -210,9 +204,7 @@ render_background_image(
         if (window_ratio > bg_ratio) {
             double scale = (double)buffer_height / height;
             cairo_scale(cairo, scale, scale);
-            cairo_set_source_surface(
-                cairo, image, (double)buffer_width / 2 / scale - width / 2, 0
-            );
+            cairo_set_source_surface(cairo, image, (double)buffer_width / 2 / scale - width / 2, 0);
         } else {
             double scale = (double)buffer_width / width;
             cairo_scale(cairo, scale, scale);

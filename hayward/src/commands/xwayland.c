@@ -30,14 +30,12 @@ cmd_xwayland(int argc, char **argv) {
     }
 
     if (config->reloading && config->xwayland != xwayland) {
-        return cmd_results_new(
-            CMD_FAILURE, "xwayland can only be enabled/disabled at launch"
-        );
+        return cmd_results_new(CMD_FAILURE, "xwayland can only be enabled/disabled at launch");
     }
     config->xwayland = xwayland;
 #else
-    hayward_log(
-        HAYWARD_INFO,
+    hwd_log(
+        HWD_INFO,
         "Ignoring `xwayland` command, "
         "hayward hasn't been built with Xwayland support"
     );

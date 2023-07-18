@@ -72,7 +72,7 @@ cmd_bar(int argc, char **argv) {
         for (int i = 0; i < config->bars->length; ++i) {
             struct bar_config *item = config->bars->items[i];
             if (strcmp(item->id, argv[0]) == 0) {
-                hayward_log(HAYWARD_DEBUG, "Selecting bar: %s", argv[0]);
+                hwd_log(HWD_DEBUG, "Selecting bar: %s", argv[0]);
                 config->current_bar = item;
                 break;
             }
@@ -93,36 +93,26 @@ cmd_bar(int argc, char **argv) {
         if (is_subcommand(argv[0])) {
             return cmd_results_new(CMD_INVALID, "No bar defined.");
         } else {
-            return cmd_results_new(
-                CMD_INVALID, "Unknown/invalid command '%s'", argv[1]
-            );
+            return cmd_results_new(CMD_INVALID, "Unknown/invalid command '%s'", argv[1]);
         }
     }
 
     if (id) {
-        hayward_log(HAYWARD_DEBUG, "Creating bar: %s", id);
+        hwd_log(HWD_DEBUG, "Creating bar: %s", id);
         config->current_bar = default_bar_config();
         if (!config->current_bar) {
             free(id);
-            return cmd_results_new(
-                CMD_FAILURE, "Unable to allocate bar config"
-            );
+            return cmd_results_new(CMD_FAILURE, "Unable to allocate bar config");
         }
         config->current_bar->id = id;
     }
 
     struct cmd_results *res = NULL;
-    if (find_handler(
-            argv[0], bar_config_handlers, sizeof(bar_config_handlers)
-        )) {
+    if (find_handler(argv[0], bar_config_handlers, sizeof(bar_config_handlers))) {
         if (config->reading) {
-            res = config_subcommand(
-                argv, argc, bar_config_handlers, sizeof(bar_config_handlers)
-            );
+            res = config_subcommand(argv, argc, bar_config_handlers, sizeof(bar_config_handlers));
         } else {
-            res = cmd_results_new(
-                CMD_INVALID, "Can only be used in the config file"
-            );
+            res = cmd_results_new(CMD_INVALID, "Can only be used in the config file");
         }
     } else {
         res = config_subcommand(argv, argc, bar_handlers, sizeof(bar_handlers));

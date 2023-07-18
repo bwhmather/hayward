@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_LIST_H
-#define _HAYWARD_LIST_H
+#ifndef _HWD_LIST_H
+#define _HWD_LIST_H
 
 typedef struct {
     int capacity;
@@ -28,10 +28,7 @@ list_qsort(list_t *list, int compare(const void *left, const void *right));
 // Return index for first item in list that returns 0 for given compare
 // function or -1 if none matches.
 int
-list_seq_find(
-    list_t *list, int compare(const void *item, const void *cmp_to),
-    const void *cmp_to
-);
+list_seq_find(list_t *list, int compare(const void *item, const void *cmp_to), const void *cmp_to);
 int
 list_find(list_t *list, const void *item);
 // stable sort since qsort is not guaranteed to be stable

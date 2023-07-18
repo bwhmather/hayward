@@ -29,20 +29,17 @@ output_cmd_dpms(int argc, char **argv) {
 
         const char *oc_name = config->handler_context.output_config->name;
         if (strcmp(oc_name, "*") == 0) {
-            return cmd_results_new(
-                CMD_INVALID, "Cannot apply toggle to all outputs."
-            );
+            return cmd_results_new(CMD_INVALID, "Cannot apply toggle to all outputs.");
         }
 
-        struct hayward_output *hayward_output =
-            all_output_by_name_or_id(oc_name);
-        if (!hayward_output || !hayward_output->wlr_output) {
+        struct hwd_output *hwd_output = all_output_by_name_or_id(oc_name);
+        if (!hwd_output || !hwd_output->wlr_output) {
             return cmd_results_new(
                 CMD_FAILURE, "Cannot apply toggle to unknown output %s", oc_name
             );
         }
 
-        if (hayward_output->enabled && !hayward_output->wlr_output->enabled) {
+        if (hwd_output->enabled && !hwd_output->wlr_output->enabled) {
             current_dpms = DPMS_OFF;
         }
     }

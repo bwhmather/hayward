@@ -28,25 +28,18 @@ bar_cmd_tray_padding(int argc, char **argv) {
     int padding = strtol(argv[0], &end, 10);
     if (padding < 0 || (*end != '\0' && strcasecmp(end, "px") != 0)) {
         return cmd_results_new(
-            CMD_INVALID, "[Bar %s] Invalid tray padding value: %s", bar->id,
-            argv[0]
+            CMD_INVALID, "[Bar %s] Invalid tray padding value: %s", bar->id, argv[0]
         );
     }
 
     if (argc == 2 && strcasecmp(argv[1], "px") != 0) {
-        return cmd_results_new(
-            CMD_INVALID, "Expected 'tray_padding <px> [px]'"
-        );
+        return cmd_results_new(CMD_INVALID, "Expected 'tray_padding <px> [px]'");
     }
 
-    hayward_log(
-        HAYWARD_DEBUG, "[Bar %s] Setting tray padding to %d", bar->id, padding
-    );
+    hwd_log(HWD_DEBUG, "[Bar %s] Setting tray padding to %d", bar->id, padding);
     config->current_bar->tray_padding = padding;
     return cmd_results_new(CMD_SUCCESS, NULL);
 #else
-    return cmd_results_new(
-        CMD_INVALID, "Hayward has been compiled without tray support"
-    );
+    return cmd_results_new(CMD_INVALID, "Hayward has been compiled without tray support");
 #endif
 }

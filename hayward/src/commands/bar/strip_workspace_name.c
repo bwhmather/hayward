@@ -15,8 +15,7 @@
 struct cmd_results *
 bar_cmd_strip_workspace_name(int argc, char **argv) {
     struct cmd_results *error = NULL;
-    if ((error =
-             checkarg(argc, "strip_workspace_name", EXPECTED_EQUAL_TO, 1))) {
+    if ((error = checkarg(argc, "strip_workspace_name", EXPECTED_EQUAL_TO, 1))) {
         return error;
     }
 
@@ -26,15 +25,9 @@ bar_cmd_strip_workspace_name(int argc, char **argv) {
     if (config->current_bar->strip_workspace_name) {
         config->current_bar->strip_workspace_numbers = false;
 
-        hayward_log(
-            HAYWARD_DEBUG, "Stripping workspace name on bar: %s",
-            config->current_bar->id
-        );
+        hwd_log(HWD_DEBUG, "Stripping workspace name on bar: %s", config->current_bar->id);
     } else {
-        hayward_log(
-            HAYWARD_DEBUG, "Enabling workspace name on bar: %s",
-            config->current_bar->id
-        );
+        hwd_log(HWD_DEBUG, "Enabling workspace name on bar: %s", config->current_bar->id);
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

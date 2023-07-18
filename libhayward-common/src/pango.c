@@ -55,8 +55,7 @@ escape_markup_text(const char *src, char *dest) {
 
 PangoLayout *
 get_pango_layout(
-    cairo_t *cairo, const PangoFontDescription *desc, const char *text,
-    double scale, bool markup
+    cairo_t *cairo, const PangoFontDescription *desc, const char *text, double scale, bool markup
 ) {
     PangoLayout *layout = pango_cairo_create_layout(cairo);
     PangoAttrList *attrs;
@@ -67,10 +66,7 @@ get_pango_layout(
             pango_layout_set_text(layout, buf, -1);
             free(buf);
         } else {
-            hayward_log(
-                HAYWARD_ERROR, "pango_parse_markup '%s' -> error %s", text,
-                error->message
-            );
+            hwd_log(HWD_ERROR, "pango_parse_markup '%s' -> error %s", text, error->message);
             g_error_free(error);
             markup = false; // fallback to plain text
         }
@@ -88,11 +84,11 @@ get_pango_layout(
     return layout;
 }
 
-_HAYWARD_ATTRIB_PRINTF(8, 9)
+_HWD_ATTRIB_PRINTF(8, 9)
 void
 get_text_size(
-    cairo_t *cairo, const PangoFontDescription *desc, int *width, int *height,
-    int *baseline, double scale, bool markup, const char *fmt, ...
+    cairo_t *cairo, const PangoFontDescription *desc, int *width, int *height, int *baseline,
+    double scale, bool markup, const char *fmt, ...
 ) {
     va_list args;
     va_start(args, fmt);
@@ -114,14 +110,11 @@ get_text_size(
 }
 
 void
-get_text_metrics(
-    const PangoFontDescription *description, int *height, int *baseline
-) {
+get_text_metrics(const PangoFontDescription *description, int *height, int *baseline) {
     cairo_t *cairo = cairo_create(NULL);
     PangoContext *pango = pango_cairo_create_context(cairo);
     // When passing NULL as a language, pango uses the current locale.
-    PangoFontMetrics *metrics =
-        pango_context_get_metrics(pango, description, NULL);
+    PangoFontMetrics *metrics = pango_context_get_metrics(pango, description, NULL);
 
     *baseline = pango_font_metrics_get_ascent(metrics) / PANGO_SCALE;
     *height = *baseline + pango_font_metrics_get_descent(metrics) / PANGO_SCALE;
@@ -131,11 +124,10 @@ get_text_metrics(
     cairo_destroy(cairo);
 }
 
-_HAYWARD_ATTRIB_PRINTF(5, 6)
+_HWD_ATTRIB_PRINTF(5, 6)
 void
 render_text(
-    cairo_t *cairo, PangoFontDescription *desc, double scale, bool markup,
-    const char *fmt, ...
+    cairo_t *cairo, PangoFontDescription *desc, double scale, bool markup, const char *fmt, ...
 ) {
     va_list args;
     va_start(args, fmt);

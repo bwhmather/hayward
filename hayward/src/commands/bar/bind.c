@@ -22,25 +22,22 @@ binding_add(struct bar_binding *binding, list_t *mode_bindings) {
     bool overwritten = false;
     for (int i = 0; i < mode_bindings->length; i++) {
         struct bar_binding *other = mode_bindings->items[i];
-        if (other->button == binding->button &&
-            other->release == binding->release) {
+        if (other->button == binding->button && other->release == binding->release) {
             overwritten = true;
             mode_bindings->items[i] = binding;
             free_bar_binding(other);
-            hayward_log(
-                HAYWARD_DEBUG, "[bar %s] Updated binding for %u (%s)%s",
-                config->current_bar->id, binding->button, name,
-                binding->release ? " - release" : ""
+            hwd_log(
+                HWD_DEBUG, "[bar %s] Updated binding for %u (%s)%s", config->current_bar->id,
+                binding->button, name, binding->release ? " - release" : ""
             );
             break;
         }
     }
     if (!overwritten) {
         list_add(mode_bindings, binding);
-        hayward_log(
-            HAYWARD_DEBUG, "[bar %s] Added binding for %u (%s)%s",
-            config->current_bar->id, binding->button, name,
-            binding->release ? " - release" : ""
+        hwd_log(
+            HWD_DEBUG, "[bar %s] Added binding for %u (%s)%s", config->current_bar->id,
+            binding->button, name, binding->release ? " - release" : ""
         );
     }
     return cmd_results_new(CMD_SUCCESS, NULL);
@@ -51,12 +48,10 @@ binding_remove(struct bar_binding *binding, list_t *mode_bindings) {
     const char *name = get_mouse_button_name(binding->button);
     for (int i = 0; i < mode_bindings->length; i++) {
         struct bar_binding *other = mode_bindings->items[i];
-        if (other->button == binding->button &&
-            other->release == binding->release) {
-            hayward_log(
-                HAYWARD_DEBUG, "[bar %s] Unbound binding for %u (%s)%s",
-                config->current_bar->id, binding->button, name,
-                binding->release ? " - release" : ""
+        if (other->button == binding->button && other->release == binding->release) {
+            hwd_log(
+                HWD_DEBUG, "[bar %s] Unbound binding for %u (%s)%s", config->current_bar->id,
+                binding->button, name, binding->release ? " - release" : ""
             );
             free_bar_binding(other);
             free_bar_binding(binding);
@@ -70,8 +65,7 @@ binding_remove(struct bar_binding *binding, list_t *mode_bindings) {
         "Could not "
         "find binding for [bar %s]"
         " Button %u (%s)%s",
-        config->current_bar->id, binding->button, name,
-        binding->release ? " - release" : ""
+        config->current_bar->id, binding->button, name, binding->release ? " - release" : ""
     );
     free_bar_binding(binding);
     return error;

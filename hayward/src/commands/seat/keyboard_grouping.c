@@ -25,9 +25,7 @@ seat_cmd_keyboard_grouping(int argc, char **argv) {
     } else if (strcmp(argv[0], "smart") == 0) {
         seat_config->keyboard_grouping = KEYBOARD_GROUP_SMART;
     } else {
-        return cmd_results_new(
-            CMD_INVALID, "Expected syntax `keyboard_grouping none|smart`"
-        );
+        return cmd_results_new(CMD_INVALID, "Expected syntax `keyboard_grouping none|smart`");
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

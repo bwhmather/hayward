@@ -29,8 +29,7 @@ input_cmd_click_method(int argc, char **argv) {
         ic->click_method = LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
     } else {
         return cmd_results_new(
-            CMD_INVALID,
-            "Expected 'click_method <none|button_areas|clickfinger>'"
+            CMD_INVALID, "Expected 'click_method <none|button_areas|clickfinger>'"
         );
     }
 

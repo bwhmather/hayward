@@ -41,8 +41,7 @@ handle_command(
         uint32_t color;
         if (!parse_color(properties[i].hex, &color)) {
             return cmd_results_new(
-                CMD_INVALID, "Invalid %s color %s", properties[i].name,
-                properties[i].hex
+                CMD_INVALID, "Invalid %s color %s", properties[i].name, properties[i].hex
             );
         }
         color_to_rgba(*properties[i].rgba, color);
@@ -56,45 +55,40 @@ handle_command(
 struct cmd_results *
 cmd_client_focused(int argc, char **argv) {
     return handle_command(
-        argc, argv, "client.focused", &config->border_colors.focused,
-        "#2e9ef4ff"
+        argc, argv, "client.focused", &config->border_colors.focused, "#2e9ef4ff"
     );
 }
 
 struct cmd_results *
 cmd_client_focused_inactive(int argc, char **argv) {
     return handle_command(
-        argc, argv, "client.focused_inactive",
-        &config->border_colors.focused_inactive, "#484e50ff"
+        argc, argv, "client.focused_inactive", &config->border_colors.focused_inactive, "#484e50ff"
     );
 }
 
 struct cmd_results *
 cmd_client_unfocused(int argc, char **argv) {
     return handle_command(
-        argc, argv, "client.unfocused", &config->border_colors.unfocused,
-        "#292d2eff"
+        argc, argv, "client.unfocused", &config->border_colors.unfocused, "#292d2eff"
     );
 }
 
 struct cmd_results *
 cmd_client_urgent(int argc, char **argv) {
-    return handle_command(
-        argc, argv, "client.urgent", &config->border_colors.urgent, "#900000ff"
-    );
+    return handle_command(argc, argv, "client.urgent", &config->border_colors.urgent, "#900000ff");
 }
 
 struct cmd_results *
 cmd_client_noop(int argc, char **argv) {
-    hayward_log(HAYWARD_INFO, "Warning: %s is ignored by hayward", argv[-1]);
+    hwd_log(HWD_INFO, "Warning: %s is ignored by hayward", argv[-1]);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
 struct cmd_results *
 cmd_client_focused_tab_title(int argc, char **argv) {
     struct cmd_results *result = handle_command(
-        argc, argv, "client.focused_tab_title",
-        &config->border_colors.focused_tab_title, "#2e9ef4ff"
+        argc, argv, "client.focused_tab_title", &config->border_colors.focused_tab_title,
+        "#2e9ef4ff"
     );
     if (result && result->status == CMD_SUCCESS) {
         config->has_focused_tab_title = true;

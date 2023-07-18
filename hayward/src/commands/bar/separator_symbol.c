@@ -20,8 +20,8 @@ bar_cmd_separator_symbol(int argc, char **argv) {
     }
     free(config->current_bar->separator_symbol);
     config->current_bar->separator_symbol = strdup(argv[0]);
-    hayward_log(
-        HAYWARD_DEBUG, "Settings separator_symbol '%s' for bar: %s",
+    hwd_log(
+        HWD_DEBUG, "Settings separator_symbol '%s' for bar: %s",
         config->current_bar->separator_symbol, config->current_bar->id
     );
     return cmd_results_new(CMD_SUCCESS, NULL);

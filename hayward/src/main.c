@@ -37,11 +37,11 @@
 static bool terminate_request = false;
 static int exit_value = 0;
 static struct rlimit original_nofile_rlimit = {0};
-struct hayward_server server = {0};
-struct hayward_debug debug = {0};
+struct hwd_server server = {0};
+struct hwd_debug debug = {0};
 
 void
-hayward_terminate(int exit_code) {
+hwd_terminate(int exit_code) {
     if (!server.wl_display) {
         // Running as IPC client
         exit(exit_code);
@@ -56,7 +56,7 @@ hayward_terminate(int exit_code) {
 
 static void
 sig_handler(int signal) {
-    hayward_terminate(EXIT_SUCCESS);
+    hwd_terminate(EXIT_SUCCESS);
 }
 
 static void
@@ -70,13 +70,10 @@ detect_proprietary(int allow_unsupported_gpu) {
     while (getline(&line, &line_size, f) != -1) {
         if (strncmp(line, "nvidia ", 7) == 0) {
             if (allow_unsupported_gpu) {
-                hayward_log(
-                    HAYWARD_ERROR,
-                    "!!! Proprietary Nvidia drivers are in use !!!"
-                );
+                hwd_log(HWD_ERROR, "!!! Proprietary Nvidia drivers are in use !!!");
             } else {
-                hayward_log(
-                    HAYWARD_ERROR,
+                hwd_log(
+                    HWD_ERROR,
                     "Proprietary Nvidia drivers are NOT supported. "
                     "Use Nouveau. To launch hayward anyway, launch with "
                     "--unsupported-gpu and DO NOT report issues."
@@ -87,12 +84,10 @@ detect_proprietary(int allow_unsupported_gpu) {
         }
         if (strstr(line, "fglrx")) {
             if (allow_unsupported_gpu) {
-                hayward_log(
-                    HAYWARD_ERROR, "!!! Proprietary AMD drivers are in use !!!"
-                );
+                hwd_log(HWD_ERROR, "!!! Proprietary AMD drivers are in use !!!");
             } else {
-                hayward_log(
-                    HAYWARD_ERROR,
+                hwd_log(
+                    HWD_ERROR,
                     "Proprietary AMD drivers do NOT support "
                     "Wayland. Use radeon. To try anyway, launch hayward with "
                     "--unsupported-gpu and DO NOT report issues."
@@ -126,9 +121,7 @@ log_env(void) {
     };
     for (size_t i = 0; i < sizeof(log_vars) / sizeof(char *); ++i) {
         char *value = getenv(log_vars[i]);
-        hayward_log(
-            HAYWARD_INFO, "%s=%s", log_vars[i], value != NULL ? value : ""
-        );
+        hwd_log(HWD_INFO, "%s=%s", log_vars[i], value != NULL ? value : "");
     }
 }
 
@@ -141,7 +134,7 @@ log_file(FILE *f) {
         if (line[nread - 1] == '\n') {
             line[nread - 1] = '\0';
         }
-        hayward_log(HAYWARD_INFO, "%s", line);
+        hwd_log(HWD_INFO, "%s", line);
     }
     free(line);
 }
@@ -155,7 +148,7 @@ log_distro(void) {
     for (size_t i = 0; i < sizeof(paths) / sizeof(char *); ++i) {
         FILE *f = fopen(paths[i], "r");
         if (f) {
-            hayward_log(HAYWARD_INFO, "Contents of %s:", paths[i]);
+            hwd_log(HWD_INFO, "Contents of %s:", paths[i]);
             log_file(f);
             fclose(f);
         }
@@ -166,7 +159,7 @@ static void
 log_kernel(void) {
     FILE *f = popen("uname -a", "r");
     if (!f) {
-        hayward_log(HAYWARD_INFO, "Unable to determine kernel version");
+        hwd_log(HWD_INFO, "Unable to determine kernel version");
         return;
     }
     log_file(f);
@@ -176,8 +169,8 @@ log_kernel(void) {
 static bool
 drop_permissions(void) {
     if (getuid() != geteuid() || getgid() != getegid()) {
-        hayward_log(
-            HAYWARD_ERROR,
+        hwd_log(
+            HWD_ERROR,
             "!!! DEPRECATION WARNING: "
             "SUID privilege drop will be removed in a future release, please "
             "migrate to seatd-launch"
@@ -185,21 +178,17 @@ drop_permissions(void) {
 
         // Set the gid and uid in the correct order.
         if (setgid(getgid()) != 0) {
-            hayward_log(
-                HAYWARD_ERROR, "Unable to drop root group, refusing to start"
-            );
+            hwd_log(HWD_ERROR, "Unable to drop root group, refusing to start");
             return false;
         }
         if (setuid(getuid()) != 0) {
-            hayward_log(
-                HAYWARD_ERROR, "Unable to drop root user, refusing to start"
-            );
+            hwd_log(HWD_ERROR, "Unable to drop root user, refusing to start");
             return false;
         }
     }
     if (setgid(0) != -1 || setuid(0) != -1) {
-        hayward_log(
-            HAYWARD_ERROR,
+        hwd_log(
+            HWD_ERROR,
             "Unable to drop root (we shouldn't be able to "
             "restore it after setuid), refusing to start"
         );
@@ -211,8 +200,8 @@ drop_permissions(void) {
 static void
 increase_nofile_limit(void) {
     if (getrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-        hayward_log_errno(
-            HAYWARD_ERROR,
+        hwd_log_errno(
+            HWD_ERROR,
             "Failed to bump max open files limit: "
             "getrlimit(NOFILE) failed"
         );
@@ -222,15 +211,12 @@ increase_nofile_limit(void) {
     struct rlimit new_rlimit = original_nofile_rlimit;
     new_rlimit.rlim_cur = new_rlimit.rlim_max;
     if (setrlimit(RLIMIT_NOFILE, &new_rlimit) != 0) {
-        hayward_log_errno(
-            HAYWARD_ERROR,
+        hwd_log_errno(
+            HWD_ERROR,
             "Failed to bump max open files limit: "
             "setrlimit(NOFILE) failed"
         );
-        hayward_log(
-            HAYWARD_INFO, "Running with %d max open files",
-            (int)original_nofile_rlimit.rlim_cur
-        );
+        hwd_log(HWD_INFO, "Running with %d max open files", (int)original_nofile_rlimit.rlim_cur);
     }
 }
 
@@ -240,8 +226,8 @@ restore_nofile_limit(void) {
         return;
     }
     if (setrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-        hayward_log_errno(
-            HAYWARD_ERROR,
+        hwd_log_errno(
+            HWD_ERROR,
             "Failed to restore max open files limit: "
             "setrlimit(NOFILE) failed"
         );
@@ -259,29 +245,27 @@ enable_debug_flag(const char *flag) {
     } else if (strncmp(flag, "txn-timeout=", 12) == 0) {
         server.txn_timeout_ms = atoi(&flag[12]);
     } else {
-        hayward_log(HAYWARD_ERROR, "Unknown debug flag: %s", flag);
+        hwd_log(HWD_ERROR, "Unknown debug flag: %s", flag);
     }
 }
 
-static hayward_log_importance_t
+static hwd_log_importance_t
 convert_wlr_log_importance(enum wlr_log_importance importance) {
     switch (importance) {
     case WLR_ERROR:
-        return HAYWARD_ERROR;
+        return HWD_ERROR;
     case WLR_INFO:
-        return HAYWARD_INFO;
+        return HWD_INFO;
     default:
-        return HAYWARD_DEBUG;
+        return HWD_DEBUG;
     }
 }
 
 static void
-handle_wlr_log(
-    enum wlr_log_importance importance, const char *fmt, va_list args
-) {
-    static char hayward_fmt[1024];
-    snprintf(hayward_fmt, sizeof(hayward_fmt), "[wlr] %s", fmt);
-    hayward_vlog(convert_wlr_log_importance(importance), hayward_fmt, args);
+handle_wlr_log(enum wlr_log_importance importance, const char *fmt, va_list args) {
+    static char hwd_fmt[1024];
+    snprintf(hwd_fmt, sizeof(hwd_fmt), "[wlr] %s", fmt);
+    hwd_vlog(convert_wlr_log_importance(importance), hwd_fmt, args);
 }
 
 static const struct option long_options[] = {
@@ -295,25 +279,23 @@ static const struct option long_options[] = {
     {"unsupported-gpu", no_argument, NULL, 'u'},
     {0, 0, 0, 0}};
 
-static const char usage[] =
-    "Usage: hayward [options] [command]\n"
-    "\n"
-    "  -h, --help             Show help message and quit.\n"
-    "  -c, --config <config>  Specify a config file.\n"
-    "  -C, --validate         Check the validity of the config file, then "
-    "exit.\n"
-    "  -d, --debug            Enables full logging, including debug "
-    "information.\n"
-    "  -v, --version          Show the version number and quit.\n"
-    "  -V, --verbose          Enables more verbose logging.\n"
-    "      --get-socketpath   Gets the IPC socket path and prints it, then "
-    "exits.\n"
-    "\n";
+static const char usage[] = "Usage: hayward [options] [command]\n"
+                            "\n"
+                            "  -h, --help             Show help message and quit.\n"
+                            "  -c, --config <config>  Specify a config file.\n"
+                            "  -C, --validate         Check the validity of the config file, then "
+                            "exit.\n"
+                            "  -d, --debug            Enables full logging, including debug "
+                            "information.\n"
+                            "  -v, --version          Show the version number and quit.\n"
+                            "  -V, --verbose          Enables more verbose logging.\n"
+                            "      --get-socketpath   Gets the IPC socket path and prints it, then "
+                            "exits.\n"
+                            "\n";
 
 int
 main(int argc, char **argv) {
-    static bool verbose = false, debug = false, validate = false,
-                allow_unsupported_gpu = false;
+    static bool verbose = false, debug = false, validate = false, allow_unsupported_gpu = false;
 
     char *config_path = NULL;
 
@@ -346,7 +328,7 @@ main(int argc, char **argv) {
             allow_unsupported_gpu = true;
             break;
         case 'v': // version
-            printf("hayward version " HAYWARD_VERSION "\n");
+            printf("hayward version " HWD_VERSION "\n");
             exit(EXIT_SUCCESS);
             break;
         case 'V': // verbose
@@ -370,36 +352,34 @@ main(int argc, char **argv) {
     // Since wayland requires XDG_RUNTIME_DIR to be set, abort with just the
     // clear error message (when not running as an IPC client).
     if (!getenv("XDG_RUNTIME_DIR") && optind == argc) {
-        fprintf(
-            stderr, "XDG_RUNTIME_DIR is not set in the environment. Aborting.\n"
-        );
+        fprintf(stderr, "XDG_RUNTIME_DIR is not set in the environment. Aborting.\n");
         exit(EXIT_FAILURE);
     }
 
     // As the 'callback' function for wlr_log is equivalent to that for
     // hayward, we do not need to override it.
     if (debug) {
-        hayward_log_init(HAYWARD_DEBUG);
+        hwd_log_init(HWD_DEBUG);
         wlr_log_init(WLR_DEBUG, handle_wlr_log);
     } else if (verbose) {
-        hayward_log_init(HAYWARD_INFO);
+        hwd_log_init(HWD_INFO);
         wlr_log_init(WLR_INFO, handle_wlr_log);
     } else {
-        hayward_log_init(HAYWARD_ERROR);
+        hwd_log_init(HWD_ERROR);
         wlr_log_init(WLR_ERROR, handle_wlr_log);
     }
 
     const char *wlr_v_str = WLR_VERSION_STR;
-    hayward_log(HAYWARD_INFO, "Hayward version " HAYWARD_VERSION);
-    hayward_log(HAYWARD_INFO, "wlroots version %s", wlr_v_str);
+    hwd_log(HWD_INFO, "Hayward version " HWD_VERSION);
+    hwd_log(HWD_INFO, "wlroots version %s", wlr_v_str);
     log_kernel();
     log_distro();
     log_env();
 
     if (optind < argc) { // Behave as IPC client
         if (optind != 1) {
-            hayward_log(
-                HAYWARD_ERROR,
+            hwd_log(
+                HWD_ERROR,
                 "Detected both options and positional arguments. If you "
                 "are trying to use the IPC client, options are not "
                 "supported. Otherwise, check the provided arguments for "
@@ -414,7 +394,7 @@ main(int argc, char **argv) {
         }
         char *socket_path = getenv("HAYWARDSOCK");
         if (!socket_path) {
-            hayward_log(HAYWARD_ERROR, "Unable to retrieve socket path");
+            hwd_log(HWD_ERROR, "Unable to retrieve socket path");
             exit(EXIT_FAILURE);
         }
         char *command = join_args(argv + optind, argc - optind);
@@ -443,10 +423,10 @@ main(int argc, char **argv) {
     // prevent ipc from crashing hayward
     signal(SIGPIPE, SIG_IGN);
 
-    hayward_log(HAYWARD_INFO, "Starting hayward version " HAYWARD_VERSION);
+    hwd_log(HWD_INFO, "Starting hayward version " HWD_VERSION);
 
-    transaction_manager = hayward_transaction_manager_create();
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    transaction_manager = hwd_transaction_manager_create();
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     root = root_create();
 
@@ -466,27 +446,27 @@ main(int argc, char **argv) {
 
     setenv("WAYLAND_DISPLAY", server.socket, true);
     if (!load_main_config(config_path, false, false)) {
-        hayward_terminate(EXIT_FAILURE);
+        hwd_terminate(EXIT_FAILURE);
         goto shutdown;
     }
 
     // TODO this probably shouldn't live here
     char *workspace_name = "0";
-    struct hayward_workspace *workspace = workspace_create(workspace_name);
+    struct hwd_workspace *workspace = workspace_create(workspace_name);
     root_add_workspace(root, workspace);
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 
     if (!server_start(&server)) {
-        hayward_terminate(EXIT_FAILURE);
+        hwd_terminate(EXIT_FAILURE);
         goto shutdown;
     }
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
     config->active = true;
     load_haywardbars();
     run_deferred_commands();
     run_deferred_bindings();
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 
     if (config->haywardnag_config_errors.client != NULL) {
         haywardnag_show(&config->haywardnag_config_errors);
@@ -495,12 +475,12 @@ main(int argc, char **argv) {
     server_run(&server);
 
 shutdown:
-    hayward_log(HAYWARD_INFO, "Shutting down hayward");
+    hwd_log(HWD_INFO, "Shutting down hayward");
 
     server_fini(&server);
     root_destroy(root);
     root = NULL;
-    hayward_transaction_manager_destroy(transaction_manager);
+    hwd_transaction_manager_destroy(transaction_manager);
 
     free(config_path);
     free_config(config);

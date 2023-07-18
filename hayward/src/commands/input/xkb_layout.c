@@ -24,9 +24,6 @@ input_cmd_xkb_layout(int argc, char **argv) {
 
     ic->xkb_layout = strdup(argv[0]);
 
-    hayward_log(
-        HAYWARD_DEBUG, "set-xkb_layout for config: %s layout: %s",
-        ic->identifier, ic->xkb_layout
-    );
+    hwd_log(HWD_DEBUG, "set-xkb_layout for config: %s layout: %s", ic->identifier, ic->xkb_layout);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

@@ -15,8 +15,7 @@
 
 #include <config.h>
 
-static const char expected_syntax[] =
-    "Expected `fullscreen [enable|disable|toggle]`";
+static const char expected_syntax[] = "Expected `fullscreen [enable|disable|toggle]`";
 
 struct cmd_results *
 cmd_fullscreen(int argc, char **argv) {
@@ -26,11 +25,10 @@ cmd_fullscreen(int argc, char **argv) {
     }
     if (!root->outputs->length) {
         return cmd_results_new(
-            CMD_FAILURE,
-            "Can't run this command while there's no outputs connected."
+            CMD_FAILURE, "Can't run this command while there's no outputs connected."
         );
     }
-    struct hayward_window *window = config->handler_context.window;
+    struct hwd_window *window = config->handler_context.window;
 
     if (!window) {
         // If the focus is not a window, do nothing successfully

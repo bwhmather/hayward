@@ -28,20 +28,17 @@ cmd_workspace(int argc, char **argv) {
         return cmd_results_new(CMD_DEFER, NULL);
     } else if (!root->outputs->length) {
         return cmd_results_new(
-            CMD_INVALID,
-            "Can't run this command while there's no outputs connected."
+            CMD_INVALID, "Can't run this command while there's no outputs connected."
         );
     }
 
-    struct hayward_workspace *workspace = NULL;
+    struct hwd_workspace *workspace = NULL;
     if (strcasecmp(argv[0], "number") == 0) {
         if (argc != 2) {
             return cmd_results_new(CMD_INVALID, "Expected workspace number");
         }
         if (!isdigit(argv[1][0])) {
-            return cmd_results_new(
-                CMD_INVALID, "Invalid workspace number '%s'", argv[1]
-            );
+            return cmd_results_new(CMD_INVALID, "Invalid workspace number '%s'", argv[1]);
         }
         if (!(workspace = workspace_by_name(argv[1]))) {
             workspace = workspace_create(argv[1]);

@@ -1,5 +1,5 @@
-#ifndef HAYWARD_INPUT_INPUT_MANAGER_H
-#define HAYWARD_INPUT_INPUT_MANAGER_H
+#ifndef HWD_INPUT_INPUT_MANAGER_H
+#define HWD_INPUT_INPUT_MANAGER_H
 
 #include <stdbool.h>
 #include <wayland-server-core.h>
@@ -14,7 +14,7 @@
 #include <hayward/config.h>
 #include <hayward/input/seat.h>
 
-struct hayward_input_device {
+struct hwd_input_device {
     char *identifier;
     struct wlr_input_device *wlr_device;
     struct wl_list link;
@@ -22,13 +22,12 @@ struct hayward_input_device {
     bool is_virtual;
 };
 
-struct hayward_input_manager {
+struct hwd_input_manager {
     struct wl_list devices;
     struct wl_list seats;
 
     struct wlr_input_inhibit_manager *inhibit;
-    struct wlr_keyboard_shortcuts_inhibit_manager_v1
-        *keyboard_shortcuts_inhibit;
+    struct wlr_keyboard_shortcuts_inhibit_manager_v1 *keyboard_shortcuts_inhibit;
     struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard;
     struct wlr_virtual_pointer_manager_v1 *virtual_pointer;
 
@@ -43,20 +42,20 @@ struct hayward_input_manager {
 /**
  * Gets the last seat the user interacted with
  */
-struct hayward_seat *
+struct hwd_seat *
 input_manager_current_seat(void);
 
-struct hayward_seat *
+struct hwd_seat *
 input_manager_get_default_seat(void);
 
-struct hayward_seat *
+struct hwd_seat *
 input_manager_get_seat(const char *seat_name, bool create);
 
 char *
 input_device_get_identifier(struct wlr_input_device *device);
 
 const char *
-input_device_get_type(struct hayward_input_device *device);
+input_device_get_type(struct hwd_input_device *device);
 
 /**
  * If none of the seat configs have a fallback setting (either true or false),
@@ -65,10 +64,8 @@ input_device_get_type(struct hayward_input_device *device);
 void
 input_manager_verify_fallback_seat(void);
 
-struct hayward_input_manager *
-input_manager_create(
-    struct wl_display *wl_display, struct wlr_backend *backend
-);
+struct hwd_input_manager *
+input_manager_create(struct wl_display *wl_display, struct wlr_backend *backend);
 
 void
 input_manager_configure_all_inputs(void);
@@ -77,7 +74,7 @@ void
 input_manager_apply_input_config(struct input_config *input_config);
 
 void
-input_manager_reset_input(struct hayward_input_device *input_device);
+input_manager_reset_input(struct hwd_input_device *input_device);
 
 void
 input_manager_reset_all_inputs(void);
@@ -89,6 +86,6 @@ void
 input_manager_configure_xcursor(void);
 
 struct input_config *
-input_device_get_config(struct hayward_input_device *device);
+input_device_get_config(struct hwd_input_device *device);
 
 #endif

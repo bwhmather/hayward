@@ -16,18 +16,11 @@ bar_cmd_pango_markup(int argc, char **argv) {
     if ((error = checkarg(argc, "pango_markup", EXPECTED_EQUAL_TO, 1))) {
         return error;
     }
-    config->current_bar->pango_markup =
-        parse_boolean(argv[0], config->current_bar->pango_markup);
+    config->current_bar->pango_markup = parse_boolean(argv[0], config->current_bar->pango_markup);
     if (config->current_bar->pango_markup) {
-        hayward_log(
-            HAYWARD_DEBUG, "Enabling pango markup for bar: %s",
-            config->current_bar->id
-        );
+        hwd_log(HWD_DEBUG, "Enabling pango markup for bar: %s", config->current_bar->id);
     } else {
-        hayward_log(
-            HAYWARD_DEBUG, "Disabling pango markup for bar: %s",
-            config->current_bar->id
-        );
+        hwd_log(HWD_DEBUG, "Disabling pango markup for bar: %s", config->current_bar->id);
     }
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

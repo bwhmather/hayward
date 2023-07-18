@@ -21,8 +21,7 @@ cmd_titlebar_padding(int argc, char **argv) {
 
     char *inv;
     int h_value = strtol(argv[0], &inv, 10);
-    if (*inv != '\0' || h_value < 0 ||
-        h_value < config->titlebar_border_thickness) {
+    if (*inv != '\0' || h_value < 0 || h_value < config->titlebar_border_thickness) {
         return cmd_results_new(CMD_FAILURE, "Invalid size specified");
     }
 
@@ -31,8 +30,7 @@ cmd_titlebar_padding(int argc, char **argv) {
         v_value = h_value;
     } else {
         v_value = strtol(argv[1], &inv, 10);
-        if (*inv != '\0' || v_value < 0 ||
-            v_value < config->titlebar_border_thickness) {
+        if (*inv != '\0' || v_value < 0 || v_value < config->titlebar_border_thickness) {
             return cmd_results_new(CMD_FAILURE, "Invalid size specified");
         }
     }
@@ -40,7 +38,7 @@ cmd_titlebar_padding(int argc, char **argv) {
     config->titlebar_v_padding = v_value;
     config->titlebar_h_padding = h_value;
 
-    struct hayward_workspace *workspace = root_get_active_workspace(root);
+    struct hwd_workspace *workspace = root_get_active_workspace(root);
     arrange_workspace(workspace);
 
     return cmd_results_new(CMD_SUCCESS, NULL);

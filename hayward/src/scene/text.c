@@ -46,8 +46,7 @@ cairo_buffer_handle_destroy(struct wlr_buffer *wlr_buffer) {
 
 static bool
 cairo_buffer_handle_begin_data_ptr_access(
-    struct wlr_buffer *wlr_buffer, uint32_t flags, void **data,
-    uint32_t *format, size_t *stride
+    struct wlr_buffer *wlr_buffer, uint32_t flags, void **data, uint32_t *format, size_t *stride
 ) {
     struct cairo_buffer *buffer = wl_container_of(wlr_buffer, buffer, base);
     *data = cairo_image_surface_get_data(buffer->surface);
@@ -70,7 +69,7 @@ static const struct wlr_buffer_impl cairo_buffer_impl = {
 struct text_buffer {
     struct wlr_scene_buffer *buffer_node;
     char *text;
-    struct hayward_text_node props;
+    struct hwd_text_node props;
 
     float scale;
     enum wl_output_subpixel subpixel;
@@ -91,7 +90,7 @@ struct text_buffer_output {
 };
 
 static int
-get_text_width(struct hayward_text_node *props) {
+get_text_width(struct hwd_text_node *props) {
     if (props->max_width) {
         return MIN(props->max_width, props->width);
     }
@@ -101,7 +100,7 @@ get_text_width(struct hayward_text_node *props) {
 
 static void
 update_source_box(struct text_buffer *buffer) {
-    struct hayward_text_node *props = &buffer->props;
+    struct hwd_text_node *props = &buffer->props;
     struct wlr_fbox source_box = {
         .x = 0,
         .y = 0,
@@ -123,24 +122,17 @@ render_backing_buffer(struct text_buffer *buffer) {
     cairo_font_options_t *fo = cairo_font_options_create();
     cairo_font_options_set_hint_style(fo, CAIRO_HINT_STYLE_FULL);
     enum wl_output_subpixel subpixel = buffer->subpixel;
-    if (subpixel == WL_OUTPUT_SUBPIXEL_NONE ||
-        subpixel == WL_OUTPUT_SUBPIXEL_UNKNOWN) {
+    if (subpixel == WL_OUTPUT_SUBPIXEL_NONE || subpixel == WL_OUTPUT_SUBPIXEL_UNKNOWN) {
         cairo_font_options_set_antialias(fo, CAIRO_ANTIALIAS_GRAY);
     } else {
         cairo_font_options_set_antialias(fo, CAIRO_ANTIALIAS_SUBPIXEL);
-        cairo_font_options_set_subpixel_order(
-            fo, to_cairo_subpixel_order(subpixel)
-        );
+        cairo_font_options_set_subpixel_order(fo, to_cairo_subpixel_order(subpixel));
     }
 
-    cairo_surface_t *surface =
-        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_status_t status = cairo_surface_status(surface);
     if (status != CAIRO_STATUS_SUCCESS) {
-        hayward_log(
-            HAYWARD_ERROR, "cairo_image_surface_create failed: %s",
-            cairo_status_to_string(status)
-        );
+        hwd_log(HWD_ERROR, "cairo_image_surface_create failed: %s", cairo_status_to_string(status));
         goto err;
     }
 
@@ -149,13 +141,10 @@ render_backing_buffer(struct text_buffer *buffer) {
     cairo_set_font_options(cairo, fo);
     pango = pango_cairo_create_context(cairo);
     cairo_set_source_rgba(cairo, color[0], color[1], color[2], color[3]);
-    cairo_move_to(
-        cairo, 0, (config->font_baseline - buffer->props.baseline) * scale
-    );
+    cairo_move_to(cairo, 0, (config->font_baseline - buffer->props.baseline) * scale);
 
     render_text(
-        cairo, config->font_description, scale, buffer->props.pango_markup,
-        "%s", buffer->text
+        cairo, config->font_description, scale, buffer->props.pango_markup, "%s", buffer->text
     );
 
     cairo_surface_flush(surface);
@@ -217,23 +206,19 @@ ensure_backing_buffer(struct text_buffer *buffer) {
 
 static void
 handle_output_commit(struct wl_listener *listener, void *data) {
-    struct text_buffer_output *output =
-        wl_container_of(listener, output, commit);
+    struct text_buffer_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
-    if (event->committed &
-        (WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_SUBPIXEL)) {
+    if (event->committed & (WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_SUBPIXEL)) {
         ensure_backing_buffer(output->text_buffer);
     }
 }
 
 static void
 handle_output_enter(struct wl_listener *listener, void *data) {
-    struct text_buffer *buffer =
-        wl_container_of(listener, buffer, output_enter);
+    struct text_buffer *buffer = wl_container_of(listener, buffer, output_enter);
     struct wlr_scene_output *output = data;
-    struct text_buffer_output *buffer_output =
-        calloc(1, sizeof(*buffer_output));
+    struct text_buffer_output *buffer_output = calloc(1, sizeof(*buffer_output));
     if (!buffer_output) {
         return;
     }
@@ -260,9 +245,7 @@ text_buffer_output_destroy(struct text_buffer_output *output) {
 }
 
 static struct text_buffer_output *
-get_text_output_from_wlr_output(
-    struct text_buffer *buffer, struct wlr_output *wlr_output
-) {
+get_text_output_from_wlr_output(struct text_buffer *buffer, struct wlr_output *wlr_output) {
     struct text_buffer_output *output;
     wl_list_for_each(output, &buffer->outputs, link) {
         if (output->output == wlr_output) {
@@ -274,8 +257,7 @@ get_text_output_from_wlr_output(
 
 static void
 handle_output_leave(struct wl_listener *listener, void *data) {
-    struct text_buffer *buffer =
-        wl_container_of(listener, buffer, output_leave);
+    struct text_buffer *buffer = wl_container_of(listener, buffer, output_leave);
     struct wlr_scene_output *scene_output = data;
 
     struct text_buffer_output *output =
@@ -303,25 +285,22 @@ handle_destroy(struct wl_listener *listener, void *data) {
 
 static void
 text_calc_size(struct text_buffer *buffer) {
-    struct hayward_text_node *props = &buffer->props;
+    struct hwd_text_node *props = &buffer->props;
 
     cairo_t *c = cairo_create(NULL);
     cairo_set_antialias(c, CAIRO_ANTIALIAS_BEST);
     get_text_size(
-        c, config->font_description, &props->width, NULL, &props->baseline, 1,
-        props->pango_markup, "%s", buffer->text
+        c, config->font_description, &props->width, NULL, &props->baseline, 1, props->pango_markup,
+        "%s", buffer->text
     );
     cairo_destroy(c);
 
-    wlr_scene_buffer_set_dest_size(
-        buffer->buffer_node, get_text_width(props), props->height
-    );
+    wlr_scene_buffer_set_dest_size(buffer->buffer_node, get_text_width(props), props->height);
 }
 
-struct hayward_text_node *
-hayward_text_node_create(
-    struct wlr_scene_tree *parent, char *text, const float *color,
-    bool pango_markup
+struct hwd_text_node *
+hwd_text_node_create(
+    struct wlr_scene_tree *parent, char *text, const float *color, bool pango_markup
 ) {
     struct text_buffer *buffer = calloc(1, sizeof(*buffer));
     if (!buffer) {
@@ -362,9 +341,7 @@ hayward_text_node_create(
 }
 
 void
-hayward_text_node_set_color(
-    struct hayward_text_node *node, const float *color
-) {
+hwd_text_node_set_color(struct hwd_text_node *node, const float *color) {
     if (memcmp(&node->color, color, sizeof(float) * 4) == 0) {
         return;
     }
@@ -376,7 +353,7 @@ hayward_text_node_set_color(
 }
 
 void
-hayward_text_node_set_text(struct hayward_text_node *node, char *text) {
+hwd_text_node_set_text(struct hwd_text_node *node, char *text) {
     struct text_buffer *buffer = wl_container_of(node, buffer, props);
     if (strcmp(buffer->text, text) == 0) {
         return;
@@ -395,12 +372,11 @@ hayward_text_node_set_text(struct hayward_text_node *node, char *text) {
 }
 
 void
-hayward_text_node_set_max_width(struct hayward_text_node *node, int max_width) {
+hwd_text_node_set_max_width(struct hwd_text_node *node, int max_width) {
     struct text_buffer *buffer = wl_container_of(node, buffer, props);
     buffer->props.max_width = max_width;
     wlr_scene_buffer_set_dest_size(
-        buffer->buffer_node, get_text_width(&buffer->props),
-        buffer->props.height
+        buffer->buffer_node, get_text_width(&buffer->props), buffer->props.height
     );
     update_source_box(buffer);
 }

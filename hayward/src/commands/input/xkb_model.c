@@ -24,9 +24,6 @@ input_cmd_xkb_model(int argc, char **argv) {
 
     ic->xkb_model = strdup(argv[0]);
 
-    hayward_log(
-        HAYWARD_DEBUG, "set-xkb_model for config: %s model: %s", ic->identifier,
-        ic->xkb_model
-    );
+    hwd_log(HWD_DEBUG, "set-xkb_model for config: %s model: %s", ic->identifier, ic->xkb_model);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

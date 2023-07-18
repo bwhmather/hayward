@@ -34,8 +34,7 @@ cmd_font(int argc, char **argv) {
 
     // Parse the font early so we can reject it if it's not valid for pango.
     // Also avoids re-parsing each time we render text.
-    PangoFontDescription *font_description =
-        pango_font_description_from_string(config->font);
+    PangoFontDescription *font_description = pango_font_description_from_string(config->font);
 
     const char *family = pango_font_description_get_family(font_description);
     if (family == NULL) {

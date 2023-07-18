@@ -21,20 +21,20 @@
 #include <config.h>
 
 static void
-window_set_floating(struct hayward_window *window, bool enable) {
-    hayward_assert(window != NULL, "Expected window");
+window_set_floating(struct hwd_window *window, bool enable) {
+    hwd_assert(window != NULL, "Expected window");
 
     if (window_is_floating(window) == enable) {
         return;
     }
 
-    struct hayward_workspace *workspace = window->pending.workspace;
-    hayward_assert(workspace != NULL, "Window not attached to workspace");
+    struct hwd_workspace *workspace = window->pending.workspace;
+    hwd_assert(workspace != NULL, "Window not attached to workspace");
 
     bool focus = workspace_get_active_window(workspace);
 
     if (enable) {
-        struct hayward_column *old_parent = window->pending.parent;
+        struct hwd_column *old_parent = window->pending.parent;
         window_detach(window);
         workspace_add_floating(workspace, window);
         view_set_tiled(window->view, false);
@@ -42,11 +42,9 @@ window_set_floating(struct hayward_window *window, bool enable) {
             window->saved_border = window->pending.border;
             window->pending.border = B_CSD;
             if (window->view->xdg_decoration) {
-                struct hayward_xdg_decoration *deco =
-                    window->view->xdg_decoration;
+                struct hwd_xdg_decoration *deco = window->view->xdg_decoration;
                 wlr_xdg_toplevel_decoration_v1_set_mode(
-                    deco->wlr_xdg_decoration,
-                    WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE
+                    deco->wlr_xdg_decoration, WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE
                 );
             }
         }
@@ -57,7 +55,7 @@ window_set_floating(struct hayward_window *window, bool enable) {
         }
     } else {
         // Returning to tiled
-        struct hayward_output *output = window_get_output(window);
+        struct hwd_output *output = window_get_output(window);
 
         window_detach(window);
         if (window->view) {
@@ -65,21 +63,18 @@ window_set_floating(struct hayward_window *window, bool enable) {
             if (window->view->using_csd) {
                 window->pending.border = window->saved_border;
                 if (window->view->xdg_decoration) {
-                    struct hayward_xdg_decoration *deco =
-                        window->view->xdg_decoration;
+                    struct hwd_xdg_decoration *deco = window->view->xdg_decoration;
                     wlr_xdg_toplevel_decoration_v1_set_mode(
-                        deco->wlr_xdg_decoration,
-                        WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
+                        deco->wlr_xdg_decoration, WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
                     );
                 }
             }
         }
         window->height_fraction = 0;
 
-        struct hayward_column *column = NULL;
+        struct hwd_column *column = NULL;
         for (int i = 0; i < workspace->pending.tiling->length; i++) {
-            struct hayward_column *candidate_column =
-                workspace->pending.tiling->items[i];
+            struct hwd_column *candidate_column = workspace->pending.tiling->items[i];
 
             if (candidate_column->pending.output != output) {
                 continue;
@@ -100,7 +95,7 @@ window_set_floating(struct hayward_window *window, bool enable) {
             workspace_insert_tiling(workspace, output, column, 0);
         }
 
-        hayward_move_window_to_column(window, column);
+        hwd_move_window_to_column(window, column);
     }
 
     if (focus) {
@@ -113,39 +108,36 @@ window_set_floating(struct hayward_window *window, bool enable) {
 }
 
 void
-hayward_move_window_to_floating(struct hayward_window *window) {
+hwd_move_window_to_floating(struct hwd_window *window) {
     window_set_floating(window, true);
 }
 
 void
-hayward_move_window_to_tiling(struct hayward_window *window) {
+hwd_move_window_to_tiling(struct hwd_window *window) {
     window_set_floating(window, false);
 }
 
 static void
-hayward_move_window_to_column_from_maybe_direction(
-    struct hayward_window *window, struct hayward_column *column,
-    bool has_move_dir, enum wlr_direction move_dir
+hwd_move_window_to_column_from_maybe_direction(
+    struct hwd_window *window, struct hwd_column *column, bool has_move_dir,
+    enum wlr_direction move_dir
 ) {
     if (window->pending.parent == column) {
         return;
     }
 
-    struct hayward_workspace *old_workspace = window->pending.workspace;
+    struct hwd_workspace *old_workspace = window->pending.workspace;
 
-    if (has_move_dir &&
-        (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
-        hayward_log(HAYWARD_DEBUG, "Reparenting window (parallel)");
-        int index = move_dir == WLR_DIRECTION_DOWN
-            ? 0
-            : column->pending.children->length;
+    if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
+        hwd_log(HWD_DEBUG, "Reparenting window (parallel)");
+        int index = move_dir == WLR_DIRECTION_DOWN ? 0 : column->pending.children->length;
         window_detach(window);
         column_insert_child(column, window, index);
         window->pending.width = window->pending.height = 0;
         window->height_fraction = 0;
     } else {
-        hayward_log(HAYWARD_DEBUG, "Reparenting window (perpendicular)");
-        struct hayward_window *target_sibling = column->pending.active_child;
+        hwd_log(HWD_DEBUG, "Reparenting window (perpendicular)");
+        struct hwd_window *target_sibling = column->pending.active_child;
         window_detach(window);
         if (target_sibling) {
             column_add_sibling(target_sibling, window, 1);
@@ -166,30 +158,21 @@ hayward_move_window_to_column_from_maybe_direction(
 }
 
 void
-hayward_move_window_to_column_from_direction(
-    struct hayward_window *window, struct hayward_column *column,
-    enum wlr_direction move_dir
+hwd_move_window_to_column_from_direction(
+    struct hwd_window *window, struct hwd_column *column, enum wlr_direction move_dir
 ) {
-    hayward_move_window_to_column_from_maybe_direction(
-        window, column, true, move_dir
-    );
+    hwd_move_window_to_column_from_maybe_direction(window, column, true, move_dir);
 }
 
 void
-hayward_move_window_to_column(
-    struct hayward_window *window, struct hayward_column *column
-) {
-    hayward_move_window_to_column_from_maybe_direction(
-        window, column, false, WLR_DIRECTION_DOWN
-    );
+hwd_move_window_to_column(struct hwd_window *window, struct hwd_column *column) {
+    hwd_move_window_to_column_from_maybe_direction(window, column, false, WLR_DIRECTION_DOWN);
 }
 
 void
-hayward_move_window_to_workspace(
-    struct hayward_window *window, struct hayward_workspace *workspace
-) {
-    hayward_assert(window != NULL, "Expected window");
-    hayward_assert(workspace != NULL, "Expected workspace");
+hwd_move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *workspace) {
+    hwd_assert(window != NULL, "Expected window");
+    hwd_assert(workspace != NULL, "Expected workspace");
 
     if (workspace == window->pending.workspace) {
         return;
@@ -200,12 +183,11 @@ hayward_move_window_to_workspace(
         workspace_add_floating(workspace, window);
         window_handle_fullscreen_reparent(window);
     } else {
-        struct hayward_output *output = window->pending.parent->pending.output;
-        struct hayward_column *column = NULL;
+        struct hwd_output *output = window->pending.parent->pending.output;
+        struct hwd_column *column = NULL;
 
         for (int i = 0; i < workspace->pending.tiling->length; i++) {
-            struct hayward_column *candidate_column =
-                workspace->pending.tiling->items[i];
+            struct hwd_column *candidate_column = workspace->pending.tiling->items[i];
 
             if (candidate_column->pending.output != output) {
                 continue;
@@ -229,23 +211,22 @@ hayward_move_window_to_workspace(
         window->pending.width = window->pending.height = 0;
         window->height_fraction = 0;
 
-        hayward_move_window_to_column(window, column);
+        hwd_move_window_to_column(window, column);
     }
 }
 
 void
-hayward_move_window_to_output_from_direction(
-    struct hayward_window *window, struct hayward_output *output,
-    enum wlr_direction move_dir
+hwd_move_window_to_output_from_direction(
+    struct hwd_window *window, struct hwd_output *output, enum wlr_direction move_dir
 ) {
-    hayward_assert(window != NULL, "Expected window");
-    hayward_assert(output != NULL, "Expected output");
+    hwd_assert(window != NULL, "Expected window");
+    hwd_assert(output != NULL, "Expected output");
 
-    struct hayward_workspace *workspace = window->pending.workspace;
-    hayward_assert(workspace != NULL, "Window is not attached to a workspace");
+    struct hwd_workspace *workspace = window->pending.workspace;
+    hwd_assert(workspace != NULL, "Window is not attached to a workspace");
 
     // TODO this should be derived from the window's current position.
-    struct hayward_output *old_output = workspace_get_active_output(workspace);
+    struct hwd_output *old_output = workspace_get_active_output(workspace);
     if (window_is_floating(window)) {
         if (old_output != output && !window->pending.fullscreen) {
             window_floating_move_to_center(window);
@@ -253,11 +234,10 @@ hayward_move_window_to_output_from_direction(
 
         return;
     } else {
-        struct hayward_column *column = NULL;
+        struct hwd_column *column = NULL;
 
         for (int i = 0; i < workspace->pending.tiling->length; i++) {
-            struct hayward_column *candidate_column =
-                workspace->pending.tiling->items[i];
+            struct hwd_column *candidate_column = workspace->pending.tiling->items[i];
 
             if (candidate_column->pending.output != output) {
                 continue;
@@ -279,13 +259,11 @@ hayward_move_window_to_output_from_direction(
         window->pending.width = window->pending.height = 0;
         window->height_fraction = 0;
 
-        hayward_move_window_to_column_from_direction(window, column, move_dir);
+        hwd_move_window_to_column_from_direction(window, column, move_dir);
     }
 }
 
 void
-hayward_move_window_to_output(
-    struct hayward_window *window, struct hayward_output *output
-) {
-    hayward_move_window_to_output_from_direction(window, output, 0);
+hwd_move_window_to_output(struct hwd_window *window, struct hwd_output *output) {
+    hwd_move_window_to_output_from_direction(window, output, 0);
 }

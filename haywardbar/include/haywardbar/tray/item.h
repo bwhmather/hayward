@@ -57,9 +57,6 @@ create_sni(char *id, struct haywardbar_tray *tray);
 void
 destroy_sni(struct haywardbar_sni *sni);
 uint32_t
-render_sni(
-    cairo_t *cairo, struct haywardbar_output *output, double *x,
-    struct haywardbar_sni *sni
-);
+render_sni(cairo_t *cairo, struct haywardbar_output *output, double *x, struct haywardbar_sni *sni);
 
 #endif

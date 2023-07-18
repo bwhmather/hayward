@@ -19,40 +19,37 @@ static void
 handle_request_activate(struct wl_listener *listener, void *data) {
     const struct wlr_xdg_activation_v1_request_activate_event *event = data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    struct wlr_xdg_surface *xdg_surface =
-        wlr_xdg_surface_try_from_wlr_surface(event->surface);
+    struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(event->surface);
     if (xdg_surface == NULL) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
-    struct hayward_view *view = xdg_surface->data;
+    struct hwd_view *view = xdg_surface->data;
     if (!xdg_surface->surface->mapped) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (view == NULL) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     view_request_activate(view);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
-struct hayward_xdg_activation_v1 *
-hayward_xdg_activation_v1_create(struct wl_display *wl_display) {
-    struct hayward_xdg_activation_v1 *xdg_activation =
-        calloc(1, sizeof(struct hayward_xdg_activation_v1));
+struct hwd_xdg_activation_v1 *
+hwd_xdg_activation_v1_create(struct wl_display *wl_display) {
+    struct hwd_xdg_activation_v1 *xdg_activation = calloc(1, sizeof(struct hwd_xdg_activation_v1));
     if (!xdg_activation) {
         return NULL;
     }
 
-    xdg_activation->xdg_activation_v1 =
-        wlr_xdg_activation_v1_create(wl_display);
+    xdg_activation->xdg_activation_v1 = wlr_xdg_activation_v1_create(wl_display);
     if (xdg_activation->xdg_activation_v1 == NULL) {
         free(xdg_activation);
         return NULL;

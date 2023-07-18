@@ -19,7 +19,7 @@
 #include <hayward-common/stringop.h>
 
 void
-hayward_terminate(int exit_code) {
+hwd_terminate(int exit_code) {
     exit(exit_code);
 }
 
@@ -74,8 +74,7 @@ pretty_print_cmd(json_object *r) {
 
 static void
 pretty_print_workspace(json_object *w) {
-    json_object *name, *rect, *visible, *output, *urgent, *layout,
-        *representation, *focused;
+    json_object *name, *rect, *visible, *output, *urgent, *layout, *representation, *focused;
     json_object_object_get_ex(w, "name", &name);
     json_object_object_get_ex(w, "rect", &rect);
     json_object_object_get_ex(w, "visible", &visible);
@@ -89,12 +88,10 @@ pretty_print_workspace(json_object *w) {
         "  Output: %s\n"
         "  Layout: %s\n"
         "  Representation: %s\n\n",
-        json_object_get_string(name),
-        json_object_get_boolean(focused) ? " (focused)" : "",
+        json_object_get_string(name), json_object_get_boolean(focused) ? " (focused)" : "",
         !json_object_get_boolean(visible) ? " (off-screen)" : "",
-        json_object_get_boolean(urgent) ? " (urgent)" : "",
-        json_object_get_string(output), json_object_get_string(layout),
-        json_object_get_string(representation)
+        json_object_get_boolean(urgent) ? " (urgent)" : "", json_object_get_string(output),
+        json_object_get_string(layout), json_object_get_string(representation)
     );
 }
 
@@ -105,9 +102,8 @@ pretty_type_name(const char *name) {
         const char *a;
         const char *b;
     } type_names[] = {
-        {"keyboard", "Keyboard"},       {"pointer", "Mouse"},
-        {"touchpad", "Touchpad"},       {"tablet_pad", "Tablet pad"},
-        {"tablet_tool", "Tablet tool"}, {"touch", "Touch"},
+        {"keyboard", "Keyboard"},     {"pointer", "Mouse"},           {"touchpad", "Touchpad"},
+        {"tablet_pad", "Tablet pad"}, {"tablet_tool", "Tablet tool"}, {"touch", "Touch"},
         {"switch", "Switch"},
     };
 
@@ -136,10 +132,8 @@ pretty_print_input(json_object *i) {
                       "  Vendor ID: %d\n";
 
     printf(
-        fmt, json_object_get_string(name),
-        pretty_type_name(json_object_get_string(type)),
-        json_object_get_string(id), json_object_get_int(product),
-        json_object_get_int(vendor)
+        fmt, json_object_get_string(name), pretty_type_name(json_object_get_string(type)),
+        json_object_get_string(id), json_object_get_int(product), json_object_get_int(vendor)
     );
 
     if (json_object_object_get_ex(i, "xkb_active_layout_name", &kbdlayout)) {
@@ -150,9 +144,7 @@ pretty_print_input(json_object *i) {
     if (json_object_object_get_ex(i, "libinput", &libinput)) {
         json_object *events;
         if (json_object_object_get_ex(libinput, "send_events", &events)) {
-            printf(
-                "  Libinput Send Events: %s\n", json_object_get_string(events)
-            );
+            printf("  Libinput Send Events: %s\n", json_object_get_string(events));
         }
     }
 
@@ -169,9 +161,7 @@ pretty_print_seat(json_object *i) {
     const char *fmt = "Seat: %s\n"
                       "  Capabilities: %d\n";
 
-    printf(
-        fmt, json_object_get_string(name), json_object_get_int(capabilities)
-    );
+    printf(fmt, json_object_get_string(name), json_object_get_int(capabilities));
 
     size_t devices_len = json_object_array_length(devices);
     if (devices_len > 0) {
@@ -197,8 +187,8 @@ pretty_print_output(json_object *o) {
     json_object_object_get_ex(o, "focused", &focused);
     json_object_object_get_ex(o, "active", &active);
     json_object_object_get_ex(o, "current_workspace", &ws);
-    json_object *make, *model, *serial, *scale, *scale_filter, *subpixel,
-        *transform, *max_render_time, *adaptive_sync_status;
+    json_object *make, *model, *serial, *scale, *scale_filter, *subpixel, *transform,
+        *max_render_time, *adaptive_sync_status;
     json_object_object_get_ex(o, "make", &make);
     json_object_object_get_ex(o, "model", &model);
     json_object_object_get_ex(o, "serial", &serial);
@@ -231,25 +221,18 @@ pretty_print_output(json_object *o) {
             "  Workspace: %s\n",
             json_object_get_string(name), json_object_get_string(make),
             json_object_get_string(model), json_object_get_string(serial),
-            json_object_get_boolean(focused) ? " (focused)" : "",
-            json_object_get_int(width), json_object_get_int(height),
-            (double)json_object_get_int(refresh) / 1000, json_object_get_int(x),
-            json_object_get_int(y), json_object_get_double(scale),
-            json_object_get_string(scale_filter),
-            json_object_get_string(subpixel), json_object_get_string(transform),
-            json_object_get_string(ws)
+            json_object_get_boolean(focused) ? " (focused)" : "", json_object_get_int(width),
+            json_object_get_int(height), (double)json_object_get_int(refresh) / 1000,
+            json_object_get_int(x), json_object_get_int(y), json_object_get_double(scale),
+            json_object_get_string(scale_filter), json_object_get_string(subpixel),
+            json_object_get_string(transform), json_object_get_string(ws)
         );
 
         int max_render_time_int = json_object_get_int(max_render_time);
         printf("  Max render time: ");
-        printf(
-            max_render_time_int == 0 ? "off\n" : "%d ms\n", max_render_time_int
-        );
+        printf(max_render_time_int == 0 ? "off\n" : "%d ms\n", max_render_time_int);
 
-        printf(
-            "  Adaptive sync: %s\n",
-            json_object_get_string(adaptive_sync_status)
-        );
+        printf("  Adaptive sync: %s\n", json_object_get_string(adaptive_sync_status));
     } else {
         printf(
             "Output %s '%s %s %s' (inactive)\n", json_object_get_string(name),
@@ -258,9 +241,8 @@ pretty_print_output(json_object *o) {
         );
     }
 
-    size_t modes_len = json_object_is_type(modes, json_type_array)
-        ? json_object_array_length(modes)
-        : 0;
+    size_t modes_len =
+        json_object_is_type(modes, json_type_array) ? json_object_array_length(modes) : 0;
     if (modes_len > 0) {
         printf("  Available modes:\n");
         for (size_t i = 0; i < modes_len; ++i) {
@@ -273,8 +255,7 @@ pretty_print_output(json_object *o) {
 
             printf(
                 "    %dx%d @ %.3f Hz\n", json_object_get_int(mode_width),
-                json_object_get_int(mode_height),
-                (double)json_object_get_int(mode_refresh) / 1000
+                json_object_get_int(mode_height), (double)json_object_get_int(mode_refresh) / 1000
             );
         }
     }
@@ -303,27 +284,20 @@ pretty_print_tree(json_object *obj, int indent) {
     }
 
     int id = json_object_get_int(json_object_object_get(obj, "id"));
-    const char *name =
-        json_object_get_string(json_object_object_get(obj, "name"));
-    const char *type =
-        json_object_get_string(json_object_object_get(obj, "type"));
-    const char *shell =
-        json_object_get_string(json_object_object_get(obj, "shell"));
+    const char *name = json_object_get_string(json_object_object_get(obj, "name"));
+    const char *type = json_object_get_string(json_object_object_get(obj, "type"));
+    const char *shell = json_object_get_string(json_object_object_get(obj, "shell"));
 
     printf("#%d: %s \"%s\"", id, type, name);
 
     if (shell != NULL) {
         int pid = json_object_get_int(json_object_object_get(obj, "pid"));
-        const char *app_id =
-            json_object_get_string(json_object_object_get(obj, "app_id"));
-        json_object *window_props_obj =
-            json_object_object_get(obj, "window_properties");
-        const char *instance = json_object_get_string(
-            json_object_object_get(window_props_obj, "instance")
-        );
-        const char *class = json_object_get_string(
-            json_object_object_get(window_props_obj, "class")
-        );
+        const char *app_id = json_object_get_string(json_object_object_get(obj, "app_id"));
+        json_object *window_props_obj = json_object_object_get(obj, "window_properties");
+        const char *instance =
+            json_object_get_string(json_object_object_get(window_props_obj, "instance"));
+        const char *class =
+            json_object_get_string(json_object_object_get(window_props_obj, "class"));
         int x11_id = json_object_get_int(json_object_object_get(obj, "window"));
 
         printf(" (%s, pid: %d", shell, pid);
@@ -374,9 +348,7 @@ pretty_print(int type, json_object *resp) {
     default:
         printf(
             "%s\n",
-            json_object_to_json_string_ext(
-                resp, JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED
-            )
+            json_object_to_json_string_ext(resp, JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED)
         );
         return;
     }
@@ -413,7 +385,7 @@ main(int argc, char **argv) {
     char *socket_path = NULL;
     char *cmdtype = NULL;
 
-    hayward_log_init(HAYWARD_INFO);
+    hwd_log_init(HWD_INFO);
 
     static const struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
@@ -426,17 +398,16 @@ main(int argc, char **argv) {
         {"version", no_argument, NULL, 'v'},
         {0, 0, 0, 0}};
 
-    const char *usage =
-        "Usage: haywardmsg [options] [message]\n"
-        "\n"
-        "  -h, --help             Show help message and quit.\n"
-        "  -m, --monitor          Monitor until killed (-t SUBSCRIBE only)\n"
-        "  -p, --pretty           Use pretty output even when not using a tty\n"
-        "  -q, --quiet            Be quiet.\n"
-        "  -r, --raw              Use raw output even if using a tty\n"
-        "  -s, --socket <socket>  Use the specified socket.\n"
-        "  -t, --type <type>      Specify the message type.\n"
-        "  -v, --version          Show the version number and quit.\n";
+    const char *usage = "Usage: haywardmsg [options] [message]\n"
+                        "\n"
+                        "  -h, --help             Show help message and quit.\n"
+                        "  -m, --monitor          Monitor until killed (-t SUBSCRIBE only)\n"
+                        "  -p, --pretty           Use pretty output even when not using a tty\n"
+                        "  -q, --quiet            Be quiet.\n"
+                        "  -r, --raw              Use raw output even if using a tty\n"
+                        "  -s, --socket <socket>  Use the specified socket.\n"
+                        "  -t, --type <type>      Specify the message type.\n"
+                        "  -v, --version          Show the version number and quit.\n";
 
     raw = !isatty(STDOUT_FILENO);
 
@@ -467,7 +438,7 @@ main(int argc, char **argv) {
             cmdtype = strdup(optarg);
             break;
         case 'v':
-            printf("haywardmsg version " HAYWARD_VERSION "\n");
+            printf("haywardmsg version " HWD_VERSION "\n");
             exit(EXIT_SUCCESS);
             break;
         default:
@@ -485,7 +456,7 @@ main(int argc, char **argv) {
             if (quiet) {
                 exit(EXIT_FAILURE);
             }
-            hayward_abort("Unable to retrieve socket path");
+            hwd_abort("Unable to retrieve socket path");
         }
     }
 
@@ -523,16 +494,14 @@ main(int argc, char **argv) {
         if (quiet) {
             exit(EXIT_FAILURE);
         }
-        hayward_abort("Unknown message type %s", cmdtype);
+        hwd_abort("Unknown message type %s", cmdtype);
     }
 
     free(cmdtype);
 
     if (monitor && type != IPC_SUBSCRIBE) {
         if (!quiet) {
-            hayward_log(
-                HAYWARD_ERROR, "Monitor can only be used with -t SUBSCRIBE"
-            );
+            hwd_log(HWD_ERROR, "Monitor can only be used with -t SUBSCRIBE");
         }
         free(socket_path);
         return 1;
@@ -558,17 +527,14 @@ main(int argc, char **argv) {
         if (quiet) {
             exit(EXIT_FAILURE);
         }
-        hayward_abort("failed allocating json_tokener");
+        hwd_abort("failed allocating json_tokener");
     }
     json_object *obj = json_tokener_parse_ex(tok, resp, -1);
     enum json_tokener_error err = json_tokener_get_error(tok);
     json_tokener_free(tok);
     if (obj == NULL || err != json_tokener_success) {
         if (!quiet) {
-            hayward_log(
-                HAYWARD_ERROR, "failed to parse payload as json: %s",
-                json_tokener_error_desc(err)
-            );
+            hwd_log(HWD_ERROR, "failed to parse payload as json: %s", json_tokener_error_desc(err));
         }
         ret = 1;
     } else {
@@ -609,15 +575,15 @@ main(int argc, char **argv) {
                 if (quiet) {
                     exit(EXIT_FAILURE);
                 }
-                hayward_abort("failed allocating json_tokener");
+                hwd_abort("failed allocating json_tokener");
             }
             json_object *obj = json_tokener_parse_ex(tok, reply->payload, -1);
             enum json_tokener_error err = json_tokener_get_error(tok);
             json_tokener_free(tok);
             if (obj == NULL || err != json_tokener_success) {
                 if (!quiet) {
-                    hayward_log(
-                        HAYWARD_ERROR, "failed to parse payload as json: %s",
+                    hwd_log(
+                        HWD_ERROR, "failed to parse payload as json: %s",
                         json_tokener_error_desc(err)
                     );
                 }
@@ -632,8 +598,7 @@ main(int argc, char **argv) {
                     printf(
                         "%s\n",
                         json_object_to_json_string_ext(
-                            obj,
-                            JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED
+                            obj, JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED
                         )
                     );
                 }

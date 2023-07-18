@@ -1,7 +1,7 @@
-#ifndef HAYWARD_GLOBALS_ROOT_H
-#define HAYWARD_GLOBALS_ROOT_H
+#ifndef HWD_GLOBALS_ROOT_H
+#define HWD_GLOBALS_ROOT_H
 
-struct hayward_root;
-extern struct hayward_root *root;
+struct hwd_root;
+extern struct hwd_root *root;
 
 #endif

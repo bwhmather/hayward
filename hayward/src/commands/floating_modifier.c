@@ -34,9 +34,7 @@ cmd_floating_modifier(int argc, char **argv) {
     } else if (strcasecmp(argv[1], "inverse") == 0) {
         config->floating_mod_inverse = true;
     } else {
-        return cmd_results_new(
-            CMD_INVALID, "Usage: floating_modifier <mod> [inverse|normal]"
-        );
+        return cmd_results_new(CMD_INVALID, "Usage: floating_modifier <mod> [inverse|normal]");
     }
 
     config->floating_mod = mod;

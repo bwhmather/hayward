@@ -1,5 +1,5 @@
-#ifndef HAYWARD_TREE_WORKSPACE_H
-#define HAYWARD_TREE_WORKSPACE_H
+#ifndef HWD_TREE_WORKSPACE_H
+#define HWD_TREE_WORKSPACE_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -12,36 +12,36 @@
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>
 
-enum hayward_focus_mode {
+enum hwd_focus_mode {
     F_TILING,
     F_FLOATING,
 };
 
-struct hayward_view;
+struct hwd_view;
 
-struct hayward_workspace_state {
-    list_t *floating; // struct hayward_window
-    list_t *tiling;   // struct hayward_column
+struct hwd_workspace_state {
+    list_t *floating; // struct hwd_window
+    list_t *tiling;   // struct hwd_column
 
     // Cached backlink to root of tree.
-    struct hayward_root *root;
+    struct hwd_root *root;
 
     // The column that should be given focus if this workspace is focused and
     // focus_mode is F_TILING.
-    struct hayward_column *active_column;
+    struct hwd_column *active_column;
 
-    enum hayward_focus_mode focus_mode;
+    enum hwd_focus_mode focus_mode;
     bool focused;
 
     bool dead;
 };
 
-struct hayward_workspace {
+struct hwd_workspace {
     size_t id;
 
-    struct hayward_workspace_state pending;
-    struct hayward_workspace_state committed;
-    struct hayward_workspace_state current;
+    struct hwd_workspace_state pending;
+    struct hwd_workspace_state committed;
+    struct hwd_workspace_state current;
 
     bool dirty;
 
@@ -66,79 +66,68 @@ struct hayward_workspace {
     } events;
 };
 
-struct hayward_workspace *
+struct hwd_workspace *
 workspace_create(const char *name);
 
 bool
-workspace_is_alive(struct hayward_workspace *workspace);
+workspace_is_alive(struct hwd_workspace *workspace);
 
 void
-workspace_begin_destroy(struct hayward_workspace *workspace);
+workspace_begin_destroy(struct hwd_workspace *workspace);
 
 void
-workspace_consider_destroy(struct hayward_workspace *workspace);
+workspace_consider_destroy(struct hwd_workspace *workspace);
 
 void
-workspace_set_dirty(struct hayward_workspace *workspace);
+workspace_set_dirty(struct hwd_workspace *workspace);
 
-struct hayward_workspace *
+struct hwd_workspace *
 workspace_by_name(const char *);
 
 bool
-workspace_is_visible(struct hayward_workspace *workspace);
+workspace_is_visible(struct hwd_workspace *workspace);
 
 void
-workspace_detect_urgent(struct hayward_workspace *workspace);
+workspace_detect_urgent(struct hwd_workspace *workspace);
 
 void
-workspace_detach(struct hayward_workspace *workspace);
+workspace_detach(struct hwd_workspace *workspace);
 
 void
-workspace_reconcile(
-    struct hayward_workspace *workspace, struct hayward_root *root
-);
+workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root);
 void
-workspace_reconcile_detached(struct hayward_workspace *workspace);
+workspace_reconcile_detached(struct hwd_workspace *workspace);
 
 void
-workspace_add_floating(
-    struct hayward_workspace *workspace, struct hayward_window *container
-);
+workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *container);
 
 void
-workspace_remove_floating(
-    struct hayward_workspace *workspace, struct hayward_window *window
-);
+workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *window);
 
 void
 workspace_insert_tiling(
-    struct hayward_workspace *workspace, struct hayward_output *output,
-    struct hayward_column *column, int index
+    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column, int index
 );
 void
-workspace_remove_tiling(
-    struct hayward_workspace *workspace, struct hayward_column *column
-);
+workspace_remove_tiling(struct hwd_workspace *workspace, struct hwd_column *column);
 
 size_t
-workspace_num_tiling_views(struct hayward_workspace *workspace);
+workspace_num_tiling_views(struct hwd_workspace *workspace);
 
-struct hayward_output *
-workspace_get_active_output(struct hayward_workspace *workspace);
+struct hwd_output *
+workspace_get_active_output(struct hwd_workspace *workspace);
 
-struct hayward_window *
-workspace_get_active_tiling_window(struct hayward_workspace *workspace);
-struct hayward_window *
-workspace_get_active_floating_window(struct hayward_workspace *workspace);
-struct hayward_window *
-workspace_get_active_window(struct hayward_workspace *workspace);
-struct hayward_window *
-workspace_get_committed_active_window(struct hayward_workspace *workspace);
+struct hwd_window *
+workspace_get_active_tiling_window(struct hwd_workspace *workspace);
+struct hwd_window *
+workspace_get_active_floating_window(struct hwd_workspace *workspace);
+struct hwd_window *
+workspace_get_active_window(struct hwd_workspace *workspace);
+struct hwd_window *
+workspace_get_committed_active_window(struct hwd_workspace *workspace);
 
 void
-workspace_set_active_window(
-    struct hayward_workspace *workspace, struct hayward_window *window
-);
+workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *window);
 
 /**
  * Traverses all windows on the workspace to find the first fullscreen window on
@@ -147,9 +136,9 @@ workspace_set_active_window(
  * If the workspace is active, the result of this function will be cached on
  * output->pending.fullscreen_window.
  */
-struct hayward_window *
+struct hwd_window *
 workspace_get_fullscreen_window_for_output(
-    struct hayward_workspace *workspace, struct hayward_output *output
+    struct hwd_workspace *workspace, struct hwd_output *output
 );
 
 #endif

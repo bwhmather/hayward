@@ -1,5 +1,5 @@
-#ifndef HAYWARD_OUTPUT_H
-#define HAYWARD_OUTPUT_H
+#ifndef HWD_OUTPUT_H
+#define HWD_OUTPUT_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -19,23 +19,23 @@
 
 #include <config.h>
 
-struct hayward_server;
-struct hayward_window;
-struct hayward_view;
+struct hwd_server;
+struct hwd_window;
+struct hwd_view;
 
-struct hayward_output_state {
+struct hwd_output_state {
     int x, y;
     int width, height;
 
     // Cached reference to the first fullscreen window on the active
     // workspace for this output.  Null if no active workspace or no
     // fullscreen window on this output.
-    struct hayward_window *fullscreen_window;
+    struct hwd_window *fullscreen_window;
 
     bool dead;
 };
 
-struct hayward_output {
+struct hwd_output {
     size_t id;
 
     bool dirty;
@@ -43,10 +43,10 @@ struct hayward_output {
     struct wlr_output *wlr_output;
     struct wlr_scene_output *scene_output;
 
-    struct hayward_server *server;
+    struct hwd_server *server;
     struct wl_list link;
 
-    struct wl_list shell_layers[4]; // hayward_layer_surface::link
+    struct wl_list shell_layers[4]; // hwd_layer_surface::link
     struct wlr_box usable_area;
 
     struct timespec last_frame;
@@ -60,9 +60,9 @@ struct hayward_output {
 
     bool enabling, enabled;
 
-    struct hayward_output_state pending;
-    struct hayward_output_state committed;
-    struct hayward_output_state current;
+    struct hwd_output_state pending;
+    struct hwd_output_state committed;
+    struct hwd_output_state current;
 
     struct wlr_scene_tree *scene_tree;
 
@@ -95,44 +95,42 @@ struct hayward_output {
     struct wl_event_source *repaint_timer;
 };
 
-struct hayward_output *
+struct hwd_output *
 output_create(struct wlr_output *wlr_output);
 
 bool
-output_is_alive(struct hayward_output *output);
+output_is_alive(struct hwd_output *output);
 
 void
-output_enable(struct hayward_output *output);
+output_enable(struct hwd_output *output);
 
 void
-output_disable(struct hayward_output *output);
+output_disable(struct hwd_output *output);
 
-struct hayward_output *
+struct hwd_output *
 output_from_wlr_output(struct wlr_output *output);
 
 void
-output_reconcile(struct hayward_output *output);
+output_reconcile(struct hwd_output *output);
 
-struct hayward_output *
-output_get_in_direction(
-    struct hayward_output *reference, enum wlr_direction direction
-);
+struct hwd_output *
+output_get_in_direction(struct hwd_output *reference, enum wlr_direction direction);
 
 void
-output_get_box(struct hayward_output *output, struct wlr_box *box);
+output_get_box(struct hwd_output *output, struct wlr_box *box);
 void
-output_get_usable_area(struct hayward_output *output, struct wlr_box *box);
+output_get_usable_area(struct hwd_output *output, struct wlr_box *box);
 
-typedef void (*hayward_surface_iterator_func_t
-)(struct hayward_output *output, struct hayward_view *view,
-  struct wlr_surface *surface, struct wlr_box *box, void *user_data);
+typedef void (*hwd_surface_iterator_func_t
+)(struct hwd_output *output, struct hwd_view *view, struct wlr_surface *surface,
+  struct wlr_box *box, void *user_data);
 
 // this ONLY includes the enabled outputs
-struct hayward_output *
+struct hwd_output *
 output_by_name_or_id(const char *name_or_id);
 
 // this includes all the outputs, including disabled ones
-struct hayward_output *
+struct hwd_output *
 all_output_by_name_or_id(const char *name_or_id);
 
 void

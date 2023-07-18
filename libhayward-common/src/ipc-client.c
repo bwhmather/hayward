@@ -61,14 +61,14 @@ ipc_open_socket(const char *socket_path) {
     struct sockaddr_un addr;
     int socketfd;
     if ((socketfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-        hayward_abort("Unable to open Unix socket");
+        hwd_abort("Unable to open Unix socket");
     }
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
     addr.sun_path[sizeof(addr.sun_path) - 1] = 0;
     int l = sizeof(struct sockaddr_un);
     if (connect(socketfd, (struct sockaddr *)&addr, l) == -1) {
-        hayward_abort("Unable to connect to %s", socket_path);
+        hwd_abort("Unable to connect to %s", socket_path);
     }
     return socketfd;
 }
@@ -76,7 +76,7 @@ ipc_open_socket(const char *socket_path) {
 bool
 ipc_set_recv_timeout(int socketfd, struct timeval tv) {
     if (setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1) {
-        hayward_log_errno(HAYWARD_ERROR, "Failed to set ipc recv timeout");
+        hwd_log_errno(HWD_ERROR, "Failed to set ipc recv timeout");
         return false;
     }
     return true;
@@ -88,10 +88,9 @@ ipc_recv_response(int socketfd) {
 
     size_t total = 0;
     while (total < IPC_HEADER_SIZE) {
-        ssize_t received =
-            recv(socketfd, data + total, IPC_HEADER_SIZE - total, 0);
+        ssize_t received = recv(socketfd, data + total, IPC_HEADER_SIZE - total, 0);
         if (received <= 0) {
-            hayward_abort("Unable to receive IPC response");
+            hwd_abort("Unable to receive IPC response");
         }
         total += received;
     }
@@ -102,10 +101,7 @@ ipc_recv_response(int socketfd) {
     }
 
     memcpy(&response->size, data + sizeof(ipc_magic), sizeof(uint32_t));
-    memcpy(
-        &response->type, data + sizeof(ipc_magic) + sizeof(uint32_t),
-        sizeof(uint32_t)
-    );
+    memcpy(&response->type, data + sizeof(ipc_magic) + sizeof(uint32_t), sizeof(uint32_t));
 
     char *payload = malloc(response->size + 1);
     if (!payload) {
@@ -114,10 +110,9 @@ ipc_recv_response(int socketfd) {
 
     total = 0;
     while (total < response->size) {
-        ssize_t received =
-            recv(socketfd, payload + total, response->size - total, 0);
+        ssize_t received = recv(socketfd, payload + total, response->size - total, 0);
         if (received < 0) {
-            hayward_abort("Unable to receive IPC response");
+            hwd_abort("Unable to receive IPC response");
         }
         total += received;
     }
@@ -128,7 +123,7 @@ ipc_recv_response(int socketfd) {
 error_2:
     free(response);
 error_1:
-    hayward_log(HAYWARD_ERROR, "Unable to allocate memory for IPC response");
+    hwd_log(HWD_ERROR, "Unable to allocate memory for IPC response");
     return NULL;
 }
 
@@ -139,20 +134,18 @@ free_ipc_response(struct ipc_response *response) {
 }
 
 char *
-ipc_single_command(
-    int socketfd, uint32_t type, const char *payload, uint32_t *len
-) {
+ipc_single_command(int socketfd, uint32_t type, const char *payload, uint32_t *len) {
     char data[IPC_HEADER_SIZE];
     memcpy(data, ipc_magic, sizeof(ipc_magic));
     memcpy(data + sizeof(ipc_magic), len, sizeof(*len));
     memcpy(data + sizeof(ipc_magic) + sizeof(*len), &type, sizeof(type));
 
     if (write(socketfd, data, IPC_HEADER_SIZE) == -1) {
-        hayward_abort("Unable to send IPC header");
+        hwd_abort("Unable to send IPC header");
     }
 
     if (write(socketfd, payload, *len) == -1) {
-        hayward_abort("Unable to send IPC payload");
+        hwd_abort("Unable to send IPC payload");
     }
 
     struct ipc_response *resp = ipc_recv_response(socketfd);

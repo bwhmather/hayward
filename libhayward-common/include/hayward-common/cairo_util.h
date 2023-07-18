@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_CAIRO_UTIL_H
-#define _HAYWARD_CAIRO_UTIL_H
+#ifndef _HWD_CAIRO_UTIL_H
+#define _HWD_CAIRO_UTIL_H
 #include <cairo.h>
 #include <stdint.h>
 

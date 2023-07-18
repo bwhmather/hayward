@@ -52,10 +52,7 @@ bar_cmd_output(int argc, char **argv) {
 
     if (add_output) {
         list_add(outputs, strdup(output));
-        hayward_log(
-            HAYWARD_DEBUG, "Adding bar: '%s' to output '%s'",
-            config->current_bar->id, output
-        );
+        hwd_log(HWD_DEBUG, "Adding bar: '%s' to output '%s'", config->current_bar->id, output);
     }
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

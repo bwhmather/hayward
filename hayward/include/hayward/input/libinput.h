@@ -1,17 +1,17 @@
-#ifndef HAYWARD_INPUT_LIBINPUT_H
-#define HAYWARD_INPUT_LIBINPUT_H
+#ifndef HWD_INPUT_LIBINPUT_H
+#define HWD_INPUT_LIBINPUT_H
 
 #include <stdbool.h>
 
 #include <hayward/input/input-manager.h>
 
 void
-hayward_input_configure_libinput_device(struct hayward_input_device *device);
+hwd_input_configure_libinput_device(struct hwd_input_device *device);
 
 void
-hayward_input_reset_libinput_device(struct hayward_input_device *device);
+hwd_input_reset_libinput_device(struct hwd_input_device *device);
 
 bool
-hayward_libinput_device_is_builtin(struct hayward_input_device *device);
+hwd_libinput_device_is_builtin(struct hwd_input_device *device);
 
 #endif

@@ -14,25 +14,20 @@
 
 uint32_t
 parse_position(const char *position) {
-    uint32_t horiz =
-        ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+    uint32_t horiz = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
     if (strcmp("top", position) == 0) {
         return ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | horiz;
     } else if (strcmp("bottom", position) == 0) {
         return ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM | horiz;
     } else {
-        hayward_log(
-            HAYWARD_ERROR, "Invalid position: %s, defaulting to bottom",
-            position
-        );
+        hwd_log(HWD_ERROR, "Invalid position: %s, defaulting to bottom", position);
         return ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM | horiz;
     }
 }
 
 struct haywardbar_config *
 init_config(void) {
-    struct haywardbar_config *config =
-        calloc(1, sizeof(struct haywardbar_config));
+    struct haywardbar_config *config = calloc(1, sizeof(struct haywardbar_config));
     config->status_command = NULL;
     config->pango_markup = false;
     config->position = parse_position("bottom");
@@ -137,9 +132,7 @@ free_config(struct haywardbar_config *config) {
     list_free_items_and_destroy(config->tray_outputs);
 
     struct tray_binding *tray_bind = NULL, *tmp_tray_bind = NULL;
-    wl_list_for_each_safe(
-        tray_bind, tmp_tray_bind, &config->tray_bindings, link
-    ) {
+    wl_list_for_each_safe(tray_bind, tmp_tray_bind, &config->tray_bindings, link) {
         wl_list_remove(&tray_bind->link);
         free_tray_binding(tray_bind);
     }

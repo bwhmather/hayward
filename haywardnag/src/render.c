@@ -14,8 +14,8 @@ static uint32_t
 render_message(cairo_t *cairo, struct haywardnag *haywardnag) {
     int text_width, text_height;
     get_text_size(
-        cairo, haywardnag->type->font_description, &text_width, &text_height,
-        NULL, 1, true, "%s", haywardnag->message
+        cairo, haywardnag->type->font_description, &text_width, &text_height, NULL, 1, true, "%s",
+        haywardnag->message
     );
 
     int padding = haywardnag->type->message_padding;
@@ -28,23 +28,19 @@ render_message(cairo_t *cairo, struct haywardnag *haywardnag) {
 
     cairo_set_source_u32(cairo, haywardnag->type->text);
     cairo_move_to(cairo, padding, (int)(ideal_height - text_height) / 2);
-    render_text(
-        cairo, haywardnag->type->font_description, 1, false, "%s",
-        haywardnag->message
-    );
+    render_text(cairo, haywardnag->type->font_description, 1, false, "%s", haywardnag->message);
 
     return ideal_surface_height;
 }
 
 static void
 render_details_scroll_button(
-    cairo_t *cairo, struct haywardnag *haywardnag,
-    struct haywardnag_button *button
+    cairo_t *cairo, struct haywardnag *haywardnag, struct haywardnag_button *button
 ) {
     int text_width, text_height;
     get_text_size(
-        cairo, haywardnag->type->font_description, &text_width, &text_height,
-        NULL, 1, true, "%s", button->text
+        cairo, haywardnag->type->font_description, &text_width, &text_height, NULL, 1, true, "%s",
+        button->text
     );
 
     int border = haywardnag->type->button_border_thickness;
@@ -56,33 +52,28 @@ render_details_scroll_button(
 
     cairo_set_source_u32(cairo, haywardnag->type->button_background);
     cairo_rectangle(
-        cairo, button->x + border, button->y + border,
-        button->width - (border * 2), button->height - (border * 2)
+        cairo, button->x + border, button->y + border, button->width - (border * 2),
+        button->height - (border * 2)
     );
     cairo_fill(cairo);
 
     cairo_set_source_u32(cairo, haywardnag->type->button_text);
     cairo_move_to(
-        cairo, button->x + border + padding,
-        button->y + border + (button->height - text_height) / 2
+        cairo, button->x + border + padding, button->y + border + (button->height - text_height) / 2
     );
-    render_text(
-        cairo, haywardnag->type->font_description, 1, true, "%s", button->text
-    );
+    render_text(cairo, haywardnag->type->font_description, 1, true, "%s", button->text);
 }
 
 static int
-get_detailed_scroll_button_width(
-    cairo_t *cairo, struct haywardnag *haywardnag
-) {
+get_detailed_scroll_button_width(cairo_t *cairo, struct haywardnag *haywardnag) {
     int up_width, down_width, temp_height;
     get_text_size(
-        cairo, haywardnag->type->font_description, &up_width, &temp_height,
-        NULL, 1, true, "%s", haywardnag->details.button_up.text
+        cairo, haywardnag->type->font_description, &up_width, &temp_height, NULL, 1, true, "%s",
+        haywardnag->details.button_up.text
     );
     get_text_size(
-        cairo, haywardnag->type->font_description, &down_width, &temp_height,
-        NULL, 1, true, "%s", haywardnag->details.button_down.text
+        cairo, haywardnag->type->font_description, &down_width, &temp_height, NULL, 1, true, "%s",
+        haywardnag->details.button_down.text
     );
 
     int text_width = up_width > down_width ? up_width : down_width;
@@ -105,12 +96,9 @@ render_detailed(cairo_t *cairo, struct haywardnag *haywardnag, uint32_t y) {
     haywardnag->details.width = width - decor * 2;
 
     PangoLayout *layout = get_pango_layout(
-        cairo, haywardnag->type->font_description, haywardnag->details.message,
-        1, false
+        cairo, haywardnag->type->font_description, haywardnag->details.message, 1, false
     );
-    pango_layout_set_width(
-        layout, (haywardnag->details.width - padding * 2) * PANGO_SCALE
-    );
+    pango_layout_set_width(layout, (haywardnag->details.width - padding * 2) * PANGO_SCALE);
     pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
     pango_layout_set_single_paragraph_mode(layout, false);
     pango_cairo_update_layout(cairo, layout);
@@ -130,15 +118,12 @@ render_detailed(cairo_t *cairo, struct haywardnag *haywardnag, uint32_t y) {
     int button_width = get_detailed_scroll_button_width(cairo, haywardnag);
     if (show_buttons) {
         haywardnag->details.width -= button_width;
-        pango_layout_set_width(
-            layout, (haywardnag->details.width - padding * 2) * PANGO_SCALE
-        );
+        pango_layout_set_width(layout, (haywardnag->details.width - padding * 2) * PANGO_SCALE);
     }
 
     uint32_t ideal_height;
     do {
-        ideal_height =
-            haywardnag->details.y + text_height + decor + padding * 2;
+        ideal_height = haywardnag->details.y + text_height + decor + padding * 2;
         if (ideal_height > HAYWARDNAG_MAX_HEIGHT) {
             ideal_height = HAYWARDNAG_MAX_HEIGHT;
 
@@ -146,17 +131,13 @@ render_detailed(cairo_t *cairo, struct haywardnag *haywardnag, uint32_t y) {
                 show_buttons = true;
                 haywardnag->details.width -= button_width;
                 pango_layout_set_width(
-                    layout,
-                    (haywardnag->details.width - padding * 2) * PANGO_SCALE
+                    layout, (haywardnag->details.width - padding * 2) * PANGO_SCALE
                 );
             }
         }
 
-        haywardnag->details.height =
-            ideal_height - haywardnag->details.y - decor;
-        pango_layout_set_height(
-            layout, (haywardnag->details.height - padding * 2) * PANGO_SCALE
-        );
+        haywardnag->details.height = ideal_height - haywardnag->details.y - decor;
+        pango_layout_set_height(layout, (haywardnag->details.height - padding * 2) * PANGO_SCALE);
         pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
         pango_cairo_update_layout(cairo, layout);
         pango_layout_get_pixel_size(layout, &text_width, &text_height);
@@ -165,36 +146,28 @@ render_detailed(cairo_t *cairo, struct haywardnag *haywardnag, uint32_t y) {
     haywardnag->details.visible_lines = pango_layout_get_line_count(layout);
 
     if (show_buttons) {
-        haywardnag->details.button_up.x =
-            haywardnag->details.x + haywardnag->details.width;
+        haywardnag->details.button_up.x = haywardnag->details.x + haywardnag->details.width;
         haywardnag->details.button_up.y = haywardnag->details.y;
         haywardnag->details.button_up.width = button_width;
         haywardnag->details.button_up.height = haywardnag->details.height / 2;
-        render_details_scroll_button(
-            cairo, haywardnag, &haywardnag->details.button_up
-        );
+        render_details_scroll_button(cairo, haywardnag, &haywardnag->details.button_up);
 
-        haywardnag->details.button_down.x =
-            haywardnag->details.x + haywardnag->details.width;
-        haywardnag->details.button_down.y = haywardnag->details.button_up.y +
-            haywardnag->details.button_up.height;
+        haywardnag->details.button_down.x = haywardnag->details.x + haywardnag->details.width;
+        haywardnag->details.button_down.y =
+            haywardnag->details.button_up.y + haywardnag->details.button_up.height;
         haywardnag->details.button_down.width = button_width;
         haywardnag->details.button_down.height = haywardnag->details.height / 2;
-        render_details_scroll_button(
-            cairo, haywardnag, &haywardnag->details.button_down
-        );
+        render_details_scroll_button(cairo, haywardnag, &haywardnag->details.button_down);
     }
 
     cairo_set_source_u32(cairo, haywardnag->type->details_background);
     cairo_rectangle(
-        cairo, haywardnag->details.x, haywardnag->details.y,
-        haywardnag->details.width, haywardnag->details.height
+        cairo, haywardnag->details.x, haywardnag->details.y, haywardnag->details.width,
+        haywardnag->details.height
     );
     cairo_fill(cairo);
 
-    cairo_move_to(
-        cairo, haywardnag->details.x + padding, haywardnag->details.y + padding
-    );
+    cairo_move_to(cairo, haywardnag->details.x + padding, haywardnag->details.y + padding);
     cairo_set_source_u32(cairo, haywardnag->type->text);
     pango_cairo_show_layout(cairo, layout);
     g_object_unref(layout);
@@ -203,15 +176,13 @@ render_detailed(cairo_t *cairo, struct haywardnag *haywardnag, uint32_t y) {
 }
 
 static uint32_t
-render_button(
-    cairo_t *cairo, struct haywardnag *haywardnag, int button_index, int *x
-) {
+render_button(cairo_t *cairo, struct haywardnag *haywardnag, int button_index, int *x) {
     struct haywardnag_button *button = haywardnag->buttons->items[button_index];
 
     int text_width, text_height;
     get_text_size(
-        cairo, haywardnag->type->font_description, &text_width, &text_height,
-        NULL, 1, true, "%s", button->text
+        cairo, haywardnag->type->font_description, &text_width, &text_height, NULL, 1, true, "%s",
+        button->text
     );
 
     int border = haywardnag->type->button_border_thickness;
@@ -230,8 +201,8 @@ render_button(
 
     cairo_set_source_u32(cairo, haywardnag->type->border);
     cairo_rectangle(
-        cairo, button->x - border, button->y - border,
-        button->width + border * 2, button->height + border * 2
+        cairo, button->x - border, button->y - border, button->width + border * 2,
+        button->height + border * 2
     );
     cairo_fill(cairo);
 
@@ -241,9 +212,7 @@ render_button(
 
     cairo_set_source_u32(cairo, haywardnag->type->button_text);
     cairo_move_to(cairo, button->x + padding, button->y + padding);
-    render_text(
-        cairo, haywardnag->type->font_description, 1, true, "%s", button->text
-    );
+    render_text(cairo, haywardnag->type->font_description, 1, true, "%s", button->text);
 
     *x = button->x - border;
 
@@ -281,9 +250,7 @@ render_to_cairo(cairo_t *cairo, struct haywardnag *haywardnag) {
         max_height += border;
     }
     cairo_set_source_u32(cairo, haywardnag->type->border_bottom);
-    cairo_rectangle(
-        cairo, 0, haywardnag->height - border, haywardnag->width, border
-    );
+    cairo_rectangle(cairo, 0, haywardnag->height - border, haywardnag->width, border);
     cairo_fill(cairo);
 
     return max_height;
@@ -295,8 +262,7 @@ render_frame(struct haywardnag *haywardnag) {
         return;
     }
 
-    cairo_surface_t *recorder =
-        cairo_recording_surface_create(CAIRO_CONTENT_COLOR_ALPHA, NULL);
+    cairo_surface_t *recorder = cairo_recording_surface_create(CAIRO_CONTENT_COLOR_ALPHA, NULL);
     cairo_t *cairo = cairo_create(recorder);
     cairo_scale(cairo, haywardnag->scale, haywardnag->scale);
     cairo_save(cairo);
@@ -306,19 +272,16 @@ render_frame(struct haywardnag *haywardnag) {
     uint32_t height = render_to_cairo(cairo, haywardnag);
     if (height != haywardnag->height) {
         zwlr_layer_surface_v1_set_size(haywardnag->layer_surface, 0, height);
-        zwlr_layer_surface_v1_set_exclusive_zone(
-            haywardnag->layer_surface, height
-        );
+        zwlr_layer_surface_v1_set_exclusive_zone(haywardnag->layer_surface, height);
         wl_surface_commit(haywardnag->surface);
         wl_display_roundtrip(haywardnag->display);
     } else {
         haywardnag->current_buffer = get_next_buffer(
-            haywardnag->shm, haywardnag->buffers,
-            haywardnag->width * haywardnag->scale,
+            haywardnag->shm, haywardnag->buffers, haywardnag->width * haywardnag->scale,
             haywardnag->height * haywardnag->scale
         );
         if (!haywardnag->current_buffer) {
-            hayward_log(HAYWARD_DEBUG, "Failed to get buffer. Skipping frame.");
+            hwd_log(HWD_DEBUG, "Failed to get buffer. Skipping frame.");
             goto cleanup;
         }
 
@@ -331,12 +294,8 @@ render_frame(struct haywardnag *haywardnag) {
         cairo_paint(shm);
 
         wl_surface_set_buffer_scale(haywardnag->surface, haywardnag->scale);
-        wl_surface_attach(
-            haywardnag->surface, haywardnag->current_buffer->buffer, 0, 0
-        );
-        wl_surface_damage(
-            haywardnag->surface, 0, 0, haywardnag->width, haywardnag->height
-        );
+        wl_surface_attach(haywardnag->surface, haywardnag->current_buffer->buffer, 0, 0);
+        wl_surface_damage(haywardnag->surface, 0, 0, haywardnag->width, haywardnag->height);
         wl_surface_commit(haywardnag->surface);
         wl_display_roundtrip(haywardnag->display);
     }

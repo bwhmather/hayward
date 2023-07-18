@@ -32,7 +32,7 @@ do_reload(void *data) {
     }
 
     if (!load_main_config(path, true, false)) {
-        hayward_log(HAYWARD_ERROR, "Error(s) reloading config");
+        hwd_log(HWD_ERROR, "Error(s) reloading config");
         list_free_items_and_destroy(bar_ids);
         return;
     }

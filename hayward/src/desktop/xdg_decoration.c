@@ -20,10 +20,9 @@
 
 static void
 xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {
-    struct hayward_xdg_decoration *deco =
-        wl_container_of(listener, deco, destroy);
+    struct hwd_xdg_decoration *deco = wl_container_of(listener, deco, destroy);
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     if (deco->view) {
         deco->view->xdg_decoration = NULL;
@@ -33,21 +32,18 @@ xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&deco->link);
     free(deco);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
-    struct hayward_xdg_decoration *deco =
-        wl_container_of(listener, deco, request_mode);
+    struct hwd_xdg_decoration *deco = wl_container_of(listener, deco, request_mode);
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    struct hayward_view *view = deco->view;
-    enum wlr_xdg_toplevel_decoration_v1_mode mode =
-        WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
-    enum wlr_xdg_toplevel_decoration_v1_mode client_mode =
-        deco->wlr_xdg_decoration->requested_mode;
+    struct hwd_view *view = deco->view;
+    enum wlr_xdg_toplevel_decoration_v1_mode mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
+    enum wlr_xdg_toplevel_decoration_v1_mode client_mode = deco->wlr_xdg_decoration->requested_mode;
 
     bool floating;
     if (view->window) {
@@ -56,10 +52,9 @@ xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
         csd = client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
         view_update_csd_from_client(view, csd);
         arrange_window(view->window);
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
     } else {
-        floating =
-            view->impl->wants_floating && view->impl->wants_floating(view);
+        floating = view->impl->wants_floating && view->impl->wants_floating(view);
     }
 
     if (floating && client_mode) {
@@ -68,22 +63,22 @@ xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
 
     wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration, mode);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
-    struct hayward_xdg_decoration_manager *manager =
+    struct hwd_xdg_decoration_manager *manager =
         wl_container_of(listener, manager, new_toplevel_decoration);
     struct wlr_xdg_toplevel_decoration_v1 *wlr_deco = data;
 
-    hayward_transaction_manager_begin_transaction(transaction_manager);
+    hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    struct hayward_xdg_shell_view *xdg_shell_view = wlr_deco->surface->data;
+    struct hwd_xdg_shell_view *xdg_shell_view = wlr_deco->surface->data;
 
-    struct hayward_xdg_decoration *deco = calloc(1, sizeof(*deco));
+    struct hwd_xdg_decoration *deco = calloc(1, sizeof(*deco));
     if (deco == NULL) {
-        hayward_transaction_manager_end_transaction(transaction_manager);
+        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -101,19 +96,18 @@ handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
 
     xdg_decoration_handle_request_mode(&deco->request_mode, wlr_deco);
 
-    hayward_transaction_manager_end_transaction(transaction_manager);
+    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
-struct hayward_xdg_decoration_manager *
-hayward_xdg_decoration_manager_create(struct wl_display *wl_display) {
-    struct hayward_xdg_decoration_manager *manager =
-        calloc(1, sizeof(struct hayward_xdg_decoration_manager));
+struct hwd_xdg_decoration_manager *
+hwd_xdg_decoration_manager_create(struct wl_display *wl_display) {
+    struct hwd_xdg_decoration_manager *manager =
+        calloc(1, sizeof(struct hwd_xdg_decoration_manager));
     if (manager == NULL) {
         return NULL;
     }
 
-    manager->xdg_decoration_manager =
-        wlr_xdg_decoration_manager_v1_create(wl_display);
+    manager->xdg_decoration_manager = wlr_xdg_decoration_manager_v1_create(wl_display);
     if (manager->xdg_decoration_manager == NULL) {
         free(manager);
         return NULL;

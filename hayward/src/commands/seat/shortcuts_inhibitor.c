@@ -17,35 +17,23 @@
 #include <config.h>
 
 static struct cmd_results *
-handle_action(
-    struct seat_config *sc, struct hayward_seat *seat, const char *action
-) {
-    struct hayward_keyboard_shortcuts_inhibitor *hayward_inhibitor = NULL;
+handle_action(struct seat_config *sc, struct hwd_seat *seat, const char *action) {
+    struct hwd_keyboard_shortcuts_inhibitor *hwd_inhibitor = NULL;
     if (strcmp(action, "disable") == 0) {
         sc->shortcuts_inhibit = SHORTCUTS_INHIBIT_DISABLE;
 
-        wl_list_for_each(
-            hayward_inhibitor, &seat->keyboard_shortcuts_inhibitors, link
-        ) {
-            wlr_keyboard_shortcuts_inhibitor_v1_deactivate(
-                hayward_inhibitor->inhibitor
-            );
+        wl_list_for_each(hwd_inhibitor, &seat->keyboard_shortcuts_inhibitors, link) {
+            wlr_keyboard_shortcuts_inhibitor_v1_deactivate(hwd_inhibitor->inhibitor);
         }
 
-        hayward_log(
-            HAYWARD_DEBUG, "Deactivated all keyboard shortcuts inhibitors"
-        );
+        hwd_log(HWD_DEBUG, "Deactivated all keyboard shortcuts inhibitors");
     } else {
-        hayward_inhibitor =
-            keyboard_shortcuts_inhibitor_get_for_focused_surface(seat);
-        if (!hayward_inhibitor) {
-            return cmd_results_new(
-                CMD_FAILURE, "No inhibitor found for focused surface"
-            );
+        hwd_inhibitor = keyboard_shortcuts_inhibitor_get_for_focused_surface(seat);
+        if (!hwd_inhibitor) {
+            return cmd_results_new(CMD_FAILURE, "No inhibitor found for focused surface");
         }
 
-        struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor =
-            hayward_inhibitor->inhibitor;
+        struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor = hwd_inhibitor->inhibitor;
         bool inhibit;
         if (strcmp(action, "activate") == 0) {
             inhibit = true;
@@ -67,10 +55,7 @@ handle_action(
             wlr_keyboard_shortcuts_inhibitor_v1_deactivate(inhibitor);
         }
 
-        hayward_log(
-            HAYWARD_DEBUG, "%sctivated keyboard shortcuts inhibitor",
-            inhibit ? "A" : "Dea"
-        );
+        hwd_log(HWD_DEBUG, "%sctivated keyboard shortcuts inhibitor", inhibit ? "A" : "Dea");
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);
@@ -79,8 +64,7 @@ handle_action(
 // shortcuts_inhibitor [enable|disable|activate|deactivate|toggle]
 struct cmd_results *
 seat_cmd_shortcuts_inhibitor(int argc, char **argv) {
-    struct cmd_results *error =
-        checkarg(argc, "shortcuts_inhibitor", EXPECTED_EQUAL_TO, 1);
+    struct cmd_results *error = checkarg(argc, "shortcuts_inhibitor", EXPECTED_EQUAL_TO, 1);
     if (error) {
         return error;
     }
@@ -104,15 +88,13 @@ seat_cmd_shortcuts_inhibitor(int argc, char **argv) {
         );
     } else {
         if (strcmp(sc->name, "*") != 0) {
-            struct hayward_seat *seat = input_manager_get_seat(sc->name, false);
+            struct hwd_seat *seat = input_manager_get_seat(sc->name, false);
             if (!seat) {
-                return cmd_results_new(
-                    CMD_FAILURE, "Seat %s does not exist", sc->name
-                );
+                return cmd_results_new(CMD_FAILURE, "Seat %s does not exist", sc->name);
             }
             error = handle_action(sc, seat, argv[0]);
         } else {
-            struct hayward_seat *seat = NULL;
+            struct hwd_seat *seat = NULL;
             wl_list_for_each(seat, &server.input->seats, link) {
                 error = handle_action(sc, seat, argv[0]);
                 if (error && error->status != CMD_SUCCESS) {

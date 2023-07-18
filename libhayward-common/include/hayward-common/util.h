@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_UTIL_H
-#define _HAYWARD_UTIL_H
+#ifndef _HWD_UTIL_H
+#define _HWD_UTIL_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -65,9 +65,9 @@ float
 parse_float(const char *value);
 
 const char *
-hayward_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel);
+hwd_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel);
 
 bool
-hayward_set_cloexec(int fd, bool cloexec);
+hwd_set_cloexec(int fd, bool cloexec);
 
 #endif

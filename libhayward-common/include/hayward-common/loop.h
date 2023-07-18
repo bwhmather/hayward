@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_LOOP_H
-#define _HAYWARD_LOOP_H
+#ifndef _HWD_LOOP_H
+#define _HWD_LOOP_H
 #include <stdbool.h>
 
 /**
@@ -36,8 +36,7 @@ loop_poll(struct loop *loop);
  */
 void
 loop_add_fd(
-    struct loop *loop, int fd, short mask,
-    void (*func)(int fd, short mask, void *data), void *data
+    struct loop *loop, int fd, short mask, void (*func)(int fd, short mask, void *data), void *data
 );
 
 /**
@@ -46,9 +45,7 @@ loop_add_fd(
  * When the timer expires, the timer will be removed from the loop and freed.
  */
 struct loop_timer *
-loop_add_timer(
-    struct loop *loop, int ms, void (*callback)(void *data), void *data
-);
+loop_add_timer(struct loop *loop, int ms, void (*callback)(void *data), void *data);
 
 /**
  * Remove a file descriptor from the loop.

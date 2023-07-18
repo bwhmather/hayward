@@ -39,10 +39,7 @@ cmd_exec_process(int argc, char **argv) {
     struct cmd_results *error = NULL;
     char *cmd = NULL;
     if (strcmp(argv[0], "--no-startup-id") == 0) {
-        hayward_log(
-            HAYWARD_INFO,
-            "exec switch '--no-startup-id' not supported, ignored."
-        );
+        hwd_log(HWD_INFO, "exec switch '--no-startup-id' not supported, ignored.");
         --argc;
         ++argv;
         if ((error = checkarg(argc, argv[-1], EXPECTED_AT_LEAST, 1))) {
@@ -57,11 +54,11 @@ cmd_exec_process(int argc, char **argv) {
         cmd = join_args(argv, argc);
     }
 
-    hayward_log(HAYWARD_DEBUG, "Executing %s", cmd);
+    hwd_log(HWD_DEBUG, "Executing %s", cmd);
 
     int fd[2];
     if (pipe(fd) != 0) {
-        hayward_log(HAYWARD_ERROR, "Unable to create pipe for fork");
+        hwd_log(HWD_ERROR, "Unable to create pipe for fork");
     }
 
     pid_t pid, child;
@@ -78,7 +75,7 @@ cmd_exec_process(int argc, char **argv) {
         if ((child = fork()) == 0) {
             close(fd[1]);
             execlp("sh", "sh", "-c", cmd, (void *)NULL);
-            hayward_log_errno(HAYWARD_ERROR, "execlp failed");
+            hwd_log_errno(HWD_ERROR, "execlp failed");
             _exit(1);
         }
         ssize_t s = 0;
@@ -103,7 +100,7 @@ cmd_exec_process(int argc, char **argv) {
     // cleanup child process
     waitpid(pid, NULL, 0);
     if (child > 0) {
-        hayward_log(HAYWARD_DEBUG, "Child process created with pid %d", child);
+        hwd_log(HWD_DEBUG, "Child process created with pid %d", child);
         root_record_workspace_pid(root, child);
     } else {
         return cmd_results_new(CMD_FAILURE, "Second fork() failed");

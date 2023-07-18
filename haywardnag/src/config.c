@@ -111,60 +111,57 @@ haywardnag_parse_options(
 
         {0, 0, 0, 0}};
 
-    const char *usage =
-        "Usage: haywardnag [options...]\n"
-        "\n"
-        "  -b, --button <text> <action>  Create a button with text that "
-        "executes action in a terminal when pressed. Multiple buttons can "
-        "be defined.\n"
-        "  -B, --button-no-terminal <text> <action>  Like --button, but does"
-        "not run the action in a terminal.\n"
-        "  -z, --button-dismiss <text> <action>  Create a button with text "
-        "that "
-        "dismisses haywardnag, and executes action in a terminal when pressed. "
-        "Multiple buttons can be defined.\n"
-        "  -Z, --button-dismiss-no-terminal <text> <action>  Like "
-        "--button-dismiss, but does not run the action in a terminal.\n"
-        "  -c, --config <path>             Path to config file.\n"
-        "  -d, --debug                     Enable debugging.\n"
-        "  -e, --edge top|bottom           Set the edge to use.\n"
-        "  -y, --layer overlay|top|bottom|background\n"
-        "                                  Set the layer to use.\n"
-        "  -f, --font <font>               Set the font to use.\n"
-        "  -h, --help                      Show help message and quit.\n"
-        "  -l, --detailed-message          Read a detailed message from "
-        "stdin.\n"
-        "  -L, --detailed-button <text>    Set the text of the detail button.\n"
-        "  -m, --message <msg>             Set the message text.\n"
-        "  -o, --output <output>           Set the output to use.\n"
-        "  -s, --dismiss-button <text>     Set the dismiss button text.\n"
-        "  -t, --type <type>               Set the message type.\n"
-        "  -v, --version                   Show the version number and quit.\n"
-        "\n"
-        "The following appearance options can also be given:\n"
-        "  --background RRGGBB[AA]         Background color.\n"
-        "  --border RRGGBB[AA]             Border color.\n"
-        "  --border-bottom RRGGBB[AA]      Bottom border color.\n"
-        "  --button-background RRGGBB[AA]  Button background color.\n"
-        "  --text RRGGBB[AA]               Text color.\n"
-        "  --button-text RRGGBB[AA]        Button text color.\n"
-        "  --border-bottom-size size       Thickness of the bar border.\n"
-        "  --message-padding padding       Padding for the message.\n"
-        "  --details-border-size size      Thickness for the details border.\n"
-        "  --details-background RRGGBB[AA] Details background color.\n"
-        "  --button-border-size size       Thickness for the button border.\n"
-        "  --button-gap gap                Size of the gap between buttons\n"
-        "  --button-dismiss-gap gap        Size of the gap for dismiss "
-        "button.\n"
-        "  --button-margin-right margin    Margin from dismiss button to "
-        "edge.\n"
-        "  --button-padding padding        Padding for the button text.\n";
+    const char *usage = "Usage: haywardnag [options...]\n"
+                        "\n"
+                        "  -b, --button <text> <action>  Create a button with text that "
+                        "executes action in a terminal when pressed. Multiple buttons can "
+                        "be defined.\n"
+                        "  -B, --button-no-terminal <text> <action>  Like --button, but does"
+                        "not run the action in a terminal.\n"
+                        "  -z, --button-dismiss <text> <action>  Create a button with text "
+                        "that "
+                        "dismisses haywardnag, and executes action in a terminal when pressed. "
+                        "Multiple buttons can be defined.\n"
+                        "  -Z, --button-dismiss-no-terminal <text> <action>  Like "
+                        "--button-dismiss, but does not run the action in a terminal.\n"
+                        "  -c, --config <path>             Path to config file.\n"
+                        "  -d, --debug                     Enable debugging.\n"
+                        "  -e, --edge top|bottom           Set the edge to use.\n"
+                        "  -y, --layer overlay|top|bottom|background\n"
+                        "                                  Set the layer to use.\n"
+                        "  -f, --font <font>               Set the font to use.\n"
+                        "  -h, --help                      Show help message and quit.\n"
+                        "  -l, --detailed-message          Read a detailed message from "
+                        "stdin.\n"
+                        "  -L, --detailed-button <text>    Set the text of the detail button.\n"
+                        "  -m, --message <msg>             Set the message text.\n"
+                        "  -o, --output <output>           Set the output to use.\n"
+                        "  -s, --dismiss-button <text>     Set the dismiss button text.\n"
+                        "  -t, --type <type>               Set the message type.\n"
+                        "  -v, --version                   Show the version number and quit.\n"
+                        "\n"
+                        "The following appearance options can also be given:\n"
+                        "  --background RRGGBB[AA]         Background color.\n"
+                        "  --border RRGGBB[AA]             Border color.\n"
+                        "  --border-bottom RRGGBB[AA]      Bottom border color.\n"
+                        "  --button-background RRGGBB[AA]  Button background color.\n"
+                        "  --text RRGGBB[AA]               Text color.\n"
+                        "  --button-text RRGGBB[AA]        Button text color.\n"
+                        "  --border-bottom-size size       Thickness of the bar border.\n"
+                        "  --message-padding padding       Padding for the message.\n"
+                        "  --details-border-size size      Thickness for the details border.\n"
+                        "  --details-background RRGGBB[AA] Details background color.\n"
+                        "  --button-border-size size       Thickness for the button border.\n"
+                        "  --button-gap gap                Size of the gap between buttons\n"
+                        "  --button-dismiss-gap gap        Size of the gap for dismiss "
+                        "button.\n"
+                        "  --button-margin-right margin    Margin from dismiss button to "
+                        "edge.\n"
+                        "  --button-padding padding        Padding for the button text.\n";
 
     optind = 1;
     while (1) {
-        int c = getopt_long(
-            argc, argv, "b:B:z:Z:c:de:y:f:hlL:m:o:s:t:v", opts, NULL
-        );
+        int c = getopt_long(argc, argv, "b:B:z:Z:c:de:y:f:hlL:m:o:s:t:v", opts, NULL);
         if (c == -1) {
             break;
         }
@@ -178,8 +175,7 @@ haywardnag_parse_options(
                     fprintf(stderr, "Missing action for button %s\n", optarg);
                     return EXIT_FAILURE;
                 }
-                struct haywardnag_button *button =
-                    calloc(sizeof(struct haywardnag_button), 1);
+                struct haywardnag_button *button = calloc(sizeof(struct haywardnag_button), 1);
                 if (!button) {
                     perror("calloc");
                     return EXIT_FAILURE;
@@ -207,12 +203,10 @@ haywardnag_parse_options(
             if (type) {
                 if (strcmp(optarg, "top") == 0) {
                     type->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
-                        ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
-                        ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+                        ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
                 } else if (strcmp(optarg, "bottom") == 0) {
                     type->anchors = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM |
-                        ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
-                        ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+                        ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
                 } else {
                     fprintf(stderr, "Invalid edge: %s\n", optarg);
                     return EXIT_FAILURE;
@@ -243,8 +237,7 @@ haywardnag_parse_options(
         case 'f': // Font
             if (type) {
                 pango_font_description_free(type->font_description);
-                type->font_description =
-                    pango_font_description_from_string(optarg);
+                type->font_description = pango_font_description_from_string(optarg);
             }
             break;
         case 'l': // Detailed Message
@@ -278,8 +271,7 @@ haywardnag_parse_options(
             break;
         case 's': // Dismiss Button Text
             if (haywardnag) {
-                struct haywardnag_button *button_close =
-                    haywardnag->buttons->items[0];
+                struct haywardnag_button *button_close = haywardnag->buttons->items[0];
                 free(button_close->text);
                 button_close->text = strdup(optarg);
             }
@@ -294,7 +286,7 @@ haywardnag_parse_options(
             }
             break;
         case 'v': // Version
-            printf("haywardnag version " HAYWARD_VERSION "\n");
+            printf("haywardnag version " HWD_VERSION "\n");
             return -1;
         case TO_COLOR_BACKGROUND: // Background color
             if (type && !parse_color(optarg, &type->background)) {
@@ -414,9 +406,7 @@ haywardnag_get_config_path(void) {
 }
 
 int
-haywardnag_load_config(
-    char *path, struct haywardnag *haywardnag, list_t *types
-) {
+haywardnag_load_config(char *path, struct haywardnag *haywardnag, list_t *types) {
     FILE *config = fopen(path, "r");
     if (!config) {
         fprintf(stderr, "Failed to read config. Running without it.\n");
@@ -462,9 +452,7 @@ haywardnag_load_config(
             }
             snprintf(flag, nread + 3, "--%s", line);
             char *argv[] = {"haywardnag", flag};
-            result = haywardnag_parse_options(
-                2, argv, haywardnag, types, type, NULL, NULL
-            );
+            result = haywardnag_parse_options(2, argv, haywardnag, types, type, NULL, NULL);
             free(flag);
             if (result != 0) {
                 break;

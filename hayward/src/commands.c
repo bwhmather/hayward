@@ -134,25 +134,22 @@ handler_compare(const void *_a, const void *_b) {
 }
 
 const struct cmd_handler *
-find_handler(
-    char *line, const struct cmd_handler *handlers, size_t handlers_size
-) {
+find_handler(char *line, const struct cmd_handler *handlers, size_t handlers_size) {
     if (!handlers || !handlers_size) {
         return NULL;
     }
     const struct cmd_handler query = {.command = line};
     return bsearch(
-        &query, handlers, handlers_size / sizeof(struct cmd_handler),
-        sizeof(struct cmd_handler), handler_compare
+        &query, handlers, handlers_size / sizeof(struct cmd_handler), sizeof(struct cmd_handler),
+        handler_compare
     );
 }
 
 static const struct cmd_handler *
 find_handler_ex(
-    char *line, const struct cmd_handler *config_handlers,
-    size_t config_handlers_size, const struct cmd_handler *command_handlers,
-    size_t command_handlers_size, const struct cmd_handler *handlers,
-    size_t handlers_size
+    char *line, const struct cmd_handler *config_handlers, size_t config_handlers_size,
+    const struct cmd_handler *command_handlers, size_t command_handlers_size,
+    const struct cmd_handler *handlers, size_t handlers_size
 ) {
     const struct cmd_handler *handler = NULL;
     if (config->reading) {
@@ -166,22 +163,20 @@ find_handler_ex(
 static const struct cmd_handler *
 find_core_handler(char *line) {
     return find_handler_ex(
-        line, config_handlers, sizeof(config_handlers), command_handlers,
-        sizeof(command_handlers), handlers, sizeof(handlers)
+        line, config_handlers, sizeof(config_handlers), command_handlers, sizeof(command_handlers),
+        handlers, sizeof(handlers)
     );
 }
 
 list_t *
-execute_command(
-    char *_exec, struct hayward_seat *seat, struct hayward_window *window
-) {
+execute_command(char *_exec, struct hwd_seat *seat, struct hwd_window *window) {
     char *cmd;
     char matched_delim = ';';
 
     if (seat == NULL) {
         // passing a NULL seat means we just pick the default seat
         seat = input_manager_get_default_seat();
-        hayward_assert(seat, "could not find a seat to run the command on");
+        hwd_assert(seat, "could not find a seat to run the command on");
     }
 
     char *exec = strdup(_exec);
@@ -204,15 +199,14 @@ execute_command(
         }
 
         if (strcmp(cmd, "") == 0) {
-            hayward_log(HAYWARD_INFO, "Ignoring empty command.");
+            hwd_log(HWD_INFO, "Ignoring empty command.");
             continue;
         }
-        hayward_log(HAYWARD_INFO, "Handling command '%s'", cmd);
+        hwd_log(HWD_INFO, "Handling command '%s'", cmd);
         // TODO better handling of argv
         int argc;
         char **argv = split_args(cmd, &argc);
-        if (strcmp(argv[0], "exec") != 0 &&
-            strcmp(argv[0], "exec_always") != 0 &&
+        if (strcmp(argv[0], "exec") != 0 && strcmp(argv[0], "exec_always") != 0 &&
             strcmp(argv[0], "mode") != 0) {
             for (int i = 1; i < argc; ++i) {
                 if (*argv[i] == '\"' || *argv[i] == '\'') {
@@ -223,10 +217,7 @@ execute_command(
         const struct cmd_handler *handler = find_core_handler(argv[0]);
         if (!handler) {
             list_add(
-                res_list,
-                cmd_results_new(
-                    CMD_INVALID, "Unknown/invalid command '%s'", argv[0]
-                )
+                res_list, cmd_results_new(CMD_INVALID, "Unknown/invalid command '%s'", argv[0])
             );
             free_argv(argc, argv);
             goto cleanup;
@@ -308,12 +299,11 @@ config_command(char *exec, char **new_block) {
     }
 
     // Determine the command handler
-    hayward_log(HAYWARD_INFO, "Config command: %s", exec);
+    hwd_log(HWD_INFO, "Config command: %s", exec);
     const struct cmd_handler *handler = find_core_handler(argv[0]);
     if (!handler || !handler->handle) {
-        const char *error = handler
-            ? "Command '%s' is shimmed, but unimplemented"
-            : "Unknown/invalid command '%s'";
+        const char *error =
+            handler ? "Command '%s' is shimmed, but unimplemented" : "Unknown/invalid command '%s'";
         results = cmd_results_new(CMD_INVALID, error, argv[0]);
         goto cleanup;
     }
@@ -328,7 +318,7 @@ config_command(char *exec, char **new_block) {
         argv[1] = temp;
     }
     char *command = do_var_replacement(join_args(argv, argc));
-    hayward_log(HAYWARD_INFO, "After replacement: %s", command);
+    hwd_log(HWD_INFO, "After replacement: %s", command);
     free_argv(argc, argv);
     argv = split_args(command, &argc);
     free(command);
@@ -337,9 +327,8 @@ config_command(char *exec, char **new_block) {
     for (int i = handler->handle == cmd_set ? 2 : 1; i < argc; ++i) {
         if (handler->handle != cmd_exec && handler->handle != cmd_exec_always &&
             handler->handle != cmd_mode && handler->handle != cmd_bindsym &&
-            handler->handle != cmd_bindcode &&
-            handler->handle != cmd_bindswitch && handler->handle != cmd_set &&
-            (*argv[i] == '\"' || *argv[i] == '\'')) {
+            handler->handle != cmd_bindcode && handler->handle != cmd_bindswitch &&
+            handler->handle != cmd_set && (*argv[i] == '\"' || *argv[i] == '\'')) {
             strip_quotes(argv[i]);
         }
         unescape_string(argv[i]);
@@ -354,27 +343,19 @@ cleanup:
 }
 
 struct cmd_results *
-config_subcommand(
-    char **argv, int argc, const struct cmd_handler *handlers,
-    size_t handlers_size
-) {
+config_subcommand(char **argv, int argc, const struct cmd_handler *handlers, size_t handlers_size) {
     char *command = join_args(argv, argc);
-    hayward_log(HAYWARD_DEBUG, "Subcommand: %s", command);
+    hwd_log(HWD_DEBUG, "Subcommand: %s", command);
     free(command);
 
-    const struct cmd_handler *handler =
-        find_handler(argv[0], handlers, handlers_size);
+    const struct cmd_handler *handler = find_handler(argv[0], handlers, handlers_size);
     if (!handler) {
-        return cmd_results_new(
-            CMD_INVALID, "Unknown/invalid command '%s'", argv[0]
-        );
+        return cmd_results_new(CMD_INVALID, "Unknown/invalid command '%s'", argv[0]);
     }
     if (handler->handle) {
         return handler->handle(argc - 1, argv + 1);
     }
-    return cmd_results_new(
-        CMD_INVALID, "The command '%s' is shimmed, but unimplemented", argv[0]
-    );
+    return cmd_results_new(CMD_INVALID, "The command '%s' is shimmed, but unimplemented", argv[0]);
 }
 
 struct cmd_results *
@@ -397,8 +378,7 @@ config_commands_command(char *exec) {
 
     const struct cmd_handler *handler = find_handler(cmd, NULL, 0);
     if (!handler && strcmp(cmd, "*") != 0) {
-        results =
-            cmd_results_new(CMD_INVALID, "Unknown/invalid command '%s'", cmd);
+        results = cmd_results_new(CMD_INVALID, "Unknown/invalid command '%s'", cmd);
         goto cleanup;
     }
 
@@ -413,7 +393,7 @@ struct cmd_results *
 cmd_results_new(enum cmd_status status, const char *format, ...) {
     struct cmd_results *results = malloc(sizeof(struct cmd_results));
     if (!results) {
-        hayward_log(HAYWARD_ERROR, "Unable to allocate command results");
+        hwd_log(HWD_ERROR, "Unable to allocate command results");
         return NULL;
     }
     results->status = status;
@@ -447,17 +427,13 @@ cmd_results_to_json(list_t *res_list) {
         struct cmd_results *results = res_list->items[i];
         json_object *root = json_object_new_object();
         json_object_object_add(
-            root, "success",
-            json_object_new_boolean(results->status == CMD_SUCCESS)
+            root, "success", json_object_new_boolean(results->status == CMD_SUCCESS)
         );
         if (results->error) {
             json_object_object_add(
-                root, "parse_error",
-                json_object_new_boolean(results->status == CMD_INVALID)
+                root, "parse_error", json_object_new_boolean(results->status == CMD_INVALID)
             );
-            json_object_object_add(
-                root, "error", json_object_new_string(results->error)
-            );
+            json_object_object_add(root, "error", json_object_new_string(results->error));
         }
         json_object_array_add(result_array, root);
     }

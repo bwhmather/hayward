@@ -20,19 +20,17 @@
 
 static void
 toggle_supported_send_events_for_device(
-    struct input_config *ic, struct hayward_input_device *input_device
+    struct input_config *ic, struct hwd_input_device *input_device
 ) {
     struct wlr_input_device *wlr_device = input_device->wlr_device;
     if (!wlr_input_device_is_libinput(wlr_device)) {
         return;
     }
-    struct libinput_device *libinput_dev =
-        wlr_libinput_get_device_handle(wlr_device);
+    struct libinput_device *libinput_dev = wlr_libinput_get_device_handle(wlr_device);
 
     enum libinput_config_send_events_mode mode =
         libinput_device_config_send_events_get_mode(libinput_dev);
-    uint32_t possible =
-        libinput_device_config_send_events_get_modes(libinput_dev);
+    uint32_t possible = libinput_device_config_send_events_get_modes(libinput_dev);
 
     switch (mode) {
     case LIBINPUT_CONFIG_SEND_EVENTS_ENABLED:
@@ -70,8 +68,7 @@ mode_for_name(const char *name) {
 
 static void
 toggle_select_send_events_for_device(
-    struct input_config *ic, struct hayward_input_device *input_device,
-    int argc, char **argv
+    struct input_config *ic, struct hwd_input_device *input_device, int argc, char **argv
 ) {
     if (!wlr_input_device_is_libinput(input_device->wlr_device)) {
         return;
@@ -99,7 +96,7 @@ toggle_send_events(int argc, char **argv) {
     const char *type = strncmp(ic->identifier, "type:", strlen("type:")) == 0
         ? ic->identifier + strlen("type:")
         : NULL;
-    struct hayward_input_device *device = NULL;
+    struct hwd_input_device *device = NULL;
     wl_list_for_each(device, &server.input->devices, link) {
         if (wildcard || type) {
             ic = new_input_config(device->identifier);
@@ -143,19 +140,15 @@ input_cmd_events(int argc, char **argv) {
     } else if (strcasecmp(argv[0], "disabled") == 0) {
         ic->send_events = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
     } else if (strcasecmp(argv[0], "disabled_on_external_mouse") == 0) {
-        ic->send_events =
-            LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
+        ic->send_events = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
     } else if (config->reading) {
         return cmd_results_new(
-            CMD_INVALID,
-            "Expected 'events <enabled|disabled|disabled_on_external_mouse>'"
+            CMD_INVALID, "Expected 'events <enabled|disabled|disabled_on_external_mouse>'"
         );
     } else if (strcasecmp(argv[0], "toggle") == 0) {
         for (int i = 1; i < argc; ++i) {
             if (mode_for_name(argv[i]) == -1) {
-                return cmd_results_new(
-                    CMD_INVALID, "Invalid toggle mode %s", argv[i]
-                );
+                return cmd_results_new(CMD_INVALID, "Invalid toggle mode %s", argv[i]);
             }
         }
 

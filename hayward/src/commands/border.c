@@ -22,9 +22,7 @@
 // - view->saved_border should be the last applied border when switching to CSD.
 // - view->using_csd should always reflect whether CSD is applied or not.
 static void
-set_border(
-    struct hayward_window *window, enum hayward_window_border new_border
-) {
+set_border(struct hwd_window *window, enum hwd_window_border new_border) {
     if (window->view->using_csd && new_border != B_CSD) {
         view_set_csd_from_server(window->view, false);
     } else if (!window->view->using_csd && new_border == B_CSD) {
@@ -39,7 +37,7 @@ set_border(
 }
 
 static void
-border_toggle(struct hayward_window *window) {
+border_toggle(struct hwd_window *window) {
     if (window->view->using_csd) {
         set_border(window, B_NONE);
         return;
@@ -60,7 +58,7 @@ border_toggle(struct hayward_window *window) {
         break;
     case B_CSD:
         // view->using_csd should be true so it would have returned above
-        hayward_assert(false, "Unreachable");
+        hwd_assert(false, "Unreachable");
         break;
     }
 }
@@ -72,11 +70,11 @@ cmd_border(int argc, char **argv) {
         return error;
     }
 
-    struct hayward_window *window = config->handler_context.window;
+    struct hwd_window *window = config->handler_context.window;
     if (!window) {
         return cmd_results_new(CMD_INVALID, "Only windows can have borders");
     }
-    struct hayward_view *view = window->view;
+    struct hwd_view *view = window->view;
 
     if (strcmp(argv[0], "none") == 0) {
         set_border(window, B_NONE);
@@ -87,8 +85,7 @@ cmd_border(int argc, char **argv) {
     } else if (strcmp(argv[0], "csd") == 0) {
         if (!view->xdg_decoration) {
             return cmd_results_new(
-                CMD_INVALID,
-                "This window doesn't support client side decorations"
+                CMD_INVALID, "This window doesn't support client side decorations"
             );
         }
         set_border(window, B_CSD);

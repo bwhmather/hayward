@@ -50,41 +50,35 @@ cmd_output(int argc, char **argv) {
     // The HEADLESS-1 output is a dummy output used when there's no outputs
     // connected. It should never be configured.
     if (strcasecmp(argv[0], root->fallback_output->wlr_output->name) == 0) {
-        return cmd_results_new(
-            CMD_FAILURE, "Refusing to configure the no op output"
-        );
+        return cmd_results_new(CMD_FAILURE, "Refusing to configure the no op output");
     }
 
     struct output_config *output = NULL;
     if (strcmp(argv[0], "-") == 0 || strcmp(argv[0], "--") == 0) {
         if (config->reading) {
             return cmd_results_new(
-                CMD_FAILURE,
-                "Current output alias (%s) cannot be used in the config",
-                argv[0]
+                CMD_FAILURE, "Current output alias (%s) cannot be used in the config", argv[0]
             );
         }
-        struct hayward_output *hayward_output = root_get_active_output(root);
-        if (!hayward_output) {
+        struct hwd_output *hwd_output = root_get_active_output(root);
+        if (!hwd_output) {
             return cmd_results_new(CMD_FAILURE, "Unknown output");
         }
-        if (hayward_output == root->fallback_output) {
-            return cmd_results_new(
-                CMD_FAILURE, "Refusing to configure the no op output"
-            );
+        if (hwd_output == root->fallback_output) {
+            return cmd_results_new(CMD_FAILURE, "Refusing to configure the no op output");
         }
         if (strcmp(argv[0], "-") == 0) {
-            output = new_output_config(hayward_output->wlr_output->name);
+            output = new_output_config(hwd_output->wlr_output->name);
         } else {
             char identifier[128];
-            output_get_identifier(identifier, 128, hayward_output);
+            output_get_identifier(identifier, 128, hwd_output);
             output = new_output_config(identifier);
         }
     } else {
         output = new_output_config(argv[0]);
     }
     if (!output) {
-        hayward_log(HAYWARD_ERROR, "Failed to allocate output config");
+        hwd_log(HWD_ERROR, "Failed to allocate output config");
         return NULL;
     }
     argc--;
@@ -97,13 +91,9 @@ cmd_output(int argc, char **argv) {
         config->handler_context.leftovers.argv = NULL;
 
         if (find_handler(*argv, output_handlers, sizeof(output_handlers))) {
-            error = config_subcommand(
-                argv, argc, output_handlers, sizeof(output_handlers)
-            );
+            error = config_subcommand(argv, argc, output_handlers, sizeof(output_handlers));
         } else {
-            error = cmd_results_new(
-                CMD_INVALID, "Invalid output subcommand: %s.", *argv
-            );
+            error = cmd_results_new(CMD_INVALID, "Invalid output subcommand: %s.", *argv);
         }
 
         if (error != NULL) {

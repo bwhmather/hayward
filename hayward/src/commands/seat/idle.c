@@ -28,9 +28,7 @@ parse_sources(int argc, char **argv) {
     uint32_t sources = 0;
     for (int i = 0; i < argc; ++i) {
         uint32_t value = 0;
-        for (size_t j = 0;
-             j < sizeof(idle_source_strings) / sizeof(idle_source_strings[0]);
-             ++j) {
+        for (size_t j = 0; j < sizeof(idle_source_strings) / sizeof(idle_source_strings[0]); ++j) {
             if (strcasecmp(idle_source_strings[j].name, argv[i]) == 0) {
                 value = idle_source_strings[j].value;
                 break;

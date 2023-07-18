@@ -19,14 +19,9 @@ bar_cmd_height(int argc, char **argv) {
     }
     int height = atoi(argv[0]);
     if (height < 0) {
-        return cmd_results_new(
-            CMD_INVALID, "Invalid height value: %s", argv[0]
-        );
+        return cmd_results_new(CMD_INVALID, "Invalid height value: %s", argv[0]);
     }
     config->current_bar->height = height;
-    hayward_log(
-        HAYWARD_DEBUG, "Setting bar height to %d on bar: %s", height,
-        config->current_bar->id
-    );
+    hwd_log(HWD_DEBUG, "Setting bar height to %d on bar: %s", height, config->current_bar->id);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

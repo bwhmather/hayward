@@ -24,19 +24,19 @@
 #include <config.h>
 
 struct seatop_resize_tiling_event {
-    struct hayward_window *container; // leaf container
+    struct hwd_window *container; // leaf container
 
     // Container, or ancestor of container which will be resized
     // horizontally/vertically.
     // TODO v_container will always be the selected window.  h_container
     // will always be the containing column.
-    struct hayward_column *h_container;
-    struct hayward_window *v_container;
+    struct hwd_column *h_container;
+    struct hwd_window *v_container;
 
     // Sibling container(s) that will be resized to accommodate.  h_sib is
     // always a column.  v_sib is always a window.
-    struct hayward_column *h_sib;
-    struct hayward_window *v_sib;
+    struct hwd_column *h_sib;
+    struct hwd_window *v_sib;
 
     enum wlr_edges edge;
     enum wlr_edges edge_x, edge_y;
@@ -45,8 +45,8 @@ struct seatop_resize_tiling_event {
     double v_container_orig_height; // height of the vertical ancestor at start
 };
 
-static struct hayward_column *
-column_get_resize_sibling(struct hayward_column *column, uint32_t edge) {
+static struct hwd_column *
+column_get_resize_sibling(struct hwd_column *column, uint32_t edge) {
     list_t *siblings = column_get_siblings(column);
     int offset = (edge & WLR_EDGE_LEFT) ? -1 : 1;
     int index = column_sibling_index(column) + offset;
@@ -62,8 +62,8 @@ column_get_resize_sibling(struct hayward_column *column, uint32_t edge) {
     return siblings->items[index];
 }
 
-static struct hayward_window *
-window_get_resize_sibling(struct hayward_window *window, uint32_t edge) {
+static struct hwd_window *
+window_get_resize_sibling(struct hwd_window *window, uint32_t edge) {
     list_t *siblings = window_get_siblings(window);
     int offset = (edge & WLR_EDGE_TOP) ? -1 : 1;
     int index = window_sibling_index(window) + offset;
@@ -81,8 +81,7 @@ window_get_resize_sibling(struct hayward_window *window, uint32_t edge) {
 
 static void
 handle_button(
-    struct hayward_seat *seat, uint32_t time_msec,
-    struct wlr_input_device *device, uint32_t button,
+    struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
 ) {
     struct seatop_resize_tiling_event *e = seat->seatop_data;
@@ -103,7 +102,7 @@ handle_button(
 }
 
 static void
-handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
+handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     struct seatop_resize_tiling_event *e = seat->seatop_data;
     int amount_x = 0;
     int amount_y = 0;
@@ -112,20 +111,16 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
 
     if (e->h_container) {
         if (e->edge & WLR_EDGE_LEFT) {
-            amount_x = (e->h_container_orig_width - moved_x) -
-                e->h_container->pending.width;
+            amount_x = (e->h_container_orig_width - moved_x) - e->h_container->pending.width;
         } else if (e->edge & WLR_EDGE_RIGHT) {
-            amount_x = (e->h_container_orig_width + moved_x) -
-                e->h_container->pending.width;
+            amount_x = (e->h_container_orig_width + moved_x) - e->h_container->pending.width;
         }
     }
     if (e->v_container) {
         if (e->edge & WLR_EDGE_TOP) {
-            amount_y = (e->v_container_orig_height - moved_y) -
-                e->v_container->pending.height;
+            amount_y = (e->v_container_orig_height - moved_y) - e->v_container->pending.height;
         } else if (e->edge & WLR_EDGE_BOTTOM) {
-            amount_y = (e->v_container_orig_height + moved_y) -
-                e->v_container->pending.height;
+            amount_y = (e->v_container_orig_height + moved_y) - e->v_container->pending.height;
         }
     }
 
@@ -138,7 +133,7 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
 }
 
 static void
-handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
+handle_unref(struct hwd_seat *seat, struct hwd_window *container) {
     struct seatop_resize_tiling_event *e = seat->seatop_data;
     if (e->container == container) {
         seatop_begin_default(seat);
@@ -148,7 +143,7 @@ handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
     }
 }
 
-static const struct hayward_seatop_impl seatop_impl = {
+static const struct hwd_seatop_impl seatop_impl = {
     .button = handle_button,
     .pointer_motion = handle_pointer_motion,
     .unref = handle_unref,
@@ -156,13 +151,11 @@ static const struct hayward_seatop_impl seatop_impl = {
 
 void
 seatop_begin_resize_tiling(
-    struct hayward_seat *seat, struct hayward_window *container,
-    enum wlr_edges edge
+    struct hwd_seat *seat, struct hwd_window *container, enum wlr_edges edge
 ) {
     seatop_end(seat);
 
-    struct seatop_resize_tiling_event *e =
-        calloc(1, sizeof(struct seatop_resize_tiling_event));
+    struct seatop_resize_tiling_event *e = calloc(1, sizeof(struct seatop_resize_tiling_event));
     if (!e) {
         return;
     }

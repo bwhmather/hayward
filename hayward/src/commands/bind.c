@@ -27,7 +27,7 @@
 static int binding_order = 0;
 
 void
-free_hayward_binding(struct hayward_binding *binding) {
+free_hwd_binding(struct hwd_binding *binding) {
     if (!binding) {
         return;
     }
@@ -40,7 +40,7 @@ free_hayward_binding(struct hayward_binding *binding) {
 }
 
 void
-free_switch_binding(struct hayward_switch_binding *binding) {
+free_switch_binding(struct hwd_switch_binding *binding) {
     if (!binding) {
         return;
     }
@@ -53,18 +53,14 @@ free_switch_binding(struct hayward_switch_binding *binding) {
  * combinations.
  */
 static bool
-binding_switch_compare(
-    struct hayward_switch_binding *binding_a,
-    struct hayward_switch_binding *binding_b
-) {
+binding_switch_compare(struct hwd_switch_binding *binding_a, struct hwd_switch_binding *binding_b) {
     if (binding_a->type != binding_b->type) {
         return false;
     }
     if (binding_a->trigger != binding_b->trigger) {
         return false;
     }
-    if ((binding_a->flags & BINDING_LOCKED) !=
-        (binding_b->flags & BINDING_LOCKED)) {
+    if ((binding_a->flags & BINDING_LOCKED) != (binding_b->flags & BINDING_LOCKED)) {
         return false;
     }
     return true;
@@ -76,9 +72,7 @@ binding_switch_compare(
  * not be equivalent on some layouts.
  */
 static bool
-binding_key_compare(
-    struct hayward_binding *binding_a, struct hayward_binding *binding_b
-) {
+binding_key_compare(struct hwd_binding *binding_a, struct hwd_binding *binding_b) {
     if (strcmp(binding_a->input, binding_b->input) != 0) {
         return false;
     }
@@ -87,9 +81,8 @@ binding_key_compare(
         return false;
     }
 
-    uint32_t conflict_generating_flags = BINDING_RELEASE | BINDING_BORDER |
-        BINDING_CONTENTS | BINDING_TITLEBAR | BINDING_LOCKED |
-        BINDING_INHIBITED;
+    uint32_t conflict_generating_flags = BINDING_RELEASE | BINDING_BORDER | BINDING_CONTENTS |
+        BINDING_TITLEBAR | BINDING_LOCKED | BINDING_INHIBITED;
     if ((binding_a->flags & conflict_generating_flags) !=
         (binding_b->flags & conflict_generating_flags)) {
         return false;
@@ -135,24 +128,18 @@ key_qsort_cmp(const void *keyp_a, const void *keyp_b) {
  * was the first identified key.
  */
 static struct cmd_results *
-identify_key(
-    const char *name, bool first_key, uint32_t *key_val,
-    enum binding_input_type *type
-) {
+identify_key(const char *name, bool first_key, uint32_t *key_val, enum binding_input_type *type) {
     if (*type == BINDING_MOUSECODE) {
         // check for mouse bindcodes
         char *message = NULL;
         uint32_t button = get_mouse_bindcode(name, &message);
         if (!button) {
             if (message) {
-                struct cmd_results *error =
-                    cmd_results_new(CMD_INVALID, message);
+                struct cmd_results *error = cmd_results_new(CMD_INVALID, message);
                 free(message);
                 return error;
             } else {
-                return cmd_results_new(
-                    CMD_INVALID, "Unknown button code %s", name
-                );
+                return cmd_results_new(CMD_INVALID, "Unknown button code %s", name);
             }
         }
         *key_val = button;
@@ -162,8 +149,7 @@ identify_key(
         uint32_t button = get_mouse_bindsym(name, &message);
         if (!button) {
             if (message) {
-                struct cmd_results *error =
-                    cmd_results_new(CMD_INVALID, message);
+                struct cmd_results *error = cmd_results_new(CMD_INVALID, message);
                 free(message);
                 return error;
             } else {
@@ -187,13 +173,9 @@ identify_key(
         xkb_keycode_t keycode = strtol(name, NULL, 10);
         if (!xkb_keycode_is_legal_ext(keycode)) {
             if (first_key) {
-                return cmd_results_new(
-                    CMD_INVALID, "Invalid keycode or button code '%s'", name
-                );
+                return cmd_results_new(CMD_INVALID, "Invalid keycode or button code '%s'", name);
             } else {
-                return cmd_results_new(
-                    CMD_INVALID, "Invalid keycode '%s'", name
-                );
+                return cmd_results_new(CMD_INVALID, "Invalid keycode '%s'", name);
             }
         }
         *key_val = keycode;
@@ -203,8 +185,7 @@ identify_key(
             char *message = NULL;
             uint32_t button = get_mouse_bindsym(name, &message);
             if (message) {
-                struct cmd_results *error =
-                    cmd_results_new(CMD_INVALID, message);
+                struct cmd_results *error = cmd_results_new(CMD_INVALID, message);
                 free(message);
                 return error;
             } else if (button) {
@@ -214,13 +195,10 @@ identify_key(
             }
         }
 
-        xkb_keysym_t keysym =
-            xkb_keysym_from_name(name, XKB_KEYSYM_CASE_INSENSITIVE);
+        xkb_keysym_t keysym = xkb_keysym_from_name(name, XKB_KEYSYM_CASE_INSENSITIVE);
         if (!keysym) {
             if (first_key) {
-                return cmd_results_new(
-                    CMD_INVALID, "Unknown key or button '%s'", name
-                );
+                return cmd_results_new(CMD_INVALID, "Unknown key or button '%s'", name);
             } else {
                 return cmd_results_new(CMD_INVALID, "Unknown key '%s'", name);
             }
@@ -232,18 +210,17 @@ identify_key(
 
 static struct cmd_results *
 switch_binding_add(
-    struct hayward_switch_binding *binding, const char *bindtype,
-    const char *switchcombo, bool warn
+    struct hwd_switch_binding *binding, const char *bindtype, const char *switchcombo, bool warn
 ) {
     list_t *mode_bindings = config->current_mode->switch_bindings;
     // overwrite the binding if it already exists
     bool overwritten = false;
     for (int i = 0; i < mode_bindings->length; ++i) {
-        struct hayward_switch_binding *config_binding = mode_bindings->items[i];
+        struct hwd_switch_binding *config_binding = mode_bindings->items[i];
         if (binding_switch_compare(binding, config_binding)) {
-            hayward_log(
-                HAYWARD_INFO, "Overwriting binding '%s' to `%s` from `%s`",
-                switchcombo, binding->command, config_binding->command
+            hwd_log(
+                HWD_INFO, "Overwriting binding '%s' to `%s` from `%s`", switchcombo,
+                binding->command, config_binding->command
             );
             if (warn) {
                 config_add_haywardnag_warning(
@@ -260,9 +237,8 @@ switch_binding_add(
 
     if (!overwritten) {
         list_add(mode_bindings, binding);
-        hayward_log(
-            HAYWARD_DEBUG, "%s - Bound %s to command `%s`", bindtype,
-            switchcombo, binding->command
+        hwd_log(
+            HWD_DEBUG, "%s - Bound %s to command `%s`", bindtype, switchcombo, binding->command
         );
     }
 
@@ -271,37 +247,32 @@ switch_binding_add(
 
 static struct cmd_results *
 switch_binding_remove(
-    struct hayward_switch_binding *binding, const char *bindtype,
-    const char *switchcombo
+    struct hwd_switch_binding *binding, const char *bindtype, const char *switchcombo
 ) {
     list_t *mode_bindings = config->current_mode->switch_bindings;
     for (int i = 0; i < mode_bindings->length; ++i) {
-        struct hayward_switch_binding *config_binding = mode_bindings->items[i];
+        struct hwd_switch_binding *config_binding = mode_bindings->items[i];
         if (binding_switch_compare(binding, config_binding)) {
             free_switch_binding(config_binding);
             free_switch_binding(binding);
             list_del(mode_bindings, i);
-            hayward_log(
-                HAYWARD_DEBUG, "%s - Unbound %s switch", bindtype, switchcombo
-            );
+            hwd_log(HWD_DEBUG, "%s - Unbound %s switch", bindtype, switchcombo);
             return cmd_results_new(CMD_SUCCESS, NULL);
         }
     }
 
     free_switch_binding(binding);
-    return cmd_results_new(
-        CMD_FAILURE, "Could not find switch binding `%s`", switchcombo
-    );
+    return cmd_results_new(CMD_FAILURE, "Could not find switch binding `%s`", switchcombo);
 }
 
 /**
  * Insert or update the binding.
  * Return the binding which has been replaced or NULL.
  */
-static struct hayward_binding *
-binding_upsert(struct hayward_binding *binding, list_t *mode_bindings) {
+static struct hwd_binding *
+binding_upsert(struct hwd_binding *binding, list_t *mode_bindings) {
     for (int i = 0; i < mode_bindings->length; ++i) {
-        struct hayward_binding *config_binding = mode_bindings->items[i];
+        struct hwd_binding *config_binding = mode_bindings->items[i];
         if (binding_key_compare(binding, config_binding)) {
             mode_bindings->items[i] = binding;
             return config_binding;
@@ -314,15 +285,14 @@ binding_upsert(struct hayward_binding *binding, list_t *mode_bindings) {
 
 static struct cmd_results *
 binding_add(
-    struct hayward_binding *binding, list_t *mode_bindings,
-    const char *bindtype, const char *keycombo, bool warn
+    struct hwd_binding *binding, list_t *mode_bindings, const char *bindtype, const char *keycombo,
+    bool warn
 ) {
-    struct hayward_binding *config_binding =
-        binding_upsert(binding, mode_bindings);
+    struct hwd_binding *config_binding = binding_upsert(binding, mode_bindings);
 
     if (config_binding) {
-        hayward_log(
-            HAYWARD_INFO,
+        hwd_log(
+            HWD_INFO,
             "Overwriting binding '%s' for device '%s' "
             "to `%s` from `%s`",
             keycombo, binding->input, binding->command, config_binding->command
@@ -331,15 +301,14 @@ binding_add(
             config_add_haywardnag_warning(
                 "Overwriting binding"
                 "'%s' for device '%s' to `%s` from `%s`",
-                keycombo, binding->input, binding->command,
-                config_binding->command
+                keycombo, binding->input, binding->command, config_binding->command
             );
         }
-        free_hayward_binding(config_binding);
+        free_hwd_binding(config_binding);
     } else {
-        hayward_log(
-            HAYWARD_DEBUG, "%s - Bound %s to command `%s` for device '%s'",
-            bindtype, keycombo, binding->command, binding->input
+        hwd_log(
+            HWD_DEBUG, "%s - Bound %s to command `%s` for device '%s'", bindtype, keycombo,
+            binding->command, binding->input
         );
     }
 
@@ -348,23 +317,21 @@ binding_add(
 
 static struct cmd_results *
 binding_remove(
-    struct hayward_binding *binding, list_t *mode_bindings,
-    const char *bindtype, const char *keycombo
+    struct hwd_binding *binding, list_t *mode_bindings, const char *bindtype, const char *keycombo
 ) {
     for (int i = 0; i < mode_bindings->length; ++i) {
-        struct hayward_binding *config_binding = mode_bindings->items[i];
+        struct hwd_binding *config_binding = mode_bindings->items[i];
         if (binding_key_compare(binding, config_binding)) {
-            hayward_log(
-                HAYWARD_DEBUG, "%s - Unbound `%s` from device '%s'", bindtype,
-                keycombo, binding->input
+            hwd_log(
+                HWD_DEBUG, "%s - Unbound `%s` from device '%s'", bindtype, keycombo, binding->input
             );
-            free_hayward_binding(config_binding);
-            free_hayward_binding(binding);
+            free_hwd_binding(config_binding);
+            free_hwd_binding(binding);
             list_del(mode_bindings, i);
             return cmd_results_new(CMD_SUCCESS, NULL);
         }
     }
-    free_hayward_binding(binding);
+    free_hwd_binding(binding);
     return cmd_results_new(
         CMD_FAILURE,
         "Could not find binding `%s` "
@@ -389,7 +356,7 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
         return error;
     }
 
-    struct hayward_binding *binding = calloc(1, sizeof(struct hayward_binding));
+    struct hwd_binding *binding = calloc(1, sizeof(struct hwd_binding));
     if (!binding) {
         return cmd_results_new(CMD_FAILURE, "Unable to allocate binding");
     }
@@ -411,8 +378,7 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
         } else if (strcmp("--inhibited", argv[0]) == 0) {
             binding->flags |= BINDING_INHIBITED;
         } else if (strcmp("--whole-window", argv[0]) == 0) {
-            binding->flags |=
-                BINDING_BORDER | BINDING_CONTENTS | BINDING_TITLEBAR;
+            binding->flags |= BINDING_BORDER | BINDING_CONTENTS | BINDING_TITLEBAR;
         } else if (strcmp("--border", argv[0]) == 0) {
             binding->flags |= BINDING_BORDER;
         } else if (strcmp("--to-code", argv[0]) == 0) {
@@ -434,15 +400,13 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
         argv++;
         argc--;
     }
-    if (binding->flags &
-            (BINDING_BORDER | BINDING_CONTENTS | BINDING_TITLEBAR) ||
+    if (binding->flags & (BINDING_BORDER | BINDING_CONTENTS | BINDING_TITLEBAR) ||
         exclude_titlebar) {
-        binding->type = binding->type == BINDING_KEYCODE ? BINDING_MOUSECODE
-                                                         : BINDING_MOUSESYM;
+        binding->type = binding->type == BINDING_KEYCODE ? BINDING_MOUSECODE : BINDING_MOUSESYM;
     }
 
     if (argc < minargs) {
-        free_hayward_binding(binding);
+        free_hwd_binding(binding);
         return cmd_results_new(
             CMD_FAILURE,
             "Invalid %s command "
@@ -456,17 +420,14 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
         // Check for group
         if (strncmp(split->items[i], "Group", strlen("Group")) == 0) {
             if (binding->group != XKB_LAYOUT_INVALID) {
-                free_hayward_binding(binding);
+                free_hwd_binding(binding);
                 list_free_items_and_destroy(split);
-                return cmd_results_new(
-                    CMD_FAILURE, "Only one group can be specified"
-                );
+                return cmd_results_new(CMD_FAILURE, "Only one group can be specified");
             }
             char *end;
-            int group =
-                strtol((char *)split->items[i] + strlen("Group"), &end, 10);
+            int group = strtol((char *)split->items[i] + strlen("Group"), &end, 10);
             if (group < 1 || group > 4 || end[0] != '\0') {
-                free_hayward_binding(binding);
+                free_hwd_binding(binding);
                 list_free_items_and_destroy(split);
                 return cmd_results_new(CMD_FAILURE, "Invalid group");
             }
@@ -475,11 +436,9 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
         } else if (strcmp(split->items[i], "Mode_switch") == 0) {
             // For full i3 compatibility, Mode_switch is an alias for Group2
             if (binding->group != XKB_LAYOUT_INVALID) {
-                free_hayward_binding(binding);
+                free_hwd_binding(binding);
                 list_free_items_and_destroy(split);
-                return cmd_results_new(
-                    CMD_FAILURE, "Only one group can be specified"
-                );
+                return cmd_results_new(CMD_FAILURE, "Only one group can be specified");
             }
             binding->group = 1;
         }
@@ -493,23 +452,18 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
 
         // Identify the key and possibly change binding->type
         uint32_t key_val = 0;
-        error = identify_key(
-            split->items[i], binding->keys->length == 0, &key_val,
-            &binding->type
-        );
+        error = identify_key(split->items[i], binding->keys->length == 0, &key_val, &binding->type);
         if (error) {
-            free_hayward_binding(binding);
+            free_hwd_binding(binding);
             list_free(split);
             return error;
         }
 
         uint32_t *key = calloc(1, sizeof(uint32_t));
         if (!key) {
-            free_hayward_binding(binding);
+            free_hwd_binding(binding);
             list_free_items_and_destroy(split);
-            return cmd_results_new(
-                CMD_FAILURE, "Unable to allocate binding key"
-            );
+            return cmd_results_new(CMD_FAILURE, "Unable to allocate binding key");
         }
         *key = key_val;
         list_add(binding->keys, key);
@@ -529,10 +483,7 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
 
     // translate keysyms into keycodes
     if (!translate_binding(binding)) {
-        hayward_log(
-            HAYWARD_INFO, "Unable to translate bindsym into bindcode: %s",
-            argv[0]
-        );
+        hwd_log(HWD_INFO, "Unable to translate bindsym into bindcode: %s", argv[0]);
     }
 
     list_t *mode_bindings;
@@ -566,8 +517,7 @@ cmd_bind_or_unbind_switch(int argc, char **argv, bool unbind) {
     if ((error = checkarg(argc, bindtype, EXPECTED_AT_LEAST, minargs))) {
         return error;
     }
-    struct hayward_switch_binding *binding =
-        calloc(1, sizeof(struct hayward_switch_binding));
+    struct hwd_switch_binding *binding = calloc(1, sizeof(struct hwd_switch_binding));
     if (!binding) {
         return cmd_results_new(CMD_FAILURE, "Unable to allocate binding");
     }
@@ -623,11 +573,11 @@ cmd_bind_or_unbind_switch(int argc, char **argv, bool unbind) {
         );
     }
     if (strcmp(split->items[1], "on") == 0) {
-        binding->trigger = HAYWARD_SWITCH_TRIGGER_ON;
+        binding->trigger = HWD_SWITCH_TRIGGER_ON;
     } else if (strcmp(split->items[1], "off") == 0) {
-        binding->trigger = HAYWARD_SWITCH_TRIGGER_OFF;
+        binding->trigger = HWD_SWITCH_TRIGGER_OFF;
     } else if (strcmp(split->items[1], "toggle") == 0) {
-        binding->trigger = HAYWARD_SWITCH_TRIGGER_TOGGLE;
+        binding->trigger = HWD_SWITCH_TRIGGER_TOGGLE;
     } else {
         free_switch_binding(binding);
         return cmd_results_new(
@@ -680,37 +630,29 @@ cmd_unbindswitch(int argc, char **argv) {
  * Execute the command associated to a binding
  */
 void
-seat_execute_command(
-    struct hayward_seat *seat, struct hayward_binding *binding
-) {
+seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding) {
     if (!config->active) {
-        hayward_log(
-            HAYWARD_DEBUG, "deferring command for binding: %s", binding->command
-        );
-        struct hayward_binding *deferred =
-            calloc(1, sizeof(struct hayward_binding));
+        hwd_log(HWD_DEBUG, "deferring command for binding: %s", binding->command);
+        struct hwd_binding *deferred = calloc(1, sizeof(struct hwd_binding));
         if (!deferred) {
-            hayward_log(HAYWARD_ERROR, "Failed to allocate deferred binding");
+            hwd_log(HWD_ERROR, "Failed to allocate deferred binding");
             return;
         }
-        memcpy(deferred, binding, sizeof(struct hayward_binding));
+        memcpy(deferred, binding, sizeof(struct hwd_binding));
         deferred->command = binding->command ? strdup(binding->command) : NULL;
         list_add(seat->deferred_bindings, deferred);
         return;
     }
 
-    hayward_log(
-        HAYWARD_DEBUG, "running command for binding: %s", binding->command
-    );
-    struct hayward_window *container = NULL;
-    if (binding->type == BINDING_MOUSESYM ||
-        binding->type == BINDING_MOUSECODE) {
-        struct hayward_output *output;
+    hwd_log(HWD_DEBUG, "running command for binding: %s", binding->command);
+    struct hwd_window *container = NULL;
+    if (binding->type == BINDING_MOUSESYM || binding->type == BINDING_MOUSECODE) {
+        struct hwd_output *output;
         struct wlr_surface *surface = NULL;
         double sx, sy;
         seat_get_target_at(
-            seat, seat->cursor->cursor->x, seat->cursor->cursor->y, &output,
-            &container, &surface, &sx, &sy
+            seat, seat->cursor->cursor->x, seat->cursor->cursor->y, &output, &container, &surface,
+            &sx, &sy
         );
     }
 
@@ -719,9 +661,9 @@ seat_execute_command(
     for (int i = 0; i < res_list->length; ++i) {
         struct cmd_results *results = res_list->items[i];
         if (results->status != CMD_SUCCESS) {
-            hayward_log(
-                HAYWARD_DEBUG, "could not run command for binding: %s (%s)",
-                binding->command, results->error
+            hwd_log(
+                HWD_DEBUG, "could not run command for binding: %s (%s)", binding->command,
+                results->error
             );
             success = false;
         }
@@ -749,8 +691,7 @@ struct keycode_matches {
  */
 static void
 find_keycode(struct xkb_keymap *keymap, xkb_keycode_t keycode, void *data) {
-    xkb_keysym_t keysym =
-        xkb_state_key_get_one_sym(config->keysym_translation_state, keycode);
+    xkb_keysym_t keysym = xkb_state_key_get_one_sym(config->keysym_translation_state, keycode);
 
     if (keysym == XKB_KEY_NoSymbol) {
         return;
@@ -775,14 +716,13 @@ get_keycode_for_keysym(xkb_keysym_t keysym) {
     };
 
     xkb_keymap_key_for_each(
-        xkb_state_get_keymap(config->keysym_translation_state), find_keycode,
-        &matches
+        xkb_state_get_keymap(config->keysym_translation_state), find_keycode, &matches
     );
     return matches;
 }
 
 bool
-translate_binding(struct hayward_binding *binding) {
+translate_binding(struct hwd_binding *binding) {
     if ((binding->flags & BINDING_CODE) == 0) {
         return true;
     }
@@ -807,8 +747,8 @@ translate_binding(struct hayward_binding *binding) {
         struct keycode_matches matches = get_keycode_for_keysym(*keysym);
 
         if (matches.count != 1) {
-            hayward_log(
-                HAYWARD_INFO,
+            hwd_log(
+                HWD_INFO,
                 "Unable to convert keysym %" PRIu32 " into"
                 " a single keycode (found %d matches)",
                 *keysym, matches.count
@@ -818,9 +758,7 @@ translate_binding(struct hayward_binding *binding) {
 
         xkb_keycode_t *keycode = malloc(sizeof(xkb_keycode_t));
         if (!keycode) {
-            hayward_log(
-                HAYWARD_ERROR, "Unable to allocate memory for a keycode"
-            );
+            hwd_log(HWD_ERROR, "Unable to allocate memory for a keycode");
             goto error;
         }
 
@@ -841,17 +779,16 @@ error:
 }
 
 void
-binding_add_translated(struct hayward_binding *binding, list_t *mode_bindings) {
-    struct hayward_binding *config_binding =
-        binding_upsert(binding, mode_bindings);
+binding_add_translated(struct hwd_binding *binding, list_t *mode_bindings) {
+    struct hwd_binding *config_binding = binding_upsert(binding, mode_bindings);
 
     if (config_binding) {
-        hayward_log(
-            HAYWARD_INFO,
+        hwd_log(
+            HWD_INFO,
             "Overwriting binding for device '%s' "
             "to `%s` from `%s`",
             binding->input, binding->command, config_binding->command
         );
-        free_hayward_binding(config_binding);
+        free_hwd_binding(config_binding);
     }
 }

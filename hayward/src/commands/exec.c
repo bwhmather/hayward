@@ -20,7 +20,7 @@ cmd_exec(int argc, char **argv) {
     }
     if (config->reloading) {
         char *args = join_args(argv, argc);
-        hayward_log(HAYWARD_DEBUG, "Ignoring 'exec %s' due to reload", args);
+        hwd_log(HWD_DEBUG, "Ignoring 'exec %s' due to reload", args);
         free(args);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }

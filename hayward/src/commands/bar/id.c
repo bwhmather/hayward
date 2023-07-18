@@ -32,14 +32,13 @@ bar_cmd_id(int argc, char **argv) {
         struct bar_config *find = config->bars->items[i];
         if (strcmp(name, find->id) == 0 && config->current_bar != find) {
             return cmd_results_new(
-                CMD_FAILURE,
-                "Id '%s' already defined for another bar. Id unchanged (%s).",
-                name, oldname
+                CMD_FAILURE, "Id '%s' already defined for another bar. Id unchanged (%s).", name,
+                oldname
             );
         }
     }
 
-    hayward_log(HAYWARD_DEBUG, "Renaming bar: '%s' to '%s'", oldname, name);
+    hwd_log(HWD_DEBUG, "Renaming bar: '%s' to '%s'", oldname, name);
 
     // free old bar id
     free(config->current_bar->id);

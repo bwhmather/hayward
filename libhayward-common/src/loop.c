@@ -37,7 +37,7 @@ struct loop *
 loop_create(void) {
     struct loop *loop = calloc(1, sizeof(struct loop));
     if (!loop) {
-        hayward_log(HAYWARD_ERROR, "Unable to allocate memory for loop");
+        hwd_log(HWD_ERROR, "Unable to allocate memory for loop");
         return NULL;
     }
     loop->fd_capacity = 10;
@@ -97,8 +97,7 @@ loop_poll(struct loop *loop) {
         for (int i = 0; i < loop->timers->length; ++i) {
             struct loop_timer *timer = loop->timers->items[i];
             bool expired = timer->expiry.tv_sec < now.tv_sec ||
-                (timer->expiry.tv_sec == now.tv_sec &&
-                 timer->expiry.tv_nsec < now.tv_nsec);
+                (timer->expiry.tv_sec == now.tv_sec && timer->expiry.tv_nsec < now.tv_nsec);
             if (expired) {
                 timer->callback(timer->data);
                 loop_remove_timer(loop, timer);
@@ -110,12 +109,12 @@ loop_poll(struct loop *loop) {
 
 void
 loop_add_fd(
-    struct loop *loop, int fd, short mask,
-    void (*callback)(int fd, short mask, void *data), void *data
+    struct loop *loop, int fd, short mask, void (*callback)(int fd, short mask, void *data),
+    void *data
 ) {
     struct loop_fd_event *event = calloc(1, sizeof(struct loop_fd_event));
     if (!event) {
-        hayward_log(HAYWARD_ERROR, "Unable to allocate memory for event");
+        hwd_log(HWD_ERROR, "Unable to allocate memory for event");
         return;
     }
     event->callback = callback;
@@ -126,10 +125,9 @@ loop_add_fd(
 
     if (loop->fd_length == loop->fd_capacity) {
         int capacity = loop->fd_capacity + 10;
-        struct pollfd *tmp =
-            realloc(loop->fds, sizeof(struct pollfd) * capacity);
+        struct pollfd *tmp = realloc(loop->fds, sizeof(struct pollfd) * capacity);
         if (!tmp) {
-            hayward_log(HAYWARD_ERROR, "Unable to allocate memory for pollfd");
+            hwd_log(HWD_ERROR, "Unable to allocate memory for pollfd");
             return;
         }
         loop->fds = tmp;
@@ -140,12 +138,10 @@ loop_add_fd(
 }
 
 struct loop_timer *
-loop_add_timer(
-    struct loop *loop, int ms, void (*callback)(void *data), void *data
-) {
+loop_add_timer(struct loop *loop, int ms, void (*callback)(void *data), void *data) {
     struct loop_timer *timer = calloc(1, sizeof(struct loop_timer));
     if (!timer) {
-        hayward_log(HAYWARD_ERROR, "Unable to allocate memory for timer");
+        hwd_log(HWD_ERROR, "Unable to allocate memory for timer");
         return NULL;
     }
     timer->callback = callback;
@@ -175,8 +171,7 @@ loop_remove_fd(struct loop *loop, int fd) {
 
             loop->fd_length--;
             memmove(
-                &loop->fds[i], &loop->fds[i + 1],
-                sizeof(struct pollfd) * (loop->fd_length - i)
+                &loop->fds[i], &loop->fds[i + 1], sizeof(struct pollfd) * (loop->fd_length - i)
             );
 
             return true;

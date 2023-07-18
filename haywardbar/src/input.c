@@ -34,13 +34,13 @@ event_to_x11_button(uint32_t event) {
         return 2;
     case BTN_RIGHT:
         return 3;
-    case HAYWARD_SCROLL_UP:
+    case HWD_SCROLL_UP:
         return 4;
-    case HAYWARD_SCROLL_DOWN:
+    case HWD_SCROLL_DOWN:
         return 5;
-    case HAYWARD_SCROLL_LEFT:
+    case HWD_SCROLL_LEFT:
         return 6;
-    case HAYWARD_SCROLL_RIGHT:
+    case HWD_SCROLL_RIGHT:
         return 7;
     case BTN_SIDE:
         return 8;
@@ -56,11 +56,11 @@ wl_axis_to_button(uint32_t axis, wl_fixed_t value) {
     bool negative = wl_fixed_to_double(value) < 0;
     switch (axis) {
     case WL_POINTER_AXIS_VERTICAL_SCROLL:
-        return negative ? HAYWARD_SCROLL_UP : HAYWARD_SCROLL_DOWN;
+        return negative ? HWD_SCROLL_UP : HWD_SCROLL_DOWN;
     case WL_POINTER_AXIS_HORIZONTAL_SCROLL:
-        return negative ? HAYWARD_SCROLL_LEFT : HAYWARD_SCROLL_RIGHT;
+        return negative ? HWD_SCROLL_LEFT : HWD_SCROLL_RIGHT;
     default:
-        hayward_log(HAYWARD_DEBUG, "Unexpected axis value on mouse scroll");
+        hwd_log(HWD_DEBUG, "Unexpected axis value on mouse scroll");
         return 0;
     }
 }
@@ -86,31 +86,26 @@ update_cursor(struct haywardbar_seat *seat) {
         }
     }
     int scale = pointer->current ? pointer->current->scale : 1;
-    pointer->cursor_theme =
-        wl_cursor_theme_load(cursor_theme, cursor_size * scale, seat->bar->shm);
+    pointer->cursor_theme = wl_cursor_theme_load(cursor_theme, cursor_size * scale, seat->bar->shm);
     struct wl_cursor *cursor;
     cursor = wl_cursor_theme_get_cursor(pointer->cursor_theme, "left_ptr");
     pointer->cursor_image = cursor->images[0];
     wl_surface_set_buffer_scale(pointer->cursor_surface, scale);
     wl_surface_attach(
-        pointer->cursor_surface,
-        wl_cursor_image_get_buffer(pointer->cursor_image), 0, 0
+        pointer->cursor_surface, wl_cursor_image_get_buffer(pointer->cursor_image), 0, 0
     );
     wl_pointer_set_cursor(
         pointer->pointer, pointer->serial, pointer->cursor_surface,
-        pointer->cursor_image->hotspot_x / scale,
-        pointer->cursor_image->hotspot_y / scale
+        pointer->cursor_image->hotspot_x / scale, pointer->cursor_image->hotspot_y / scale
     );
-    wl_surface_damage_buffer(
-        pointer->cursor_surface, 0, 0, INT32_MAX, INT32_MAX
-    );
+    wl_surface_damage_buffer(pointer->cursor_surface, 0, 0, INT32_MAX, INT32_MAX);
     wl_surface_commit(pointer->cursor_surface);
 }
 
 static void
 wl_pointer_enter(
-    void *data, struct wl_pointer *wl_pointer, uint32_t serial,
-    struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y
+    void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface,
+    wl_fixed_t surface_x, wl_fixed_t surface_y
 ) {
     struct haywardbar_seat *seat = data;
     struct haywardbar_pointer *pointer = &seat->pointer;
@@ -129,8 +124,7 @@ wl_pointer_enter(
 
 static void
 wl_pointer_leave(
-    void *data, struct wl_pointer *wl_pointer, uint32_t serial,
-    struct wl_surface *surface
+    void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface
 ) {
     struct haywardbar_seat *seat = data;
     seat->pointer.current = NULL;
@@ -138,8 +132,8 @@ wl_pointer_leave(
 
 static void
 wl_pointer_motion(
-    void *data, struct wl_pointer *wl_pointer, uint32_t time,
-    wl_fixed_t surface_x, wl_fixed_t surface_y
+    void *data, struct wl_pointer *wl_pointer, uint32_t time, wl_fixed_t surface_x,
+    wl_fixed_t surface_y
 ) {
     struct haywardbar_seat *seat = data;
     seat->pointer.x = wl_fixed_to_double(surface_x);
@@ -160,18 +154,12 @@ check_bindings(struct haywardbar *bar, uint32_t button, uint32_t state) {
 }
 
 static bool
-process_hotspots(
-    struct haywardbar_output *output, double x, double y, uint32_t button
-) {
+process_hotspots(struct haywardbar_output *output, double x, double y, uint32_t button) {
     struct haywardbar_hotspot *hotspot;
     wl_list_for_each(hotspot, &output->hotspots, link) {
-        if (x >= hotspot->x && y >= hotspot->y &&
-            x < hotspot->x + hotspot->width &&
+        if (x >= hotspot->x && y >= hotspot->y && x < hotspot->x + hotspot->width &&
             y < hotspot->y + hotspot->height) {
-            if (HOTSPOT_IGNORE ==
-                hotspot->callback(
-                    output, hotspot, x, y, button, hotspot->data
-                )) {
+            if (HOTSPOT_IGNORE == hotspot->callback(output, hotspot, x, y, button, hotspot->data)) {
                 return true;
             }
         }
@@ -182,13 +170,13 @@ process_hotspots(
 
 static void
 wl_pointer_button(
-    void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time,
-    uint32_t button, uint32_t state
+    void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button,
+    uint32_t state
 ) {
     struct haywardbar_seat *seat = data;
     struct haywardbar_pointer *pointer = &seat->pointer;
     struct haywardbar_output *output = pointer->current;
-    hayward_assert(output, "button with no active output");
+    hwd_assert(output, "button with no active output");
 
     if (check_bindings(seat->bar, button, state)) {
         return;
@@ -201,14 +189,10 @@ wl_pointer_button(
 }
 
 static void
-workspace_next(
-    struct haywardbar *bar, struct haywardbar_output *output, bool left
-) {
+workspace_next(struct haywardbar *bar, struct haywardbar_output *output, bool left) {
     struct haywardbar_config *config = bar->config;
-    struct haywardbar_workspace *first =
-        wl_container_of(output->workspaces.next, first, link);
-    struct haywardbar_workspace *last =
-        wl_container_of(output->workspaces.prev, last, link);
+    struct haywardbar_workspace *first = wl_container_of(output->workspaces.next, first, link);
+    struct haywardbar_workspace *last = wl_container_of(output->workspaces.prev, last, link);
 
     struct haywardbar_workspace *active;
     wl_list_for_each(active, &output->workspaces, link) {
@@ -216,7 +200,7 @@ workspace_next(
             break;
         }
     }
-    hayward_assert(active->visible, "axis with null workspace");
+    hwd_assert(active->visible, "axis with null workspace");
 
     struct haywardbar_workspace *new;
     if (left) {
@@ -268,9 +252,7 @@ process_discrete_scroll(
         return;
     }
 
-    hayward_assert(
-        !wl_list_empty(&output->workspaces), "axis with no workspaces"
-    );
+    hwd_assert(!wl_list_empty(&output->workspaces), "axis with no workspaces");
 
     workspace_next(seat->bar, output, amt < 0.0);
 
@@ -283,38 +265,31 @@ process_continuous_scroll(
     struct haywardbar_seat *seat, struct haywardbar_output *output,
     struct haywardbar_pointer *pointer, uint32_t axis
 ) {
-    while (abs(seat->axis[axis].value) > HAYWARD_CONTINUOUS_SCROLL_THRESHOLD) {
+    while (abs(seat->axis[axis].value) > HWD_CONTINUOUS_SCROLL_THRESHOLD) {
         if (seat->axis[axis].value > 0) {
-            process_discrete_scroll(
-                seat, output, pointer, axis, HAYWARD_CONTINUOUS_SCROLL_THRESHOLD
-            );
-            seat->axis[axis].value -= HAYWARD_CONTINUOUS_SCROLL_THRESHOLD;
+            process_discrete_scroll(seat, output, pointer, axis, HWD_CONTINUOUS_SCROLL_THRESHOLD);
+            seat->axis[axis].value -= HWD_CONTINUOUS_SCROLL_THRESHOLD;
         } else {
-            process_discrete_scroll(
-                seat, output, pointer, axis,
-                -HAYWARD_CONTINUOUS_SCROLL_THRESHOLD
-            );
-            seat->axis[axis].value += HAYWARD_CONTINUOUS_SCROLL_THRESHOLD;
+            process_discrete_scroll(seat, output, pointer, axis, -HWD_CONTINUOUS_SCROLL_THRESHOLD);
+            seat->axis[axis].value += HWD_CONTINUOUS_SCROLL_THRESHOLD;
         }
     }
 }
 
 static void
 wl_pointer_axis(
-    void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis,
-    wl_fixed_t value
+    void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis, wl_fixed_t value
 ) {
     struct haywardbar_seat *seat = data;
     struct haywardbar_pointer *pointer = &seat->pointer;
     struct haywardbar_output *output = pointer->current;
-    hayward_assert(output, "axis with no active output");
-    hayward_assert(axis < 2, "axis out of range");
+    hwd_assert(output, "axis with no active output");
+    hwd_assert(axis < 2, "axis out of range");
 
     // If there's a while since the last scroll event,
     // set 'value' to zero as if to reset the "virtual scroll wheel"
     if (seat->axis[axis].discrete_steps == 0 &&
-        time - seat->axis[axis].update_time >
-            HAYWARD_CONTINUOUS_SCROLL_TIMEOUT) {
+        time - seat->axis[axis].update_time > HWD_CONTINUOUS_SCROLL_TIMEOUT) {
         seat->axis[axis].value = 0;
     }
 
@@ -334,16 +309,13 @@ wl_pointer_frame(void *data, struct wl_pointer *wl_pointer) {
 
     for (uint32_t axis = 0; axis < 2; ++axis) {
         if (seat->axis[axis].discrete_steps) {
-            for (uint32_t step = 0; step < seat->axis[axis].discrete_steps;
-                 ++step) {
+            for (uint32_t step = 0; step < seat->axis[axis].discrete_steps; ++step) {
                 // Honestly, it would probabyl make sense to pass in
                 // 'seat->axis[axis].value / seat->axis[axi].discrete_steps'
                 // here, but it's only used to check whether it's positive or
                 // negative so I don't think it's worth the risk of rounding
                 // errors.
-                process_discrete_scroll(
-                    seat, output, pointer, axis, seat->axis[axis].value
-                );
+                process_discrete_scroll(seat, output, pointer, axis, seat->axis[axis].value);
             }
 
             seat->axis[axis].value = 0;
@@ -355,16 +327,12 @@ wl_pointer_frame(void *data, struct wl_pointer *wl_pointer) {
 }
 
 static void
-wl_pointer_axis_source(
-    void *data, struct wl_pointer *wl_pointer, uint32_t axis_source
-) {
+wl_pointer_axis_source(void *data, struct wl_pointer *wl_pointer, uint32_t axis_source) {
     // Who cares
 }
 
 static void
-wl_pointer_axis_stop(
-    void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis
-) {
+wl_pointer_axis_stop(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis) {
     // Who cares
 }
 
@@ -373,7 +341,7 @@ wl_pointer_axis_discrete(
     void *data, struct wl_pointer *wl_pointer, uint32_t axis, int32_t discrete
 ) {
     struct haywardbar_seat *seat = data;
-    hayward_assert(axis < 2, "axis out of range");
+    hwd_assert(axis < 2, "axis out of range");
 
     seat->axis[axis].discrete_steps += abs(discrete);
 }
@@ -402,7 +370,7 @@ get_touch_slot(struct haywardbar_touch *touch, int32_t id) {
         }
     }
     if (next == -1) {
-        hayward_log(HAYWARD_ERROR, "Ran out of touch slots");
+        hwd_log(HWD_ERROR, "Ran out of touch slots");
         return NULL;
     }
     return &touch->slots[next];
@@ -422,7 +390,7 @@ wl_touch_down(
         }
     }
     if (!output) {
-        hayward_log(HAYWARD_DEBUG, "Got touch event for unknown surface");
+        hwd_log(HWD_DEBUG, "Got touch event for unknown surface");
         return;
     }
     struct touch_slot *slot = get_touch_slot(&seat->touch, id);
@@ -437,10 +405,7 @@ wl_touch_down(
 }
 
 static void
-wl_touch_up(
-    void *data, struct wl_touch *wl_touch, uint32_t serial, uint32_t time,
-    int32_t id
-) {
+wl_touch_up(void *data, struct wl_touch *wl_touch, uint32_t serial, uint32_t time, int32_t id) {
     struct haywardbar_seat *seat = data;
     struct touch_slot *slot = get_touch_slot(&seat->touch, id);
     if (!slot) {
@@ -455,16 +420,14 @@ wl_touch_up(
 
 static void
 wl_touch_motion(
-    void *data, struct wl_touch *wl_touch, uint32_t time, int32_t id,
-    wl_fixed_t x, wl_fixed_t y
+    void *data, struct wl_touch *wl_touch, uint32_t time, int32_t id, wl_fixed_t x, wl_fixed_t y
 ) {
     struct haywardbar_seat *seat = data;
     struct touch_slot *slot = get_touch_slot(&seat->touch, id);
     if (!slot) {
         return;
     }
-    int prev_progress =
-        (int)((slot->x - slot->start_x) / slot->output->width * 100);
+    int prev_progress = (int)((slot->x - slot->start_x) / slot->output->width * 100);
     slot->x = wl_fixed_to_double(x);
     slot->y = wl_fixed_to_double(y);
     // "progress" is a measure from 0..100 representing the fraction of the
@@ -492,16 +455,13 @@ wl_touch_cancel(void *data, struct wl_touch *wl_touch) {
 
 static void
 wl_touch_shape(
-    void *data, struct wl_touch *wl_touch, int32_t id, wl_fixed_t major,
-    wl_fixed_t minor
+    void *data, struct wl_touch *wl_touch, int32_t id, wl_fixed_t major, wl_fixed_t minor
 ) {
     // Who cares
 }
 
 static void
-wl_touch_orientation(
-    void *data, struct wl_touch *wl_touch, int32_t id, wl_fixed_t orientation
-) {
+wl_touch_orientation(void *data, struct wl_touch *wl_touch, int32_t id, wl_fixed_t orientation) {
     // Who cares
 }
 
@@ -516,9 +476,7 @@ static const struct wl_touch_listener touch_listener = {
 };
 
 static void
-seat_handle_capabilities(
-    void *data, struct wl_seat *wl_seat, enum wl_seat_capability caps
-) {
+seat_handle_capabilities(void *data, struct wl_seat *wl_seat, enum wl_seat_capability caps) {
     struct haywardbar_seat *seat = data;
 
     bool have_pointer = caps & WL_SEAT_CAPABILITY_POINTER;
@@ -530,8 +488,7 @@ seat_handle_capabilities(
     } else if (have_pointer && seat->pointer.pointer == NULL) {
         seat->pointer.pointer = wl_seat_get_pointer(wl_seat);
         if (seat->bar->running && !seat->pointer.cursor_surface) {
-            seat->pointer.cursor_surface =
-                wl_compositor_create_surface(seat->bar->compositor);
+            seat->pointer.cursor_surface = wl_compositor_create_surface(seat->bar->compositor);
             assert(seat->pointer.cursor_surface);
         }
         wl_pointer_add_listener(seat->pointer.pointer, &pointer_listener, seat);

@@ -41,10 +41,7 @@ i3bar_parse_json_color(json_object *json, uint32_t *color) {
     const char *hexstring = json_object_get_string(json);
     bool color_set = parse_color(hexstring, color);
     if (!color_set) {
-        hayward_log(
-            HAYWARD_ERROR,
-            "Ignoring invalid block hexadecimal color string: %s", hexstring
-        );
+        hwd_log(HWD_ERROR, "Ignoring invalid block hexadecimal color string: %s", hexstring);
     }
     return color_set;
 }
@@ -57,8 +54,7 @@ i3bar_parse_json(struct status_line *status, struct json_object *json_array) {
         i3bar_block_unref(block);
     }
     for (size_t i = 0; i < json_object_array_length(json_array); ++i) {
-        json_object *full_text, *short_text, *color, *min_width, *align,
-            *urgent;
+        json_object *full_text, *short_text, *color, *min_width, *align, *urgent;
         json_object *name, *instance, *separator, *separator_block_width;
         json_object *background, *border, *border_top, *border_bottom;
         json_object *border_left, *border_right, *markup;
@@ -76,9 +72,7 @@ i3bar_parse_json(struct status_line *status, struct json_object *json_array) {
         json_object_object_get_ex(json, "instance", &instance);
         json_object_object_get_ex(json, "markup", &markup);
         json_object_object_get_ex(json, "separator", &separator);
-        json_object_object_get_ex(
-            json, "separator_block_width", &separator_block_width
-        );
+        json_object_object_get_ex(json, "separator_block_width", &separator_block_width);
         json_object_object_get_ex(json, "background", &background);
         json_object_object_get_ex(json, "border", &border);
         json_object_object_get_ex(json, "border_top", &border_top);
@@ -88,10 +82,8 @@ i3bar_parse_json(struct status_line *status, struct json_object *json_array) {
 
         struct i3bar_block *block = calloc(1, sizeof(struct i3bar_block));
         block->ref_count = 1;
-        block->full_text =
-            full_text ? strdup(json_object_get_string(full_text)) : NULL;
-        block->short_text =
-            short_text ? strdup(json_object_get_string(short_text)) : NULL;
+        block->full_text = full_text ? strdup(json_object_get_string(full_text)) : NULL;
+        block->short_text = short_text ? strdup(json_object_get_string(short_text)) : NULL;
         block->color_set = i3bar_parse_json_color(color, &block->color);
         if (min_width) {
             json_type type = json_object_get_type(min_width);
@@ -99,15 +91,13 @@ i3bar_parse_json(struct status_line *status, struct json_object *json_array) {
                 block->min_width = json_object_get_int(min_width);
             } else if (type == json_type_string) {
                 /* the width will be calculated when rendering */
-                block->min_width_str =
-                    strdup(json_object_get_string(min_width));
+                block->min_width_str = strdup(json_object_get_string(min_width));
             }
         }
         block->align = strdup(align ? json_object_get_string(align) : "left");
         block->urgent = urgent ? json_object_get_int(urgent) : false;
         block->name = name ? strdup(json_object_get_string(name)) : NULL;
-        block->instance =
-            instance ? strdup(json_object_get_string(instance)) : NULL;
+        block->instance = instance ? strdup(json_object_get_string(instance)) : NULL;
         if (markup) {
             block->markup = false;
             const char *markup_str = json_object_get_string(markup);
@@ -116,18 +106,15 @@ i3bar_parse_json(struct status_line *status, struct json_object *json_array) {
             }
         }
         block->separator = separator ? json_object_get_int(separator) : true;
-        block->separator_block_width = separator_block_width
-            ? json_object_get_int(separator_block_width)
-            : 9;
+        block->separator_block_width =
+            separator_block_width ? json_object_get_int(separator_block_width) : 9;
         // Airblader features
         i3bar_parse_json_color(background, &block->background);
         block->border_set = i3bar_parse_json_color(border, &block->border);
         block->border_top = border_top ? json_object_get_int(border_top) : 1;
-        block->border_bottom =
-            border_bottom ? json_object_get_int(border_bottom) : 1;
+        block->border_bottom = border_bottom ? json_object_get_int(border_bottom) : 1;
         block->border_left = border_left ? json_object_get_int(border_left) : 1;
-        block->border_right =
-            border_right ? json_object_get_int(border_right) : 1;
+        block->border_right = border_right ? json_object_get_int(border_right) : 1;
         wl_list_insert(&status->blocks, &block->link);
     }
 }
@@ -139,14 +126,11 @@ i3bar_handle_readable(struct status_line *status) {
             if (status->buffer[c] == '[') {
                 status->started = true;
                 status->buffer_index -= ++c;
-                memmove(
-                    status->buffer, &status->buffer[c], status->buffer_index
-                );
+                memmove(status->buffer, &status->buffer[c], status->buffer_index);
                 break;
             } else if (!isspace(status->buffer[c])) {
-                hayward_log(
-                    HAYWARD_DEBUG,
-                    "Invalid i3bar json: expected '[' but encountered '%c'",
+                hwd_log(
+                    HWD_DEBUG, "Invalid i3bar json: expected '[' but encountered '%c'",
                     status->buffer[c]
                 );
                 status_error(status, "[invalid i3bar json]");
@@ -158,8 +142,7 @@ i3bar_handle_readable(struct status_line *status) {
         }
 
         errno = 0;
-        ssize_t read_bytes =
-            read(status->read_fd, status->buffer, status->buffer_size);
+        ssize_t read_bytes = read(status->read_fd, status->buffer, status->buffer_size);
         if (read_bytes > -1) {
             status->buffer_index = read_bytes;
         } else if (errno == EAGAIN) {
@@ -188,9 +171,8 @@ i3bar_handle_readable(struct status_line *status) {
                     ++buffer_pos;
                     break;
                 } else if (!isspace(status->buffer[buffer_pos])) {
-                    hayward_log(
-                        HAYWARD_DEBUG,
-                        "Invalid i3bar json: expected ',' but encountered '%c'",
+                    hwd_log(
+                        HWD_DEBUG, "Invalid i3bar json: expected ',' but encountered '%c'",
                         status->buffer[buffer_pos]
                     );
                     status_error(status, "[invalid i3bar json]");
@@ -203,11 +185,9 @@ i3bar_handle_readable(struct status_line *status) {
             buffer_pos = status->buffer_index = 0;
         } else {
             test_object = json_tokener_parse_ex(
-                status->tokener, &status->buffer[buffer_pos],
-                status->buffer_index - buffer_pos
+                status->tokener, &status->buffer[buffer_pos], status->buffer_index - buffer_pos
             );
-            enum json_tokener_error err =
-                json_tokener_get_error(status->tokener);
+            enum json_tokener_error err = json_tokener_get_error(status->tokener);
             if (err == json_tokener_success) {
                 if (json_object_get_type(test_object) == json_type_array) {
                     if (last_object) {
@@ -223,18 +203,16 @@ i3bar_handle_readable(struct status_line *status) {
                 // character (the last character is used in case the buffer is
                 // full)
                 char *last_char_pos =
-                    &status->buffer
-                         [buffer_pos + status->tokener->char_offset - 1];
+                    &status->buffer[buffer_pos + status->tokener->char_offset - 1];
                 char last_char = *last_char_pos;
                 while (isspace(last_char)) {
                     last_char = *--last_char_pos;
                 }
                 *last_char_pos = '\0';
-                size_t offset =
-                    strspn(&status->buffer[buffer_pos], " \f\n\r\t\v");
-                hayward_log(
-                    HAYWARD_DEBUG, "Received i3bar json: '%s%c'",
-                    &status->buffer[buffer_pos + offset], last_char
+                size_t offset = strspn(&status->buffer[buffer_pos], " \f\n\r\t\v");
+                hwd_log(
+                    HWD_DEBUG, "Received i3bar json: '%s%c'", &status->buffer[buffer_pos + offset],
+                    last_char
                 );
                 *last_char_pos = last_char;
 
@@ -250,16 +228,12 @@ i3bar_handle_readable(struct status_line *status) {
                 if (status->buffer_index < status->buffer_size) {
                     // move the object to the start of the buffer
                     status->buffer_index -= buffer_pos;
-                    memmove(
-                        status->buffer, &status->buffer[buffer_pos],
-                        status->buffer_index
-                    );
+                    memmove(status->buffer, &status->buffer[buffer_pos], status->buffer_index);
                     buffer_pos = 0;
                 } else {
                     // expand buffer
                     status->buffer_size *= 2;
-                    char *new_buffer =
-                        realloc(status->buffer, status->buffer_size);
+                    char *new_buffer = realloc(status->buffer, status->buffer_size);
                     if (new_buffer) {
                         status->buffer = new_buffer;
                     } else {
@@ -271,10 +245,9 @@ i3bar_handle_readable(struct status_line *status) {
             } else {
                 char last_char = status->buffer[status->buffer_index - 1];
                 status->buffer[status->buffer_index - 1] = '\0';
-                hayward_log(
-                    HAYWARD_DEBUG, "Failed to parse i3bar json - %s: '%s%c'",
-                    json_tokener_error_desc(err), &status->buffer[buffer_pos],
-                    last_char
+                hwd_log(
+                    HWD_DEBUG, "Failed to parse i3bar json - %s: '%s%c'",
+                    json_tokener_error_desc(err), &status->buffer[buffer_pos], last_char
                 );
                 status_error(status, "[failed to parse i3bar json]");
                 return true;
@@ -297,7 +270,7 @@ i3bar_handle_readable(struct status_line *status) {
     }
 
     if (last_object) {
-        hayward_log(HAYWARD_DEBUG, "Rendering last received json");
+        hwd_log(HWD_DEBUG, "Rendering last received json");
         i3bar_parse_json(status, last_object);
         json_object_put(last_object);
         return true;
@@ -308,48 +281,34 @@ i3bar_handle_readable(struct status_line *status) {
 
 enum hotspot_event_handling
 i3bar_block_send_click(
-    struct status_line *status, struct i3bar_block *block, double x, double y,
-    double rx, double ry, double w, double h, int scale, uint32_t button
+    struct status_line *status, struct i3bar_block *block, double x, double y, double rx, double ry,
+    double w, double h, int scale, uint32_t button
 ) {
-    hayward_log(HAYWARD_DEBUG, "block %s clicked", block->name);
+    hwd_log(HWD_DEBUG, "block %s clicked", block->name);
     if (!block->name || !status->click_events) {
         return HOTSPOT_PROCESS;
     }
 
     struct json_object *event_json = json_object_new_object();
-    json_object_object_add(
-        event_json, "name", json_object_new_string(block->name)
-    );
+    json_object_object_add(event_json, "name", json_object_new_string(block->name));
     if (block->instance) {
-        json_object_object_add(
-            event_json, "instance", json_object_new_string(block->instance)
-        );
+        json_object_object_add(event_json, "instance", json_object_new_string(block->instance));
     }
 
-    json_object_object_add(
-        event_json, "button", json_object_new_int(event_to_x11_button(button))
-    );
+    json_object_object_add(event_json, "button", json_object_new_int(event_to_x11_button(button)));
     json_object_object_add(event_json, "event", json_object_new_int(button));
     if (status->float_event_coords) {
         json_object_object_add(event_json, "x", json_object_new_double(x));
         json_object_object_add(event_json, "y", json_object_new_double(y));
-        json_object_object_add(
-            event_json, "relative_x", json_object_new_double(rx)
-        );
-        json_object_object_add(
-            event_json, "relative_y", json_object_new_double(ry)
-        );
+        json_object_object_add(event_json, "relative_x", json_object_new_double(rx));
+        json_object_object_add(event_json, "relative_y", json_object_new_double(ry));
         json_object_object_add(event_json, "width", json_object_new_double(w));
         json_object_object_add(event_json, "height", json_object_new_double(h));
     } else {
         json_object_object_add(event_json, "x", json_object_new_int(x));
         json_object_object_add(event_json, "y", json_object_new_int(y));
-        json_object_object_add(
-            event_json, "relative_x", json_object_new_int(rx)
-        );
-        json_object_object_add(
-            event_json, "relative_y", json_object_new_int(ry)
-        );
+        json_object_object_add(event_json, "relative_x", json_object_new_int(rx));
+        json_object_object_add(event_json, "relative_y", json_object_new_int(ry));
         json_object_object_add(event_json, "width", json_object_new_int(w));
         json_object_object_add(event_json, "height", json_object_new_int(h));
     }

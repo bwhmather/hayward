@@ -33,10 +33,8 @@ input_cmd_scroll_button(int argc, char **argv) {
         error = cmd_results_new(CMD_INVALID, message);
         free(message);
         return error;
-    } else if (button == HAYWARD_SCROLL_UP || button == HAYWARD_SCROLL_DOWN || button == HAYWARD_SCROLL_LEFT || button == HAYWARD_SCROLL_RIGHT) {
-        return cmd_results_new(
-            CMD_INVALID, "X11 axis buttons are not supported for scroll_button"
-        );
+    } else if (button == HWD_SCROLL_UP || button == HWD_SCROLL_DOWN || button == HWD_SCROLL_LEFT || button == HWD_SCROLL_RIGHT) {
+        return cmd_results_new(CMD_INVALID, "X11 axis buttons are not supported for scroll_button");
     } else if (!button) {
         return cmd_results_new(CMD_INVALID, "Unknown button %s", *argv);
     }

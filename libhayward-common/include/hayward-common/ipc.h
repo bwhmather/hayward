@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_IPC_H
-#define _HAYWARD_IPC_H
+#ifndef _HWD_IPC_H
+#define _HWD_IPC_H
 
 #include <stdint.h>
 

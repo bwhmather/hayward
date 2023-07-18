@@ -23,26 +23,22 @@ main(int argc, char **argv) {
     bool debug = false;
 
     static const struct option long_options[] = {
-        {"help", no_argument, NULL, 'h'},
-        {"version", no_argument, NULL, 'v'},
-        {"socket", required_argument, NULL, 's'},
-        {"bar_id", required_argument, NULL, 'b'},
-        {"debug", no_argument, NULL, 'd'},
-        {0, 0, 0, 0}};
+        {"help", no_argument, NULL, 'h'},         {"version", no_argument, NULL, 'v'},
+        {"socket", required_argument, NULL, 's'}, {"bar_id", required_argument, NULL, 'b'},
+        {"debug", no_argument, NULL, 'd'},        {0, 0, 0, 0}};
 
-    const char *usage =
-        "Usage: haywardbar [options...]\n"
-        "\n"
-        "  -h, --help             Show help message and quit.\n"
-        "  -v, --version          Show the version number and quit.\n"
-        "  -s, --socket <socket>  Connect to hayward via socket.\n"
-        "  -b, --bar_id <id>      Bar ID for which to get the configuration.\n"
-        "  -d, --debug            Enable debugging.\n"
-        "\n"
-        " PLEASE NOTE that haywardbar will be automatically started by hayward "
-        "as\n"
-        " soon as there is a 'bar' configuration block in your config file.\n"
-        " You should never need to start it manually.\n";
+    const char *usage = "Usage: haywardbar [options...]\n"
+                        "\n"
+                        "  -h, --help             Show help message and quit.\n"
+                        "  -v, --version          Show the version number and quit.\n"
+                        "  -s, --socket <socket>  Connect to hayward via socket.\n"
+                        "  -b, --bar_id <id>      Bar ID for which to get the configuration.\n"
+                        "  -d, --debug            Enable debugging.\n"
+                        "\n"
+                        " PLEASE NOTE that haywardbar will be automatically started by hayward "
+                        "as\n"
+                        " soon as there is a 'bar' configuration block in your config file.\n"
+                        " You should never need to start it manually.\n";
 
     int c;
     while (1) {
@@ -59,7 +55,7 @@ main(int argc, char **argv) {
             haywardbar.id = strdup(optarg);
             break;
         case 'v':
-            printf("haywardbar version " HAYWARD_VERSION "\n");
+            printf("haywardbar version " HWD_VERSION "\n");
             exit(EXIT_SUCCESS);
             break;
         case 'd': // Debug
@@ -72,14 +68,14 @@ main(int argc, char **argv) {
     }
 
     if (debug) {
-        hayward_log_init(HAYWARD_DEBUG);
+        hwd_log_init(HWD_DEBUG);
     } else {
-        hayward_log_init(HAYWARD_INFO);
+        hwd_log_init(HWD_INFO);
     }
 
     if (!haywardbar.id) {
-        hayward_log(
-            HAYWARD_ERROR,
+        hwd_log(
+            HWD_ERROR,
             "No bar_id passed. "
             "Provide --bar_id or let hayward start haywardbar"
         );
@@ -89,7 +85,7 @@ main(int argc, char **argv) {
     if (!socket_path) {
         socket_path = get_socketpath();
         if (!socket_path) {
-            hayward_log(HAYWARD_ERROR, "Unable to retrieve socket path");
+            hwd_log(HWD_ERROR, "Unable to retrieve socket path");
             return 1;
         }
     }

@@ -1,5 +1,5 @@
-#ifndef HAYWARD_TREE_VIEW_H
-#define HAYWARD_TREE_VIEW_H
+#ifndef HWD_TREE_VIEW_H
+#define HWD_TREE_VIEW_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -17,18 +17,18 @@
 
 #include <config.h>
 
-struct hayward_window;
-struct hayward_view;
-struct hayward_xdg_decoration;
+struct hwd_window;
+struct hwd_view;
+struct hwd_xdg_decoration;
 
-enum hayward_view_type {
-    HAYWARD_VIEW_XDG_SHELL,
+enum hwd_view_type {
+    HWD_VIEW_XDG_SHELL,
 #if HAVE_XWAYLAND
-    HAYWARD_VIEW_XWAYLAND,
+    HWD_VIEW_XWAYLAND,
 #endif
 };
 
-enum hayward_view_prop {
+enum hwd_view_prop {
     VIEW_PROP_TITLE,
     VIEW_PROP_APP_ID,
     VIEW_PROP_CLASS,
@@ -41,31 +41,27 @@ enum hayward_view_prop {
 #endif
 };
 
-struct hayward_view_impl {
+struct hwd_view_impl {
     void (*get_constraints
-    )(struct hayward_view *view, double *min_width, double *max_width,
-      double *min_height, double *max_height);
-    const char *(*get_string_prop
-    )(struct hayward_view *view, enum hayward_view_prop prop);
-    uint32_t (*get_int_prop
-    )(struct hayward_view *view, enum hayward_view_prop prop);
-    uint32_t (*configure
-    )(struct hayward_view *view, double lx, double ly, int width, int height);
-    void (*set_activated)(struct hayward_view *view, bool activated);
-    void (*set_tiled)(struct hayward_view *view, bool tiled);
-    void (*set_fullscreen)(struct hayward_view *view, bool fullscreen);
-    void (*set_resizing)(struct hayward_view *view, bool resizing);
-    bool (*wants_floating)(struct hayward_view *view);
-    bool (*is_transient_for
-    )(struct hayward_view *child, struct hayward_view *ancestor);
-    void (*close)(struct hayward_view *view);
-    void (*close_popups)(struct hayward_view *view);
-    void (*destroy)(struct hayward_view *view);
+    )(struct hwd_view *view, double *min_width, double *max_width, double *min_height,
+      double *max_height);
+    const char *(*get_string_prop)(struct hwd_view *view, enum hwd_view_prop prop);
+    uint32_t (*get_int_prop)(struct hwd_view *view, enum hwd_view_prop prop);
+    uint32_t (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);
+    void (*set_activated)(struct hwd_view *view, bool activated);
+    void (*set_tiled)(struct hwd_view *view, bool tiled);
+    void (*set_fullscreen)(struct hwd_view *view, bool fullscreen);
+    void (*set_resizing)(struct hwd_view *view, bool resizing);
+    bool (*wants_floating)(struct hwd_view *view);
+    bool (*is_transient_for)(struct hwd_view *child, struct hwd_view *ancestor);
+    void (*close)(struct hwd_view *view);
+    void (*close_popups)(struct hwd_view *view);
+    void (*destroy)(struct hwd_view *view);
 };
 
-struct hayward_view {
-    enum hayward_view_type type;
-    const struct hayward_view_impl *impl;
+struct hwd_view {
+    enum hwd_view_type type;
+    const struct hwd_view_impl *impl;
 
     struct wlr_scene_tree *scene_tree;
 
@@ -74,9 +70,9 @@ struct hayward_view {
         struct wlr_scene_tree *saved_surface_tree;
     } layers;
 
-    struct hayward_window *window; // NULL if unmapped and transactions finished
-    struct wlr_surface *surface;   // NULL for unmapped views
-    struct hayward_xdg_decoration *xdg_decoration;
+    struct hwd_window *window;   // NULL if unmapped and transactions finished
+    struct wlr_surface *surface; // NULL for unmapped views
+    struct hwd_xdg_decoration *xdg_decoration;
 
     pid_t pid;
 
@@ -121,88 +117,83 @@ struct hayward_view {
 };
 
 void
-view_init(
-    struct hayward_view *view, enum hayward_view_type type,
-    const struct hayward_view_impl *impl
-);
+view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl);
 
 void
-view_destroy(struct hayward_view *view);
+view_destroy(struct hwd_view *view);
 
 void
-view_begin_destroy(struct hayward_view *view);
+view_begin_destroy(struct hwd_view *view);
 
 const char *
-view_get_title(struct hayward_view *view);
+view_get_title(struct hwd_view *view);
 
 const char *
-view_get_app_id(struct hayward_view *view);
+view_get_app_id(struct hwd_view *view);
 
 const char *
-view_get_class(struct hayward_view *view);
+view_get_class(struct hwd_view *view);
 
 const char *
-view_get_instance(struct hayward_view *view);
+view_get_instance(struct hwd_view *view);
 
 uint32_t
-view_get_x11_window_id(struct hayward_view *view);
+view_get_x11_window_id(struct hwd_view *view);
 
 uint32_t
-view_get_x11_parent_id(struct hayward_view *view);
+view_get_x11_parent_id(struct hwd_view *view);
 
 const char *
-view_get_window_role(struct hayward_view *view);
+view_get_window_role(struct hwd_view *view);
 
 uint32_t
-view_get_window_type(struct hayward_view *view);
+view_get_window_type(struct hwd_view *view);
 
 const char *
-view_get_shell(struct hayward_view *view);
+view_get_shell(struct hwd_view *view);
 
 void
 view_get_constraints(
-    struct hayward_view *view, double *min_width, double *max_width,
-    double *min_height, double *max_height
+    struct hwd_view *view, double *min_width, double *max_width, double *min_height,
+    double *max_height
 );
 
 uint32_t
-view_configure(
-    struct hayward_view *view, double lx, double ly, int width, int height
-);
+view_configure(struct hwd_view *view, double lx, double ly, int width, int height);
 
 bool
-view_inhibit_idle(struct hayward_view *view);
+view_inhibit_idle(struct hwd_view *view);
 
 void
-view_set_activated(struct hayward_view *view, bool activated);
+view_set_activated(struct hwd_view *view, bool activated);
 
 /**
  * Called when the view requests to be focused.
  */
 void
-view_request_activate(struct hayward_view *view);
+view_request_activate(struct hwd_view *view);
 
 /**
  * If possible, instructs the client to change their decoration mode.
  */
 void
-view_set_csd_from_server(struct hayward_view *view, bool enabled);
+view_set_csd_from_server(struct hwd_view *view, bool enabled);
 
 /**
  * Updates the view's border setting when the client unexpectedly changes their
  * decoration mode.
  */
 void
-view_update_csd_from_client(struct hayward_view *view, bool enabled);
+view_update_csd_from_client(struct hwd_view *view, bool enabled);
 
 void
-view_set_tiled(struct hayward_view *view, bool tiled);
+view_set_tiled(struct hwd_view *view, bool tiled);
 
 void
-view_close(struct hayward_view *view);
+view_close(struct hwd_view *view);
 
 void
-view_close_popups(struct hayward_view *view);
+view_close_popups(struct hwd_view *view);
 
 /**
  * Map a view, ie. make it visible in the tree.
@@ -215,19 +206,19 @@ view_close_popups(struct hayward_view *view);
  */
 void
 view_map(
-    struct hayward_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
+    struct hwd_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
     struct wlr_output *fullscreen_output, bool decoration
 );
 
 void
-view_unmap(struct hayward_view *view);
+view_unmap(struct hwd_view *view);
 
 void
-view_update_size(struct hayward_view *view);
+view_update_size(struct hwd_view *view);
 void
-view_center_surface(struct hayward_view *view);
+view_center_surface(struct hwd_view *view);
 
-struct hayward_view *
+struct hwd_view *
 view_from_wlr_surface(struct wlr_surface *surface);
 
 /**
@@ -236,30 +227,28 @@ view_from_wlr_surface(struct wlr_surface *surface);
  * changed.
  */
 void
-view_update_title(struct hayward_view *view, bool force);
+view_update_title(struct hwd_view *view, bool force);
 
 /**
  * Returns true if there's a possibility the view may be rendered on screen.
  * Intended for damage tracking.
  */
 bool
-view_is_visible(struct hayward_view *view);
+view_is_visible(struct hwd_view *view);
 
 void
-view_set_urgent(struct hayward_view *view, bool enable);
+view_set_urgent(struct hwd_view *view, bool enable);
 
 bool
-view_is_urgent(struct hayward_view *view);
+view_is_urgent(struct hwd_view *view);
 
 void
-view_freeze_buffer(struct hayward_view *view);
+view_freeze_buffer(struct hwd_view *view);
 
 void
-view_unfreeze_buffer(struct hayward_view *view);
+view_unfreeze_buffer(struct hwd_view *view);
 
 bool
-view_is_transient_for(
-    struct hayward_view *child, struct hayward_view *ancestor
-);
+view_is_transient_for(struct hwd_view *child, struct hwd_view *ancestor);
 
 #endif

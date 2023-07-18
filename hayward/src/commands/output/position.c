@@ -35,9 +35,7 @@ output_cmd_position(int argc, char **argv) {
         argc--;
         argv++;
         if (!argc) {
-            return cmd_results_new(
-                CMD_INVALID, "Missing position argument (y)."
-            );
+            return cmd_results_new(CMD_INVALID, "Missing position argument (y).");
         }
         config->handler_context.output_config->y = strtol(*argv, &end, 10);
         if (*end) {

@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_BUFFERS_H
-#define _HAYWARD_BUFFERS_H
+#ifndef _HWD_BUFFERS_H
+#define _HWD_BUFFERS_H
 #include <cairo.h>
 #include <pango/pangocairo.h>
 #include <stdbool.h>
@@ -19,8 +19,7 @@ struct pool_buffer {
 
 struct pool_buffer *
 get_next_buffer(
-    struct wl_shm *shm, struct pool_buffer pool[static 2], uint32_t width,
-    uint32_t height
+    struct wl_shm *shm, struct pool_buffer pool[static 2], uint32_t width, uint32_t height
 );
 void
 destroy_buffer(struct pool_buffer *buffer);

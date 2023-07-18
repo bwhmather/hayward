@@ -48,8 +48,7 @@ bool
 parse_boolean(const char *boolean, bool current) {
     if (strcasecmp(boolean, "1") == 0 || strcasecmp(boolean, "yes") == 0 ||
         strcasecmp(boolean, "on") == 0 || strcasecmp(boolean, "true") == 0 ||
-        strcasecmp(boolean, "enable") == 0 ||
-        strcasecmp(boolean, "enabled") == 0 ||
+        strcasecmp(boolean, "enable") == 0 || strcasecmp(boolean, "enabled") == 0 ||
         strcasecmp(boolean, "active") == 0) {
         return true;
     } else if (strcasecmp(boolean, "toggle") == 0) {
@@ -65,9 +64,7 @@ parse_float(const char *value) {
     char *end;
     float flt = strtof(value, &end);
     if (*end || errno) {
-        hayward_log(
-            HAYWARD_DEBUG, "Invalid float value '%s', defaulting to NAN", value
-        );
+        hwd_log(HWD_DEBUG, "Invalid float value '%s', defaulting to NAN", value);
         return NAN;
     }
     return flt;
@@ -89,7 +86,7 @@ parse_movement_unit(const char *unit) {
 
 int
 parse_movement_amount(int argc, char **argv, struct movement_amount *amount) {
-    hayward_assert(argc > 0, "Expected args in parse_movement_amount");
+    hwd_assert(argc > 0, "Expected args in parse_movement_amount");
 
     char *err;
     amount->amount = (int)strtol(argv[0], &err, 10);
@@ -112,7 +109,7 @@ parse_movement_amount(int argc, char **argv, struct movement_amount *amount) {
 }
 
 const char *
-hayward_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) {
+hwd_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) {
     switch (subpixel) {
     case WL_OUTPUT_SUBPIXEL_UNKNOWN:
         return "unknown";
@@ -127,15 +124,15 @@ hayward_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) {
     case WL_OUTPUT_SUBPIXEL_VERTICAL_BGR:
         return "vbgr";
     }
-    hayward_assert(false, "Unknown value for wl_output_subpixel.");
+    hwd_assert(false, "Unknown value for wl_output_subpixel.");
     return NULL;
 }
 
 bool
-hayward_set_cloexec(int fd, bool cloexec) {
+hwd_set_cloexec(int fd, bool cloexec) {
     int flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
-        hayward_log_errno(HAYWARD_ERROR, "fcntl failed");
+        hwd_log_errno(HWD_ERROR, "fcntl failed");
         return false;
     }
     if (cloexec) {
@@ -144,7 +141,7 @@ hayward_set_cloexec(int fd, bool cloexec) {
         flags = flags & ~FD_CLOEXEC;
     }
     if (fcntl(fd, F_SETFD, flags) == -1) {
-        hayward_log_errno(HAYWARD_ERROR, "fcntl failed");
+        hwd_log_errno(HWD_ERROR, "fcntl failed");
         return false;
     }
     return true;

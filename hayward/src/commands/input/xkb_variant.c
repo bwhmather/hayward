@@ -24,9 +24,8 @@ input_cmd_xkb_variant(int argc, char **argv) {
 
     ic->xkb_variant = strdup(argv[0]);
 
-    hayward_log(
-        HAYWARD_DEBUG, "set-xkb_variant for config: %s variant: %s",
-        ic->identifier, ic->xkb_variant
+    hwd_log(
+        HWD_DEBUG, "set-xkb_variant for config: %s variant: %s", ic->identifier, ic->xkb_variant
     );
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

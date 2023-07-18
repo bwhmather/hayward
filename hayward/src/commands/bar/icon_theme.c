@@ -19,16 +19,11 @@ bar_cmd_icon_theme(int argc, char **argv) {
         return error;
     }
 
-    hayward_log(
-        HAYWARD_DEBUG, "[Bar %s] Setting icon theme to %s",
-        config->current_bar->id, argv[0]
-    );
+    hwd_log(HWD_DEBUG, "[Bar %s] Setting icon theme to %s", config->current_bar->id, argv[0]);
     free(config->current_bar->icon_theme);
     config->current_bar->icon_theme = strdup(argv[0]);
     return cmd_results_new(CMD_SUCCESS, NULL);
 #else
-    return cmd_results_new(
-        CMD_INVALID, "Hayward has been compiled without tray support"
-    );
+    return cmd_results_new(CMD_INVALID, "Hayward has been compiled without tray support");
 #endif
 }

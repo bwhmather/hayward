@@ -30,8 +30,7 @@ switch_layout(struct wlr_keyboard *kbd, xkb_layout_index_t idx) {
         return;
     }
     wlr_keyboard_notify_modifiers(
-        kbd, kbd->modifiers.depressed, kbd->modifiers.latched,
-        kbd->modifiers.locked, idx
+        kbd, kbd->modifiers.depressed, kbd->modifiers.latched, kbd->modifiers.locked, idx
     );
 }
 
@@ -91,10 +90,8 @@ input_cmd_xkb_switch_layout(int argc, char **argv) {
         relative = 0;
     }
 
-    struct xkb_switch_layout_action *actions = calloc(
-        wl_list_length(&server.input->devices),
-        sizeof(struct xkb_switch_layout_action)
-    );
+    struct xkb_switch_layout_action *actions =
+        calloc(wl_list_length(&server.input->devices), sizeof(struct xkb_switch_layout_action));
     size_t actions_len = 0;
 
     if (!actions) {
@@ -104,10 +101,9 @@ input_cmd_xkb_switch_layout(int argc, char **argv) {
     /* Calculate new indexes first because switching a layout in one
        keyboard may result in a change on other keyboards as well because
        of keyboard groups. */
-    struct hayward_input_device *dev;
+    struct hwd_input_device *dev;
     wl_list_for_each(dev, &server.input->devices, link) {
-        if (strcmp(ic->identifier, "*") != 0 &&
-            strcmp(ic->identifier, "type:keyboard") != 0 &&
+        if (strcmp(ic->identifier, "*") != 0 && strcmp(ic->identifier, "type:keyboard") != 0 &&
             strcmp(ic->identifier, dev->identifier) != 0) {
             continue;
         }

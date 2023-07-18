@@ -27,10 +27,7 @@ handle_lost_service(sd_bus_message *msg, void *data, sd_bus_error *error) {
     char *service, *old_owner, *new_owner;
     int ret = sd_bus_message_read(msg, "sss", &service, &old_owner, &new_owner);
     if (ret < 0) {
-        hayward_log(
-            HAYWARD_ERROR, "Failed to parse owner change message: %s",
-            strerror(-ret)
-        );
+        hwd_log(HWD_ERROR, "Failed to parse owner change message: %s", strerror(-ret));
         return ret;
     }
 
@@ -38,17 +35,14 @@ handle_lost_service(sd_bus_message *msg, void *data, sd_bus_error *error) {
         struct haywardbar_watcher *watcher = data;
         for (int idx = 0; idx < watcher->items->length; ++idx) {
             char *id = watcher->items->items[idx];
-            int cmp_res = using_standard_protocol(watcher)
-                ? cmp_id(id, service)
-                : strncmp(id, service, strlen(service));
+            int cmp_res = using_standard_protocol(watcher) ? cmp_id(id, service)
+                                                           : strncmp(id, service, strlen(service));
             if (cmp_res == 0) {
-                hayward_log(
-                    HAYWARD_DEBUG, "Unregistering Status Notifier Item '%s'", id
-                );
+                hwd_log(HWD_DEBUG, "Unregistering Status Notifier Item '%s'", id);
                 list_del(watcher->items, idx--);
                 sd_bus_emit_signal(
-                    watcher->bus, obj_path, watcher->interface,
-                    "StatusNotifierItemUnregistered", "s", id
+                    watcher->bus, obj_path, watcher->interface, "StatusNotifierItemUnregistered",
+                    "s", id
                 );
                 free(id);
                 if (using_standard_protocol(watcher)) {
@@ -59,10 +53,7 @@ handle_lost_service(sd_bus_message *msg, void *data, sd_bus_error *error) {
 
         int idx = list_seq_find(watcher->hosts, cmp_id, service);
         if (idx != -1) {
-            hayward_log(
-                HAYWARD_DEBUG, "Unregistering Status Notifier Host '%s'",
-                service
-            );
+            hwd_log(HWD_DEBUG, "Unregistering Status Notifier Host '%s'", service);
             free(watcher->hosts->items[idx]);
             list_del(watcher->hosts, idx);
         }
@@ -76,10 +67,7 @@ register_sni(sd_bus_message *msg, void *data, sd_bus_error *error) {
     char *service_or_path, *id;
     int ret = sd_bus_message_read(msg, "s", &service_or_path);
     if (ret < 0) {
-        hayward_log(
-            HAYWARD_ERROR, "Failed to parse register SNI message: %s",
-            strerror(-ret)
-        );
+        hwd_log(HWD_ERROR, "Failed to parse register SNI message: %s", strerror(-ret));
         return ret;
     }
 
@@ -101,16 +89,13 @@ register_sni(sd_bus_message *msg, void *data, sd_bus_error *error) {
     }
 
     if (list_seq_find(watcher->items, cmp_id, id) == -1) {
-        hayward_log(HAYWARD_DEBUG, "Registering Status Notifier Item '%s'", id);
+        hwd_log(HWD_DEBUG, "Registering Status Notifier Item '%s'", id);
         list_add(watcher->items, id);
         sd_bus_emit_signal(
-            watcher->bus, obj_path, watcher->interface,
-            "StatusNotifierItemRegistered", "s", id
+            watcher->bus, obj_path, watcher->interface, "StatusNotifierItemRegistered", "s", id
         );
     } else {
-        hayward_log(
-            HAYWARD_DEBUG, "Status Notifier Item '%s' already registered", id
-        );
+        hwd_log(HWD_DEBUG, "Status Notifier Item '%s' already registered", id);
         free(id);
     }
 
@@ -122,28 +107,19 @@ register_host(sd_bus_message *msg, void *data, sd_bus_error *error) {
     char *service;
     int ret = sd_bus_message_read(msg, "s", &service);
     if (ret < 0) {
-        hayward_log(
-            HAYWARD_ERROR, "Failed to parse register host message: %s",
-            strerror(-ret)
-        );
+        hwd_log(HWD_ERROR, "Failed to parse register host message: %s", strerror(-ret));
         return ret;
     }
 
     struct haywardbar_watcher *watcher = data;
     if (list_seq_find(watcher->hosts, cmp_id, service) == -1) {
-        hayward_log(
-            HAYWARD_DEBUG, "Registering Status Notifier Host '%s'", service
-        );
+        hwd_log(HWD_DEBUG, "Registering Status Notifier Host '%s'", service);
         list_add(watcher->hosts, strdup(service));
         sd_bus_emit_signal(
-            watcher->bus, obj_path, watcher->interface,
-            "StatusNotifierHostRegistered", "s", service
+            watcher->bus, obj_path, watcher->interface, "StatusNotifierHostRegistered", "s", service
         );
     } else {
-        hayward_log(
-            HAYWARD_DEBUG, "Status Notifier Host '%s' already registered",
-            service
-        );
+        hwd_log(HWD_DEBUG, "Status Notifier Host '%s' already registered", service);
     }
 
     return sd_bus_reply_method_return(msg, "");
@@ -151,8 +127,8 @@ register_host(sd_bus_message *msg, void *data, sd_bus_error *error) {
 
 static int
 get_registered_snis(
-    sd_bus *bus, const char *obj_path, const char *interface,
-    const char *property, sd_bus_message *reply, void *data, sd_bus_error *error
+    sd_bus *bus, const char *obj_path, const char *interface, const char *property,
+    sd_bus_message *reply, void *data, sd_bus_error *error
 ) {
     struct haywardbar_watcher *watcher = data;
     list_add(watcher->items, NULL); // strv expects NULL-terminated string array
@@ -163,8 +139,8 @@ get_registered_snis(
 
 static int
 is_host_registered(
-    sd_bus *bus, const char *obj_path, const char *interface,
-    const char *property, sd_bus_message *reply, void *data, sd_bus_error *error
+    sd_bus *bus, const char *obj_path, const char *interface, const char *property,
+    sd_bus_message *reply, void *data, sd_bus_error *error
 ) {
     struct haywardbar_watcher *watcher = data;
     int val = watcher->hosts->length > 0; // dbus expects int rather than bool
@@ -173,14 +149,8 @@ is_host_registered(
 
 static const sd_bus_vtable watcher_vtable[] = {
     SD_BUS_VTABLE_START(0),
-    SD_BUS_METHOD(
-        "RegisterStatusNotifierItem", "s", "", register_sni,
-        SD_BUS_VTABLE_UNPRIVILEGED
-    ),
-    SD_BUS_METHOD(
-        "RegisterStatusNotifierHost", "s", "", register_host,
-        SD_BUS_VTABLE_UNPRIVILEGED
-    ),
+    SD_BUS_METHOD("RegisterStatusNotifierItem", "s", "", register_sni, SD_BUS_VTABLE_UNPRIVILEGED),
+    SD_BUS_METHOD("RegisterStatusNotifierHost", "s", "", register_host, SD_BUS_VTABLE_UNPRIVILEGED),
     SD_BUS_PROPERTY(
         "RegisteredStatusNotifierItems", "as", get_registered_snis, 0,
         SD_BUS_VTABLE_PROPERTY_EMITS_CHANGE
@@ -190,8 +160,7 @@ static const sd_bus_vtable watcher_vtable[] = {
         SD_BUS_VTABLE_PROPERTY_EMITS_CHANGE
     ),
     SD_BUS_PROPERTY(
-        "ProtocolVersion", "i", NULL,
-        offsetof(struct haywardbar_watcher, version),
+        "ProtocolVersion", "i", NULL, offsetof(struct haywardbar_watcher, version),
         SD_BUS_VTABLE_PROPERTY_CONST
     ),
     SD_BUS_SIGNAL("StatusNotifierItemRegistered", "s", 0),
@@ -201,14 +170,12 @@ static const sd_bus_vtable watcher_vtable[] = {
 
 struct haywardbar_watcher *
 create_watcher(char *protocol, sd_bus *bus) {
-    struct haywardbar_watcher *watcher =
-        calloc(1, sizeof(struct haywardbar_watcher));
+    struct haywardbar_watcher *watcher = calloc(1, sizeof(struct haywardbar_watcher));
     if (!watcher) {
         return NULL;
     }
 
-    size_t len =
-        snprintf(NULL, 0, "org.%s.StatusNotifierWatcher", protocol) + 1;
+    size_t len = snprintf(NULL, 0, "org.%s.StatusNotifierWatcher", protocol) + 1;
     watcher->interface = malloc(len);
     snprintf(watcher->interface, len, "org.%s.StatusNotifierWatcher", protocol);
 
@@ -217,33 +184,28 @@ create_watcher(char *protocol, sd_bus *bus) {
         bus, &vtable_slot, obj_path, watcher->interface, watcher_vtable, watcher
     );
     if (ret < 0) {
-        hayward_log(
-            HAYWARD_ERROR, "Failed to add object vtable: %s", strerror(-ret)
-        );
+        hwd_log(HWD_ERROR, "Failed to add object vtable: %s", strerror(-ret));
         goto error;
     }
 
     ret = sd_bus_match_signal(
-        bus, &signal_slot, "org.freedesktop.DBus", "/org/freedesktop/DBus",
-        "org.freedesktop.DBus", "NameOwnerChanged", handle_lost_service, watcher
+        bus, &signal_slot, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+        "NameOwnerChanged", handle_lost_service, watcher
     );
     if (ret < 0) {
-        hayward_log(
-            HAYWARD_ERROR, "Failed to subscribe to unregistering events: %s",
-            strerror(-ret)
-        );
+        hwd_log(HWD_ERROR, "Failed to subscribe to unregistering events: %s", strerror(-ret));
         goto error;
     }
 
     ret = sd_bus_request_name(bus, watcher->interface, 0);
     if (ret < 0) {
         if (-ret == EEXIST) {
-            hayward_log(HAYWARD_DEBUG, "Failed to acquire service name '%s':"
+            hwd_log(HWD_DEBUG, "Failed to acquire service name '%s':"
 					"another tray is already running", watcher->interface);
         } else {
-            hayward_log(
-                HAYWARD_ERROR, "Failed to acquire service name '%s': %s",
-                watcher->interface, strerror(-ret)
+            hwd_log(
+                HWD_ERROR, "Failed to acquire service name '%s': %s", watcher->interface,
+                strerror(-ret)
             );
         }
         goto error;
@@ -256,7 +218,7 @@ create_watcher(char *protocol, sd_bus *bus) {
     watcher->hosts = create_list();
     watcher->items = create_list();
     watcher->version = 0;
-    hayward_log(HAYWARD_DEBUG, "Registered %s", watcher->interface);
+    hwd_log(HWD_DEBUG, "Registered %s", watcher->interface);
     return watcher;
 error:
     sd_bus_slot_unref(signal_slot);

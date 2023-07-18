@@ -36,10 +36,7 @@ get_basedirs(void) {
     char *data_home = getenv("XDG_DATA_HOME");
     list_add(
         basedirs,
-        strdup(
-            data_home && *data_home ? "$XDG_DATA_HOME/icons"
-                                    : "$HOME/.local/share/icons"
-        )
+        strdup(data_home && *data_home ? "$XDG_DATA_HOME/icons" : "$HOME/.local/share/icons")
     );
 
     list_add(basedirs, strdup("/usr/share/pixmaps"));
@@ -121,8 +118,7 @@ group_handler(char *old_group, char *new_group, struct icon_theme *theme) {
             return NULL;
         }
 
-        struct icon_theme_subdir *subdir =
-            theme->subdirs->items[theme->subdirs->length - 1];
+        struct icon_theme_subdir *subdir = theme->subdirs->items[theme->subdirs->length - 1];
         if (!subdir->size) {
             return "missing required key 'Size'";
         }
@@ -144,10 +140,8 @@ group_handler(char *old_group, char *new_group, struct icon_theme *theme) {
         }
     }
 
-    if (new_group &&
-        list_seq_find(theme->directories, cmp_id, new_group) != -1) {
-        struct icon_theme_subdir *subdir =
-            calloc(1, sizeof(struct icon_theme_subdir));
+    if (new_group && list_seq_find(theme->directories, cmp_id, new_group) != -1) {
+        struct icon_theme_subdir *subdir = calloc(1, sizeof(struct icon_theme_subdir));
         if (!subdir) {
             return "out of memory";
         }
@@ -176,8 +170,7 @@ entry_handler(char *group, char *key, char *value, struct icon_theme *theme) {
             return NULL;
         }
 
-        struct icon_theme_subdir *subdir =
-            theme->subdirs->items[theme->subdirs->length - 1];
+        struct icon_theme_subdir *subdir = theme->subdirs->items[theme->subdirs->length - 1];
         if (strcmp(subdir->name, group) != 0) { // skip
             return NULL;
         }
@@ -226,8 +219,7 @@ entry_handler(char *group, char *key, char *value, struct icon_theme *theme) {
 static struct icon_theme *
 read_theme_file(char *basedir, char *theme_name) {
     // look for index.theme file
-    size_t path_len =
-        snprintf(NULL, 0, "%s/%s/index.theme", basedir, theme_name) + 1;
+    size_t path_len = snprintf(NULL, 0, "%s/%s/index.theme", basedir, theme_name) + 1;
     char *path = malloc(path_len);
     if (!path) {
         return NULL;
@@ -286,8 +278,7 @@ read_theme_file(char *basedir, char *theme_name) {
             }
 
             // call handler
-            char *last_group =
-                groups->length > 0 ? groups->items[groups->length - 1] : NULL;
+            char *last_group = groups->length > 0 ? groups->items[groups->length - 1] : NULL;
             error = group_handler(last_group, &line[1], theme);
             if (error) {
                 break;
@@ -318,9 +309,7 @@ read_theme_file(char *basedir, char *theme_name) {
             }
             // TODO unescape value
 
-            error = entry_handler(
-                groups->items[groups->length - 1], line, value, theme
-            );
+            error = entry_handler(groups->items[groups->length - 1], line, value, theme);
             if (error) {
                 break;
             }
@@ -329,8 +318,7 @@ read_theme_file(char *basedir, char *theme_name) {
 
     if (!error) {
         if (groups->length > 0) {
-            error =
-                group_handler(groups->items[groups->length - 1], NULL, theme);
+            error = group_handler(groups->items[groups->length - 1], NULL, theme);
         } else {
             error = "empty file";
         }
@@ -339,10 +327,9 @@ read_theme_file(char *basedir, char *theme_name) {
     if (!error) {
         theme->dir = strdup(theme_name);
     } else {
-        char *last_group =
-            groups->length > 0 ? groups->items[groups->length - 1] : "n/a";
-        hayward_log(
-            HAYWARD_DEBUG,
+        char *last_group = groups->length > 0 ? groups->items[groups->length - 1] : "n/a";
+        hwd_log(
+            HWD_DEBUG,
             "Failed to load theme '%s' - parsing of file "
             "'%s/%s/index.theme' failed on line %d (group '%s'): %s",
             theme_name, basedir, theme_name, line_no, last_group, error
@@ -382,7 +369,7 @@ load_themes_in_dir(char *basedir) {
 static void
 log_loaded_themes(list_t *themes) {
     if (themes->length == 0) {
-        hayward_log(HAYWARD_INFO, "Warning: no icon themes loaded");
+        hwd_log(HWD_INFO, "Warning: no icon themes loaded");
         return;
     }
 
@@ -413,7 +400,7 @@ log_loaded_themes(list_t *themes) {
     }
     *p = '\0';
 
-    hayward_log(HAYWARD_DEBUG, "Loaded icon themes: %s", str);
+    hwd_log(HWD_DEBUG, "Loaded icon themes: %s", str);
     free(str);
 }
 
@@ -455,15 +442,11 @@ find_icon_in_subdir(char *name, char *basedir, char *theme, char *subdir) {
 #endif
     };
 
-    size_t path_len =
-        snprintf(NULL, 0, "%s/%s/%s/%s.EXT", basedir, theme, subdir, name) + 1;
+    size_t path_len = snprintf(NULL, 0, "%s/%s/%s/%s.EXT", basedir, theme, subdir, name) + 1;
     char *path = malloc(path_len);
 
     for (size_t i = 0; i < sizeof(extensions) / sizeof(*extensions); ++i) {
-        snprintf(
-            path, path_len, "%s/%s/%s/%s.%s", basedir, theme, subdir, name,
-            extensions[i]
-        );
+        snprintf(path, path_len, "%s/%s/%s/%s.%s", basedir, theme, subdir, name, extensions[i]);
         if (access(path, R_OK) == 0) {
             return path;
         }
@@ -485,8 +468,8 @@ theme_exists_in_basedir(char *theme, char *basedir) {
 
 static char *
 find_icon_with_theme(
-    list_t *basedirs, list_t *themes, char *name, int size, char *theme_name,
-    int *min_size, int *max_size
+    list_t *basedirs, list_t *themes, char *name, int size, char *theme_name, int *min_size,
+    int *max_size
 ) {
     struct icon_theme *theme = NULL;
     for (int i = 0; i < themes->length; ++i) {
@@ -508,9 +491,8 @@ find_icon_with_theme(
         for (int j = theme->subdirs->length - 1; j >= 0; --j) {
             struct icon_theme_subdir *subdir = theme->subdirs->items[j];
             if (size >= subdir->min_size && size <= subdir->max_size) {
-                if ((icon = find_icon_in_subdir(
-                         name, basedirs->items[i], theme->dir, subdir->name
-                     ))) {
+                if ((icon =
+                         find_icon_in_subdir(name, basedirs->items[i], theme->dir, subdir->name))) {
                     *min_size = subdir->min_size;
                     *max_size = subdir->max_size;
                     return icon;
@@ -527,13 +509,11 @@ find_icon_with_theme(
         }
         for (int j = theme->subdirs->length - 1; j >= 0; --j) {
             struct icon_theme_subdir *subdir = theme->subdirs->items[j];
-            unsigned error =
-                (size > subdir->max_size ? size - subdir->max_size : 0) +
+            unsigned error = (size > subdir->max_size ? size - subdir->max_size : 0) +
                 (size < subdir->min_size ? subdir->min_size - size : 0);
             if (error < smallest_error) {
-                char *test_icon = find_icon_in_subdir(
-                    name, basedirs->items[i], theme->dir, subdir->name
-                );
+                char *test_icon =
+                    find_icon_in_subdir(name, basedirs->items[i], theme->dir, subdir->name);
                 if (test_icon) {
                     icon = test_icon;
                     smallest_error = error;
@@ -547,8 +527,7 @@ find_icon_with_theme(
     if (!icon && theme->inherits) {
         for (int i = 0; i < theme->inherits->length; ++i) {
             icon = find_icon_with_theme(
-                basedirs, themes, name, size, theme->inherits->items[i],
-                min_size, max_size
+                basedirs, themes, name, size, theme->inherits->items[i], min_size, max_size
             );
             if (icon) {
                 break;
@@ -574,21 +553,17 @@ find_fallback_icon(list_t *basedirs, char *name, int *min_size, int *max_size) {
 
 char *
 find_icon(
-    list_t *themes, list_t *basedirs, char *name, int size, char *theme,
-    int *min_size, int *max_size
+    list_t *themes, list_t *basedirs, char *name, int size, char *theme, int *min_size,
+    int *max_size
 ) {
     // TODO
     // https://specifications.freedesktop.org/icon-theme-spec/icon-theme-spec-latest.html#implementation_notes
     char *icon = NULL;
     if (theme) {
-        icon = find_icon_with_theme(
-            basedirs, themes, name, size, theme, min_size, max_size
-        );
+        icon = find_icon_with_theme(basedirs, themes, name, size, theme, min_size, max_size);
     }
     if (!icon && !(theme && strcmp(theme, "Hicolor") == 0)) {
-        icon = find_icon_with_theme(
-            basedirs, themes, name, size, "Hicolor", min_size, max_size
-        );
+        icon = find_icon_with_theme(basedirs, themes, name, size, "Hicolor", min_size, max_size);
     }
     if (!icon) {
         icon = find_fallback_icon(basedirs, name, min_size, max_size);

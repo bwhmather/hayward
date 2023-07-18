@@ -43,10 +43,10 @@ cmd_mode(int argc, char **argv) {
 
     char *mode_name = *argv;
     strip_quotes(mode_name);
-    struct hayward_mode *mode = NULL;
+    struct hwd_mode *mode = NULL;
     // Find mode
     for (int i = 0; i < config->modes->length; ++i) {
-        struct hayward_mode *test = config->modes->items[i];
+        struct hwd_mode *test = config->modes->items[i];
         if (strcmp(test->name, mode_name) == 0) {
             mode = test;
             break;
@@ -54,7 +54,7 @@ cmd_mode(int argc, char **argv) {
     }
     // Create mode if it doesn't exist
     if (!mode && argc > 1) {
-        mode = calloc(1, sizeof(struct hayward_mode));
+        mode = calloc(1, sizeof(struct hwd_mode));
         if (!mode) {
             return cmd_results_new(CMD_FAILURE, "Unable to allocate mode");
         }
@@ -71,22 +71,18 @@ cmd_mode(int argc, char **argv) {
         return error;
     }
     // Set current mode
-    struct hayward_mode *stored_mode = config->current_mode;
+    struct hwd_mode *stored_mode = config->current_mode;
     config->current_mode = mode;
     if (argc == 1) {
         // trigger IPC mode event
-        hayward_log(
-            HAYWARD_DEBUG, "Switching to mode `%s' (pango=%d)", mode->name,
-            mode->pango
-        );
+        hwd_log(HWD_DEBUG, "Switching to mode `%s' (pango=%d)", mode->name, mode->pango);
         ipc_event_mode(config->current_mode->name, config->current_mode->pango);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 
     // Create binding
-    struct cmd_results *result = config_subcommand(
-        argv + 1, argc - 1, mode_handlers, sizeof(mode_handlers)
-    );
+    struct cmd_results *result =
+        config_subcommand(argv + 1, argc - 1, mode_handlers, sizeof(mode_handlers));
     config->current_mode = stored_mode;
 
     return result;

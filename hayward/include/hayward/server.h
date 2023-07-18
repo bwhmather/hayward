@@ -1,5 +1,5 @@
-#ifndef HAYWARD_SERVER_H
-#define HAYWARD_SERVER_H
+#ifndef HWD_SERVER_H
+#define HWD_SERVER_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -29,7 +29,7 @@
 
 #include <config.h>
 
-struct hayward_server {
+struct hwd_server {
     struct wl_display *wl_display;
     struct wl_event_loop *wl_event_loop;
     const char *socket;
@@ -47,28 +47,28 @@ struct hayward_server {
 
     struct wlr_data_device_manager *data_device_manager;
 
-    struct hayward_input_manager *input;
+    struct hwd_input_manager *input;
 
     struct wl_listener new_output;
     struct wl_listener output_layout_change;
 
     struct wlr_idle *idle;
-    struct hayward_idle_inhibit_manager_v1 *idle_inhibit_manager_v1;
+    struct hwd_idle_inhibit_manager_v1 *idle_inhibit_manager_v1;
 
-    struct hayward_layer_shell *layer_shell;
+    struct hwd_layer_shell *layer_shell;
 
-    struct hayward_xdg_shell *xdg_shell;
+    struct hwd_xdg_shell *xdg_shell;
 
     struct wlr_tablet_manager_v2 *tablet_v2;
 
 #if HAVE_XWAYLAND
-    struct hayward_xwayland *xwayland;
+    struct hwd_xwayland *xwayland;
 #endif
 
     struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
 
-    struct hayward_server_decoration_manager *server_decoration_manager;
-    struct hayward_xdg_decoration_manager *xdg_decoration_manager;
+    struct hwd_server_decoration_manager *server_decoration_manager;
+    struct hwd_xdg_decoration_manager *xdg_decoration_manager;
 
     struct wlr_drm_lease_v1_manager *drm_lease_manager;
     struct wl_listener drm_lease_request;
@@ -101,35 +101,35 @@ struct hayward_server {
     struct wlr_text_input_manager_v3 *text_input;
     struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 
-    struct hayward_xdg_activation_v1 *xdg_activation_v1;
+    struct hwd_xdg_activation_v1 *xdg_activation_v1;
 
     // The timeout for transactions, after which a transaction is applied
     // regardless of readiness.
     size_t txn_timeout_ms;
 };
 
-extern struct hayward_server server;
+extern struct hwd_server server;
 
-struct hayward_debug {
+struct hwd_debug {
     bool noatomic;    // Ignore atomic layout updates
     bool txn_timings; // Log verbose messages about transactions
     bool txn_wait;    // Always wait for the timeout before applying
 };
 
-extern struct hayward_debug debug;
+extern struct hwd_debug debug;
 
 /* Prepares an unprivileged server_init by performing all privileged operations
  * in advance */
 bool
-server_privileged_prepare(struct hayward_server *server);
+server_privileged_prepare(struct hwd_server *server);
 bool
-server_init(struct hayward_server *server);
+server_init(struct hwd_server *server);
 void
-server_fini(struct hayward_server *server);
+server_fini(struct hwd_server *server);
 bool
-server_start(struct hayward_server *server);
+server_start(struct hwd_server *server);
 void
-server_run(struct hayward_server *server);
+server_run(struct hwd_server *server);
 
 void
 restore_nofile_limit(void);
@@ -138,7 +138,7 @@ void
 handle_new_output(struct wl_listener *listener, void *data);
 
 void
-hayward_session_lock_init(void);
+hwd_session_lock_init(void);
 void
 handle_pointer_constraint(struct wl_listener *listener, void *data);
 

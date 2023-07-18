@@ -25,10 +25,7 @@ cmd_haywardnag_command(int argc, char **argv) {
     char *new_command = join_args(argv, argc);
     if (strcmp(new_command, "-") != 0) {
         config->haywardnag_command = new_command;
-        hayward_log(
-            HAYWARD_DEBUG, "Using custom haywardnag command: %s",
-            config->haywardnag_command
-        );
+        hwd_log(HWD_DEBUG, "Using custom haywardnag command: %s", config->haywardnag_command);
     } else {
         free(new_command);
     }

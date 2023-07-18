@@ -47,9 +47,9 @@ tray_bind(int argc, char **argv, bool code) {
     }
     const char *name = get_mouse_button_name(binding->button);
 
-    static const char *commands[] = {
-        "ContextMenu", "Activate",    "SecondaryActivate", "ScrollDown",
-        "ScrollLeft",  "ScrollRight", "ScrollUp",          "nop"};
+    static const char *commands[] = {"ContextMenu", "Activate",   "SecondaryActivate",
+                                     "ScrollDown",  "ScrollLeft", "ScrollRight",
+                                     "ScrollUp",    "nop"};
 
     for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); ++i) {
         if (strcasecmp(argv[1], commands[i]) == 0) {
@@ -59,8 +59,7 @@ tray_bind(int argc, char **argv, bool code) {
     if (!binding->command) {
         free(binding);
         return cmd_results_new(
-            CMD_INVALID, "[Bar %s] Invalid tray command %s",
-            config->current_bar->id, argv[1]
+            CMD_INVALID, "[Bar %s] Invalid tray command %s", config->current_bar->id, argv[1]
         );
     }
 
@@ -72,9 +71,8 @@ tray_bind(int argc, char **argv, bool code) {
             other->command = binding->command;
             free(binding);
             binding = other;
-            hayward_log(
-                HAYWARD_DEBUG,
-                "[bar %s] Updated tray binding for %u (%s) to %s",
+            hwd_log(
+                HWD_DEBUG, "[bar %s] Updated tray binding for %u (%s) to %s",
                 config->current_bar->id, binding->button, name, binding->command
             );
             break;
@@ -82,17 +80,15 @@ tray_bind(int argc, char **argv, bool code) {
     }
     if (!overwritten) {
         wl_list_insert(&config->current_bar->tray_bindings, &binding->link);
-        hayward_log(
-            HAYWARD_DEBUG, "[bar %s] Added tray binding for %u (%s) to %s",
-            config->current_bar->id, binding->button, name, binding->command
+        hwd_log(
+            HWD_DEBUG, "[bar %s] Added tray binding for %u (%s) to %s", config->current_bar->id,
+            binding->button, name, binding->command
         );
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 #else
-    return cmd_results_new(
-        CMD_INVALID, "Hayward has been compiled without tray support"
-    );
+    return cmd_results_new(CMD_INVALID, "Hayward has been compiled without tray support");
 #endif
 }
 

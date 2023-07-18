@@ -1,5 +1,5 @@
-#ifndef HAYWARD_INPUT_TEXT_INPUT_H
-#define HAYWARD_INPUT_TEXT_INPUT_H
+#ifndef HWD_INPUT_TEXT_INPUT_H
+#define HWD_INPUT_TEXT_INPUT_H
 
 #include <wayland-server-core.h>
 #include <wayland-util.h>
@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_text_input_v3.h>
 
-struct hayward_seat;
+struct hwd_seat;
 
 /**
  * The relay structure manages the relationship between text-input and
@@ -21,10 +21,10 @@ struct hayward_seat;
  * in the focused state, wl_keyboard sent an enter as well. However, having
  * wl_keyboard focused doesn't mean that text-input will be focused.
  */
-struct hayward_input_method_relay {
-    struct hayward_seat *seat;
+struct hwd_input_method_relay {
+    struct hwd_seat *seat;
 
-    struct wl_list text_inputs;               // hayward_text_input::link
+    struct wl_list text_inputs;               // hwd_text_input::link
     struct wlr_input_method_v2 *input_method; // doesn't have to be present
 
     struct wl_listener text_input_new;
@@ -37,8 +37,8 @@ struct hayward_input_method_relay {
     struct wl_listener input_method_keyboard_grab_destroy;
 };
 
-struct hayward_text_input {
-    struct hayward_input_method_relay *relay;
+struct hwd_text_input {
+    struct hwd_input_method_relay *relay;
 
     struct wlr_text_input_v3 *input;
     // The surface getting seat's focus. Stored for when text-input cannot
@@ -57,17 +57,13 @@ struct hayward_text_input {
 };
 
 void
-hayward_input_method_relay_init(
-    struct hayward_seat *seat, struct hayward_input_method_relay *relay
-);
+hwd_input_method_relay_init(struct hwd_seat *seat, struct hwd_input_method_relay *relay);
 
 void
-hayward_input_method_relay_finish(struct hayward_input_method_relay *relay);
+hwd_input_method_relay_finish(struct hwd_input_method_relay *relay);
 
 // Updates currently focused surface. Surface must belong to the same seat.
 void
-hayward_input_method_relay_set_focus(
-    struct hayward_input_method_relay *relay, struct wlr_surface *surface
-);
+hwd_input_method_relay_set_focus(struct hwd_input_method_relay *relay, struct wlr_surface *surface);
 
 #endif

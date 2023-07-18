@@ -30,8 +30,8 @@
 #include <config.h>
 
 struct seatop_down_event {
-    struct hayward_window *container;
-    struct hayward_seat *seat;
+    struct hwd_window *container;
+    struct hwd_seat *seat;
     struct wl_listener surface_destroy;
     struct wlr_surface *surface;
     double ref_lx, ref_ly;                     // cursor's x/y at start of op
@@ -39,27 +39,20 @@ struct seatop_down_event {
 };
 
 static void
-handle_pointer_axis(
-    struct hayward_seat *seat, struct wlr_pointer_axis_event *event
-) {
-    struct hayward_input_device *input_device =
-        event->pointer ? event->pointer->base.data : NULL;
-    struct input_config *ic =
-        input_device ? input_device_get_config(input_device) : NULL;
-    float scroll_factor =
-        (ic == NULL || ic->scroll_factor == FLT_MIN) ? 1.0f : ic->scroll_factor;
+handle_pointer_axis(struct hwd_seat *seat, struct wlr_pointer_axis_event *event) {
+    struct hwd_input_device *input_device = event->pointer ? event->pointer->base.data : NULL;
+    struct input_config *ic = input_device ? input_device_get_config(input_device) : NULL;
+    float scroll_factor = (ic == NULL || ic->scroll_factor == FLT_MIN) ? 1.0f : ic->scroll_factor;
 
     wlr_seat_pointer_notify_axis(
-        seat->wlr_seat, event->time_msec, event->orientation,
-        scroll_factor * event->delta,
+        seat->wlr_seat, event->time_msec, event->orientation, scroll_factor * event->delta,
         round(scroll_factor * event->delta_discrete), event->source
     );
 }
 
 static void
 handle_button(
-    struct hayward_seat *seat, uint32_t time_msec,
-    struct wlr_input_device *device, uint32_t button,
+    struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
     enum wlr_button_state state
 ) {
     seat_pointer_notify_button(seat, time_msec, button, state);
@@ -70,7 +63,7 @@ handle_button(
 }
 
 static void
-handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
+handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     struct seatop_down_event *e = seat->seatop_data;
     if (seat_is_input_allowed(seat, e->surface)) {
         double moved_x = seat->cursor->cursor->x - e->ref_lx;
@@ -83,8 +76,8 @@ handle_pointer_motion(struct hayward_seat *seat, uint32_t time_msec) {
 
 static void
 handle_tablet_tool_tip(
-    struct hayward_seat *seat, struct hayward_tablet_tool *tool,
-    uint32_t time_msec, enum wlr_tablet_tool_tip_state state
+    struct hwd_seat *seat, struct hwd_tablet_tool *tool, uint32_t time_msec,
+    enum wlr_tablet_tool_tip_state state
 ) {
     if (state == WLR_TABLET_TOOL_TIP_UP) {
         wlr_tablet_v2_tablet_tool_notify_up(tool->tablet_v2_tool);
@@ -93,10 +86,7 @@ handle_tablet_tool_tip(
 }
 
 static void
-handle_tablet_tool_motion(
-    struct hayward_seat *seat, struct hayward_tablet_tool *tool,
-    uint32_t time_msec
-) {
+handle_tablet_tool_motion(struct hwd_seat *seat, struct hwd_tablet_tool *tool, uint32_t time_msec) {
     struct seatop_down_event *e = seat->seatop_data;
     if (seat_is_input_allowed(seat, e->surface)) {
         double moved_x = seat->cursor->cursor->x - e->ref_lx;
@@ -116,7 +106,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void
-handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
+handle_unref(struct hwd_seat *seat, struct hwd_window *container) {
     struct seatop_down_event *e = seat->seatop_data;
     if (e->container == container) {
         seatop_begin_default(seat);
@@ -124,12 +114,12 @@ handle_unref(struct hayward_seat *seat, struct hayward_window *container) {
 }
 
 static void
-handle_end(struct hayward_seat *seat) {
+handle_end(struct hwd_seat *seat) {
     struct seatop_down_event *e = seat->seatop_data;
     wl_list_remove(&e->surface_destroy.link);
 }
 
-static const struct hayward_seatop_impl seatop_impl = {
+static const struct hwd_seatop_impl seatop_impl = {
     .button = handle_button,
     .pointer_motion = handle_pointer_motion,
     .pointer_axis = handle_pointer_axis,
@@ -142,12 +132,9 @@ static const struct hayward_seatop_impl seatop_impl = {
 
 void
 seatop_begin_down(
-    struct hayward_seat *seat, struct hayward_window *container,
-    uint32_t time_msec, double sx, double sy
+    struct hwd_seat *seat, struct hwd_window *container, uint32_t time_msec, double sx, double sy
 ) {
-    seatop_begin_down_on_surface(
-        seat, container->view->surface, time_msec, sx, sy
-    );
+    seatop_begin_down_on_surface(seat, container->view->surface, time_msec, sx, sy);
     struct seatop_down_event *e = seat->seatop_data;
     e->container = container;
 
@@ -156,8 +143,7 @@ seatop_begin_down(
 
 void
 seatop_begin_down_on_surface(
-    struct hayward_seat *seat, struct wlr_surface *surface, uint32_t time_msec,
-    double sx, double sy
+    struct hwd_seat *seat, struct wlr_surface *surface, uint32_t time_msec, double sx, double sy
 ) {
     seatop_end(seat);
 

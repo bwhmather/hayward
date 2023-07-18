@@ -1,25 +1,25 @@
-#ifndef HAYWARD_TREE_ARRANGE_H
-#define HAYWARD_TREE_ARRANGE_H
+#ifndef HWD_TREE_ARRANGE_H
+#define HWD_TREE_ARRANGE_H
 
-struct hayward_window;
-struct hayward_column;
-struct hayward_output;
-struct hayward_workspace;
-struct hayward_root;
-
-void
-arrange_window(struct hayward_window *window);
+struct hwd_window;
+struct hwd_column;
+struct hwd_output;
+struct hwd_workspace;
+struct hwd_root;
 
 void
-arrange_column(struct hayward_column *column);
+arrange_window(struct hwd_window *window);
 
 void
-arrange_workspace(struct hayward_workspace *workspace);
+arrange_column(struct hwd_column *column);
 
 void
-arrange_output(struct hayward_output *output);
+arrange_workspace(struct hwd_workspace *workspace);
 
 void
-arrange_root(struct hayward_root *root);
+arrange_output(struct hwd_output *output);
+
+void
+arrange_root(struct hwd_root *root);
 
 #endif

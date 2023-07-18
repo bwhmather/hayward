@@ -12,9 +12,7 @@ struct haywardbar_host {
 };
 
 bool
-init_host(
-    struct haywardbar_host *host, char *protocol, struct haywardbar_tray *tray
-);
+init_host(struct haywardbar_host *host, char *protocol, struct haywardbar_tray *tray);
 void
 finish_host(struct haywardbar_host *host);
 

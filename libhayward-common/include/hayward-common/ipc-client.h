@@ -1,5 +1,5 @@
-#ifndef _HAYWARD_IPC_CLIENT_H
-#define _HAYWARD_IPC_CLIENT_H
+#ifndef _HWD_IPC_CLIENT_H
+#define _HWD_IPC_CLIENT_H
 
 // arbitrary number, it's probably sufficient, higher number = more memory usage
 #define JSON_MAX_DEPTH 512
@@ -35,9 +35,7 @@ ipc_open_socket(const char *socket_path);
  * the length of the buffer returned from hayward.
  */
 char *
-ipc_single_command(
-    int socketfd, uint32_t type, const char *payload, uint32_t *len
-);
+ipc_single_command(int socketfd, uint32_t type, const char *payload, uint32_t *len);
 /**
  * Receives a single IPC response and returns an ipc_response.
  */

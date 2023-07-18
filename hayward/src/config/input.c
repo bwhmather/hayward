@@ -31,13 +31,13 @@ struct input_config *
 new_input_config(const char *identifier) {
     struct input_config *input = calloc(1, sizeof(struct input_config));
     if (!input) {
-        hayward_log(HAYWARD_DEBUG, "Unable to allocate input config");
+        hwd_log(HWD_DEBUG, "Unable to allocate input config");
         return NULL;
     }
-    hayward_log(HAYWARD_DEBUG, "new_input_config(%s)", identifier);
+    hwd_log(HWD_DEBUG, "new_input_config(%s)", identifier);
     if (!(input->identifier = strdup(identifier))) {
         free(input);
-        hayward_log(HAYWARD_DEBUG, "Unable to allocate input config");
+        hwd_log(HWD_DEBUG, "Unable to allocate input config");
         return NULL;
     }
 
@@ -153,8 +153,7 @@ merge_input_config(struct input_config *dst, struct input_config *src) {
     }
     if (src->mapped_from_region) {
         free(dst->mapped_from_region);
-        dst->mapped_from_region =
-            malloc(sizeof(struct input_config_mapped_from_region));
+        dst->mapped_from_region = malloc(sizeof(struct input_config_mapped_from_region));
         memcpy(
             dst->mapped_from_region, src->mapped_from_region,
             sizeof(struct input_config_mapped_from_region)
@@ -170,9 +169,7 @@ merge_input_config(struct input_config *dst, struct input_config *src) {
     if (src->mapped_to_region) {
         free(dst->mapped_to_region);
         dst->mapped_to_region = malloc(sizeof(struct wlr_box));
-        memcpy(
-            dst->mapped_to_region, src->mapped_to_region, sizeof(struct wlr_box)
-        );
+        memcpy(dst->mapped_to_region, src->mapped_to_region, sizeof(struct wlr_box));
     }
     if (src->calibration_matrix.configured) {
         dst->calibration_matrix.configured = src->calibration_matrix.configured;
@@ -200,17 +197,14 @@ merge_input_config(struct input_config *dst, struct input_config *src) {
 }
 
 static bool
-validate_xkb_merge(
-    struct input_config *dest, struct input_config *src, char **xkb_error
-) {
+validate_xkb_merge(struct input_config *dest, struct input_config *src, char **xkb_error) {
     struct input_config *temp = new_input_config("temp");
     if (dest) {
         merge_input_config(temp, dest);
     }
     merge_input_config(temp, src);
 
-    struct xkb_keymap *keymap =
-        hayward_keyboard_compile_keymap(temp, xkb_error);
+    struct xkb_keymap *keymap = hwd_keyboard_compile_keymap(temp, xkb_error);
     free_input_config(temp);
     if (!keymap) {
         return false;
@@ -225,9 +219,7 @@ validate_wildcard_on_all(struct input_config *wildcard, char **error) {
     for (int i = 0; i < config->input_configs->length; i++) {
         struct input_config *ic = config->input_configs->items[i];
         if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-            hayward_log(
-                HAYWARD_DEBUG, "Validating xkb merge of * on %s", ic->identifier
-            );
+            hwd_log(HWD_DEBUG, "Validating xkb merge of * on %s", ic->identifier);
             if (!validate_xkb_merge(ic, wildcard, error)) {
                 return false;
             }
@@ -236,10 +228,7 @@ validate_wildcard_on_all(struct input_config *wildcard, char **error) {
 
     for (int i = 0; i < config->input_type_configs->length; i++) {
         struct input_config *ic = config->input_type_configs->items[i];
-        hayward_log(
-            HAYWARD_DEBUG, "Validating xkb merge of * config on %s",
-            ic->identifier
-        );
+        hwd_log(HWD_DEBUG, "Validating xkb merge of * config on %s", ic->identifier);
         if (!validate_xkb_merge(ic, wildcard, error)) {
             return false;
         }
@@ -253,18 +242,14 @@ merge_wildcard_on_all(struct input_config *wildcard) {
     for (int i = 0; i < config->input_configs->length; i++) {
         struct input_config *ic = config->input_configs->items[i];
         if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-            hayward_log(
-                HAYWARD_DEBUG, "Merging input * config on %s", ic->identifier
-            );
+            hwd_log(HWD_DEBUG, "Merging input * config on %s", ic->identifier);
             merge_input_config(ic, wildcard);
         }
     }
 
     for (int i = 0; i < config->input_type_configs->length; i++) {
         struct input_config *ic = config->input_type_configs->items[i];
-        hayward_log(
-            HAYWARD_DEBUG, "Merging input * config on %s", ic->identifier
-        );
+        hwd_log(HWD_DEBUG, "Merging input * config on %s", ic->identifier);
         merge_input_config(ic, wildcard);
     }
 }
@@ -278,9 +263,8 @@ validate_type_on_existing(struct input_config *type_wildcard, char **error) {
         }
 
         if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-            hayward_log(
-                HAYWARD_DEBUG, "Validating merge of %s on %s",
-                type_wildcard->identifier, ic->identifier
+            hwd_log(
+                HWD_DEBUG, "Validating merge of %s on %s", type_wildcard->identifier, ic->identifier
             );
             if (!validate_xkb_merge(ic, type_wildcard, error)) {
                 return false;
@@ -299,10 +283,7 @@ merge_type_on_existing(struct input_config *type_wildcard) {
         }
 
         if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-            hayward_log(
-                HAYWARD_DEBUG, "Merging %s top of %s",
-                type_wildcard->identifier, ic->identifier
-            );
+            hwd_log(HWD_DEBUG, "Merging %s top of %s", type_wildcard->identifier, ic->identifier);
             merge_input_config(ic, type_wildcard);
         }
     }
@@ -310,7 +291,7 @@ merge_type_on_existing(struct input_config *type_wildcard) {
 
 static const char *
 set_input_type(struct input_config *ic) {
-    struct hayward_input_device *input_device;
+    struct hwd_input_device *input_device;
     wl_list_for_each(input_device, &server.input->devices, link) {
         if (strcmp(input_device->identifier, ic->identifier) == 0) {
             ic->input_type = input_device_get_type(input_device);
@@ -332,8 +313,7 @@ store_input_config(struct input_config *ic, char **error) {
         return NULL;
     }
 
-    list_t *config_list =
-        type ? config->input_type_configs : config->input_configs;
+    list_t *config_list = type ? config->input_type_configs : config->input_configs;
 
     struct input_config *current = NULL;
     bool new_current = false;
@@ -390,15 +370,13 @@ store_input_config(struct input_config *ic, char **error) {
         list_add(config_list, ic);
     }
 
-    hayward_log(HAYWARD_DEBUG, "Config stored for input %s", ic->identifier);
+    hwd_log(HWD_DEBUG, "Config stored for input %s", ic->identifier);
 
     return ic;
 }
 
 void
-input_config_fill_rule_names(
-    struct input_config *ic, struct xkb_rule_names *rules
-) {
+input_config_fill_rule_names(struct input_config *ic, struct xkb_rule_names *rules) {
     rules->layout = ic->xkb_layout;
     rules->model = ic->xkb_model;
     rules->options = ic->xkb_options;

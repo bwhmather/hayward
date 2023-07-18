@@ -83,9 +83,7 @@ parse_single_color(char **color, const char *cmd_name, int argc, char **argv) {
 }
 
 static struct cmd_results *
-parse_three_colors(
-    char ***colors, const char *cmd_name, int argc, char **argv
-) {
+parse_three_colors(char ***colors, const char *cmd_name, int argc, char **argv) {
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, cmd_name, EXPECTED_EQUAL_TO, 3))) {
         return error;
@@ -109,9 +107,7 @@ parse_three_colors(
 
 struct cmd_results *
 bar_cmd_colors(int argc, char **argv) {
-    return config_subcommand(
-        argv, argc, bar_colors_handlers, sizeof(bar_colors_handlers)
-    );
+    return config_subcommand(argv, argc, bar_colors_handlers, sizeof(bar_colors_handlers));
 }
 
 static struct cmd_results *
@@ -125,16 +121,13 @@ bar_colors_cmd_active_workspace(int argc, char **argv) {
 
 static struct cmd_results *
 bar_colors_cmd_background(int argc, char **argv) {
-    return parse_single_color(
-        &(config->current_bar->colors.background), "background", argc, argv
-    );
+    return parse_single_color(&(config->current_bar->colors.background), "background", argc, argv);
 }
 
 static struct cmd_results *
 bar_colors_cmd_focused_background(int argc, char **argv) {
     return parse_single_color(
-        &(config->current_bar->colors.focused_background), "focused_background",
-        argc, argv
+        &(config->current_bar->colors.focused_background), "focused_background", argc, argv
     );
 }
 
@@ -167,31 +160,25 @@ bar_colors_cmd_inactive_workspace(int argc, char **argv) {
 
 static struct cmd_results *
 bar_colors_cmd_separator(int argc, char **argv) {
-    return parse_single_color(
-        &(config->current_bar->colors.separator), "separator", argc, argv
-    );
+    return parse_single_color(&(config->current_bar->colors.separator), "separator", argc, argv);
 }
 
 static struct cmd_results *
 bar_colors_cmd_focused_separator(int argc, char **argv) {
     return parse_single_color(
-        &(config->current_bar->colors.focused_separator), "focused_separator",
-        argc, argv
+        &(config->current_bar->colors.focused_separator), "focused_separator", argc, argv
     );
 }
 
 static struct cmd_results *
 bar_colors_cmd_statusline(int argc, char **argv) {
-    return parse_single_color(
-        &(config->current_bar->colors.statusline), "statusline", argc, argv
-    );
+    return parse_single_color(&(config->current_bar->colors.statusline), "statusline", argc, argv);
 }
 
 static struct cmd_results *
 bar_colors_cmd_focused_statusline(int argc, char **argv) {
     return parse_single_color(
-        &(config->current_bar->colors.focused_statusline), "focused_statusline",
-        argc, argv
+        &(config->current_bar->colors.focused_statusline), "focused_statusline", argc, argv
     );
 }
 

@@ -32,33 +32,24 @@ input_cmd_xkb_file(int argc, char **argv) {
     } else {
         ic->xkb_file = strdup(argv[0]);
         if (!expand_path(&ic->xkb_file)) {
-            error = cmd_results_new(
-                CMD_INVALID, "Invalid syntax (%s)", ic->xkb_file
-            );
+            error = cmd_results_new(CMD_INVALID, "Invalid syntax (%s)", ic->xkb_file);
             free(ic->xkb_file);
             ic->xkb_file = NULL;
             return error;
         }
         if (!ic->xkb_file) {
-            hayward_log(HAYWARD_ERROR, "Failed to allocate expanded path");
+            hwd_log(HWD_ERROR, "Failed to allocate expanded path");
             return cmd_results_new(CMD_FAILURE, "Unable to allocate resource");
         }
 
         bool can_access = access(ic->xkb_file, F_OK) != -1;
         if (!can_access) {
-            hayward_log_errno(
-                HAYWARD_ERROR, "Unable to access xkb file '%s'", ic->xkb_file
-            );
-            config_add_haywardnag_warning(
-                "Unable to access xkb file '%s'", ic->xkb_file
-            );
+            hwd_log_errno(HWD_ERROR, "Unable to access xkb file '%s'", ic->xkb_file);
+            config_add_haywardnag_warning("Unable to access xkb file '%s'", ic->xkb_file);
         }
     }
     ic->xkb_file_is_set = true;
 
-    hayward_log(
-        HAYWARD_DEBUG, "set-xkb_file for config: %s file: %s", ic->identifier,
-        ic->xkb_file
-    );
+    hwd_log(HWD_DEBUG, "set-xkb_file for config: %s file: %s", ic->identifier, ic->xkb_file);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

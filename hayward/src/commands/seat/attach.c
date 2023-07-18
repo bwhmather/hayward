@@ -25,9 +25,7 @@ seat_cmd_attach(int argc, char **argv) {
 
     struct seat_attachment_config *attachment = seat_attachment_config_new();
     if (!attachment) {
-        return cmd_results_new(
-            CMD_FAILURE, "Failed to allocate seat attachment config"
-        );
+        return cmd_results_new(CMD_FAILURE, "Failed to allocate seat attachment config");
     }
     attachment->identifier = strdup(argv[0]);
     list_add(config->handler_context.seat_config->attachments, attachment);
