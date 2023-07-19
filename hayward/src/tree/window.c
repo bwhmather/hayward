@@ -322,9 +322,7 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         // means we can send a frame done event to make the client redraw it
         // as soon as possible. Additionally, this is required if a view is
         // mapping and its default geometry doesn't intersect an output.
-        struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        wlr_surface_send_frame_done(window->view->surface, &now);
+        view_send_frame_done(window->view);
 
         view_freeze_buffer(window->view);
     }

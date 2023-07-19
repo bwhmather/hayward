@@ -822,3 +822,20 @@ bool
 view_is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
     return child->impl->is_transient_for && child->impl->is_transient_for(child, ancestor);
 }
+
+static void
+send_frame_done_iterator(struct wlr_scene_buffer *scene_buffer, int x, int y, void *data) {
+    struct timespec *when = data;
+    wl_signal_emit_mutable(&scene_buffer->events.frame_done, when);
+}
+
+void
+view_send_frame_done(struct hwd_view *view) {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+
+    struct wlr_scene_node *node;
+    wl_list_for_each(node, &view->layers.content_tree->children, link) {
+        wlr_scene_node_for_each_buffer(node, send_frame_done_iterator, &now);
+    }
+}
