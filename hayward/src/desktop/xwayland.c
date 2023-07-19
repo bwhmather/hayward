@@ -634,6 +634,9 @@ handle_map(struct wl_listener *listener, void *data) {
     // Put it back into the tree
     view_map(view, xsurface->surface, xsurface->fullscreen, NULL, false);
 
+    xwayland_view->surface_scene =
+        wlr_scene_surface_create(view->layers.content_tree, xsurface->surface);
+
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
