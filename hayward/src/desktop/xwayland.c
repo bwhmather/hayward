@@ -496,7 +496,7 @@ get_geometry(struct hwd_view *view, struct wlr_box *box) {
     }
 }
 
-static void
+static bool
 view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int width, int height) {
     hwd_assert(
         !hwd_transaction_manager_transaction_in_progress(transaction_manager),
@@ -507,17 +507,19 @@ view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int wid
     struct hwd_window_state *state = &window->committed;
 
     if (!window->is_configuring) {
-        return;
+        return false;
     }
     if (window->configure_serial != 0) {
-        return;
+        return false;
     }
 
     if ((int)state->content_x != (int)x || (int)state->content_y != (int)y ||
         state->content_width != width || state->content_height != height) {
-        return;
+        return false;
     }
+
     hwd_transaction_manager_release_commit_lock(transaction_manager);
+    return true;
 }
 
 static void
@@ -551,7 +553,12 @@ handle_commit(struct wl_listener *listener, void *data) {
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 
-    view_notify_ready_by_geometry(view, xsurface->x, xsurface->y, state->width, state->height);
+    bool success =
+        view_notify_ready_by_geometry(view, xsurface->x, xsurface->y, state->width, state->height);
+
+    if (view->layers.saved_surface_tree != NULL && !success) {
+        view_send_frame_done(view);
+    }
 }
 
 static void
