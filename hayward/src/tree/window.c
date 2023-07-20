@@ -819,9 +819,9 @@ window_floating_move_to(
     hwd_assert(window_is_floating(window), "Expected a floating window");
 
     window->pending.x = lx;
-    window->pending.y += ly;
-    window->pending.content_x += lx;
-    window->pending.content_y += ly;
+    window->pending.y = ly;
+    window->pending.content_x = lx;
+    window->pending.content_y = ly;
 
     window_set_dirty(window);
 }
