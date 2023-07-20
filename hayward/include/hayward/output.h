@@ -98,9 +98,6 @@ struct hwd_output {
 struct hwd_output *
 output_create(struct wlr_output *wlr_output);
 
-bool
-output_is_alive(struct hwd_output *output);
-
 void
 output_enable(struct hwd_output *output);
 

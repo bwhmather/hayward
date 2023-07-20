@@ -37,7 +37,7 @@ handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
-bool
+static bool
 haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *haywardnag) {
     if (haywardnag->client != NULL) {
         wl_client_destroy(haywardnag->client);

@@ -58,6 +58,9 @@
 
 #include <config.h>
 
+static void
+cursor_unhide(struct hwd_cursor *cursor);
+
 static uint32_t
 get_current_time_msec(void) {
     struct timespec now;
@@ -269,7 +272,7 @@ cursor_handle_activity_from_device(struct hwd_cursor *cursor, struct wlr_input_d
     cursor_handle_activity_from_idle_source(cursor, idle_source);
 }
 
-void
+static void
 cursor_unhide(struct hwd_cursor *cursor) {
     if (!cursor->hidden) {
         return;

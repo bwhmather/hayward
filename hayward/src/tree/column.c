@@ -25,6 +25,12 @@
 
 #include <config.h>
 
+static bool
+column_is_alive(struct hwd_column *column);
+
+static void
+column_detach(struct hwd_column *column);
+
 static void
 column_init_scene(struct hwd_column *column) {
     column->scene_tree = wlr_scene_tree_create(root->orphans);
@@ -172,7 +178,7 @@ column_create(void) {
     return column;
 }
 
-bool
+static bool
 column_is_alive(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
     return !column->pending.dead;
@@ -252,7 +258,7 @@ column_set_dirty(struct hwd_column *column) {
     }
 }
 
-void
+static void
 column_detach(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
     struct hwd_workspace *workspace = column->pending.workspace;

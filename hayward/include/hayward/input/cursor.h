@@ -120,9 +120,6 @@ void
 cursor_handle_activity_from_device(struct hwd_cursor *cursor, struct wlr_input_device *device);
 
 void
-cursor_unhide(struct hwd_cursor *cursor);
-
-void
 cursor_set_image(struct hwd_cursor *cursor, const char *image, struct wl_client *client);
 
 void

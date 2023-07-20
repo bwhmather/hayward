@@ -74,9 +74,6 @@ void
 input_manager_apply_input_config(struct input_config *input_config);
 
 void
-input_manager_reset_input(struct hwd_input_device *input_device);
-
-void
 input_manager_reset_all_inputs(void);
 
 void

@@ -49,6 +49,9 @@
 static void
 output_destroy(struct hwd_output *output);
 
+static bool
+output_is_alive(struct hwd_output *output);
+
 static void
 output_init_scene(struct hwd_output *output) {
     output->scene_tree = wlr_scene_tree_create(root->layers.outputs);
@@ -151,7 +154,7 @@ output_create(struct wlr_output *wlr_output) {
     return output;
 }
 
-bool
+static bool
 output_is_alive(struct hwd_output *output) {
     hwd_assert(output != NULL, "Expected output");
     return !output->pending.dead;

@@ -41,8 +41,8 @@
 
 #define DEFAULT_SEAT "seat0"
 
-struct input_config *current_input_config = NULL;
-struct seat_config *current_seat_config = NULL;
+static void
+input_manager_reset_input(struct hwd_input_device *input_device);
 
 struct hwd_seat *
 input_manager_current_seat(void) {
@@ -70,7 +70,7 @@ input_manager_get_seat(const char *seat_name, bool create) {
     return create ? seat_create(seat_name) : NULL;
 }
 
-struct hwd_seat *
+static struct hwd_seat *
 input_manager_hwd_seat_from_wlr_seat(struct wlr_seat *wlr_seat) {
     struct hwd_seat *seat = NULL;
 
@@ -412,7 +412,7 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(struct wl_listener *listener, vo
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
-void
+static void
 handle_virtual_keyboard(struct wl_listener *listener, void *data) {
     struct hwd_input_manager *input_manager =
         wl_container_of(listener, input_manager, virtual_keyboard_new);
@@ -445,7 +445,7 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
-void
+static void
 handle_virtual_pointer(struct wl_listener *listener, void *data) {
     struct hwd_input_manager *input_manager =
         wl_container_of(listener, input_manager, virtual_pointer_new);
@@ -575,7 +575,7 @@ input_manager_apply_input_config(struct input_config *input_config) {
     retranslate_keysyms(input_config);
 }
 
-void
+static void
 input_manager_reset_input(struct hwd_input_device *input_device) {
     hwd_input_reset_libinput_device(input_device);
     struct hwd_seat *seat = NULL;

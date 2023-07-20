@@ -77,17 +77,11 @@ struct hwd_column {
 struct hwd_column *
 column_create(void);
 
-bool
-column_is_alive(struct hwd_column *column);
-
 void
 column_consider_destroy(struct hwd_column *container);
 
 void
 column_set_dirty(struct hwd_column *column);
-
-void
-column_detach(struct hwd_column *column);
 
 void
 column_reconcile(
