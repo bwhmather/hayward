@@ -84,12 +84,6 @@ root_create(void);
 void
 root_destroy(struct hwd_root *root);
 
-struct hwd_workspace *
-root_workspace_for_pid(struct hwd_root *root, pid_t pid);
-
-void
-root_record_workspace_pid(struct hwd_root *root, pid_t pid);
-
 void
 root_add_workspace(struct hwd_root *root, struct hwd_workspace *workspace);
 void

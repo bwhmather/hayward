@@ -101,7 +101,6 @@ cmd_exec_process(int argc, char **argv) {
     waitpid(pid, NULL, 0);
     if (child > 0) {
         hwd_log(HWD_DEBUG, "Child process created with pid %d", child);
-        root_record_workspace_pid(root, child);
     } else {
         return cmd_results_new(CMD_FAILURE, "Second fork() failed");
     }
