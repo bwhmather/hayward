@@ -16,9 +16,7 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-#include <hayward/globals/root.h>
 #include <hayward/server.h>
-#include <hayward/tree/root.h>
 
 #include <config.h>
 
