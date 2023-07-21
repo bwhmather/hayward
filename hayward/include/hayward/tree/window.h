@@ -168,8 +168,6 @@ window_set_dirty(struct hwd_window *window);
 
 void
 window_detach(struct hwd_window *window);
-bool
-window_is_attached(struct hwd_window *window);
 
 /**
  * These functions will update cached back links and internal state to match

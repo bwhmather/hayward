@@ -453,17 +453,6 @@ window_detach(struct hwd_window *window) {
     window_set_dirty(window);
 }
 
-bool
-window_is_attached(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-
-    if (window->pending.workspace == NULL) {
-        return false;
-    }
-
-    return true;
-}
-
 void
 window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *workspace) {
     hwd_assert(window != NULL, "Expected window");
