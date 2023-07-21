@@ -24,7 +24,7 @@
 
 #include <hayward/globals/root.h>
 #include <hayward/globals/transaction.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move_floating.h>
 #include <hayward/input/seatop_resize_floating.h>

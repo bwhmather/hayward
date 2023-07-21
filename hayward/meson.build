@@ -1,8 +1,8 @@
 hayward_sources = files(
 	'src/commands.c',
 	'src/config.c',
-	'src/ipc-json.c',
-	'src/ipc-server.c',
+	'src/ipc_json.c',
+	'src/ipc_server.c',
 	'src/lock.c',
 	'src/main.c',
 	'src/output.c',
@@ -17,7 +17,7 @@ hayward_sources = files(
 	'src/desktop/xdg_decoration.c',
 	'src/desktop/xdg_shell.c',
 
-	'src/input/input-manager.c',
+	'src/input/input_manager.c',
 	'src/input/cursor.c',
 	'src/input/keyboard.c',
 	'src/input/libinput.c',

@@ -11,7 +11,7 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 
 // Must be in order for the bsearch
 static const struct cmd_handler mode_handlers[] = {

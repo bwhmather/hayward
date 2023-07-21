@@ -30,7 +30,7 @@
 #include <hayward/commands.h>
 #include <hayward/globals/root.h>
 #include <hayward/haywardnag.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/switch.h>
 #include <hayward/server.h>

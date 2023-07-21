@@ -23,7 +23,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>

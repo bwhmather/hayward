@@ -1,6 +1,6 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/ipc-json.h"
+#include "hayward/ipc_json.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -35,7 +35,7 @@
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>

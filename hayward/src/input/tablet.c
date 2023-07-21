@@ -23,7 +23,7 @@
 #include <hayward/config.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>

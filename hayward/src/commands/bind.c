@@ -20,7 +20,7 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 
 #include <config.h>
 

@@ -34,7 +34,7 @@
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_down.h>
 #include <hayward/input/seatop_move_floating.h>

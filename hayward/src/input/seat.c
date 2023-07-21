@@ -43,7 +43,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/libinput.h>
 #include <hayward/input/seatop_default.h>

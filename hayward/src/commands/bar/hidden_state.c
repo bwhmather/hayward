@@ -11,7 +11,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 
 #include <config.h>
 

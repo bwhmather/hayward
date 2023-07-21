@@ -22,7 +22,7 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/transaction.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 
 void
 hwd_input_configure_libinput_device(struct hwd_input_device *device);

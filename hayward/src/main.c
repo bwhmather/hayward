@@ -26,7 +26,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/haywardnag.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/root.h>

@@ -17,7 +17,7 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/tablet.h>
 #include <hayward/input/text_input.h>
 

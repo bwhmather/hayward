@@ -12,7 +12,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/globals/transaction.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
 #include <hayward/server.h>

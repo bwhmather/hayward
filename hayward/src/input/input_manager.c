@@ -1,6 +1,6 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/input/input-manager.h"
+#include "hayward/input/input_manager.h"
 
 #include <ctype.h>
 #include <libinput.h>
@@ -32,7 +32,7 @@
 #include <hayward/input/keyboard.h>
 #include <hayward/input/libinput.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/view.h>

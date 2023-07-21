@@ -29,7 +29,7 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
 #include <hayward/input/tablet.h>
-#include <hayward/ipc-server.h>
+#include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/tree.h>
 #include <hayward/tree/arrange.h>

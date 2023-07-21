@@ -10,7 +10,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>

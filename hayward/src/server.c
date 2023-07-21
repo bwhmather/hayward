@@ -52,7 +52,7 @@
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
-#include <hayward/input/input-manager.h>
+#include <hayward/input/input_manager.h>
 #include <hayward/output.h>
 #include <hayward/tree/root.h>
 
