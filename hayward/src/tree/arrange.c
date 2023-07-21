@@ -40,19 +40,20 @@ arrange_window(struct hwd_window *window) {
         window->pending.border_top = window->pending.border_bottom = true;
         window->pending.border_left = window->pending.border_right = true;
 
-        double content_x, content_y, content_width, content_height;
+        double content_x = window->pending.x;
+        double content_y = window->pending.y;
+
+        double content_width, content_height;
         switch (window->pending.border) {
         default:
         case B_CSD:
         case B_NONE:
-            content_x = window->pending.x;
-            content_y = window->pending.y;
             content_width = window->pending.width;
             content_height = window->pending.height;
             break;
         case B_PIXEL:
-            content_x = window->pending.border_thickness * window->pending.border_left;
-            content_y = window->pending.border_thickness * window->pending.border_top;
+            content_x += window->pending.border_thickness * window->pending.border_left;
+            content_y += window->pending.border_thickness * window->pending.border_top;
             content_width = window->pending.width -
                 window->pending.border_thickness * window->pending.border_left -
                 window->pending.border_thickness * window->pending.border_right;
@@ -63,8 +64,8 @@ arrange_window(struct hwd_window *window) {
         case B_NORMAL:
             // Height is: 1px border + 3px pad + title height + 3px pad + 1px
             // border
-            content_x = window->pending.border_thickness * window->pending.border_left;
-            content_y = window_titlebar_height();
+            content_x += window->pending.border_thickness * window->pending.border_left;
+            content_y += window_titlebar_height();
             content_width = window->pending.width -
                 window->pending.border_thickness * window->pending.border_left -
                 window->pending.border_thickness * window->pending.border_right;
@@ -132,15 +133,15 @@ arrange_column_split(struct hwd_column *column) {
     double child_total_height = box.height;
 
     // Resize windows
-    double child_y = 0;
+    double y_offset = 0;
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
         child->child_total_height = child_total_height;
-        child->pending.x = 0;
-        child->pending.y = child_y;
+        child->pending.x = column->pending.x;
+        child->pending.y = column->pending.y + y_offset;
         child->pending.width = box.width;
         child->pending.height = round(child->height_fraction * child_total_height);
-        child_y += child->pending.height;
+        y_offset += child->pending.height;
         child->pending.shaded = false;
 
         // Make last child use remaining height of parent
@@ -166,8 +167,8 @@ arrange_column_stacked(struct hwd_column *column) {
     for (int i = 0; i < column->pending.children->length; ++i) {
         struct hwd_window *child = column->pending.children->items[i];
 
-        child->pending.x = 0;
-        child->pending.y = y_offset;
+        child->pending.x = column->pending.x;
+        child->pending.y = column->pending.y + y_offset;
         child->pending.width = box.width;
 
         if (child == active) {

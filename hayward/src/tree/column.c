@@ -39,11 +39,6 @@ column_init_scene(struct hwd_column *column) {
 
 static void
 column_update_scene(struct hwd_column *column) {
-    double x = column->committed.x;
-    double y = column->committed.y;
-
-    wlr_scene_node_set_position(&column->scene_tree->node, x, y);
-
     struct wl_list *link = &column->scene_tree->children;
 
     if (column->committed.children->length) {
