@@ -25,9 +25,7 @@ struct hwd_workspace;
 struct hwd_view;
 
 struct hwd_window_state {
-    // Origin of window relative to the parent container.  When window is in
-    // tiling mode, `x` will always be zero and `y` will be the offset of the
-    // top of the titlebar relative to the top of the window.
+    // Origin of window in layout coordinates.
     double x, y;
     // Width and height of window, including borders and titlebar.  If window is
     // shaded then height should be set to the titlebar height.

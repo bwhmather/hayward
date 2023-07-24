@@ -15,10 +15,11 @@ enum hwd_column_layout {
 };
 
 struct hwd_column_state {
-    // Container properties
-    enum hwd_column_layout layout;
+    // Position and size in layout coordinates.
     double x, y;
     double width, height;
+
+    enum hwd_column_layout layout;
 
     // Cached backlink to containing workspace.
     struct hwd_workspace *workspace;
