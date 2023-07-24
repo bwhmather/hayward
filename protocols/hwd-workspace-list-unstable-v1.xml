@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="hwd_workspace_list_v1">
+  <copyright>
+    Permission to use, copy, modify, distribute, and sell this
+    software and its documentation for any purpose is hereby granted
+    without fee, provided that the above copyright notice appear in
+    all copies and that both that copyright notice and this permission
+    notice appear in supporting documentation, and that the name of
+    the copyright holders not be used in advertising or publicity
+    pertaining to distribution of the software without specific,
+    written prior permission.  The copyright holders make no
+    representations about the suitability of this software for any
+    purpose.  It is provided "as is" without express or implied
+    warranty.
+
+    THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+    SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+    FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+    AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+    ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+    THIS SOFTWARE.
+  </copyright>
+
+  <description summary="list workspaces">
+    The purpose of this protocol is to provide protocol object handles for
+    workspaces.
+
+    The compositor may choose to restrict this protocol to a special client
+    launched by the compositor itself or expose it to all clients,
+    this is compositor policy.
+
+    The key words "must", "must not", "required", "shall", "shall not",
+    "should", "should not", "recommended",  "may", and "optional" in this
+    document are to be interpreted as described in IETF RFC 2119.
+
+    Warning! The protocol described in this file is currently in the testing
+    phase. Backward compatible changes may be added together with the
+    corresponding interface version bump. Backward incompatible changes can
+    only be done by creating a new major version of the extension.
+  </description>
+
+  <interface name="hwd_workspace_list_v1" version="1">
+    <description summary="list workspaces">
+      A workspace is a collection of windows with an associated layout.  Hayward
+      can display a single workspace at a time.
+
+      After a client binds the hwd_workspace_list_v1, a description of each
+      workspace will be sent using the hwd_workspace_list_v1.workspace event.
+
+      For each instance of hwd_workspace_list_v1, the compositor must create a
+      new hwd_workspace_handle_v1 object for each workspace.
+
+      If a compositor implementation sends the hwd_workspace_list_v1.finished
+      event after the global is bound, the compositor must not send any
+      hwd_workspace_list_v1.workspace events.
+    </description>
+
+    <event name="workspace">
+      <description summary="a workspace has been created">
+        This event is emitted whenever a new workspace window is created, and
+        for all existing workspaces when the workspace list global is bound.
+
+        All initial properties of the workspace will be sent immediately after
+        this event using the corresponding events for hwd_workspace_handle_v1.
+        The compositor will use the hwd_workspace_handle_v1.done event to
+        indicate when all data has been sent.
+      </description>
+      <arg name="workspace" type="new_id" interface="hwd_workspace_handle_v1"/>
+    </event>
+
+    <event name="finished">
+      <description summary="the compositor has finished with the workspace list">
+        This event indicates that the compositor is done sending events
+        to this object. The client should should destroy the object.
+        See hwd_workspace_list_v1.destroy for more information.
+
+        The compositor must not send any more workspace events after this event.
+      </description>
+    </event>
+
+    <request name="stop">
+      <description summary="stop sending events">
+        This request indicates that the client no longer wishes to receive
+        events for new workspaces.
+
+        The Wayland protocol is asynchronous, meaning the compositor may send
+        further workspace events until the stop request is processed.
+        The client should wait for a hwd_workspace_list_v1.finished
+        event before destroying this object.
+      </description>
+    </request>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the hwd_workspace_list_v1 object">
+        This request should be called either when the client will no longer use
+        the hwd_workspace_list_v1 or after the finished event has been received
+        to allow destruction of the object.
+
+        If a client wishes to destroy this object it should send a
+        hwd_workspace_list_v1.stop request and wait for a hwd_workspace_list_v1.finished
+        event, then destroy the handles and then this object.
+      </description>
+    </request>
+  </interface>
+
+  <interface name="hwd_workspace_handle_v1" version="1">
+    <description summary="a workspace">
+      A hwd_workspace_handle_v1 object represents an available workspace.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the hwd_workspace_handle_v1 object">
+        This request should be used when the client will no longer use the handle
+        or after the closed event has been received to allow destruction of the
+        object.
+
+        When a handle is destroyed, a new handle may not be created by the server
+        until the workspace is closed and then reopened. Destroying a workspace
+        handle is not recommended unless the client is cleaning up child objects
+        before destroying the hwd_workspace_list_v1 object, the workspace was
+        closed or the workspace handle will not be used in the future.
+
+        Other protocols which extend the hwd_workspace_handle_v1 interface
+        should require destructors for extension interfaces be called before
+        allowing the workspace handle to be destroyed.
+      </description>
+    </request>
+
+    <event name="closed">
+      <description summary="the workspace has been closed">
+        The server will emit no further events on the hwd_workspace_handle_v1
+        after this event. Any requests received aside from the destroy request
+        must be ignored. Upon receiving this event, the client should destroy
+        the handle.
+
+        Other protocols which extend the hwd_workspace_handle_v1 interface must
+        also ignore requests other than destructors.
+      </description>
+    </event>
+
+    <event name="done">
+      <description summary="all information about the workspace has been sent">
+        This event is sent after all changes in the workspace state have been
+        sent.
+
+        This allows changes to the hwd_workspace_handle_v1 properties to be
+        atomically applied. Other protocols which extend the hwd_workspace_handle_v1
+         interface may use this event to also atomically apply any pending state.
+
+        This event must not be sent after the hwd_workspace_handle_v1.closed.
+        event.
+      </description>
+    </event>
+
+    <event name="name">
+      <description summary="name change">
+        The name of the workspace has changed.
+
+        The configured state must not be applied immediately. See
+        hwd_workspace_handle_v1.done for details.
+      </description>
+      <arg name="title" type="string"/>
+    </event>
+  </interface>
+</protocol>
+
