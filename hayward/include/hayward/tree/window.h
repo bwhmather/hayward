@@ -110,11 +110,6 @@ struct hwd_window {
     // Used for doing the resize calculations.
     double child_total_height;
 
-    // In most cases this is the same as the content x and y, but if the view
-    // refuses to resize to the content dimensions then it can be smaller.
-    // These are in layout coordinates.
-    double surface_x, surface_y;
-
     float alpha;
 
     struct wlr_texture *title_focused;
