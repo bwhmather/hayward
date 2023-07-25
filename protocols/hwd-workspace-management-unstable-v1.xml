@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<protocol name="hwd_workspace_list_v1">
+<protocol name="hwd_workspace_manager_v1">
   <copyright>
     Permission to use, copy, modify, distribute, and sell this
     software and its documentation for any purpose is hereby granted
@@ -23,13 +23,12 @@
     THIS SOFTWARE.
   </copyright>
 
-  <description summary="list workspaces">
-    The purpose of this protocol is to provide protocol object handles for
-    workspaces.
+  <description summary="list and manage workspaces">
+    This is a hayward specific protocol to allow clients to list and manage
+    hayward workspaces.
 
-    The compositor may choose to restrict this protocol to a special client
-    launched by the compositor itself or expose it to all clients,
-    this is compositor policy.
+    At some point it is likely to be restricted to the hayward bar, and to other
+    clients launched directly by hayward itself.
 
     The key words "must", "must not", "required", "shall", "shall not",
     "should", "should not", "recommended",  "may", and "optional" in this
@@ -41,26 +40,26 @@
     only be done by creating a new major version of the extension.
   </description>
 
-  <interface name="hwd_workspace_list_v1" version="1">
-    <description summary="list workspaces">
+  <interface name="hwd_workspace_manager_v1" version="1">
+    <description summary="list and manage workspaces">
       A workspace is a collection of windows with an associated layout.  Hayward
       can display a single workspace at a time.
 
-      After a client binds the hwd_workspace_list_v1, a description of each
-      workspace will be sent using the hwd_workspace_list_v1.workspace event.
+      After a client binds the hwd_workspace_manager_v1, a description of each
+      workspace will be sent using the hwd_workspace_manager_v1.workspace event.
 
-      For each instance of hwd_workspace_list_v1, the compositor must create a
+      For each instance of hwd_workspace_manager_v1, the compositor must create a
       new hwd_workspace_handle_v1 object for each workspace.
 
-      If a compositor implementation sends the hwd_workspace_list_v1.finished
+      If a compositor implementation sends the hwd_workspace_manager_v1.finished
       event after the global is bound, the compositor must not send any
-      hwd_workspace_list_v1.workspace events.
+      hwd_workspace_manager_v1.workspace events.
     </description>
 
     <event name="workspace">
       <description summary="a workspace has been created">
         This event is emitted whenever a new workspace window is created, and
-        for all existing workspaces when the workspace list global is bound.
+        for all existing workspaces when the workspace manager global is bound.
 
         All initial properties of the workspace will be sent immediately after
         this event using the corresponding events for hwd_workspace_handle_v1.
@@ -71,10 +70,10 @@
     </event>
 
     <event name="finished">
-      <description summary="the compositor has finished with the workspace list">
+      <description summary="the compositor has finished with the workspace manager">
         This event indicates that the compositor is done sending events
         to this object. The client should should destroy the object.
-        See hwd_workspace_list_v1.destroy for more information.
+        See hwd_workspace_manager_v1.destroy for more information.
 
         The compositor must not send any more workspace events after this event.
       </description>
@@ -87,19 +86,19 @@
 
         The Wayland protocol is asynchronous, meaning the compositor may send
         further workspace events until the stop request is processed.
-        The client should wait for a hwd_workspace_list_v1.finished
+        The client should wait for a hwd_workspace_manager_v1.finished
         event before destroying this object.
       </description>
     </request>
 
     <request name="destroy" type="destructor">
-      <description summary="destroy the hwd_workspace_list_v1 object">
+      <description summary="destroy the hwd_workspace_manager_v1 object">
         This request should be called either when the client will no longer use
-        the hwd_workspace_list_v1 or after the finished event has been received
-        to allow destruction of the object.
+        the hwd_workspace_manager_v1 or after the finished event has been
+        received to allow destruction of the object.
 
         If a client wishes to destroy this object it should send a
-        hwd_workspace_list_v1.stop request and wait for a hwd_workspace_list_v1.finished
+        hwd_workspace_manager_v1.stop request and wait for a hwd_workspace_manager_v1.finished
         event, then destroy the handles and then this object.
       </description>
     </request>
@@ -119,7 +118,7 @@
         When a handle is destroyed, a new handle may not be created by the server
         until the workspace is closed and then reopened. Destroying a workspace
         handle is not recommended unless the client is cleaning up child objects
-        before destroying the hwd_workspace_list_v1 object, the workspace was
+        before destroying the hwd_workspace_manager_v1 object, the workspace was
         closed or the workspace handle will not be used in the future.
 
         Other protocols which extend the hwd_workspace_handle_v1 interface
