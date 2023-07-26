@@ -90,18 +90,6 @@
         event before destroying this object.
       </description>
     </request>
-
-    <request name="destroy" type="destructor">
-      <description summary="destroy the hwd_workspace_manager_v1 object">
-        This request should be called either when the client will no longer use
-        the hwd_workspace_manager_v1 or after the finished event has been
-        received to allow destruction of the object.
-
-        If a client wishes to destroy this object it should send a
-        hwd_workspace_manager_v1.stop request and wait for a hwd_workspace_manager_v1.finished
-        event, then destroy the handles and then this object.
-      </description>
-    </request>
   </interface>
 
   <interface name="hwd_workspace_handle_v1" version="1">
