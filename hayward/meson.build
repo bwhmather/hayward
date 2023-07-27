@@ -167,6 +167,8 @@ hayward_sources = files(
 	'src/commands/output/toggle.c',
 	'src/commands/output/transform.c',
 
+	'src/control/hwd_workspace_management_v1.c',
+
 	'src/scene/text.c',
 
 	'src/tree/arrange.c',

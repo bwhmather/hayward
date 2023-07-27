@@ -428,7 +428,7 @@ main(int argc, char **argv) {
     transaction_manager = hwd_transaction_manager_create();
     hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    root = root_create();
+    root = root_create(server.wl_display);
 
     if (!server_init(&server)) {
         return 1;

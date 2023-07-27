@@ -171,12 +171,14 @@ root_handle_output_layout_change(struct wl_listener *listener, void *data) {
 }
 
 struct hwd_root *
-root_create(void) {
+root_create(struct wl_display *display) {
     struct hwd_root *root = calloc(1, sizeof(struct hwd_root));
     if (!root) {
         hwd_log(HWD_ERROR, "Unable to allocate hwd_root");
         return NULL;
     }
+
+    root->workspace_manager = hwd_workspace_manager_create(display);
 
     root->transaction_before_commit.notify = root_handle_transaction_before_commit;
     root->transaction_commit.notify = root_handle_transaction_commit;

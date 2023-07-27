@@ -12,6 +12,7 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
+#include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/tree/window.h>
 
 #include <config.h>
@@ -60,6 +61,7 @@ struct hwd_root {
     // For when there's no connected outputs
     struct hwd_output *fallback_output;
 
+    struct hwd_workspace_manager_v1 * workspace_manager;
     struct wl_list pid_workspaces;
 
     struct wlr_scene *root_scene;
@@ -78,7 +80,7 @@ struct hwd_root {
 };
 
 struct hwd_root *
-root_create(void);
+root_create(struct wl_display *display);
 
 void
 root_destroy(struct hwd_root *root);
