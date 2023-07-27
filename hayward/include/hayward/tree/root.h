@@ -61,7 +61,7 @@ struct hwd_root {
     // For when there's no connected outputs
     struct hwd_output *fallback_output;
 
-    struct hwd_workspace_manager_v1 * workspace_manager;
+    struct hwd_workspace_manager_v1 *workspace_manager;
     struct wl_list pid_workspaces;
 
     struct wlr_scene *root_scene;

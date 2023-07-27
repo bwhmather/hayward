@@ -9,6 +9,7 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
+#include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>
 
@@ -48,6 +49,8 @@ struct hwd_workspace {
     char *name;
 
     bool urgent;
+
+    struct hwd_workspace_handle_v1 *workspace_handle;
 
     struct wlr_scene_tree *scene_tree;
 

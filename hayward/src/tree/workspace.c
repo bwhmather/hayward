@@ -14,6 +14,7 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
+#include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/ipc_server.h>
@@ -392,6 +393,15 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
     bool dirty = false;
 
     if (workspace->pending.root != root) {
+        if (workspace->workspace_handle != NULL) {
+            hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
+            workspace->workspace_handle = NULL;
+        }
+        if (root != NULL) {
+            workspace->workspace_handle =
+                hwd_workspace_handle_v1_create(root->workspace_manager, workspace->name);
+        }
+
         workspace->pending.root = root;
         dirty = true;
     }
@@ -402,18 +412,18 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
         dirty = true;
     }
 
-    if (dirty) {
-        for (int column_index = 0; column_index < workspace->pending.tiling->length;
-             column_index++) {
-            struct hwd_column *column = workspace->pending.tiling->items[column_index];
-            column_reconcile(column, workspace, column->pending.output);
-        }
+    if (!dirty) {
+        return;
+    }
 
-        for (int window_index = 0; window_index < workspace->pending.floating->length;
-             window_index++) {
-            struct hwd_window *window = workspace->pending.floating->items[window_index];
-            window_reconcile_floating(window, workspace);
-        }
+    for (int column_index = 0; column_index < workspace->pending.tiling->length; column_index++) {
+        struct hwd_column *column = workspace->pending.tiling->items[column_index];
+        column_reconcile(column, workspace, column->pending.output);
+    }
+
+    for (int window_index = 0; window_index < workspace->pending.floating->length; window_index++) {
+        struct hwd_window *window = workspace->pending.floating->items[window_index];
+        window_reconcile_floating(window, workspace);
     }
 }
 

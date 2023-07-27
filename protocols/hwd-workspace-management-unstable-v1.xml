@@ -150,6 +150,15 @@
       </description>
       <arg name="title" type="string"/>
     </event>
+
+    <request name="focus">
+      <description summary="focus the workspace">
+        Asks the workspace manager to unfocus the previously focussed workspace
+        and to focus this one instead.
+
+        No feedback will be given if this is not possible.
+      </description>
+    </request>
   </interface>
 </protocol>
 

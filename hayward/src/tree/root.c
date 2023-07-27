@@ -21,6 +21,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
+#include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
@@ -178,7 +179,7 @@ root_create(struct wl_display *display) {
         return NULL;
     }
 
-    root->workspace_manager = hwd_workspace_manager_create(display);
+    root->workspace_manager = hwd_workspace_manager_v1_create(display);
 
     root->transaction_before_commit.notify = root_handle_transaction_before_commit;
     root->transaction_commit.notify = root_handle_transaction_commit;
