@@ -34,6 +34,7 @@ struct haywardbar {
     struct wl_compositor *compositor;
     struct zwlr_layer_shell_v1 *layer_shell;
     struct zxdg_output_manager_v1 *xdg_output_manager;
+    struct hwd_workspace_manager_v1 *hwd_workspace_manager;
     struct wl_shm *shm;
 
     struct haywardbar_config *config;

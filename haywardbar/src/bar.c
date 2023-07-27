@@ -31,6 +31,7 @@
 #include <hayward-common/log.h>
 #include <hayward-common/loop.h>
 
+#include <hwd-workspace-management-unstable-v1-client-protocol.h>
 #include <wlr-layer-shell-unstable-v1-client-protocol.h>
 #include <xdg-output-unstable-v1-client-protocol.h>
 
@@ -381,6 +382,8 @@ handle_global(
     } else if (strcmp(interface, zxdg_output_manager_v1_interface.name) == 0) {
         bar->xdg_output_manager =
             wl_registry_bind(registry, name, &zxdg_output_manager_v1_interface, 2);
+    } else if (strcmp(interface, hwd_workspace_manager_v1_interface.name) == 0) {
+        bar->hwd_workspace_manager = wl_registry_bind(registry, name, &hwd_workspace_manager_v1_interface, 1);
     }
 }
 
