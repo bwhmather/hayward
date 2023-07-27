@@ -35,15 +35,18 @@
 #include <wlr-layer-shell-unstable-v1-client-protocol.h>
 #include <xdg-output-unstable-v1-client-protocol.h>
 
+static void
+haywardbar_workspace_free(struct haywardbar_workspace *workspace) {
+    wl_list_remove(&workspace->link);
+    free(workspace->name);
+    free(workspace->label);
+    free(workspace);
+}
+
 void
 free_workspaces(struct wl_list *list) {
-    struct haywardbar_workspace *ws, *tmp;
-    wl_list_for_each_safe(ws, tmp, list, link) {
-        wl_list_remove(&ws->link);
-        free(ws->name);
-        free(ws->label);
-        free(ws);
-    }
+    struct haywardbar_workspace *workspace, *tmp;
+    wl_list_for_each_safe(workspace, tmp, list, link) { haywardbar_workspace_free(workspace); }
 }
 
 static void
@@ -62,7 +65,6 @@ haywardbar_output_free(struct haywardbar_output *output) {
     destroy_buffer(&output->buffers[0]);
     destroy_buffer(&output->buffers[1]);
     free_hotspots(&output->hotspots);
-    free_workspaces(&output->workspaces);
     wl_list_remove(&output->link);
     free(output->name);
     free(output->identifier);
@@ -371,7 +373,6 @@ handle_global(
         wl_output_add_listener(output->output, &output_listener, output);
         output->scale = 1;
         output->wl_name = name;
-        wl_list_init(&output->workspaces);
         wl_list_init(&output->hotspots);
         wl_list_init(&output->link);
         if (bar->xdg_output_manager != NULL) {
@@ -383,7 +384,8 @@ handle_global(
         bar->xdg_output_manager =
             wl_registry_bind(registry, name, &zxdg_output_manager_v1_interface, 2);
     } else if (strcmp(interface, hwd_workspace_manager_v1_interface.name) == 0) {
-        bar->hwd_workspace_manager = wl_registry_bind(registry, name, &hwd_workspace_manager_v1_interface, 1);
+        bar->hwd_workspace_manager =
+            wl_registry_bind(registry, name, &hwd_workspace_manager_v1_interface, 1);
     }
 }
 
@@ -400,6 +402,13 @@ handle_global_remove(void *data, struct wl_registry *registry, uint32_t name) {
     wl_list_for_each_safe(output, tmp, &bar->unused_outputs, link) {
         if (output->wl_name == name) {
             haywardbar_output_free(output);
+            return;
+        }
+    }
+    struct haywardbar_workspace *workspace, *tmp_workspace;
+    wl_list_for_each_safe(workspace, tmp_workspace, &bar->workspaces, link) {
+        if (workspace->wl_name == name) {
+            haywardbar_workspace_free(workspace);
             return;
         }
     }
@@ -423,6 +432,7 @@ bar_setup(struct haywardbar *bar, const char *socket_path) {
     bar->config = init_config();
     wl_list_init(&bar->outputs);
     wl_list_init(&bar->unused_outputs);
+    wl_list_init(&bar->workspaces);
     wl_list_init(&bar->seats);
     bar->eventloop = loop_create();
 

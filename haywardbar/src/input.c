@@ -189,13 +189,13 @@ wl_pointer_button(
 }
 
 static void
-workspace_next(struct haywardbar *bar, struct haywardbar_output *output, bool left) {
+workspace_next(struct haywardbar *bar, bool left) {
     struct haywardbar_config *config = bar->config;
-    struct haywardbar_workspace *first = wl_container_of(output->workspaces.next, first, link);
-    struct haywardbar_workspace *last = wl_container_of(output->workspaces.prev, last, link);
+    struct haywardbar_workspace *first = wl_container_of(bar->workspaces.next, first, link);
+    struct haywardbar_workspace *last = wl_container_of(bar->workspaces.prev, last, link);
 
     struct haywardbar_workspace *active;
-    wl_list_for_each(active, &output->workspaces, link) {
+    wl_list_for_each(active, &bar->workspaces, link) {
         if (active->visible) {
             break;
         }
@@ -252,9 +252,9 @@ process_discrete_scroll(
         return;
     }
 
-    hwd_assert(!wl_list_empty(&output->workspaces), "axis with no workspaces");
+    hwd_assert(!wl_list_empty(&seat->bar->workspaces), "axis with no workspaces");
 
-    workspace_next(seat->bar, output, amt < 0.0);
+    workspace_next(seat->bar, amt < 0.0);
 
     // Check button release bindings
     check_bindings(seat->bar, button, WL_POINTER_BUTTON_STATE_RELEASED);
@@ -435,7 +435,7 @@ wl_touch_motion(
     // and negative when moving to the left.
     int progress = (int)((slot->x - slot->start_x) / slot->output->width * 100);
     if (abs(progress) / 20 != abs(prev_progress) / 20) {
-        workspace_next(seat->bar, slot->output, progress - prev_progress < 0);
+        workspace_next(seat->bar, progress - prev_progress < 0);
     }
 }
 

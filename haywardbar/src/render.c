@@ -470,7 +470,7 @@ predict_workspace_buttons_length(cairo_t *cairo, struct haywardbar_output *outpu
     uint32_t width = 0;
     if (output->bar->config->workspace_buttons) {
         struct haywardbar_workspace *ws;
-        wl_list_for_each(ws, &output->workspaces, link) {
+        wl_list_for_each(ws, &output->bar->workspaces, link) {
             width += predict_workspace_button_length(cairo, output, ws);
         }
     }
@@ -737,7 +737,7 @@ render_to_cairo(struct render_context *ctx) {
     x = 0;
     if (config->workspace_buttons) {
         struct haywardbar_workspace *ws;
-        wl_list_for_each(ws, &output->workspaces, link) {
+        wl_list_for_each(ws, &bar->workspaces, link) {
             uint32_t h = render_workspace_button(ctx, ws, &x);
             max_height = h > max_height ? h : max_height;
         }

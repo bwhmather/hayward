@@ -47,6 +47,7 @@ struct haywardbar {
 
     struct wl_list outputs;        // haywardbar_output::link
     struct wl_list unused_outputs; // haywardbar_output::link
+    struct wl_list workspaces;     // haywardbar_workspace::linl
     struct wl_list seats;          // haywardbar_seat::link
 
 #if HAVE_TRAY
@@ -65,8 +66,7 @@ struct haywardbar_output {
     struct zwlr_layer_surface_v1 *layer_surface;
     uint32_t wl_name;
 
-    struct wl_list workspaces; // haywardbar_workspace::link
-    struct wl_list hotspots;   // haywardbar_hotspot::link
+    struct wl_list hotspots; // haywardbar_hotspot::link
 
     char *name;
     char *identifier;
@@ -85,6 +85,7 @@ struct haywardbar_output {
 
 struct haywardbar_workspace {
     struct wl_list link; // haywardbar_output::workspaces
+    uint32_t wl_name;
     int num;
     char *name;
     char *label;
