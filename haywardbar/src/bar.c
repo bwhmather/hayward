@@ -292,10 +292,6 @@ xdg_output_handle_done(void *data, struct zxdg_output_v1 *xdg_output) {
     assert(output->surface);
 
     determine_bar_visibility(bar, false);
-
-    if (bar->running && bar->config->workspace_buttons) {
-        ipc_get_workspaces(bar);
-    }
 }
 
 static void
@@ -478,9 +474,6 @@ bar_setup(struct haywardbar *bar, const char *socket_path) {
     }
 #endif
 
-    if (bar->config->workspace_buttons) {
-        ipc_get_workspaces(bar);
-    }
     determine_bar_visibility(bar, false);
     return true;
 }

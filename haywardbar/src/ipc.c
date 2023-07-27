@@ -313,66 +313,6 @@ ipc_parse_config(struct haywardbar_config *config, const char *payload) {
     return true;
 }
 
-bool
-ipc_get_workspaces(struct haywardbar *bar) {
-    struct haywardbar_output *output;
-    wl_list_for_each(output, &bar->outputs, link) { output->focused = false; }
-    free_workspaces(&bar->workspaces);
-    uint32_t len = 0;
-    char *res = ipc_single_command(bar->ipc_socketfd, IPC_GET_WORKSPACES, NULL, &len);
-    json_object *results = json_tokener_parse(res);
-    if (!results) {
-        free(res);
-        return false;
-    }
-
-    bar->visible_by_urgency = false;
-    size_t length = json_object_array_length(results);
-    json_object *ws_json;
-    json_object *num, *name, *visible, *focused, *out, *urgent;
-    for (size_t i = 0; i < length; ++i) {
-        ws_json = json_object_array_get_idx(results, i);
-
-        json_object_object_get_ex(ws_json, "num", &num);
-        json_object_object_get_ex(ws_json, "name", &name);
-        json_object_object_get_ex(ws_json, "visible", &visible);
-        json_object_object_get_ex(ws_json, "focused", &focused);
-        json_object_object_get_ex(ws_json, "output", &out);
-        json_object_object_get_ex(ws_json, "urgent", &urgent);
-
-        struct haywardbar_workspace *ws = calloc(1, sizeof(struct haywardbar_workspace));
-        ws->num = json_object_get_int(num);
-        ws->name = strdup(json_object_get_string(name));
-        ws->label = strdup(ws->name);
-        // ws->num will be -1 if workspace name doesn't begin with int.
-        if (ws->num != -1) {
-            size_t len_offset = snprintf(NULL, 0, "%d", ws->num);
-            if (bar->config->strip_workspace_name) {
-                free(ws->label);
-                ws->label = malloc(len_offset + 1);
-                snprintf(ws->label, len_offset + 1, "%d", ws->num);
-            } else if (bar->config->strip_workspace_numbers) {
-                len_offset += ws->label[len_offset] == ':';
-                if (ws->name[len_offset] != '\0') {
-                    free(ws->label);
-                    // Strip number prefix [1-?:] using len_offset.
-                    ws->label = strdup(ws->name + len_offset);
-                }
-            }
-        }
-        ws->visible = json_object_get_boolean(visible);
-        ws->focused = json_object_get_boolean(focused);
-        ws->urgent = json_object_get_boolean(urgent);
-        if (ws->urgent) {
-            bar->visible_by_urgency = true;
-        }
-        wl_list_insert(bar->workspaces.prev, &ws->link);
-    }
-    json_object_put(results);
-    free(res);
-    return determine_bar_visibility(bar, false);
-}
-
 void
 ipc_execute_binding(struct haywardbar *bar, struct haywardbar_binding *bind) {
     hwd_log(
@@ -499,10 +439,6 @@ handle_barconfig_update(struct haywardbar *bar, const char *payload, json_object
     }
 #endif
 
-    if (newcfg->workspace_buttons) {
-        ipc_get_workspaces(bar);
-    }
-
     bool moving_layer = strcmp(oldcfg->mode, newcfg->mode) != 0;
 
     free_config(oldcfg);
@@ -539,9 +475,6 @@ handle_ipc_readable(struct haywardbar *bar) {
 
     bool bar_is_dirty = true;
     switch (resp->type) {
-    case IPC_EVENT_WORKSPACE:
-        bar_is_dirty = ipc_get_workspaces(bar);
-        break;
     case IPC_EVENT_MODE: {
         json_object *json_change, *json_pango_markup;
         if (json_object_object_get_ex(result, "change", &json_change)) {
