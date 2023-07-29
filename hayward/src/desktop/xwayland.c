@@ -26,7 +26,7 @@
 #include <hayward/globals/transaction.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/input/seatop_move_floating.h>
+#include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
@@ -798,16 +798,12 @@ handle_request_move(struct wl_listener *listener, void *data) {
         hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
-    if (!window_is_floating(view->window)) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
-        return;
-    }
     if (view->window->pending.fullscreen) {
         hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     struct hwd_seat *seat = input_manager_current_seat();
-    seatop_begin_move_floating(seat, view->window);
+    seatop_begin_move(seat, view->window);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }

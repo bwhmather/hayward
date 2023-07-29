@@ -26,7 +26,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/input/seat.h>
-#include <hayward/input/seatop_move_floating.h>
+#include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/output.h>
 #include <hayward/transaction.h>
@@ -404,10 +404,6 @@ handle_request_move(struct wl_listener *listener, void *data) {
 
     struct hwd_view *view = &xdg_shell_view->view;
 
-    if (!window_is_floating(view->window)) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
-        return;
-    }
     if (view->window->pending.fullscreen) {
         hwd_transaction_manager_end_transaction(transaction_manager);
         return;
@@ -417,7 +413,7 @@ handle_request_move(struct wl_listener *listener, void *data) {
     struct hwd_seat *seat = e->seat->seat->data;
 
     if (e->serial == seat->last_button_serial) {
-        seatop_begin_move_floating(seat, view->window);
+        seatop_begin_move(seat, view->window);
     }
 
     hwd_transaction_manager_end_transaction(transaction_manager);

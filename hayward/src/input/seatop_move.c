@@ -1,7 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
-#include "hayward/input/seatop_move_floating.h"
+#include "hayward/input/seatop_move.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -22,14 +22,14 @@
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 
-struct seatop_move_floating_event {
+struct seatop_move_event {
     struct hwd_window *window;
     double dx, dy; // cursor offset in window
 };
 
 static void
 finalize_move(struct hwd_seat *seat) {
-    struct seatop_move_floating_event *e = seat->seatop_data;
+    struct seatop_move_event *e = seat->seatop_data;
 
     // The window is already at the right location, but we want to bind it to
     // the correct output.
@@ -63,7 +63,7 @@ handle_tablet_tool_tip(
 }
 static void
 handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
-    struct seatop_move_floating_event *e = seat->seatop_data;
+    struct seatop_move_event *e = seat->seatop_data;
     struct wlr_cursor *cursor = seat->cursor->cursor;
 
     struct hwd_window *window = e->window;
@@ -74,7 +74,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
 
 static void
 handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
-    struct seatop_move_floating_event *e = seat->seatop_data;
+    struct seatop_move_event *e = seat->seatop_data;
     if (e->window == window) {
         seatop_begin_default(seat);
     }
@@ -88,11 +88,11 @@ static const struct hwd_seatop_impl seatop_impl = {
 };
 
 void
-seatop_begin_move_floating(struct hwd_seat *seat, struct hwd_window *window) {
+seatop_begin_move(struct hwd_seat *seat, struct hwd_window *window) {
     seatop_end(seat);
 
     struct hwd_cursor *cursor = seat->cursor;
-    struct seatop_move_floating_event *e = calloc(1, sizeof(struct seatop_move_floating_event));
+    struct seatop_move_event *e = calloc(1, sizeof(struct seatop_move_event));
     if (!e) {
         return;
     }

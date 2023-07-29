@@ -37,7 +37,7 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_down.h>
-#include <hayward/input/seatop_move_floating.h>
+#include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/input/seatop_resize_tiling.h>
 #include <hayward/input/tablet.h>
@@ -322,14 +322,14 @@ handle_tablet_tool_tip(
         // Handle beginning floating move.
         if (is_floating_or_child && !is_fullscreen_or_child && mod_pressed) {
             root_set_focused_window(root, window);
-            seatop_begin_move_floating(seat, window);
+            seatop_begin_move(seat, window);
             return;
         }
 
         // Handle moving a tiled window.
         if (config->tiling_drag && mod_pressed && !is_floating_or_child &&
             !window->pending.fullscreen) {
-            seatop_begin_move_floating(seat, window);
+            seatop_begin_move(seat, window);
             return;
         }
 
@@ -519,7 +519,7 @@ handle_button(
         uint32_t btn_move = config->floating_mod_inverse ? BTN_RIGHT : BTN_LEFT;
         if (button == btn_move && (mod_pressed || on_titlebar)) {
             root_set_focused_window(root, window);
-            seatop_begin_move_floating(seat, window); // TODO (hayward) should only accept windows.
+            seatop_begin_move(seat, window); // TODO (hayward) should only accept windows.
             return;
         }
     }
@@ -551,7 +551,7 @@ handle_button(
     if (config->tiling_drag && (mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED &&
         !is_floating && window && !window->pending.fullscreen) {
 
-        seatop_begin_move_floating(seat, window);
+        seatop_begin_move(seat, window);
         return;
     }
 
