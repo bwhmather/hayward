@@ -335,17 +335,6 @@ hwd_workspace_handle_closed(void *data, struct hwd_workspace_handle_v1 *workspac
     determine_bar_visibility(bar, false);
 }
 
-static void
-hwd_workspace_handle_done(void *data, struct hwd_workspace_handle_v1 *workspace_handle) {
-    struct haywardbar_workspace *workspace = data;
-    struct haywardbar *bar = workspace->bar;
-
-    wl_list_insert(&bar->workspaces, &workspace->link);
-
-    // TODO atomic state updates.
-    determine_bar_visibility(bar, false);
-}
-
 void
 hwd_workspace_handle_name(
     void *data, struct hwd_workspace_handle_v1 *workspace_handle, const char *name
@@ -357,7 +346,6 @@ hwd_workspace_handle_name(
 
 static const struct hwd_workspace_handle_v1_listener hwd_workspace_handle_listener = {
     .closed = hwd_workspace_handle_closed,
-    .done = hwd_workspace_handle_done,
     .name = hwd_workspace_handle_name,
 };
 
@@ -375,19 +363,28 @@ hwd_workspace_manager_handle_workspace(
     );
     hwd_workspace_handle_v1_set_user_data(workspace->workspace_handle, workspace);
 
-    wl_list_init(&workspace->link);
+    wl_list_insert(&bar->workspaces, &workspace->link);
     workspace->bar = bar;
+}
+
+static void
+hwd_workspace_manager_handle_done(void *data, struct hwd_workspace_manager_v1 *manager) {
+    struct haywardbar *bar = data;
+
+    // TODO atomic state updates.
+    determine_bar_visibility(bar, false);
 }
 
 static void
 hwd_workspace_manager_handle_finished(
     void *data, struct hwd_workspace_manager_v1 *hwd_workspace_manager_v1
 ) {
-    // TODO wait
+    // TODO clean up
 }
 
 static const struct hwd_workspace_manager_v1_listener hwd_workspace_manager_listener = {
     .workspace = hwd_workspace_manager_handle_workspace,
+    .done = hwd_workspace_manager_handle_done,
     .finished = hwd_workspace_manager_handle_finished,
 };
 

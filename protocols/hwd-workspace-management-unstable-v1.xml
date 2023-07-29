@@ -69,6 +69,16 @@
       <arg name="workspace" type="new_id" interface="hwd_workspace_handle_v1"/>
     </event>
 
+    <event name="done">
+      <description summary="all information about the workspace has been sent">
+        This event is sent after a complete batch of changes has been sent by
+        the workspace manager.
+
+        Clients should events sent by the manager or child workspace handles and
+        apply them atomically on done.
+      </description>
+    </event>
+
     <event name="finished">
       <description summary="the compositor has finished with the workspace manager">
         This event indicates that the compositor is done sending events
@@ -124,20 +134,6 @@
 
         Other protocols which extend the hwd_workspace_handle_v1 interface must
         also ignore requests other than destructors.
-      </description>
-    </event>
-
-    <event name="done">
-      <description summary="all information about the workspace has been sent">
-        This event is sent after all changes in the workspace state have been
-        sent.
-
-        This allows changes to the hwd_workspace_handle_v1 properties to be
-        atomically applied. Other protocols which extend the hwd_workspace_handle_v1
-         interface may use this event to also atomically apply any pending state.
-
-        This event must not be sent after the hwd_workspace_handle_v1.closed.
-        event.
       </description>
     </event>
 

@@ -30,10 +30,13 @@ void
 hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace);
 
 struct hwd_workspace_manager_v1 {
+    struct wl_event_loop *event_loop;
     struct wl_global *global;
 
     struct wl_list resources;  // wl_resource_get_link()
     struct wl_list workspaces; // hwd_workspace_handle_v1::link
+
+    struct wl_event_source *idle_source;
 
     struct {
         struct wl_signal destroy;

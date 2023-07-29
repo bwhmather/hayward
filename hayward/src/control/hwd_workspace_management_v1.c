@@ -15,6 +15,9 @@
 #include <hwd-workspace-management-unstable-v1-protocol.h>
 
 static void
+manager_set_dirty(struct hwd_workspace_manager_v1 *manager);
+
+static void
 workspace_handle_focus(struct wl_client *client, struct wl_resource *resource);
 
 static const struct hwd_workspace_handle_v1_interface workspace_handle_impl = {
@@ -73,8 +76,6 @@ create_workspace_resource_for_resource(
         hwd_workspace_handle_v1_send_name(resource, workspace->name);
     }
 
-    hwd_workspace_handle_v1_send_done(resource);
-
     return resource;
 }
 
@@ -103,6 +104,8 @@ hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager, const c
     wl_resource_for_each_safe(manager_resource, tmp, &manager->resources) {
         create_workspace_resource_for_resource(workspace, manager_resource);
     }
+
+    manager_set_dirty(manager);
 
     return workspace;
 }
@@ -169,6 +172,27 @@ manager_handle_bind(struct wl_client *client, void *data, uint32_t version, uint
     wl_list_for_each_safe(workspace, tmp, &manager->workspaces, link) {
         create_workspace_resource_for_resource(workspace, resource);
     }
+
+    hwd_workspace_manager_v1_send_done(resource);
+}
+
+static void
+manager_idle_send_done(void *data) {
+    struct hwd_workspace_manager_v1 *manager = data;
+    struct wl_resource *resource;
+    wl_resource_for_each(resource, &manager->resources) {
+        hwd_workspace_manager_v1_send_done(resource);
+    }
+    manager->idle_source = NULL;
+}
+
+static void
+manager_set_dirty(struct hwd_workspace_manager_v1 *manager) {
+    if (manager->idle_source != NULL) {
+        return;
+    }
+    manager->idle_source =
+        wl_event_loop_add_idle(manager->event_loop, manager_idle_send_done, manager);
 }
 
 struct hwd_workspace_manager_v1 *
@@ -178,6 +202,7 @@ hwd_workspace_manager_v1_create(struct wl_display *display) {
         return NULL;
     }
 
+    manager->event_loop = wl_display_get_event_loop(display);
     manager->global = wl_global_create(
         display, &hwd_workspace_manager_v1_interface, 1, manager, manager_handle_bind
     );
