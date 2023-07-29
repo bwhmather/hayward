@@ -142,9 +142,19 @@
         The name of the workspace has changed.
 
         The configured state must not be applied immediately. See
-        hwd_workspace_handle_v1.done for details.
+        hwd_workspace_manager_v1.done for details.
       </description>
       <arg name="title" type="string"/>
+    </event>
+
+    <event name="focused">
+      <description summary="whether workspace has focus">
+        This event is send out when a workspace is focused or unfocused.
+
+        The configured state must not be applied immediately. See
+        hwd_workspace_manager_v1.done for details.
+      </description>
+      <arg name="focused" type="int" summary="non-zero if focused, zero if not focused"/>
     </event>
 
     <request name="focus">

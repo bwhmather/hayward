@@ -175,6 +175,23 @@ workspace_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
     wl_signal_add(&transaction_manager->events.apply, &workspace->transaction_apply);
 
+    struct hwd_root *root = workspace->pending.root;
+    if (root != workspace->committed.root && workspace->workspace_handle != NULL) {
+        hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
+        workspace->workspace_handle = NULL;
+    }
+
+    if (root != NULL) {
+        if (workspace->workspace_handle == NULL) {
+            workspace->workspace_handle = hwd_workspace_handle_v1_create(root->workspace_manager);
+            hwd_workspace_handle_v1_set_name(workspace->workspace_handle, workspace->name);
+        }
+
+        hwd_workspace_handle_v1_set_focused(
+            workspace->workspace_handle, workspace->pending.focused
+        );
+    }
+
     workspace_copy_state(&workspace->committed, &workspace->pending);
 }
 
@@ -393,12 +410,6 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
     bool dirty = false;
 
     if (workspace->pending.root != root) {
-        if (workspace->workspace_handle != NULL) {
-            hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
-        }
-        workspace->workspace_handle = hwd_workspace_handle_v1_create(root->workspace_manager);
-        hwd_workspace_handle_v1_set_name(workspace->workspace_handle, workspace->name);
-
         workspace->pending.root = root;
         dirty = true;
     }
@@ -429,10 +440,6 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
     hwd_assert(workspace != NULL, "Expected workspace");
 
     bool dirty = false;
-
-    if (workspace->workspace_handle != NULL) {
-        hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
-    }
 
     if (workspace->pending.root != NULL) {
         workspace->pending.root = NULL;

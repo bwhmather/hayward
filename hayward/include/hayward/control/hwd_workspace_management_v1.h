@@ -10,6 +10,7 @@ struct hwd_workspace_handle_v1 {
     struct wl_list link;
 
     char *name;
+    bool focused;
 
     struct {
         // struct hwd_workspace_handle_v1_focus_event
@@ -31,6 +32,9 @@ hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace);
 
 void
 hwd_workspace_handle_v1_set_name(struct hwd_workspace_handle_v1 *workspace, const char *name);
+
+void
+hwd_workspace_handle_v1_set_focused(struct hwd_workspace_handle_v1 *workspace, bool focused);
 
 struct hwd_workspace_manager_v1 {
     struct wl_event_loop *event_loop;

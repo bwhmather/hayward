@@ -137,6 +137,21 @@ hwd_workspace_handle_v1_set_name(struct hwd_workspace_handle_v1 *workspace, cons
     manager_set_dirty(workspace->manager);
 }
 
+void
+hwd_workspace_handle_v1_set_focused(struct hwd_workspace_handle_v1 *workspace, bool focused) {
+    if (focused == workspace->focused) {
+        return;
+    }
+    workspace->focused = focused;
+
+    struct wl_resource *resource;
+    wl_resource_for_each(resource, &workspace->resources) {
+        hwd_workspace_handle_v1_send_focused(resource, focused);
+    }
+
+    manager_set_dirty(workspace->manager);
+}
+
 static void
 manager_handle_stop(struct wl_client *client, struct wl_resource *resource);
 

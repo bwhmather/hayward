@@ -344,10 +344,18 @@ hwd_workspace_handle_name(
     workspace->name = strdup(name);
 }
 
+void
+hwd_workspace_handle_focused(
+    void *data, struct hwd_workspace_handle_v1 *workspace_handle, int focused
+) {
+    struct haywardbar_workspace *workspace = data;
+    workspace->focused = focused != 0;
+}
+
 static const struct hwd_workspace_handle_v1_listener hwd_workspace_handle_listener = {
     .closed = hwd_workspace_handle_closed,
     .name = hwd_workspace_handle_name,
-};
+    .focused = hwd_workspace_handle_focused};
 
 static void
 hwd_workspace_manager_handle_workspace(
