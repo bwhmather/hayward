@@ -137,7 +137,6 @@ seat_get_target_at(
     while (scene_node != NULL) {
         struct hwd_layer_surface *layer_surface = layer_surface_for_scene_node(scene_node);
         if (layer_surface != NULL) {
-            // TODO
             return;
         }
 
