@@ -38,7 +38,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_down.h>
 #include <hayward/input/seatop_move_floating.h>
-#include <hayward/input/seatop_move_tiling.h>
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/input/seatop_resize_tiling.h>
 #include <hayward/input/tablet.h>
@@ -330,7 +329,7 @@ handle_tablet_tool_tip(
         // Handle moving a tiled window.
         if (config->tiling_drag && mod_pressed && !is_floating_or_child &&
             !window->pending.fullscreen) {
-            seatop_begin_move_tiling(seat, window);
+            seatop_begin_move_floating(seat, window);
             return;
         }
 
@@ -551,17 +550,8 @@ handle_button(
     // Handle moving a tiling container
     if (config->tiling_drag && (mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED &&
         !is_floating && window && !window->pending.fullscreen) {
-        struct hwd_window *focus = root_get_focused_window(root);
-        if (on_titlebar && focus != window) {
-            root_set_focused_window(root, window);
-        }
 
-        // If moving a container by its title bar, use a threshold for the drag
-        if (!mod_pressed && config->tiling_drag_threshold > 0) {
-            seatop_begin_move_tiling_threshold(seat, window);
-        } else {
-            seatop_begin_move_tiling(seat, window);
-        }
+        seatop_begin_move_floating(seat, window);
         return;
     }
 

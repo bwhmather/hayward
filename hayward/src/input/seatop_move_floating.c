@@ -3,6 +3,7 @@
 
 #include "hayward/input/seatop_move_floating.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
@@ -16,8 +17,10 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
 #include <hayward/input/tablet.h>
+#include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 struct seatop_move_floating_event {
     struct hwd_window *window;
@@ -94,11 +97,41 @@ seatop_begin_move_floating(struct hwd_seat *seat, struct hwd_window *window) {
         return;
     }
     e->window = window;
-    e->dx = cursor->cursor->x - window->pending.x;
-    e->dy = cursor->cursor->y - window->pending.y;
-
     seat->seatop_impl = &seatop_impl;
     seat->seatop_data = e;
+
+    if (!window_is_floating(window)) {
+        struct hwd_workspace *workspace = window->pending.workspace;
+        struct hwd_output *output = window->pending.output;
+
+        bool on_titlebar = cursor->cursor->y - window->pending.y <= window_titlebar_height();
+
+        double dx = cursor->cursor->x - window->pending.x;
+        double dy = cursor->cursor->y - window->pending.y;
+        double fdx = dx / window->pending.width;
+        double fdy = dy / window->pending.height;
+
+        // TODO Adjust column widths so that window current column fraction is 1.0.
+
+        struct hwd_column *old_parent = window->pending.parent;
+        window_detach(window);
+        workspace_add_floating(workspace, window);
+        if (old_parent) {
+            column_consider_destroy(old_parent);
+        }
+
+        // TODO should use saved size if possible.
+        window_floating_set_default_size(window);
+        window_floating_move_to(
+            window, output, cursor->cursor->x - fdx * window->pending.width,
+            cursor->cursor->y - (on_titlebar ? dy : (fdy * window->pending.height))
+        );
+
+        root_set_focused_window(root, window);
+    }
+
+    e->dx = cursor->cursor->x - window->pending.x;
+    e->dy = cursor->cursor->y - window->pending.y;
 
     window_raise_floating(window);
 
