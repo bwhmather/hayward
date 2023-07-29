@@ -117,7 +117,7 @@ workspace_update_layer_floating(struct hwd_workspace *workspace) {
             }
 
             wlr_scene_node_reparent(&window->scene_tree->node, workspace->layers.floating);
-            wlr_scene_node_place_above(&window->scene_tree->node, &prev_window->scene_tree->node);
+            wlr_scene_node_place_below(&window->scene_tree->node, &prev_window->scene_tree->node);
 
             prev_window = window;
         }
@@ -650,7 +650,7 @@ workspace_get_active_floating_window(struct hwd_workspace *workspace) {
         return NULL;
     }
 
-    return workspace->pending.floating->items[0];
+    return workspace->pending.floating->items[workspace->pending.floating->length - 1];
 }
 
 static struct hwd_window *
@@ -659,7 +659,7 @@ workspace_get_committed_active_floating_window(struct hwd_workspace *workspace) 
         return NULL;
     }
 
-    return workspace->committed.floating->items[0];
+    return workspace->committed.floating->items[workspace->committed.floating->length - 1];
 }
 
 struct hwd_window *
