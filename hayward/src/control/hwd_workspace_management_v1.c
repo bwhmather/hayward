@@ -80,9 +80,8 @@ create_workspace_resource_for_resource(
 }
 
 struct hwd_workspace_handle_v1 *
-hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager, const char *name) {
+hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager) {
     hwd_assert(manager != NULL, "Expected workspace manager");
-    hwd_assert(name != NULL, "Expected workspace name");
 
     struct hwd_workspace_handle_v1 *workspace = calloc(1, sizeof(struct hwd_workspace_handle_v1));
     if (workspace == NULL) {
@@ -93,9 +92,6 @@ hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager, const c
     workspace->manager = manager;
 
     wl_list_init(&workspace->resources);
-
-    workspace->name = strdup(name);
-    hwd_assert(workspace->name != NULL, "Could not allocate memory for name");
 
     wl_signal_init(&workspace->events.request_focus);
     wl_signal_init(&workspace->events.destroy);
@@ -126,6 +122,19 @@ hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace) {
 
     free(workspace->name);
     free(workspace);
+}
+
+void
+hwd_workspace_handle_v1_set_name(struct hwd_workspace_handle_v1 *workspace, const char *name) {
+    workspace->name = strdup(name);
+    hwd_assert(workspace->name != NULL, "Could not allocate memory for name");
+
+    struct wl_resource *resource;
+    wl_resource_for_each(resource, &workspace->resources) {
+        hwd_workspace_handle_v1_send_name(resource, workspace->name);
+    }
+
+    manager_set_dirty(workspace->manager);
 }
 
 static void

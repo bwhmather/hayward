@@ -396,8 +396,8 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
         if (workspace->workspace_handle != NULL) {
             hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
         }
-        workspace->workspace_handle =
-            hwd_workspace_handle_v1_create(root->workspace_manager, workspace->name);
+        workspace->workspace_handle = hwd_workspace_handle_v1_create(root->workspace_manager);
+        hwd_workspace_handle_v1_set_name(workspace->workspace_handle, workspace->name);
 
         workspace->pending.root = root;
         dirty = true;

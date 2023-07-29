@@ -24,10 +24,13 @@ struct hwd_workspace_handle_v1_focus_event {
 };
 
 struct hwd_workspace_handle_v1 *
-hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager, const char *name);
+hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager);
 
 void
 hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace);
+
+void
+hwd_workspace_handle_v1_set_name(struct hwd_workspace_handle_v1 *workspace, const char *name);
 
 struct hwd_workspace_manager_v1 {
     struct wl_event_loop *event_loop;
