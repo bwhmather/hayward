@@ -203,7 +203,7 @@ window_update_scene(struct hwd_window *window) {
         &window->layers.border_bottom->node, border_left, height - border_bottom
     );
     wlr_scene_rect_set_size(
-        window->layers.border_top, width - border_left - border_right, border_bottom
+        window->layers.border_bottom, width - border_left - border_right, border_bottom
     );
     wlr_scene_rect_set_color(window->layers.border_bottom, colors->border);
 

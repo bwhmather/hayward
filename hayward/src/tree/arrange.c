@@ -70,7 +70,9 @@ arrange_window(struct hwd_window *window) {
                 window->pending.border_thickness * window->pending.border_left -
                 window->pending.border_thickness * window->pending.border_right;
             content_height = window->pending.height - window_titlebar_height() -
-                window->pending.border_thickness * window->pending.border_bottom;
+                window->pending.border_thickness * window->pending.border_top -
+                window->pending.border_thickness * window->pending.border_bottom -
+                window->pending.border_thickness;
             break;
         }
 
