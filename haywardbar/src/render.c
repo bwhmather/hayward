@@ -445,7 +445,7 @@ predict_workspace_button_length(
     int text_width, text_height;
     get_text_size(
         cairo, config->font_description, &text_width, &text_height, NULL, 1, config->pango_markup,
-        "%s", ws->label
+        "%s", ws->name
     );
 
     int ws_vertical_padding = WS_VERTICAL_PADDING;
@@ -643,7 +643,7 @@ render_workspace_button(struct render_context *ctx, struct haywardbar_workspace 
     int text_width, text_height;
     get_text_size(
         cairo, config->font_description, &text_width, &text_height, NULL, 1, config->pango_markup,
-        "%s", ws->label
+        "%s", ws->name
     );
 
     int ws_vertical_padding = WS_VERTICAL_PADDING;
@@ -681,7 +681,7 @@ render_workspace_button(struct render_context *ctx, struct haywardbar_workspace 
     cairo_set_source_u32(cairo, box_colors.text);
     cairo_move_to(cairo, *x + width / 2 - text_width / 2, (int)floor(text_y));
     choose_text_aa_mode(ctx, box_colors.text);
-    render_text(cairo, config->font_description, 1, config->pango_markup, "%s", ws->label);
+    render_text(cairo, config->font_description, 1, config->pango_markup, "%s", ws->name);
 
     struct haywardbar_hotspot *hotspot = calloc(1, sizeof(struct haywardbar_hotspot));
     hotspot->x = *x;

@@ -39,14 +39,7 @@ static void
 haywardbar_workspace_free(struct haywardbar_workspace *workspace) {
     wl_list_remove(&workspace->link);
     free(workspace->name);
-    free(workspace->label);
     free(workspace);
-}
-
-void
-free_workspaces(struct wl_list *list) {
-    struct haywardbar_workspace *workspace, *tmp;
-    wl_list_for_each_safe(workspace, tmp, list, link) { haywardbar_workspace_free(workspace); }
 }
 
 static void
@@ -332,6 +325,66 @@ static const struct zxdg_output_v1_listener xdg_output_listener = {
 };
 
 static void
+hwd_workspace_handle_closed(void *data, struct hwd_workspace_handle_v1 *workspace_handle) {
+    struct haywardbar_workspace *workspace = data;
+    haywardbar_workspace_free(workspace);
+}
+
+static void
+hwd_workspace_handle_done(void *data, struct hwd_workspace_handle_v1 *workspace_handle) {
+    struct haywardbar_workspace *workspace = data;
+    struct haywardbar *bar = workspace->bar;
+
+    wl_list_insert(&bar->workspaces, &workspace->link);
+
+    // TODO atomic state updates.
+    determine_bar_visibility(bar, false);
+}
+
+void
+hwd_workspace_handle_name(
+    void *data, struct hwd_workspace_handle_v1 *workspace_handle, const char *name
+) {
+    struct haywardbar_workspace *workspace = data;
+    free(workspace->name);
+    workspace->name = strdup(name);
+}
+
+static const struct hwd_workspace_handle_v1_listener hwd_workspace_handle_listener = {
+    .closed = hwd_workspace_handle_closed,
+    .done = hwd_workspace_handle_done,
+    .name = hwd_workspace_handle_name,
+};
+
+static void
+hwd_workspace_manager_handle_workspace(
+    void *data, struct hwd_workspace_manager_v1 *hwd_workspace_manager_v1,
+    struct hwd_workspace_handle_v1 *hwd_workspace_handle_v1
+) {
+    struct haywardbar *bar = hwd_workspace_manager_v1_get_user_data(hwd_workspace_manager_v1);
+
+    struct haywardbar_workspace *workspace = calloc(1, sizeof(struct haywardbar_workspace));
+    workspace->workspace_handle = hwd_workspace_handle_v1;
+    hwd_workspace_handle_v1_add_listener(workspace->workspace_handle, &hwd_workspace_handle_listener, workspace);
+    hwd_workspace_handle_v1_set_user_data(workspace->workspace_handle, workspace);
+
+    wl_list_init(&workspace->link);
+    workspace->bar = bar;
+}
+
+static void
+hwd_workspace_manager_handle_finished(
+    void *data, struct hwd_workspace_manager_v1 *hwd_workspace_manager_v1
+) {
+    // TODO wait
+}
+
+static const struct hwd_workspace_manager_v1_listener hwd_workspace_manager_listener = {
+    .workspace = hwd_workspace_manager_handle_workspace,
+    .finished = hwd_workspace_manager_handle_finished,
+};
+
+static void
 add_xdg_output(struct haywardbar_output *output) {
     if (output->xdg_output != NULL) {
         return;
@@ -382,6 +435,8 @@ handle_global(
     } else if (strcmp(interface, hwd_workspace_manager_v1_interface.name) == 0) {
         bar->hwd_workspace_manager =
             wl_registry_bind(registry, name, &hwd_workspace_manager_v1_interface, 1);
+        hwd_workspace_manager_v1_add_listener(bar->hwd_workspace_manager, &hwd_workspace_manager_listener, bar);
+        hwd_workspace_manager_v1_set_user_data(bar->hwd_workspace_manager, bar);
     }
 }
 

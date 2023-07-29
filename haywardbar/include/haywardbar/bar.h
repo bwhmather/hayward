@@ -84,11 +84,13 @@ struct haywardbar_output {
 };
 
 struct haywardbar_workspace {
-    struct wl_list link; // haywardbar_output::workspaces
+    struct wl_list link; // haywardbar::workspaces
+    struct hwd_workspace_handle_v1 *workspace_handle;
     uint32_t wl_name;
-    int num;
+
+    struct haywardbar *bar;
+
     char *name;
-    char *label;
     bool focused;
     bool visible;
     bool urgent;
@@ -118,8 +120,6 @@ set_bar_dirty(struct haywardbar *bar);
  */
 bool
 determine_bar_visibility(struct haywardbar *bar, bool moving_layer);
-void
-free_workspaces(struct wl_list *list);
 
 void
 status_in(int fd, short mask, void *data);
