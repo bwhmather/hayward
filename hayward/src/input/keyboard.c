@@ -714,6 +714,9 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
 static int
 handle_keyboard_repeat(void *data) {
     struct hwd_keyboard *keyboard = (struct hwd_keyboard *)data;
+
+    hwd_transaction_manager_begin_transaction(transaction_manager);
+
     if (keyboard->repeat_binding) {
         if (keyboard->wlr->repeat_info.rate > 0) {
             // We queue the next event first, as the command might cancel it
@@ -726,6 +729,8 @@ handle_keyboard_repeat(void *data) {
 
         seat_execute_command(keyboard->seat_device->hwd_seat, keyboard->repeat_binding);
     }
+
+    hwd_transaction_manager_end_transaction(transaction_manager);
     return 0;
 }
 
