@@ -327,7 +327,12 @@ static const struct zxdg_output_v1_listener xdg_output_listener = {
 static void
 hwd_workspace_handle_closed(void *data, struct hwd_workspace_handle_v1 *workspace_handle) {
     struct haywardbar_workspace *workspace = data;
+    struct haywardbar *bar = workspace->bar;
+
+    hwd_workspace_handle_v1_set_user_data(workspace_handle, NULL);
+
     haywardbar_workspace_free(workspace);
+    determine_bar_visibility(bar, false);
 }
 
 static void
@@ -365,7 +370,9 @@ hwd_workspace_manager_handle_workspace(
 
     struct haywardbar_workspace *workspace = calloc(1, sizeof(struct haywardbar_workspace));
     workspace->workspace_handle = hwd_workspace_handle_v1;
-    hwd_workspace_handle_v1_add_listener(workspace->workspace_handle, &hwd_workspace_handle_listener, workspace);
+    hwd_workspace_handle_v1_add_listener(
+        workspace->workspace_handle, &hwd_workspace_handle_listener, workspace
+    );
     hwd_workspace_handle_v1_set_user_data(workspace->workspace_handle, workspace);
 
     wl_list_init(&workspace->link);
@@ -435,7 +442,9 @@ handle_global(
     } else if (strcmp(interface, hwd_workspace_manager_v1_interface.name) == 0) {
         bar->hwd_workspace_manager =
             wl_registry_bind(registry, name, &hwd_workspace_manager_v1_interface, 1);
-        hwd_workspace_manager_v1_add_listener(bar->hwd_workspace_manager, &hwd_workspace_manager_listener, bar);
+        hwd_workspace_manager_v1_add_listener(
+            bar->hwd_workspace_manager, &hwd_workspace_manager_listener, bar
+        );
         hwd_workspace_manager_v1_set_user_data(bar->hwd_workspace_manager, bar);
     }
 }

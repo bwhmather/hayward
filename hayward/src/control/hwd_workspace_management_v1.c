@@ -109,7 +109,7 @@ hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager, const c
 
 void
 hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace) {
-    hwd_assert(workspace == NULL, "Expected workspace handle");
+    hwd_assert(workspace != NULL, "Expected workspace handle");
 
     wl_signal_emit_mutable(&workspace->events.destroy, workspace);
 

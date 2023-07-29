@@ -395,12 +395,9 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
     if (workspace->pending.root != root) {
         if (workspace->workspace_handle != NULL) {
             hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
-            workspace->workspace_handle = NULL;
         }
-        if (root != NULL) {
-            workspace->workspace_handle =
-                hwd_workspace_handle_v1_create(root->workspace_manager, workspace->name);
-        }
+        workspace->workspace_handle =
+            hwd_workspace_handle_v1_create(root->workspace_manager, workspace->name);
 
         workspace->pending.root = root;
         dirty = true;
@@ -432,6 +429,10 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
     hwd_assert(workspace != NULL, "Expected workspace");
 
     bool dirty = false;
+
+    if (workspace->workspace_handle != NULL) {
+        hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
+    }
 
     if (workspace->pending.root != NULL) {
         workspace->pending.root = NULL;
