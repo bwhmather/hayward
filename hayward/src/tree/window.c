@@ -70,10 +70,13 @@ window_init_scene(struct hwd_window *window) {
         &scene_tree_marker_interface
     );
 
+    struct wlr_scene_tree *scene_tree = wlr_scene_tree_create(window->scene_tree); // TODO
+    window->layers.inner_tree = scene_tree;
+
     const float border_color[] = {1.0, 0.0, 0.0, 1.0};
     const float text_color[] = {1.0, 1.0, 1.0, 1.0};
 
-    window->layers.title_tree = wlr_scene_tree_create(window->scene_tree);
+    window->layers.title_tree = wlr_scene_tree_create(scene_tree);
     hwd_assert(window->layers.title_tree != NULL, "Allocation failed");
     window->layers.title_background =
         wlr_scene_rect_create(window->layers.title_tree, 0, 0, (const float *)border_color);
@@ -85,7 +88,7 @@ window_init_scene(struct hwd_window *window) {
         wlr_scene_rect_create(window->layers.title_tree, 0, 0, (const float *)border_color);
     hwd_assert(window->layers.title_border != NULL, "Allocation failed");
 
-    window->layers.border_tree = wlr_scene_tree_create(window->scene_tree);
+    window->layers.border_tree = wlr_scene_tree_create(scene_tree);
     hwd_assert(window->layers.border_tree != NULL, "Allocation failed");
     window->layers.border_top =
         wlr_scene_rect_create(window->layers.border_tree, 0, 0, (const float *)border_color);
@@ -100,7 +103,7 @@ window_init_scene(struct hwd_window *window) {
         wlr_scene_rect_create(window->layers.border_tree, 0, 0, (const float *)border_color);
     hwd_assert(window->layers.border_right != NULL, "Allocation failed");
 
-    window->layers.content_tree = wlr_scene_tree_create(window->scene_tree);
+    window->layers.content_tree = wlr_scene_tree_create(scene_tree);
     hwd_assert(window->layers.content_tree != NULL, "Allocation failed");
 }
 
@@ -111,7 +114,7 @@ window_update_scene(struct hwd_window *window) {
     double width = window->committed.width;
     double height = window->committed.height;
 
-    wlr_scene_node_set_position(&window->scene_tree->node, x, y);
+    wlr_scene_node_set_position(&window->layers.inner_tree->node, x, y);
 
     int border_thickness = window->committed.border_thickness;
 
@@ -249,6 +252,8 @@ window_destroy_scene(struct hwd_window *window) {
         &window->scene_tree->node.parent->node == &root->orphans->node,
         "Window scene tree is still attached"
     );
+
+    wlr_scene_node_destroy(&window->layers.inner_tree->node);
 
     wlr_addon_finish(&window->scene_tree_marker);
     wlr_scene_node_destroy(&window->scene_tree->node);
@@ -493,6 +498,20 @@ window_reconcile_detached(struct hwd_window *window) {
     window->pending.focused = false;
 
     window_set_dirty(window);
+}
+
+void
+window_set_moving(struct hwd_window *window, bool moving) {
+    if (window->moving == moving) {
+        return;
+    }
+    window->moving = moving;
+
+    if (moving) {
+        wlr_scene_node_reparent(&window->layers.inner_tree->node, root->layers.moving);
+    } else {
+        wlr_scene_node_reparent(&window->layers.inner_tree->node, window->scene_tree);
+    }
 }
 
 void

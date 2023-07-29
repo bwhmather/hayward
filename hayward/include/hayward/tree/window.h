@@ -84,6 +84,8 @@ struct hwd_window {
 
     bool dirty;
 
+    bool moving;
+
     // Identifier tracking the serial of the configure event sent during at the
     // beginning of the current commit.  Used to discard responses for previous
     // configures.
@@ -122,6 +124,7 @@ struct hwd_window {
     struct wlr_addon scene_tree_marker;
 
     struct {
+        struct wlr_scene_tree *inner_tree;
         struct wlr_scene_tree *title_tree;
         struct wlr_scene_rect *title_background;
         struct hwd_text_node *title_text;
@@ -172,6 +175,9 @@ void
 window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column);
 void
 window_reconcile_detached(struct hwd_window *window);
+
+void
+window_set_moving(struct hwd_window *window, bool moving);
 
 /**
  * If the window is involved in a drag or resize operation via a mouse, this
