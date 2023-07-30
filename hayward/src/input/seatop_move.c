@@ -6,13 +6,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
 
-#include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
@@ -51,6 +51,7 @@ finalize_move(struct hwd_seat *seat) {
         window_floating_move_to(window, output, window->pending.x, window->pending.y);
     }
 
+    window_set_moving(e->window, false);
     seatop_begin_default(seat);
 }
 
@@ -83,6 +84,9 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     struct hwd_output *output = window->pending.output;
     struct hwd_workspace *workspace = root_get_active_workspace(root);
 
+    window_floating_move_to(window, output, cursor->x - e->dx, cursor->y - e->dy);
+
+    // === Check if we can leave old target ===
     if (e->target_column != NULL &&
         !wlr_box_contains_point(&e->target_area, cursor->x, cursor->y)) {
         column_consider_destroy(e->target_column);
@@ -91,69 +95,106 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
         arrange_workspace(workspace);
     }
 
-    if (e->target_column == NULL) {
-        struct hwd_output *target_output = NULL;
-        struct hwd_window *target_window = NULL;
-        struct wlr_surface *surface = NULL;
-        double sx, sy = 0;
-
-        seat_get_target_at(
-            seat, cursor->x, cursor->y, &target_output, &target_window, &surface, &sx, &sy
-        );
-
-        if (target_output == NULL) {
-            return;
-        }
-
-        // Are we near the edge of the output?
-        //   - Create placeholder column and draw preview square over whole thing.
-        //   - Exit when moved to different output, or some distance away from edge.
-        // State: output is output, column is placeholder column, behind_window is NULL.
-        if (cursor->x - target_output->lx < 20) {
-            struct hwd_column *target_column = column_create();
-            workspace_insert_tiling(workspace, target_output, target_column, 0);
-            arrange_workspace(workspace);
-
-            e->target_area.x = target_output->lx;
-            e->target_area.y = target_output->ly;
-            e->target_area.width = 40;
-            e->target_area.height = target_output->height;
-
-            e->target_column = target_column;
-        }
-
-        if (target_output->lx + target_output->width - cursor->x < 20) {
-            struct hwd_column *target_column = column_create();
-            workspace_insert_tiling(workspace, target_output, target_column, 0);
-            arrange_workspace(workspace);
-
-            e->target_area.x = target_output->lx + target_output->width - 40;
-            e->target_area.y = target_output->ly;
-            e->target_area.width = 40;
-            e->target_area.height = target_output->height;
-
-            e->target_column = target_column;
-        }
-
-        // Are we over the edge of a column?
-        //   - Create placeholder column and draw preview square over whole thing.
-        //   - Exit when we moved outside of slightly larger square (probably a bit
-        //     smaller than placeholder column).
-        // State: output is output, column is placeholder column, behind window is NULL.
-        // TODO
-
-        // Are we at the center of a tiled window?
-        //   - Draw preview square on top of the active window.
-        //   - Exit when moved outside of larger square.
-        // TODO
-
-        // Are we over the titlebar of a tiled window?
-        //   - Move titlebar towards active window and draw preview square in its place.
-        //   - Exit when moved outside the original titlebar square.  No hysterisis.
-        // TODO
+    if (e->target_column != NULL) {
+        return;
     }
 
-    window_floating_move_to(window, output, cursor->x - e->dx, cursor->y - e->dy);
+    // === Find new target ===
+    struct hwd_output *target_output = NULL;
+    struct hwd_window *target_window = NULL;
+    struct wlr_surface *surface = NULL;
+    double sx, sy = 0;
+
+    seat_get_target_at(
+        seat, cursor->x, cursor->y, &target_output, &target_window, &surface, &sx, &sy
+    );
+
+    if (target_output == NULL) {
+        return;
+    }
+
+    // Are we near the edge of the output?
+    //   - Create placeholder column and draw preview square over whole thing.
+    //   - Exit when moved to different output, or some distance away from edge.
+    if (cursor->x - target_output->lx < 20) {
+        e->target_area.x = target_output->lx;
+        e->target_area.y = target_output->ly;
+        e->target_area.width = 40;
+        e->target_area.height = target_output->height;
+
+        struct hwd_column *target_column = column_create();
+        workspace_insert_column_left(workspace, target_output, target_column);
+        arrange_workspace(workspace);
+        e->target_column = target_column;
+        return;
+    }
+    if (target_output->lx + target_output->width - cursor->x < 20) {
+        e->target_area.x = target_output->lx + target_output->width - 40;
+        e->target_area.y = target_output->ly;
+        e->target_area.width = 40;
+        e->target_area.height = target_output->height;
+
+        struct hwd_column *target_column = column_create();
+        workspace_insert_column_right(workspace, target_output, target_column);
+        arrange_workspace(workspace);
+        e->target_column = target_column;
+        return;
+    }
+
+    if (target_window == NULL) {
+        return;
+    }
+    if (!window_is_tiling(target_window)) {
+        return;
+    }
+
+    // Are we over the edge of a column?
+    //   - Create placeholder column and draw preview square over whole thing.
+    //   - Exit when we moved outside of slightly larger square (probably a bit
+    //     smaller than placeholder column).
+    if (cursor->x - target_window->pending.x < 20) {
+        e->target_area.x = target_window->pending.x - 40;
+        e->target_area.y = target_window->pending.y;
+        e->target_area.width = 80;
+        e->target_area.height = target_window->pending.parent->pending.height;
+
+        struct hwd_column *target_column = column_create();
+        workspace_insert_column_before(workspace, target_window->pending.parent, target_column);
+        arrange_workspace(workspace);
+        e->target_column = target_column;
+
+        return;
+    }
+    if (target_window->pending.x + target_window->pending.width - cursor->x < 20) {
+        e->target_area.x = target_window->pending.x + target_window->pending.width - 40;
+        e->target_area.y = target_window->pending.y;
+        e->target_area.width = 80; // We want to extend over the next column as well.
+        e->target_area.height = target_window->pending.parent->pending.height;
+
+        struct hwd_column *target_column = column_create();
+        workspace_insert_column_after(workspace, target_window->pending.parent, target_column);
+        arrange_workspace(workspace);
+        e->target_column = target_column;
+        return;
+    }
+
+    // Are we at the center of a tiled window?
+    //   - Draw preview square on top of the active window.
+    //   - Exit when moved outside of larger square.
+    // TODO
+
+    // Are we over the titlebar of a tiled window?
+    //   - Move titlebar towards active window and draw preview square in its place.
+    //   - Exit when moved outside the original titlebar square.  No hysteresis.
+    // TODO
+}
+
+static void
+handle_end(struct hwd_seat *seat) {
+    struct seatop_move_event *e = seat->seatop_data;
+    if (e->window != NULL) {
+        window_set_moving(e->window, false);
+    }
 }
 
 static void
@@ -162,6 +203,7 @@ handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
     // TODO track unref column instead.
     e->target_column = NULL;
     if (e->window == window) {
+        e->window = NULL;
         seatop_begin_default(seat);
     }
 }
@@ -170,6 +212,7 @@ static const struct hwd_seatop_impl seatop_impl = {
     .button = handle_button,
     .pointer_motion = handle_pointer_motion,
     .tablet_tool_tip = handle_tablet_tool_tip,
+    .end = handle_end,
     .unref = handle_unref,
 };
 
@@ -220,6 +263,7 @@ seatop_begin_move(struct hwd_seat *seat, struct hwd_window *window) {
     e->dy = cursor->cursor->y - window->pending.y;
 
     window_raise_floating(window);
+    window_set_moving(window, true);
 
     cursor_set_image(cursor, "grab", NULL);
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
