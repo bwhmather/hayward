@@ -111,6 +111,25 @@ void
 workspace_insert_tiling(
     struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column, int index
 );
+
+void
+workspace_insert_column_left(
+    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
+);
+void
+workspace_insert_column_right(
+    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
+);
+
+void
+workspace_insert_column_before(
+    struct hwd_workspace *workspace, struct hwd_column *fixed, struct hwd_column *column
+);
+void
+workspace_insert_column_after(
+    struct hwd_workspace *workspace, struct hwd_column *fixed, struct hwd_column *column
+);
+
 void
 workspace_remove_tiling(struct hwd_workspace *workspace, struct hwd_column *column);
 

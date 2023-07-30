@@ -548,6 +548,82 @@ workspace_insert_tiling(
 }
 
 void
+workspace_insert_column_left(
+    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
+) {
+    hwd_assert(workspace != NULL, "Expected workspace");
+    hwd_assert(output != NULL, "Expected output");
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
+    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+
+    list_t *columns = workspace->pending.tiling;
+    int index = 0;
+    list_insert(columns, index, column);
+
+    column_reconcile(column, workspace, output);
+    workspace_set_dirty(workspace);
+}
+
+void
+workspace_insert_column_right(
+    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
+) {
+    hwd_assert(workspace != NULL, "Expected workspace");
+    hwd_assert(output != NULL, "Expected output");
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
+    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+
+    list_t *columns = workspace->pending.tiling;
+    int index = columns->length ? columns->length - 1 : 0;
+    list_insert(columns, index, column);
+
+    column_reconcile(column, workspace, output);
+    workspace_set_dirty(workspace);
+}
+
+void
+workspace_insert_column_before(
+    struct hwd_workspace *workspace, struct hwd_column *fixed, struct hwd_column *column
+) {
+    hwd_assert(workspace != NULL, "Expected workspace");
+    hwd_assert(fixed != NULL, "Expected sibling column");
+    hwd_assert(fixed->pending.workspace != NULL, "Expected sibling column attached to workspace");
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
+    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+
+    list_t *columns = workspace->pending.tiling;
+    int index = list_find(columns, fixed);
+    hwd_assert(index != -1, "Could not find sibling column in columns array");
+    list_insert(columns, index, column);
+
+    column_reconcile(column, workspace, fixed->pending.output);
+    workspace_set_dirty(workspace);
+}
+
+void
+workspace_insert_column_after(
+    struct hwd_workspace *workspace, struct hwd_column *fixed, struct hwd_column *column
+) {
+    hwd_assert(workspace != NULL, "Expected workspace");
+    hwd_assert(fixed != NULL, "Expected sibling column");
+    hwd_assert(fixed->pending.workspace != NULL, "Expected sibling column attached to workspace");
+    hwd_assert(column != NULL, "Expected column");
+    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
+    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+
+    list_t *columns = workspace->pending.tiling;
+    int index = list_find(columns, fixed);
+    hwd_assert(index != -1, "Could not find sibling column in columns array");
+    list_insert(columns, index + 1, column);
+
+    column_reconcile(column, workspace, fixed->pending.output);
+    workspace_set_dirty(workspace);
+}
+
+void
 workspace_remove_tiling(struct hwd_workspace *workspace, struct hwd_column *column) {
     hwd_assert(workspace != NULL, "Expected workspace");
     hwd_assert(column != NULL, "Expected column");
