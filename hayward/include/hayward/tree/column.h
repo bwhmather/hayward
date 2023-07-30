@@ -36,6 +36,13 @@ struct hwd_column_state {
 
     struct hwd_window *active_child;
 
+    // Whether the column should render a preview of the effect of inserting a
+    // new window.  `preview_target` is an optional pointer to a child window
+    // that the new window will be inserted after.
+    bool show_preview;
+    struct hwd_window *preview_target;
+    struct wlr_box preview_box;
+
     bool dead;
 };
 
@@ -64,6 +71,11 @@ struct hwd_column {
     float alpha;
 
     struct wlr_scene_tree *scene_tree;
+
+    struct {
+        struct wlr_scene_tree *child_tree;
+        struct wlr_scene_rect *preview_box;
+    } layers;
 
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;

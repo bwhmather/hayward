@@ -863,6 +863,32 @@ window_get_box(struct hwd_window *window, struct wlr_box *box) {
     box->height = window->pending.height;
 }
 
+void
+window_get_titlebar_box(struct hwd_window *window, struct wlr_box *box) {
+    hwd_assert(window != NULL, "Expected window");
+
+    double border_thickness = window->pending.border_thickness;
+
+    box->x = window->pending.x;
+    box->y = window->pending.y;
+    box->width = window->pending.width;
+    switch (window->pending.border) {
+    default:
+    case B_CSD:
+        box->height = border_thickness; // TODO
+        break;
+    case B_NONE:
+        box->height = 0;
+        break;
+    case B_PIXEL:
+        box->height = border_thickness;
+        break;
+    case B_NORMAL:
+        box->height = window_titlebar_height() + 2 * border_thickness;
+        break;
+    }
+}
+
 /**
  * Indicate to clients in this window that they are participating in (or
  * have just finished) an interactive resize

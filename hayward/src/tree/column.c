@@ -35,11 +35,19 @@ static void
 column_init_scene(struct hwd_column *column) {
     column->scene_tree = wlr_scene_tree_create(root->orphans);
     hwd_assert(column->scene_tree != NULL, "Allocation failed");
+
+    column->layers.child_tree = wlr_scene_tree_create(column->scene_tree);
+    hwd_assert(column->layers.child_tree != NULL, "Allocation failed");
+
+    const float preview_color[] = {0.8, 0.0, 0.0, 0.8};
+    column->layers.preview_box =
+        wlr_scene_rect_create(column->scene_tree, 0, 0, (const float *)preview_color);
+    hwd_assert(column->layers.preview_box != NULL, "Allocation failed");
 }
 
 static void
 column_update_scene(struct hwd_column *column) {
-    struct wl_list *link = &column->scene_tree->children;
+    struct wl_list *link = &column->layers.child_tree->children;
 
     if (column->committed.children->length) {
         // Anchor top most child at top of stack.
@@ -47,7 +55,7 @@ column_update_scene(struct hwd_column *column) {
         int child_index = children->length - 1;
 
         struct hwd_window *child = children->items[child_index];
-        wlr_scene_node_reparent(&child->scene_tree->node, column->scene_tree);
+        wlr_scene_node_reparent(&child->scene_tree->node, column->layers.child_tree);
         wlr_scene_node_raise_to_top(&child->scene_tree->node);
 
         struct hwd_window *prev_child = child;
@@ -61,7 +69,7 @@ column_update_scene(struct hwd_column *column) {
                 continue;
             }
 
-            wlr_scene_node_reparent(&child->scene_tree->node, column->scene_tree);
+            wlr_scene_node_reparent(&child->scene_tree->node, column->layers.child_tree);
             wlr_scene_node_place_below(&child->scene_tree->node, &prev_child->scene_tree->node);
 
             prev_child = child;
@@ -73,19 +81,33 @@ column_update_scene(struct hwd_column *column) {
     // Iterate over any nodes that haven't been moved to the top as a result
     // of belonging to a child and unparent them.
     link = link->prev;
-    while (link != &column->scene_tree->children) {
+    while (link != &column->layers.child_tree->children) {
         struct wlr_scene_node *node = wl_container_of(link, node, link);
         link = link->prev;
-        if (node->parent == column->scene_tree) {
+        if (node->parent == column->layers.child_tree) {
             wlr_scene_node_reparent(node, root->orphans); // TODO
         }
+    }
+
+    if (column->committed.show_preview) {
+        wlr_scene_node_set_position(
+            &column->layers.preview_box->node, column->committed.preview_box.x,
+            column->committed.preview_box.y
+        );
+        wlr_scene_rect_set_size(
+            column->layers.preview_box, column->committed.preview_box.width,
+            column->committed.preview_box.height
+        );
+        wlr_scene_node_set_enabled(&column->layers.preview_box->node, true);
+    } else {
+        wlr_scene_node_set_enabled(&column->layers.preview_box->node, false);
     }
 }
 
 static void
 column_destroy_scene(struct hwd_column *column) {
     hwd_assert(
-        wl_list_empty(&column->scene_tree->children),
+        wl_list_empty(&column->layers.child_tree->children),
         "Can't destroy scene tree of column with children"
     );
 

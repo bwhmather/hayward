@@ -39,9 +39,19 @@ finalize_move(struct hwd_seat *seat) {
 
     if (e->target_column != NULL) {
         window_detach(e->window);
-        column_add_child(e->target_column, e->window);
+        if (e->target_column->pending.preview_target != NULL) {
+            column_add_sibling(e->target_column->pending.preview_target, e->window, true);
+            if (e->target_column->pending.active_child ==
+                e->target_column->pending.preview_target) {
+                root_set_focused_window(root, e->window);
+            }
+        } else {
+            // TODO insert as first.
+            column_insert_child(e->target_column, e->window, 0);
+        }
+        e->target_column->pending.show_preview = false;
+        e->target_column->pending.preview_target = NULL;
         arrange_column(e->target_column);
-        root_set_focused_window(root, e->window);
     } else {
         // The window is already at the right location, but we want to bind it to
         // the correct output.
@@ -91,7 +101,8 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     if (e->target_column != NULL &&
         !wlr_box_contains_point(&e->target_area, cursor->x, cursor->y)) {
         column_consider_destroy(e->target_column);
-        // TODO clear preview state.
+        e->target_column->pending.show_preview = false;
+        e->target_column->pending.preview_target = NULL;
         e->target_column = NULL;
         arrange_workspace(workspace);
     }
@@ -124,6 +135,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
         e->target_area.height = target_output->height;
 
         struct hwd_column *target_column = column_create();
+        target_column->pending.show_preview = true;
         workspace_insert_column_left(workspace, target_output, target_column);
         arrange_workspace(workspace);
         e->target_column = target_column;
@@ -136,6 +148,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
         e->target_area.height = target_output->height;
 
         struct hwd_column *target_column = column_create();
+        target_column->pending.show_preview = true;
         workspace_insert_column_right(workspace, target_output, target_column);
         arrange_workspace(workspace);
         e->target_column = target_column;
@@ -160,6 +173,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
         e->target_area.height = target_window->pending.parent->pending.height;
 
         struct hwd_column *target_column = column_create();
+        target_column->pending.show_preview = true;
         workspace_insert_column_before(workspace, target_window->pending.parent, target_column);
         arrange_workspace(workspace);
         e->target_column = target_column;
@@ -173,8 +187,35 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
         e->target_area.height = target_window->pending.parent->pending.height;
 
         struct hwd_column *target_column = column_create();
+        target_column->pending.show_preview = true;
         workspace_insert_column_after(workspace, target_window->pending.parent, target_column);
         arrange_workspace(workspace);
+        e->target_column = target_column;
+        return;
+    }
+
+    // Are we over the titlebar of a tiled window?
+    //   - Move titlebar towards active window and draw preview square in its place.
+    //   - Exit when moved outside the original titlebar square.  No hysteresis.
+    struct wlr_box titlebar_box;
+    window_get_titlebar_box(target_window, &titlebar_box);
+    if (wlr_box_contains_point(&titlebar_box, cursor->x, cursor->y)) {
+        e->target_area.x = titlebar_box.x;
+        e->target_area.y = titlebar_box.y;
+        e->target_area.width = titlebar_box.width;
+        e->target_area.height = titlebar_box.height;
+
+        struct hwd_column *target_column = target_window->pending.parent;
+        int target_index = list_find(target_column->pending.children, target_window);
+        int active_index =
+            list_find(target_column->pending.children, target_column->pending.active_child);
+        if (target_column->pending.layout != L_STACKED || target_index <= active_index) {
+            target_window = window_get_previous_sibling(target_window);
+        }
+        target_column->pending.show_preview = true;
+        target_column->pending.preview_target = target_window;
+        arrange_column(target_column);
+
         e->target_column = target_column;
         return;
     }
@@ -182,12 +223,26 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     // Are we at the center of a tiled window?
     //   - Draw preview square on top of the active window.
     //   - Exit when moved outside of larger square.
-    // TODO
+    struct wlr_box centre_box;
+    window_get_box(target_window, &centre_box);
+    centre_box.width /= 5;
+    centre_box.x += 2 * centre_box.width;
+    centre_box.height /= 5;
+    centre_box.height += 2 * centre_box.height;
+    if (wlr_box_contains_point(&centre_box, cursor->x, cursor->y)) {
+        e->target_area.x = centre_box.x + centre_box.width;
+        e->target_area.y = centre_box.y + centre_box.height;
+        e->target_area.width = titlebar_box.width * 3;
+        e->target_area.height = titlebar_box.height * 3;
 
-    // Are we over the titlebar of a tiled window?
-    //   - Move titlebar towards active window and draw preview square in its place.
-    //   - Exit when moved outside the original titlebar square.  No hysteresis.
-    // TODO
+        struct hwd_column *target_column = target_window->pending.parent;
+        target_column->pending.show_preview = true;
+        target_column->pending.preview_target = target_window;
+        arrange_column(target_column);
+
+        e->target_column = target_column;
+        return;
+    }
 }
 
 static void
@@ -202,7 +257,12 @@ static void
 handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
     struct seatop_move_event *e = seat->seatop_data;
     // TODO track unref column instead.
-    e->target_column = NULL;
+    if (e->target_column) {
+        e->target_column->pending.show_preview = false;
+        e->target_column->pending.preview_target = NULL;
+        e->target_column = NULL;
+    }
+
     if (e->window == window) {
         e->window = NULL;
         seatop_begin_default(seat);
