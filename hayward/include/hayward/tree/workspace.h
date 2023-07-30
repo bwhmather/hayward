@@ -108,11 +108,6 @@ void
 workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *window);
 
 void
-workspace_insert_tiling(
-    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column, int index
-);
-
-void
 workspace_insert_column_left(
     struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
 );

@@ -173,8 +173,8 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
             new_column->width_fraction = 0;
             new_column->pending.layout = L_STACKED;
 
-            workspace_insert_tiling(
-                window->pending.workspace, old_column->pending.output, new_column, 0
+            workspace_insert_column_left(
+                window->pending.workspace, old_column->pending.output, new_column
             );
             old_column_index += 1;
         }
@@ -203,9 +203,8 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
             new_column->width_fraction = 0;
             new_column->pending.layout = L_STACKED;
 
-            workspace_insert_tiling(
-                window->pending.workspace, old_column->pending.output, new_column,
-                old_column_index + 1
+            workspace_insert_column_right(
+                window->pending.workspace, old_column->pending.output, new_column
             );
         }
 

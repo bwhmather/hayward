@@ -524,30 +524,6 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
 }
 
 void
-workspace_insert_tiling(
-    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column, int index
-) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(output != NULL, "Expected output");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
-    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
-    hwd_assert(
-        index >= 0 && index <= workspace->pending.tiling->length, "Column index not in bounds"
-    );
-
-    list_insert(workspace->pending.tiling, index, column);
-    if (workspace->pending.active_column == NULL) {
-        workspace->pending.active_column = column;
-    }
-
-    column_reconcile(column, workspace, output);
-
-    workspace_set_dirty(workspace);
-    column_set_dirty(column);
-}
-
-void
 workspace_insert_column_left(
     struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
 ) {

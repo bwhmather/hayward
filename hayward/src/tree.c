@@ -92,7 +92,7 @@ window_set_floating(struct hwd_window *window, bool enable) {
         }
         if (column == NULL) {
             column = column_create();
-            workspace_insert_tiling(workspace, output, column, 0);
+            workspace_insert_column_left(workspace, output, column);
         }
 
         hwd_move_window_to_column(window, column);
@@ -205,7 +205,7 @@ hwd_move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *wo
         }
         if (column == NULL) {
             column = column_create();
-            workspace_insert_tiling(workspace, output, column, 0);
+            workspace_insert_column_left(workspace, output, column);
         }
 
         window->pending.width = window->pending.height = 0;
@@ -253,7 +253,7 @@ hwd_move_window_to_output_from_direction(
         }
         if (column == NULL) {
             column = column_create();
-            workspace_insert_tiling(workspace, output, column, 0);
+            workspace_insert_column_left(workspace, output, column);
         }
 
         window->pending.width = window->pending.height = 0;

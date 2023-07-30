@@ -460,7 +460,7 @@ view_map(
             column_add_sibling(target_sibling, view->window, 1);
         } else {
             struct hwd_column *column = column_create();
-            workspace_insert_tiling(workspace, output, column, 0);
+            workspace_insert_column_left(workspace, output, column);
             column_add_child(column, view->window);
         }
 
