@@ -41,6 +41,7 @@ finalize_move(struct hwd_seat *seat) {
         window_detach(e->window);
         column_add_child(e->target_column, e->window);
         arrange_column(e->target_column);
+        root_set_focused_window(root, e->window);
     } else {
         // The window is already at the right location, but we want to bind it to
         // the correct output.
