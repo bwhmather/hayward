@@ -39,7 +39,7 @@ column_init_scene(struct hwd_column *column) {
     column->layers.child_tree = wlr_scene_tree_create(column->scene_tree);
     hwd_assert(column->layers.child_tree != NULL, "Allocation failed");
 
-    const float preview_color[] = {0.8, 0.0, 0.0, 0.8};
+    const float preview_color[] = {0.125, 0.267, 0.374, 0.8};
     column->layers.preview_box =
         wlr_scene_rect_create(column->scene_tree, 0, 0, (const float *)preview_color);
     hwd_assert(column->layers.preview_box != NULL, "Allocation failed");
@@ -91,12 +91,14 @@ column_update_scene(struct hwd_column *column) {
 
     if (column->committed.show_preview) {
         wlr_scene_node_set_position(
-            &column->layers.preview_box->node, column->committed.preview_box.x,
-            column->committed.preview_box.y
+            &column->layers.preview_box->node,
+            column->committed.preview_box.x + 3,
+            column->committed.preview_box.y + 3
         );
         wlr_scene_rect_set_size(
-            column->layers.preview_box, column->committed.preview_box.width,
-            column->committed.preview_box.height
+            column->layers.preview_box,
+            column->committed.preview_box.width - 6,
+            column->committed.preview_box.height - 6
         );
         wlr_scene_node_set_enabled(&column->layers.preview_box->node, true);
     } else {
