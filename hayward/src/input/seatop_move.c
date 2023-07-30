@@ -33,11 +33,19 @@ struct seatop_move_event {
 
     struct wlr_box target_area;
     struct hwd_column *target_column;
+
+    double ref_lx, ref_ly; // Cursor's position at start of operation.
+    bool threshold_reached;
 };
 
 static void
 finalize_move(struct hwd_seat *seat) {
     struct seatop_move_event *e = seat->seatop_data;
+
+    if (!e->threshold_reached) {
+        seatop_begin_default(seat);
+        return;
+    }
 
     if (e->target_column != NULL) {
         window_detach(e->window);
@@ -88,8 +96,70 @@ handle_tablet_tool_tip(
     }
 }
 
+void
+do_detach(struct hwd_seat *seat) {
+    struct hwd_cursor *cursor = seat->cursor;
+    struct seatop_move_event *e = seat->seatop_data;
+    struct hwd_window *window = e->window;
+
+    if (!window_is_floating(window)) {
+        struct hwd_workspace *workspace = window->pending.workspace;
+        struct hwd_output *output = window->pending.output;
+
+        bool on_titlebar = e->ref_ly - window->pending.y <= window_titlebar_height();
+
+        double dx = e->ref_lx - window->pending.x;
+        double dy = e->ref_ly - window->pending.y;
+        double fdx = dx / window->pending.width;
+        double fdy = dy / window->pending.height;
+
+        // TODO Adjust column widths so that window current column fraction is 1.0.
+
+        struct hwd_column *old_parent = window->pending.parent;
+        window_detach(window);
+        workspace_add_floating(workspace, window);
+        if (old_parent) {
+            column_consider_destroy(old_parent);
+        }
+
+        // TODO should use saved size if possible.
+        window_floating_set_default_size(window);
+        window_floating_move_to(
+            window, output, e->ref_lx - fdx * window->pending.width,
+            e->ref_ly - (on_titlebar ? dy : (fdy * window->pending.height))
+        );
+
+        root_set_focused_window(root, window);
+    }
+
+    e->dx = e->ref_lx - window->pending.x;
+    e->dy = e->ref_ly - window->pending.y;
+
+    window_raise_floating(window);
+    window_set_moving(window, true);
+
+    cursor_set_image(cursor, "grab", NULL);
+    wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
+}
+
 static void
-handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
+handle_pointer_motion_prethreshold(struct hwd_seat *seat) {
+    struct seatop_move_event *e = seat->seatop_data;
+    struct wlr_cursor *cursor = seat->cursor->cursor;
+
+    double threshold = config->tiling_drag_threshold;
+
+    double x_offset = cursor->x - e->ref_lx;
+    double y_offset = cursor->y - e->ref_lx;
+
+    if ((x_offset * x_offset) + (y_offset * y_offset) > threshold * threshold) {
+        e->threshold_reached = true;
+        do_detach(seat);
+    }
+}
+
+static void
+handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     struct seatop_move_event *e = seat->seatop_data;
     struct wlr_cursor *cursor = seat->cursor->cursor;
 
@@ -248,6 +318,16 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
 }
 
 static void
+handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
+    struct seatop_move_event *e = seat->seatop_data;
+    if (!e->threshold_reached) {
+        handle_pointer_motion_prethreshold(seat);
+    } else {
+        handle_pointer_motion_postthreshold(seat);
+    }
+}
+
+static void
 handle_end(struct hwd_seat *seat) {
     struct seatop_move_event *e = seat->seatop_data;
     if (e->window != NULL) {
@@ -292,42 +372,8 @@ seatop_begin_move(struct hwd_seat *seat, struct hwd_window *window) {
     seat->seatop_impl = &seatop_impl;
     seat->seatop_data = e;
 
-    if (!window_is_floating(window)) {
-        struct hwd_workspace *workspace = window->pending.workspace;
-        struct hwd_output *output = window->pending.output;
+    e->ref_lx = cursor->cursor->x;
+    e->ref_ly = cursor->cursor->y;
 
-        bool on_titlebar = cursor->cursor->y - window->pending.y <= window_titlebar_height();
-
-        double dx = cursor->cursor->x - window->pending.x;
-        double dy = cursor->cursor->y - window->pending.y;
-        double fdx = dx / window->pending.width;
-        double fdy = dy / window->pending.height;
-
-        // TODO Adjust column widths so that window current column fraction is 1.0.
-
-        struct hwd_column *old_parent = window->pending.parent;
-        window_detach(window);
-        workspace_add_floating(workspace, window);
-        if (old_parent) {
-            column_consider_destroy(old_parent);
-        }
-
-        // TODO should use saved size if possible.
-        window_floating_set_default_size(window);
-        window_floating_move_to(
-            window, output, cursor->cursor->x - fdx * window->pending.width,
-            cursor->cursor->y - (on_titlebar ? dy : (fdy * window->pending.height))
-        );
-
-        root_set_focused_window(root, window);
-    }
-
-    e->dx = cursor->cursor->x - window->pending.x;
-    e->dy = cursor->cursor->y - window->pending.y;
-
-    window_raise_floating(window);
-    window_set_moving(window, true);
-
-    cursor_set_image(cursor, "grab", NULL);
-    wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
+    root_set_focused_window(root, e->window);
 }
