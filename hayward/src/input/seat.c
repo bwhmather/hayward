@@ -3,6 +3,8 @@
 
 #include "hayward/input/seat.h"
 
+#include <config.h>
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -56,8 +58,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 static void
 seat_send_focus(struct hwd_seat *seat, struct wlr_surface *surface);

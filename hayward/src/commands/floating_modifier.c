@@ -1,6 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <stdbool.h>
@@ -9,8 +11,6 @@
 
 #include <hayward/config.h>
 #include <hayward/input/keyboard.h>
-
-#include <config.h>
 
 struct cmd_results *
 cmd_floating_modifier(int argc, char **argv) {

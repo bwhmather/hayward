@@ -1,6 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <string.h>
@@ -8,8 +10,6 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/tree/arrange.h>
-
-#include <config.h>
 
 struct cmd_results *
 cmd_hide_edge_borders(int argc, char **argv) {

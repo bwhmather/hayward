@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/haywardnag.h"
 
+#include <config.h>
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,8 +23,6 @@
 #include <hayward/globals/transaction.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
-
-#include <config.h>
 
 static void
 handle_haywardnag_client_destroy(struct wl_listener *listener, void *data) {

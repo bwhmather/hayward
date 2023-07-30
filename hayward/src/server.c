@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/server.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,8 +57,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/output.h>
 #include <hayward/tree/root.h>
-
-#include <config.h>
 
 bool
 server_privileged_prepare(struct hwd_server *server) {

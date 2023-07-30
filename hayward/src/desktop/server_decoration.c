@@ -2,11 +2,11 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/desktop/server_decoration.h"
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_server_decoration.h>
-
-#include <config.h>
 
 struct hwd_server_decoration_manager *
 hwd_server_decoration_manager_create(struct wl_display *wl_display) {

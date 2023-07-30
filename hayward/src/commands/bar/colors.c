@@ -1,6 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <stdint.h>
@@ -10,8 +12,6 @@
 #include <hayward-common/util.h>
 
 #include <hayward/config.h>
-
-#include <config.h>
 
 static struct cmd_results *
 bar_colors_cmd_active_workspace(int argc, char **argv);

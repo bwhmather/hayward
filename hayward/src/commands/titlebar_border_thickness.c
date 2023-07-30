@@ -1,14 +1,14 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
+#include <config.h>
+
 #include <stdlib.h>
 
 #include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/tree/arrange.h>
-
-#include <config.h>
 
 struct cmd_results *
 cmd_titlebar_border_thickness(int argc, char **argv) {

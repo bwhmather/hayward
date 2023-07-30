@@ -3,6 +3,8 @@
 
 #include "hayward/input/seatop_resize_tiling.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -20,8 +22,6 @@
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 struct seatop_resize_tiling_event {
     struct hwd_window *container; // leaf container

@@ -1,6 +1,8 @@
 #ifndef HWD_CONFIG_H
 #define HWD_CONFIG_H
 
+#include <config.h>
+
 #include <pango/pango.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -19,8 +21,6 @@
 
 #include <hayward/haywardnag.h>
 #include <hayward/input/tablet.h>
-
-#include <config.h>
 
 // TODO: Refactor this shit
 

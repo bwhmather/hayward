@@ -1,6 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <string.h>
@@ -11,8 +13,6 @@
 
 #include <hayward/config.h>
 #include <hayward/output.h>
-
-#include <config.h>
 
 struct cmd_results *
 output_cmd_dpms(int argc, char **argv) {

@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/transaction.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,8 +14,6 @@
 
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/server.h>
-
-#include <config.h>
 
 struct hwd_transaction_manager *transaction_manager;
 

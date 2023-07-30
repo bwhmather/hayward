@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -17,8 +19,6 @@
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
-
-#include <config.h>
 
 struct hwd_session_lock_surface {
     struct wlr_session_lock_surface_v1 *lock_surface;

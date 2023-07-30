@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/keyboard.h"
 
+#include <config.h>
+
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -42,8 +44,6 @@
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
-
-#include <config.h>
 
 static struct modifier_key {
     char *name;

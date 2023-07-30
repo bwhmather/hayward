@@ -1,6 +1,8 @@
 #ifndef HWD_TREE_ROOT_H
 #define HWD_TREE_ROOT_H
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
@@ -14,8 +16,6 @@
 #include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 struct hwd_pid_workspaces;
 

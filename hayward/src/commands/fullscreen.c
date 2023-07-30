@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <stdbool.h>
@@ -12,8 +14,6 @@
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 static const char expected_syntax[] = "Expected `fullscreen [enable|disable|toggle]`";
 

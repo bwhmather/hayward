@@ -13,14 +13,14 @@ AlwaysBreakAfterReturnType: All
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '".*"'
-    Priority: 1
-  - Regex: '<config.h>'
-    Priority: 7
-  - Regex: '<hayward-.*/.*>'
-    Priority: 3
-  - Regex: '<.*-protocol.h>'
-    Priority: 4
-  - Regex: '<haywardbar/.*>'
-    Priority: 5
-  - Regex: '<.+>'
     Priority: 2
+  - Regex: '<config.h>'
+    Priority: 1
+  - Regex: '<hayward-.*/.*>'
+    Priority: 4
+  - Regex: '<.*-protocol.h>'
+    Priority: 5
+  - Regex: '<haywardbar/.*>'
+    Priority: 6
+  - Regex: '<.+>'
+    Priority: 3

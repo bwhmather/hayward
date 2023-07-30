@@ -3,6 +3,8 @@
 
 #include "hayward/output.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -43,8 +45,6 @@
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 static void
 output_destroy(struct hwd_output *output);

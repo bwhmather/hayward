@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/config.h"
 
 #include <assert.h>
@@ -39,8 +41,6 @@
 #include <hayward/server.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/root.h>
-
-#include <config.h>
 
 static int
 output_name_cmp(const void *item, const void *data) {

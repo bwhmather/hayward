@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "haywardbar/tray/icon.h"
 
+#include <config.h>
+
 #include <ctype.h>
 #include <dirent.h>
 #include <stdbool.h>
@@ -14,8 +16,6 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 #include <hayward-common/stringop.h>
-
-#include <config.h>
 
 static int
 cmp_id(const void *item, const void *cmp_to) {

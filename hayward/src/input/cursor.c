@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/cursor.h"
 
+#include <config.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <libevdev/libevdev.h>
@@ -55,8 +57,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 static void
 cursor_unhide(struct hwd_cursor *cursor);

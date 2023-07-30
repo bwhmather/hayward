@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/ipc_json.h"
 
+#include <config.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
@@ -44,8 +46,6 @@
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 static json_object *
 ipc_json_describe_column(struct hwd_column *column);

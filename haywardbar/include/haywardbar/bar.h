@@ -1,5 +1,7 @@
 #ifndef _HAYWARDBAR_BAR_H
 #define _HAYWARDBAR_BAR_H
+#include <config.h>
+
 #include <wayland-client.h>
 
 #include <hayward-client/pool-buffer.h>
@@ -8,8 +10,6 @@
 #include <xdg-output-unstable-v1-client-protocol.h>
 
 #include <haywardbar/input.h>
-
-#include <config.h>
 
 struct haywardbar_config;
 struct haywardbar_output;

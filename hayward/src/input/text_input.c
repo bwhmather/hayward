@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/text_input.h"
 
+#include <config.h>
+
 #include <assert.h>
 #include <stdlib.h>
 #include <wayland-server-core.h>
@@ -18,8 +20,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
-
-#include <config.h>
 
 static struct hwd_text_input *
 relay_get_focusable_text_input(struct hwd_input_method_relay *relay) {

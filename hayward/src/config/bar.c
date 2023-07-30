@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/config.h"
 
 #include <signal.h>
@@ -20,8 +22,6 @@
 
 #include <hayward/input/keyboard.h>
 #include <hayward/server.h>
-
-#include <config.h>
 
 void
 free_bar_binding(struct bar_binding *binding) {

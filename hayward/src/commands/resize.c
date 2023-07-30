@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <math.h>
@@ -20,8 +22,6 @@
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 #define AXIS_HORIZONTAL (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)
 #define AXIS_VERTICAL (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)

@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/config.h"
 
+#include <config.h>
+
 #include <fcntl.h>
 #include <libgen.h>
 #include <linux/input-event-codes.h>
@@ -35,8 +37,6 @@
 #include <hayward/input/switch.h>
 #include <hayward/server.h>
 #include <hayward/tree/arrange.h>
-
-#include <config.h>
 
 struct hwd_config *config = NULL;
 

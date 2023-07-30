@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/view.h"
 
+#include <config.h>
+
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
@@ -47,8 +49,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 void
 view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl) {

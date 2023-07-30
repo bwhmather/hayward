@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/input_manager.h"
 
+#include <config.h>
+
 #include <ctype.h>
 #include <libinput.h>
 #include <stdbool.h>
@@ -36,8 +38,6 @@
 #include <hayward/server.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/view.h>
-
-#include <config.h>
 
 #define DEFAULT_SEAT "seat0"
 

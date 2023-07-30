@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "haywardbar/bar.h"
 
+#include <config.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -20,8 +22,6 @@
 #include <haywardbar/ipc.h>
 #include <haywardbar/render.h>
 #include <haywardbar/status_line.h>
-
-#include <config.h>
 #if HAVE_TRAY
 #include <haywardbar/tray/tray.h>
 #endif

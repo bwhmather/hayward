@@ -1,12 +1,12 @@
 #ifndef HWD_TRANSACTION_H
 #define HWD_TRANSACTION_H
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <time.h>
 #include <wayland-server-core.h>
-
-#include <config.h>
 
 /**
  * Transactions enable us to perform atomic layout updates.

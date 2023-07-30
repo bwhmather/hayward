@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 200809
 #include "hayward-client/pool-buffer.h"
 
+#include <config.h>
+
 #include <assert.h>
 #include <cairo.h>
 #include <fcntl.h>
@@ -13,8 +15,6 @@
 #include <wayland-client.h>
 
 #include <hayward-common/util.h>
-
-#include <config.h>
 
 static int
 create_pool_file(size_t size, char **name) {

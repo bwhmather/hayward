@@ -3,6 +3,8 @@
 
 #include "hayward/desktop/xdg_activation_v1.h"
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_compositor.h>
@@ -12,8 +14,6 @@
 #include <hayward/globals/transaction.h>
 #include <hayward/transaction.h>
 #include <hayward/tree/view.h>
-
-#include <config.h>
 
 static void
 handle_request_activate(struct wl_listener *listener, void *data) {

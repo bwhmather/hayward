@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <float.h>
@@ -19,8 +21,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 static bool
 parse_direction(const char *name, enum wlr_direction *out) {

@@ -3,6 +3,8 @@
 
 #include "hayward/input/seatop_default.h"
 
+#include <config.h>
+
 #include <float.h>
 #include <linux/input-event-codes.h>
 #include <math.h>
@@ -48,8 +50,6 @@
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 struct seatop_default_event {
     struct hwd_window *previous_window;

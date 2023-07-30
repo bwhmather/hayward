@@ -1,6 +1,8 @@
 #ifndef HWD_OUTPUT_H
 #define HWD_OUTPUT_H
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -16,8 +18,6 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
-
-#include <config.h>
 
 struct hwd_server;
 struct hwd_window;

@@ -1,6 +1,8 @@
 #ifndef HWD_SERVER_H
 #define HWD_SERVER_H
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <wayland-server-core.h>
@@ -26,8 +28,6 @@
 #include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
-
-#include <config.h>
 
 struct hwd_server {
     struct wl_display *wl_display;

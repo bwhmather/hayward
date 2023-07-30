@@ -1,6 +1,8 @@
 #ifndef HWD_DESKTOP_XWAYLAND_H
 #define HWD_DESKTOP_XWAYLAND_H
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_compositor.h>
@@ -10,8 +12,6 @@
 #include <xcb/xproto.h>
 
 #include <hayward/tree/view.h>
-
-#include <config.h>
 
 #ifdef HAVE_XWAYLAND
 

@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <libinput.h>
@@ -15,8 +17,6 @@
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/server.h>
-
-#include <config.h>
 
 static void
 toggle_supported_send_events_for_device(

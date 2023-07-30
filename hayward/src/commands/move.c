@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <ctype.h>
@@ -31,8 +33,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 static const char expected_syntax[] = "Expected 'move <left|right|up|down> <[px] px>' or "
                                       "'move <window> [to] workspace <name>' or "

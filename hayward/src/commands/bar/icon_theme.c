@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <stdlib.h>
@@ -8,8 +10,6 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-
-#include <config.h>
 
 struct cmd_results *
 bar_cmd_icon_theme(int argc, char **argv) {

@@ -1,6 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <stddef.h>
@@ -8,8 +10,6 @@
 #include <strings.h>
 
 #include <hayward/config.h>
-
-#include <config.h>
 
 static const struct {
     const char *name;

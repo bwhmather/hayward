@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <string.h>
@@ -11,8 +13,6 @@
 
 #include <hayward/config.h>
 #include <hayward/output.h>
-
-#include <config.h>
 
 static enum wl_output_transform
 invert_rotation_direction(enum wl_output_transform t) {

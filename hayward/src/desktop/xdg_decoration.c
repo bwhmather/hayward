@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/desktop/xdg_decoration.h"
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
@@ -9,8 +11,6 @@
 
 #include <hayward/globals/transaction.h>
 #include <hayward/transaction.h>
-
-#include <config.h>
 
 static void
 handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {

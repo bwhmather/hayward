@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/config.h"
 
 #include <float.h>
@@ -17,8 +19,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/server.h>
-
-#include <config.h>
 
 static int
 input_identifier_cmp(const void *item, const void *data) {

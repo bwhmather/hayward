@@ -3,6 +3,8 @@
 
 #include "hayward/input/seatop_down.h"
 
+#include <config.h>
+
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
@@ -26,8 +28,6 @@
 #include <hayward/input/tablet.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 struct seatop_down_event {
     struct hwd_window *container;

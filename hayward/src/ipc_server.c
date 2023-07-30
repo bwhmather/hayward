@@ -3,6 +3,8 @@
 
 #include "hayward/ipc_server.h"
 
+#include <config.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -43,8 +45,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 // See https://i3wm.org/docs/ipc.html for protocol information
 
 static int ipc_socket = -1;

@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/desktop/xwayland.h"
 
+#include <config.h>
+
 #include <float.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -33,8 +35,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 static const char *atom_map[ATOM_LAST] = {
     [NET_WM_WINDOW_TYPE_NORMAL] = "_NET_WM_WINDOW_TYPE_NORMAL",

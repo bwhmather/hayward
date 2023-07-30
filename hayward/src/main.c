@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include <getopt.h>
 #include <pango/pangocairo.h>
 #include <signal.h>
@@ -31,8 +33,6 @@
 #include <hayward/transaction.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 static bool terminate_request = false;
 static int exit_value = 0;

@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/input/switch.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <wayland-server-core.h>
@@ -18,8 +20,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/transaction.h>
-
-#include <config.h>
 
 struct hwd_switch *
 hwd_switch_create(struct hwd_seat *seat, struct hwd_seat_device *device) {

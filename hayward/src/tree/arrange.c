@@ -3,6 +3,8 @@
 
 #include "hayward/tree/arrange.h"
 
+#include <config.h>
+
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -19,8 +21,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 void
 arrange_window(struct hwd_window *window) {

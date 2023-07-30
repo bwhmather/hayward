@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/workspace.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -25,8 +27,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 static void
 workspace_destroy(struct hwd_workspace *workspace);

@@ -1,6 +1,8 @@
 #ifndef HWD_INPUT_CURSOR_H
 #define HWD_INPUT_CURSOR_H
 
+#include <config.h>
+
 #include <linux/input-event-codes.h>
 #include <pixman.h>
 #include <stdbool.h>
@@ -17,8 +19,6 @@
 
 #include <hayward/config.h>
 #include <hayward/input/seat.h>
-
-#include <config.h>
 
 #define HWD_CURSOR_PRESSED_BUTTONS_CAP 32
 

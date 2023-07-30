@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <wlr/types/wlr_output_layout.h>
 
@@ -14,8 +16,6 @@
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 static void
 window_set_floating(struct hwd_window *window, bool enable) {

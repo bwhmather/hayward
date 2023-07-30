@@ -1,6 +1,8 @@
 #ifndef HWD_TREE_VIEW_H
 #define HWD_TREE_VIEW_H
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -14,8 +16,6 @@
 #include <wlr/xwayland/xwayland.h>
 
 #include <hayward/config.h>
-
-#include <config.h>
 
 struct hwd_window;
 struct hwd_view;

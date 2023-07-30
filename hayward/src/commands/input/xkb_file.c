@@ -1,6 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
+#include <config.h>
+
 #include "hayward/commands.h"
 
 #include <stdbool.h>
@@ -12,8 +14,6 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-
-#include <config.h>
 
 struct cmd_results *
 input_cmd_xkb_file(int argc, char **argv) {

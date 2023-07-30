@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "haywardbar/config.h"
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -9,8 +11,6 @@
 #include <hayward-common/stringop.h>
 
 #include <wlr-layer-shell-unstable-v1-client-protocol.h>
-
-#include <config.h>
 
 uint32_t
 parse_position(const char *position) {

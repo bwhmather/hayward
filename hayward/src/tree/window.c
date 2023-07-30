@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/tree/window.h"
 
+#include <config.h>
+
 #include <limits.h>
 #include <math.h>
 #include <stdbool.h>
@@ -35,8 +37,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/workspace.h>
-
-#include <config.h>
 
 static void
 scene_tree_marker_destroy(struct wlr_addon *addon) {

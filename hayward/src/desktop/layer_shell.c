@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/desktop/layer_shell.h"
 
+#include <config.h>
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -30,8 +32,6 @@
 #include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
-
-#include <config.h>
 
 #define HWD_LAYER_SHELL_VERSION 4
 

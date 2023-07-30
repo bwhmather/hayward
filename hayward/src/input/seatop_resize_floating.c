@@ -3,6 +3,8 @@
 
 #include "hayward/input/seatop_resize_floating.h"
 
+#include <config.h>
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,8 +23,6 @@
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 struct seatop_resize_floating_event {
     struct hwd_window *window;

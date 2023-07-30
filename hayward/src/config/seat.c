@@ -1,5 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+#include <config.h>
+
 #include "hayward/config.h"
 
 #include <stdbool.h>
@@ -9,8 +11,6 @@
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-
-#include <config.h>
 
 static void
 merge_seat_config(struct seat_config *dest, struct seat_config *source);

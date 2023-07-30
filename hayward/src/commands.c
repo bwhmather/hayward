@@ -2,6 +2,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/commands.h"
 
+#include <config.h>
+
 #include <ctype.h>
 #include <json.h>
 #include <stdarg.h>
@@ -21,8 +23,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
-
-#include <config.h>
 
 // Returns error object, or NULL if check succeeds.
 struct cmd_results *
