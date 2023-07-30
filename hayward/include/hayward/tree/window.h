@@ -57,7 +57,6 @@ struct hwd_window_state {
     // be updated by calling one of the `window_reconcile_` functions.
     bool focused;
 
-    enum hwd_window_border border;
     int border_thickness;
     bool border_top;
     bool border_bottom;
@@ -100,10 +99,6 @@ struct hwd_window {
     // Includes borders
     double saved_x, saved_y;
     double saved_width, saved_height;
-
-    // Used when the view changes to CSD unexpectedly. This will be a non-B_CSD
-    // border which we use to restore when the view returns to SSD.
-    enum hwd_window_border saved_border;
 
     // The share of the space of parent column that this window occupies.
     double height_fraction;

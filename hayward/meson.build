@@ -38,11 +38,8 @@ hayward_sources = files(
 
 	'src/commands/bar.c',
 	'src/commands/bind.c',
-	'src/commands/border.c',
 	'src/commands/client.c',
 	'src/commands/create_output.c',
-	'src/commands/default_border.c',
-	'src/commands/default_floating_border.c',
 	'src/commands/exit.c',
 	'src/commands/exec.c',
 	'src/commands/exec_always.c',

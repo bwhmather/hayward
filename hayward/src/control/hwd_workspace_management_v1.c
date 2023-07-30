@@ -3,6 +3,7 @@
 
 #include "hayward/control/hwd_workspace_management_v1.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

@@ -91,13 +91,11 @@ column_update_scene(struct hwd_column *column) {
 
     if (column->committed.show_preview) {
         wlr_scene_node_set_position(
-            &column->layers.preview_box->node,
-            column->committed.preview_box.x + 3,
+            &column->layers.preview_box->node, column->committed.preview_box.x + 3,
             column->committed.preview_box.y + 3
         );
         wlr_scene_rect_set_size(
-            column->layers.preview_box,
-            column->committed.preview_box.width - 6,
+            column->layers.preview_box, column->committed.preview_box.width - 6,
             column->committed.preview_box.height - 6
         );
         wlr_scene_node_set_enabled(&column->layers.preview_box->node, true);

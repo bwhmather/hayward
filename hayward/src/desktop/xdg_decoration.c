@@ -2,69 +2,15 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/desktop/xdg_decoration.h"
 
-#include <stdbool.h>
 #include <stdlib.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
-#include <wlr/types/wlr_xdg_shell.h>
 
-#include <hayward/desktop/xdg_shell.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/transaction.h>
-#include <hayward/tree/arrange.h>
-#include <hayward/tree/view.h>
-#include <hayward/tree/window.h>
 
 #include <config.h>
-
-static void
-xdg_decoration_handle_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_decoration *deco = wl_container_of(listener, deco, destroy);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
-    if (deco->view) {
-        deco->view->xdg_decoration = NULL;
-    }
-    wl_list_remove(&deco->destroy.link);
-    wl_list_remove(&deco->request_mode.link);
-    wl_list_remove(&deco->link);
-    free(deco);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
-}
-
-static void
-xdg_decoration_handle_request_mode(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_decoration *deco = wl_container_of(listener, deco, request_mode);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
-    struct hwd_view *view = deco->view;
-    enum wlr_xdg_toplevel_decoration_v1_mode mode = WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
-    enum wlr_xdg_toplevel_decoration_v1_mode client_mode = deco->wlr_xdg_decoration->requested_mode;
-
-    bool floating;
-    if (view->window) {
-        floating = window_is_floating(view->window);
-        bool csd = false;
-        csd = client_mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
-        view_update_csd_from_client(view, csd);
-        arrange_window(view->window);
-        hwd_transaction_manager_end_transaction(transaction_manager);
-    } else {
-        floating = view->impl->wants_floating && view->impl->wants_floating(view);
-    }
-
-    if (floating && client_mode) {
-        mode = client_mode;
-    }
-
-    wlr_xdg_toplevel_decoration_v1_set_mode(deco->wlr_xdg_decoration, mode);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
-}
 
 static void
 handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
@@ -74,27 +20,10 @@ handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
 
     hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    struct hwd_xdg_shell_view *xdg_shell_view = wlr_deco->surface->data;
-
-    struct hwd_xdg_decoration *deco = calloc(1, sizeof(*deco));
-    if (deco == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
-        return;
-    }
-
-    deco->view = &xdg_shell_view->view;
-    deco->view->xdg_decoration = deco;
-    deco->wlr_xdg_decoration = wlr_deco;
-
-    wl_signal_add(&wlr_deco->events.destroy, &deco->destroy);
-    deco->destroy.notify = xdg_decoration_handle_destroy;
-
-    wl_signal_add(&wlr_deco->events.request_mode, &deco->request_mode);
-    deco->request_mode.notify = xdg_decoration_handle_request_mode;
-
-    wl_list_insert(&manager->xdg_decorations, &deco->link);
-
-    xdg_decoration_handle_request_mode(&deco->request_mode, wlr_deco);
+    // THIS IS SPARTA!
+    wlr_xdg_toplevel_decoration_v1_set_mode(
+        wlr_deco, WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
+    );
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
@@ -118,7 +47,6 @@ hwd_xdg_decoration_manager_create(struct wl_display *wl_display) {
         &manager->xdg_decoration_manager->events.new_toplevel_decoration,
         &manager->new_toplevel_decoration
     );
-    wl_list_init(&manager->xdg_decorations);
 
     return manager;
 }

@@ -135,29 +135,12 @@ window_update_scene(struct hwd_window *window) {
         border_title = border_thickness;
         titlebar_height = window_titlebar_height();
     } else {
-        switch (window->pending.border) {
-        default:
-        case B_CSD:
-            break;
-        case B_NONE:
-            break;
-        case B_PIXEL:
-            border_left = border_thickness;
-            border_right = border_thickness;
-            border_top = border_thickness;
-            border_bottom = border_thickness;
-            border_title = 0;
-            titlebar_height = 0;
-            break;
-        case B_NORMAL:
-            border_left = border_thickness;
-            border_right = border_thickness;
-            border_top = border_thickness;
-            border_bottom = border_thickness;
-            border_title = border_thickness;
-            titlebar_height = window_titlebar_height();
-            break;
-        }
+        border_left = border_thickness;
+        border_right = border_thickness;
+        border_top = border_thickness;
+        border_bottom = border_thickness;
+        border_title = border_thickness;
+        titlebar_height = window_titlebar_height();
     }
 
     struct border_colors *colors = window_get_committed_colors(window);
@@ -867,26 +850,13 @@ void
 window_get_titlebar_box(struct hwd_window *window, struct wlr_box *box) {
     hwd_assert(window != NULL, "Expected window");
 
-    double border_thickness = window->pending.border_thickness;
+    size_t border_thickness = window->pending.border_thickness;
+    double titlebar_height = window_titlebar_height() + 2 * border_thickness;
 
     box->x = window->pending.x;
     box->y = window->pending.y;
     box->width = window->pending.width;
-    switch (window->pending.border) {
-    default:
-    case B_CSD:
-        box->height = border_thickness; // TODO
-        break;
-    case B_NONE:
-        box->height = 0;
-        break;
-    case B_PIXEL:
-        box->height = border_thickness;
-        break;
-    case B_NORMAL:
-        box->height = window_titlebar_height() + 2 * border_thickness;
-        break;
-    }
+    box->height = titlebar_height;
 }
 
 /**
@@ -909,18 +879,14 @@ window_set_geometry_from_content(struct hwd_window *window) {
     hwd_assert(window != NULL, "Expected window");
     hwd_assert(window_is_alive(window), "Expected live window");
     hwd_assert(window_is_floating(window), "Expected a floating view");
-    size_t border_width = 0;
-    size_t top = 0;
 
-    if (window->pending.border != B_CSD && !window->pending.fullscreen) {
-        border_width = window->pending.border_thickness * (window->pending.border != B_NONE);
-        top = window->pending.border == B_NORMAL ? window_titlebar_height() : border_width;
-    }
+    size_t border_thickness = window->pending.border_thickness;
+    double titlebar_height = window_titlebar_height() + 2 * border_thickness;
 
-    window->pending.x = window->pending.content_x - border_width;
-    window->pending.y = window->pending.content_y - top;
-    window->pending.width = window->pending.content_width + border_width * 2;
-    window->pending.height = top + window->pending.content_height + border_width;
+    window->pending.x = window->pending.content_x - border_thickness;
+    window->pending.y = window->pending.content_y - titlebar_height;
+    window->pending.width = window->pending.content_width + 2 * border_thickness;
+    window->pending.height = window->pending.content_height + titlebar_height + border_thickness;
 
     window_set_dirty(window);
 }

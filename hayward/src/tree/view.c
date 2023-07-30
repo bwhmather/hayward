@@ -20,7 +20,6 @@
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_subcompositor.h>
-#include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 #include <wlr/xwayland/xwayland.h>
@@ -31,7 +30,6 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
-#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
@@ -250,32 +248,6 @@ view_request_activate(struct hwd_view *view) {
 }
 
 void
-view_set_csd_from_server(struct hwd_view *view, bool enabled) {
-    hwd_log(HWD_DEBUG, "Telling view %p to set CSD to %i", (void *)view, enabled);
-    if (view->xdg_decoration) {
-        uint32_t mode = enabled ? WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE
-                                : WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
-        wlr_xdg_toplevel_decoration_v1_set_mode(view->xdg_decoration->wlr_xdg_decoration, mode);
-    }
-    view->using_csd = enabled;
-}
-
-void
-view_update_csd_from_client(struct hwd_view *view, bool enabled) {
-    hwd_log(HWD_DEBUG, "View %p updated CSD to %i", (void *)view, enabled);
-    struct hwd_window *window = view->window;
-    if (enabled && window && window->pending.border != B_CSD) {
-        window->saved_border = window->pending.border;
-        if (window_is_floating(window)) {
-            window->pending.border = B_CSD;
-        }
-    } else if (!enabled && window && window->pending.border == B_CSD) {
-        window->pending.border = window->saved_border;
-    }
-    view->using_csd = enabled;
-}
-
-void
 view_set_tiled(struct hwd_view *view, bool tiled) {
     if (view->impl->set_tiled) {
         view->impl->set_tiled(view, tiled);
@@ -407,7 +379,7 @@ handle_foreign_destroy(struct wl_listener *listener, void *data) {
 void
 view_map(
     struct hwd_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
-    struct wlr_output *fullscreen_output, bool decoration
+    struct wlr_output *fullscreen_output
 ) {
     hwd_assert(view->surface == NULL, "cannot map mapped view");
     view->surface = wlr_surface;
@@ -451,7 +423,6 @@ view_map(
     if (view->impl->wants_floating && view->impl->wants_floating(view)) {
         workspace_add_floating(workspace, view->window);
 
-        view->window->pending.border = config->floating_border;
         view->window->pending.border_thickness = config->floating_border_thickness;
         hwd_move_window_to_floating(view->window);
     } else {
@@ -464,7 +435,6 @@ view_map(
             column_add_child(column, view->window);
         }
 
-        view->window->pending.border = config->border;
         view->window->pending.border_thickness = config->border_thickness;
         view_set_tiled(view, true);
 
@@ -482,10 +452,6 @@ view_map(
         if (view_is_transient_for(view, fs->view)) {
             window_set_fullscreen(fs, false);
         }
-    }
-
-    if (decoration) {
-        view_update_csd_from_client(view, decoration);
     }
 
     if (fullscreen) {

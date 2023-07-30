@@ -40,46 +40,13 @@ arrange_window(struct hwd_window *window) {
         window->pending.border_top = window->pending.border_bottom = true;
         window->pending.border_left = window->pending.border_right = true;
 
-        double content_x = window->pending.x;
-        double content_y = window->pending.y;
+        size_t border_thickness = window->pending.border_thickness;
+        double titlebar_height = window_titlebar_height() + 2 * border_thickness;
 
-        double content_width, content_height;
-        switch (window->pending.border) {
-        default:
-        case B_CSD:
-        case B_NONE:
-            content_width = window->pending.width;
-            content_height = window->pending.height;
-            break;
-        case B_PIXEL:
-            content_x += window->pending.border_thickness * window->pending.border_left;
-            content_y += window->pending.border_thickness * window->pending.border_top;
-            content_width = window->pending.width -
-                window->pending.border_thickness * window->pending.border_left -
-                window->pending.border_thickness * window->pending.border_right;
-            content_height = window->pending.height -
-                window->pending.border_thickness * window->pending.border_top -
-                window->pending.border_thickness * window->pending.border_bottom;
-            break;
-        case B_NORMAL:
-            // Height is: 1px border + 3px pad + title height + 3px pad + 1px
-            // border
-            content_x += window->pending.border_thickness * window->pending.border_left;
-            content_y += window_titlebar_height();
-            content_width = window->pending.width -
-                window->pending.border_thickness * window->pending.border_left -
-                window->pending.border_thickness * window->pending.border_right;
-            content_height = window->pending.height - window_titlebar_height() -
-                window->pending.border_thickness * window->pending.border_top -
-                window->pending.border_thickness * window->pending.border_bottom -
-                window->pending.border_thickness;
-            break;
-        }
-
-        window->pending.content_x = content_x;
-        window->pending.content_y = content_y;
-        window->pending.content_width = content_width;
-        window->pending.content_height = content_height;
+        window->pending.content_x = window->pending.x + border_thickness;
+        window->pending.content_y = window->pending.y + titlebar_height;
+        window->pending.content_width = window->pending.width - 2 * border_thickness;
+        window->pending.content_height = window->pending.width - titlebar_height - border_thickness;
     }
 
     window_set_dirty(window);

@@ -5,13 +5,10 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
-#include <hayward/desktop/server_decoration.h>
 #include <hayward/tree/view.h>
 
 struct hwd_xdg_shell {
     struct wlr_xdg_shell *xdg_shell;
-
-    struct hwd_server_decoration_manager *server_decoration_manager;
 
     struct wl_listener new_surface;
 };
@@ -48,8 +45,6 @@ struct hwd_view *
 view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface);
 
 struct hwd_xdg_shell *
-hwd_xdg_shell_create(
-    struct wl_display *wl_display, struct hwd_server_decoration_manager *server_decoration_manager
-);
+hwd_xdg_shell_create(struct wl_display *wl_display);
 
 #endif

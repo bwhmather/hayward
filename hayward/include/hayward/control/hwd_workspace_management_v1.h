@@ -1,6 +1,7 @@
 #ifndef HWD_CONTROL_HWD_WORKSPACE_MANAGEMENT_V1_H
 #define HWD_CONTROL_HWD_WORKSPACE_MANAGEMENT_V1_H
 
+#include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 

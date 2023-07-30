@@ -132,7 +132,7 @@ server_init(struct hwd_server *server) {
 
     server->layer_shell = hwd_layer_shell_create(server->wl_display);
 
-    server->xdg_shell = hwd_xdg_shell_create(server->wl_display, server->server_decoration_manager);
+    server->xdg_shell = hwd_xdg_shell_create(server->wl_display);
 
     server->tablet_v2 = wlr_tablet_v2_create(server->wl_display);
 

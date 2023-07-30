@@ -66,8 +66,6 @@ static const struct cmd_handler handlers[] = {
     {"client.placeholder", cmd_client_noop},
     {"client.unfocused", cmd_client_unfocused},
     {"client.urgent", cmd_client_urgent},
-    {"default_border", cmd_default_border},
-    {"default_floating_border", cmd_default_floating_border},
     {"exec", cmd_exec},
     {"exec_always", cmd_exec_always},
     {"floating_maximum_size", cmd_floating_maximum_size},
@@ -108,7 +106,6 @@ static const struct cmd_handler config_handlers[] = {
 
 /* Runtime-only commands. Keep alphabetized */
 static const struct cmd_handler command_handlers[] = {
-    {"border", cmd_border},
     {"create_output", cmd_create_output},
     {"exit", cmd_exit},
     {"floating", cmd_floating},

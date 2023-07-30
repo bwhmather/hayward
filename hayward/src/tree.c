@@ -4,13 +4,10 @@
 
 #include <stdbool.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_xdg_decoration_v1.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <hayward/config.h>
-#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/tree/column.h>
@@ -38,16 +35,6 @@ window_set_floating(struct hwd_window *window, bool enable) {
         window_detach(window);
         workspace_add_floating(workspace, window);
         view_set_tiled(window->view, false);
-        if (window->view->using_csd) {
-            window->saved_border = window->pending.border;
-            window->pending.border = B_CSD;
-            if (window->view->xdg_decoration) {
-                struct hwd_xdg_decoration *deco = window->view->xdg_decoration;
-                wlr_xdg_toplevel_decoration_v1_set_mode(
-                    deco->wlr_xdg_decoration, WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE
-                );
-            }
-        }
         window_floating_set_default_size(window);
         window_floating_resize_and_center(window);
         if (old_parent) {
@@ -60,15 +47,6 @@ window_set_floating(struct hwd_window *window, bool enable) {
         window_detach(window);
         if (window->view) {
             view_set_tiled(window->view, true);
-            if (window->view->using_csd) {
-                window->pending.border = window->saved_border;
-                if (window->view->xdg_decoration) {
-                    struct hwd_xdg_decoration *deco = window->view->xdg_decoration;
-                    wlr_xdg_toplevel_decoration_v1_set_mode(
-                        deco->wlr_xdg_decoration, WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
-                    );
-                }
-            }
         }
         window->height_fraction = 0;
 

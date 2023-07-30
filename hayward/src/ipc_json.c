@@ -62,21 +62,6 @@ ipc_json_layout_description(enum hwd_column_layout l) {
 }
 
 static const char *
-ipc_json_border_description(enum hwd_window_border border) {
-    switch (border) {
-    case B_NONE:
-        return "none";
-    case B_PIXEL:
-        return "pixel";
-    case B_NORMAL:
-        return "normal";
-    case B_CSD:
-        return "csd";
-    }
-    return "unknown";
-}
-
-static const char *
 ipc_json_output_transform_description(enum wl_output_transform transform) {
     switch (transform) {
     case WL_OUTPUT_TRANSFORM_NORMAL:
@@ -209,9 +194,6 @@ ipc_json_create_node(int id, const char *type, char *name, struct wlr_box *box) 
     json_object_object_add(object, "urgent", json_object_new_boolean(false));
 
     // set default values to be compatible with i3
-    json_object_object_add(
-        object, "border", json_object_new_string(ipc_json_border_description(B_NONE))
-    );
     json_object_object_add(object, "current_border_width", json_object_new_int(0));
     json_object_object_add(object, "rect", ipc_json_create_rect(box));
     json_object_object_add(object, "deco_rect", ipc_json_create_empty_rect());
@@ -228,8 +210,7 @@ ipc_json_create_node(int id, const char *type, char *name, struct wlr_box *box) 
 
 static void
 window_get_deco_rect(struct hwd_window *window, struct wlr_box *deco_rect) {
-    if (window->current.border != B_NORMAL || window->pending.fullscreen ||
-        window->pending.workspace == NULL) {
+    if (window->pending.fullscreen || window->pending.workspace == NULL) {
         deco_rect->x = deco_rect->y = deco_rect->width = deco_rect->height = 0;
         return;
     }
@@ -270,8 +251,7 @@ ipc_json_describe_view(struct hwd_window *c, json_object *object) {
     json_object_object_add(object, "visible", json_object_new_boolean(visible));
 
     struct wlr_box window_box = {
-        c->pending.content_x - c->pending.x,
-        (c->current.border == B_PIXEL) ? c->current.border_thickness : 0, c->pending.content_width,
+        c->pending.content_x - c->pending.x, 0, c->pending.content_width,
         c->pending.content_height};
 
     json_object_object_add(object, "window_rect", ipc_json_create_rect(&window_box));
@@ -435,10 +415,6 @@ ipc_json_describe_window(struct hwd_window *window) {
         json_object_object_add(object, "percent", json_object_new_double(percent));
     }
 
-    json_object_object_add(
-        object, "border",
-        json_object_new_string(ipc_json_border_description(window->current.border))
-    );
     json_object_object_add(
         object, "current_border_width", json_object_new_int(window->current.border_thickness)
     );

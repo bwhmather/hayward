@@ -14,7 +14,6 @@
 #include <wlr/util/edges.h>
 #include <wlr/xcursor.h>
 
-#include <hayward/config.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
@@ -80,17 +79,8 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     }
 
     struct hwd_window_state *state = &window->current;
-    double border_width = 0.0;
-    if (window->current.border == B_NORMAL || window->current.border == B_PIXEL) {
-        border_width = state->border_thickness * 2;
-    }
-    double border_height = 0.0;
-    if (window->current.border == B_NORMAL) {
-        border_height += window_titlebar_height();
-        border_height += state->border_thickness;
-    } else if (window->current.border == B_PIXEL) {
-        border_height += state->border_thickness * 2;
-    }
+    double border_width = state->border_thickness * 2;
+    double border_height = window_titlebar_height() + state->border_thickness;
 
     // Determine new width/height, and accommodate for floating min/max values
     double width = e->ref_width + grow_width;

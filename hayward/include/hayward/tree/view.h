@@ -19,7 +19,6 @@
 
 struct hwd_window;
 struct hwd_view;
-struct hwd_xdg_decoration;
 
 enum hwd_view_type {
     HWD_VIEW_XDG_SHELL,
@@ -72,7 +71,6 @@ struct hwd_view {
 
     struct hwd_window *window;   // NULL if unmapped and transactions finished
     struct wlr_surface *surface; // NULL for unmapped views
-    struct hwd_xdg_decoration *xdg_decoration;
 
     pid_t pid;
 
@@ -173,19 +171,6 @@ view_set_activated(struct hwd_view *view, bool activated);
 void
 view_request_activate(struct hwd_view *view);
 
-/**
- * If possible, instructs the client to change their decoration mode.
- */
-void
-view_set_csd_from_server(struct hwd_view *view, bool enabled);
-
-/**
- * Updates the view's border setting when the client unexpectedly changes their
- * decoration mode.
- */
-void
-view_update_csd_from_client(struct hwd_view *view, bool enabled);
-
 void
 view_set_tiled(struct hwd_view *view, bool tiled);
 
@@ -200,14 +185,11 @@ view_close_popups(struct hwd_view *view);
  *
  * `fullscreen` should be set to true (and optionally `fullscreen_output`
  * should be populated) if the view should be made fullscreen immediately.
- *
- * `decoration` should be set to true if the client prefers CSD. The client's
- * preference may be ignored.
  */
 void
 view_map(
     struct hwd_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
-    struct wlr_output *fullscreen_output, bool decoration
+    struct wlr_output *fullscreen_output
 );
 
 void

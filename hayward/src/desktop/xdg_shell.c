@@ -13,16 +13,12 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_seat.h>
-#include <wlr/types/wlr_server_decoration.h>
-#include <wlr/types/wlr_xdg_decoration_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 #include <wlr/util/edges.h>
 
 #include <hayward-common/log.h>
 
-#include <hayward/desktop/server_decoration.h>
-#include <hayward/desktop/xdg_decoration.h>
 #include <hayward/globals/root.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/input/seat.h>
@@ -480,23 +476,9 @@ handle_map(struct wl_listener *listener, void *data) {
         view->natural_height = toplevel->base->surface->current.height;
     }
 
-    bool csd = false;
-
-    if (view->xdg_decoration) {
-        enum wlr_xdg_toplevel_decoration_v1_mode mode =
-            view->xdg_decoration->wlr_xdg_decoration->requested_mode;
-        csd = mode == WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
-    } else {
-        struct hwd_server_decoration *deco = decoration_from_surface(
-            xdg_shell_view->xdg_shell->server_decoration_manager, toplevel->base->surface
-        );
-        csd =
-            !deco || deco->wlr_server_decoration->mode == WLR_SERVER_DECORATION_MANAGER_MODE_CLIENT;
-    }
-
     view_map(
         view, toplevel->base->surface, toplevel->requested.fullscreen,
-        toplevel->requested.fullscreen_output, csd
+        toplevel->requested.fullscreen_output
     );
 
     xdg_shell_view->commit.notify = handle_commit;
@@ -536,9 +518,6 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&xdg_shell_view->map.link);
     wl_list_remove(&xdg_shell_view->unmap.link);
     view->wlr_xdg_toplevel = NULL;
-    if (view->xdg_decoration) {
-        view->xdg_decoration->view = NULL;
-    }
     view_begin_destroy(view);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
@@ -593,9 +572,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
 }
 
 struct hwd_xdg_shell *
-hwd_xdg_shell_create(
-    struct wl_display *wl_display, struct hwd_server_decoration_manager *decoration_manager
-) {
+hwd_xdg_shell_create(struct wl_display *wl_display) {
     struct hwd_xdg_shell *xdg_shell = calloc(1, sizeof(struct hwd_xdg_shell));
     if (xdg_shell == NULL) {
         return NULL;
@@ -606,8 +583,6 @@ hwd_xdg_shell_create(
         free(xdg_shell);
         return NULL;
     }
-
-    xdg_shell->server_decoration_manager = decoration_manager;
 
     xdg_shell->new_surface.notify = handle_new_surface;
     wl_signal_add(&xdg_shell->xdg_shell->events.new_surface, &xdg_shell->new_surface);

@@ -145,8 +145,7 @@ find_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_curso
     if (!cont->view || (surface && cont->view->surface != surface)) {
         return WLR_EDGE_NONE;
     }
-    if (cont->pending.border == B_NONE || !cont->pending.border_thickness ||
-        cont->pending.border == B_CSD) {
+    if (!cont->pending.border_thickness) {
         return WLR_EDGE_NONE;
     }
     if (cont->pending.fullscreen) {

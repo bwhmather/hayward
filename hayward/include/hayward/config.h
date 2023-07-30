@@ -287,13 +287,6 @@ struct output_config {
     enum config_dpms dpms_state;
 };
 
-enum hwd_window_border {
-    B_NONE,
-    B_PIXEL,
-    B_NORMAL,
-    B_CSD,
-};
-
 enum pango_markup_config {
     PANGO_MARKUP_DISABLED = false,
     PANGO_MARKUP_ENABLED = true,
@@ -500,8 +493,6 @@ struct hwd_config {
     int current_config_line_number;
     char *current_config_line;
 
-    enum hwd_window_border border;
-    enum hwd_window_border floating_border;
     int border_thickness;
     int floating_border_thickness;
     enum edge_border_types hide_edge_borders;

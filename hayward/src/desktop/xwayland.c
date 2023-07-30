@@ -400,22 +400,6 @@ wants_floating(struct hwd_view *view) {
     return false;
 }
 
-static void
-handle_set_decorations(struct wl_listener *listener, void *data) {
-    struct hwd_xwayland_view *xwayland_view =
-        wl_container_of(listener, xwayland_view, set_decorations);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
-    struct hwd_view *view = &xwayland_view->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-
-    bool csd = xsurface->decorations != WLR_XWAYLAND_SURFACE_DECORATIONS_ALL;
-    view_update_csd_from_client(view, csd);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
-}
-
 static bool
 is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
     if (xwayland_view_from_view(child) == NULL) {
@@ -632,7 +616,7 @@ handle_map(struct wl_listener *listener, void *data) {
     xwayland_view->commit.notify = handle_commit;
 
     // Put it back into the tree
-    view_map(view, xsurface->surface, xsurface->fullscreen, NULL, false);
+    view_map(view, xsurface->surface, xsurface->fullscreen, NULL);
 
     xwayland_view->surface_scene =
         wlr_scene_surface_create(view->layers.content_tree, xsurface->surface);
@@ -979,9 +963,6 @@ create_xwayland_view(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface 
 
     wl_signal_add(&xsurface->events.set_hints, &xwayland_view->set_hints);
     xwayland_view->set_hints.notify = handle_set_hints;
-
-    wl_signal_add(&xsurface->events.set_decorations, &xwayland_view->set_decorations);
-    xwayland_view->set_decorations.notify = handle_set_decorations;
 
     wl_signal_add(&xsurface->events.dissociate, &xwayland_view->dissociate);
     xwayland_view->dissociate.notify = handle_dissociate;

@@ -13,6 +13,8 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
 
+#include <hayward-common/list.h>
+
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
