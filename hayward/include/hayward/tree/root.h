@@ -146,4 +146,7 @@ root_find_workspace(
 struct hwd_output *
 root_find_closest_output(struct hwd_root *root, double x, double y);
 
+struct hwd_output *
+root_get_output_at(struct hwd_root *root, double x, double y);
+
 #endif

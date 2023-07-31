@@ -233,6 +233,8 @@ void
 window_get_box(struct hwd_window *window, struct wlr_box *box);
 void
 window_get_titlebar_box(struct hwd_window *window, struct wlr_box *box);
+void
+window_get_content_box(struct hwd_window *window, struct wlr_box *box);
 
 void
 window_set_resizing(struct hwd_window *window, bool resizing);

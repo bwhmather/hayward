@@ -131,6 +131,9 @@ workspace_remove_tiling(struct hwd_workspace *workspace, struct hwd_column *colu
 size_t
 workspace_num_tiling_views(struct hwd_workspace *workspace);
 
+struct hwd_column *
+workspace_get_column_at(struct hwd_workspace *workspace, double x, double y);
+
 struct hwd_output *
 workspace_get_active_output(struct hwd_workspace *workspace);
 
@@ -145,6 +148,9 @@ workspace_get_committed_active_window(struct hwd_workspace *workspace);
 
 void
 workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *window);
+
+struct hwd_window *
+workspace_get_floating_window_at(struct hwd_workspace *workspace, double x, double y);
 
 /**
  * Traverses all windows on the workspace to find the first fullscreen window on

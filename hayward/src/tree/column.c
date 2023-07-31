@@ -341,6 +341,31 @@ column_find_child(
     return NULL;
 }
 
+struct hwd_window *
+column_get_window_at(struct hwd_column *column, double x, double y) {
+    hwd_assert(column != NULL, "Expected column");
+    if (!column->pending.children) {
+        return NULL;
+    }
+
+    struct wlr_box column_box;
+    column_get_box(column, &column_box);
+    if (!wlr_box_contains_point(&column_box, x, y)) {
+        return NULL;
+    }
+
+    for (int i = 0; i < column->pending.children->length; ++i) {
+        struct hwd_window *child = column->pending.children->items[i];
+
+        struct wlr_box child_box;
+        window_get_box(child, &child_box);
+        if (wlr_box_contains_point(&child_box, x, y)) {
+            return child;
+        }
+    }
+    return NULL;
+}
+
 void
 column_insert_child(struct hwd_column *column, struct hwd_window *child, int i) {
     hwd_assert(column != NULL, "Expected column");

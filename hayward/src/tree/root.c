@@ -638,3 +638,21 @@ root_find_closest_output(struct hwd_root *root, double target_x, double target_y
     }
     return closest_output;
 }
+
+struct hwd_output *
+root_get_output_at(struct hwd_root *root, double x, double y) {
+    for (int i = 0; i < root->outputs->length; i++) {
+        struct hwd_output *output = root->outputs->items[i];
+
+        if (output->pending.dead) {
+            continue;
+        }
+
+        struct wlr_box output_box;
+        output_get_box(output, &output_box);
+        if (wlr_box_contains_point(&output_box, x, y)) {
+            return output;
+        }
+    }
+    return NULL;
+}

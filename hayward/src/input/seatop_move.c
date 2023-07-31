@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_seat.h>
@@ -15,6 +14,7 @@
 
 #include <hayward-common/list.h>
 
+#include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
@@ -32,7 +32,7 @@ struct seatop_move_event {
     double dx, dy; // cursor offset in window
 
     struct wlr_box target_area;
-    struct hwd_column *target_column;
+    struct hwd_column *destination_column;
 
     double ref_lx, ref_ly; // Cursor's position at start of operation.
     bool threshold_reached;
@@ -47,21 +47,21 @@ finalize_move(struct hwd_seat *seat) {
         return;
     }
 
-    if (e->target_column != NULL) {
+    if (e->destination_column != NULL) {
         window_detach(e->window);
-        if (e->target_column->pending.preview_target != NULL) {
-            column_add_sibling(e->target_column->pending.preview_target, e->window, true);
-            if (e->target_column->pending.active_child ==
-                e->target_column->pending.preview_target) {
+        if (e->destination_column->pending.preview_target != NULL) {
+            column_add_sibling(e->destination_column->pending.preview_target, e->window, true);
+            if (e->destination_column->pending.active_child ==
+                e->destination_column->pending.preview_target) {
                 root_set_focused_window(root, e->window);
             }
         } else {
             // TODO insert as first.
-            column_insert_child(e->target_column, e->window, 0);
+            column_insert_child(e->destination_column, e->window, 0);
         }
-        e->target_column->pending.show_preview = false;
-        e->target_column->pending.preview_target = NULL;
-        arrange_column(e->target_column);
+        e->destination_column->pending.show_preview = false;
+        e->destination_column->pending.preview_target = NULL;
+        arrange_column(e->destination_column);
     } else {
         // The window is already at the right location, but we want to bind it to
         // the correct output.
@@ -96,7 +96,7 @@ handle_tablet_tool_tip(
     }
 }
 
-void
+static void
 do_detach(struct hwd_seat *seat) {
     struct hwd_cursor *cursor = seat->cursor;
     struct seatop_move_event *e = seat->seatop_data;
@@ -169,31 +169,38 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
 
     window_floating_move_to(window, output, cursor->x - e->dx, cursor->y - e->dy);
 
-    // === Check if we can leave old target ===
-    if (e->target_column != NULL &&
+    // === Check if we have left the current snap target ===
+    if (e->destination_column != NULL &&
         !wlr_box_contains_point(&e->target_area, cursor->x, cursor->y)) {
-        column_consider_destroy(e->target_column);
-        e->target_column->pending.show_preview = false;
-        e->target_column->pending.preview_target = NULL;
-        e->target_column = NULL;
+        e->destination_column->pending.show_preview = false;
+        e->destination_column->pending.preview_target = NULL;
+        column_consider_destroy(e->destination_column);
+        e->destination_column = NULL;
         arrange_workspace(workspace);
     }
 
-    if (e->target_column != NULL) {
+    if (e->destination_column != NULL) {
         return;
     }
 
     // === Find new target ===
-    struct hwd_output *target_output = NULL;
-    struct hwd_window *target_window = NULL;
-    struct wlr_surface *surface = NULL;
-    double sx, sy = 0;
+    // Snapping changes the pending state of the window tree and so that is the
+    // state that we need to query.  Using, for example, `seat_get_target_at`
+    // would result in us updating the pending state based on old values.  This
+    // could result in weird oscilations.  Most other seat operations should use
+    // the current state.
 
-    seat_get_target_at(
-        seat, cursor->x, cursor->y, &target_output, &target_window, &surface, &sx, &sy
-    );
+    struct hwd_window *floating_window =
+        workspace_get_floating_window_at(workspace, cursor->x, cursor->y);
+    if (floating_window != NULL) {
+        // Output obscured by floating window.  No snapping possible.
+        return;
+    }
 
+    struct hwd_output *target_output = root_get_output_at(root, cursor->x, cursor->y);
     if (target_output == NULL) {
+        // TODO cursor constraints should ensure this.  Could probably be an
+        // assertion.
         return;
     }
 
@@ -206,11 +213,11 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         e->target_area.width = 40;
         e->target_area.height = target_output->height;
 
-        struct hwd_column *target_column = column_create();
-        target_column->pending.show_preview = true;
-        workspace_insert_column_left(workspace, target_output, target_column);
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        workspace_insert_column_left(workspace, target_output, destination_column);
         arrange_workspace(workspace);
-        e->target_column = target_column;
+        e->destination_column = destination_column;
         return;
     }
     if (target_output->lx + target_output->width - cursor->x < 20) {
@@ -219,18 +226,16 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         e->target_area.width = 40;
         e->target_area.height = target_output->height;
 
-        struct hwd_column *target_column = column_create();
-        target_column->pending.show_preview = true;
-        workspace_insert_column_right(workspace, target_output, target_column);
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        workspace_insert_column_right(workspace, target_output, destination_column);
         arrange_workspace(workspace);
-        e->target_column = target_column;
+        e->destination_column = destination_column;
         return;
     }
 
-    if (target_window == NULL) {
-        return;
-    }
-    if (!window_is_tiling(target_window)) {
+    struct hwd_column *target_column = workspace_get_column_at(workspace, cursor->x, cursor->y);
+    if (target_column == NULL) {
         return;
     }
 
@@ -238,33 +243,35 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     //   - Create placeholder column and draw preview square over whole thing.
     //   - Exit when we moved outside of slightly larger square (probably a bit
     //     smaller than placeholder column).
-    if (cursor->x - target_window->pending.x < 20) {
-        e->target_area.x = target_window->pending.x - 40;
-        e->target_area.y = target_window->pending.y;
+    if (cursor->x - target_column->pending.x < 20) {
+        e->target_area.x = target_column->pending.x - 40;
+        e->target_area.y = target_column->pending.y;
         e->target_area.width = 80;
-        e->target_area.height = target_window->pending.parent->pending.height;
+        e->target_area.height = target_column->pending.height;
 
-        struct hwd_column *target_column = column_create();
-        target_column->pending.show_preview = true;
-        workspace_insert_column_before(workspace, target_window->pending.parent, target_column);
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        workspace_insert_column_before(workspace, target_column, destination_column);
         arrange_workspace(workspace);
-        e->target_column = target_column;
+        e->destination_column = destination_column;
 
         return;
     }
-    if (target_window->pending.x + target_window->pending.width - cursor->x < 20) {
-        e->target_area.x = target_window->pending.x + target_window->pending.width - 40;
-        e->target_area.y = target_window->pending.y;
+    if (target_column->pending.x + target_column->pending.width - cursor->x < 20) {
+        e->target_area.x = target_column->pending.x + target_column->pending.width - 40;
+        e->target_area.y = target_column->pending.y;
         e->target_area.width = 80; // We want to extend over the next column as well.
-        e->target_area.height = target_window->pending.parent->pending.height;
+        e->target_area.height = target_column->pending.height;
 
-        struct hwd_column *target_column = column_create();
-        target_column->pending.show_preview = true;
-        workspace_insert_column_after(workspace, target_window->pending.parent, target_column);
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        workspace_insert_column_after(workspace, target_column, destination_column);
         arrange_workspace(workspace);
-        e->target_column = target_column;
+        e->destination_column = destination_column;
         return;
     }
+
+    struct hwd_window *target_window = column_get_window_at(target_column, cursor->x, cursor->y);
 
     // Are we over the titlebar of a tiled window?
     //   - Move titlebar towards active window and draw preview square in its place.
@@ -277,18 +284,19 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         e->target_area.width = titlebar_box.width;
         e->target_area.height = titlebar_box.height;
 
-        struct hwd_column *target_column = target_window->pending.parent;
-        int target_index = list_find(target_column->pending.children, target_window);
-        int active_index =
-            list_find(target_column->pending.children, target_column->pending.active_child);
-        if (target_column->pending.layout != L_STACKED || target_index <= active_index) {
+        struct hwd_column *destination_column = target_column;
+        int target_index = list_find(destination_column->pending.children, target_window);
+        int active_index = list_find(
+            destination_column->pending.children, destination_column->pending.active_child
+        );
+        if (destination_column->pending.layout != L_STACKED || target_index <= active_index) {
             target_window = window_get_previous_sibling(target_window);
         }
-        target_column->pending.show_preview = true;
-        target_column->pending.preview_target = target_window;
-        arrange_column(target_column);
+        destination_column->pending.show_preview = true;
+        destination_column->pending.preview_target = target_window;
+        arrange_column(destination_column);
 
-        e->target_column = target_column;
+        e->destination_column = destination_column;
         return;
     }
 
@@ -296,7 +304,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     //   - Draw preview square on top of the active window.
     //   - Exit when moved outside of larger square.
     struct wlr_box centre_box;
-    window_get_box(target_window, &centre_box);
+    window_get_content_box(target_window, &centre_box);
     centre_box.width /= 5;
     centre_box.x += 2 * centre_box.width;
     centre_box.height /= 5;
@@ -307,12 +315,12 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         e->target_area.width = titlebar_box.width * 3;
         e->target_area.height = titlebar_box.height * 3;
 
-        struct hwd_column *target_column = target_window->pending.parent;
-        target_column->pending.show_preview = true;
-        target_column->pending.preview_target = target_window;
-        arrange_column(target_column);
+        struct hwd_column *destination_column = target_window->pending.parent;
+        destination_column->pending.show_preview = true;
+        destination_column->pending.preview_target = target_window;
+        arrange_column(destination_column);
 
-        e->target_column = target_column;
+        e->destination_column = destination_column;
         return;
     }
 }
@@ -339,10 +347,11 @@ static void
 handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
     struct seatop_move_event *e = seat->seatop_data;
     // TODO track unref column instead.
-    if (e->target_column) {
-        e->target_column->pending.show_preview = false;
-        e->target_column->pending.preview_target = NULL;
-        e->target_column = NULL;
+    if (e->destination_column) {
+        e->destination_column->pending.show_preview = false;
+        e->destination_column->pending.preview_target = NULL;
+        column_consider_destroy(e->destination_column);
+        e->destination_column = NULL;
     }
 
     if (e->window == window) {

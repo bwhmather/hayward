@@ -859,6 +859,16 @@ window_get_titlebar_box(struct hwd_window *window, struct wlr_box *box) {
     box->height = titlebar_height;
 }
 
+void
+window_get_content_box(struct hwd_window *window, struct wlr_box *box) {
+    hwd_assert(window != NULL, "Expected window");
+
+    box->x = window->pending.content_x;
+    box->y = window->pending.content_y;
+    box->width = window->pending.content_width;
+    box->height = window->pending.content_height;
+}
+
 /**
  * Indicate to clients in this window that they are participating in (or
  * have just finished) an interactive resize

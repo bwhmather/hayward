@@ -12,6 +12,7 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_scene.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
@@ -660,6 +661,20 @@ workspace_num_tiling_views(struct hwd_workspace *workspace) {
     return count;
 }
 
+struct hwd_column *
+workspace_get_column_at(struct hwd_workspace *workspace, double x, double y) {
+    for (int i = 0; i < workspace->pending.tiling->length; i++) {
+        struct hwd_column *column = workspace->pending.tiling->items[i];
+
+        struct wlr_box column_box;
+        column_get_box(column, &column_box);
+        if (wlr_box_contains_point(&column_box, x, y)) {
+            return column;
+        }
+    }
+    return NULL;
+}
+
 struct hwd_output *
 workspace_get_active_output(struct hwd_workspace *workspace) {
     hwd_assert(workspace != NULL, "Expected workspace");
@@ -796,6 +811,24 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
     }
 
     arrange_workspace(workspace);
+}
+
+struct hwd_window *
+workspace_get_floating_window_at(struct hwd_workspace *workspace, double x, double y) {
+    for (int i = workspace->pending.floating->length - 1; i >= 0; i--) {
+        struct hwd_window *window = workspace->pending.floating->items[i];
+
+        if (window->moving) {
+            continue;
+        }
+
+        struct wlr_box window_box;
+        window_get_box(window, &window_box);
+        if (wlr_box_contains_point(&window_box, x, y)) {
+            return window;
+        }
+    }
+    return NULL;
 }
 
 static bool

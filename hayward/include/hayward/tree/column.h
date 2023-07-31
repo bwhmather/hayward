@@ -112,6 +112,9 @@ column_find_child(
     struct hwd_column *container, bool (*test)(struct hwd_window *view, void *data), void *data
 );
 
+struct hwd_window *
+column_get_window_at(struct hwd_column *column, double x, double y);
+
 void
 column_insert_child(struct hwd_column *parent, struct hwd_window *child, int i);
 
