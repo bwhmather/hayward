@@ -128,7 +128,7 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
     }
 
     struct hwd_column *old_column = window->pending.parent;
-    int old_column_index = list_find(window->pending.workspace->pending.tiling, old_column);
+    struct hwd_workspace *workspace = old_column->pending.workspace;
 
     switch (move_dir) {
     case WLR_DIRECTION_UP: {
@@ -155,61 +155,49 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
         return true;
     }
     case WLR_DIRECTION_LEFT: {
-        if (old_column_index == 0) {
-            // Window is already in the left most column.
-            // If window is the only child of this column
-            // then attempt to move it to the next
-            // workspace, otherwise insert a new column to
-            // the left and carry on as before.
-            if (old_column->pending.children->length == 1) {
-                // No other windows.  Move to next
-                // workspace.
+        struct hwd_column *new_column = workspace_get_column_before(workspace, old_column);
 
+        if (new_column == NULL) {
+            // Window is already in the left most column.   If window is the
+            // only child of this column then attempt to move it to the next
+            // workspace, otherwise insert a new column to  the left and carry
+            // on as before.
+            if (old_column->pending.children->length == 1) {
                 return window_move_to_next_output(window, old_column->pending.output, move_dir);
             }
 
-            struct hwd_column *new_column = column_create();
+            new_column = column_create();
             new_column->pending.height = new_column->pending.width = 0;
             new_column->width_fraction = 0;
             new_column->pending.layout = L_STACKED;
 
-            workspace_insert_column_left(
-                window->pending.workspace, old_column->pending.output, new_column
-            );
-            old_column_index += 1;
+            workspace_insert_column_first(workspace, old_column->pending.output, new_column);
         }
 
-        struct hwd_column *new_column =
-            window->pending.workspace->pending.tiling->items[old_column_index - 1];
         hwd_move_window_to_column_from_direction(window, new_column, move_dir);
 
         return true;
     }
     case WLR_DIRECTION_RIGHT: {
-        if (old_column_index == window->pending.workspace->pending.tiling->length - 1) {
-            // Window is already in the right most column.
-            // If window is the only child of this column
-            // then attempt to move it to the next
-            // workspace, otherwise insert a new column to
-            // the right and carry on as before.
+        struct hwd_column *new_column = workspace_get_column_after(workspace, old_column);
+
+        if (new_column == NULL) {
+            // Window is already in the right most column.  If window is the
+            // only child of this column then attempt to move it to the next
+            // workspace, otherwise insert a new column to the right and carry
+            // on as before.
             if (old_column->pending.children->length == 1) {
-                // TODO find then move should be separate calls at this level of
-                // abstraction.
                 return window_move_to_next_output(window, old_column->pending.output, move_dir);
             }
 
-            struct hwd_column *new_column = column_create();
+            new_column = column_create();
             new_column->pending.height = new_column->pending.width = 0;
             new_column->width_fraction = 0;
             new_column->pending.layout = L_STACKED;
 
-            workspace_insert_column_right(
-                window->pending.workspace, old_column->pending.output, new_column
-            );
+            workspace_insert_column_last(workspace, old_column->pending.output, new_column);
         }
 
-        struct hwd_column *new_column =
-            window->pending.workspace->pending.tiling->items[old_column_index + 1];
         hwd_move_window_to_column_from_direction(window, new_column, move_dir);
 
         return true;

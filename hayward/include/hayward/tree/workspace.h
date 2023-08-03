@@ -107,12 +107,26 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *conta
 void
 workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *window);
 
+
+struct hwd_column *
+workspace_get_column_first(struct hwd_workspace *workspace, struct hwd_output *output);
+
+
+struct hwd_column *
+workspace_get_column_last(struct hwd_workspace *workspace, struct hwd_output *output);
+
+struct hwd_column *
+workspace_get_column_before(struct hwd_workspace *workspace, struct hwd_column *column);
+
+struct hwd_column *
+workspace_get_column_after(struct hwd_workspace *workspace, struct hwd_column *column);
+
 void
-workspace_insert_column_left(
+workspace_insert_column_first(
     struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
 );
 void
-workspace_insert_column_right(
+workspace_insert_column_last(
     struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
 );
 

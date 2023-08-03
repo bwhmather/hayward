@@ -215,7 +215,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
 
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
-        workspace_insert_column_left(workspace, target_output, destination_column);
+        workspace_insert_column_first(workspace, target_output, destination_column);
         arrange_workspace(workspace);
         e->destination_column = destination_column;
         return;
@@ -228,7 +228,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
 
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
-        workspace_insert_column_right(workspace, target_output, destination_column);
+        workspace_insert_column_last(workspace, target_output, destination_column);
         arrange_workspace(workspace);
         e->destination_column = destination_column;
         return;
