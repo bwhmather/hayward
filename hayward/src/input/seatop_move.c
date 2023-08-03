@@ -272,6 +272,11 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     }
 
     struct hwd_window *target_window = column_get_window_at(target_column, cursor->x, cursor->y);
+    if (target_window == NULL) {
+        // Only currently possible if column is empty, which means a bug
+        // elsewhere, but we better to tolerate this.
+        return;
+    }
 
     // Are we over the titlebar of a tiled window?
     //   - Move titlebar towards active window and draw preview square in its place.
