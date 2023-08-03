@@ -586,8 +586,8 @@ root_validate(struct hwd_root *root) {
             hwd_assert(window->pending.parent == NULL, "Floating window has parent column");
         }
 
-        for (int j = 0; j < workspace->pending.tiling->length; j++) {
-            struct hwd_column *column = workspace->pending.tiling->items[j];
+        for (int j = 0; j < workspace->pending.columns->length; j++) {
+            struct hwd_column *column = workspace->pending.columns->items[j];
 
             hwd_assert(
                 column->pending.workspace == workspace, "Column workspace does not match expected"

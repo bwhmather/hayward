@@ -218,7 +218,7 @@ arrange_floating(struct hwd_workspace *workspace) {
 
 static void
 arrange_tiling(struct hwd_workspace *workspace) {
-    list_t *columns = workspace->pending.tiling;
+    list_t *columns = workspace->pending.columns;
     if (!columns->length) {
         return;
     }

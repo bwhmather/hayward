@@ -95,17 +95,17 @@ column_edge_is_external(struct hwd_column *column, enum wlr_edges edge) {
         return true;
     }
 
-    hwd_assert(column->pending.workspace, "Column is not attached to a workspace");
-    list_t *columns = column->pending.workspace->pending.tiling;
-    int index = list_find(columns, column);
-    hwd_assert(index >= 0, "Column not found");
+    struct hwd_workspace *workspace = column->pending.workspace;
+    struct hwd_output *output = column->pending.output;
 
-    if (edge == WLR_EDGE_LEFT && index == 0) {
-        return true;
+    if (edge == WLR_EDGE_LEFT) {
+        struct hwd_column *first_column = workspace_get_column_first(workspace, output);
+        return column == first_column;
     }
 
-    if (edge == WLR_EDGE_RIGHT && index == columns->length - 1) {
-        return true;
+    if (edge == WLR_EDGE_RIGHT) {
+        struct hwd_column *last_column = workspace_get_column_last(workspace, output);
+        return column == last_column;
     }
 
     return false;

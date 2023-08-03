@@ -51,8 +51,8 @@ window_set_floating(struct hwd_window *window, bool enable) {
         window->height_fraction = 0;
 
         struct hwd_column *column = NULL;
-        for (int i = 0; i < workspace->pending.tiling->length; i++) {
-            struct hwd_column *candidate_column = workspace->pending.tiling->items[i];
+        for (int i = 0; i < workspace->pending.columns->length; i++) {
+            struct hwd_column *candidate_column = workspace->pending.columns->items[i];
 
             if (candidate_column->pending.output != output) {
                 continue;
@@ -164,8 +164,8 @@ hwd_move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *wo
         struct hwd_output *output = window->pending.parent->pending.output;
         struct hwd_column *column = NULL;
 
-        for (int i = 0; i < workspace->pending.tiling->length; i++) {
-            struct hwd_column *candidate_column = workspace->pending.tiling->items[i];
+        for (int i = 0; i < workspace->pending.columns->length; i++) {
+            struct hwd_column *candidate_column = workspace->pending.columns->items[i];
 
             if (candidate_column->pending.output != output) {
                 continue;
@@ -214,8 +214,8 @@ hwd_move_window_to_output_from_direction(
     } else {
         struct hwd_column *column = NULL;
 
-        for (int i = 0; i < workspace->pending.tiling->length; i++) {
-            struct hwd_column *candidate_column = workspace->pending.tiling->items[i];
+        for (int i = 0; i < workspace->pending.columns->length; i++) {
+            struct hwd_column *candidate_column = workspace->pending.columns->items[i];
 
             if (candidate_column->pending.output != output) {
                 continue;

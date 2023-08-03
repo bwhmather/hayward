@@ -570,8 +570,8 @@ ipc_json_describe_workspace(struct hwd_workspace *workspace) {
     json_object_object_add(object, "floating_nodes", floating_array);
 
     json_object *children = json_object_new_array();
-    for (int i = 0; i < workspace->pending.tiling->length; ++i) {
-        struct hwd_column *column = workspace->pending.tiling->items[i];
+    for (int i = 0; i < workspace->pending.columns->length; ++i) {
+        struct hwd_column *column = workspace->pending.columns->items[i];
         json_object_array_add(children, ipc_json_describe_column(column));
     }
     json_object_object_add(object, "nodes", children);

@@ -56,33 +56,29 @@ get_window_in_output_direction(struct hwd_output *output, enum wlr_direction dir
         return output->pending.fullscreen_window;
     }
 
-    struct hwd_column *column = NULL;
-    struct hwd_window *window = NULL;
-
-    // TODO this is completly broken now that one workspace is spread across all
-    // outputs.
-    if (workspace->pending.tiling->length > 0) {
-        switch (dir) {
-        case WLR_DIRECTION_LEFT:
-            // get most right child of new output
-            column = workspace->pending.tiling->items[workspace->pending.tiling->length - 1];
-            window = column->pending.active_child;
-            break;
-        case WLR_DIRECTION_RIGHT:
-            // get most left child of new output
-            column = workspace->pending.tiling->items[0];
-            window = column->pending.active_child;
-            break;
-        case WLR_DIRECTION_UP:
-            window = workspace_get_active_tiling_window(workspace);
-            break;
-        case WLR_DIRECTION_DOWN:
-            window = workspace_get_active_tiling_window(workspace);
-            break;
+    switch (dir) {
+    case WLR_DIRECTION_LEFT: {
+        struct hwd_column *column = workspace_get_column_last(workspace, output);
+        if (column == NULL) {
+            return NULL;
         }
+        return column->pending.active_child;
     }
-
-    return window;
+    case WLR_DIRECTION_RIGHT: {
+        struct hwd_column *column = workspace_get_column_first(workspace, output);
+        if (column == NULL) {
+            return NULL;
+        }
+        return column->pending.active_child;
+    }
+    case WLR_DIRECTION_UP: {
+        return workspace_get_active_tiling_window(workspace);
+    }
+    case WLR_DIRECTION_DOWN: {
+        return workspace_get_active_tiling_window(workspace);
+    }
+    }
+    return NULL;
 }
 
 static struct hwd_window *

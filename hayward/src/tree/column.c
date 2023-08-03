@@ -514,7 +514,7 @@ column_get_siblings(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
 
     if (column->pending.workspace) {
-        return column->pending.workspace->pending.tiling;
+        return column->pending.workspace->pending.columns;
     }
     return NULL;
 }
@@ -531,7 +531,7 @@ column_get_previous_sibling(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
     hwd_assert(column->pending.workspace, "Column is not attached to a workspace");
 
-    list_t *siblings = column->pending.workspace->pending.tiling;
+    list_t *siblings = column->pending.workspace->pending.columns;
     int index = list_find(siblings, column);
 
     if (index <= 0) {
@@ -546,7 +546,7 @@ column_get_next_sibling(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
     hwd_assert(column->pending.workspace, "Column is not attached to a workspace");
 
-    list_t *siblings = column->pending.workspace->pending.tiling;
+    list_t *siblings = column->pending.workspace->pending.columns;
     int index = list_find(siblings, column);
 
     if (index < 0) {
