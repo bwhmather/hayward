@@ -22,6 +22,7 @@
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 #define AXIS_HORIZONTAL (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)
 #define AXIS_VERTICAL (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)
@@ -60,14 +61,16 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
         return;
     }
 
+    struct hwd_workspace *workspace = window->pending.workspace;
     struct hwd_column *column = window->pending.parent;
+
     struct hwd_column *prev_sibling = NULL;
     struct hwd_column *next_sibling = NULL;
     if (axis & WLR_EDGE_LEFT) {
-        prev_sibling = column_get_previous_sibling(column);
+        prev_sibling = workspace_get_column_before(workspace, column);
     }
     if (axis & WLR_EDGE_RIGHT) {
-        next_sibling = column_get_next_sibling(column);
+        next_sibling = workspace_get_column_after(workspace, column);
     }
 
     if (prev_sibling == NULL && next_sibling == NULL) {
@@ -93,7 +96,7 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
 
     // We're going to resize so snap all the width fractions to full pixels
     // to avoid rounding issues
-    list_t *siblings = column_get_siblings(column);
+    list_t *siblings = workspace->pending.columns;
     for (int i = 0; i < siblings->length; ++i) {
         struct hwd_column *sibling = siblings->items[i];
         sibling->width_fraction = sibling->pending.width / sibling->child_total_width;

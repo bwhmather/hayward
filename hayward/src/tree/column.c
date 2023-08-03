@@ -509,57 +509,6 @@ column_set_resizing(struct hwd_column *column, bool resizing) {
     }
 }
 
-list_t *
-column_get_siblings(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
-
-    if (column->pending.workspace) {
-        return column->pending.workspace->pending.columns;
-    }
-    return NULL;
-}
-
-int
-column_sibling_index(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
-
-    return list_find(column_get_siblings(column), column);
-}
-
-struct hwd_column *
-column_get_previous_sibling(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace, "Column is not attached to a workspace");
-
-    list_t *siblings = column->pending.workspace->pending.columns;
-    int index = list_find(siblings, column);
-
-    if (index <= 0) {
-        return NULL;
-    }
-
-    return siblings->items[index - 1];
-}
-
-struct hwd_column *
-column_get_next_sibling(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace, "Column is not attached to a workspace");
-
-    list_t *siblings = column->pending.workspace->pending.columns;
-    int index = list_find(siblings, column);
-
-    if (index < 0) {
-        return NULL;
-    }
-
-    if (index >= siblings->length - 1) {
-        return NULL;
-    }
-
-    return siblings->items[index + 1];
-}
-
 static bool
 find_urgent_iterator(struct hwd_window *window, void *data) {
     return window->view && view_is_urgent(window->view);

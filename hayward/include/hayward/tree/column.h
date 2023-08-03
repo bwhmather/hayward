@@ -142,17 +142,6 @@ column_get_box(struct hwd_column *column, struct wlr_box *box);
 void
 column_set_resizing(struct hwd_column *column, bool resizing);
 
-list_t *
-column_get_siblings(struct hwd_column *column);
-
-int
-column_sibling_index(struct hwd_column *child);
-
-struct hwd_column *
-column_get_previous_sibling(struct hwd_column *column);
-struct hwd_column *
-column_get_next_sibling(struct hwd_column *column);
-
 bool
 column_has_urgent_child(struct hwd_column *column);
 

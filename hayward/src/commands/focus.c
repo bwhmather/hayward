@@ -87,9 +87,11 @@ window_get_in_direction_tiling(
 ) {
     struct hwd_window *wrap_candidate = NULL;
 
+    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_output *output = window_get_output(window);
+
     if (window->pending.fullscreen) {
         // Fullscreen container with a direction - go straight to outputs
-        struct hwd_output *output = window_get_output(window);
         struct hwd_output *new_output = output_get_in_direction(output, dir);
         if (!new_output) {
             return NULL;
@@ -97,9 +99,10 @@ window_get_in_direction_tiling(
         return get_window_in_output_direction(new_output, dir);
     }
 
-    // TODO (hayward) this is a manually unrolled recursion over container. Make
-    // it nice. Window iteration.
-    if (dir == WLR_DIRECTION_UP || dir == WLR_DIRECTION_DOWN) {
+    switch (dir) {
+    case WLR_DIRECTION_UP:
+        // FALLTHROUGH.
+    case WLR_DIRECTION_DOWN: {
         // Try to move up and down within the current column.
         int current_idx = window_sibling_index(window);
         int desired_idx = current_idx + (dir == WLR_DIRECTION_UP ? -1 : 1);
@@ -120,38 +123,49 @@ window_get_in_direction_tiling(
                 return wrap_candidate;
             }
         }
-    } else {
-        // Try to move to the next column to the left of right within
-        // the current workspace.
+        break;
+    }
+    case WLR_DIRECTION_LEFT: {
         struct hwd_column *column = window->pending.parent;
 
-        int current_idx = column_sibling_index(column);
-        int desired_idx = current_idx + (dir == WLR_DIRECTION_LEFT ? -1 : 1);
-
-        list_t *siblings = column_get_siblings(column);
-
-        if (desired_idx >= 0 && desired_idx < siblings->length) {
-            struct hwd_column *next_column = siblings->items[desired_idx];
-            struct hwd_window *next_window = next_column->pending.active_child;
-            return next_window;
+        struct hwd_column *next_column = workspace_get_column_before(workspace, column);
+        if (next_column != NULL) {
+            return next_column->pending.active_child;
         }
 
-        if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
-            struct hwd_column *wrap_candidate_column;
-            if (desired_idx < 0) {
-                wrap_candidate_column = siblings->items[siblings->length - 1];
-            } else {
-                wrap_candidate_column = siblings->items[0];
-            }
-            wrap_candidate = wrap_candidate_column->pending.active_child;
-            if (config->focus_wrapping == WRAP_FORCE) {
-                return wrap_candidate;
-            }
+        if (config->focus_wrapping == WRAP_NO) {
+            break;
         }
+
+        struct hwd_column *wrap_column = workspace_get_column_last(workspace, output);
+        wrap_candidate = wrap_column->pending.active_child;
+        if (config->focus_wrapping == WRAP_FORCE && wrap_candidate != NULL) {
+            return wrap_candidate;
+        }
+        break;
+    }
+    case WLR_DIRECTION_RIGHT: {
+        struct hwd_column *column = window->pending.parent;
+
+        struct hwd_column *next_column = workspace_get_column_after(workspace, column);
+        if (next_column != NULL) {
+            return next_column->pending.active_child;
+        }
+
+        if (config->focus_wrapping == WRAP_NO) {
+            break;
+        }
+
+        struct hwd_column *wrap_column = workspace_get_column_first(workspace, output);
+        wrap_candidate = wrap_column->pending.active_child;
+        if (config->focus_wrapping == WRAP_FORCE && wrap_candidate != NULL) {
+            return wrap_candidate;
+        }
+        break;
+    }
     }
 
     // Check a different output
-    struct hwd_output *output = window_get_output(window);
     struct hwd_output *new_output = output_get_in_direction(output, dir);
     if (config->focus_wrapping != WRAP_WORKSPACE && new_output) {
         return get_window_in_output_direction(new_output, dir);

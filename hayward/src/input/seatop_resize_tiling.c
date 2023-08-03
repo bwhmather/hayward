@@ -22,6 +22,7 @@
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 struct seatop_resize_tiling_event {
     struct hwd_window *container; // leaf container
@@ -44,23 +45,6 @@ struct seatop_resize_tiling_event {
     double h_container_orig_width;  // width of the horizontal ancestor at start
     double v_container_orig_height; // height of the vertical ancestor at start
 };
-
-static struct hwd_column *
-column_get_resize_sibling(struct hwd_column *column, uint32_t edge) {
-    list_t *siblings = column_get_siblings(column);
-    int offset = (edge & WLR_EDGE_LEFT) ? -1 : 1;
-    int index = column_sibling_index(column) + offset;
-
-    if (index < 0) {
-        return NULL;
-    }
-
-    if (index >= siblings->length) {
-        return NULL;
-    }
-
-    return siblings->items[index];
-}
 
 static struct hwd_window *
 window_get_resize_sibling(struct hwd_window *window, uint32_t edge) {
@@ -150,27 +134,37 @@ static const struct hwd_seatop_impl seatop_impl = {
 };
 
 void
-seatop_begin_resize_tiling(
-    struct hwd_seat *seat, struct hwd_window *container, enum wlr_edges edge
-) {
+seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enum wlr_edges edge) {
     seatop_end(seat);
+
+    struct hwd_workspace *workspace = window->pending.workspace;
 
     struct seatop_resize_tiling_event *e = calloc(1, sizeof(struct seatop_resize_tiling_event));
     if (!e) {
         return;
     }
-    e->container = container;
+    e->container = window;
     e->edge = edge;
 
     e->ref_lx = seat->cursor->cursor->x;
     e->ref_ly = seat->cursor->cursor->y;
 
-    if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
-        e->edge_x = edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
+    if (edge & WLR_EDGE_LEFT) {
+        e->edge_x = WLR_EDGE_LEFT;
         e->h_container = e->container->pending.parent;
-        e->h_sib = column_get_resize_sibling(e->h_container, e->edge_x);
+        e->h_sib = workspace_get_column_before(workspace, e->h_container);
 
-        if (e->h_container) {
+        if (e->h_sib) {
+            column_set_resizing(e->h_container, true);
+            column_set_resizing(e->h_sib, true);
+            e->h_container_orig_width = e->h_container->pending.width;
+        }
+    } else if (edge & WLR_EDGE_RIGHT) {
+        e->edge_x = WLR_EDGE_RIGHT;
+        e->h_container = e->container->pending.parent;
+        e->h_sib = workspace_get_column_after(workspace, e->h_container);
+
+        if (e->h_sib) {
             column_set_resizing(e->h_container, true);
             column_set_resizing(e->h_sib, true);
             e->h_container_orig_width = e->h_container->pending.width;
