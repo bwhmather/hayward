@@ -129,7 +129,7 @@ arrange_column_stacked(struct hwd_column *column) {
     column_get_box(column, &box);
 
     struct hwd_window *active = column->pending.active_child;
-    size_t titlebar_height = window_titlebar_height();
+    size_t titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
 
     int y_offset = 0;
 
@@ -142,9 +142,18 @@ arrange_column_stacked(struct hwd_column *column) {
     }
 
     int num_titlebars = column->pending.children->length;
-    if (column->pending.show_preview &&
-        column->pending.preview_target != column->pending.active_child) {
-        num_titlebars += 1;
+    if (column->pending.show_preview) {
+        if (column->pending.preview_target == NULL) {
+            column->pending.preview_box.x = column->pending.x;
+            column->pending.preview_box.y = column->pending.y + y_offset;
+            column->pending.preview_box.width = column->pending.width;
+            column->pending.preview_box.height = titlebar_height;
+            y_offset += titlebar_height;
+        }
+
+        if (column->pending.preview_target != column->pending.active_child) {
+            num_titlebars += 1;
+        }
     }
 
     for (int i = 0; i < column->pending.children->length; ++i) {
@@ -170,7 +179,7 @@ arrange_column_stacked(struct hwd_column *column) {
 
             if (child == active) {
                 column->pending.preview_box.y = child->pending.y + titlebar_height;
-                column->pending.preview_box.height = column->pending.height - titlebar_height;
+                column->pending.preview_box.height = child->pending.height - titlebar_height;
             } else {
                 column->pending.preview_box.y = column->pending.y + y_offset;
                 column->pending.preview_box.height = titlebar_height;
