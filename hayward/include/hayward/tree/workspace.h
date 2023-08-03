@@ -22,7 +22,7 @@ struct hwd_view;
 
 struct hwd_workspace_state {
     list_t *floating; // struct hwd_window
-    list_t *columns;   // struct hwd_column
+    list_t *columns;  // struct hwd_column
 
     // Cached backlink to root of tree.
     struct hwd_root *root;
@@ -107,10 +107,8 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *conta
 void
 workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *window);
 
-
 struct hwd_column *
 workspace_get_column_first(struct hwd_workspace *workspace, struct hwd_output *output);
-
 
 struct hwd_column *
 workspace_get_column_last(struct hwd_workspace *workspace, struct hwd_output *output);

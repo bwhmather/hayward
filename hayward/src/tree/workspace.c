@@ -552,7 +552,6 @@ workspace_get_column_last(struct hwd_workspace *workspace, struct hwd_output *ou
     return NULL;
 }
 
-
 struct hwd_column *
 workspace_get_column_before(struct hwd_workspace *workspace, struct hwd_column *column) {
     hwd_assert(workspace != NULL, "Expected workspace");
@@ -586,7 +585,6 @@ workspace_get_column_after(struct hwd_workspace *workspace, struct hwd_column *c
     hwd_assert(column != NULL, "Expected column");
     hwd_assert(column->pending.workspace == workspace, "Expected column to be part of workspace");
 
-
     int i = 0;
     for (; i < workspace->pending.columns->length; i++) {
         struct hwd_column *candidate_column = workspace->pending.columns->items[i];
@@ -607,7 +605,6 @@ workspace_get_column_after(struct hwd_workspace *workspace, struct hwd_column *c
 
     return NULL;
 }
-
 
 void
 workspace_insert_column_first(

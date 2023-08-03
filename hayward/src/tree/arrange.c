@@ -46,7 +46,8 @@ arrange_window(struct hwd_window *window) {
         window->pending.content_x = window->pending.x + border_thickness;
         window->pending.content_y = window->pending.y + titlebar_height;
         window->pending.content_width = window->pending.width - 2 * border_thickness;
-        window->pending.content_height = window->pending.height - titlebar_height - border_thickness;
+        window->pending.content_height =
+            window->pending.height - titlebar_height - border_thickness;
     }
 
     window_set_dirty(window);
