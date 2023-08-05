@@ -727,20 +727,6 @@ workspace_remove_tiling(struct hwd_workspace *workspace, struct hwd_column *colu
     column_set_dirty(column);
 }
 
-size_t
-workspace_num_tiling_views(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-
-    size_t count = 0;
-
-    for (int i = 0; i < workspace->pending.columns->length; ++i) {
-        struct hwd_column *column = workspace->pending.columns->items[i];
-        count += column->pending.children->length;
-    }
-
-    return count;
-}
-
 struct hwd_column *
 workspace_get_column_at(struct hwd_workspace *workspace, double x, double y) {
     for (int i = 0; i < workspace->pending.columns->length; i++) {
