@@ -448,7 +448,7 @@ send_frame_done_iterator(struct wlr_scene_buffer *buffer, int x, int y, void *us
     struct hwd_output *output = data->output;
     int view_max_render_time = 0;
 
-    if (buffer->primary_output != data->output->scene_output) {
+    if (buffer->primary_output == NULL && buffer->primary_output != data->output->scene_output) {
         return;
     }
 
