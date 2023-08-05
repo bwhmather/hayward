@@ -206,9 +206,16 @@ static bool
 wants_floating(struct hwd_view *view) {
     struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
     struct wlr_xdg_toplevel_state *state = &toplevel->current;
-    return (state->min_width != 0 && state->min_height != 0 &&
-            (state->min_width == state->max_width || state->min_height == state->max_height)) ||
-        toplevel->parent;
+    if (state->max_width != 0) {
+        return true;
+    }
+    if (state->max_height != 0) {
+        return true;
+    }
+    if (toplevel->parent != NULL) {
+        return true;
+    }
+    return false;
 }
 
 static bool
