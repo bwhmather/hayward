@@ -572,7 +572,6 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&xwayland_view->set_role.link);
     wl_list_remove(&xwayland_view->set_window_type.link);
     wl_list_remove(&xwayland_view->set_hints.link);
-    wl_list_remove(&xwayland_view->set_decorations.link);
     wl_list_remove(&xwayland_view->associate.link);
     wl_list_remove(&xwayland_view->dissociate.link);
     wl_list_remove(&xwayland_view->override_redirect.link);
