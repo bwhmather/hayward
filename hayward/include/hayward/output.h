@@ -126,10 +126,6 @@ typedef void (*hwd_surface_iterator_func_t
 struct hwd_output *
 output_by_name_or_id(const char *name_or_id);
 
-// this includes all the outputs, including disabled ones
-struct hwd_output *
-all_output_by_name_or_id(const char *name_or_id);
-
 void
 handle_output_layout_change(struct wl_listener *listener, void *data);
 

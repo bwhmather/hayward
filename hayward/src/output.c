@@ -368,20 +368,6 @@ output_by_name_or_id(const char *name_or_id) {
     return NULL;
 }
 
-struct hwd_output *
-all_output_by_name_or_id(const char *name_or_id) {
-    struct hwd_output *output;
-    wl_list_for_each(output, &root->all_outputs, link) {
-        char identifier[128];
-        output_get_identifier(identifier, sizeof(identifier), output);
-        if (strcasecmp(identifier, name_or_id) == 0 ||
-            strcasecmp(output->wlr_output->name, name_or_id) == 0) {
-            return output;
-        }
-    }
-    return NULL;
-}
-
 struct buffer_timer {
     struct wlr_addon addon;
     struct wl_event_source *frame_done_timer;
@@ -620,57 +606,20 @@ handle_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void
-update_mode(struct hwd_output *output) {
-    if (!output->enabled && !output->enabling) {
-        struct output_config *oc = find_output_config(output);
-        if (output->wlr_output->current_mode != NULL && (!oc || oc->enabled)) {
-            // We want to enable this output, but it didn't work last time,
-            // possibly because we hadn't enough CRTCs. Try again now that the
-            // output has a mode.
-            hwd_log(
-                HWD_DEBUG,
-                "Output %s has gained a CRTC, "
-                "trying to enable it",
-                output->wlr_output->name
-            );
-            apply_output_config(oc, output);
-        }
-
-        hwd_transaction_manager_end_transaction(transaction_manager);
-        return;
-    }
-    if (!output->enabled) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
-        return;
-    }
-    arrange_layers(output);
-    arrange_output(output);
-
-    update_output_manager_config(output->server);
-}
-
-static void
 handle_commit(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
     hwd_transaction_manager_begin_transaction(transaction_manager);
 
-    if (event->committed & WLR_OUTPUT_STATE_MODE) {
-        update_mode(output);
-    }
-
-    if (!output->enabled) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
-        return;
-    }
-
-    if (event->committed & (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE)) {
-        hwd_transaction_manager_begin_transaction(transaction_manager);
-        arrange_layers(output);
-        arrange_output(output);
-
+    if (event->committed &
+        (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_MODE)) {
         update_output_manager_config(output->server);
+
+        if (output->enabled) {
+            arrange_layers(output);
+            arrange_output(output);
+        }
     }
 
     hwd_transaction_manager_end_transaction(transaction_manager);
@@ -752,7 +701,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
     output->repaint_timer =
         wl_event_loop_add_timer(server->wl_event_loop, output_repaint_timer_handler, output);
 
-    struct output_config *oc = find_output_config(output);
+    struct output_config *oc = new_output_config(output->wlr_output->name);
     apply_output_config(oc, output);
     free_output_config(oc);
 
@@ -793,7 +742,6 @@ output_manager_apply(
         if (test_only) {
             ok &= test_output_config(oc, output);
         } else {
-            oc = store_output_config(oc);
             ok &= apply_output_config(oc, output);
         }
     }
@@ -825,7 +773,6 @@ output_manager_apply(
         if (test_only) {
             ok &= test_output_config(oc, output);
         } else {
-            oc = store_output_config(oc);
             ok &= apply_output_config(oc, output);
         }
     }
@@ -882,7 +829,6 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
         oc->dpms_state = DPMS_ON;
         break;
     }
-    oc = store_output_config(oc);
     apply_output_config(oc, output);
 
     hwd_transaction_manager_end_transaction(transaction_manager);

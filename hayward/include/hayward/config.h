@@ -623,15 +623,6 @@ apply_output_config(struct output_config *oc, struct hwd_output *output);
 bool
 test_output_config(struct output_config *oc, struct hwd_output *output);
 
-struct output_config *
-store_output_config(struct output_config *oc);
-
-struct output_config *
-find_output_config(struct hwd_output *output);
-
-void
-apply_output_config_to_outputs(struct output_config *oc);
-
 void
 reset_outputs(void);
 
