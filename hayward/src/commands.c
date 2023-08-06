@@ -81,7 +81,6 @@ static const struct cmd_handler handlers[] = {
     {"hide_edge_borders", cmd_hide_edge_borders},
     {"input", cmd_input},
     {"mode", cmd_mode},
-    {"output", cmd_output},
     {"popup_during_fullscreen", cmd_popup_during_fullscreen},
     {"seat", cmd_seat},
     {"set", cmd_set},
@@ -105,7 +104,6 @@ static const struct cmd_handler config_handlers[] = {
 
 /* Runtime-only commands. Keep alphabetized */
 static const struct cmd_handler command_handlers[] = {
-    {"create_output", cmd_create_output},
     {"exit", cmd_exit},
     {"floating", cmd_floating},
     {"fullscreen", cmd_fullscreen},
