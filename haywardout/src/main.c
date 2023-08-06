@@ -76,19 +76,14 @@ activate(GtkApplication *app, gpointer user_data) {
 
 int
 main(int argc, char *argv[]) {
-    GError *error = NULL;
-    GOptionContext *context;
     GtkApplication *app;
     int status;
 
-    context = g_option_context_new("- manage hayward outputs");
-    g_option_context_add_main_entries(context, entries, "haywardout");
-    if (!g_option_context_parse(context, &argc, &argv, &error)) {
-        g_print("option_parsing failed %s\n", error->message);
-        exit(1);
-    }
-
     app = gtk_application_new("com.bwhmather.haywardout", G_APPLICATION_IS_LAUNCHER);
+
+    g_application_set_option_context_summary(G_APPLICATION(app), "Service and GUI for managing hayward output configuration.");
+    g_application_add_main_option_entries(G_APPLICATION(app), entries);
+
     g_signal_connect(app, "handle-local-options", G_CALLBACK(handle_local_options), NULL);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     g_signal_connect(app, "startup", G_CALLBACK(startup), NULL);
