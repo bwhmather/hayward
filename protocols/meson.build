@@ -21,6 +21,7 @@ protocols = [
 	['idle.xml'],
 	['wlr-input-inhibitor-unstable-v1.xml'],
 	['wlr-output-power-management-unstable-v1.xml'],
+	['wlr-output-management-unstable-v1.xml'],
 ]
 
 client_protocols = [
@@ -29,6 +30,7 @@ client_protocols = [
 	['hwd-workspace-management-unstable-v1.xml'],
 	['wlr-layer-shell-unstable-v1.xml'],
 	['wlr-input-inhibitor-unstable-v1.xml'],
+	['wlr-output-management-unstable-v1.xml'],
 ]
 
 wl_protos_src = []
