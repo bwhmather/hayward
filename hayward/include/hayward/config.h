@@ -281,9 +281,6 @@ struct output_config {
     int adaptive_sync;
     enum render_bit_depth render_bit_depth;
 
-    char *background;
-    char *background_option;
-    char *background_fallback;
     enum config_dpms dpms_state;
 };
 
@@ -467,11 +464,6 @@ struct hwd_config {
     enum hwd_popup_during_fullscreen popup_during_fullscreen;
     enum xwayland_mode xwayland;
 
-    // haywardbg
-    char *haywardbg_command;
-    struct wl_client *haywardbg_client;
-    struct wl_listener haywardbg_client_destroy;
-
     // Flags
     enum focus_follows_mouse_mode focus_follows_mouse;
     enum focus_wrapping_mode focus_wrapping;
@@ -645,9 +637,6 @@ reset_outputs(void);
 
 void
 free_output_config(struct output_config *oc);
-
-bool
-spawn_haywardbg(void);
 
 void
 free_hwd_binding(struct hwd_binding *sb);

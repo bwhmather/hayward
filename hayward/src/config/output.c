@@ -146,18 +146,6 @@ merge_output_config(struct output_config *dst, struct output_config *src) {
     if (src->render_bit_depth != RENDER_BIT_DEPTH_DEFAULT) {
         dst->render_bit_depth = src->render_bit_depth;
     }
-    if (src->background) {
-        free(dst->background);
-        dst->background = strdup(src->background);
-    }
-    if (src->background_option) {
-        free(dst->background_option);
-        dst->background_option = strdup(src->background_option);
-    }
-    if (src->background_fallback) {
-        free(dst->background_fallback);
-        dst->background_fallback = strdup(src->background_fallback);
-    }
     if (src->dpms_state != 0) {
         dst->dpms_state = src->dpms_state;
     }
@@ -220,12 +208,14 @@ merge_id_on_name(struct output_config *oc) {
             list_add(config->output_configs, ion_oc);
             hwd_log(
                 HWD_DEBUG,
-                "Generated id on name output config \"%s\""
-                " (enabled: %d) (%dx%d@%fHz position %d,%d scale %f "
-                "transform %d) (bg %s %s) (dpms %d) (max render time: %d)",
+                "Generated id on name output config \"%s\" "
+                "(enabled: %d) "
+                "(%dx%d@%fHz position %d,%d scale %f transform %d) "
+                "(dpms %d) "
+                "(max render time: %d)",
                 ion_oc->name, ion_oc->enabled, ion_oc->width, ion_oc->height, ion_oc->refresh_rate,
-                ion_oc->x, ion_oc->y, ion_oc->scale, ion_oc->transform, ion_oc->background,
-                ion_oc->background_option, ion_oc->dpms_state, ion_oc->max_render_time
+                ion_oc->x, ion_oc->y, ion_oc->scale, ion_oc->transform, ion_oc->dpms_state,
+                ion_oc->max_render_time
             );
         }
     }
@@ -268,13 +258,14 @@ store_output_config(struct output_config *oc) {
 
     hwd_log(
         HWD_DEBUG,
-        "Config stored for output %s (enabled: %d) (%dx%d@%fHz "
-        "position %d,%d scale %f subpixel %s transform %d) (bg %s %s) (dpms "
-        "%d) "
+        "Config stored for output %s "
+        "(enabled: %d) "
+        "(%dx%d@%fHz position %d,%d scale %f subpixel %s transform %d) "
+        "(dpms %d) "
         "(max render time: %d)",
         oc->name, oc->enabled, oc->width, oc->height, oc->refresh_rate, oc->x, oc->y, oc->scale,
-        hwd_wl_output_subpixel_to_string(oc->subpixel), oc->transform, oc->background,
-        oc->background_option, oc->dpms_state, oc->max_render_time
+        hwd_wl_output_subpixel_to_string(oc->subpixel), oc->transform, oc->dpms_state,
+        oc->max_render_time
     );
 
     return oc;
@@ -699,12 +690,14 @@ get_output_config(char *identifier, struct hwd_output *hwd_output) {
 
         hwd_log(
             HWD_DEBUG,
-            "Generated output config \"%s\" (enabled: %d)"
-            " (%dx%d@%fHz position %d,%d scale %f transform %d) (bg %s %s)"
-            " (dpms %d) (max render time: %d)",
+            "Generated output config \"%s\" "
+            "(enabled: %d) "
+            "(%dx%d@%fHz position %d,%d scale %f transform %d) "
+            "(dpms %d) "
+            "(max render time: %d)",
             result->name, result->enabled, result->width, result->height, result->refresh_rate,
-            result->x, result->y, result->scale, result->transform, result->background,
-            result->background_option, result->dpms_state, result->max_render_time
+            result->x, result->y, result->scale, result->transform, result->dpms_state,
+            result->max_render_time
         );
     } else if (oc_name) {
         // No identifier config, just return a copy of the name config
@@ -798,145 +791,5 @@ free_output_config(struct output_config *oc) {
         return;
     }
     free(oc->name);
-    free(oc->background);
-    free(oc->background_option);
     free(oc);
-}
-
-static void
-handle_haywardbg_client_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_config *hwd_config = wl_container_of(listener, hwd_config, haywardbg_client_destroy);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
-    wl_list_remove(&hwd_config->haywardbg_client_destroy.link);
-    wl_list_init(&hwd_config->haywardbg_client_destroy.link);
-    hwd_config->haywardbg_client = NULL;
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
-}
-
-static bool
-_spawn_haywardbg(char **command) {
-    if (config->haywardbg_client != NULL) {
-        wl_client_destroy(config->haywardbg_client);
-    }
-    int sockets[2];
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-        hwd_log_errno(HWD_ERROR, "socketpair failed");
-        return false;
-    }
-    if (!hwd_set_cloexec(sockets[0], true) || !hwd_set_cloexec(sockets[1], true)) {
-        return false;
-    }
-
-    config->haywardbg_client = wl_client_create(server.wl_display, sockets[0]);
-    if (config->haywardbg_client == NULL) {
-        hwd_log_errno(HWD_ERROR, "wl_client_create failed");
-        return false;
-    }
-
-    config->haywardbg_client_destroy.notify = handle_haywardbg_client_destroy;
-    wl_client_add_destroy_listener(config->haywardbg_client, &config->haywardbg_client_destroy);
-
-    pid_t pid = fork();
-    if (pid < 0) {
-        hwd_log_errno(HWD_ERROR, "fork failed");
-        return false;
-    } else if (pid == 0) {
-        restore_nofile_limit();
-
-        pid = fork();
-        if (pid < 0) {
-            hwd_log_errno(HWD_ERROR, "fork failed");
-            _exit(EXIT_FAILURE);
-        } else if (pid == 0) {
-            if (!hwd_set_cloexec(sockets[1], false)) {
-                _exit(EXIT_FAILURE);
-            }
-
-            char wayland_socket_str[16];
-            snprintf(wayland_socket_str, sizeof(wayland_socket_str), "%d", sockets[1]);
-            setenv("WAYLAND_SOCKET", wayland_socket_str, true);
-
-            execvp(command[0], command);
-            hwd_log_errno(HWD_ERROR, "execvp failed");
-            _exit(EXIT_FAILURE);
-        }
-        _exit(EXIT_SUCCESS);
-    }
-
-    if (close(sockets[1]) != 0) {
-        hwd_log_errno(HWD_ERROR, "close failed");
-        return false;
-    }
-    if (waitpid(pid, NULL, 0) < 0) {
-        hwd_log_errno(HWD_ERROR, "waitpid failed");
-        return false;
-    }
-
-    return true;
-}
-
-bool
-spawn_haywardbg(void) {
-    if (!config->haywardbg_command) {
-        return true;
-    }
-
-    size_t length = 2;
-    for (int i = 0; i < config->output_configs->length; i++) {
-        struct output_config *oc = config->output_configs->items[i];
-        if (!oc->background) {
-            continue;
-        }
-        if (strcmp(oc->background_option, "solid_color") == 0) {
-            length += 4;
-        } else if (oc->background_fallback) {
-            length += 8;
-        } else {
-            length += 6;
-        }
-    }
-
-    char **cmd = calloc(length, sizeof(char *));
-    if (!cmd) {
-        hwd_log(HWD_ERROR, "Failed to allocate spawn_haywardbg command");
-        return false;
-    }
-
-    size_t i = 0;
-    cmd[i++] = config->haywardbg_command;
-    for (int j = 0; j < config->output_configs->length; j++) {
-        struct output_config *oc = config->output_configs->items[j];
-        if (!oc->background) {
-            continue;
-        }
-        if (strcmp(oc->background_option, "solid_color") == 0) {
-            cmd[i++] = "-o";
-            cmd[i++] = oc->name;
-            cmd[i++] = "-c";
-            cmd[i++] = oc->background;
-        } else {
-            cmd[i++] = "-o";
-            cmd[i++] = oc->name;
-            cmd[i++] = "-i";
-            cmd[i++] = oc->background;
-            cmd[i++] = "-m";
-            cmd[i++] = oc->background_option;
-            if (oc->background_fallback) {
-                cmd[i++] = "-c";
-                cmd[i++] = oc->background_fallback;
-            }
-        }
-        assert(i <= length);
-    }
-
-    for (size_t k = 0; k < i; k++) {
-        hwd_log(HWD_DEBUG, "spawn_haywardbg cmd[%zd] = %s", k, cmd[k]);
-    }
-
-    bool result = _spawn_haywardbg(cmd);
-    free(cmd);
-    return result;
 }

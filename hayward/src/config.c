@@ -212,9 +212,6 @@ config_defaults(struct hwd_config *config) {
     if (!(config->active_bar_modifiers = create_list()))
         goto cleanup;
 
-    if (!(config->haywardbg_command = strdup("haywardbg")))
-        goto cleanup;
-
     if (!(config->config_chain = create_list()))
         goto cleanup;
     config->current_config_path = NULL;
@@ -401,10 +398,6 @@ load_main_config(const char *file, bool is_active, bool validating) {
         config->xwayland = old_config->xwayland;
 
         if (!config->validating) {
-            if (old_config->haywardbg_client != NULL) {
-                wl_client_destroy(old_config->haywardbg_client);
-            }
-
             if (old_config->haywardnag_config_errors.client != NULL) {
                 wl_client_destroy(old_config->haywardnag_config_errors.client);
             }
@@ -495,7 +488,6 @@ load_main_config(const char *file, bool is_active, bool validating) {
         hwd_switch_retrigger_bindings_for_all();
 
         reset_outputs();
-        spawn_haywardbg();
 
         config->reloading = false;
         if (config->haywardnag_config_errors.client != NULL) {
@@ -910,9 +902,6 @@ free_config(struct hwd_config *config) {
         }
         list_free(config->output_configs);
     }
-    if (config->haywardbg_client != NULL) {
-        wl_client_destroy(config->haywardbg_client);
-    }
     if (config->input_configs) {
         for (int i = 0; i < config->input_configs->length; i++) {
             free_input_config(config->input_configs->items[i]);
@@ -939,7 +928,6 @@ free_config(struct hwd_config *config) {
     free(config->floating_scroll_left_cmd);
     free(config->floating_scroll_right_cmd);
     free(config->font);
-    free(config->haywardbg_command);
     free(config->haywardnag_command);
     free((char *)config->current_config_path);
     free((char *)config->current_config);

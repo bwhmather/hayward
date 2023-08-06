@@ -129,7 +129,6 @@ hwd_cmd cmd_focus_wrapping;
 hwd_cmd cmd_font;
 hwd_cmd cmd_force_display_urgency_hint;
 hwd_cmd cmd_fullscreen;
-hwd_cmd cmd_haywardbg_command;
 hwd_cmd cmd_haywardnag_command;
 hwd_cmd cmd_hide_edge_borders;
 hwd_cmd cmd_include;
@@ -224,7 +223,6 @@ hwd_cmd input_cmd_xkb_switch_layout;
 hwd_cmd input_cmd_xkb_variant;
 
 hwd_cmd output_cmd_adaptive_sync;
-hwd_cmd output_cmd_background;
 hwd_cmd output_cmd_disable;
 hwd_cmd output_cmd_dpms;
 hwd_cmd output_cmd_enable;

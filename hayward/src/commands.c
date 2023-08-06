@@ -99,7 +99,6 @@ static const struct cmd_handler handlers[] = {
 /* Config-time only commands. Keep alphabetized */
 static const struct cmd_handler config_handlers[] = {
     {"include", cmd_include},
-    {"haywardbg_command", cmd_haywardbg_command},
     {"haywardnag_command", cmd_haywardnag_command},
     {"xwayland", cmd_xwayland},
 };

@@ -78,7 +78,6 @@ hayward_sources = files(
 	'src/commands/seat/xcursor_theme.c',
 	'src/commands/set.c',
 	'src/commands/shortcuts_inhibitor.c',
-	'src/commands/haywardbg_command.c',
 	'src/commands/haywardnag_command.c',
 	'src/commands/tiling_drag.c',
 	'src/commands/tiling_drag_threshold.c',
@@ -149,7 +148,6 @@ hayward_sources = files(
 	'src/commands/input/xkb_variant.c',
 
 	'src/commands/output/adaptive_sync.c',
-	'src/commands/output/background.c',
 	'src/commands/output/disable.c',
 	'src/commands/output/dpms.c',
 	'src/commands/output/enable.c',

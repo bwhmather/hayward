@@ -20,8 +20,6 @@
 // must be in order for the bsearch
 static const struct cmd_handler output_handlers[] = {
     {"adaptive_sync", output_cmd_adaptive_sync},
-    {"background", output_cmd_background},
-    {"bg", output_cmd_background},
     {"disable", output_cmd_disable},
     {"dpms", output_cmd_dpms},
     {"enable", output_cmd_enable},
@@ -108,8 +106,6 @@ cmd_output(int argc, char **argv) {
     config->handler_context.leftovers.argc = 0;
     config->handler_context.leftovers.argv = NULL;
 
-    bool background = output->background;
-
     output = store_output_config(output);
 
     // If reloading, the output configs will be applied after reading the
@@ -117,9 +113,6 @@ cmd_output(int argc, char **argv) {
     // workspace name is not given to re-enabled outputs.
     if (!config->reloading && !config->validating) {
         apply_output_config_to_outputs(output);
-        if (background) {
-            spawn_haywardbg();
-        }
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);
