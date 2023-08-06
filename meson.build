@@ -57,6 +57,8 @@ cairo = dependency('cairo')
 pango = dependency('pango')
 pangocairo = dependency('pangocairo')
 gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: get_option('gdk-pixbuf'))
+gtk = dependency('gtk4')
+gtk_wayland = dependency('gtk4-wayland')
 pixman = dependency('pixman-1')
 glesv2 = dependency('glesv2')
 libevdev = dependency('libevdev')
@@ -226,6 +228,8 @@ endif
 if get_option('haywardnag')
 	subdir('haywardnag')
 endif
+
+subdir('haywardout')
 
 config = configuration_data()
 config.set('datadir', join_paths(prefix, datadir))

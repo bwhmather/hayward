@@ -1,0 +1,27 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+TabWidth: 4
+---
+Language: Cpp
+ColumnLimit: 100
+AlignAfterOpenBracket: BlockIndent
+AlignOperands: DontAlign
+BreakBeforeTernaryOperators: true
+AlwaysBreakAfterReturnType: All
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '".*"'
+    Priority: 2
+  - Regex: '<config.h>'
+    Priority: 1
+  - Regex: '<hayward-.*/.*>'
+    Priority: 4
+  - Regex: '<.*-protocol.h>'
+    Priority: 5
+  - Regex: '<haywardout/.*>'
+    Priority: 6
+  - Regex: '<.+>'
+    Priority: 3
+
