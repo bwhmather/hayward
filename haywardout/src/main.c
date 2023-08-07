@@ -1,3 +1,5 @@
+#include "hwdout-output-manager.h"
+
 #include <gdk/wayland/gdkwayland.h>
 #include <gtk/gtk.h>
 #include <wayland-client.h>
@@ -6,11 +8,17 @@
 
 static void
 handle_global(
-    void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version
+    void *data, struct wl_registry *wl_registry, uint32_t id, const char *interface,
+    uint32_t version
 ) {
-    g_warning("global: %s", interface);
+    struct zwlr_output_manager_v1 *wlr_output_manager;
+
+    g_debug("global: %s", interface);
     if (strcmp(interface, zwlr_output_manager_v1_interface.name) == 0) {
-        g_warning("Success!");
+        wlr_output_manager =
+            wl_registry_bind(wl_registry, id, &zwlr_output_manager_v1_interface, 4);
+
+        hwdout_output_manager_new(wlr_output_manager);
     }
 }
 
@@ -45,6 +53,7 @@ handle_local_options(GtkApplication *app, GVariantDict *options, gpointer user_d
 static void
 startup(GtkApplication *app, gpointer user_data) {
     GdkDisplay *gdk_display;
+
     struct wl_display *wl_display;
     struct wl_registry *wl_registry;
 
@@ -81,7 +90,9 @@ main(int argc, char *argv[]) {
 
     app = gtk_application_new("com.bwhmather.haywardout", G_APPLICATION_IS_LAUNCHER);
 
-    g_application_set_option_context_summary(G_APPLICATION(app), "Service and GUI for managing hayward output configuration.");
+    g_application_set_option_context_summary(
+        G_APPLICATION(app), "Service and GUI for managing hayward output configuration."
+    );
     g_application_add_main_option_entries(G_APPLICATION(app), entries);
 
     g_signal_connect(app, "handle-local-options", G_CALLBACK(handle_local_options), NULL);

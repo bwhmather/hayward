@@ -20,6 +20,7 @@ add_project_arguments(
 		'-Wno-missing-braces',
 		'-Wundef',
 		'-Wvla',
+		'-Wno-switch',
 	],
 	language: 'c',
 )
