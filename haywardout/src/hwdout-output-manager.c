@@ -24,6 +24,8 @@ struct _HwdoutOutputManager {
 
     HwdoutOutputManagerState pending;
     HwdoutOutputManagerState current;
+
+    gboolean finished;
 };
 
 G_DEFINE_TYPE(HwdoutOutputManager, hwdout_output_manager, G_TYPE_OBJECT)
@@ -34,10 +36,24 @@ static GParamSpec *properties[N_PROPERTIES];
 
 typedef enum {
     SIGNAL_DONE = 1,
+    SIGNAL_FINISHED,
     N_SIGNALS,
-} HwdoutOutputHeadSignal;
+} HwdoutOutputManagerSignal;
 
 static guint signals[N_SIGNALS] = {0};
+
+static void
+handle_head_finished(HwdoutOutputHead *head, uint32_t serial, void *data) {
+    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
+
+    guint position = 0;
+    if (!g_list_store_find(self->pending.heads, head, &position)) {
+        g_warning("received head finished event for unrecognised head");
+        return;
+    }
+
+    g_list_store_remove(self->pending.heads, position);
+}
 
 void
 handle_manager_head(
@@ -47,9 +63,18 @@ handle_manager_head(
     HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
     HwdoutOutputHead *head;
 
+    if (self->finished) {
+        g_warning("received head event after finished");
+        return;
+    }
+
     head = hwdout_output_head_new(self, wlr_head);
     g_list_store_append(self->pending.heads, head);
     g_object_unref(head);
+
+    g_signal_connect_object(
+        head, "finished", G_CALLBACK(handle_head_finished), self, G_CONNECT_DEFAULT
+    );
 }
 
 void
@@ -68,7 +93,16 @@ handle_manager_done(
 }
 
 void
-handle_manager_finished(void *data, struct zwlr_output_manager_v1 *zwlr_output_manager_v1) {}
+handle_manager_finished(void *data, struct zwlr_output_manager_v1 *zwlr_output_manager_v1) {
+    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
+
+    if (self->finished) {
+        g_warning("received multiple finished events");
+        return;
+    }
+
+    g_signal_emit(self, signals[SIGNAL_FINISHED], 0);
+}
 
 static const struct zwlr_output_manager_v1_listener manager_listener = {
     .head = handle_manager_head,
@@ -97,6 +131,10 @@ hwdout_output_manager_dispose(GObject *gobject) {
 
 static void
 hwdout_output_manager_finalize(GObject *gobject) {
+    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
+
+    g_clear_pointer(&self->wlr_output_manager, zwlr_output_manager_v1_destroy);
+
     G_OBJECT_CLASS(hwdout_output_manager_parent_class)->finalize(gobject);
 }
 
@@ -172,6 +210,16 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
         NULL,        // C marshaller.
         G_TYPE_NONE, // Return type.
         1, G_TYPE_UINT
+    );
+
+    signals[SIGNAL_FINISHED] = g_signal_new(
+        g_intern_static_string("finished"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
+        0,           // Closure.
+        NULL,        // Accumulator.
+        NULL,        // Accumulator data.
+        NULL,        // C marshaller.
+        G_TYPE_NONE, // Return type.
+        0
     );
 }
 

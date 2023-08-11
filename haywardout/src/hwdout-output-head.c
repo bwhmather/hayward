@@ -47,6 +47,8 @@ struct _HwdoutOutputHead {
 
     HwdoutOutputHeadState pending;
     HwdoutOutputHeadState current;
+
+    gboolean finished;
 };
 
 G_DEFINE_TYPE(HwdoutOutputHead, hwdout_output_head, G_TYPE_OBJECT)
@@ -71,6 +73,13 @@ typedef enum {
 } HwdoutOutputHeadProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
+
+typedef enum {
+    SIGNAL_FINISHED = 1,
+    N_SIGNALS,
+} HwdoutOutputHeadSignal;
+
+static guint signals[N_SIGNALS] = {0};
 
 static void
 handle_head_name(void *data, struct zwlr_output_head_v1 *wlr_output_head, const char *name) {
@@ -107,6 +116,19 @@ handle_head_physical_size(
 }
 
 static void
+handle_mode_finished(HwdoutOutputMode *mode, uint32_t serial, void *data) {
+    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+
+    guint position = 0;
+    if (!g_list_store_find(self->pending.modes, mode, &position)) {
+        g_warning("received mode finished event for unrecognised mode");
+        return;
+    }
+
+    g_list_store_remove(self->pending.modes, position);
+}
+
+static void
 handle_head_mode(
     void *data, struct zwlr_output_head_v1 *wlr_output_head, struct zwlr_output_mode_v1 *wlr_mode
 ) {
@@ -123,6 +145,10 @@ handle_head_mode(
     g_return_if_fail(mode != NULL);
     g_list_store_append(self->pending.modes, mode);
     zwlr_output_mode_v1_set_user_data(wlr_mode, mode);
+
+    g_signal_connect_object(
+        mode, "finished", G_CALLBACK(handle_mode_finished), self, G_CONNECT_DEFAULT
+    );
 }
 
 static void
@@ -187,8 +213,14 @@ handle_head_scale(void *data, struct zwlr_output_head_v1 *wlr_output_head, wl_fi
  */
 static void
 handle_head_finished(void *data, struct zwlr_output_head_v1 *wlr_output_head) {
-    // HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
-    // TODO
+    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+
+    if (self->finished) {
+        g_warning("received multiple finished events");
+        return;
+    }
+
+    g_signal_emit(self, signals[SIGNAL_FINISHED], 0);
 }
 
 static void
@@ -435,6 +467,10 @@ hwdout_output_head_dispose(GObject *gobject) {
 
 static void
 hwdout_output_head_finalize(GObject *gobject) {
+    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(gobject);
+
+    g_clear_pointer(&self->wlr_output_head, zwlr_output_head_v1_destroy);
+
     G_OBJECT_CLASS(hwdout_output_head_parent_class)->finalize(gobject);
 }
 
@@ -640,6 +676,16 @@ hwdout_output_head_class_init(HwdoutOutputHeadClass *klass) {
     );
 
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
+
+    signals[SIGNAL_FINISHED] = g_signal_new(
+        g_intern_static_string("finished"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
+        0,           // Closure.
+        NULL,        // Accumulator.
+        NULL,        // Accumulator data.
+        NULL,        // C marshaller.
+        G_TYPE_NONE, // Return type.
+        0
+    );
 }
 
 static void

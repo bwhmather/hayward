@@ -34,6 +34,8 @@ struct _HwdoutOutputMode {
 
     HwdoutOutputModeState pending;
     HwdoutOutputModeState current;
+
+    gboolean finished;
 };
 
 G_DEFINE_TYPE(HwdoutOutputMode, hwdout_output_mode, G_TYPE_OBJECT)
@@ -50,6 +52,13 @@ typedef enum {
 } HwdoutOutputModeProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
+
+typedef enum {
+    SIGNAL_FINISHED = 1,
+    N_SIGNALS,
+} HwdoutOutputModeSignal;
+
+static guint signals[N_SIGNALS] = {0};
 
 static void
 handle_mode_size(
@@ -98,6 +107,10 @@ hwdout_output_mode_dispose(GObject *gobject) {
 
 static void
 hwdout_output_mode_finalize(GObject *gobject) {
+    HwdoutOutputMode *self = HWDOUT_OUTPUT_MODE(gobject);
+
+    g_clear_pointer(&self->wlr_output_mode, zwlr_output_mode_v1_destroy);
+
     G_OBJECT_CLASS(hwdout_output_mode_parent_class)->finalize(gobject);
 }
 
@@ -223,6 +236,16 @@ hwdout_output_mode_class_init(HwdoutOutputModeClass *klass) {
     );
 
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
+
+    signals[SIGNAL_FINISHED] = g_signal_new(
+        g_intern_static_string("finished"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
+        0,           // Closure.
+        NULL,        // Accumulator.
+        NULL,        // Accumulator data.
+        NULL,        // C marshaller.
+        G_TYPE_NONE, // Return type.
+        0
+    );
 }
 
 static void
