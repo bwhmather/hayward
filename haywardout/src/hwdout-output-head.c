@@ -3,7 +3,9 @@
 #include "hwdout-output-manager.h"
 #include "hwdout-output-mode.h"
 #include "hwdout-output-transform.h"
+#include "hwdout-util.h"
 
+#include <gio/gio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -18,7 +20,7 @@ struct _HwdoutOutputHeadState {
     int32_t physical_width;
     int32_t physical_height;
 
-    struct wl_array modes; // hwdout_output_mode *
+    GListStore *modes;
 
     bool enabled;
 
@@ -119,7 +121,7 @@ handle_head_mode(
 
     mode = hwdout_output_mode_new(manager, self, wlr_mode);
     g_return_if_fail(mode != NULL);
-
+    g_list_store_append(self->pending.modes, mode);
     zwlr_output_mode_v1_set_user_data(wlr_mode, mode);
 }
 
@@ -290,7 +292,8 @@ handle_manager_done(HwdoutOutputManager *manager, uint32_t serial, void *data) {
         self->pending.physical_height = self->pending.physical_height;
         physical_height_changed = true;
     }
-    // TODO modes.
+
+    hwdout_copy_list_store(self->current.modes, self->pending.modes);
 
     if (self->current.enabled != self->pending.enabled) {
         self->current.enabled = self->pending.enabled;
@@ -405,8 +408,27 @@ hwdout_output_head_dispose(GObject *gobject) {
     HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(gobject);
 
     g_weak_ref_clear(&self->manager);
+
+    g_clear_pointer(&self->pending.name, g_free);
     g_clear_pointer(&self->current.name, g_free);
+
+    g_clear_pointer(&self->pending.description, g_free);
     g_clear_pointer(&self->current.description, g_free);
+
+    g_clear_object(&self->pending.modes);
+    g_clear_object(&self->current.modes);
+
+    g_clear_object(&self->pending.current_mode);
+    g_clear_object(&self->current.current_mode);
+
+    g_clear_pointer(&self->pending.make, g_free);
+    g_clear_pointer(&self->current.make, g_free);
+
+    g_clear_pointer(&self->pending.model, g_free);
+    g_clear_pointer(&self->current.model, g_free);
+
+    g_clear_pointer(&self->pending.serial_number, g_free);
+    g_clear_pointer(&self->current.serial_number, g_free);
 
     G_OBJECT_CLASS(hwdout_output_head_parent_class)->dispose(gobject);
 }
@@ -622,6 +644,10 @@ hwdout_output_head_class_init(HwdoutOutputHeadClass *klass) {
 
 static void
 hwdout_output_head_init(HwdoutOutputHead *self) {
+    self->pending.modes = g_list_store_new(HWDOUT_TYPE_OUTPUT_MODE);
+    self->current.modes = g_list_store_new(HWDOUT_TYPE_OUTPUT_MODE);
+
+    self->pending.scale = 1.0;
     self->current.scale = 1.0;
 }
 

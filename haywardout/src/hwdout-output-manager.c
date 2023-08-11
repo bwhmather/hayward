@@ -1,12 +1,19 @@
 #include "hwdout-output-manager.h"
 
 #include "hwdout-output-head.h"
+#include "hwdout-util.h"
 
+#include <gio/gio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
+
+struct _HwdoutOutputManagerState {
+    GListStore *heads;
+};
+typedef struct _HwdoutOutputManagerState HwdoutOutputManagerState;
 
 struct _HwdoutOutputManager {
     GObject parent_instance;
@@ -14,6 +21,9 @@ struct _HwdoutOutputManager {
     struct zwlr_output_manager_v1 *wlr_output_manager;
 
     uint32_t serial;
+
+    HwdoutOutputManagerState pending;
+    HwdoutOutputManagerState current;
 };
 
 G_DEFINE_TYPE(HwdoutOutputManager, hwdout_output_manager, G_TYPE_OBJECT)
@@ -32,11 +42,14 @@ static guint signals[N_SIGNALS] = {0};
 void
 handle_manager_head(
     void *data, struct zwlr_output_manager_v1 *zwlr_output_manager_v1,
-    struct zwlr_output_head_v1 *head
+    struct zwlr_output_head_v1 *wlr_head
 ) {
     HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
+    HwdoutOutputHead *head;
 
-    hwdout_output_head_new(self, head);
+    head = hwdout_output_head_new(self, wlr_head);
+    g_list_store_append(self->pending.heads, head);
+    g_object_unref(head);
 }
 
 void
@@ -46,6 +59,8 @@ handle_manager_done(
     HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
 
     self->serial = serial;
+
+    hwdout_copy_list_store(self->current.heads, self->pending.heads);
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_SERIAL]);
 
@@ -72,6 +87,11 @@ hwdout_output_manager_constructed(GObject *gobject) {
 
 static void
 hwdout_output_manager_dispose(GObject *gobject) {
+    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
+
+    g_clear_object(&self->pending.heads);
+    g_clear_object(&self->current.heads);
+
     G_OBJECT_CLASS(hwdout_output_manager_parent_class)->dispose(gobject);
 }
 
@@ -156,7 +176,10 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
 }
 
 static void
-hwdout_output_manager_init(HwdoutOutputManager *self) {}
+hwdout_output_manager_init(HwdoutOutputManager *self) {
+    self->pending.heads = g_list_store_new(HWDOUT_TYPE_OUTPUT_HEAD);
+    self->current.heads = g_list_store_new(HWDOUT_TYPE_OUTPUT_HEAD);
+}
 
 HwdoutOutputManager *
 hwdout_output_manager_new(struct zwlr_output_manager_v1 *wlr_output_manager) {

@@ -4,6 +4,7 @@ haywardout_sources = [
 	'src/hwdout-output-transform.c',
 	'src/hwdout-output-head.c',
 	'src/hwdout-output-mode.c',
+	'src/hwdout-util.c',
 ]
 
 haywardout_deps = [
