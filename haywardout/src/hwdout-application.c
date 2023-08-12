@@ -130,14 +130,18 @@ static void
 handle_shutdown(GApplication *g_app, gpointer user_data) {}
 
 static void
-handle_window_destroy(GtkWidget *widget, gpointer user_data) {
+handle_window_removed(GtkApplication *gtk_app, GtkWindow *gtk_window, gpointer user_data) {
     HwdoutApplication *self = HWDOUT_APPLICATION(user_data);
-    HwdoutWindow *window = HWDOUT_WINDOW(widget);
+    HwdoutWindow *window;
 
     g_return_if_fail(HWDOUT_IS_APPLICATION(self));
-    g_return_if_fail(HWDOUT_IS_WINDOW(widget));
 
+    if (!HWDOUT_IS_WINDOW(gtk_window)) {
+        return;
+    }
+    window = HWDOUT_WINDOW(gtk_window);
     g_return_if_fail(self->window == window);
+
     g_clear_object(&self->window);
 }
 
@@ -164,10 +168,6 @@ handle_command_line(
     if (self->window == NULL) {
         self->window = hwdout_window_new();
         g_object_ref_sink(self->window);
-
-        g_signal_connect_object(
-            self->window, "destroy", G_CALLBACK(handle_window_destroy), self, G_CONNECT_DEFAULT
-        );
 
         gtk_application_add_window(gtk_app, GTK_WINDOW(g_object_ref(self->window)));
     }
@@ -263,6 +263,12 @@ hwdout_application_init(HwdoutApplication *self) {
     );
     g_signal_connect_object(
         self->gtk_app, "command-line", G_CALLBACK(handle_command_line), self, G_CONNECT_DEFAULT
+    );
+    // TODO GtkWindow does not trigger the "destroy" signal when destroyed.  It
+    // only notifies the application it is registered to.  This is arguably a
+    // but and should bt fixed upstream.
+    g_signal_connect_object(
+        self->gtk_app, "window-removed", G_CALLBACK(handle_window_removed), self, G_CONNECT_DEFAULT
     );
     g_signal_connect_object(
         self->gtk_app, "startup", G_CALLBACK(handle_startup), self, G_CONNECT_DEFAULT
