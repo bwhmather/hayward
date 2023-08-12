@@ -20,6 +20,8 @@ static void
 hwdout_window_dispose(GObject *gobject) {
     HwdoutWindow *self = HWDOUT_WINDOW(gobject);
 
+    gtk_widget_dispose_template(GTK_WIDGET(self), HWDOUT_TYPE_WINDOW);
+
     g_clear_object(&self->output_manager);
 
     G_OBJECT_CLASS(hwdout_window_parent_class)->dispose(gobject);
@@ -81,7 +83,9 @@ hwdout_window_class_init(HwdoutWindowClass *klass) {
 }
 
 static void
-hwdout_window_init(HwdoutWindow *self) {}
+hwdout_window_init(HwdoutWindow *self) {
+    gtk_widget_init_template(GTK_WIDGET(self));
+}
 
 HwdoutWindow *
 hwdout_window_new() {
