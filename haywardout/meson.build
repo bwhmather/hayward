@@ -6,6 +6,7 @@ haywardout_resources = gnome.compile_resources(
 
 haywardout_sources = [
 	'src/main.c',
+	'src/hwdout-application.c',
 	'src/hwdout-output-head.c',
 	'src/hwdout-output-manager.c',
 	'src/hwdout-output-mode.c',
