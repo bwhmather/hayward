@@ -161,13 +161,15 @@ hwdout_output_manager_get_property(
 ) {
     HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
 
+    g_return_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self));
+
     switch ((HwdoutOutputManagerProperty)property_id) {
     case PROP_WLR_OUTPUT_MANAGER:
-        g_value_set_pointer(value, self->wlr_output_manager);
+        g_value_set_pointer(value, hwdout_output_manager_get_wlr_output_manager(self));
         break;
 
     case PROP_SERIAL:
-        g_value_set_uint(value, self->serial);
+        g_value_set_uint(value, hwdout_output_manager_get_serial(self));
         break;
 
     default:
@@ -232,4 +234,18 @@ hwdout_output_manager_init(HwdoutOutputManager *self) {
 HwdoutOutputManager *
 hwdout_output_manager_new(struct zwlr_output_manager_v1 *wlr_output_manager) {
     return g_object_new(HWDOUT_TYPE_OUTPUT_MANAGER, "wlr_output_manager", wlr_output_manager, NULL);
+}
+
+struct zwlr_output_manager_v1 *
+hwdout_output_manager_get_wlr_output_manager(HwdoutOutputManager *self) {
+    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), NULL);
+
+    return self->wlr_output_manager;
+}
+
+guint
+hwdout_output_manager_get_serial(HwdoutOutputManager *self) {
+    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), 0);
+
+    return self->serial;
 }

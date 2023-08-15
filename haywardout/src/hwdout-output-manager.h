@@ -15,6 +15,12 @@ G_DECLARE_FINAL_TYPE(HwdoutOutputManager, hwdout_output_manager, HWDOUT, OUTPUT_
 HwdoutOutputManager *
 hwdout_output_manager_new(struct zwlr_output_manager_v1 *wlr_output_manager);
 
+struct zwlr_output_manager_v1 *
+hwdout_output_manager_get_wlr_output_manager(HwdoutOutputManager *self);
+
+guint
+hwdout_output_manager_get_serial(HwdoutOutputManager *self);
+
 G_END_DECLS
 
 #endif /* __HWDOUT_OUTPUT_MANAGER_H__ */
