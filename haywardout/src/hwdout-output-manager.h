@@ -1,6 +1,7 @@
 #ifndef __HWDOUT_OUTPUT_MANAGER_H__
 #define __HWDOUT_OUTPUT_MANAGER_H__
 
+#include <gio/gio.h>
 #include <glib-object.h>
 #include <stdint.h>
 #include <wayland-client.h>
@@ -20,6 +21,9 @@ hwdout_output_manager_get_wlr_output_manager(HwdoutOutputManager *self);
 
 guint
 hwdout_output_manager_get_serial(HwdoutOutputManager *self);
+
+GListModel *
+hwdout_output_manager_get_heads(HwdoutOutputManager *self);
 
 G_END_DECLS
 

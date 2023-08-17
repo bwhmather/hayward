@@ -30,7 +30,12 @@ struct _HwdoutOutputManager {
 
 G_DEFINE_TYPE(HwdoutOutputManager, hwdout_output_manager, G_TYPE_OBJECT)
 
-typedef enum { PROP_WLR_OUTPUT_MANAGER = 1, PROP_SERIAL, N_PROPERTIES } HwdoutOutputManagerProperty;
+typedef enum {
+    PROP_WLR_OUTPUT_MANAGER = 1,
+    PROP_SERIAL,
+    PROP_HEADS,
+    N_PROPERTIES
+} HwdoutOutputManagerProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
 
@@ -172,6 +177,10 @@ hwdout_output_manager_get_property(
         g_value_set_uint(value, hwdout_output_manager_get_serial(self));
         break;
 
+    case PROP_HEADS:
+        g_value_set_object(value, hwdout_output_manager_get_heads(self));
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, property_id, pspec);
         break;
@@ -213,6 +222,17 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
         UINT_MAX, // Max.
         0,        // Default.
         G_PARAM_READABLE
+    );
+
+    /**
+     * HwdoutOutputManager:heads: (attributes org.gtk.Property.get=hwdout_output_manager_get_heads)
+     *
+     * A `GListModel` containing the currently available `HwdoutOutputHead`
+     * objects owned by the manager.
+     */
+    properties[PROP_HEADS] = g_param_spec_object(
+        "heads", "Output heads", "List model containing all of the heads managed by this instance",
+        G_TYPE_LIST_MODEL, G_PARAM_READABLE
     );
 
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
@@ -295,4 +315,17 @@ hwdout_output_manager_get_serial(HwdoutOutputManager *self) {
     g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), 0);
 
     return self->serial;
+}
+
+/**
+ * hwdout_output_manager_get_heads: (attributes org.gtk.Method.get_property=heads)
+ * @self: a `HwdoutOutputManager`
+ *
+ * Returns: (transfer none): A `GListModel` of `HwdoutOutputHeads`.
+ */
+GListModel *
+hwdout_output_manager_get_heads(HwdoutOutputManager *self) {
+    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), NULL);
+
+    return G_LIST_MODEL(self->current.heads);
 }
