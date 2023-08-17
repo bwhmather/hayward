@@ -188,12 +188,25 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
     object_class->set_property = hwdout_output_manager_set_property;
     object_class->get_property = hwdout_output_manager_get_property;
 
+    /**
+     * HwdoutOutputManager:wlr-output-manager: (attributes org.gtk.Property.get=hwdout_output_manager_get_wlr_output_manager)
+     *
+     * A pointer to the `struct zwlr_output_manager_v1` that this object wraps.
+     *
+     * The `HwdoutOutputManager` takes full ownership of this object and is
+     * responible for destroying it once it is finished.
+     */
     properties[PROP_WLR_OUTPUT_MANAGER] = g_param_spec_pointer(
         "wlr-output-manager", "WLR output manager",
         "WLRoots output manager reference that this object wraps",
         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
+    /**
+     * HwdoutOutputManager:serial: (attributes org.gtk.Property.get=hwdout_output_manager_get_serial)
+     *
+     * The serial number of the last `done` event, or 0 if none received yet.
+     */
     properties[PROP_SERIAL] = g_param_spec_uint(
         "serial", "Serial", "ID of the last done event, or zero",
         0,        // Min.
@@ -204,6 +217,18 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
 
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
 
+    /**
+     * HwdoutOutputManager::done:
+     * @self: The `HwdoutOutputManager`
+     * @serial: The new serial number received with the `done` event.
+     *
+     * Signals that the compositor is done sending changes and that the client
+     * should apply them atomically.
+     *
+     * Consumers should register with %G_SIGNAL_RUN_LAST in order to update
+     * after all `HwdoutOutputHead` and `HwdoutOutputMode` objects owned by
+     * this manager have been updated.
+     */
     signals[SIGNAL_DONE] = g_signal_new(
         g_intern_static_string("done"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
         0,           // Closure.
@@ -214,6 +239,16 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
         1, G_TYPE_UINT
     );
 
+    /**
+     * HwdoutOutputManager::finished:
+     * @self: The `HwdoutOutputManager`
+     *
+     * Signals that the compositor is deleting the output manager and will not
+     * be sending any further events.
+     *
+     * This object will no longer be useable after this signal is raised.  Users
+     * should drop their references and either exit or recreate.
+     */
     signals[SIGNAL_FINISHED] = g_signal_new(
         g_intern_static_string("finished"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
         0,           // Closure.
@@ -236,6 +271,12 @@ hwdout_output_manager_new(struct zwlr_output_manager_v1 *wlr_output_manager) {
     return g_object_new(HWDOUT_TYPE_OUTPUT_MANAGER, "wlr_output_manager", wlr_output_manager, NULL);
 }
 
+/**
+ * hwdout_output_manager_get_wlr_output_manager: (attributes org.gtk.Method.get_property=wlr-output-manager)
+ * @self: a `HwdoutOutputManager`
+ *
+ * Returns: a pointer to the `struct zwlr_output_manager_v1` that the `HwdoutOutputManager` wraps.
+ */
 struct zwlr_output_manager_v1 *
 hwdout_output_manager_get_wlr_output_manager(HwdoutOutputManager *self) {
     g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), NULL);
@@ -243,6 +284,12 @@ hwdout_output_manager_get_wlr_output_manager(HwdoutOutputManager *self) {
     return self->wlr_output_manager;
 }
 
+/**
+ * hwdout_output_manager_get_serial: (attributes org.gtk.Method.get_property=serial)
+ * @self: a `HwdoutOutputManager`
+ *
+ * Returns: The serial number of the last `done` event, or 0.
+ */
 guint
 hwdout_output_manager_get_serial(HwdoutOutputManager *self) {
     g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), 0);

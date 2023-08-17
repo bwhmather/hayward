@@ -10,6 +10,7 @@ AlignAfterOpenBracket: BlockIndent
 AlignOperands: DontAlign
 BreakBeforeTernaryOperators: true
 AlwaysBreakAfterReturnType: All
+ReflowComments: false
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '".*"'
