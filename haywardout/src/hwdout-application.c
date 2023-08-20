@@ -169,6 +169,10 @@ handle_command_line(
         self->window = hwdout_window_new();
         g_object_ref_sink(self->window);
 
+        if (self->output_manager) {
+            hwdout_window_set_output_manager(self->window, self->output_manager);
+        }
+
         gtk_application_add_window(gtk_app, GTK_WINDOW(g_object_ref(self->window)));
     }
     g_return_if_fail(HWDOUT_IS_WINDOW(self->window));
