@@ -266,7 +266,7 @@ hwdout_application_init(HwdoutApplication *self) {
     );
     // TODO GtkWindow does not trigger the "destroy" signal when destroyed.  It
     // only notifies the application it is registered to.  This is arguably a
-    // but and should bt fixed upstream.
+    // bug and should be fixed upstream.
     g_signal_connect_object(
         self->gtk_app, "window-removed", G_CALLBACK(handle_window_removed), self, G_CONNECT_DEFAULT
     );
