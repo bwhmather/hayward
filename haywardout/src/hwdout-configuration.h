@@ -1,6 +1,7 @@
 #ifndef __HWDOUT_CONFIGURATION_H__
 #define __HWDOUT_CONFIGURATION_H__
 
+#include <gio/gio.h>
 #include <glib-object.h>
 
 G_BEGIN_DECLS
@@ -21,6 +22,9 @@ hwdout_configuration_get_manager(HwdoutConfiguration *self);
 
 guint
 hwdout_configuration_get_serial(HwdoutConfiguration *self);
+
+GListModel *
+hwdout_configuration_get_heads(HwdoutConfiguration *self);
 
 G_END_DECLS
 

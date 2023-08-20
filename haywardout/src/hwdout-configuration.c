@@ -27,7 +27,12 @@ struct _HwdoutConfiguration {
 
 G_DEFINE_TYPE(HwdoutConfiguration, hwdout_configuration, G_TYPE_OBJECT)
 
-typedef enum { PROP_MANAGER = 1, PROP_SERIAL, N_PROPERTIES } HwdoutConfigurationProperty;
+typedef enum {
+    PROP_MANAGER = 1,
+    PROP_SERIAL,
+    PROP_HEADS,
+    N_PROPERTIES
+} HwdoutConfigurationProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
 
@@ -133,6 +138,10 @@ hwdout_configuration_get_property(
         g_value_set_uint(value, hwdout_configuration_get_serial(self));
         break;
 
+    case PROP_HEADS:
+        g_value_set_object(value, hwdout_configuration_get_heads(self));
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, property_id, pspec);
         break;
@@ -173,6 +182,17 @@ hwdout_configuration_class_init(HwdoutConfigurationClass *klass) {
         UINT_MAX, // Max.
         0,        // Default.
         G_PARAM_READABLE
+    );
+
+    /**
+     * HwdoutConfiguration:heads: (attributes org.gtk.Property.get=hwdout_configuration_get_heads)
+     *
+     * A `GListModel` containing all of `HwdoutConfigurationHead` corresponding
+     * to heads owned by the manager.
+     */
+    properties[PROP_HEADS] = g_param_spec_object(
+        "heads", "Output heads", "List model containing all of the heads managed by this instance",
+        G_TYPE_LIST_MODEL, G_PARAM_READABLE
     );
 
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
@@ -273,4 +293,17 @@ hwdout_configuration_get_serial(HwdoutConfiguration *self) {
     g_return_val_if_fail(HWDOUT_IS_CONFIGURATION(self), 0);
 
     return self->serial;
+}
+
+/**
+ * hwdout_configuration_get_heads: (attributes org.gtk.Method.get_property=heads)
+ * @self: a `HwdoutConfiguration`
+ *
+ * Returns: (transfer none): A list model containing all `HwdoutConfigurationHeads` owned by this object.
+ */
+GListModel *
+hwdout_configuration_get_heads(HwdoutConfiguration *self) {
+    g_return_val_if_fail(HWDOUT_IS_CONFIGURATION(self), NULL);
+
+    return G_LIST_MODEL(self->heads);
 }
