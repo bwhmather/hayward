@@ -230,7 +230,7 @@ hwdout_output_mode_class_init(HwdoutOutputModeClass *klass) {
     );
 
     properties[PROP_PREFERRED] = g_param_spec_boolean(
-        "enabled", "Enabled", "Whether or not the compositor is rendering to this display",
+        "is-preferred", "Is preferred", "Set on the native mode for the display",
         FALSE, // Default.
         G_PARAM_READABLE
     );
