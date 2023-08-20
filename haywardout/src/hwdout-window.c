@@ -1,41 +1,37 @@
 #include "hwdout-window.h"
 
-#include "hwdout-output-configuration.h"
-#include "hwdout-output-manager.h"
+#include "hwdout-configuration.h"
+#include "hwdout-manager.h"
 
 #include <gtk/gtk.h>
 
 struct _HwdoutWindow {
     GtkWindow parent_instance;
 
-    HwdoutOutputManager *output_manager;
-    gulong output_manager_done_id;
+    HwdoutManager *manager;
+    gulong manager_done_id;
 
-    HwdoutOutputConfiguration *output_configuration;
+    HwdoutConfiguration *configuration;
 };
 
 G_DEFINE_TYPE(HwdoutWindow, hwdout_window, GTK_TYPE_WINDOW)
 
-typedef enum {
-    PROP_OUTPUT_MANAGER = 1,
-    PROP_OUTPUT_CONFIGURATION,
-    N_PROPERTIES
-} HwdoutWindowProperty;
+typedef enum { PROP_MANAGER = 1, PROP_CONFIGURATION, N_PROPERTIES } HwdoutWindowProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
 
 static void
-hwdout_window_reset_output_configuration(HwdoutWindow *self) {
+hwdout_window_reset_configuration(HwdoutWindow *self) {
     g_return_if_fail(HWDOUT_IS_WINDOW(self));
 
-    g_clear_object(&self->output_configuration);
-    if (self->output_manager == NULL) {
+    g_clear_object(&self->configuration);
+    if (self->manager == NULL) {
         return;
     }
 
-    self->output_configuration = hwdout_output_configuration_new(self->output_manager);
+    self->configuration = hwdout_configuration_new(self->manager);
 
-    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_OUTPUT_CONFIGURATION]);
+    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_CONFIGURATION]);
 }
 
 static void
@@ -44,7 +40,7 @@ hwdout_window_dispose(GObject *gobject) {
 
     gtk_widget_dispose_template(GTK_WIDGET(self), HWDOUT_TYPE_WINDOW);
 
-    g_clear_object(&self->output_manager);
+    g_clear_object(&self->manager);
 
     G_OBJECT_CLASS(hwdout_window_parent_class)->dispose(gobject);
 }
@@ -56,8 +52,8 @@ hwdout_window_set_property(
     HwdoutWindow *self = HWDOUT_WINDOW(gobject);
 
     switch ((HwdoutWindowProperty)property_id) {
-    case PROP_OUTPUT_MANAGER:
-        hwdout_window_set_output_manager(self, g_value_get_object(value));
+    case PROP_MANAGER:
+        hwdout_window_set_manager(self, g_value_get_object(value));
         break;
 
     default:
@@ -71,12 +67,12 @@ hwdout_window_get_property(GObject *gobject, guint property_id, GValue *value, G
     HwdoutWindow *self = HWDOUT_WINDOW(gobject);
 
     switch ((HwdoutWindowProperty)property_id) {
-    case PROP_OUTPUT_MANAGER:
-        g_value_set_object(value, self->output_manager);
+    case PROP_MANAGER:
+        g_value_set_object(value, self->manager);
         break;
 
-    case PROP_OUTPUT_CONFIGURATION:
-        g_value_set_object(value, self->output_configuration);
+    case PROP_CONFIGURATION:
+        g_value_set_object(value, self->configuration);
         break;
 
     default:
@@ -94,14 +90,14 @@ hwdout_window_class_init(HwdoutWindowClass *klass) {
     object_class->set_property = hwdout_window_set_property;
     object_class->get_property = hwdout_window_get_property;
 
-    properties[PROP_OUTPUT_MANAGER] = g_param_spec_object(
+    properties[PROP_MANAGER] = g_param_spec_object(
         "output-manager", "Output Manager",
-        "Output manager that can be used to interact with the compositor",
-        HWDOUT_TYPE_OUTPUT_MANAGER, G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
+        "Output manager that can be used to interact with the compositor", HWDOUT_TYPE_MANAGER,
+        G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
     );
-    properties[PROP_OUTPUT_CONFIGURATION] = g_param_spec_object(
+    properties[PROP_CONFIGURATION] = g_param_spec_object(
         "output-configuration", "Output configuration",
-        "State object tracking staged changes to the output", HWDOUT_TYPE_OUTPUT_CONFIGURATION,
+        "State object tracking staged changes to the output", HWDOUT_TYPE_CONFIGURATION,
         G_PARAM_READABLE
     );
 
@@ -123,34 +119,34 @@ hwdout_window_new() {
 }
 
 static void
-handle_manager_done(HwdoutOutputManager *manager, uint32_t serial, void *data) {
+handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
     HwdoutWindow *self = HWDOUT_WINDOW(data);
 
-    hwdout_window_reset_output_configuration(self);
+    hwdout_window_reset_configuration(self);
 }
 
 void
-hwdout_window_set_output_manager(HwdoutWindow *self, HwdoutOutputManager *output_manager) {
+hwdout_window_set_manager(HwdoutWindow *self, HwdoutManager *manager) {
     g_return_if_fail(HWDOUT_IS_WINDOW(self));
 
-    if (output_manager == self->output_manager) {
+    if (manager == self->manager) {
         return;
     }
 
-    if (self->output_manager != NULL) {
-        g_signal_handler_disconnect(self->output_manager, self->output_manager_done_id);
-        g_clear_object(&self->output_manager);
+    if (self->manager != NULL) {
+        g_signal_handler_disconnect(self->manager, self->manager_done_id);
+        g_clear_object(&self->manager);
     }
 
-    self->output_manager = output_manager;
-    if (output_manager == NULL) {
+    self->manager = manager;
+    if (manager == NULL) {
         return;
     }
     g_signal_connect_object(
-        self->output_manager, "done", G_CALLBACK(handle_manager_done), self, G_CONNECT_DEFAULT
+        self->manager, "done", G_CALLBACK(handle_manager_done), self, G_CONNECT_DEFAULT
     );
 
-    hwdout_window_reset_output_configuration(self);
+    hwdout_window_reset_configuration(self);
 
-    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_OUTPUT_MANAGER]);
+    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_MANAGER]);
 }

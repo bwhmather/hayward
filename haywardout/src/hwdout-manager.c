@@ -1,6 +1,6 @@
-#include "hwdout-output-manager.h"
+#include "hwdout-manager.h"
 
-#include "hwdout-output-head.h"
+#include "hwdout-head.h"
 #include "hwdout-util.h"
 
 #include <gio/gio.h>
@@ -10,32 +10,27 @@
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
 
-struct _HwdoutOutputManagerState {
+struct _HwdoutManagerState {
     GListStore *heads;
 };
-typedef struct _HwdoutOutputManagerState HwdoutOutputManagerState;
+typedef struct _HwdoutManagerState HwdoutManagerState;
 
-struct _HwdoutOutputManager {
+struct _HwdoutManager {
     GObject parent_instance;
 
     struct zwlr_output_manager_v1 *wlr_output_manager;
 
     uint32_t serial;
 
-    HwdoutOutputManagerState pending;
-    HwdoutOutputManagerState current;
+    HwdoutManagerState pending;
+    HwdoutManagerState current;
 
     gboolean finished;
 };
 
-G_DEFINE_TYPE(HwdoutOutputManager, hwdout_output_manager, G_TYPE_OBJECT)
+G_DEFINE_TYPE(HwdoutManager, hwdout_manager, G_TYPE_OBJECT)
 
-typedef enum {
-    PROP_WLR_OUTPUT_MANAGER = 1,
-    PROP_SERIAL,
-    PROP_HEADS,
-    N_PROPERTIES
-} HwdoutOutputManagerProperty;
+typedef enum { PROP_WLR_MANAGER = 1, PROP_SERIAL, PROP_HEADS, N_PROPERTIES } HwdoutManagerProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
 
@@ -43,13 +38,13 @@ typedef enum {
     SIGNAL_DONE = 1,
     SIGNAL_FINISHED,
     N_SIGNALS,
-} HwdoutOutputManagerSignal;
+} HwdoutManagerSignal;
 
 static guint signals[N_SIGNALS] = {0};
 
 static void
-handle_head_finished(HwdoutOutputHead *head, uint32_t serial, void *data) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
+handle_head_finished(HwdoutHead *head, uint32_t serial, void *data) {
+    HwdoutManager *self = HWDOUT_MANAGER(data);
 
     guint position = 0;
     if (!g_list_store_find(self->pending.heads, head, &position)) {
@@ -65,15 +60,15 @@ handle_manager_head(
     void *data, struct zwlr_output_manager_v1 *zwlr_output_manager_v1,
     struct zwlr_output_head_v1 *wlr_head
 ) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
-    HwdoutOutputHead *head;
+    HwdoutManager *self = HWDOUT_MANAGER(data);
+    HwdoutHead *head;
 
     if (self->finished) {
         g_warning("received head event after finished");
         return;
     }
 
-    head = hwdout_output_head_new(self, wlr_head);
+    head = hwdout_head_new(self, wlr_head);
     g_list_store_append(self->pending.heads, head);
     g_object_unref(head);
 
@@ -86,7 +81,7 @@ void
 handle_manager_done(
     void *data, struct zwlr_output_manager_v1 *zwlr_output_manager_v1, uint32_t serial
 ) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
+    HwdoutManager *self = HWDOUT_MANAGER(data);
 
     self->serial = serial;
 
@@ -99,7 +94,7 @@ handle_manager_done(
 
 void
 handle_manager_finished(void *data, struct zwlr_output_manager_v1 *zwlr_output_manager_v1) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(data);
+    HwdoutManager *self = HWDOUT_MANAGER(data);
 
     if (self->finished) {
         g_warning("received multiple finished events");
@@ -116,41 +111,41 @@ static const struct zwlr_output_manager_v1_listener manager_listener = {
 };
 
 static void
-hwdout_output_manager_constructed(GObject *gobject) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
+hwdout_manager_constructed(GObject *gobject) {
+    HwdoutManager *self = HWDOUT_MANAGER(gobject);
 
-    G_OBJECT_CLASS(hwdout_output_manager_parent_class)->constructed(gobject);
+    G_OBJECT_CLASS(hwdout_manager_parent_class)->constructed(gobject);
 
     zwlr_output_manager_v1_add_listener(self->wlr_output_manager, &manager_listener, self);
 }
 
 static void
-hwdout_output_manager_dispose(GObject *gobject) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
+hwdout_manager_dispose(GObject *gobject) {
+    HwdoutManager *self = HWDOUT_MANAGER(gobject);
 
     g_clear_object(&self->pending.heads);
     g_clear_object(&self->current.heads);
 
-    G_OBJECT_CLASS(hwdout_output_manager_parent_class)->dispose(gobject);
+    G_OBJECT_CLASS(hwdout_manager_parent_class)->dispose(gobject);
 }
 
 static void
-hwdout_output_manager_finalize(GObject *gobject) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
+hwdout_manager_finalize(GObject *gobject) {
+    HwdoutManager *self = HWDOUT_MANAGER(gobject);
 
     g_clear_pointer(&self->wlr_output_manager, zwlr_output_manager_v1_destroy);
 
-    G_OBJECT_CLASS(hwdout_output_manager_parent_class)->finalize(gobject);
+    G_OBJECT_CLASS(hwdout_manager_parent_class)->finalize(gobject);
 }
 
 static void
-hwdout_output_manager_set_property(
+hwdout_manager_set_property(
     GObject *gobject, guint property_id, const GValue *value, GParamSpec *pspec
 ) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
+    HwdoutManager *self = HWDOUT_MANAGER(gobject);
 
-    switch ((HwdoutOutputManagerProperty)property_id) {
-    case PROP_WLR_OUTPUT_MANAGER:
+    switch ((HwdoutManagerProperty)property_id) {
+    case PROP_WLR_MANAGER:
         self->wlr_output_manager = g_value_get_pointer(value);
         break;
 
@@ -161,24 +156,22 @@ hwdout_output_manager_set_property(
 }
 
 static void
-hwdout_output_manager_get_property(
-    GObject *gobject, guint property_id, GValue *value, GParamSpec *pspec
-) {
-    HwdoutOutputManager *self = HWDOUT_OUTPUT_MANAGER(gobject);
+hwdout_manager_get_property(GObject *gobject, guint property_id, GValue *value, GParamSpec *pspec) {
+    HwdoutManager *self = HWDOUT_MANAGER(gobject);
 
-    g_return_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self));
+    g_return_if_fail(HWDOUT_IS_MANAGER(self));
 
-    switch ((HwdoutOutputManagerProperty)property_id) {
-    case PROP_WLR_OUTPUT_MANAGER:
-        g_value_set_pointer(value, hwdout_output_manager_get_wlr_output_manager(self));
+    switch ((HwdoutManagerProperty)property_id) {
+    case PROP_WLR_MANAGER:
+        g_value_set_pointer(value, hwdout_manager_get_wlr_output_manager(self));
         break;
 
     case PROP_SERIAL:
-        g_value_set_uint(value, hwdout_output_manager_get_serial(self));
+        g_value_set_uint(value, hwdout_manager_get_serial(self));
         break;
 
     case PROP_HEADS:
-        g_value_set_object(value, hwdout_output_manager_get_heads(self));
+        g_value_set_object(value, hwdout_manager_get_heads(self));
         break;
 
     default:
@@ -188,31 +181,31 @@ hwdout_output_manager_get_property(
 }
 
 static void
-hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
+hwdout_manager_class_init(HwdoutManagerClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
-    object_class->constructed = hwdout_output_manager_constructed;
-    object_class->dispose = hwdout_output_manager_dispose;
-    object_class->finalize = hwdout_output_manager_finalize;
-    object_class->set_property = hwdout_output_manager_set_property;
-    object_class->get_property = hwdout_output_manager_get_property;
+    object_class->constructed = hwdout_manager_constructed;
+    object_class->dispose = hwdout_manager_dispose;
+    object_class->finalize = hwdout_manager_finalize;
+    object_class->set_property = hwdout_manager_set_property;
+    object_class->get_property = hwdout_manager_get_property;
 
     /**
-     * HwdoutOutputManager:wlr-output-manager: (attributes org.gtk.Property.get=hwdout_output_manager_get_wlr_output_manager)
+     * HwdoutManager:wlr-output-manager: (attributes org.gtk.Property.get=hwdout_manager_get_wlr_output_manager)
      *
      * A pointer to the `struct zwlr_output_manager_v1` that this object wraps.
      *
-     * The `HwdoutOutputManager` takes full ownership of this object and is
+     * The `HwdoutManager` takes full ownership of this object and is
      * responible for destroying it once it is finished.
      */
-    properties[PROP_WLR_OUTPUT_MANAGER] = g_param_spec_pointer(
+    properties[PROP_WLR_MANAGER] = g_param_spec_pointer(
         "wlr-output-manager", "WLR output manager",
         "WLRoots output manager reference that this object wraps",
         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
     /**
-     * HwdoutOutputManager:serial: (attributes org.gtk.Property.get=hwdout_output_manager_get_serial)
+     * HwdoutManager:serial: (attributes org.gtk.Property.get=hwdout_manager_get_serial)
      *
      * The serial number of the last `done` event, or 0 if none received yet.
      */
@@ -225,9 +218,9 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
     );
 
     /**
-     * HwdoutOutputManager:heads: (attributes org.gtk.Property.get=hwdout_output_manager_get_heads)
+     * HwdoutManager:heads: (attributes org.gtk.Property.get=hwdout_manager_get_heads)
      *
-     * A `GListModel` containing the currently available `HwdoutOutputHead`
+     * A `GListModel` containing the currently available `HwdoutHead`
      * objects owned by the manager.
      */
     properties[PROP_HEADS] = g_param_spec_object(
@@ -238,15 +231,15 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
 
     /**
-     * HwdoutOutputManager::done:
-     * @self: The `HwdoutOutputManager`
+     * HwdoutManager::done:
+     * @self: The `HwdoutManager`
      * @serial: The new serial number received with the `done` event.
      *
      * Signals that the compositor is done sending changes and that the client
      * should apply them atomically.
      *
      * Consumers should register with %G_SIGNAL_RUN_LAST in order to update
-     * after all `HwdoutOutputHead` and `HwdoutOutputMode` objects owned by
+     * after all `HwdoutHead` and `HwdoutMode` objects owned by
      * this manager have been updated.
      */
     signals[SIGNAL_DONE] = g_signal_new(
@@ -260,8 +253,8 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
     );
 
     /**
-     * HwdoutOutputManager::finished:
-     * @self: The `HwdoutOutputManager`
+     * HwdoutManager::finished:
+     * @self: The `HwdoutManager`
      *
      * Signals that the compositor is deleting the output manager and will not
      * be sending any further events.
@@ -281,51 +274,51 @@ hwdout_output_manager_class_init(HwdoutOutputManagerClass *klass) {
 }
 
 static void
-hwdout_output_manager_init(HwdoutOutputManager *self) {
-    self->pending.heads = g_list_store_new(HWDOUT_TYPE_OUTPUT_HEAD);
-    self->current.heads = g_list_store_new(HWDOUT_TYPE_OUTPUT_HEAD);
+hwdout_manager_init(HwdoutManager *self) {
+    self->pending.heads = g_list_store_new(HWDOUT_TYPE_HEAD);
+    self->current.heads = g_list_store_new(HWDOUT_TYPE_HEAD);
 }
 
-HwdoutOutputManager *
-hwdout_output_manager_new(struct zwlr_output_manager_v1 *wlr_output_manager) {
-    return g_object_new(HWDOUT_TYPE_OUTPUT_MANAGER, "wlr_output_manager", wlr_output_manager, NULL);
+HwdoutManager *
+hwdout_manager_new(struct zwlr_output_manager_v1 *wlr_output_manager) {
+    return g_object_new(HWDOUT_TYPE_MANAGER, "wlr-output-manager", wlr_output_manager, NULL);
 }
 
 /**
- * hwdout_output_manager_get_wlr_output_manager: (attributes org.gtk.Method.get_property=wlr-output-manager)
- * @self: a `HwdoutOutputManager`
+ * hwdout_manager_get_wlr_output_manager: (attributes org.gtk.Method.get_property=wlr-output-manager)
+ * @self: a `HwdoutManager`
  *
- * Returns: a pointer to the `struct zwlr_output_manager_v1` that the `HwdoutOutputManager` wraps.
+ * Returns: a pointer to the `struct zwlr_output_manager_v1` that the `HwdoutManager` wraps.
  */
 struct zwlr_output_manager_v1 *
-hwdout_output_manager_get_wlr_output_manager(HwdoutOutputManager *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), NULL);
+hwdout_manager_get_wlr_output_manager(HwdoutManager *self) {
+    g_return_val_if_fail(HWDOUT_IS_MANAGER(self), NULL);
 
     return self->wlr_output_manager;
 }
 
 /**
- * hwdout_output_manager_get_serial: (attributes org.gtk.Method.get_property=serial)
- * @self: a `HwdoutOutputManager`
+ * hwdout_manager_get_serial: (attributes org.gtk.Method.get_property=serial)
+ * @self: a `HwdoutManager`
  *
  * Returns: The serial number of the last `done` event, or 0.
  */
 guint
-hwdout_output_manager_get_serial(HwdoutOutputManager *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), 0);
+hwdout_manager_get_serial(HwdoutManager *self) {
+    g_return_val_if_fail(HWDOUT_IS_MANAGER(self), 0);
 
     return self->serial;
 }
 
 /**
- * hwdout_output_manager_get_heads: (attributes org.gtk.Method.get_property=heads)
- * @self: a `HwdoutOutputManager`
+ * hwdout_manager_get_heads: (attributes org.gtk.Method.get_property=heads)
+ * @self: a `HwdoutManager`
  *
- * Returns: (transfer none): A `GListModel` of `HwdoutOutputHeads`.
+ * Returns: (transfer none): A `GListModel` of `HwdoutHeads`.
  */
 GListModel *
-hwdout_output_manager_get_heads(HwdoutOutputManager *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MANAGER(self), NULL);
+hwdout_manager_get_heads(HwdoutManager *self) {
+    g_return_val_if_fail(HWDOUT_IS_MANAGER(self), NULL);
 
     return G_LIST_MODEL(self->current.heads);
 }

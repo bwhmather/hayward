@@ -1,8 +1,8 @@
-#include "hwdout-output-mode.h"
+#include "hwdout-mode.h"
 
-#include "hwdout-output-head.h"
-#include "hwdout-output-manager.h"
-#include "hwdout-output-transform.h"
+#include "hwdout-head.h"
+#include "hwdout-manager.h"
+#include "hwdout-transform.h"
 
 #include <gdk/gdk.h>
 #include <gdk/wayland/gdkwayland.h>
@@ -12,7 +12,7 @@
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
 
-struct _HwdoutOutputModeState {
+struct _HwdoutModeState {
     // Size in physical pixels.
     int32_t width;
     int32_t height;
@@ -23,40 +23,40 @@ struct _HwdoutOutputModeState {
     bool preferred;
 };
 
-typedef struct _HwdoutOutputModeState HwdoutOutputModeState;
+typedef struct _HwdoutModeState HwdoutModeState;
 
-struct _HwdoutOutputMode {
+struct _HwdoutMode {
     GObject parent_instance;
 
     GWeakRef manager;
     GWeakRef head;
     struct zwlr_output_mode_v1 *wlr_output_mode;
 
-    HwdoutOutputModeState pending;
-    HwdoutOutputModeState current;
+    HwdoutModeState pending;
+    HwdoutModeState current;
 
     gboolean finished;
 };
 
-G_DEFINE_TYPE(HwdoutOutputMode, hwdout_output_mode, G_TYPE_OBJECT)
+G_DEFINE_TYPE(HwdoutMode, hwdout_mode, G_TYPE_OBJECT)
 
 typedef enum {
     PROP_MANAGER = 1,
     PROP_HEAD,
-    PROP_WLR_OUTPUT_MODE,
+    PROP_WLR_MODE,
     PROP_WIDTH,
     PROP_HEIGHT,
     PROP_REFRESH,
     PROP_PREFERRED,
     N_PROPERTIES,
-} HwdoutOutputModeProperty;
+} HwdoutModeProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
 
 typedef enum {
     SIGNAL_FINISHED = 1,
     N_SIGNALS,
-} HwdoutOutputModeSignal;
+} HwdoutModeSignal;
 
 static guint signals[N_SIGNALS] = {0};
 
@@ -90,10 +90,10 @@ static const struct zwlr_output_mode_v1_listener output_mode_listener = {
 };
 
 static void
-hwdout_output_mode_constructed(GObject *gobject) {
-    HwdoutOutputMode *self = HWDOUT_OUTPUT_MODE(gobject);
+hwdout_mode_constructed(GObject *gobject) {
+    HwdoutMode *self = HWDOUT_MODE(gobject);
 
-    G_OBJECT_CLASS(hwdout_output_mode_parent_class)->constructed(gobject);
+    G_OBJECT_CLASS(hwdout_mode_parent_class)->constructed(gobject);
 
     g_return_if_fail(self->wlr_output_mode != NULL);
 
@@ -101,26 +101,26 @@ hwdout_output_mode_constructed(GObject *gobject) {
 }
 
 static void
-hwdout_output_mode_dispose(GObject *gobject) {
-    G_OBJECT_CLASS(hwdout_output_mode_parent_class)->dispose(gobject);
+hwdout_mode_dispose(GObject *gobject) {
+    G_OBJECT_CLASS(hwdout_mode_parent_class)->dispose(gobject);
 }
 
 static void
-hwdout_output_mode_finalize(GObject *gobject) {
-    HwdoutOutputMode *self = HWDOUT_OUTPUT_MODE(gobject);
+hwdout_mode_finalize(GObject *gobject) {
+    HwdoutMode *self = HWDOUT_MODE(gobject);
 
     g_clear_pointer(&self->wlr_output_mode, zwlr_output_mode_v1_destroy);
 
-    G_OBJECT_CLASS(hwdout_output_mode_parent_class)->finalize(gobject);
+    G_OBJECT_CLASS(hwdout_mode_parent_class)->finalize(gobject);
 }
 
 static void
-hwdout_output_mode_set_property(
+hwdout_mode_set_property(
     GObject *gobject, guint property_id, const GValue *value, GParamSpec *pspec
 ) {
-    HwdoutOutputMode *self = HWDOUT_OUTPUT_MODE(gobject);
+    HwdoutMode *self = HWDOUT_MODE(gobject);
 
-    switch ((HwdoutOutputModeProperty)property_id) {
+    switch ((HwdoutModeProperty)property_id) {
     case PROP_MANAGER:
         g_weak_ref_set(&self->manager, g_value_get_object(value));
         break;
@@ -129,7 +129,7 @@ hwdout_output_mode_set_property(
         g_weak_ref_set(&self->head, g_value_get_object(value));
         break;
 
-    case PROP_WLR_OUTPUT_MODE:
+    case PROP_WLR_MODE:
         self->wlr_output_mode = g_value_get_pointer(value);
         break;
 
@@ -140,12 +140,10 @@ hwdout_output_mode_set_property(
 }
 
 static void
-hwdout_output_mode_get_property(
-    GObject *gobject, guint property_id, GValue *value, GParamSpec *pspec
-) {
-    HwdoutOutputMode *self = HWDOUT_OUTPUT_MODE(gobject);
+hwdout_mode_get_property(GObject *gobject, guint property_id, GValue *value, GParamSpec *pspec) {
+    HwdoutMode *self = HWDOUT_MODE(gobject);
 
-    switch ((HwdoutOutputModeProperty)property_id) {
+    switch ((HwdoutModeProperty)property_id) {
     case PROP_MANAGER:
         g_value_set_object(value, g_weak_ref_get(&self->manager));
         break;
@@ -154,7 +152,7 @@ hwdout_output_mode_get_property(
         g_value_set_object(value, g_weak_ref_get(&self->head));
         break;
 
-    case PROP_WLR_OUTPUT_MODE:
+    case PROP_WLR_MODE:
         g_value_set_pointer(value, self->wlr_output_mode);
         break;
 
@@ -181,40 +179,40 @@ hwdout_output_mode_get_property(
 }
 
 static void
-hwdout_output_mode_class_init(HwdoutOutputModeClass *klass) {
+hwdout_mode_class_init(HwdoutModeClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
-    object_class->constructed = hwdout_output_mode_constructed;
-    object_class->dispose = hwdout_output_mode_dispose;
-    object_class->finalize = hwdout_output_mode_finalize;
-    object_class->set_property = hwdout_output_mode_set_property;
-    object_class->get_property = hwdout_output_mode_get_property;
+    object_class->constructed = hwdout_mode_constructed;
+    object_class->dispose = hwdout_mode_dispose;
+    object_class->finalize = hwdout_mode_finalize;
+    object_class->set_property = hwdout_mode_set_property;
+    object_class->get_property = hwdout_mode_get_property;
 
     properties[PROP_MANAGER] = g_param_spec_object(
-        "manager", "Manager", "Output manager that owns this mode", HWDOUT_TYPE_OUTPUT_MANAGER,
+        "manager", "Manager", "Output manager that owns this mode", HWDOUT_TYPE_MANAGER,
         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
     properties[PROP_HEAD] = g_param_spec_object(
-        "head", "Head", "The display that supports this mode", HWDOUT_TYPE_OUTPUT_HEAD,
+        "head", "Head", "The display that supports this mode", HWDOUT_TYPE_HEAD,
         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
-    properties[PROP_WLR_OUTPUT_MODE] = g_param_spec_pointer(
+    properties[PROP_WLR_MODE] = g_param_spec_pointer(
         "wlr-output-mode", "WLR output mode",
         "WLRoots output mode reference that this object wraps",
         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
     properties[PROP_WIDTH] = g_param_spec_int(
-        "width", "Width", "Width of the display in physical pixels",
+        "width", "Width", "Horizontal size of the output buffer in pixels",
         0,       // Minimum.
         INT_MAX, // Maximum.
         0,       // Default.
         G_PARAM_READABLE
     );
     properties[PROP_HEIGHT] = g_param_spec_int(
-        "height", "Height", "Height of the display in physical pixels",
+        "height", "Height", "Vertical size of the output buffer in pixels",
         0,       // Minimum.
         INT_MAX, // Maximum.
         0,       // Default.
@@ -249,43 +247,41 @@ hwdout_output_mode_class_init(HwdoutOutputModeClass *klass) {
 }
 
 static void
-hwdout_output_mode_init(HwdoutOutputMode *self) {}
+hwdout_mode_init(HwdoutMode *self) {}
 
-HwdoutOutputMode *
-hwdout_output_mode_new(
-    HwdoutOutputManager *manager, HwdoutOutputHead *head,
-    struct zwlr_output_mode_v1 *wlr_output_mode
+HwdoutMode *
+hwdout_mode_new(
+    HwdoutManager *manager, HwdoutHead *head, struct zwlr_output_mode_v1 *wlr_output_mode
 ) {
     return g_object_new(
-        HWDOUT_TYPE_OUTPUT_MODE, "manager", manager, "head", head, "wlr-output-mode",
-        wlr_output_mode, NULL
+        HWDOUT_TYPE_MODE, "manager", manager, "head", head, "wlr-output-mode", wlr_output_mode, NULL
     );
 }
 
 gint
-hwdout_output_mode_get_width(HwdoutOutputMode *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+hwdout_mode_get_width(HwdoutMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(self), 0);
 
     return self->current.width;
 }
 
 gint
-hwdout_output_mode_get_height(HwdoutOutputMode *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+hwdout_mode_get_height(HwdoutMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(self), 0);
 
     return self->current.height;
 }
 
 gint
-hwdout_output_mode_get_refresh(HwdoutOutputMode *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+hwdout_mode_get_refresh(HwdoutMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(self), 0);
 
     return self->current.refresh;
 }
 
 gboolean
-hwdout_output_mode_get_is_preferred(HwdoutOutputMode *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+hwdout_mode_get_is_preferred(HwdoutMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(self), 0);
 
     return self->current.preferred ? TRUE : FALSE;
 }

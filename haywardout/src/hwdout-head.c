@@ -1,8 +1,8 @@
-#include "hwdout-output-head.h"
+#include "hwdout-head.h"
 
-#include "hwdout-output-manager.h"
-#include "hwdout-output-mode.h"
-#include "hwdout-output-transform.h"
+#include "hwdout-manager.h"
+#include "hwdout-mode.h"
+#include "hwdout-transform.h"
 #include "hwdout-util.h"
 
 #include <gio/gio.h>
@@ -12,7 +12,7 @@
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
 
-struct _HwdoutOutputHeadState {
+struct _HwdoutHeadState {
     gchar *name;
     gchar *description;
 
@@ -24,38 +24,38 @@ struct _HwdoutOutputHeadState {
 
     gboolean is_enabled;
 
-    HwdoutOutputMode *current_mode;
+    HwdoutMode *current_mode;
 
     // Position of the top left corner in layout coordinates.
     gint x;
     gint y;
 
-    HwdoutOutputTransform transform;
+    HwdoutTransform transform;
     wl_fixed_t scale;
 
     gchar *make;
     gchar *model;
     gchar *serial_number;
 };
-typedef struct _HwdoutOutputHeadState HwdoutOutputHeadState;
+typedef struct _HwdoutHeadState HwdoutHeadState;
 
-struct _HwdoutOutputHead {
+struct _HwdoutHead {
     GObject parent_instance;
 
     GWeakRef manager;
     struct zwlr_output_head_v1 *wlr_output_head;
 
-    HwdoutOutputHeadState pending;
-    HwdoutOutputHeadState current;
+    HwdoutHeadState pending;
+    HwdoutHeadState current;
 
     gboolean finished;
 };
 
-G_DEFINE_TYPE(HwdoutOutputHead, hwdout_output_head, G_TYPE_OBJECT)
+G_DEFINE_TYPE(HwdoutHead, hwdout_head, G_TYPE_OBJECT)
 
 typedef enum {
     PROP_MANAGER = 1,
-    PROP_WLR_OUTPUT_HEAD,
+    PROP_WLR_HEAD,
     PROP_NAME,
     PROP_DESCRIPTION,
     PROP_PHYSICAL_WIDTH,
@@ -70,20 +70,20 @@ typedef enum {
     PROP_MODEL,
     PROP_SERIAL_NUMBER,
     N_PROPERTIES,
-} HwdoutOutputHeadProperty;
+} HwdoutHeadProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
 
 typedef enum {
     SIGNAL_FINISHED = 1,
     N_SIGNALS,
-} HwdoutOutputHeadSignal;
+} HwdoutHeadSignal;
 
 static guint signals[N_SIGNALS] = {0};
 
 static void
 handle_head_name(void *data, struct zwlr_output_head_v1 *wlr_output_head, const char *name) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: name=%s", (void *)wlr_output_head, name);
 
@@ -95,7 +95,7 @@ static void
 handle_head_description(
     void *data, struct zwlr_output_head_v1 *wlr_output_head, const char *description
 ) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: description=%s", (void *)wlr_output_head, description);
 
@@ -107,7 +107,7 @@ static void
 handle_head_physical_size(
     void *data, struct zwlr_output_head_v1 *wlr_output_head, int32_t width, int32_t height
 ) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: physical size=(%imm x %imm)", (void *)wlr_output_head, width, height);
 
@@ -116,8 +116,8 @@ handle_head_physical_size(
 }
 
 static void
-handle_mode_finished(HwdoutOutputMode *mode, uint32_t serial, void *data) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+handle_mode_finished(HwdoutMode *mode, uint32_t serial, void *data) {
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     guint position = 0;
     if (!g_list_store_find(self->pending.modes, mode, &position)) {
@@ -132,16 +132,16 @@ static void
 handle_head_mode(
     void *data, struct zwlr_output_head_v1 *wlr_output_head, struct zwlr_output_mode_v1 *wlr_mode
 ) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
-    HwdoutOutputManager *manager;
-    HwdoutOutputMode *mode;
+    HwdoutManager *manager;
+    HwdoutMode *mode;
 
     g_debug("head=%p: mode: %p", (void *)wlr_output_head, (void *)wlr_mode);
 
-    manager = HWDOUT_OUTPUT_MANAGER(g_weak_ref_get(&self->manager));
+    manager = HWDOUT_MANAGER(g_weak_ref_get(&self->manager));
 
-    mode = hwdout_output_mode_new(manager, self, wlr_mode);
+    mode = hwdout_mode_new(manager, self, wlr_mode);
     g_return_if_fail(mode != NULL);
     g_list_store_append(self->pending.modes, mode);
     zwlr_output_mode_v1_set_user_data(wlr_mode, mode);
@@ -153,7 +153,7 @@ handle_head_mode(
 
 static void
 handle_head_enabled(void *data, struct zwlr_output_head_v1 *wlr_output_head, int32_t enabled) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: enabled: %i", (void *)wlr_output_head, enabled);
 
@@ -164,21 +164,21 @@ static void
 handle_head_current_mode(
     void *data, struct zwlr_output_head_v1 *wlr_output_head, struct zwlr_output_mode_v1 *wlr_mode
 ) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
-    HwdoutOutputMode *mode;
+    HwdoutMode *mode;
 
     g_debug("head=%p: mode: %p", (void *)wlr_output_head, (void *)wlr_mode);
 
     mode = zwlr_output_mode_v1_get_user_data(wlr_mode);
-    self->pending.current_mode = HWDOUT_OUTPUT_MODE(g_object_ref(mode));
+    self->pending.current_mode = HWDOUT_MODE(g_object_ref(mode));
 }
 
 static void
 handle_head_position(
     void *data, struct zwlr_output_head_v1 *wlr_output_head, int32_t x, int32_t y
 ) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: position: (%ix%i)", (void *)wlr_output_head, x, y);
 
@@ -188,7 +188,7 @@ handle_head_position(
 
 static void
 handle_head_transform(void *data, struct zwlr_output_head_v1 *wlr_output_head, int32_t transform) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: transform: %i", (void *)wlr_output_head, transform);
 
@@ -197,7 +197,7 @@ handle_head_transform(void *data, struct zwlr_output_head_v1 *wlr_output_head, i
 
 static void
 handle_head_scale(void *data, struct zwlr_output_head_v1 *wlr_output_head, wl_fixed_t scale) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: scale: %f", (void *)wlr_output_head, wl_fixed_to_double(scale));
 
@@ -213,7 +213,7 @@ handle_head_scale(void *data, struct zwlr_output_head_v1 *wlr_output_head, wl_fi
  */
 static void
 handle_head_finished(void *data, struct zwlr_output_head_v1 *wlr_output_head) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     if (self->finished) {
         g_warning("received multiple finished events");
@@ -225,7 +225,7 @@ handle_head_finished(void *data, struct zwlr_output_head_v1 *wlr_output_head) {
 
 static void
 handle_head_make(void *data, struct zwlr_output_head_v1 *wlr_output_head, const char *make) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: make: %s", (void *)wlr_output_head, make);
 
@@ -235,7 +235,7 @@ handle_head_make(void *data, struct zwlr_output_head_v1 *wlr_output_head, const 
 
 static void
 handle_head_model(void *data, struct zwlr_output_head_v1 *wlr_output_head, const char *model) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: model: %s", (void *)wlr_output_head, model);
 
@@ -247,7 +247,7 @@ static void
 handle_head_serial_number(
     void *data, struct zwlr_output_head_v1 *wlr_output_head, const char *serial_number
 ) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     g_debug("head=%p: serial number: %s", (void *)wlr_output_head, serial_number);
 
@@ -265,7 +265,7 @@ handle_head_serial_number(
  */
 static void
 handle_head_adaptive_sync(void *data, struct zwlr_output_head_v1 *wlr_output_head, uint32_t state) {
-    // TODO    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+    // TODO    HwdoutHead *self = HWDOUT_HEAD(data);
 }
 
 static const struct zwlr_output_head_v1_listener output_head_listener = {
@@ -286,8 +286,8 @@ static const struct zwlr_output_head_v1_listener output_head_listener = {
 };
 
 static void
-handle_manager_done(HwdoutOutputManager *manager, uint32_t serial, void *data) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(data);
+handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
+    HwdoutHead *self = HWDOUT_HEAD(data);
 
     gboolean name_changed = false;
     gboolean description_changed = false;
@@ -418,15 +418,15 @@ handle_manager_done(HwdoutOutputManager *manager, uint32_t serial, void *data) {
 }
 
 static void
-hwdout_output_head_constructed(GObject *gobject) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(gobject);
+hwdout_head_constructed(GObject *gobject) {
+    HwdoutHead *self = HWDOUT_HEAD(gobject);
 
-    HwdoutOutputManager *manager;
+    HwdoutManager *manager;
 
-    G_OBJECT_CLASS(hwdout_output_head_parent_class)->constructed(gobject);
+    G_OBJECT_CLASS(hwdout_head_parent_class)->constructed(gobject);
 
-    manager = HWDOUT_OUTPUT_MANAGER(g_weak_ref_get(&self->manager));
-    g_return_if_fail(HWDOUT_IS_OUTPUT_MANAGER(manager));
+    manager = HWDOUT_MANAGER(g_weak_ref_get(&self->manager));
+    g_return_if_fail(HWDOUT_IS_MANAGER(manager));
     g_signal_connect_object(
         manager, "done", G_CALLBACK(handle_manager_done), self, G_CONNECT_DEFAULT
     );
@@ -436,8 +436,8 @@ hwdout_output_head_constructed(GObject *gobject) {
 }
 
 static void
-hwdout_output_head_dispose(GObject *gobject) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(gobject);
+hwdout_head_dispose(GObject *gobject) {
+    HwdoutHead *self = HWDOUT_HEAD(gobject);
 
     g_weak_ref_clear(&self->manager);
 
@@ -462,30 +462,30 @@ hwdout_output_head_dispose(GObject *gobject) {
     g_clear_pointer(&self->pending.serial_number, g_free);
     g_clear_pointer(&self->current.serial_number, g_free);
 
-    G_OBJECT_CLASS(hwdout_output_head_parent_class)->dispose(gobject);
+    G_OBJECT_CLASS(hwdout_head_parent_class)->dispose(gobject);
 }
 
 static void
-hwdout_output_head_finalize(GObject *gobject) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(gobject);
+hwdout_head_finalize(GObject *gobject) {
+    HwdoutHead *self = HWDOUT_HEAD(gobject);
 
     g_clear_pointer(&self->wlr_output_head, zwlr_output_head_v1_destroy);
 
-    G_OBJECT_CLASS(hwdout_output_head_parent_class)->finalize(gobject);
+    G_OBJECT_CLASS(hwdout_head_parent_class)->finalize(gobject);
 }
 
 static void
-hwdout_output_head_set_property(
+hwdout_head_set_property(
     GObject *gobject, guint property_id, const GValue *value, GParamSpec *pspec
 ) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(gobject);
+    HwdoutHead *self = HWDOUT_HEAD(gobject);
 
-    switch ((HwdoutOutputHeadProperty)property_id) {
+    switch ((HwdoutHeadProperty)property_id) {
     case PROP_MANAGER:
         g_weak_ref_set(&self->manager, g_value_get_object(value));
         break;
 
-    case PROP_WLR_OUTPUT_HEAD:
+    case PROP_WLR_HEAD:
         self->wlr_output_head = g_value_get_pointer(value);
         break;
 
@@ -496,70 +496,68 @@ hwdout_output_head_set_property(
 }
 
 static void
-hwdout_output_head_get_property(
-    GObject *gobject, guint property_id, GValue *value, GParamSpec *pspec
-) {
-    HwdoutOutputHead *self = HWDOUT_OUTPUT_HEAD(gobject);
+hwdout_head_get_property(GObject *gobject, guint property_id, GValue *value, GParamSpec *pspec) {
+    HwdoutHead *self = HWDOUT_HEAD(gobject);
 
-    switch ((HwdoutOutputHeadProperty)property_id) {
+    switch ((HwdoutHeadProperty)property_id) {
     case PROP_MANAGER:
-        g_value_take_object(value, hwdout_output_head_get_output_manager(self));
+        g_value_take_object(value, hwdout_head_get_manager(self));
         break;
 
-    case PROP_WLR_OUTPUT_HEAD:
-        g_value_set_pointer(value, hwdout_output_head_get_wlr_output_head(self));
+    case PROP_WLR_HEAD:
+        g_value_set_pointer(value, hwdout_head_get_wlr_output_head(self));
         break;
 
     case PROP_NAME:
-        g_value_set_string(value, hwdout_output_head_get_name(self));
+        g_value_set_string(value, hwdout_head_get_name(self));
         break;
 
     case PROP_DESCRIPTION:
-        g_value_set_string(value, hwdout_output_head_get_description(self));
+        g_value_set_string(value, hwdout_head_get_description(self));
         break;
 
     case PROP_PHYSICAL_WIDTH:
-        g_value_set_int(value, hwdout_output_head_get_physical_width(self));
+        g_value_set_int(value, hwdout_head_get_physical_width(self));
         break;
 
     case PROP_PHYSICAL_HEIGHT:
-        g_value_set_int(value, hwdout_output_head_get_physical_height(self));
+        g_value_set_int(value, hwdout_head_get_physical_height(self));
         break;
 
     case PROP_ENABLED:
-        g_value_set_boolean(value, hwdout_output_head_get_is_enabled(self));
+        g_value_set_boolean(value, hwdout_head_get_is_enabled(self));
         break;
 
     case PROP_CURRENT_MODE:
-        g_value_set_object(value, hwdout_output_head_get_current_mode(self));
+        g_value_set_object(value, hwdout_head_get_current_mode(self));
         break;
 
     case PROP_X:
-        g_value_set_int(value, hwdout_output_head_get_x(self));
+        g_value_set_int(value, hwdout_head_get_x(self));
         break;
 
     case PROP_Y:
-        g_value_set_int(value, hwdout_output_head_get_y(self));
+        g_value_set_int(value, hwdout_head_get_y(self));
         break;
 
     case PROP_TRANSFORM:
-        g_value_set_enum(value, hwdout_output_head_get_transform(self));
+        g_value_set_enum(value, hwdout_head_get_transform(self));
         break;
 
     case PROP_SCALE:
-        g_value_set_double(value, hwdout_output_head_get_scale(self));
+        g_value_set_double(value, hwdout_head_get_scale(self));
         break;
 
     case PROP_MAKE:
-        g_value_set_string(value, hwdout_output_head_get_make(self));
+        g_value_set_string(value, hwdout_head_get_make(self));
         break;
 
     case PROP_MODEL:
-        g_value_set_string(value, hwdout_output_head_get_model(self));
+        g_value_set_string(value, hwdout_head_get_model(self));
         break;
 
     case PROP_SERIAL_NUMBER:
-        g_value_set_string(value, hwdout_output_head_get_serial_number(self));
+        g_value_set_string(value, hwdout_head_get_serial_number(self));
         break;
 
     default:
@@ -569,21 +567,21 @@ hwdout_output_head_get_property(
 }
 
 static void
-hwdout_output_head_class_init(HwdoutOutputHeadClass *klass) {
+hwdout_head_class_init(HwdoutHeadClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
-    object_class->constructed = hwdout_output_head_constructed;
-    object_class->dispose = hwdout_output_head_dispose;
-    object_class->finalize = hwdout_output_head_finalize;
-    object_class->set_property = hwdout_output_head_set_property;
-    object_class->get_property = hwdout_output_head_get_property;
+    object_class->constructed = hwdout_head_constructed;
+    object_class->dispose = hwdout_head_dispose;
+    object_class->finalize = hwdout_head_finalize;
+    object_class->set_property = hwdout_head_set_property;
+    object_class->get_property = hwdout_head_get_property;
 
     properties[PROP_MANAGER] = g_param_spec_object(
         "output-manager", "Output manager", "Output manager that owns this head",
-        HWDOUT_TYPE_OUTPUT_MANAGER, G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
+        HWDOUT_TYPE_MANAGER, G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
-    properties[PROP_WLR_OUTPUT_HEAD] = g_param_spec_pointer(
+    properties[PROP_WLR_HEAD] = g_param_spec_pointer(
         "wlr-output-head", "WLR output head",
         "WLRoots output head reference that this object wraps",
         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
@@ -625,7 +623,7 @@ hwdout_output_head_class_init(HwdoutOutputHeadClass *klass) {
     properties[PROP_CURRENT_MODE] = g_param_spec_object(
         "current-mode", "Current mode",
         "Reference to the mode object representing the currently active mode",
-        hwdout_output_mode_get_type(), G_PARAM_READABLE
+        hwdout_mode_get_type(), G_PARAM_READABLE
     );
 
     properties[PROP_X] = g_param_spec_int(
@@ -645,7 +643,7 @@ hwdout_output_head_class_init(HwdoutOutputHeadClass *klass) {
 
     properties[PROP_TRANSFORM] = g_param_spec_enum(
         "transform", "Transform", "Describes how the display is currently rotated and or flipped",
-        HWDOUT_TYPE_OUTPUT_TRANSFORM, HWDOUT_OUTPUT_TRANSFORM_NORMAL, G_PARAM_READABLE
+        HWDOUT_TYPE_TRANSFORM, HWDOUT_TRANSFORM_NORMAL, G_PARAM_READABLE
     );
 
     properties[PROP_SCALE] = g_param_spec_double(
@@ -689,160 +687,160 @@ hwdout_output_head_class_init(HwdoutOutputHeadClass *klass) {
 }
 
 static void
-hwdout_output_head_init(HwdoutOutputHead *self) {
-    self->pending.modes = g_list_store_new(HWDOUT_TYPE_OUTPUT_MODE);
-    self->current.modes = g_list_store_new(HWDOUT_TYPE_OUTPUT_MODE);
+hwdout_head_init(HwdoutHead *self) {
+    self->pending.modes = g_list_store_new(HWDOUT_TYPE_MODE);
+    self->current.modes = g_list_store_new(HWDOUT_TYPE_MODE);
 
     self->pending.scale = 1.0;
     self->current.scale = 1.0;
 }
 
-HwdoutOutputHead *
-hwdout_output_head_new(HwdoutOutputManager *manager, struct zwlr_output_head_v1 *wlr_output_head) {
+HwdoutHead *
+hwdout_head_new(HwdoutManager *manager, struct zwlr_output_head_v1 *wlr_output_head) {
     return g_object_new(
-        HWDOUT_TYPE_OUTPUT_HEAD, "output-manager", manager, "wlr-output-head", wlr_output_head, NULL
+        HWDOUT_TYPE_HEAD, "output-manager", manager, "wlr-output-head", wlr_output_head, NULL
     );
 }
 
 /**
- * hwdout_output_head_get_output_manager: (attributes org.gtk.Method.get_property=output-manager)
- * @self: a `HwdoutOutputHead`
+ * hwdout_head_get_manager: (attributes org.gtk.Method.get_property=output-manager)
+ * @self: a `HwdoutHead`
  *
  * Returns: (transfer full): The owning output manager.
  */
-HwdoutOutputManager *
-hwdout_output_head_get_output_manager(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+HwdoutManager *
+hwdout_head_get_manager(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return g_weak_ref_get(&self->manager);
 }
 
 struct zwlr_output_head_v1 *
-hwdout_output_head_get_wlr_output_head(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+hwdout_head_get_wlr_output_head(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->wlr_output_head;
 }
 
 gchar *
-hwdout_output_head_get_name(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+hwdout_head_get_name(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->current.name;
 }
 
 gchar *
-hwdout_output_head_get_description(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+hwdout_head_get_description(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->current.description;
 }
 
 gint
-hwdout_output_head_get_physical_width(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), 0);
+hwdout_head_get_physical_width(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), 0);
 
     return self->current.physical_width;
 }
 
 gint
-hwdout_output_head_get_physical_height(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), 0);
+hwdout_head_get_physical_height(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), 0);
 
     return self->current.physical_height;
 }
 
 gboolean
-hwdout_output_head_get_is_enabled(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), FALSE);
+hwdout_head_get_is_enabled(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), FALSE);
 
     return self->current.is_enabled;
 }
 
 /**
- * hwdout_output_head_get_modes:
+ * hwdout_head_get_modes:
  *
- * Returns: (transfer none) a `GListModel` of `HwdoutOutputMode`s.
+ * Returns: (transfer none) a `GListModel` of `HwdoutMode`s.
  */
 GListModel *
-hwdout_output_head_get_modes(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+hwdout_head_get_modes(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return G_LIST_MODEL(self->current.modes);
 }
 
 /**
- * hwdout_output_head_get_current_mode:
+ * hwdout_head_get_current_mode:
  *
  * Returns: (transfer none) the current mode.
  */
-HwdoutOutputMode *
-hwdout_output_head_get_current_mode(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+HwdoutMode *
+hwdout_head_get_current_mode(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->current.current_mode;
 }
 
 gint
-hwdout_output_head_get_x(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), 0);
+hwdout_head_get_x(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), 0);
 
     return self->current.x;
 }
 
 gint
-hwdout_output_head_get_y(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), 0);
+hwdout_head_get_y(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), 0);
 
     return self->current.y;
 }
 
-HwdoutOutputTransform
-hwdout_output_head_get_transform(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), HWDOUT_OUTPUT_TRANSFORM_NORMAL);
+HwdoutTransform
+hwdout_head_get_transform(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), HWDOUT_TRANSFORM_NORMAL);
 
     return self->current.transform;
 }
 
 double
-hwdout_output_head_get_scale(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), 1.0);
+hwdout_head_get_scale(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), 1.0);
 
     return self->current.scale;
 }
 
 /**
- * hwdout_output_head_get_make:
+ * hwdout_head_get_make:
  *
  * Returns: (transfer none): The name of the manufacturer.
  */
 gchar *
-hwdout_output_head_get_make(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+hwdout_head_get_make(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->current.make;
 }
 
 /**
- * hwdout_output_head_get_model:
+ * hwdout_head_get_model:
  *
  * Returns: (transfer none): The name given by the manufacturer to the type of output.
  */
 gchar *
-hwdout_output_head_get_model(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+hwdout_head_get_model(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->current.model;
 }
 
 /**
- * hwdout_output_head_get_serial_number:
+ * hwdout_head_get_serial_number:
  *
  * Returns: (transfer none): The identifier given by the manufacturer to this specific output.
  */
 gchar *
-hwdout_output_head_get_serial_number(HwdoutOutputHead *self) {
-    g_return_val_if_fail(HWDOUT_IS_OUTPUT_HEAD(self), NULL);
+hwdout_head_get_serial_number(HwdoutHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->current.serial_number;
 }

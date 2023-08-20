@@ -1,6 +1,6 @@
 #include "hwdout-application.h"
 
-#include "hwdout-output-manager.h"
+#include "hwdout-manager.h"
 #include "hwdout-window.h"
 
 #include <gdk/wayland/gdkwayland.h>
@@ -14,17 +14,13 @@ struct _HwdoutApplication {
 
     GtkApplication *gtk_app;
 
-    HwdoutOutputManager *output_manager;
+    HwdoutManager *manager;
     HwdoutWindow *window;
 };
 
 G_DEFINE_TYPE(HwdoutApplication, hwdout_application, G_TYPE_OBJECT)
 
-typedef enum {
-    PROP_OUTPUT_MANAGER = 1,
-    PROP_APPLICATION_ID,
-    N_PROPERTIES
-} HwdoutApplicationProperty;
+typedef enum { PROP_MANAGER = 1, PROP_APPLICATION_ID, N_PROPERTIES } HwdoutApplicationProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
 
@@ -36,25 +32,25 @@ handle_global(
     HwdoutApplication *app = HWDOUT_APPLICATION(data);
 
     struct zwlr_output_manager_v1 *wlr_output_manager;
-    HwdoutOutputManager *output_manager;
+    HwdoutManager *manager;
 
-    GValue output_manager_value = G_VALUE_INIT;
+    GValue manager_value = G_VALUE_INIT;
 
     g_debug("global: %s", interface);
     if (strcmp(interface, zwlr_output_manager_v1_interface.name) == 0) {
         wlr_output_manager =
             wl_registry_bind(wl_registry, id, &zwlr_output_manager_v1_interface, 4);
 
-        output_manager = hwdout_output_manager_new(wlr_output_manager);
-        g_return_if_fail(HWDOUT_IS_OUTPUT_MANAGER(output_manager));
+        manager = hwdout_manager_new(wlr_output_manager);
+        g_return_if_fail(HWDOUT_IS_MANAGER(manager));
 
-        g_clear_object(&app->output_manager);
-        app->output_manager = output_manager;
+        g_clear_object(&app->manager);
+        app->manager = manager;
 
         if (app->window != NULL) {
-            g_value_init(&output_manager_value, HWDOUT_TYPE_OUTPUT_MANAGER);
-            g_value_set_object(&output_manager_value, output_manager);
-            g_object_set_property(G_OBJECT(app->window), "output-manager", &output_manager_value);
+            g_value_init(&manager_value, HWDOUT_TYPE_MANAGER);
+            g_value_set_object(&manager_value, manager);
+            g_object_set_property(G_OBJECT(app->window), "output-manager", &manager_value);
         }
     }
 }
@@ -169,8 +165,8 @@ handle_command_line(
         self->window = hwdout_window_new();
         g_object_ref_sink(self->window);
 
-        if (self->output_manager) {
-            hwdout_window_set_output_manager(self->window, self->output_manager);
+        if (self->manager) {
+            hwdout_window_set_manager(self->window, self->manager);
         }
 
         gtk_application_add_window(gtk_app, GTK_WINDOW(g_object_ref(self->window)));
@@ -185,7 +181,7 @@ hwdout_application_dispose(GObject *gobject) {
     HwdoutApplication *self = HWDOUT_APPLICATION(gobject);
 
     g_clear_object(&self->window);
-    g_clear_object(&self->output_manager);
+    g_clear_object(&self->manager);
 
     G_OBJECT_CLASS(hwdout_application_parent_class)->dispose(gobject);
 }
@@ -214,8 +210,8 @@ hwdout_application_get_property(
     HwdoutApplication *self = HWDOUT_APPLICATION(gobject);
 
     switch ((HwdoutApplicationProperty)property_id) {
-    case PROP_OUTPUT_MANAGER:
-        g_value_set_object(value, self->output_manager);
+    case PROP_MANAGER:
+        g_value_set_object(value, self->manager);
         break;
 
     case PROP_APPLICATION_ID:
@@ -236,10 +232,10 @@ hwdout_application_class_init(HwdoutApplicationClass *klass) {
     object_class->set_property = hwdout_application_set_property;
     object_class->get_property = hwdout_application_get_property;
 
-    properties[PROP_OUTPUT_MANAGER] = g_param_spec_object(
+    properties[PROP_MANAGER] = g_param_spec_object(
         "output-manager", "Output Manager",
-        "Output manager that can be used to interact with the compositor",
-        HWDOUT_TYPE_OUTPUT_MANAGER, G_PARAM_READABLE
+        "Output manager that can be used to interact with the compositor", HWDOUT_TYPE_MANAGER,
+        G_PARAM_READABLE
     );
     properties[PROP_APPLICATION_ID] = g_param_spec_string(
         "application-id", "Application ID", "The unique identifier for the application", "",
