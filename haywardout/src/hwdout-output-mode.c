@@ -261,3 +261,31 @@ hwdout_output_mode_new(
         wlr_output_mode, NULL
     );
 }
+
+gint
+hwdout_output_mode_get_width(HwdoutOutputMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+
+    return self->current.width;
+}
+
+gint
+hwdout_output_mode_get_height(HwdoutOutputMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+
+    return self->current.height;
+}
+
+gint
+hwdout_output_mode_get_refresh(HwdoutOutputMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+
+    return self->current.refresh;
+}
+
+gboolean
+hwdout_output_mode_get_is_preferred(HwdoutOutputMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_OUTPUT_MODE(self), 0);
+
+    return self->current.preferred ? TRUE : FALSE;
+}
