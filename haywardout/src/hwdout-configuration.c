@@ -150,12 +150,12 @@ hwdout_configuration_class_init(HwdoutConfigurationClass *klass) {
     object_class->get_property = hwdout_configuration_get_property;
 
     /**
-     * HwdoutConfiguration:output-manager: (attributes org.gtk.Property.get=hwdout_configuration_get_manager)
+     * HwdoutConfiguration:manager: (attributes org.gtk.Property.get=hwdout_configuration_get_manager)
      *
      * Reference to the output manager which this configuration applies to.
      */
     properties[PROP_MANAGER] = g_param_spec_object(
-        "output-manager", "Output Manager",
+        "manager", "Output Manager",
         "Reference to the output manager which this configuration applies to", HWDOUT_TYPE_MANAGER,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY
     );
@@ -236,7 +236,7 @@ hwdout_configuration_init(HwdoutConfiguration *self) {
 
 HwdoutConfiguration *
 hwdout_configuration_new(HwdoutManager *manager) {
-    return g_object_new(HWDOUT_TYPE_CONFIGURATION, "output-manager", manager, NULL);
+    return g_object_new(HWDOUT_TYPE_CONFIGURATION, "manager", manager, NULL);
 }
 
 void
@@ -247,7 +247,7 @@ hwdout_configuration_apply(HwdoutConfiguration *self) {
 }
 
 /**
- * hwdout_configuration_get_manager: (attributes org.gtk.Method.get_property=output-manager)
+ * hwdout_configuration_get_manager: (attributes org.gtk.Method.get_property=manager)
  * @self: a `HwdoutConfiguration`
  *
  * Gets the output manager that this object configures.

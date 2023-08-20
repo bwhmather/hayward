@@ -222,31 +222,31 @@ hwdout_configuration_head_class_init(HwdoutConfigurationHeadClass *klass) {
     object_class->get_property = hwdout_configuration_head_get_property;
 
     properties[PROP_CONFIGURATION] = g_param_spec_object(
-        "output-configuration", "Output configuration",
+        "configuration", "Output configuration",
         "The output configuration object that owns this head", HWDOUT_TYPE_CONFIGURATION,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY
     );
 
     /**
-     * HwdoutConfiguration:output-manager: (attributes org.gtk.Property.get=hwdout_configuration_get_manager)
+     * HwdoutConfiguration:manager: (attributes org.gtk.Property.get=hwdout_configuration_get_manager)
      *
      * Reference to the output manager which owns the head which this object
      * configures.
      */
     properties[PROP_MANAGER] = g_param_spec_object(
-        "output-manager", "Output manager",
+        "manager", "Output manager",
         "Reference to the output manager which owns the head which this object configures",
         HWDOUT_TYPE_MANAGER, G_PARAM_READABLE
     );
 
     properties[PROP_HEAD] = g_param_spec_object(
-        "output-head", "Output head",
+        "head", "Output head",
         "Reference to the specific head object which this object configures", HWDOUT_TYPE_HEAD,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY
     );
 
     properties[PROP_MODE] = g_param_spec_object(
-        "output-mode", "Output mode", "The output mode to set when this configuration is applied",
+        "mode", "Output mode", "The output mode to set when this configuration is applied",
         HWDOUT_TYPE_MODE, G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
     );
 
@@ -311,13 +311,13 @@ hwdout_configuration_head_init(HwdoutConfigurationHead *self) {}
 HwdoutConfigurationHead *
 hwdout_configuration_head_new(HwdoutConfiguration *configuration, HwdoutHead *head) {
     return g_object_new(
-        HWDOUT_TYPE_CONFIGURATION_HEAD, "output-configuration", configuration, "output-head", head,
+        HWDOUT_TYPE_CONFIGURATION_HEAD, "configuration", configuration, "head", head,
         NULL
     );
 }
 
 /**
- * hwdout_configuration_head_get_manager: (attributes org.gtk.Method.get_property=output-manager)
+ * hwdout_configuration_head_get_manager: (attributes org.gtk.Method.get_property=manager)
  * @self: a `HwdoutConfigurationHead`
  *
  * Gets the output manager that the head that this object configures is owned
@@ -333,7 +333,7 @@ hwdout_configuration_head_get_manager(HwdoutConfigurationHead *self) {
 }
 
 /**
- * hwdout_configuration_head_get_configuration: (attributes org.gtk.Method.get_property=output-configuration)
+ * hwdout_configuration_head_get_configuration: (attributes org.gtk.Method.get_property=configuration)
  * @self: a `HwdoutConfigurationHead`
  *
  * Gets the output configuration that this object is part of.
@@ -348,7 +348,7 @@ hwdout_configuration_head_get_configuration(HwdoutConfigurationHead *self) {
 }
 
 /**
- * hwdout_configuration_head_get_head: (attributes org.gik.Method.get_property=output-head)
+ * hwdout_configuration_head_get_head: (attributes org.gik.Method.get_property=head)
  * @self: a `HwdoutConfigurationHead`
  *
  * Returns: (transfer none): The corresponding head.

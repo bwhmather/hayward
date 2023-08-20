@@ -577,7 +577,7 @@ hwdout_head_class_init(HwdoutHeadClass *klass) {
     object_class->get_property = hwdout_head_get_property;
 
     properties[PROP_MANAGER] = g_param_spec_object(
-        "output-manager", "Output manager", "Output manager that owns this head",
+        "manager", "Output manager", "Output manager that owns this head",
         HWDOUT_TYPE_MANAGER, G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
@@ -698,7 +698,7 @@ hwdout_head_init(HwdoutHead *self) {
 HwdoutHead *
 hwdout_head_new(HwdoutManager *manager, struct zwlr_output_head_v1 *wlr_output_head) {
     return g_object_new(
-        HWDOUT_TYPE_HEAD, "output-manager", manager, "wlr-output-head", wlr_output_head, NULL
+        HWDOUT_TYPE_HEAD, "manager", manager, "wlr-output-head", wlr_output_head, NULL
     );
 }
 

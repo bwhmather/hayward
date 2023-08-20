@@ -2,6 +2,7 @@
 
 #include "hwdout-configuration.h"
 #include "hwdout-manager.h"
+#include "hwdout-configuration-head.h"
 
 #include <gtk/gtk.h>
 
@@ -91,12 +92,12 @@ hwdout_window_class_init(HwdoutWindowClass *klass) {
     object_class->get_property = hwdout_window_get_property;
 
     properties[PROP_MANAGER] = g_param_spec_object(
-        "output-manager", "Output Manager",
+        "manager", "Output Manager",
         "Output manager that can be used to interact with the compositor", HWDOUT_TYPE_MANAGER,
         G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
     );
     properties[PROP_CONFIGURATION] = g_param_spec_object(
-        "output-configuration", "Output configuration",
+        "configuration", "Output configuration",
         "State object tracking staged changes to the output", HWDOUT_TYPE_CONFIGURATION,
         G_PARAM_READABLE
     );

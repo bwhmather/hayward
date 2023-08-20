@@ -50,7 +50,7 @@ handle_global(
         if (app->window != NULL) {
             g_value_init(&manager_value, HWDOUT_TYPE_MANAGER);
             g_value_set_object(&manager_value, manager);
-            g_object_set_property(G_OBJECT(app->window), "output-manager", &manager_value);
+            g_object_set_property(G_OBJECT(app->window), "manager", &manager_value);
         }
     }
 }
@@ -233,7 +233,7 @@ hwdout_application_class_init(HwdoutApplicationClass *klass) {
     object_class->get_property = hwdout_application_get_property;
 
     properties[PROP_MANAGER] = g_param_spec_object(
-        "output-manager", "Output Manager",
+        "manager", "Output Manager",
         "Output manager that can be used to interact with the compositor", HWDOUT_TYPE_MANAGER,
         G_PARAM_READABLE
     );
