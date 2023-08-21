@@ -240,9 +240,8 @@ hwdout_configuration_head_class_init(HwdoutConfigurationHeadClass *klass) {
     );
 
     properties[PROP_HEAD] = g_param_spec_object(
-        "head", "Output head",
-        "Reference to the specific head object which this object configures", HWDOUT_TYPE_HEAD,
-        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY
+        "head", "Output head", "Reference to the specific head object which this object configures",
+        HWDOUT_TYPE_HEAD, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY
     );
 
     properties[PROP_MODE] = g_param_spec_object(
@@ -311,8 +310,7 @@ hwdout_configuration_head_init(HwdoutConfigurationHead *self) {}
 HwdoutConfigurationHead *
 hwdout_configuration_head_new(HwdoutConfiguration *configuration, HwdoutHead *head) {
     return g_object_new(
-        HWDOUT_TYPE_CONFIGURATION_HEAD, "configuration", configuration, "head", head,
-        NULL
+        HWDOUT_TYPE_CONFIGURATION_HEAD, "configuration", configuration, "head", head, NULL
     );
 }
 

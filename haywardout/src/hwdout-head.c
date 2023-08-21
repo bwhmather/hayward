@@ -577,8 +577,8 @@ hwdout_head_class_init(HwdoutHeadClass *klass) {
     object_class->get_property = hwdout_head_get_property;
 
     properties[PROP_MANAGER] = g_param_spec_object(
-        "manager", "Output manager", "Output manager that owns this head",
-        HWDOUT_TYPE_MANAGER, G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
+        "manager", "Output manager", "Output manager that owns this head", HWDOUT_TYPE_MANAGER,
+        G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE
     );
 
     properties[PROP_WLR_HEAD] = g_param_spec_pointer(

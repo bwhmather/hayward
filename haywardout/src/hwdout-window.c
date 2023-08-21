@@ -1,8 +1,8 @@
 #include "hwdout-window.h"
 
+#include "hwdout-configuration-head.h"
 #include "hwdout-configuration.h"
 #include "hwdout-manager.h"
-#include "hwdout-configuration-head.h"
 
 #include <gtk/gtk.h>
 
@@ -86,6 +86,8 @@ static void
 hwdout_window_class_init(HwdoutWindowClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+
+    hwdout_configuration_head_get_type();
 
     object_class->dispose = hwdout_window_dispose;
     object_class->set_property = hwdout_window_set_property;

@@ -9,8 +9,17 @@
       <class name="com-bwhmather-hwdout"/>
     </style>
     <child>
-      <object class="GtkLabel">
-        <property name="label">Hello, World!</property>
+      <object class="GtkDropDown">
+        <binding name="model">
+          <lookup name="heads" type="HwdoutConfiguration">
+            <lookup name="configuration">HwdoutWindow</lookup>
+          </lookup>
+        </binding>
+        <property name="expression">
+          <lookup name="description">
+            <lookup name="head" type="HwdoutConfigurationHead"></lookup>
+          </lookup>
+        </property>
       </object>
     </child>
   </template>
