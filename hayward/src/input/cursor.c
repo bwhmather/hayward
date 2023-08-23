@@ -127,6 +127,12 @@ seat_get_target_at(
         return;
     }
 
+    scene_node = wlr_scene_node_at(&root->layers.unmanaged->node, lx, ly, sx_out, sy_out);
+    *surface_out = scene_node_try_get_surface(scene_node);
+    if (scene_node != NULL) {
+        return;
+    }
+
     scene_node = wlr_scene_node_at(&root->layers.outputs->node, lx, ly, sx_out, sy_out);
     *surface_out = scene_node_try_get_surface(scene_node);
     while (scene_node != NULL) {
