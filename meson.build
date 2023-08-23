@@ -21,6 +21,7 @@ add_project_arguments(
 		'-Wundef',
 		'-Wvla',
 		'-Wno-switch',
+		'-Wno-pedantic',
 	],
 	language: 'c',
 )
