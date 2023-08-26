@@ -202,6 +202,9 @@ root_create(struct wl_display *display) {
     root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(&root->output_layout->events.change, &root->output_layout_change);
     wl_signal_add(&transaction_manager->events.before_commit, &root->transaction_before_commit);
+
+    wl_signal_init(&root->events.focus_changed);
+
     return root;
 }
 
@@ -491,6 +494,8 @@ root_commit_focus(struct hwd_root *root) {
             column_set_dirty(new_window->pending.parent);
         }
     }
+
+    wl_signal_emit_mutable(&root->events.focus_changed, root);
 
     // Emit ipc events
     if (new_window != old_window) {

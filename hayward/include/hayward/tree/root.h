@@ -15,9 +15,9 @@
 
 #include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
-#include <hayward/tree/window.h>
 
 struct hwd_pid_workspaces;
+struct hwd_window;
 
 struct hwd_root_state {
     list_t *workspaces;
@@ -78,6 +78,16 @@ struct hwd_root {
     struct wl_listener transaction_before_commit;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
+
+    struct {
+        struct wl_signal focus_changed; // hwd_root_focus_changed_event
+    } events;
+};
+
+struct hwd_root_focus_changed_event {
+    struct hwd_root *root;
+    struct hwd_window *old_focus;
+    struct hwd_window *new_focus;
 };
 
 struct hwd_root *
