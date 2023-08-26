@@ -73,7 +73,7 @@ handle_request_set_selection(struct wl_listener *listener, void *data);
 static void
 handle_request_set_primary_selection(struct wl_listener *listener, void *data);
 static void
-handle_transaction_before_commit(struct wl_listener *listener, void *data);
+handle_root_focus_changed(struct wl_listener *listener, void *data);
 
 struct hwd_seat *
 seat_create(const char *seat_name) {
@@ -122,8 +122,8 @@ seat_create(const char *seat_name) {
 
     wl_list_insert(&server.input->seats, &seat->link);
 
-    seat->transaction_before_commit.notify = handle_transaction_before_commit;
-    wl_signal_add(&transaction_manager->events.before_commit, &seat->transaction_before_commit);
+    seat->root_focus_changed.notify = handle_root_focus_changed;
+    wl_signal_add(&root->events.focus_changed, &seat->root_focus_changed);
 
     seatop_begin_default(seat);
 
@@ -163,7 +163,7 @@ seat_destroy(struct hwd_seat *seat) {
     wl_list_remove(&seat->start_drag.link);
     wl_list_remove(&seat->request_set_selection.link);
     wl_list_remove(&seat->request_set_primary_selection.link);
-    wl_list_remove(&seat->transaction_before_commit.link);
+    wl_list_remove(&seat->root_focus_changed.link);
     wl_list_remove(&seat->link);
     wlr_seat_destroy(seat->wlr_seat);
     for (int i = 0; i < seat->deferred_bindings->length; i++) {
@@ -437,8 +437,8 @@ handle_request_set_primary_selection(struct wl_listener *listener, void *data) {
 }
 
 static void
-handle_transaction_before_commit(struct wl_listener *listener, void *data) {
-    struct hwd_seat *seat = wl_container_of(listener, seat, transaction_before_commit);
+handle_root_focus_changed(struct wl_listener *listener, void *data) {
+    struct hwd_seat *seat = wl_container_of(listener, seat, root_focus_changed);
 
     seat_commit_focus(seat);
 }

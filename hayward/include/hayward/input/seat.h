@@ -101,7 +101,7 @@ struct hwd_seat {
     struct wl_listener start_drag;
     struct wl_listener request_set_selection;
     struct wl_listener request_set_primary_selection;
-    struct wl_listener transaction_before_commit;
+    struct wl_listener root_focus_changed;
 
     struct wl_list devices;         // hwd_seat_device::link
     struct wl_list keyboard_groups; // hwd_keyboard_group::link
