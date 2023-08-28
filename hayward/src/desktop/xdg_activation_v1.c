@@ -11,8 +11,10 @@
 #include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
+#include <hayward/globals/root.h>
 #include <hayward/globals/transaction.h>
 #include <hayward/transaction.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 
 static void
@@ -38,6 +40,7 @@ handle_request_activate(struct wl_listener *listener, void *data) {
     }
 
     view_request_activate(view);
+    root_commit_focus(root);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }

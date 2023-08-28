@@ -49,9 +49,6 @@ static void
 root_validate(struct hwd_root *root);
 
 static void
-root_commit_focus(struct hwd_root *root);
-
-static void
 root_init_scene(struct hwd_root *root) {
     root->root_scene = wlr_scene_create();
     root->orphans = wlr_scene_tree_create(&root->root_scene->tree);
@@ -120,9 +117,10 @@ root_destroy_scene(struct hwd_root *root) {
 static void
 root_handle_transaction_before_commit(struct wl_listener *listener, void *data) {
     struct hwd_root *root = wl_container_of(listener, root, transaction_before_commit);
-    root_commit_focus(root);
 
 #ifndef NDEBUG
+    hwd_assert(root->focused_surface == root_get_focused_surface(root), "Focus not committed");
+
     root_validate(root);
 #endif
 }
@@ -465,7 +463,7 @@ root_handle_urgent_timeout(void *data) {
     return 0;
 }
 
-static void
+void
 root_commit_focus(struct hwd_root *root) {
     struct wlr_surface *active_unmanaged = root_get_active_unmanaged(root);
     struct wlr_layer_surface_v1 *active_layer = root_get_active_layer(root);

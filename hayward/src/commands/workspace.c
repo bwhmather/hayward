@@ -56,5 +56,6 @@ cmd_workspace(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "No workspace to switch to");
     }
     root_set_active_workspace(root, workspace);
+    root_commit_focus(root);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

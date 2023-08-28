@@ -153,6 +153,9 @@ struct wlr_surface *
 root_get_focused_surface(struct hwd_root *root);
 
 void
+root_commit_focus(struct hwd_root *root);
+
+void
 root_for_each_workspace(
     struct hwd_root *root, void (*f)(struct hwd_workspace *workspace, void *data), void *data
 );

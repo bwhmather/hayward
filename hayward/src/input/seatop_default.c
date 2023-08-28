@@ -322,6 +322,7 @@ handle_tablet_tool_tip(
         if (is_floating_or_child && !is_fullscreen_or_child && mod_pressed) {
             root_set_focused_window(root, window);
             seatop_begin_move(seat, window);
+            root_commit_focus(root);
             return;
         }
 
@@ -335,6 +336,7 @@ handle_tablet_tool_tip(
         // Handle tapping on a container surface
         root_set_focused_window(root, window);
         seatop_begin_down(seat, window, time_msec, sx, sy);
+        root_commit_focus(root);
     }
 #if HAVE_XWAYLAND
     // Handle tapping on an xwayland unmanaged view
@@ -441,6 +443,7 @@ handle_button(
     if (output && !window && !surface) {
         if (state == WLR_BUTTON_PRESSED) {
             workspace_set_active_window(workspace, NULL);
+            root_commit_focus(root);
         }
         seat_pointer_notify_button(seat, time_msec, button, state);
         return;
@@ -456,6 +459,7 @@ handle_button(
             if (state == WLR_BUTTON_PRESSED) {
                 seatop_begin_down_on_surface(seat, surface, time_msec, sx, sy);
             }
+            root_commit_focus(root);
             seat_pointer_notify_button(seat, time_msec, button, state);
             return;
         }
@@ -475,9 +479,12 @@ handle_button(
             window_to_focus = parent->pending.active_child;
         }
         root_set_focused_window(root, window_to_focus);
+
         seatop_begin_resize_tiling(
             seat, window, edge
         ); // TODO (hayward) will only ever take a window.
+
+        root_commit_focus(root);
         return;
     }
 
@@ -505,10 +512,14 @@ handle_button(
                 image = "sw-resize";
             }
             cursor_set_image(seat->cursor, image, NULL);
+
             root_set_focused_window(root, window);
+
             seatop_begin_resize_tiling(
                 seat, window, edge
             ); // TODO (hayward) should only accept windows.
+
+            root_commit_focus(root);
             return;
         }
     }
@@ -519,6 +530,7 @@ handle_button(
         if (button == btn_move && (mod_pressed || on_titlebar)) {
             root_set_focused_window(root, window);
             seatop_begin_move(seat, window); // TODO (hayward) should only accept windows.
+            root_commit_focus(root);
             return;
         }
     }
@@ -528,6 +540,7 @@ handle_button(
         // Via border
         if (button == BTN_LEFT && resize_edge != WLR_EDGE_NONE) {
             seatop_begin_resize_floating(seat, window, resize_edge);
+            root_commit_focus(root);
             return;
         }
 
@@ -542,6 +555,7 @@ handle_button(
                 ? WLR_EDGE_BOTTOM
                 : WLR_EDGE_TOP;
             seatop_begin_resize_floating(seat, window, edge);
+            root_commit_focus(root);
             return;
         }
     }
@@ -551,13 +565,18 @@ handle_button(
         !is_floating && window && !window->pending.fullscreen) {
 
         seatop_begin_move(seat, window);
+        root_commit_focus(root);
         return;
     }
 
     // Handle mousedown on a container surface
     if (surface && window && state == WLR_BUTTON_PRESSED) {
         root_set_focused_window(root, window);
+        root_commit_focus(root);
+
         seatop_begin_down(seat, window, time_msec, sx, sy);
+        root_commit_focus(root);
+
         seat_pointer_notify_button(seat, time_msec, button, WLR_BUTTON_PRESSED);
         return;
     }
@@ -565,6 +584,8 @@ handle_button(
     // Handle clicking a container surface or decorations
     if (window && state == WLR_BUTTON_PRESSED) {
         root_set_focused_window(root, window);
+        root_commit_focus(root);
+
         seat_pointer_notify_button(seat, time_msec, button, state);
         return;
     }
@@ -578,7 +599,10 @@ handle_button(
             wlr_xwayland_or_surface_wants_focus(xsurface)) {
             struct wlr_xwayland *xwayland = server.xwayland->xwayland;
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
+
             root_set_focused_surface(root, xsurface->surface);
+            root_commit_focus(root);
+
             seat_pointer_notify_button(seat, time_msec, button, state);
             return;
         }
@@ -611,6 +635,7 @@ check_focus_follows_mouse(
         struct hwd_output *hovered_output = wlr_output->data;
         if (focus && hovered_output != root_get_active_output(root)) {
             root_set_active_output(root, hovered_output);
+            root_commit_focus(root);
         }
         return;
     }
@@ -630,6 +655,7 @@ check_focus_follows_mouse(
 
         if (hovered_output != focused_output) {
             root_set_active_output(root, hovered_output);
+            root_commit_focus(root);
         }
         return;
     }

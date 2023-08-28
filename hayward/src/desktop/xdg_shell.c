@@ -455,6 +455,7 @@ handle_unmap(struct wl_listener *listener, void *data) {
     hwd_assert(view->surface, "Cannot unmap unmapped view");
 
     view_unmap(view);
+    root_commit_focus(root);
 
     wl_list_remove(&xdg_shell_view->commit.link);
     wl_list_remove(&xdg_shell_view->new_popup.link);
@@ -487,6 +488,7 @@ handle_map(struct wl_listener *listener, void *data) {
         view, toplevel->base->surface, toplevel->requested.fullscreen,
         toplevel->requested.fullscreen_output
     );
+    root_commit_focus(root);
 
     xdg_shell_view->commit.notify = handle_commit;
     wl_signal_add(&toplevel->base->surface->events.commit, &xdg_shell_view->commit);

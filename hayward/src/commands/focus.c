@@ -225,6 +225,7 @@ focus_mode(struct hwd_workspace *workspace, bool floating) {
     }
     if (new_focus) {
         workspace_set_active_window(workspace, new_focus);
+        root_commit_focus(root);
     } else {
         return cmd_results_new(
             CMD_FAILURE, "Failed to find a %s container in workspace.",
@@ -289,10 +290,10 @@ cmd_focus(int argc, char **argv) {
         if (window != NULL) {
             root_set_focused_window(root, window);
         } else {
-            // TODO might make more sense to move this to the root.
             workspace_set_active_window(workspace, NULL);
             root_set_active_output(root, new_output);
         }
+        root_commit_focus(root);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 
@@ -304,6 +305,7 @@ cmd_focus(int argc, char **argv) {
     }
     if (next_focus) {
         root_set_focused_window(root, next_focus);
+        root_commit_focus(root);
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

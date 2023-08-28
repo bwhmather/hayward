@@ -115,6 +115,7 @@ unmanaged_handle_map(struct wl_listener *listener, void *data) {
         wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
         root_set_focused_surface(root, xsurface->surface);
     }
+    root_commit_focus(root);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
@@ -145,6 +146,7 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
             root_set_focused_surface(root, xsurface->parent->surface);
         }
     }
+    root_commit_focus(root);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
@@ -195,6 +197,7 @@ unmanaged_handle_request_activate(struct wl_listener *listener, void *data) {
     }
 
     root_set_focused_surface(root, xsurface->surface);
+    root_commit_focus(root);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
@@ -591,6 +594,7 @@ handle_unmap(struct wl_listener *listener, void *data) {
     hwd_assert(view->surface, "Cannot unmap unmapped view");
 
     view_unmap(view);
+    root_commit_focus(root);
 
     wl_list_remove(&xwayland_view->commit.link);
 
@@ -619,6 +623,7 @@ handle_map(struct wl_listener *listener, void *data) {
 
     xwayland_view->surface_scene =
         wlr_scene_surface_create(view->layers.content_tree, xsurface->surface);
+    root_commit_focus(root);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
@@ -837,6 +842,7 @@ handle_request_activate(struct wl_listener *listener, void *data) {
     }
 
     view_request_activate(view);
+    root_commit_focus(root);
 
     hwd_transaction_manager_end_transaction(transaction_manager);
 }
