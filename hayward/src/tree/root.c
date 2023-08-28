@@ -339,11 +339,6 @@ root_get_active_workspace(struct hwd_root *root) {
     return root->pending.active_workspace;
 }
 
-static struct hwd_workspace *
-root_get_committed_active_workspace(struct hwd_root *root) {
-    return root->committed.active_workspace;
-}
-
 void
 root_set_active_output(struct hwd_root *root, struct hwd_output *output) {
     hwd_assert(output != NULL, "Expected output");
@@ -369,9 +364,50 @@ root_set_focused_window(struct hwd_root *root, struct hwd_window *window) {
     workspace_set_active_window(workspace, window);
 }
 
+static struct wlr_surface *
+root_get_active_unmanaged(struct hwd_root *root) {
+    return root->pending.active_unmanaged;
+}
+
+static struct wlr_layer_surface_v1 *
+root_get_active_layer(struct hwd_root *root) {
+    return root->pending.active_layer;
+}
+
+static struct hwd_window *
+root_get_active_window(struct hwd_root *root) {
+    struct hwd_workspace *workspace = root_get_active_workspace(root);
+    hwd_assert(workspace != NULL, "Expected workspace");
+    return workspace_get_active_window(workspace);
+}
+
+struct wlr_surface *
+root_get_focused_unmanaged(struct hwd_root *root) {
+    hwd_assert(root != NULL, "Expected root");
+
+    return root->pending.active_unmanaged;
+}
+
+struct wlr_layer_surface_v1 *
+root_get_focused_layer(struct hwd_root *root) {
+    hwd_assert(root != NULL, "Expected root");
+
+    if (root_get_active_unmanaged(root) != NULL) {
+        return NULL;
+    }
+
+    return root->pending.active_layer;
+}
+
 struct hwd_window *
 root_get_focused_window(struct hwd_root *root) {
-    if (root->pending.focused_layer != NULL) {
+    hwd_assert(root != NULL, "Expected root");
+
+    if (root_get_active_unmanaged(root) != NULL) {
+        return NULL;
+    }
+
+    if (root_get_active_layer(root) != NULL) {
         return NULL;
     }
 
@@ -380,22 +416,33 @@ root_get_focused_window(struct hwd_root *root) {
     return workspace_get_active_window(workspace);
 }
 
-static struct hwd_window *
-root_get_committed_focused_window(struct hwd_root *root) {
-    if (root->pending.focused_layer != NULL) {
-        return NULL;
+struct wlr_surface *
+root_get_focused_surface(struct hwd_root *root) {
+    struct wlr_surface *unmanaged = root_get_focused_unmanaged(root);
+    if (unmanaged != NULL) {
+        return unmanaged;
     }
 
-    struct hwd_workspace *workspace = root_get_committed_active_workspace(root);
-    if (workspace == NULL) {
-        return NULL;
+    struct wlr_layer_surface_v1 *layer = root_get_focused_layer(root);
+    if (layer != NULL) {
+        return layer->surface;
     }
-    return workspace_get_committed_active_window(workspace);
+
+    struct hwd_window *window = root_get_focused_window(root);
+    if (window != NULL) {
+        return window->view->surface;
+    }
+
+    return NULL;
 }
 
 void
 root_set_focused_layer(struct hwd_root *root, struct wlr_layer_surface_v1 *layer) {
-    root->pending.focused_layer = layer;
+    if (layer != NULL && root->pending.active_unmanaged) {
+        root->pending.active_unmanaged = NULL;
+    }
+
+    root->pending.active_layer = layer;
 }
 
 void
@@ -408,30 +455,7 @@ root_set_focused_surface(struct hwd_root *root, struct wlr_surface *surface) {
         }
     }
 
-    root->pending.focused_surface = surface;
-}
-
-struct wlr_layer_surface_v1 *
-root_get_focused_layer(struct hwd_root *root) {
-    return root->pending.focused_layer;
-}
-
-struct wlr_surface *
-root_get_focused_surface(struct hwd_root *root) {
-    if (root->pending.focused_layer != NULL) {
-        return root->pending.focused_layer->surface;
-    }
-
-    struct hwd_window *window = root_get_focused_window(root);
-    if (window != NULL) {
-        return window->view->surface;
-    }
-
-    if (root->pending.focused_surface != NULL) {
-        return root->pending.focused_surface;
-    }
-
-    return NULL;
+    root->pending.active_unmanaged = surface;
 }
 
 static int
@@ -443,17 +467,31 @@ root_handle_urgent_timeout(void *data) {
 
 static void
 root_commit_focus(struct hwd_root *root) {
-    struct hwd_window *old_window = root_get_committed_focused_window(root);
-    struct hwd_window *new_window = root_get_focused_window(root);
+    struct wlr_surface *active_unmanaged = root_get_active_unmanaged(root);
+    struct wlr_layer_surface_v1 *active_layer = root_get_active_layer(root);
+    struct hwd_window *active_window = root_get_active_window(root);
 
-    struct hwd_workspace *old_workspace = root_get_committed_active_workspace(root);
-    struct hwd_workspace *new_workspace = root_get_active_workspace(root);
-
-    if (old_window == new_window && old_workspace == new_workspace) {
-        return;
+    struct wlr_surface *new_surface = NULL;
+    struct wlr_layer_surface_v1 *new_layer = NULL;
+    struct hwd_window *new_window = NULL;
+    if (active_unmanaged != NULL) {
+        new_surface = active_unmanaged;
+        new_layer = NULL;
+        new_window = NULL;
+    } else if (active_layer != NULL) {
+        new_surface = active_layer->surface;
+        new_layer = active_layer;
+        new_window = NULL;
+    } else if (active_window != NULL) {
+        new_surface = active_window->view->surface;
+        new_layer = NULL;
+        new_window = active_window;
     }
 
-    if (old_window && window_is_alive(old_window) && new_window != old_window) {
+    struct wlr_surface *old_surface = root->focused_surface;
+    struct hwd_window *old_window = root->focused_window;
+
+    if (old_window != NULL && window_is_alive(old_window) && old_window != new_window) {
         view_close_popups(old_window->view);
         view_set_activated(old_window->view, false);
 
@@ -463,10 +501,16 @@ root_commit_focus(struct hwd_root *root) {
         }
     }
 
-    if (new_window && new_window != old_window) {
-        struct hwd_view *view = new_window->view;
+    if (new_window != NULL && new_window != old_window) {
+        struct hwd_workspace *new_workspace = new_window->pending.workspace;
+        struct hwd_view *new_view = new_window->view;
 
-        view_set_activated(view, true);
+        struct hwd_workspace *old_workspace = NULL;
+        if (old_window != NULL) {
+            old_workspace = old_window->pending.workspace;
+        }
+
+        view_set_activated(new_view, true);
 
         // If window was marked as urgent, i.e. requiring attention,
         // then we usually want to clear the mark when it is focused.
@@ -474,35 +518,38 @@ root_commit_focus(struct hwd_root *root) {
         // by switching workspace, then we want to delay clearing the
         // mark a little bit to let them know that the window was
         // urgent.
-        if (view_is_urgent(view) && !view->urgent_timer) {
+        if (view_is_urgent(new_view) && !new_view->urgent_timer) {
             if (old_workspace && old_workspace != new_workspace && config->urgent_timeout > 0) {
-                view->urgent_timer =
-                    wl_event_loop_add_timer(server.wl_event_loop, root_handle_urgent_timeout, view);
-                if (view->urgent_timer) {
-                    wl_event_source_timer_update(view->urgent_timer, config->urgent_timeout);
+                new_view->urgent_timer = wl_event_loop_add_timer(
+                    server.wl_event_loop, root_handle_urgent_timeout, new_view
+                );
+                if (new_view->urgent_timer) {
+                    wl_event_source_timer_update(new_view->urgent_timer, config->urgent_timeout);
                 } else {
                     hwd_log_errno(HWD_ERROR, "Unable to create urgency timer");
-                    root_handle_urgent_timeout(view);
+                    root_handle_urgent_timeout(new_view);
                 }
             } else {
-                view_set_urgent(view, false);
+                view_set_urgent(new_view, false);
             }
         }
 
         window_set_dirty(new_window);
-        if (window_is_tiling(new_window)) {
-            column_set_dirty(new_window->pending.parent);
-        }
     }
 
-    wl_signal_emit_mutable(&root->events.focus_changed, root);
+    root->focused_surface = new_surface;
+    root->focused_layer = new_layer;
+    root->focused_window = new_window;
+
+    if (old_surface != new_surface) {
+        struct hwd_root_focus_changed_event event = {
+            .root = root, .old_focus = old_surface, .new_focus = new_surface};
+        wl_signal_emit_mutable(&root->events.focus_changed, &event);
+    }
 
     // Emit ipc events
     if (new_window != old_window) {
         ipc_event_window(new_window, "focus");
-    }
-    if (new_workspace != old_workspace) {
-        ipc_event_workspace(old_workspace, new_workspace, "focus");
     }
 }
 

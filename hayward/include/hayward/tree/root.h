@@ -22,12 +22,6 @@ struct hwd_window;
 struct hwd_root_state {
     list_t *workspaces;
 
-    /**
-     * An optional explicitly focused surface.   Will only be used if there
-     * is no active window or layer set.
-     */
-    struct wlr_surface *focused_surface;
-
     struct hwd_workspace *active_workspace;
     struct hwd_output *active_output;
 
@@ -36,7 +30,13 @@ struct hwd_root_state {
      * events.  If set, will take priority over any active window or
      * explicitly focused surface.
      */
-    struct wlr_layer_surface_v1 *focused_layer;
+    struct wlr_layer_surface_v1 *active_layer;
+
+    /**
+     * An optional unmangaged surface which should receive input events.  Takes
+     * priority over active layer and active window.
+     */
+    struct wlr_surface *active_unmanaged;
 };
 
 struct hwd_root {
@@ -45,6 +45,15 @@ struct hwd_root {
     struct hwd_root_state current;
 
     bool dirty;
+
+    /**
+     * Focus state needs to be updated as soon as it changes in order for input
+     * to be routed to the right place and so is committed outside the normal
+     * state structure.
+     */
+    struct wlr_surface *focused_surface;
+    struct hwd_window *focused_window;
+    struct wlr_layer_surface_v1 *focused_layer;
 
     struct wlr_output_layout *output_layout;
 
@@ -86,8 +95,8 @@ struct hwd_root {
 
 struct hwd_root_focus_changed_event {
     struct hwd_root *root;
-    struct hwd_window *old_focus;
-    struct hwd_window *new_focus;
+    struct wlr_surface *old_focus;
+    struct wlr_surface *new_focus;
 };
 
 struct hwd_root *
