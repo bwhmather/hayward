@@ -39,6 +39,7 @@ struct hwd_transaction_manager {
     bool queued;
 
     enum hwd_transaction_phase phase;
+    struct wl_event_source *idle;
     struct wl_event_source *timer;
     struct timespec commit_time;
     size_t num_configures;

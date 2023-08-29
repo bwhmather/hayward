@@ -17,6 +17,12 @@
 
 struct hwd_transaction_manager *transaction_manager;
 
+static void
+handle_commit(void *data);
+
+static int
+handle_timeout(void *data);
+
 struct hwd_transaction_manager *
 hwd_transaction_manager_create(void) {
     struct hwd_transaction_manager *transaction_manager =
@@ -109,65 +115,23 @@ transaction_progress(struct hwd_transaction_manager *transaction_manager) {
 
     transaction_apply(transaction_manager);
 
-    if (transaction_manager->queued) {
-        hwd_transaction_manager_begin_transaction(transaction_manager);
-        hwd_transaction_manager_end_transaction(transaction_manager);
+    if (transaction_manager->queued && transaction_manager->idle == NULL) {
+        transaction_manager->idle =
+            wl_event_loop_add_idle(server.wl_event_loop, handle_commit, transaction_manager);
     }
 }
 
-static int
-handle_timeout(void *data) {
+static void
+handle_commit(void *data) {
     struct hwd_transaction_manager *transaction_manager = data;
 
-    hwd_log(HWD_DEBUG, "Transaction timed out (%zi waiting)", transaction_manager->num_waiting);
-    transaction_manager->num_waiting = 0;
-    transaction_progress(transaction_manager);
+    transaction_manager->idle = NULL;
 
-    return 0;
-}
-
-void
-hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
-    hwd_assert(transaction_manager->depth > 0, "Can only ensure queued while building transaction");
-
-    transaction_manager->queued = true;
-}
-
-void
-hwd_transaction_manager_begin_transaction(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager->depth < 3, "Something funky is happening");
-    transaction_manager->depth += 1;
-}
-
-bool
-hwd_transaction_manager_transaction_in_progress(struct hwd_transaction_manager *transaction_manager
-) {
-    return transaction_manager->depth > 0;
-}
-
-void
-hwd_transaction_manager_end_transaction(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager->depth > 0, "Transaction has not yet begun");
-    if (transaction_manager->depth != 1) {
-        transaction_manager->depth -= 1;
-        return;
-    }
-
-    if (transaction_manager->num_waiting != 0) {
-        transaction_manager->depth -= 1;
-        return;
-    }
-
-    if (!transaction_manager->queued) {
-        transaction_manager->depth -= 1;
-        return;
-    }
+    hwd_assert(transaction_manager->depth == 0, "Transaction was not released");
 
     transaction_manager->phase = HWD_TRANSACTION_BEFORE_COMMIT;
     wl_signal_emit_mutable(&transaction_manager->events.before_commit, NULL);
 
-    transaction_manager->depth -= 1;
     transaction_manager->queued = false;
 
     transaction_manager->phase = HWD_TRANSACTION_COMMIT;
@@ -204,6 +168,49 @@ hwd_transaction_manager_end_transaction(struct hwd_transaction_manager *transact
     }
 
     transaction_progress(transaction_manager);
+}
+
+static int
+handle_timeout(void *data) {
+    struct hwd_transaction_manager *transaction_manager = data;
+
+    hwd_log(HWD_DEBUG, "Transaction timed out (%zi waiting)", transaction_manager->num_waiting);
+    transaction_manager->num_waiting = 0;
+    transaction_progress(transaction_manager);
+
+    return 0;
+}
+
+void
+hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *transaction_manager) {
+    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
+    hwd_assert(transaction_manager->depth > 0, "Can only ensure queued while building transaction");
+
+    transaction_manager->queued = true;
+
+    if (transaction_manager->phase == HWD_TRANSACTION_IDLE && transaction_manager->idle == NULL) {
+        transaction_manager->idle =
+            wl_event_loop_add_idle(server.wl_event_loop, handle_commit, transaction_manager);
+    }
+}
+
+void
+hwd_transaction_manager_begin_transaction(struct hwd_transaction_manager *transaction_manager) {
+    hwd_assert(transaction_manager->depth < 3, "Something funky is happening");
+    transaction_manager->depth += 1;
+}
+
+bool
+hwd_transaction_manager_transaction_in_progress(struct hwd_transaction_manager *transaction_manager
+) {
+    return transaction_manager->depth > 0;
+}
+
+void
+hwd_transaction_manager_end_transaction(struct hwd_transaction_manager *transaction_manager) {
+    hwd_assert(transaction_manager->depth > 0, "Transaction has not yet begun");
+
+    transaction_manager->depth -= 1;
 }
 
 void
