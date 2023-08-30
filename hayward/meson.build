@@ -7,7 +7,6 @@ hayward_sources = files(
 	'src/main.c',
 	'src/output.c',
 	'src/server.c',
-	'src/transaction.c',
 	'src/haywardnag.c',
 
 	'src/desktop/idle_inhibit_v1.c',
@@ -152,6 +151,7 @@ hayward_sources = files(
 	'src/tree/arrange.c',
 	'src/tree/column.c',
 	'src/tree/root.c',
+	'src/tree/transaction.c',
 	'src/tree/view.c',
 	'src/tree/window.c',
 	'src/tree/workspace.c',

@@ -31,10 +31,10 @@
 #include <hayward/output.h>
 #include <hayward/scene/text.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
+#include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/workspace.h>
 

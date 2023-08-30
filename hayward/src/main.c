@@ -30,8 +30,8 @@
 #include <hayward/haywardnag.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/root.h>
+#include <hayward/tree/transaction.h>
 #include <hayward/tree/workspace.h>
 
 static bool terminate_request = false;
