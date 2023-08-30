@@ -160,7 +160,7 @@ root_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
 static void
 root_handle_transaction_after_apply(struct wl_listener *listener, void *data) {
-    struct hwd_root *root = wl_container_of(listener, root, transaction_apply);
+    struct hwd_root *root = wl_container_of(listener, root, transaction_after_apply);
 
     wl_signal_emit_mutable(&root->events.scene_changed, root);
 }
