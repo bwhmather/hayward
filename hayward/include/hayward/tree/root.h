@@ -87,9 +87,11 @@ struct hwd_root {
     struct wl_listener transaction_before_commit;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
+    struct wl_listener transaction_after_apply;
 
     struct {
-        struct wl_signal focus_changed; // hwd_root_focus_changed_event
+        struct wl_signal focus_changed; // struct hwd_root_focus_changed_event
+        struct wl_signal scene_changed; // struct hwd_root
     } events;
 };
 

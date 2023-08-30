@@ -160,6 +160,13 @@ root_handle_transaction_apply(struct wl_listener *listener, void *data) {
 }
 
 static void
+root_handle_transaction_after_apply(struct wl_listener *listener, void *data) {
+    struct hwd_root *root = wl_container_of(listener, root, transaction_apply);
+
+    wl_signal_emit_mutable(&root->events.scene_changed, root);
+}
+
+static void
 root_handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hwd_root *root = wl_container_of(listener, root, output_layout_change);
 
@@ -179,6 +186,7 @@ root_create(struct wl_display *display) {
     root->transaction_before_commit.notify = root_handle_transaction_before_commit;
     root->transaction_commit.notify = root_handle_transaction_commit;
     root->transaction_apply.notify = root_handle_transaction_apply;
+    root->transaction_after_apply.notify = root_handle_transaction_after_apply;
 
     root->output_layout = wlr_output_layout_create();
     wl_list_init(&root->all_outputs);
@@ -196,8 +204,10 @@ root_create(struct wl_display *display) {
     root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(&root->output_layout->events.change, &root->output_layout_change);
     wl_signal_add(&transaction_manager->events.before_commit, &root->transaction_before_commit);
+    wl_signal_add(&transaction_manager->events.after_apply, &root->transaction_after_apply);
 
     wl_signal_init(&root->events.focus_changed);
+    wl_signal_init(&root->events.scene_changed);
 
     return root;
 }
