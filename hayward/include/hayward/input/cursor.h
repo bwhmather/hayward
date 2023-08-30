@@ -79,7 +79,7 @@ struct hwd_cursor {
 
     struct wl_listener constraint_commit;
 
-    struct wl_listener transaction_after_apply;
+    struct wl_listener root_scene_changed;
 
     struct wl_event_source *hide_source;
     bool hidden;

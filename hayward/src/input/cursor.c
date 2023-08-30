@@ -47,13 +47,11 @@
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/tablet.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -1021,8 +1019,8 @@ handle_image_surface_destroy(struct wl_listener *listener, void *data) {
 }
 
 static void
-handle_transaction_after_apply(struct wl_listener *listener, void *data) {
-    struct hwd_cursor *cursor = wl_container_of(listener, cursor, transaction_after_apply);
+handle_root_scene_changed(struct wl_listener *listener, void *data) {
+    struct hwd_cursor *cursor = wl_container_of(listener, cursor, root_scene_changed);
     cursor_rebase(cursor);
 }
 
@@ -1112,7 +1110,7 @@ hwd_cursor_destroy(struct hwd_cursor *cursor) {
     wl_list_remove(&cursor->tool_tip.link);
     wl_list_remove(&cursor->tool_button.link);
     wl_list_remove(&cursor->request_set_cursor.link);
-    wl_list_remove(&cursor->transaction_after_apply.link);
+    wl_list_remove(&cursor->root_scene_changed.link);
 
     wlr_xcursor_manager_destroy(cursor->xcursor_manager);
     wlr_cursor_destroy(cursor->cursor);
@@ -1196,8 +1194,8 @@ hwd_cursor_create(struct hwd_seat *seat) {
     wl_signal_add(&seat->wlr_seat->events.request_set_cursor, &cursor->request_set_cursor);
     cursor->request_set_cursor.notify = handle_request_pointer_set_cursor;
 
-    cursor->transaction_after_apply.notify = handle_transaction_after_apply;
-    wl_signal_add(&transaction_manager->events.apply, &cursor->transaction_after_apply);
+    cursor->root_scene_changed.notify = handle_root_scene_changed;
+    wl_signal_add(&root->events.scene_changed, &cursor->root_scene_changed);
 
     wl_list_init(&cursor->constraint_commit.link);
     wl_list_init(&cursor->tablets);
