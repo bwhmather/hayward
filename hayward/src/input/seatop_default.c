@@ -669,6 +669,7 @@ check_focus_follows_mouse(
         // But if focus_follows_mouse is "always", we do.
         if (window != e->previous_window || config->focus_follows_mouse == FOLLOWS_ALWAYS) {
             root_set_focused_window(root, window);
+            root_commit_focus(root);
         }
     }
 }
