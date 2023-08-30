@@ -41,9 +41,10 @@ enum hwd_view_prop {
 };
 
 struct hwd_view_impl {
-    void (*get_constraints
-    )(struct hwd_view *view, double *min_width, double *max_width, double *min_height,
-      double *max_height);
+    void (*get_constraints)(
+        struct hwd_view *view, double *min_width, double *max_width, double *min_height,
+        double *max_height
+    );
     const char *(*get_string_prop)(struct hwd_view *view, enum hwd_view_prop prop);
     uint32_t (*get_int_prop)(struct hwd_view *view, enum hwd_view_prop prop);
     uint32_t (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);

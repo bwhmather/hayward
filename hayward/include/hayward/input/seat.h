@@ -24,17 +24,20 @@
 struct hwd_seat;
 
 struct hwd_seatop_impl {
-    void (*button
-    )(struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-      enum wlr_button_state state);
+    void (*button)(
+        struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
+        enum wlr_button_state state
+    );
     void (*pointer_motion)(struct hwd_seat *seat, uint32_t time_msec);
     void (*pointer_axis)(struct hwd_seat *seat, struct wlr_pointer_axis_event *event);
     void (*rebase)(struct hwd_seat *seat, uint32_t time_msec);
-    void (*tablet_tool_motion
-    )(struct hwd_seat *seat, struct hwd_tablet_tool *tool, uint32_t time_msec);
-    void (*tablet_tool_tip
-    )(struct hwd_seat *seat, struct hwd_tablet_tool *tool, uint32_t time_msec,
-      enum wlr_tablet_tool_tip_state state);
+    void (*tablet_tool_motion)(
+        struct hwd_seat *seat, struct hwd_tablet_tool *tool, uint32_t time_msec
+    );
+    void (*tablet_tool_tip)(
+        struct hwd_seat *seat, struct hwd_tablet_tool *tool, uint32_t time_msec,
+        enum wlr_tablet_tool_tip_state state
+    );
     void (*end)(struct hwd_seat *seat);
     void (*unref)(struct hwd_seat *seat, struct hwd_window *container);
     void (*render)(struct hwd_seat *seat, struct hwd_output *output, pixman_region32_t *damage);

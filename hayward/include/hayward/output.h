@@ -118,9 +118,10 @@ output_get_box(struct hwd_output *output, struct wlr_box *box);
 void
 output_get_usable_area(struct hwd_output *output, struct wlr_box *box);
 
-typedef void (*hwd_surface_iterator_func_t
-)(struct hwd_output *output, struct hwd_view *view, struct wlr_surface *surface,
-  struct wlr_box *box, void *user_data);
+typedef void (*hwd_surface_iterator_func_t)(
+    struct hwd_output *output, struct hwd_view *view, struct wlr_surface *surface,
+    struct wlr_box *box, void *user_data
+);
 
 // this ONLY includes the enabled outputs
 struct hwd_output *

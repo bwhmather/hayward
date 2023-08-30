@@ -48,9 +48,10 @@ enum hotspot_event_handling {
 struct haywardbar_hotspot {
     struct wl_list link; // haywardbar_output::hotspots
     int x, y, width, height;
-    enum hotspot_event_handling (*callback
-    )(struct haywardbar_output *output, struct haywardbar_hotspot *hotspot, double x, double y,
-      uint32_t button, void *data);
+    enum hotspot_event_handling (*callback)(
+        struct haywardbar_output *output, struct haywardbar_hotspot *hotspot, double x, double y,
+        uint32_t button, void *data
+    );
     void (*destroy)(void *data);
     void *data;
 };
