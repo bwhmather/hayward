@@ -74,6 +74,7 @@ finalize_move(struct hwd_seat *seat) {
 
     window_set_moving(e->window, false);
     seatop_begin_default(seat);
+    root_commit_focus(root);
 }
 
 static void
@@ -137,6 +138,7 @@ do_detach(struct hwd_seat *seat) {
 
     window_raise_floating(window);
     window_set_moving(window, true);
+    root_commit_focus(root);
 
     cursor_set_image(cursor, "grab", NULL);
     wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
@@ -362,6 +364,7 @@ handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
     if (e->window == window) {
         e->window = NULL;
         seatop_begin_default(seat);
+        root_commit_focus(root);
     }
 }
 
