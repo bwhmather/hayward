@@ -34,7 +34,6 @@
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
@@ -88,6 +87,7 @@ output_destroy_scene(struct hwd_output *output) {
 static void
 output_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, transaction_commit);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
     output->dirty = false;
@@ -100,6 +100,7 @@ output_handle_transaction_commit(struct wl_listener *listener, void *data) {
 static void
 output_handle_transaction_apply(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, transaction_apply);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
 
@@ -163,6 +164,8 @@ output_is_alive(struct hwd_output *output) {
 static void
 output_set_dirty(struct hwd_output *output) {
     hwd_assert(output != NULL, "Expected output");
+
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (output->dirty) {
         return;

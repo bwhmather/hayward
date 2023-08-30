@@ -24,7 +24,6 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
@@ -285,6 +284,7 @@ window_should_configure(struct hwd_window *window) {
 static void
 window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_window *window = wl_container_of(listener, window, transaction_commit);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
     wl_signal_add(&transaction_manager->events.apply, &window->transaction_apply);
@@ -319,6 +319,7 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
 static void
 window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     struct hwd_window *window = wl_container_of(listener, window, transaction_apply);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
     window->is_configuring = false;
@@ -409,6 +410,7 @@ window_begin_destroy(struct hwd_window *window) {
 void
 window_set_dirty(struct hwd_window *window) {
     hwd_assert(window != NULL, "Expected window");
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (window->dirty) {
         return;

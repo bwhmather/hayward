@@ -19,7 +19,6 @@
 
 #include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/tree/arrange.h>
@@ -170,6 +169,7 @@ workspace_copy_state(struct hwd_workspace_state *tgt, struct hwd_workspace_state
 static void
 workspace_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_workspace *workspace = wl_container_of(listener, workspace, transaction_commit);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
     workspace->dirty = false;
@@ -199,6 +199,7 @@ workspace_handle_transaction_commit(struct wl_listener *listener, void *data) {
 static void
 workspace_handle_transaction_apply(struct wl_listener *listener, void *data) {
     struct hwd_workspace *workspace = wl_container_of(listener, workspace, transaction_apply);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
 
@@ -325,6 +326,7 @@ workspace_consider_destroy(struct hwd_workspace *workspace) {
 void
 workspace_set_dirty(struct hwd_workspace *workspace) {
     hwd_assert(workspace != NULL, "Expected workspace");
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (workspace->dirty) {
         return;

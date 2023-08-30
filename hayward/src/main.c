@@ -26,12 +26,10 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/haywardnag.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/transaction.h>
 #include <hayward/tree/workspace.h>
 
 static bool terminate_request = false;
@@ -425,8 +423,6 @@ main(int argc, char **argv) {
 
     hwd_log(HWD_INFO, "Starting hayward version " HWD_VERSION);
 
-    transaction_manager = hwd_transaction_manager_create();
-
     root = root_create(server.wl_display);
 
     if (!server_init(&server)) {
@@ -476,7 +472,6 @@ shutdown:
     server_fini(&server);
     root_destroy(root);
     root = NULL;
-    hwd_transaction_manager_destroy(transaction_manager);
 
     free(config_path);
     free_config(config);

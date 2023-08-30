@@ -17,7 +17,6 @@
 #include <hayward-common/log.h>
 
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -131,6 +130,7 @@ column_copy_state(struct hwd_column_state *tgt, struct hwd_column_state *src) {
 static void
 column_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_column *column = wl_container_of(listener, column, transaction_commit);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
     column->dirty = false;
@@ -143,6 +143,7 @@ column_handle_transaction_commit(struct wl_listener *listener, void *data) {
 static void
 column_handle_transaction_apply(struct wl_listener *listener, void *data) {
     struct hwd_column *column = wl_container_of(listener, column, transaction_apply);
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
 
@@ -249,6 +250,7 @@ column_consider_destroy(struct hwd_column *column) {
 void
 column_set_dirty(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (column->dirty) {
         return;

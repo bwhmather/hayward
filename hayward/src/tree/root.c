@@ -24,7 +24,6 @@
 
 #include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
@@ -143,7 +142,7 @@ root_handle_transaction_commit(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     root->dirty = false;
 
-    wl_signal_add(&transaction_manager->events.apply, &root->transaction_apply);
+    wl_signal_add(&root->transaction_manager->events.apply, &root->transaction_apply);
 
     root_copy_state(&root->committed, &root->pending);
 }
@@ -181,6 +180,7 @@ root_create(struct wl_display *display) {
         return NULL;
     }
 
+    root->transaction_manager = hwd_transaction_manager_create();
     root->workspace_manager = hwd_workspace_manager_v1_create(display);
 
     root->transaction_before_commit.notify = root_handle_transaction_before_commit;
@@ -203,8 +203,10 @@ root_create(struct wl_display *display) {
 
     root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(&root->output_layout->events.change, &root->output_layout_change);
-    wl_signal_add(&transaction_manager->events.before_commit, &root->transaction_before_commit);
-    wl_signal_add(&transaction_manager->events.after_apply, &root->transaction_after_apply);
+    wl_signal_add(
+        &root->transaction_manager->events.before_commit, &root->transaction_before_commit
+    );
+    wl_signal_add(&root->transaction_manager->events.after_apply, &root->transaction_after_apply);
 
     wl_signal_init(&root->events.focus_changed);
     wl_signal_init(&root->events.scene_changed);
@@ -223,6 +225,7 @@ root_destroy(struct hwd_root *root) {
     list_free(root->committed.workspaces);
     list_free(root->current.workspaces);
     wlr_output_layout_destroy(root->output_layout);
+    hwd_transaction_manager_destroy(root->transaction_manager);
     free(root);
 }
 
@@ -234,8 +237,8 @@ root_set_dirty(struct hwd_root *root) {
         return;
     }
     root->dirty = true;
-    wl_signal_add(&transaction_manager->events.commit, &root->transaction_commit);
-    hwd_transaction_manager_ensure_queued(transaction_manager);
+    wl_signal_add(&root->transaction_manager->events.commit, &root->transaction_commit);
+    hwd_transaction_manager_ensure_queued(root->transaction_manager);
 
     for (int i = 0; i < root->committed.workspaces->length; i++) {
         struct hwd_workspace *workspace = root->committed.workspaces->items[i];
@@ -707,4 +710,11 @@ root_get_output_at(struct hwd_root *root, double x, double y) {
         }
     }
     return NULL;
+}
+
+struct hwd_transaction_manager *
+root_get_transaction_manager(struct hwd_root *root) {
+    hwd_assert(root != NULL, "Expected root");
+
+    return root->transaction_manager;
 }

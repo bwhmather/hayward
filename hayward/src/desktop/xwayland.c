@@ -25,7 +25,6 @@
 #include <hayward-common/log.h>
 
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
@@ -449,6 +448,7 @@ static bool
 view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int width, int height) {
     struct hwd_window *window = view->window;
     struct hwd_window_state *state = &window->committed;
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (!window->is_configuring) {
         return false;

@@ -22,7 +22,6 @@
 #include <hayward-common/log.h>
 
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
@@ -268,6 +267,7 @@ static const struct hwd_view_impl view_impl = {
 static bool
 view_notify_ready_by_serial(struct hwd_view *view, uint32_t serial) {
     struct hwd_window *window = view->window;
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (!window->is_configuring) {
         return false;

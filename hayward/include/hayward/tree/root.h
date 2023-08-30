@@ -46,6 +46,8 @@ struct hwd_root {
 
     bool dirty;
 
+    struct hwd_transaction_manager *transaction_manager;
+
     /**
      * Focus state needs to be updated as soon as it changes in order for input
      * to be routed to the right place and so is committed outside the normal
@@ -84,6 +86,7 @@ struct hwd_root {
     } layers;
 
     struct wl_listener output_layout_change;
+
     struct wl_listener transaction_before_commit;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
@@ -172,5 +175,8 @@ root_find_closest_output(struct hwd_root *root, double x, double y);
 
 struct hwd_output *
 root_get_output_at(struct hwd_root *root, double x, double y);
+
+struct hwd_transaction_manager *
+root_get_transaction_manager(struct hwd_root *root);
 
 #endif
