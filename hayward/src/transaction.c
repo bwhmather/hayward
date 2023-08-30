@@ -184,7 +184,6 @@ handle_timeout(void *data) {
 void
 hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *transaction_manager) {
     hwd_assert(transaction_manager != NULL, "Expected transaction manager");
-    hwd_assert(transaction_manager->depth > 0, "Can only ensure queued while building transaction");
 
     transaction_manager->queued = true;
 
@@ -192,25 +191,6 @@ hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *transactio
         transaction_manager->idle =
             wl_event_loop_add_idle(server.wl_event_loop, handle_commit, transaction_manager);
     }
-}
-
-void
-hwd_transaction_manager_begin_transaction(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager->depth < 3, "Something funky is happening");
-    transaction_manager->depth += 1;
-}
-
-bool
-hwd_transaction_manager_transaction_in_progress(struct hwd_transaction_manager *transaction_manager
-) {
-    return transaction_manager->depth > 0;
-}
-
-void
-hwd_transaction_manager_end_transaction(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager->depth > 0, "Transaction has not yet begun");
-
-    transaction_manager->depth -= 1;
 }
 
 void

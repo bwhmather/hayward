@@ -163,10 +163,6 @@ output_is_alive(struct hwd_output *output) {
 static void
 output_set_dirty(struct hwd_output *output) {
     hwd_assert(output != NULL, "Expected output");
-    hwd_assert(
-        hwd_transaction_manager_transaction_in_progress(transaction_manager),
-        "Expected active transaction"
-    );
 
     if (output->dirty) {
         return;
@@ -581,8 +577,6 @@ handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, destroy);
     struct hwd_server *server = output->server;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     output_begin_destroy(output);
 
     if (output->enabled) {
@@ -601,16 +595,12 @@ handle_destroy(struct wl_listener *listener, void *data) {
     output->wlr_output = NULL;
 
     update_output_manager_config(server);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_commit(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     if (event->committed &
         (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_MODE)) {
@@ -621,8 +611,6 @@ handle_commit(struct wl_listener *listener, void *data) {
             arrange_output(output);
         }
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -645,10 +633,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
     struct hwd_server *server = wl_container_of(listener, server, new_output);
     struct wlr_output *wlr_output = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (wlr_output == root->fallback_output->wlr_output) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -668,13 +653,11 @@ handle_new_output(struct wl_listener *listener, void *data) {
         if (server->drm_lease_manager) {
             wlr_drm_lease_v1_manager_offer_output(server->drm_lease_manager, wlr_output);
         }
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     if (!wlr_output_init_render(wlr_output, server->allocator, server->renderer)) {
         hwd_log(HWD_ERROR, "Failed to init output render");
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -683,7 +666,6 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
     struct hwd_output *output = output_create(wlr_output);
     if (!output) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     output->server = server;
@@ -706,19 +688,13 @@ handle_new_output(struct wl_listener *listener, void *data) {
     free_output_config(oc);
 
     update_output_manager_config(server);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
 handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hwd_server *server = wl_container_of(listener, server, output_layout_change);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     update_output_manager_config(server);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -794,11 +770,7 @@ handle_output_manager_apply(struct wl_listener *listener, void *data) {
     struct hwd_server *server = wl_container_of(listener, server, output_manager_apply);
     struct wlr_output_configuration_v1 *config = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     output_manager_apply(server, config, false);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
@@ -806,19 +778,13 @@ handle_output_manager_test(struct wl_listener *listener, void *data) {
     struct hwd_server *server = wl_container_of(listener, server, output_manager_test);
     struct wlr_output_configuration_v1 *config = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     output_manager_apply(server, config, true);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     struct wlr_output_power_v1_set_mode_event *event = data;
     struct hwd_output *output = event->output->data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct output_config *oc = new_output_config(output->wlr_output->name);
     switch (event->mode) {
@@ -830,6 +796,4 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
         break;
     }
     apply_output_config(oc, output);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }

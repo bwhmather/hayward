@@ -63,32 +63,22 @@ unmanaged_handle_request_configure(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, request_configure);
     struct wlr_xwayland_surface_configure_event *ev = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
     wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width, ev->height);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 unmanaged_handle_set_geometry(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, set_geometry);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
 
     wlr_scene_node_set_position(&surface->surface_scene->buffer->node, xsurface->x, xsurface->y);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 unmanaged_handle_map(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, map);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
 
@@ -116,15 +106,11 @@ unmanaged_handle_map(struct wl_listener *listener, void *data) {
         root_set_focused_surface(root, xsurface->surface);
     }
     root_commit_focus(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, unmap);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
 
@@ -147,15 +133,11 @@ unmanaged_handle_unmap(struct wl_listener *listener, void *data) {
         }
     }
     root_commit_focus(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 unmanaged_handle_associate(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, associate);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
 
@@ -164,49 +146,35 @@ unmanaged_handle_associate(struct wl_listener *listener, void *data) {
 
     wl_signal_add(&xsurface->surface->events.unmap, &surface->unmap);
     surface->unmap.notify = unmanaged_handle_unmap;
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 unmanaged_handle_dissociate(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, dissociate);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     wl_list_remove(&surface->map.link);
     wl_list_remove(&surface->unmap.link);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 unmanaged_handle_request_activate(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_surface *xsurface = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     struct hwd_window *focus = root_get_focused_window(root);
     if (focus && focus->view && focus->view->pid != xsurface->pid) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     root_set_focused_surface(root, xsurface->surface);
     root_commit_focus(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 unmanaged_handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, destroy);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     wl_list_remove(&surface->request_configure.link);
     wl_list_remove(&surface->associate.link);
@@ -215,8 +183,6 @@ unmanaged_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&surface->override_redirect.link);
     wl_list_remove(&surface->request_activate.link);
     free(surface);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -228,8 +194,6 @@ create_xwayland_view(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface 
 static void
 unmanaged_handle_override_redirect(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_unmanaged *surface = wl_container_of(listener, surface, override_redirect);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_xwayland_surface *xsurface = surface->wlr_xwayland_surface;
 
@@ -244,8 +208,6 @@ unmanaged_handle_override_redirect(struct wl_listener *listener, void *data) {
     if (mapped) {
         handle_map(&xwayland_view->map, xsurface);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static struct hwd_xwayland_unmanaged *
@@ -485,11 +447,6 @@ get_geometry(struct hwd_view *view, struct wlr_box *box) {
 
 static bool
 view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int width, int height) {
-    hwd_assert(
-        !hwd_transaction_manager_transaction_in_progress(transaction_manager),
-        "Can't notify configured during transaction"
-    );
-
     struct hwd_window *window = view->window;
     struct hwd_window_state *state = &window->committed;
 
@@ -512,8 +469,6 @@ view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int wid
 static void
 handle_commit(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, commit);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
@@ -538,8 +493,6 @@ handle_commit(struct wl_listener *listener, void *data) {
         }
     }
 
-    hwd_transaction_manager_end_transaction(transaction_manager);
-
     bool success =
         view_notify_ready_by_geometry(view, xsurface->x, xsurface->y, state->width, state->height);
 
@@ -551,8 +504,6 @@ handle_commit(struct wl_listener *listener, void *data) {
 static void
 handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, destroy);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xwayland_view->view;
 
@@ -579,15 +530,11 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&xwayland_view->dissociate.link);
     wl_list_remove(&xwayland_view->override_redirect.link);
     view_begin_destroy(&xwayland_view->view);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_unmap(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, unmap);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xwayland_view->view;
 
@@ -597,15 +544,11 @@ handle_unmap(struct wl_listener *listener, void *data) {
     root_commit_focus(root);
 
     wl_list_remove(&xwayland_view->commit.link);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_map(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, map);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
@@ -624,8 +567,6 @@ handle_map(struct wl_listener *listener, void *data) {
     xwayland_view->surface_scene =
         wlr_scene_surface_create(view->layers.content_tree, xsurface->surface);
     root_commit_focus(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -633,8 +574,6 @@ handle_override_redirect(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, override_redirect);
     struct wlr_xwayland_surface *xsurface = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xwayland_view->view;
 
@@ -649,15 +588,11 @@ handle_override_redirect(struct wl_listener *listener, void *data) {
     if (mapped) {
         unmanaged_handle_map(&unmanaged->map, xsurface);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_associate(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, associate);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
@@ -667,20 +602,14 @@ handle_associate(struct wl_listener *listener, void *data) {
 
     wl_signal_add(&xsurface->surface->events.unmap, &xwayland_view->unmap);
     xwayland_view->unmap.notify = handle_unmap;
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_dissociate(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, dissociate);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     wl_list_remove(&xwayland_view->map.link);
     wl_list_remove(&xwayland_view->unmap.link);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -689,13 +618,10 @@ handle_request_configure(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xwayland_view, request_configure);
     struct wlr_xwayland_surface_configure_event *ev = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL || !xsurface->surface->mapped) {
         wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width, ev->height);
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (window_is_floating(view->window)) {
@@ -715,8 +641,6 @@ handle_request_configure(struct wl_listener *listener, void *data) {
             view->window->current.content_width, view->window->current.content_height
         );
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -724,24 +648,18 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_fullscreen);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     window_set_fullscreen(view->window, xsurface->fullscreen);
 
     arrange_root(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -750,23 +668,17 @@ handle_request_minimize(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xwayland_view, request_minimize);
     struct wlr_xwayland_minimize_event *e = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     bool focused = root_get_focused_window(root) == view->window;
     wlr_xwayland_surface_set_minimized(xsurface, !focused && e->minimize);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -774,26 +686,19 @@ handle_request_move(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_move);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (view->window->pending.fullscreen) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     struct hwd_seat *seat = input_manager_current_seat();
     seatop_begin_move(seat, view->window);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -802,25 +707,19 @@ handle_request_resize(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xwayland_view, request_resize);
     struct wlr_xwayland_resize_event *e = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!window_is_floating(view->window)) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     struct hwd_seat *seat = input_manager_current_seat();
     seatop_begin_resize_floating(seat, view->window, e->edges);
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 }
 
 static void
@@ -828,44 +727,32 @@ handle_request_activate(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view =
         wl_container_of(listener, xwayland_view, request_activate);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     view_request_activate(view);
     root_commit_focus(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_set_title(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, set_title);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     view_update_title(view, false);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -887,16 +774,12 @@ static void
 handle_set_hints(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *xwayland_view = wl_container_of(listener, xwayland_view, set_hints);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xwayland_view->view;
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (!xsurface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     const bool hints_urgency = xcb_icccm_wm_hints_get_urgency(xsurface->hints);
@@ -904,15 +787,12 @@ handle_set_hints(struct wl_listener *listener, void *data) {
         // The view is in the timeout period. We'll ignore the request to
         // unset urgency so that the view remains urgent until the timer clears
         // it.
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     if (view->allow_request_urgent) {
         view_set_urgent(view, hints_urgency);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_view *
@@ -988,33 +868,23 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     struct hwd_xwayland *xwayland = wl_container_of(listener, xwayland, new_surface);
     struct wlr_xwayland_surface *xsurface = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (xsurface->override_redirect) {
         hwd_log(HWD_DEBUG, "New xwayland unmanaged surface");
         create_unmanaged(xwayland, xsurface);
-
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     create_xwayland_view(xwayland, xsurface);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_ready(struct wl_listener *listener, void *data) {
     struct hwd_xwayland *xwayland = wl_container_of(listener, xwayland, ready);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
     int err = xcb_connection_has_error(xcb_conn);
     if (err) {
         hwd_log(HWD_ERROR, "XCB connect failed: %d", err);
-
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -1036,15 +906,11 @@ handle_ready(struct wl_listener *listener, void *data) {
                 error->error_code
             );
             free(error);
-
-            hwd_transaction_manager_end_transaction(transaction_manager);
             break;
         }
     }
 
     xcb_disconnect(xcb_conn);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_xwayland *

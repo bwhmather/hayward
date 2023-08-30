@@ -16,10 +16,8 @@
 
 #include <hayward-common/log.h>
 
-#include <hayward/globals/transaction.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 
 static struct hwd_text_input *
 relay_get_focusable_text_input(struct hwd_input_method_relay *relay) {
@@ -48,11 +46,8 @@ handle_im_commit(struct wl_listener *listener, void *data) {
     struct hwd_input_method_relay *relay = wl_container_of(listener, relay, input_method_commit);
     struct wlr_input_method_v2 *context = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_text_input *text_input = relay_get_focused_text_input(relay);
     if (!text_input) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     assert(context == relay->input_method);
@@ -72,8 +67,6 @@ handle_im_commit(struct wl_listener *listener, void *data) {
         );
     }
     wlr_text_input_v3_send_done(text_input->input);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -81,8 +74,6 @@ handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *data) {
     struct hwd_input_method_relay *relay =
         wl_container_of(listener, relay, input_method_keyboard_grab_destroy);
     struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     wl_list_remove(&relay->input_method_keyboard_grab_destroy.link);
 
@@ -92,8 +83,6 @@ handle_im_keyboard_grab_destroy(struct wl_listener *listener, void *data) {
             keyboard_grab->input_method->seat, &keyboard_grab->keyboard->modifiers
         );
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -102,16 +91,12 @@ handle_im_grab_keyboard(struct wl_listener *listener, void *data) {
         wl_container_of(listener, relay, input_method_grab_keyboard);
     struct wlr_input_method_keyboard_grab_v2 *keyboard_grab = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     // send modifier state to grab
     struct wlr_keyboard *active_keyboard = wlr_seat_get_keyboard(relay->seat->wlr_seat);
     wlr_input_method_keyboard_grab_v2_set_keyboard(keyboard_grab, active_keyboard);
 
     wl_signal_add(&keyboard_grab->events.destroy, &relay->input_method_keyboard_grab_destroy);
     relay->input_method_keyboard_grab_destroy.notify = handle_im_keyboard_grab_destroy;
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -133,8 +118,6 @@ handle_im_destroy(struct wl_listener *listener, void *data) {
     struct hwd_input_method_relay *relay = wl_container_of(listener, relay, input_method_destroy);
     struct wlr_input_method_v2 *context = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     assert(context == relay->input_method);
     relay->input_method = NULL;
     struct hwd_text_input *text_input = relay_get_focused_text_input(relay);
@@ -144,8 +127,6 @@ handle_im_destroy(struct wl_listener *listener, void *data) {
         text_input_set_pending_focused_surface(text_input, text_input->input->focused_surface);
         wlr_text_input_v3_send_leave(text_input->input);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -176,39 +157,28 @@ static void
 handle_text_input_enable(struct wl_listener *listener, void *data) {
     struct hwd_text_input *text_input = wl_container_of(listener, text_input, text_input_enable);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (text_input->relay->input_method == NULL) {
         hwd_log(HWD_INFO, "Enabling text input when input method is gone");
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     wlr_input_method_v2_send_activate(text_input->relay->input_method);
     relay_send_im_state(text_input->relay, text_input->input);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_text_input_commit(struct wl_listener *listener, void *data) {
     struct hwd_text_input *text_input = wl_container_of(listener, text_input, text_input_commit);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (!text_input->input->current_enabled) {
         hwd_log(HWD_INFO, "Inactive text input tried to commit an update");
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     hwd_log(HWD_DEBUG, "Text input committed update");
     if (text_input->relay->input_method == NULL) {
         hwd_log(HWD_INFO, "Text input committed, but input method is gone");
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     relay_send_im_state(text_input->relay, text_input->input);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -225,24 +195,17 @@ static void
 handle_text_input_disable(struct wl_listener *listener, void *data) {
     struct hwd_text_input *text_input = wl_container_of(listener, text_input, text_input_disable);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (text_input->input->focused_surface == NULL) {
         hwd_log(HWD_DEBUG, "Disabling text input, but no longer focused");
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     relay_disable_text_input(text_input->relay, text_input);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_text_input_destroy(struct wl_listener *listener, void *data) {
     struct hwd_text_input *text_input = wl_container_of(listener, text_input, text_input_destroy);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     if (text_input->input->current_enabled) {
         relay_disable_text_input(text_input->relay, text_input);
@@ -254,8 +217,6 @@ handle_text_input_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&text_input->text_input_enable.link);
     wl_list_remove(&text_input->link);
     free(text_input);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -264,14 +225,10 @@ handle_pending_focused_surface_destroy(struct wl_listener *listener, void *data)
         wl_container_of(listener, text_input, pending_focused_surface_destroy);
     struct wlr_surface *surface = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     assert(text_input->pending_focused_surface == surface);
     text_input->pending_focused_surface = NULL;
     wl_list_remove(&text_input->pending_focused_surface_destroy.link);
     wl_list_init(&text_input->pending_focused_surface_destroy.link);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static struct hwd_text_input *
@@ -307,16 +264,11 @@ relay_handle_text_input(struct wl_listener *listener, void *data) {
     struct hwd_input_method_relay *relay = wl_container_of(listener, relay, text_input_new);
     struct wlr_text_input_v3 *wlr_text_input = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (relay->seat->wlr_seat != wlr_text_input->seat) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     hwd_text_input_create(relay, wlr_text_input);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -324,18 +276,13 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
     struct hwd_input_method_relay *relay = wl_container_of(listener, relay, input_method_new);
     struct wlr_input_method_v2 *input_method = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (relay->seat->wlr_seat != input_method->seat) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     if (relay->input_method != NULL) {
         hwd_log(HWD_INFO, "Attempted to connect second input method to a seat");
         wlr_input_method_v2_send_unavailable(input_method);
-
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -352,8 +299,6 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
         wlr_text_input_v3_send_enter(text_input->input, text_input->pending_focused_surface);
         text_input_set_pending_focused_surface(text_input, NULL);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

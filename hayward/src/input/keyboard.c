@@ -36,14 +36,12 @@
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/text_input.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 
 static struct modifier_key {
     char *name;
@@ -643,11 +641,7 @@ handle_keyboard_key(struct wl_listener *listener, void *data) {
     struct hwd_keyboard *keyboard = wl_container_of(listener, keyboard, keyboard_key);
     struct wlr_keyboard_key_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     handle_key_event(keyboard, event);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -655,19 +649,13 @@ handle_keyboard_group_key(struct wl_listener *listener, void *data) {
     struct hwd_keyboard_group *hwd_group = wl_container_of(listener, hwd_group, keyboard_key);
     struct wlr_keyboard_key_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     handle_key_event(hwd_group->seat_device->keyboard, event);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
     struct hwd_keyboard_group *hwd_group = wl_container_of(listener, hwd_group, enter);
     struct wl_array *keycodes = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_keyboard *keyboard = hwd_group->seat_device->keyboard;
 
@@ -676,16 +664,12 @@ handle_keyboard_group_enter(struct wl_listener *listener, void *data) {
         struct key_info keyinfo;
         update_keyboard_state(keyboard, *keycode, WL_KEYBOARD_KEY_STATE_PRESSED, &keyinfo);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
     struct hwd_keyboard_group *hwd_group = wl_container_of(listener, hwd_group, leave);
     struct wl_array *keycodes = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_keyboard *keyboard = hwd_group->seat_device->keyboard;
 
@@ -703,19 +687,15 @@ handle_keyboard_group_leave(struct wl_listener *listener, void *data) {
     }
 
     if (!pressed_sent) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     // TODO force refocus so that focused layer picks up new keyboard state.
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static int
 handle_keyboard_repeat(void *data) {
     struct hwd_keyboard *keyboard = (struct hwd_keyboard *)data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     if (keyboard->repeat_binding) {
         if (keyboard->wlr->repeat_info.rate > 0) {
@@ -730,7 +710,6 @@ handle_keyboard_repeat(void *data) {
         seat_execute_command(keyboard->seat_device->hwd_seat, keyboard->repeat_binding);
     }
 
-    hwd_transaction_manager_end_transaction(transaction_manager);
     return 0;
 }
 
@@ -786,22 +765,14 @@ static void
 handle_keyboard_modifiers(struct wl_listener *listener, void *data) {
     struct hwd_keyboard *keyboard = wl_container_of(listener, keyboard, keyboard_modifiers);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     handle_modifier_event(keyboard);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_keyboard_group_modifiers(struct wl_listener *listener, void *data) {
     struct hwd_keyboard_group *group = wl_container_of(listener, group, keyboard_modifiers);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     handle_modifier_event(group->seat_device->keyboard);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_keyboard *

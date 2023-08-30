@@ -12,8 +12,6 @@
 #include <wlr/types/wlr_xdg_shell.h>
 
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 
@@ -21,28 +19,21 @@ static void
 handle_request_activate(struct wl_listener *listener, void *data) {
     const struct wlr_xdg_activation_v1_request_activate_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(event->surface);
     if (xdg_surface == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     struct hwd_view *view = xdg_surface->data;
     if (!xdg_surface->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     if (view == NULL) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     view_request_activate(view);
     root_commit_focus(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_xdg_activation_v1 *

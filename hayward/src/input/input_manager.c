@@ -29,14 +29,12 @@
 #include <hayward-common/stringop.h>
 
 #include <hayward/config.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/libinput.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/view.h>
 
 #define DEFAULT_SEAT "seat0"
@@ -220,8 +218,6 @@ static void
 handle_device_destroy(struct wl_listener *listener, void *data) {
     struct wlr_input_device *device = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_input_device *input_device = input_hwd_device_from_wlr(device);
 
     hwd_assert(input_device, "could not find hayward device");
@@ -237,16 +233,12 @@ handle_device_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&input_device->device_destroy.link);
     free(input_device->identifier);
     free(input_device);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_new_input(struct wl_listener *listener, void *data) {
     struct hwd_input_manager *input = wl_container_of(listener, input, new_input);
     struct wlr_input_device *device = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_input_device *input_device = calloc(1, sizeof(struct hwd_input_device));
     hwd_assert(input_device, "could not allocate input device");
@@ -296,8 +288,6 @@ handle_new_input(struct wl_listener *listener, void *data) {
     }
 
     ipc_event_input("added", input_device);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -305,14 +295,10 @@ handle_inhibit_activate(struct wl_listener *listener, void *data) {
     struct hwd_input_manager *input_manager =
         wl_container_of(listener, input_manager, inhibit_activate);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_seat *seat;
     wl_list_for_each(seat, &input_manager->seats, link) {
         seat_set_exclusive_client(seat, input_manager->inhibit->active_client);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -320,18 +306,13 @@ handle_inhibit_deactivate(struct wl_listener *listener, void *data) {
     struct hwd_input_manager *input_manager =
         wl_container_of(listener, input_manager, inhibit_deactivate);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_seat *seat;
     if (server.session_lock.locked) {
         // Don't deactivate the grab of a screenlocker
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     wl_list_for_each(seat, &input_manager->seats, link) { seat_set_exclusive_client(seat, NULL); }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -339,16 +320,12 @@ handle_keyboard_shortcuts_inhibitor_destroy(struct wl_listener *listener, void *
     struct hwd_keyboard_shortcuts_inhibitor *hwd_inhibitor =
         wl_container_of(listener, hwd_inhibitor, destroy);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     hwd_log(HWD_DEBUG, "Removing keyboard shortcuts inhibitor");
 
     // hwd_seat::keyboard_shortcuts_inhibitors
     wl_list_remove(&hwd_inhibitor->link);
     wl_list_remove(&hwd_inhibitor->destroy.link);
     free(hwd_inhibitor);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -356,8 +333,6 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(struct wl_listener *listener, vo
     struct hwd_input_manager *input_manager =
         wl_container_of(listener, input_manager, keyboard_shortcuts_inhibit_new_inhibitor);
     struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     hwd_log(HWD_DEBUG, "Adding keyboard shortcuts inhibitor");
 
@@ -403,13 +378,10 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(struct wl_listener *listener, vo
          * manually later which is why we do this check here where the
          * inhibitor is already attached to its seat and ready for use.
          */
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     wlr_keyboard_shortcuts_inhibitor_v1_activate(inhibitor);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -417,8 +389,6 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
     struct hwd_input_manager *input_manager =
         wl_container_of(listener, input_manager, virtual_keyboard_new);
     struct wlr_virtual_keyboard_v1 *keyboard = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_input_device *device = &keyboard->keyboard.base;
 
@@ -441,8 +411,6 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
     input_device->device_destroy.notify = handle_device_destroy;
 
     seat_add_device(seat, input_device);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -450,8 +418,6 @@ handle_virtual_pointer(struct wl_listener *listener, void *data) {
     struct hwd_input_manager *input_manager =
         wl_container_of(listener, input_manager, virtual_pointer_new);
     struct wlr_virtual_pointer_v1_new_pointer_event *event = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_virtual_pointer_v1 *pointer = event->new_pointer;
     struct wlr_input_device *device = &pointer->pointer.base;
@@ -479,8 +445,6 @@ handle_virtual_pointer(struct wl_listener *listener, void *data) {
     if (event->suggested_output) {
         wlr_cursor_map_input_to_output(seat->cursor->cursor, device, event->suggested_output);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_input_manager *

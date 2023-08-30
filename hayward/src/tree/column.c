@@ -249,10 +249,6 @@ column_consider_destroy(struct hwd_column *column) {
 void
 column_set_dirty(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
-    hwd_assert(
-        hwd_transaction_manager_transaction_in_progress(transaction_manager),
-        "Expected active transaction"
-    );
 
     if (column->dirty) {
         return;

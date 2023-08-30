@@ -163,11 +163,7 @@ static void
 root_handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hwd_root *root = wl_container_of(listener, root, output_layout_change);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     arrange_root(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_root *
@@ -223,10 +219,6 @@ root_destroy(struct hwd_root *root) {
 static void
 root_set_dirty(struct hwd_root *root) {
     hwd_assert(root != NULL, "Expected root");
-    hwd_assert(
-        hwd_transaction_manager_transaction_in_progress(transaction_manager),
-        "Expected active transaction"
-    );
 
     if (root->dirty) {
         return;

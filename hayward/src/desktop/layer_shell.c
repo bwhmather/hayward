@@ -24,12 +24,10 @@
 #include <wlr-layer-shell-unstable-v1-protocol.h>
 
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 
@@ -141,21 +139,15 @@ handle_output_destroy(struct wl_listener *listener, void *data) {
     struct hwd_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, output_destroy);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     layer_surface->output = NULL;
     wlr_addon_finish(&layer_surface->scene_tree_marker);
     wlr_scene_node_destroy(&layer_surface->scene->tree->node);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_node_destroy(struct wl_listener *listener, void *data) {
     struct hwd_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, node_destroy);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     wlr_addon_finish(&layer_surface->scene_tree_marker);
 
@@ -185,16 +177,12 @@ handle_node_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&layer_surface->output_destroy.link);
 
     free(layer_surface);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_surface_commit(struct wl_listener *listener, void *data) {
     struct hwd_layer_surface *layer_surface =
         wl_container_of(listener, layer_surface, surface_commit);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_layer_surface_v1 *wlr_layer_surface = layer_surface->layer_surface;
     uint32_t committed = wlr_layer_surface->current.committed;
@@ -214,15 +202,11 @@ handle_surface_commit(struct wl_listener *listener, void *data) {
     int lx, ly;
     wlr_scene_node_coords(&layer_surface->scene->tree->node, &lx, &ly);
     wlr_scene_node_set_position(&layer_surface->popups->node, lx, ly);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_map(struct wl_listener *listener, void *data) {
     struct hwd_layer_surface *layer_surface = wl_container_of(listener, layer_surface, map);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_layer_surface_v1 *wlr_layer_surface = layer_surface->scene->layer_surface;
 
@@ -232,40 +216,32 @@ handle_map(struct wl_listener *listener, void *data) {
          wlr_layer_surface->current.layer == ZWLR_LAYER_SHELL_V1_LAYER_TOP)) {
         root_set_focused_layer(root, wlr_layer_surface);
         arrange_layers(layer_surface->output);
+        root_commit_focus(root);
     }
 
     cursor_rebase_all();
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_unmap(struct wl_listener *listener, void *data) {
     struct hwd_layer_surface *layer_surface = wl_container_of(listener, layer_surface, unmap);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct wlr_layer_surface_v1 *focused = root_get_focused_layer(root);
     if (layer_surface->layer_surface == focused) {
         root_set_focused_layer(root, NULL);
+        root_commit_focus(root);
     }
 
     cursor_rebase_all();
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 popup_handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_layer_popup *popup = wl_container_of(listener, popup, destroy);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     wl_list_remove(&popup->destroy.link);
     wl_list_remove(&popup->new_popup.link);
     free(popup);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -326,11 +302,7 @@ popup_handle_new_popup(struct wl_listener *listener, void *data) {
     struct hwd_layer_popup *hwd_layer_popup = wl_container_of(listener, hwd_layer_popup, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     create_popup(wlr_popup, hwd_layer_popup->toplevel, hwd_layer_popup->scene);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -338,18 +310,12 @@ handle_new_popup(struct wl_listener *listener, void *data) {
     struct hwd_layer_surface *layer_surface = wl_container_of(listener, layer_surface, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     create_popup(wlr_popup, layer_surface, layer_surface->popups);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_layer_surface_v1 *wlr_layer_surface = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     hwd_log(
         HWD_DEBUG,
@@ -410,8 +376,6 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     wlr_layer_surface->current = wlr_layer_surface->pending;
     arrange_layers(output);
     wlr_layer_surface->current = old_state;
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_layer_shell *

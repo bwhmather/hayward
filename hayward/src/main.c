@@ -426,7 +426,6 @@ main(int argc, char **argv) {
     hwd_log(HWD_INFO, "Starting hayward version " HWD_VERSION);
 
     transaction_manager = hwd_transaction_manager_create();
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     root = root_create(server.wl_display);
 
@@ -454,19 +453,16 @@ main(int argc, char **argv) {
     char *workspace_name = "1";
     struct hwd_workspace *workspace = workspace_create(workspace_name);
     root_add_workspace(root, workspace);
-    hwd_transaction_manager_end_transaction(transaction_manager);
 
     if (!server_start(&server)) {
         hwd_terminate(EXIT_FAILURE);
         goto shutdown;
     }
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
     config->active = true;
     load_haywardbars();
     run_deferred_commands();
     run_deferred_bindings();
-    hwd_transaction_manager_end_transaction(transaction_manager);
 
     if (config->haywardnag_config_errors.client != NULL) {
         haywardnag_show(&config->haywardnag_config_errors);

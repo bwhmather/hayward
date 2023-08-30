@@ -45,25 +45,17 @@ popup_handle_new_popup(struct wl_listener *listener, void *data) {
     struct hwd_xdg_popup *popup = wl_container_of(listener, popup, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     popup_create(wlr_popup, popup->view, popup->xdg_surface_tree);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 popup_handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_xdg_popup *popup = wl_container_of(listener, popup, destroy);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     wl_list_remove(&popup->new_popup.link);
     wl_list_remove(&popup->destroy.link);
     wlr_scene_node_destroy(&popup->scene_tree->node);
     free(popup);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -275,11 +267,6 @@ static const struct hwd_view_impl view_impl = {
 
 static bool
 view_notify_ready_by_serial(struct hwd_view *view, uint32_t serial) {
-    hwd_assert(
-        !hwd_transaction_manager_transaction_in_progress(transaction_manager),
-        "Can't notify configured during transaction"
-    );
-
     struct hwd_window *window = view->window;
 
     if (!window->is_configuring) {
@@ -300,8 +287,6 @@ view_notify_ready_by_serial(struct hwd_view *view, uint32_t serial) {
 static void
 handle_commit(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view = wl_container_of(listener, xdg_shell_view, commit);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xdg_shell_view->view;
     struct wlr_xdg_surface *xdg_surface = view->wlr_xdg_toplevel->base;
@@ -325,8 +310,6 @@ handle_commit(struct wl_listener *listener, void *data) {
         }
     }
 
-    hwd_transaction_manager_end_transaction(transaction_manager);
-
     bool success = view_notify_ready_by_serial(view, xdg_surface->current.configure_serial);
 
     if (view->layers.saved_surface_tree != NULL && !success) {
@@ -339,13 +322,9 @@ handle_set_title(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, set_title);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xdg_shell_view->view;
 
     view_update_title(view, false);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -357,14 +336,11 @@ handle_new_popup(struct wl_listener *listener, void *data) {
         wl_container_of(listener, xdg_shell_view, new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_xdg_popup *popup =
         popup_create(wlr_popup, &xdg_shell_view->view, root->layers.popups);
     int lx, ly;
     wlr_scene_node_coords(&popup->view->layers.content_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -372,13 +348,10 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, request_fullscreen);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct wlr_xdg_toplevel *toplevel = xdg_shell_view->view.wlr_xdg_toplevel;
     struct hwd_view *view = &xdg_shell_view->view;
 
     if (!toplevel->base->surface->mapped) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -394,8 +367,6 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     window_set_fullscreen(window, req->fullscreen);
 
     arrange_root(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -403,12 +374,9 @@ handle_request_move(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, request_move);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xdg_shell_view->view;
 
     if (view->window->pending.fullscreen) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -418,8 +386,6 @@ handle_request_move(struct wl_listener *listener, void *data) {
     if (e->serial == seat->last_button_serial) {
         seatop_begin_move(seat, view->window);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -427,12 +393,9 @@ handle_request_resize(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view =
         wl_container_of(listener, xdg_shell_view, request_resize);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_view *view = &xdg_shell_view->view;
 
     if (!window_is_floating(view->window)) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
     struct wlr_xdg_toplevel_resize_event *e = data;
@@ -441,14 +404,11 @@ handle_request_resize(struct wl_listener *listener, void *data) {
     if (e->serial == seat->last_button_serial) {
         seatop_begin_resize_floating(seat, view->window, e->edges);
     }
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_unmap(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view = wl_container_of(listener, xdg_shell_view, unmap);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xdg_shell_view->view;
 
@@ -464,15 +424,11 @@ handle_unmap(struct wl_listener *listener, void *data) {
     wl_list_remove(&xdg_shell_view->request_resize.link);
     wl_list_remove(&xdg_shell_view->set_title.link);
     wl_list_remove(&xdg_shell_view->set_app_id.link);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_map(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view = wl_container_of(listener, xdg_shell_view, map);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xdg_shell_view->view;
     struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
@@ -510,15 +466,11 @@ handle_map(struct wl_listener *listener, void *data) {
 
     xdg_shell_view->set_app_id.notify = handle_set_app_id;
     wl_signal_add(&toplevel->events.set_app_id, &xdg_shell_view->set_app_id);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view = wl_container_of(listener, xdg_shell_view, destroy);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct hwd_view *view = &xdg_shell_view->view;
     hwd_assert(view->surface == NULL, "Tried to destroy a mapped view");
@@ -528,8 +480,6 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&xdg_shell_view->unmap.link);
     view->wlr_xdg_toplevel = NULL;
     view_begin_destroy(view);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_view *
@@ -542,11 +492,8 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell *xdg_shell = wl_container_of(listener, xdg_shell, new_surface);
     struct wlr_xdg_surface *xdg_surface = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
         hwd_log(HWD_DEBUG, "New xdg_shell popup");
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -576,8 +523,6 @@ handle_new_surface(struct wl_listener *listener, void *data) {
 
     xdg_surface->data = xdg_shell_view;
     wlr_scene_xdg_surface_create(xdg_shell_view->view.layers.content_tree, xdg_surface);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_xdg_shell *

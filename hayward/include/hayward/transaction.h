@@ -62,15 +62,6 @@ hwd_transaction_manager_destroy(struct hwd_transaction_manager *manager);
 void
 hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *manager);
 
-void
-hwd_transaction_manager_begin_transaction(struct hwd_transaction_manager *manager);
-
-bool
-hwd_transaction_manager_transaction_in_progress(struct hwd_transaction_manager *manager);
-
-void
-hwd_transaction_manager_end_transaction(struct hwd_transaction_manager *manager);
-
 /**
  * Can be called during handling of a commit event to inform the transaction
  * of work that needs to be done.  Once the work is done, the lock should be

@@ -9,23 +9,16 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 
-#include <hayward/globals/transaction.h>
-#include <hayward/transaction.h>
-
 static void
 handle_new_toplevel_decoration(struct wl_listener *listener, void *data) {
     struct hwd_xdg_decoration_manager *manager =
         wl_container_of(listener, manager, new_toplevel_decoration);
     struct wlr_xdg_toplevel_decoration_v1 *wlr_deco = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     // THIS IS SPARTA!
     wlr_xdg_toplevel_decoration_v1_set_mode(
         wlr_deco, WLR_XDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct hwd_xdg_decoration_manager *

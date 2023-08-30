@@ -409,10 +409,6 @@ window_begin_destroy(struct hwd_window *window) {
 void
 window_set_dirty(struct hwd_window *window) {
     hwd_assert(window != NULL, "Expected window");
-    hwd_assert(
-        hwd_transaction_manager_transaction_in_progress(transaction_manager),
-        "Expected active transaction"
-    );
 
     if (window->dirty) {
         return;

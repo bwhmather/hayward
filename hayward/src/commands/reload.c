@@ -13,16 +13,12 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 #include <hayward/tree/arrange.h>
 
 static void
 do_reload(void *data) {
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     // store bar ids to check against new bars for barconfig_update events
     list_t *bar_ids = create_list();
     for (int i = 0; i < config->bars->length; ++i) {
@@ -57,8 +53,6 @@ do_reload(void *data) {
     list_free_items_and_destroy(bar_ids);
 
     arrange_root(root);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 struct cmd_results *

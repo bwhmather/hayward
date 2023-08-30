@@ -339,23 +339,17 @@ handle_pointer_motion_relative(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, motion);
     struct wlr_pointer_motion_event *e = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &e->pointer->base);
 
     pointer_motion(
         cursor, e->time_msec, &e->pointer->base, e->delta_x, e->delta_y, e->unaccel_dx,
         e->unaccel_dy
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, motion_absolute);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_pointer_motion_absolute_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
@@ -369,8 +363,6 @@ handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
     double dy = ly - cursor->cursor->y;
 
     pointer_motion(cursor, event->time_msec, &event->pointer->base, dx, dy, dx, dy);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -390,8 +382,6 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, button);
     struct wlr_pointer_button_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (event->state == WLR_BUTTON_PRESSED) {
         cursor->pressed_button_count++;
     } else {
@@ -406,8 +396,6 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
     dispatch_cursor_button(
         cursor, &event->pointer->base, event->time_msec, event->button, event->state
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -420,31 +408,21 @@ handle_pointer_axis(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, axis);
     struct wlr_pointer_axis_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     dispatch_cursor_axis(cursor, event);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_frame(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, frame);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_touch_down(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, touch_down);
     struct wlr_touch_down_event *event = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->touch->base);
     cursor_hide(cursor);
@@ -494,16 +472,12 @@ handle_touch_down(struct wl_listener *listener, void *data) {
             cursor, &event->touch->base, event->time_msec, BTN_LEFT, WLR_BUTTON_PRESSED
         );
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_touch_up(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, touch_up);
     struct wlr_touch_up_event *event = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->touch->base);
 
@@ -519,16 +493,12 @@ handle_touch_up(struct wl_listener *listener, void *data) {
     } else {
         wlr_seat_touch_notify_up(wlr_seat, event->time_msec, event->touch_id);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_touch_motion(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, touch_motion);
     struct wlr_touch_motion_event *event = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->touch->base);
 
@@ -568,15 +538,11 @@ handle_touch_motion(struct wl_listener *listener, void *data) {
     } else if (surface) {
         wlr_seat_touch_notify_motion(wlr_seat, event->time_msec, event->touch_id, sx, sy);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_touch_frame(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, touch_frame);
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     struct wlr_seat *wlr_seat = cursor->seat->wlr_seat;
 
@@ -590,8 +556,6 @@ handle_touch_frame(struct wl_listener *listener, void *data) {
     } else {
         wlr_seat_touch_notify_frame(wlr_seat);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static double
@@ -688,8 +652,6 @@ handle_tool_axis(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, tool_axis);
     struct wlr_tablet_tool_axis_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
     struct hwd_tablet_tool *hwd_tool = event->tool->data;
@@ -737,16 +699,12 @@ handle_tool_axis(struct wl_listener *listener, void *data) {
     if (event->updated_axes & WLR_TABLET_TOOL_AXIS_WHEEL) {
         wlr_tablet_v2_tablet_tool_notify_wheel(hwd_tool->tablet_v2_tool, event->wheel_delta, 0);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_tool_tip(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, tool_tip);
     struct wlr_tablet_tool_tip_event *event = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
@@ -785,8 +743,6 @@ handle_tool_tip(struct wl_listener *listener, void *data) {
     } else {
         seatop_tablet_tool_tip(seat, hwd_tool, event->time_msec, event->state);
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static struct hwd_tablet *
@@ -805,8 +761,6 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, tool_proximity);
     struct wlr_tablet_tool_proximity_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
     struct wlr_tablet_tool *tool = event->tool;
@@ -814,8 +768,6 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
         struct hwd_tablet *tablet = get_tablet_for_device(cursor, &event->tablet->base);
         if (!tablet) {
             hwd_log(HWD_ERROR, "no tablet for tablet tool");
-
-            hwd_transaction_manager_end_transaction(transaction_manager);
             return;
         }
         hwd_tablet_tool_configure(tablet, tool);
@@ -824,31 +776,23 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
     struct hwd_tablet_tool *hwd_tool = tool->data;
     if (!hwd_tool) {
         hwd_log(HWD_ERROR, "tablet tool not initialized");
-
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     if (event->state == WLR_TABLET_TOOL_PROXIMITY_OUT) {
         wlr_tablet_v2_tablet_tool_notify_proximity_out(hwd_tool->tablet_v2_tool);
-
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     handle_tablet_tool_position(
         cursor, hwd_tool, true, true, event->x, event->y, 0, 0, event->time_msec
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_tool_button(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, tool_button);
     struct wlr_tablet_tool_button_event *event = data;
-
-    hwd_transaction_manager_begin_transaction(transaction_manager);
 
     cursor_handle_activity_from_device(cursor, &event->tablet->base);
 
@@ -890,16 +834,12 @@ handle_tool_button(struct wl_listener *listener, void *data) {
             break;
         }
         wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
-
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     wlr_tablet_v2_tablet_tool_notify_button(
         hwd_tool->tablet_v2_tool, event->button, (enum zwp_tablet_pad_v2_button_state)event->state
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -945,14 +885,10 @@ static void
 handle_constraint_commit(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, constraint_commit);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct wlr_pointer_constraint_v1 *constraint = cursor->active_constraint;
     assert(constraint->surface == data);
 
     check_constraint_region(cursor);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -960,13 +896,9 @@ handle_pointer_constraint_set_region(struct wl_listener *listener, void *data) {
     struct hwd_pointer_constraint *hwd_constraint =
         wl_container_of(listener, hwd_constraint, set_region);
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_cursor *cursor = hwd_constraint->cursor;
 
     cursor->active_confine_requires_warp = true;
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -974,10 +906,7 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, request_set_cursor);
     struct wlr_seat_pointer_request_set_cursor_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     if (!seatop_allows_set_cursor(cursor->seat)) {
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
@@ -990,15 +919,12 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
     // TODO: check cursor mode
     if (focused_client == NULL || event->seat_client->client != focused_client) {
         hwd_log(HWD_DEBUG, "denying request to set cursor from unfocused client");
-        hwd_transaction_manager_end_transaction(transaction_manager);
         return;
     }
 
     cursor_set_image_surface(
         cursor, event->surface, event->hotspot_x, event->hotspot_y, focused_client
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1006,14 +932,10 @@ handle_pointer_pinch_begin(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, pinch_begin);
     struct wlr_pointer_pinch_begin_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_pinch_begin(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->fingers
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1021,15 +943,11 @@ handle_pointer_pinch_update(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, pinch_update);
     struct wlr_pointer_pinch_update_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_pinch_update(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->dx, event->dy,
         event->scale, event->rotation
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1037,14 +955,10 @@ handle_pointer_pinch_end(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, pinch_end);
     struct wlr_pointer_pinch_end_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_pinch_end(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->cancelled
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1052,14 +966,10 @@ handle_pointer_swipe_begin(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, swipe_begin);
     struct wlr_pointer_swipe_begin_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_swipe_begin(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->fingers
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1067,67 +977,47 @@ handle_pointer_swipe_update(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, swipe_update);
     struct wlr_pointer_swipe_update_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_swipe_update(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->dx, event->dy
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_swipe_end(struct wl_listener *listener, void *data) {
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, swipe_end);
     struct wlr_pointer_swipe_end_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_swipe_end(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->cancelled
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_hold_begin(struct wl_listener *listener, void *data) {
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, hold_begin);
     struct wlr_pointer_hold_begin_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_hold_begin(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->fingers
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_pointer_hold_end(struct wl_listener *listener, void *data) {
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, hold_end);
     struct wlr_pointer_hold_end_event *event = data;
     cursor_handle_activity_from_device(cursor, &event->pointer->base);
     wlr_pointer_gestures_v1_send_hold_end(
         cursor->pointer_gestures, cursor->seat->wlr_seat, event->time_msec, event->cancelled
     );
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
 handle_image_surface_destroy(struct wl_listener *listener, void *data) {
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, image_surface_destroy);
     cursor_set_image(cursor, NULL, cursor->image_client);
     cursor_rebase(cursor);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 static void
@@ -1429,8 +1319,6 @@ warp_to_constraint_cursor_hint(struct hwd_cursor *cursor) {
 
 static void
 handle_constraint_destroy(struct wl_listener *listener, void *data) {
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_pointer_constraint *hwd_constraint =
         wl_container_of(listener, hwd_constraint, destroy);
     struct wlr_pointer_constraint_v1 *constraint = data;
@@ -1450,14 +1338,10 @@ handle_constraint_destroy(struct wl_listener *listener, void *data) {
     }
 
     free(hwd_constraint);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void
 handle_pointer_constraint(struct wl_listener *listener, void *data) {
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct wlr_pointer_constraint_v1 *constraint = data;
     struct hwd_seat *seat = constraint->seat->data;
 
@@ -1479,8 +1363,6 @@ handle_pointer_constraint(struct wl_listener *listener, void *data) {
             hwd_cursor_constrain(seat->cursor, constraint);
         }
     }
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

@@ -15,11 +15,9 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/globals/transaction.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
-#include <hayward/transaction.h>
 
 struct hwd_switch *
 hwd_switch_create(struct hwd_seat *seat, struct hwd_seat_device *device) {
@@ -96,8 +94,6 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
     struct hwd_switch *hwd_switch = wl_container_of(listener, hwd_switch, switch_toggle);
     struct wlr_switch_toggle_event *event = data;
 
-    hwd_transaction_manager_begin_transaction(transaction_manager);
-
     struct hwd_seat *seat = hwd_switch->seat_device->hwd_seat;
     seat_idle_notify_activity(seat, IDLE_SOURCE_SWITCH);
 
@@ -112,8 +108,6 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
     hwd_switch->type = event->switch_type;
     hwd_switch->state = event->switch_state;
     execute_binding(hwd_switch);
-
-    hwd_transaction_manager_end_transaction(transaction_manager);
 }
 
 void

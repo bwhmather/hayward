@@ -325,10 +325,6 @@ workspace_consider_destroy(struct hwd_workspace *workspace) {
 void
 workspace_set_dirty(struct hwd_workspace *workspace) {
     hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(
-        hwd_transaction_manager_transaction_in_progress(transaction_manager),
-        "Expected active transaction"
-    );
 
     if (workspace->dirty) {
         return;
