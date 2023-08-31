@@ -9,17 +9,44 @@
       <class name="com-bwhmather-hwdout"/>
     </style>
     <child>
-      <object class="GtkDropDown">
-        <binding name="model">
-          <lookup name="heads" type="HwdoutConfiguration">
-            <lookup name="configuration">HwdoutWindow</lookup>
-          </lookup>
-        </binding>
-        <property name="expression">
-          <lookup name="description">
-            <lookup name="head" type="HwdoutConfigurationHead"></lookup>
-          </lookup>
-        </property>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkDropDown">
+            <binding name="model">
+              <lookup name="heads" type="HwdoutConfiguration">
+                <lookup name="configuration">HwdoutWindow</lookup>
+              </lookup>
+            </binding>
+            <property name="expression">
+              <lookup name="description">
+                <lookup name="head" type="HwdoutConfigurationHead"></lookup>
+              </lookup>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkActionBar">
+            <child type="end">
+              <object class="GtkButton">
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Apply</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton">
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Cancel</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </template>
