@@ -259,6 +259,7 @@ cmd_move_window(int argc, char **argv) {
 
         // Do the move.
         hwd_move_window_to_workspace(window, workspace);
+        workspace_set_active_window(workspace, window);
         root_commit_focus(root);
 
         ipc_event_window(window, "move");
