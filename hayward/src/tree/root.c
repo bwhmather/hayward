@@ -24,6 +24,7 @@
 
 #include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
+#include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
@@ -116,6 +117,8 @@ root_destroy_scene(struct hwd_root *root) {
 static void
 root_handle_transaction_before_commit(struct wl_listener *listener, void *data) {
     struct hwd_root *root = wl_container_of(listener, root, transaction_before_commit);
+
+    hwd_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
 
 #ifndef NDEBUG
     hwd_assert(root->focused_surface == root_get_focused_surface(root), "Focus not committed");

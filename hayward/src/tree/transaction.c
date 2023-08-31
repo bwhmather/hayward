@@ -12,7 +12,6 @@
 
 #include <hayward-common/log.h>
 
-#include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/server.h>
 
 struct hwd_transaction_manager *transaction_manager;
@@ -92,10 +91,6 @@ transaction_apply(struct hwd_transaction_manager *transaction_manager) {
         hwd_log(
             HWD_DEBUG, "Transaction: %.1fms waiting (%.1f frames if 60Hz)", ms, ms / (1000.0f / 60)
         );
-    }
-
-    if (!transaction_manager->queued) {
-        hwd_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
     }
 
     transaction_manager->phase = HWD_TRANSACTION_IDLE;
