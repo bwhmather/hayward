@@ -308,6 +308,7 @@ cmd_move_window(int argc, char **argv) {
         if (focus != NULL) {
             root_set_focused_window(root, focus);
         }
+        root_commit_focus(root);
 
         if (old_parent) {
             column_consider_destroy(old_parent);
