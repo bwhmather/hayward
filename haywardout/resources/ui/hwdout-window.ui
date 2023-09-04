@@ -12,17 +12,56 @@
       <object class="GtkBox">
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkDropDown">
-            <binding name="model">
-              <lookup name="heads" type="HwdoutConfiguration">
-                <lookup name="configuration">HwdoutWindow</lookup>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin-start">5</property>
+            <property name="margin-end">5</property>
+            <property name="margin-top">5</property>
+            <property name="margin-bottom">5</property>
+            <property name="spacing">5</property>
+            <child>
+              <object class="GtkFrame">
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <child>
+                      <object class="GtkListView" id="heads_list_view">
+                        <property name="vexpand">1</property>
+                        <style>
+                          <class name="rich-list"/>
+                        </style>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkBox">
+        <child>
+          <object class="GtkLabel">
+            <property name="xalign">0</property>
+            <binding name="label">
+              <lookup name="description">
+                <lookup name="head" type="HwdoutConfigurationHead">
+                  <lookup name="item">GtkListItem</lookup>
+                </lookup>
               </lookup>
             </binding>
-            <property name="expression">
-              <lookup name="description">
-                <lookup name="head" type="HwdoutConfigurationHead"></lookup>
-              </lookup>
-            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
+                            ]]></property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
         <child>

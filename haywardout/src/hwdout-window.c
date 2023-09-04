@@ -9,6 +9,8 @@
 struct _HwdoutWindow {
     GtkWindow parent_instance;
 
+    GtkListView *heads_list_view;
+
     HwdoutManager *manager;
     gulong manager_done_id;
 
@@ -23,6 +25,9 @@ static GParamSpec *properties[N_PROPERTIES];
 
 static void
 hwdout_window_reset_configuration(HwdoutWindow *self) {
+    GListModel *heads_list;
+    GtkNoSelection *heads_selection;
+
     g_return_if_fail(HWDOUT_IS_WINDOW(self));
 
     g_clear_object(&self->configuration);
@@ -31,6 +36,15 @@ hwdout_window_reset_configuration(HwdoutWindow *self) {
     }
 
     self->configuration = hwdout_configuration_new(self->manager);
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION(self->configuration));
+
+    heads_list = hwdout_configuration_get_heads(self->configuration);
+    heads_selection = gtk_no_selection_new(heads_list);
+    gtk_list_view_set_model(
+        self->heads_list_view,
+        GTK_SELECTION_MODEL(heads_selection)
+    );
+    g_clear_object(&heads_selection);
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_CONFIGURATION]);
 }
@@ -109,6 +123,7 @@ hwdout_window_class_init(HwdoutWindowClass *klass) {
     gtk_widget_class_set_template_from_resource(
         widget_class, "/com/bwhmather/hwdout/ui/hwdout-window.ui"
     );
+    gtk_widget_class_bind_template_child(widget_class, HwdoutWindow, heads_list_view);
 }
 
 static void
