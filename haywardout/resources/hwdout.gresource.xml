@@ -2,5 +2,6 @@
 <gresources>
   <gresource prefix="/com/bwhmather/hwdout">
     <file preprocess="xml-stripblanks">ui/hwdout-window.ui</file>
+    <file preprocess="xml-stripblanks">ui/hwdout-head-editor.ui</file>
   </gresource>
 </gresources>

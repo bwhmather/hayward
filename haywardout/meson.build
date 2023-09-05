@@ -10,6 +10,7 @@ haywardout_sources = [
 	'src/hwdout-configuration.c',
 	'src/hwdout-configuration-head.c',
 	'src/hwdout-head.c',
+	'src/hwdout-head-editor.c',
 	'src/hwdout-manager.c',
 	'src/hwdout-mode.c',
 	'src/hwdout-transform.c',

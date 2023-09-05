@@ -2,6 +2,7 @@
 
 #include "hwdout-configuration-head.h"
 #include "hwdout-configuration.h"
+#include "hwdout-head-editor.h"
 #include "hwdout-manager.h"
 
 #include <gtk/gtk.h>
@@ -40,10 +41,7 @@ hwdout_window_reset_configuration(HwdoutWindow *self) {
 
     heads_list = hwdout_configuration_get_heads(self->configuration);
     heads_selection = gtk_no_selection_new(heads_list);
-    gtk_list_view_set_model(
-        self->heads_list_view,
-        GTK_SELECTION_MODEL(heads_selection)
-    );
+    gtk_list_view_set_model(self->heads_list_view, GTK_SELECTION_MODEL(heads_selection));
     g_clear_object(&heads_selection);
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_CONFIGURATION]);
@@ -101,7 +99,8 @@ hwdout_window_class_init(HwdoutWindowClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 
-    hwdout_configuration_head_get_type();
+    g_type_ensure(HWDOUT_TYPE_HEAD_EDITOR);
+    g_type_ensure(HWDOUT_TYPE_CONFIGURATION_HEAD);
 
     object_class->dispose = hwdout_window_dispose;
     object_class->set_property = hwdout_window_set_property;
