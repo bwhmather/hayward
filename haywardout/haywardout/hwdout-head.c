@@ -62,6 +62,7 @@ typedef enum {
     PROP_PHYSICAL_HEIGHT,
     PROP_ENABLED,
     PROP_CURRENT_MODE,
+    PROP_MODES,
     PROP_X,
     PROP_Y,
     PROP_TRANSFORM,
@@ -532,6 +533,10 @@ hwdout_head_get_property(GObject *gobject, guint property_id, GValue *value, GPa
         g_value_set_object(value, hwdout_head_get_current_mode(self));
         break;
 
+    case PROP_MODES:
+        g_value_set_object(value, hwdout_head_get_modes(self));
+        break;
+
     case PROP_X:
         g_value_set_int(value, hwdout_head_get_x(self));
         break;
@@ -623,7 +628,13 @@ hwdout_head_class_init(HwdoutHeadClass *klass) {
     properties[PROP_CURRENT_MODE] = g_param_spec_object(
         "current-mode", "Current mode",
         "Reference to the mode object representing the currently active mode",
-        hwdout_mode_get_type(), G_PARAM_READABLE
+        HWDOUT_TYPE_MODE, G_PARAM_READABLE
+    );
+
+    properties[PROP_MODES] = g_param_spec_object(
+        "modes", "Supported modes",
+        "List of all modes that this head explicitly supports",
+        G_TYPE_LIST_MODEL, G_PARAM_READABLE
     );
 
     properties[PROP_X] = g_param_spec_int(
