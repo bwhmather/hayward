@@ -298,91 +298,93 @@ static void
 handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
     HwdoutHead *self = HWDOUT_HEAD(data);
 
-    gboolean name_changed = false;
-    gboolean description_changed = false;
-    gboolean physical_width_changed = false;
-    gboolean physical_height_changed = false;
-    gboolean enabled_changed = false;
-    gboolean current_mode_changed = false;
-    gboolean x_changed = false;
-    gboolean y_changed = false;
-    gboolean transform_changed = false;
-    gboolean scale_changed = false;
-    gboolean make_changed = false;
-    gboolean model_changed = false;
-    gboolean serial_number_changed = false;
+    gboolean name_changed = FALSE;
+    gboolean description_changed = FALSE;
+    gboolean physical_width_changed = FALSE;
+    gboolean physical_height_changed = FALSE;
+    gboolean enabled_changed = FALSE;
+    gboolean current_mode_changed = FALSE;
+    gboolean x_changed = FALSE;
+    gboolean y_changed = FALSE;
+    gboolean transform_changed = FALSE;
+    gboolean scale_changed = FALSE;
+    gboolean make_changed = FALSE;
+    gboolean model_changed = FALSE;
+    gboolean serial_number_changed = FALSE;
+
+    g_return_if_fail(HWDOUT_IS_HEAD(data));
 
     if (g_strcmp0(self->current.name, self->pending.name) != 0) {
         g_free(self->current.name);
         self->current.name = g_strdup(self->pending.name);
-        name_changed = true;
+        name_changed = TRUE;
     }
 
     if (g_strcmp0(self->current.description, self->pending.description) != 0) {
         g_free(self->current.description);
         self->current.description = g_strdup(self->pending.description);
-        description_changed = true;
+        description_changed = TRUE;
     }
 
     if (self->current.physical_width != self->pending.physical_width) {
         self->current.physical_width = self->pending.physical_width;
-        physical_width_changed = true;
+        physical_width_changed = TRUE;
     }
 
     if (self->current.physical_height != self->pending.physical_height) {
         self->pending.physical_height = self->pending.physical_height;
-        physical_height_changed = true;
+        physical_height_changed = TRUE;
     }
 
     hwdout_intersect_list_store(self->current.modes, self->pending.modes);
 
     if (self->current.is_enabled != self->pending.is_enabled) {
         self->current.is_enabled = self->pending.is_enabled;
-        enabled_changed = true;
+        enabled_changed = TRUE;
     }
 
     if (self->current.current_mode != self->pending.current_mode) {
         g_clear_object(&self->current.current_mode);
         self->current.current_mode = g_object_ref(self->pending.current_mode);
-        current_mode_changed = true;
+        current_mode_changed = TRUE;
     }
 
     if (self->current.x != self->pending.x) {
         self->current.x = self->pending.x;
-        x_changed = true;
+        x_changed = TRUE;
     }
 
     if (self->current.y != self->pending.y) {
         self->current.y = self->pending.y;
-        y_changed = true;
+        y_changed = TRUE;
     }
 
     if (self->current.transform != self->pending.transform) {
         self->current.transform = self->pending.transform;
-        transform_changed = true;
+        transform_changed = TRUE;
     }
 
     if (self->current.scale != self->pending.scale) {
         self->current.scale = self->pending.scale;
-        scale_changed = true;
+        scale_changed = TRUE;
     }
 
     if (g_strcmp0(self->current.make, self->pending.make) != 0) {
         g_free(self->current.make);
         self->current.make = g_strdup(self->pending.make);
-        make_changed = true;
+        make_changed = TRUE;
     }
 
     if (g_strcmp0(self->current.model, self->pending.model) != 0) {
         g_free(self->current.model);
         self->current.model = g_strdup(self->pending.model);
-        model_changed = true;
+        model_changed = TRUE;
     }
 
     if (g_strcmp0(self->current.serial_number, self->pending.serial_number) != 0) {
         g_free(self->current.serial_number);
         self->current.serial_number = g_strdup(self->pending.serial_number);
-        serial_number_changed = true;
+        serial_number_changed = TRUE;
     }
 
     if (name_changed) {

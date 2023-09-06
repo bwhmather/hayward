@@ -14,13 +14,13 @@
 
 struct _HwdoutModeState {
     // Size in physical pixels.
-    int32_t width;
-    int32_t height;
+    guint width;
+    guint height;
 
     // Vertical refresh rate in mHz or zero.
-    int32_t refresh;
+    guint refresh;
 
-    bool preferred;
+    gboolean preferred;
 };
 
 typedef struct _HwdoutModeState HwdoutModeState;
