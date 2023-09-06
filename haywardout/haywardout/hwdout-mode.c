@@ -64,17 +64,33 @@ static void
 handle_mode_size(
     void *data, struct zwlr_output_mode_v1 *wlr_output_mode, int32_t width, int32_t height
 ) {
+    HwdoutMode *self = HWDOUT_MODE(data);
+
     g_debug("mode=%p: size=(%ix%i)", (void *)wlr_output_mode, width, height);
+    g_return_if_fail(HWDOUT_IS_MODE(self));
+
+    self->pending.width = width;
+    self->pending.height = height;
 }
 
 static void
 handle_mode_refresh(void *data, struct zwlr_output_mode_v1 *wlr_output_mode, int32_t refresh) {
+    HwdoutMode *self = HWDOUT_MODE(data);
+
     g_debug("mode=%p: refresh=%imHz", (void *)wlr_output_mode, refresh);
+    g_return_if_fail(HWDOUT_IS_MODE(self));
+
+    self->pending.refresh = refresh;
 }
 
 static void
 handle_mode_preferred(void *data, struct zwlr_output_mode_v1 *wlr_output_mode) {
+    HwdoutMode *self = HWDOUT_MODE(data);
+
     g_debug("mode=%p: preferred", (void *)wlr_output_mode);
+    g_return_if_fail(HWDOUT_IS_MODE(self));
+
+    self->pending.preferred = TRUE;
 }
 
 static void
@@ -90,13 +106,65 @@ static const struct zwlr_output_mode_v1_listener output_mode_listener = {
 };
 
 static void
+handle_head_done(HwdoutHead *head, guint serial, void *data) {
+    HwdoutMode *self = HWDOUT_MODE(data);
+
+    gboolean width_changed = FALSE;
+    gboolean height_changed = FALSE;
+    gboolean refresh_changed = FALSE;
+    gboolean preferred_changed = FALSE;
+
+    g_return_if_fail(HWDOUT_IS_MODE(data));
+
+    if (self->current.width != self->pending.width) {
+        self->current.width = self->pending.width;
+        width_changed = TRUE;
+    }
+
+    if (self->current.height != self->pending.height) {
+        self->current.height = self->pending.height;
+        height_changed = TRUE;
+    }
+
+    if (self->current.refresh != self->pending.refresh) {
+        self->current.refresh = self->pending.refresh;
+        refresh_changed = TRUE;
+    }
+
+    if (self->current.preferred != self->pending.preferred) {
+        self->current.preferred = self->pending.preferred;
+        preferred_changed = TRUE;
+    }
+
+    if (width_changed) {
+        g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_WIDTH]);
+    }
+
+    if (height_changed) {
+        g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_HEIGHT]);
+    }
+
+    if (refresh_changed) {
+        g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_REFRESH]);
+    }
+
+    if (preferred_changed) {
+        g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_PREFERRED]);
+    }
+}
+
+static void
 hwdout_mode_constructed(GObject *gobject) {
     HwdoutMode *self = HWDOUT_MODE(gobject);
+    HwdoutHead *head;
 
     G_OBJECT_CLASS(hwdout_mode_parent_class)->constructed(gobject);
 
-    g_return_if_fail(self->wlr_output_mode != NULL);
+    head = hwdout_mode_get_head(self);
+    g_signal_connect_object(head, "done", G_CALLBACK(handle_head_done), self, G_CONNECT_DEFAULT);
+    g_clear_object(&head);
 
+    g_return_if_fail(self->wlr_output_mode != NULL);
     zwlr_output_mode_v1_add_listener(self->wlr_output_mode, &output_mode_listener, self);
 }
 
@@ -256,6 +324,32 @@ hwdout_mode_new(
     return g_object_new(
         HWDOUT_TYPE_MODE, "manager", manager, "head", head, "wlr-output-mode", wlr_output_mode, NULL
     );
+}
+
+/**
+ * hwdout_mode_get_manager: (attributes org.gtk.Method.get_property===-manager)
+ * @self: a `HwdoutMode`
+ *
+ * Returns: (transfer full): The owning output manager.
+ */
+HwdoutManager *
+hwdout_mode_get_manager(HwdoutMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(self), NULL);
+
+    return g_weak_ref_get(&self->manager);
+}
+
+/**
+ * hwdout_mode_get_head: (attributes org.gtk.Method.get_property=manager)
+ * @self: a `HwdoutMode`
+ *
+ * Returns: (transfer full): The owning head.
+ */
+HwdoutHead *
+hwdout_mode_get_head(HwdoutMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(self), NULL);
+
+    return g_weak_ref_get(&self->head);
 }
 
 gint

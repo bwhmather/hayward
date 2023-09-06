@@ -20,6 +20,12 @@ hwdout_mode_new(
     HwdoutManager *manager, HwdoutHead *head, struct zwlr_output_mode_v1 *wlr_output_head
 );
 
+HwdoutManager *
+hwdout_mode_get_manager(HwdoutMode *self);
+
+HwdoutHead *
+hwdout_mode_get_head(HwdoutMode *self);
+
 gint
 hwdout_mode_get_width(HwdoutMode *self);
 
