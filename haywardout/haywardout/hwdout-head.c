@@ -747,7 +747,7 @@ hwdout_head_new(HwdoutManager *manager, struct zwlr_output_head_v1 *wlr_output_h
 }
 
 /**
- * hwdout_head_get_manager: (attributes org.gtk.Method.get_property=output-manager)
+ * hwdout_head_get_manager: (attributes org.gtk.Method.get_property=manager)
  * @self: a `HwdoutHead`
  *
  * Returns: (transfer full): The owning output manager.
