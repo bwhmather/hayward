@@ -78,6 +78,13 @@ handle_manager_head(
 }
 
 void
+finish_done(HwdoutManager *self, guint serial) {
+    g_return_if_fail(HWDOUT_IS_MANAGER(self));
+
+    hwdout_copy_list_store(self->current.heads, self->pending.heads);
+}
+
+void
 handle_manager_done(
     void *data, struct zwlr_output_manager_v1 *zwlr_output_manager_v1, uint32_t serial
 ) {
@@ -85,7 +92,11 @@ handle_manager_done(
 
     self->serial = serial;
 
-    hwdout_copy_list_store(self->current.heads, self->pending.heads);
+    // We prune any dead heads from the list store, update the new and remaining
+    // heads during the run-first subscriber phase, add the new heads during the
+    // run-last method phase, and notify any consumers during the run-last
+    // subscriber phase.
+    hwdout_intersect_list_store(self->current.heads, self->pending.heads);
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_SERIAL]);
 
@@ -242,9 +253,9 @@ hwdout_manager_class_init(HwdoutManagerClass *klass) {
      * after all `HwdoutHead` and `HwdoutMode` objects owned by
      * this manager have been updated.
      */
-    signals[SIGNAL_DONE] = g_signal_new(
+    signals[SIGNAL_DONE] = g_signal_new_class_handler(
         g_intern_static_string("done"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
-        0,           // Closure.
+        G_CALLBACK(finish_done),
         NULL,        // Accumulator.
         NULL,        // Accumulator data.
         NULL,        // C marshaller.
