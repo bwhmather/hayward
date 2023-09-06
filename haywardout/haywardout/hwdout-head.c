@@ -627,13 +627,12 @@ hwdout_head_class_init(HwdoutHeadClass *klass) {
 
     properties[PROP_CURRENT_MODE] = g_param_spec_object(
         "current-mode", "Current mode",
-        "Reference to the mode object representing the currently active mode",
-        HWDOUT_TYPE_MODE, G_PARAM_READABLE
+        "Reference to the mode object representing the currently active mode", HWDOUT_TYPE_MODE,
+        G_PARAM_READABLE
     );
 
     properties[PROP_MODES] = g_param_spec_object(
-        "modes", "Supported modes",
-        "List of all modes that this head explicitly supports",
+        "modes", "Supported modes", "List of all modes that this head explicitly supports",
         G_TYPE_LIST_MODEL, G_PARAM_READABLE
     );
 
