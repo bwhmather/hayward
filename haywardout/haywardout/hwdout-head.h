@@ -1,15 +1,15 @@
 #ifndef __HWDOUT_HEAD_H__
 #define __HWDOUT_HEAD_H__
 
-#include "hwdout-mode.h"
-#include "hwdout-transform.h"
-
 #include <gio/gio.h>
 #include <glib-object.h>
 #include <stdint.h>
 #include <wayland-client.h>
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
+
+#include "hwdout-mode.h"
+#include "hwdout-transform.h"
 
 G_BEGIN_DECLS
 

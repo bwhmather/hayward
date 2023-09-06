@@ -1,9 +1,9 @@
 #ifndef __HWDOUT_HEAD_EDITOR_H__
 #define __HWDOUT_HEAD_EDITOR_H__
 
-#include "hwdout-configuration-head.h"
-
 #include <gtk/gtk.h>
+
+#include "hwdout-configuration-head.h"
 
 G_BEGIN_DECLS
 

@@ -1,14 +1,14 @@
 #include "hwdout-manager.h"
 
-#include "hwdout-head.h"
-#include "hwdout-util.h"
-
 #include <gio/gio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
+
+#include "hwdout-head.h"
+#include "hwdout-util.h"
 
 struct _HwdoutManagerState {
     GListStore *heads;

@@ -1,9 +1,9 @@
 #ifndef __HWDOUT_CONFIGURATION_HEAD_H__
 #define __HWDOUT_CONFIGURATION_HEAD_H__
 
-#include "hwdout-transform.h"
-
 #include <glib-object.h>
+
+#include "hwdout-transform.h"
 
 G_BEGIN_DECLS
 

@@ -1,13 +1,13 @@
 #include "hwdout-application.h"
 
-#include "hwdout-manager.h"
-#include "hwdout-window.h"
-
 #include <gdk/wayland/gdkwayland.h>
 #include <gtk/gtk.h>
 #include <wayland-client.h>
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
+
+#include "hwdout-manager.h"
+#include "hwdout-window.h"
 
 struct _HwdoutApplication {
     GObject parent_instance;

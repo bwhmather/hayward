@@ -1,8 +1,8 @@
 #include "hwdout-head-editor.h"
 
-#include "hwdout-configuration-head.h"
-
 #include <gtk/gtk.h>
+
+#include "hwdout-configuration-head.h"
 
 struct _HwdoutHeadEditor {
     GtkWidget parent_instance;

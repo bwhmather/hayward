@@ -1,11 +1,11 @@
 #include "hwdout-window.h"
 
+#include <gtk/gtk.h>
+
 #include "hwdout-configuration-head.h"
 #include "hwdout-configuration.h"
 #include "hwdout-head-editor.h"
 #include "hwdout-manager.h"
-
-#include <gtk/gtk.h>
 
 struct _HwdoutWindow {
     GtkWindow parent_instance;

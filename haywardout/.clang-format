@@ -13,15 +13,13 @@ AlwaysBreakAfterReturnType: All
 ReflowComments: false
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '".*"'
-    Priority: 2
   - Regex: '<config.h>'
     Priority: 1
   - Regex: '<hayward-.*/.*>'
     Priority: 4
   - Regex: '<.*-protocol.h>'
     Priority: 5
-  - Regex: '<haywardout/.*>'
+  - Regex: '".*"'
     Priority: 6
   - Regex: '<.+>'
     Priority: 3

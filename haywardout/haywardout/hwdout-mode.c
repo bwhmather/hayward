@@ -1,9 +1,5 @@
 #include "hwdout-mode.h"
 
-#include "hwdout-head.h"
-#include "hwdout-manager.h"
-#include "hwdout-transform.h"
-
 #include <gdk/gdk.h>
 #include <gdk/wayland/gdkwayland.h>
 #include <stdbool.h>
@@ -11,6 +7,10 @@
 #include <stdlib.h>
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
+
+#include "hwdout-head.h"
+#include "hwdout-manager.h"
+#include "hwdout-transform.h"
 
 struct _HwdoutModeState {
     // Size in physical pixels.
