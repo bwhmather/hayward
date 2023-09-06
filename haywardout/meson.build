@@ -1,21 +1,21 @@
 gnome = import('gnome')
 haywardout_resources = gnome.compile_resources(
-    'hwdout-resources', 'resources/hwdout.gresource.xml',
-    source_dir: 'resources', c_name: 'hwdout',
+    'hwdout-resources', 'haywardout/resources/hwdout.gresource.xml',
+    source_dir: 'haywardout/resources', c_name: 'hwdout',
 )
 
 haywardout_sources = [
-	'src/main.c',
-	'src/hwdout-application.c',
-	'src/hwdout-configuration.c',
-	'src/hwdout-configuration-head.c',
-	'src/hwdout-head.c',
-	'src/hwdout-head-editor.c',
-	'src/hwdout-manager.c',
-	'src/hwdout-mode.c',
-	'src/hwdout-transform.c',
-	'src/hwdout-util.c',
-	'src/hwdout-window.c',
+	'haywardout/main.c',
+	'haywardout/hwdout-application.c',
+	'haywardout/hwdout-configuration.c',
+	'haywardout/hwdout-configuration-head.c',
+	'haywardout/hwdout-head.c',
+	'haywardout/hwdout-head-editor.c',
+	'haywardout/hwdout-manager.c',
+	'haywardout/hwdout-mode.c',
+	'haywardout/hwdout-transform.c',
+	'haywardout/hwdout-util.c',
+	'haywardout/hwdout-window.c',
 ]
 
 haywardout_deps = [
@@ -26,13 +26,9 @@ haywardout_deps = [
 	wayland_client,
 ]
 
-haywardout_inc = []  # include_directories('include')
-
-
 executable(
 	'haywardout',
 	haywardout_sources + haywardout_resources,
-	include_directories: [haywardout_inc, shared_inc],
 	dependencies: haywardout_deps,
 	install: true
 )
