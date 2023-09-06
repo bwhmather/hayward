@@ -3,6 +3,7 @@
 #include <gtk/gtk.h>
 
 #include "hwdout-configuration-head.h"
+#include "hwdout-mode.h"
 
 struct _HwdoutHeadEditor {
     GtkWidget parent_instance;
@@ -15,6 +16,16 @@ G_DEFINE_TYPE(HwdoutHeadEditor, hwdout_head_editor, GTK_TYPE_WIDGET)
 typedef enum { PROP_HEAD = 1, N_PROPERTIES } HwdoutHeadEditorProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
+
+static gchararray
+describe_mode(HwdoutMode *mode) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(mode), NULL);
+
+    return g_strdup_printf(
+        "%ix%i (%fHz)", hwdout_mode_get_width(mode), hwdout_mode_get_height(mode),
+        ((float)hwdout_mode_get_refresh(mode)) / 1000.0
+    );
+}
 
 static void
 hwdout_head_editor_dispose(GObject *gobject) {
@@ -81,6 +92,7 @@ hwdout_head_editor_class_init(HwdoutHeadEditorClass *klass) {
     gtk_widget_class_set_template_from_resource(
         widget_class, "/com/bwhmather/hwdout/ui/hwdout-head-editor.ui"
     );
+    gtk_widget_class_bind_template_callback(widget_class, describe_mode);
 }
 
 static void

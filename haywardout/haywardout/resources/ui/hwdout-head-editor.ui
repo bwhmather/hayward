@@ -194,6 +194,16 @@
             </child>
             <child>
               <object class="GtkDropDown" id="resolution_dropdown">
+                <binding name="model">
+                  <lookup name="modes">
+                    <lookup name="head">
+                      <lookup name="head">HwdoutHeadEditor</lookup>
+                    </lookup>
+                  </lookup>
+                </binding>
+                <property name="expression">
+                  <closure type="gchararray" function="describe_mode" />
+                </property>
               </object>
             </child>
 
