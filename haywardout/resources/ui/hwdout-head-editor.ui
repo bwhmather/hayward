@@ -3,227 +3,209 @@
   <template class="HwdoutHeadEditor" parent="GtkWidget">
     <child>
       <object class="GtkBox">
-        <property name="layout-manager">
-          <object class="GtkConstraintLayout">
-            <constraints>
-              <guide name="top_row_guide" />
-              <guide name="bottom_row_guide" />
-
-              <guide name="resolution_guide" />
-              <guide name="scale_guide" />
-
-              <!-- Row Guides -->
-              <constraint
-                target="top_row_guide" target-attribute="top"
-                relation="eq"
-                source="super" source-attribute="top"
-                constant="5"
-              />
-              <constraint
-                target="bottom_row_guide" target-attribute="top"
-                relation="eq"
-                source="top_row_guide" source-attribute="bottom"
-                constant="5"
-              />
-              <constraint
-                target="super" target-attribute="bottom"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="bottom"
-                constant="5"
-              />
-
-              <!-- Description Label - Vertical -->
-              <constraint
-                target="description_label" target-attribute="top"
-                relation="eq"
-                source="top_row_guide" source-attribute="top"
-              />
-              <constraint
-                target="description_label" target-attribute="bottom"
-                relation="eq"
-                source="top_row_guide" source-attribute="bottom"
-              />
-
-              <!-- Enabled Switch - Vertical -->
-              <constraint
-                target="enabled_switch" target-attribute="top"
-                relation="eq"
-                source="top_row_guide" source-attribute="top"
-              />
-              <constraint
-                target="enabled_switch" target-attribute="bottom"
-                relation="eq"
-                source="top_row_guide" source-attribute="bottom"
-              />
-
-              <!-- Top Row - Horizontal -->
-              <constraint
-                target="description_label" target-attribute="left"
-                relation="eq"
-                source="super" source-attribute="left"
-                strength="required"
-                constant="5"
-              />
-              <constraint
-                target="enabled_switch" target-attribute="left"
-                relation="ge"
-                source="description_label" source-attribute="right"
-                constant="5"
-                strength="required"
-              />
-              <constraint
-                target="enabled_switch" target-attribute="right"
-                relation="eq"
-                source="super" source-attribute="right"
-                strength="required"
-                constant="5"
-              />
-
-              <!-- Resolution Label - Vertical -->
-              <constraint
-                target="resolution_label" target-attribute="top"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="top"
-              />
-              <constraint
-                target="resolution_label" target-attribute="bottom"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="bottom"
-              />
-
-              <!-- Resolution Dropdown - Vertical -->
-              <constraint
-                target="resolution_dropdown" target-attribute="top"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="top"
-              />
-              <constraint
-                target="resolution_dropdown" target-attribute="bottom"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="bottom"
-              />
-
-              <!-- Scale Label - Vertical -->
-              <constraint
-                target="scale_label" target-attribute="top"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="top"
-              />
-              <constraint
-                target="scale_label" target-attribute="bottom"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="bottom"
-              />
-
-              <!-- Resolution Dropdown - Vertical -->
-              <constraint
-                target="scale_dropdown" target-attribute="top"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="top"
-              />
-              <constraint
-                target="scale_dropdown" target-attribute="bottom"
-                relation="eq"
-                source="bottom_row_guide" source-attribute="bottom"
-              />
-
-              <!-- Resolution - Horizontal -->
-              <constraint
-                target="resolution_label" target-attribute="left"
-                relation="eq"
-                source="resolution_guide" source-attribute="left"
-              />
-              <constraint
-                target="resolution_dropdown" target-attribute="left"
-                relation="ge"
-                source="resolution_label" source-attribute="right"
-                constant="5"
-              />
-              <constraint
-                target="resolution_dropdown" target-attribute="right"
-                relation="eq"
-                source="resolution_guide" source-attribute="right"
-              />
-
-
-              <!-- Scale - Horizontal -->
-              <constraint
-                target="scale_label" target-attribute="left"
-                relation="eq"
-                source="scale_guide" source-attribute="left"
-              />
-              <constraint
-                target="scale_dropdown" target-attribute="left"
-                relation="ge"
-                source="scale_label" source-attribute="right"
-                constant="5"
-              />
-              <constraint
-                target="scale_dropdown" target-attribute="right"
-                relation="eq"
-                source="scale_guide" source-attribute="right"
-              />
-
-              <!-- Bottom Row - Horizontal -->
-              <constraint
-                target="resolution_guide" target-attribute="left"
-                relation="eq"
-                source="super" source-attribute="left"
-                strength="required"
-                constant="5"
-              />
-              <constraint
-                target="scale_guide" target-attribute="left"
-                relation="ge"
-                source="resolution_guide" source-attribute="right"
-                constant="5"
-                strength="required"
-              />
-              <constraint
-                target="scale_guide" target-attribute="right"
-                relation="eq"
-                source="super" source-attribute="right"
-                strength="required"
-                constant="5"
-              />
-            </constraints>
-          </object>
-        </property>
-
+        <property name="orientation">vertical</property>
+        <property name="spacing">5</property>
         <child>
-          <object class="GtkLabel" id="description_label">
-            <binding name="label">
-              <lookup name="description">
-                <lookup name="head">
-                  <lookup name="head">HwdoutHeadEditor</lookup>
-                </lookup>
-              </lookup>
-            </binding>
-          </object>
-        </child>
+          <object class="GtkBox">
+            <property name="layout-manager">
+              <object class="GtkConstraintLayout">
+                <constraints>
+                  <!-- Horizontal -->
+                  <constraint
+                    target="description_label" target-attribute="left"
+                    relation="eq"
+                    source="super" source-attribute="left"
+                    strength="required"
+                    constant="5"
+                  />
+                  <constraint
+                    target="enabled_switch" target-attribute="left"
+                    relation="ge"
+                    source="description_label" source-attribute="right"
+                    constant="5"
+                    strength="required"
+                  />
+                  <constraint
+                    target="enabled_switch" target-attribute="right"
+                    relation="eq"
+                    source="super" source-attribute="right"
+                    strength="required"
+                    constant="5"
+                  />
 
-        <child>
-          <object class="GtkSwitch" id="enabled_switch">
-          </object>
-        </child>
+                  <!-- Vertical -->
+                  <constraint
+                    target="description_label" target-attribute="top"
+                    relation="eq"
+                    source="super" source-attribute="top"
+                  />
+                  <constraint
+                    source="super" source-attribute="bottom"
+                    relation="eq"
+                    target="description_label" target-attribute="bottom"
+                  />
+                  <constraint
+                    target="enabled_switch" target-attribute="top"
+                    relation="eq"
+                    source="super" source-attribute="top"
+                  />
+                  <constraint
+                    target="enabled_switch" target-attribute="bottom"
+                    relation="eq"
+                    source="super" source-attribute="bottom"
+                  />
+                </constraints>
+              </object>
+            </property>
 
-        <child>
-          <object class="GtkLabel" id="resolution_label">
-            <property name="label">Resolution:</property>
+            <child>
+              <object class="GtkLabel" id="description_label">
+                <property name="halign">start</property>
+                <binding name="label">
+                  <lookup name="description">
+                    <lookup name="head">
+                      <lookup name="head">HwdoutHeadEditor</lookup>
+                    </lookup>
+                  </lookup>
+                </binding>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkSwitch" id="enabled_switch">
+              </object>
+            </child>
           </object>
         </child>
         <child>
-          <object class="GtkDropDown" id="resolution_dropdown">
-          </object>
-        </child>
+          <object class="GtkBox">
+            <property name="layout-manager">
+              <object class="GtkConstraintLayout">
+                <constraints>
+                  <guide name="resolution_guide" />
+                  <guide name="scale_guide" />
 
-        <child>
-          <object class="GtkLabel" id="scale_label">
-            <property name="label">Scale:</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkDropDown" id="scale_dropdown">
+                  <!-- Resolution Guide -->
+                  <constraint
+                    target="resolution_label" target-attribute="left"
+                    relation="eq"
+                    source="resolution_guide" source-attribute="left"
+                  />
+                  <constraint
+                    target="resolution_dropdown" target-attribute="left"
+                    relation="ge"
+                    source="resolution_label" source-attribute="right"
+                    constant="5"
+                  />
+                  <constraint
+                    target="resolution_dropdown" target-attribute="right"
+                    relation="eq"
+                    source="resolution_guide" source-attribute="right"
+                  />
+
+                  <!-- Scale Guide  -->
+                  <constraint
+                    target="scale_label" target-attribute="left"
+                    relation="eq"
+                    source="scale_guide" source-attribute="left"
+                  />
+                  <constraint
+                    target="scale_dropdown" target-attribute="left"
+                    relation="ge"
+                    source="scale_label" source-attribute="right"
+                    constant="5"
+                  />
+                  <constraint
+                    target="scale_dropdown" target-attribute="right"
+                    relation="eq"
+                    source="scale_guide" source-attribute="right"
+                  />
+
+                  <!-- Combined -->
+                  <constraint
+                    target="resolution_guide" target-attribute="left"
+                    relation="eq"
+                    source="super" source-attribute="left"
+                    constant="5"
+                  />
+                  <constraint
+                    target="scale_guide" target-attribute="left"
+                    relation="ge"
+                    source="resolution_guide" source-attribute="right"
+                    constant="5"
+                  />
+                  <constraint
+                    target="scale_guide" target-attribute="right"
+                    relation="eq"
+                    source="super" source-attribute="right"
+                    constant="5"
+                  />
+
+                  <!-- Vertical -->
+                  <constraint
+                    target="resolution_label" target-attribute="top"
+                    relation="eq"
+                    source="super" source-attribute="top"
+                  />
+                  <constraint
+                    source="super" source-attribute="bottom"
+                    relation="eq"
+                    target="resolution_label" target-attribute="bottom"
+                  />
+                  <constraint
+                    target="resolution_dropdown" target-attribute="top"
+                    relation="eq"
+                    source="super" source-attribute="top"
+                  />
+                  <constraint
+                    target="resolution_dropdown" target-attribute="bottom"
+                    relation="eq"
+                    source="super" source-attribute="bottom"
+                  />
+
+                  <constraint
+                    target="scale_label" target-attribute="top"
+                    relation="eq"
+                    source="super" source-attribute="top"
+                  />
+                  <constraint
+                    source="super" source-attribute="bottom"
+                    relation="eq"
+                    target="scale_label" target-attribute="bottom"
+                  />
+                  <constraint
+                    target="scale_dropdown" target-attribute="top"
+                    relation="eq"
+                    source="super" source-attribute="top"
+                  />
+                  <constraint
+                    target="scale_dropdown" target-attribute="bottom"
+                    relation="eq"
+                    source="super" source-attribute="bottom"
+                  />
+
+                </constraints>
+              </object>
+            </property>
+            <child>
+              <object class="GtkLabel" id="resolution_label">
+                <property name="label">Resolution:</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkDropDown" id="resolution_dropdown">
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="scale_label">
+                <property name="label">Scale:</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkDropDown" id="scale_dropdown">
+              </object>
+            </child>
           </object>
         </child>
       </object>
