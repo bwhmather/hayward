@@ -76,7 +76,8 @@ typedef enum {
 static GParamSpec *properties[N_PROPERTIES];
 
 typedef enum {
-    SIGNAL_FINISHED = 1,
+    SIGNAL_DONE = 1,
+    SIGNAL_FINISHED,
     N_SIGNALS,
 } HwdoutHeadSignal;
 
@@ -287,6 +288,13 @@ static const struct zwlr_output_head_v1_listener output_head_listener = {
 };
 
 static void
+finish_done(HwdoutHead *self, guint serial) {
+    g_return_if_fail(HWDOUT_IS_HEAD(self));
+
+    hwdout_copy_list_store(self->current.modes, self->pending.modes);
+}
+
+static void
 handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
     HwdoutHead *self = HWDOUT_HEAD(data);
 
@@ -326,7 +334,7 @@ handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
         physical_height_changed = true;
     }
 
-    hwdout_copy_list_store(self->current.modes, self->pending.modes);
+    hwdout_intersect_list_store(self->current.modes, self->pending.modes);
 
     if (self->current.is_enabled != self->pending.is_enabled) {
         self->current.is_enabled = self->pending.is_enabled;
@@ -416,6 +424,8 @@ handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
     if (serial_number_changed) {
         g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_SERIAL_NUMBER]);
     }
+
+    g_signal_emit(self, signals[SIGNAL_DONE], 0, serial);
 }
 
 static void
@@ -684,6 +694,28 @@ hwdout_head_class_init(HwdoutHeadClass *klass) {
     );
 
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
+
+    /**
+     * HwdoutHead::done:
+     * @self: The `HwdoutHead`
+     * @serial: The new serial number received with the `done` event.
+     *
+     * Signals that the head has been updated following a `done` event from its
+     * manager.
+     *
+     * Consumers should register with %G_SIGNAL_RUN_LAST in order to update
+     * after all `HwdoutHead` and `HwdoutMode` objects owned by
+     * this manager have been updated.
+     */
+    signals[SIGNAL_DONE] = g_signal_new_class_handler(
+        g_intern_static_string("done"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
+        G_CALLBACK(finish_done),
+        NULL,        // Accumulator.
+        NULL,        // Accumulator data.
+        NULL,        // C marshaller.
+        G_TYPE_NONE, // Return type.
+        1, G_TYPE_UINT
+    );
 
     signals[SIGNAL_FINISHED] = g_signal_new(
         g_intern_static_string("finished"), G_TYPE_FROM_CLASS(object_class), G_SIGNAL_RUN_LAST,
