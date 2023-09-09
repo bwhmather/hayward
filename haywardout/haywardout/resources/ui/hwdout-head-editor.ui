@@ -32,6 +32,12 @@
                     strength="required"
                     constant="5"
                   />
+                  <constraint
+                    target="description_label" target-attribute="width"
+                    relation="eq"
+                    source="super" source-attribute="width"
+                    strength="medium"
+                    />
 
                   <!-- Vertical -->
                   <constraint
@@ -73,6 +79,7 @@
 
             <child>
               <object class="GtkSwitch" id="enabled_switch">
+                <property name="hexpand">False</property>
               </object>
             </child>
           </object>
