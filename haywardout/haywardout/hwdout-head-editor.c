@@ -22,8 +22,8 @@ describe_mode(HwdoutMode *mode) {
     g_return_val_if_fail(HWDOUT_IS_MODE(mode), NULL);
 
     return g_strdup_printf(
-        "%ix%i (%fHz)", hwdout_mode_get_width(mode), hwdout_mode_get_height(mode),
-        ((float)hwdout_mode_get_refresh(mode)) / 1000.0
+        "%ix%i (%iHz)", hwdout_mode_get_width(mode), hwdout_mode_get_height(mode),
+        hwdout_mode_get_refresh(mode) / 1000
     );
 }
 
