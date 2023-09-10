@@ -130,22 +130,37 @@
 
                   <!-- Combined -->
                   <constraint
+                    target="resolution_label" target-attribute="width"
+                    relation="eq"
+                    source="scale_label" source-attribute="width"
+                  />
+
+                  <constraint
                     target="resolution_guide" target-attribute="left"
                     relation="eq"
                     source="super" source-attribute="left"
                     constant="5"
+                    strength="required"
                   />
                   <constraint
                     target="scale_guide" target-attribute="left"
                     relation="ge"
                     source="resolution_guide" source-attribute="right"
                     constant="5"
+                    strength="required"
                   />
                   <constraint
                     target="scale_guide" target-attribute="right"
                     relation="eq"
                     source="super" source-attribute="right"
                     constant="5"
+                    strength="required"
+                  />
+                  <constraint
+                    target="resolution_guide" target-attribute="width"
+                    relation="eq"
+                    source="scale_guide" source-attribute="width"
+                    strength="required"
                   />
 
                   <!-- Vertical -->
