@@ -23,6 +23,7 @@
               <object class="GtkFrame">
                 <child>
                   <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
                     <child>
                       <object class="GtkListView" id="heads_list_view">
                         <property name="vexpand">1</property>
