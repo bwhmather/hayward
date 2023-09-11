@@ -8,6 +8,8 @@
 struct _HwdoutHeadEditor {
     GtkWidget parent_instance;
 
+    GtkSpinButton *scale_input;
+
     HwdoutConfigurationHead *head;
 };
 
@@ -93,6 +95,7 @@ hwdout_head_editor_class_init(HwdoutHeadEditorClass *klass) {
         widget_class, "/com/bwhmather/hwdout/ui/hwdout-head-editor.ui"
     );
     gtk_widget_class_bind_template_callback(widget_class, describe_mode);
+    gtk_widget_class_bind_template_child(widget_class, HwdoutHeadEditor, scale_input);
 }
 
 static void
@@ -107,6 +110,8 @@ hwdout_head_editor_new(void) {
 
 void
 hwdout_head_editor_set_head(HwdoutHeadEditor *self, HwdoutConfigurationHead *head) {
+    GtkAdjustment *scale_adjustment;
+
     g_return_if_fail(HWDOUT_IS_HEAD_EDITOR(self));
 
     if (head == self->head) {
@@ -115,6 +120,10 @@ hwdout_head_editor_set_head(HwdoutHeadEditor *self, HwdoutConfigurationHead *hea
 
     g_clear_object(&self->head);
     self->head = head;
+
+    scale_adjustment =
+        gtk_adjustment_new(hwdout_configuration_head_get_scale(head), 0.25, 4.0, 0.125, 0.25, 0.0);
+    gtk_spin_button_configure(self->scale_input, scale_adjustment, 0.125, 4);
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_HEAD]);
 }

@@ -83,7 +83,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkDropDown" id="scale_dropdown">
+                  <object class="GtkSpinButton" id="scale_input">
                     <property name="hexpand">false</property>
                     <property name="halign">end</property>
                   </object>
