@@ -13,6 +13,9 @@
               <object class="GtkLabel" id="description_label">
                 <property name="halign">start</property>
                 <property name="hexpand">true</property>
+                <attributes>
+                  <attribute name="weight" value="PANGO_WEIGHT_BOLD" />
+                </attributes>
                 <binding name="label">
                   <lookup name="description">
                     <lookup name="head">
