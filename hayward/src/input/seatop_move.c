@@ -315,7 +315,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     centre_box.width /= 5;
     centre_box.x += 2 * centre_box.width;
     centre_box.height /= 5;
-    centre_box.height += 2 * centre_box.height;
+    centre_box.y += 2 * centre_box.height;
     if (wlr_box_contains_point(&centre_box, cursor->x, cursor->y)) {
         e->target_area.x = centre_box.x + centre_box.width;
         e->target_area.y = centre_box.y + centre_box.height;
