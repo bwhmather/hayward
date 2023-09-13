@@ -59,6 +59,9 @@
           <object class="GtkActionBar">
             <child type="end">
               <object class="GtkButton">
+                <style>
+                  <class name="suggested-action" />
+                </style>
                 <child>
                   <object class="GtkLabel">
                     <property name="label">Apply</property>
