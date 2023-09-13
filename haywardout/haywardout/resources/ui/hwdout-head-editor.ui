@@ -30,6 +30,11 @@
               <object class="GtkSwitch" id="enabled_switch">
                 <property name="halign">end</property>
                 <property name="hexpand">false</property>
+                <binding name="active">
+                  <lookup name="is-enabled">
+                    <lookup name="head">HwdoutHeadEditor</lookup>
+                  </lookup>
+                </binding>
               </object>
             </child>
           </object>
@@ -66,6 +71,11 @@
                     <property name="expression">
                       <closure type="gchararray" function="describe_mode" />
                     </property>
+                    <binding name="sensitive">
+                      <lookup name="is-enabled">
+                        <lookup name="head">HwdoutHeadEditor</lookup>
+                      </lookup>
+                    </binding>
                   </object>
                 </child>
               </object>
@@ -86,6 +96,11 @@
                   <object class="GtkSpinButton" id="scale_input">
                     <property name="hexpand">false</property>
                     <property name="halign">end</property>
+                    <binding name="sensitive">
+                      <lookup name="is-enabled">
+                        <lookup name="head">HwdoutHeadEditor</lookup>
+                      </lookup>
+                    </binding>
                   </object>
                 </child>
               </object>
