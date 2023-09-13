@@ -409,6 +409,10 @@ void
 hwdout_configuration_head_set_width(HwdoutConfigurationHead *self, gint width) {
     g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
 
+    if (width == self->width) {
+        return;
+    }
+
     self->width = width;
 
     if (self->mode != NULL) {
@@ -429,6 +433,10 @@ hwdout_configuration_head_get_width(HwdoutConfigurationHead *self) {
 void
 hwdout_configuration_head_set_height(HwdoutConfigurationHead *self, gint height) {
     g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
+
+    if (height == self->height) {
+        return;
+    }
 
     self->height = height;
 
@@ -451,6 +459,10 @@ void
 hwdout_configuration_head_set_refresh(HwdoutConfigurationHead *self, gint refresh) {
     g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
 
+    if (refresh == self->refresh) {
+        return;
+    }
+
     self->refresh = refresh;
 
     if (self->mode != NULL) {
@@ -472,6 +484,10 @@ void
 hwdout_configuration_head_set_x(HwdoutConfigurationHead *self, gint x) {
     g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
 
+    if (x == self->x) {
+        return;
+    }
+
     self->x = x;
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_X]);
@@ -487,6 +503,10 @@ hwdout_configuration_head_get_x(HwdoutConfigurationHead *self) {
 void
 hwdout_configuration_head_set_y(HwdoutConfigurationHead *self, gint y) {
     g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
+
+    if (y == self->y) {
+        return;
+    }
 
     self->y = y;
 
@@ -504,6 +524,10 @@ void
 hwdout_configuration_head_set_transform(HwdoutConfigurationHead *self, HwdoutTransform transform) {
     g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
 
+    if (transform == self->transform) {
+        return;
+    }
+
     self->transform = transform;
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_TRANSFORM]);
@@ -519,6 +543,10 @@ hwdout_configuration_head_get_transform(HwdoutConfigurationHead *self) {
 void
 hwdout_configuration_head_set_scale(HwdoutConfigurationHead *self, double scale) {
     g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
+
+    if (scale == self->scale) {
+        return;
+    }
 
     self->scale = scale;
 
