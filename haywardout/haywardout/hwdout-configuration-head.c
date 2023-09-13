@@ -22,6 +22,8 @@ struct _HwdoutConfigurationHead {
     HwdoutManager *manager;
     HwdoutHead *head;
 
+    gboolean is_enabled;
+
     HwdoutMode *mode;
     gint width;
     gint height;
@@ -40,6 +42,7 @@ typedef enum {
     PROP_CONFIGURATION = 1,
     PROP_MANAGER,
     PROP_HEAD,
+    PROP_IS_ENABLED,
     PROP_MODE,
     PROP_WIDTH,
     PROP_HEIGHT,
@@ -73,6 +76,7 @@ hwdout_configuration_head_constructed(GObject *gobject) {
     g_return_if_fail(HWDOUT_IS_HEAD(head));
     g_return_if_fail(hwdout_head_get_manager(head) == self->manager);
 
+    self->is_enabled = hwdout_head_get_is_enabled(head);
     self->mode = hwdout_head_get_current_mode(head);
     self->width = hwdout_mode_get_width(self->mode);
     self->height = hwdout_mode_get_height(self->mode);
@@ -115,6 +119,10 @@ hwdout_configuration_head_set_property(
     case PROP_HEAD:
         g_clear_object(&self->head);
         self->head = g_value_dup_object(value);
+        break;
+
+    case PROP_IS_ENABLED:
+        hwdout_configuration_head_set_is_enabled(self, g_value_get_boolean(value));
         break;
 
     case PROP_MODE:
@@ -172,6 +180,10 @@ hwdout_configuration_head_get_property(
 
     case PROP_HEAD:
         g_value_set_object(value, hwdout_configuration_head_get_head(self));
+        break;
+
+    case PROP_IS_ENABLED:
+        g_value_set_boolean(value, hwdout_configuration_head_get_is_enabled(self));
         break;
 
     case PROP_MODE:
@@ -242,6 +254,12 @@ hwdout_configuration_head_class_init(HwdoutConfigurationHeadClass *klass) {
     properties[PROP_HEAD] = g_param_spec_object(
         "head", "Output head", "Reference to the specific head object which this object configures",
         HWDOUT_TYPE_HEAD, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY
+    );
+
+    properties[PROP_IS_ENABLED] = g_param_spec_boolean(
+        "is-enabled", "Enabled", "Whether or not this output should be switched on",
+        FALSE, // Default.
+        G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
     );
 
     properties[PROP_MODE] = g_param_spec_object(
@@ -356,6 +374,26 @@ hwdout_configuration_head_get_head(HwdoutConfigurationHead *self) {
     g_return_val_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self), NULL);
 
     return self->head;
+}
+
+void
+hwdout_configuration_head_set_is_enabled(HwdoutConfigurationHead *self, gboolean is_enabled) {
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
+
+    if (is_enabled == self->is_enabled) {
+        return;
+    }
+
+    self->is_enabled = is_enabled;
+
+    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_IS_ENABLED]);
+}
+
+gboolean
+hwdout_configuration_head_get_is_enabled(HwdoutConfigurationHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self), FALSE);
+
+    return self->is_enabled;
 }
 
 void

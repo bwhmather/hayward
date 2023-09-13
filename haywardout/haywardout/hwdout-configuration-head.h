@@ -29,6 +29,11 @@ HwdoutHead *
 hwdout_configuration_head_get_head(HwdoutConfigurationHead *self);
 
 void
+hwdout_configuration_head_set_is_enabled(HwdoutConfigurationHead *self, gboolean enabled);
+gboolean
+hwdout_configuration_head_get_is_enabled(HwdoutConfigurationHead *self);
+
+void
 hwdout_configuration_head_set_mode(HwdoutConfigurationHead *self, HwdoutMode *mode);
 HwdoutMode *
 hwdout_configuration_head_get_mode(HwdoutConfigurationHead *self);
