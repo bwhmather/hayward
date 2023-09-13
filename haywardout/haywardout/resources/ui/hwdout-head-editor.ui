@@ -35,6 +35,7 @@
                     <lookup name="head">HwdoutHeadEditor</lookup>
                   </lookup>
                 </binding>
+                <signal name="state-set" handler="set_is_enabled"/>
               </object>
             </child>
           </object>

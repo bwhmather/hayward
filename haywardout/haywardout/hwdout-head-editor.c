@@ -29,6 +29,22 @@ describe_mode(HwdoutMode *mode) {
     );
 }
 
+static gboolean
+set_is_enabled(GtkSwitch *enabled_switch, gboolean is_enabled, gpointer user_data) {
+    HwdoutHeadEditor *self = HWDOUT_HEAD_EDITOR(user_data);
+
+    g_return_val_if_fail(HWDOUT_IS_HEAD_EDITOR(self), TRUE);
+
+    if (self->head == NULL) {
+        return TRUE;
+    }
+
+    hwdout_configuration_head_set_is_enabled(self->head, is_enabled);
+    gtk_switch_set_state(enabled_switch, is_enabled);
+
+    return TRUE;
+}
+
 static void
 hwdout_head_editor_dispose(GObject *gobject) {
     HwdoutHeadEditor *self = HWDOUT_HEAD_EDITOR(gobject);
@@ -95,6 +111,7 @@ hwdout_head_editor_class_init(HwdoutHeadEditorClass *klass) {
         widget_class, "/com/bwhmather/hwdout/ui/hwdout-head-editor.ui"
     );
     gtk_widget_class_bind_template_callback(widget_class, describe_mode);
+    gtk_widget_class_bind_template_callback(widget_class, set_is_enabled);
     gtk_widget_class_bind_template_child(widget_class, HwdoutHeadEditor, scale_input);
 }
 
