@@ -48,6 +48,9 @@ hwdout_head_get_modes(HwdoutHead *self);
 HwdoutMode *
 hwdout_head_get_current_mode(HwdoutHead *self);
 
+HwdoutMode *
+hwdout_head_get_preferred_mode(HwdoutHead *self);
+
 gint
 hwdout_head_get_x(HwdoutHead *self);
 

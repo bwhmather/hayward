@@ -816,13 +816,38 @@ hwdout_head_get_modes(HwdoutHead *self) {
 /**
  * hwdout_head_get_current_mode:
  *
- * Returns: (transfer none) the current mode.
+ * Returns: (transfer none, nullable) the current mode.
  */
 HwdoutMode *
 hwdout_head_get_current_mode(HwdoutHead *self) {
     g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
 
     return self->current.current_mode;
+}
+
+/**
+ * hwdout_head_get_preferred_mode:
+ *
+ * Returns: (transfer none, nullable) the native mode for this head
+ */
+
+HwdoutMode *
+hwdout_head_get_preferred_mode(HwdoutHead *self) {
+    GListModel *modes;
+    HwdoutMode *mode;
+    guint i;
+
+    g_return_val_if_fail(HWDOUT_IS_HEAD(self), NULL);
+
+    modes = hwdout_head_get_modes(self);
+    for (i = 0; i < g_list_model_get_n_items(modes); i++) {
+        mode = HWDOUT_MODE(g_list_model_get_item(modes, i));
+        if (hwdout_mode_get_is_preferred(mode)) {
+            return mode;
+        }
+    }
+
+    return HWDOUT_MODE(g_list_model_get_item(modes, 0));
 }
 
 gint
