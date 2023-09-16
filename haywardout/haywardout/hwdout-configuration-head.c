@@ -78,9 +78,11 @@ hwdout_configuration_head_constructed(GObject *gobject) {
 
     self->is_enabled = hwdout_head_get_is_enabled(head);
     self->mode = hwdout_head_get_current_mode(head);
-    self->width = hwdout_mode_get_width(self->mode);
-    self->height = hwdout_mode_get_height(self->mode);
-    self->refresh = hwdout_mode_get_refresh(self->mode);
+    if (self->mode) {
+        self->width = hwdout_mode_get_width(self->mode);
+        self->height = hwdout_mode_get_height(self->mode);
+        self->refresh = hwdout_mode_get_refresh(self->mode);
+    }
 
     self->x = hwdout_head_get_x(head);
     self->y = hwdout_head_get_y(head);
