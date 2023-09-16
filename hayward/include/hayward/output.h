@@ -80,6 +80,7 @@ struct hwd_output {
     struct wl_listener mode;
     struct wl_listener present;
     struct wl_listener frame;
+    struct wl_listener request_state;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
     struct wl_listener transaction_after_apply;

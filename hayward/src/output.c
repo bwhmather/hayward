@@ -591,6 +591,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&output->destroy.link);
     wl_list_remove(&output->commit.link);
     wl_list_remove(&output->present.link);
+    wl_list_remove(&output->request_state.link);
 
     wlr_scene_output_destroy(output->scene_output);
     output->scene_output = NULL;
@@ -627,6 +628,13 @@ handle_present(struct wl_listener *listener, void *data) {
 
     output->last_presentation = *output_event->when;
     output->refresh_nsec = output_event->refresh;
+}
+
+static void
+handle_request_state(struct wl_listener *listener, void *data) {
+    struct hwd_output *output = wl_container_of(listener, output, request_state);
+    const struct wlr_output_event_request_state *event = data;
+    wlr_output_commit_state(output->wlr_output, event->state);
 }
 
 static unsigned int last_headless_num = 0;
@@ -682,6 +690,8 @@ handle_new_output(struct wl_listener *listener, void *data) {
     output->present.notify = handle_present;
     wl_signal_add(&wlr_output->events.frame, &output->frame);
     output->frame.notify = handle_frame;
+    wl_signal_add(&wlr_output->events.request_state, &output->request_state);
+    output->request_state.notify = handle_request_state;
 
     output->repaint_timer =
         wl_event_loop_add_timer(server->wl_event_loop, output_repaint_timer_handler, output);
