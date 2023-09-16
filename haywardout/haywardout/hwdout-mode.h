@@ -26,6 +26,9 @@ hwdout_mode_get_manager(HwdoutMode *self);
 HwdoutHead *
 hwdout_mode_get_head(HwdoutMode *self);
 
+struct zwlr_output_mode_v1 *
+hwdout_mode_get_wlr_mode(HwdoutMode *self);
+
 gint
 hwdout_mode_get_width(HwdoutMode *self);
 

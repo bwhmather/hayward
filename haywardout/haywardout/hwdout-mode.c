@@ -352,6 +352,13 @@ hwdout_mode_get_head(HwdoutMode *self) {
     return g_weak_ref_get(&self->head);
 }
 
+struct zwlr_output_mode_v1 *
+hwdout_mode_get_wlr_mode(HwdoutMode *self) {
+    g_return_val_if_fail(HWDOUT_IS_MODE(self), NULL);
+
+    return self->wlr_output_mode;
+}
+
 gint
 hwdout_mode_get_width(HwdoutMode *self) {
     g_return_val_if_fail(HWDOUT_IS_MODE(self), 0);
