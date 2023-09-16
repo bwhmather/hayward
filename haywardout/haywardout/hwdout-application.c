@@ -6,7 +6,11 @@
 
 #include <wlr-output-management-unstable-v1-client-protocol.h>
 
+#include "hwdout-configuration-head.h"
+#include "hwdout-configuration.h"
+#include "hwdout-head.h"
 #include "hwdout-manager.h"
+#include "hwdout-mode.h"
 #include "hwdout-window.h"
 
 struct _HwdoutApplication {
@@ -23,6 +27,43 @@ G_DEFINE_TYPE(HwdoutApplication, hwdout_application, G_TYPE_OBJECT)
 typedef enum { PROP_MANAGER = 1, PROP_APPLICATION_ID, N_PROPERTIES } HwdoutApplicationProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
+
+static void
+handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
+    HwdoutApplication *self = HWDOUT_APPLICATION(data);
+    HwdoutConfiguration *config;
+    GListModel *config_heads;
+    HwdoutConfigurationHead *config_head;
+    HwdoutHead *head;
+    HwdoutMode *preferred_mode;
+    guint i;
+    gint x = 0;
+
+    config = hwdout_configuration_new(self->manager);
+    config_heads = hwdout_configuration_get_heads(config);
+    for (i = 0; i < g_list_model_get_n_items(config_heads); i++) {
+        config_head = HWDOUT_CONFIGURATION_HEAD(g_list_model_get_object(config_heads, i));
+        head = hwdout_configuration_head_get_head(config_head);
+
+        hwdout_configuration_head_set_is_enabled(config_head, TRUE);
+
+        hwdout_configuration_head_set_x(config_head, x);
+
+        preferred_mode = hwdout_head_get_preferred_mode(head);
+        if (preferred_mode != NULL) {
+            hwdout_configuration_head_set_mode(config_head, preferred_mode);
+            x += hwdout_mode_get_width(preferred_mode);
+        } else {
+            // TODO.
+        }
+
+        hwdout_configuration_head_set_scale(config_head, 1.0);
+
+        g_clear_object(&config_head);
+    }
+
+    hwdout_configuration_apply(config);
+}
 
 static void
 handle_global(
@@ -43,6 +84,10 @@ handle_global(
 
         manager = hwdout_manager_new(wlr_output_manager);
         g_return_if_fail(HWDOUT_IS_MANAGER(manager));
+
+        g_signal_connect_object(
+            manager, "done", G_CALLBACK(handle_manager_done), app, G_CONNECT_AFTER
+        );
 
         g_clear_object(&app->manager);
         app->manager = manager;

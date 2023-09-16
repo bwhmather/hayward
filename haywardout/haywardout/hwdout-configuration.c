@@ -261,9 +261,54 @@ hwdout_configuration_new(HwdoutManager *manager) {
 
 void
 hwdout_configuration_apply(HwdoutConfiguration *self) {
+    HwdoutConfigurationHead *config_head;
+    HwdoutHead *head;
+    HwdoutMode *mode;
+    struct zwlr_output_manager_v1 *wlr_manager;
+    struct zwlr_output_configuration_v1 *wlr_config;
+    struct zwlr_output_head_v1 *wlr_head;
+    struct zwlr_output_configuration_head_v1 *wlr_config_head;
+    struct zwlr_output_mode_v1 *wlr_mode;
+    guint i;
+
     g_return_if_fail(HWDOUT_IS_CONFIGURATION(self));
 
-    // TODO
+    wlr_manager = hwdout_manager_get_wlr_output_manager(self->manager);
+
+    wlr_config = zwlr_output_manager_v1_create_configuration(wlr_manager, self->serial);
+
+    for (i = 0; i < g_list_model_get_n_items(G_LIST_MODEL(self->heads)); i++) {
+        config_head =
+            HWDOUT_CONFIGURATION_HEAD(g_list_model_get_object(G_LIST_MODEL(self->heads), i));
+        head = hwdout_configuration_head_get_head(config_head);
+        wlr_head = hwdout_head_get_wlr_output_head(head);
+
+        if (!hwdout_configuration_head_get_is_enabled(config_head)) {
+            g_warning("Disabling head");
+            zwlr_output_configuration_v1_disable_head(wlr_config, wlr_head);
+            continue;
+        }
+
+        wlr_config_head = zwlr_output_configuration_v1_enable_head(wlr_config, wlr_head);
+
+        mode = hwdout_configuration_head_get_mode(config_head);
+        if (mode != NULL) {
+            wlr_mode = hwdout_mode_get_wlr_mode(mode);
+            zwlr_output_configuration_head_v1_set_mode(wlr_config_head, wlr_mode);
+        } else {
+            // TODO custom modes.
+            g_warning("Custom modes not implemented");
+        }
+
+        zwlr_output_configuration_head_v1_set_position(
+            wlr_config_head, hwdout_configuration_head_get_x(config_head),
+            hwdout_configuration_head_get_y(config_head)
+        );
+
+        g_clear_object(&head);
+    }
+
+    zwlr_output_configuration_v1_apply(wlr_config);
 }
 
 /**
