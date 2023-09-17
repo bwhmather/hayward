@@ -34,6 +34,8 @@ struct _HwdoutConfigurationHead {
 
     HwdoutTransform transform;
     wl_fixed_t scale;
+
+    gboolean is_dirty;
 };
 
 G_DEFINE_TYPE(HwdoutConfigurationHead, hwdout_configuration_head, G_TYPE_OBJECT)
@@ -51,10 +53,67 @@ typedef enum {
     PROP_Y,
     PROP_TRANSFORM,
     PROP_SCALE,
+    PROP_IS_DIRTY,
     N_PROPERTIES
 } HwdoutConfigurationHeadProperty;
 
 static GParamSpec *properties[N_PROPERTIES];
+
+static gboolean
+hwdout_configuration_head_check_is_dirty(HwdoutConfigurationHead *self) {
+    HwdoutHead *head;
+
+    g_return_val_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self), FALSE);
+
+    head = self->head;
+    g_return_val_if_fail(HWDOUT_IS_HEAD(head), FALSE);
+
+    if (self->is_enabled != hwdout_head_get_is_enabled(head)) {
+        return TRUE;
+    }
+    if (!self->is_enabled) {
+        // Remaining properties irrelevant (and often invalid) if not enabled.
+        return FALSE;
+    }
+
+    if (self->mode != hwdout_head_get_current_mode(head)) {
+        return TRUE;
+    }
+
+    if (self->x != hwdout_head_get_x(head)) {
+        return TRUE;
+    }
+
+    if (self->y != hwdout_head_get_y(head)) {
+        return TRUE;
+    }
+
+    if (self->transform != hwdout_head_get_transform(head)) {
+        return TRUE;
+    }
+
+    if (self->scale != hwdout_head_get_scale(head)) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void
+hwdout_configuration_head_update_is_dirty(HwdoutConfigurationHead *self) {
+    gboolean is_dirty;
+
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self));
+
+    is_dirty = hwdout_configuration_head_check_is_dirty(self);
+    if (self->is_dirty == is_dirty) {
+        return;
+    }
+
+    self->is_dirty = is_dirty;
+
+    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_IS_DIRTY]);
+}
 
 static void
 hwdout_configuration_head_constructed(GObject *gobject) {
@@ -220,6 +279,10 @@ hwdout_configuration_head_get_property(
         g_value_set_double(value, hwdout_configuration_head_get_scale(self));
         break;
 
+    case PROP_IS_DIRTY:
+        g_value_set_double(value, hwdout_configuration_head_get_is_dirty(self));
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, property_id, pspec);
         break;
@@ -321,6 +384,12 @@ hwdout_configuration_head_class_init(HwdoutConfigurationHeadClass *klass) {
         G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
     );
 
+    properties[PROP_IS_DIRTY] = g_param_spec_boolean(
+        "is-dirty", "Dirty", "Whether this object contains any changes from the current state",
+        FALSE, // Default.
+        G_PARAM_READABLE | G_PARAM_EXPLICIT_NOTIFY
+    );
+
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
 }
 
@@ -388,6 +457,7 @@ hwdout_configuration_head_set_is_enabled(HwdoutConfigurationHead *self, gboolean
 
     self->is_enabled = is_enabled;
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_IS_ENABLED]);
 }
 
@@ -435,6 +505,7 @@ hwdout_configuration_head_set_mode(HwdoutConfigurationHead *self, HwdoutMode *mo
         }
     }
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_MODE]);
 }
 
@@ -460,6 +531,7 @@ hwdout_configuration_head_set_width(HwdoutConfigurationHead *self, gint width) {
         g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_MODE]);
     }
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_WIDTH]);
 }
 
@@ -485,6 +557,7 @@ hwdout_configuration_head_set_height(HwdoutConfigurationHead *self, gint height)
         g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_MODE]);
     }
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_HEIGHT]);
 }
 
@@ -510,6 +583,7 @@ hwdout_configuration_head_set_refresh(HwdoutConfigurationHead *self, gint refres
         g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_MODE]);
     }
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_REFRESH]);
 }
 
@@ -530,6 +604,7 @@ hwdout_configuration_head_set_x(HwdoutConfigurationHead *self, gint x) {
 
     self->x = x;
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_X]);
 }
 
@@ -550,6 +625,7 @@ hwdout_configuration_head_set_y(HwdoutConfigurationHead *self, gint y) {
 
     self->y = y;
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_Y]);
 }
 
@@ -570,6 +646,7 @@ hwdout_configuration_head_set_transform(HwdoutConfigurationHead *self, HwdoutTra
 
     self->transform = transform;
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_TRANSFORM]);
 }
 
@@ -590,6 +667,7 @@ hwdout_configuration_head_set_scale(HwdoutConfigurationHead *self, double scale)
 
     self->scale = scale;
 
+    hwdout_configuration_head_update_is_dirty(self);
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_SCALE]);
 }
 
@@ -598,4 +676,11 @@ hwdout_configuration_head_get_scale(HwdoutConfigurationHead *self) {
     g_return_val_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self), 0.0);
 
     return self->scale;
+}
+
+gboolean
+hwdout_configuration_head_get_is_dirty(HwdoutConfigurationHead *self) {
+    g_return_val_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(self), FALSE);
+
+    return self->is_dirty;
 }

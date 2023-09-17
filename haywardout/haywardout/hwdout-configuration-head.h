@@ -73,6 +73,9 @@ hwdout_configuration_head_set_scale(HwdoutConfigurationHead *self, double scale)
 double
 hwdout_configuration_head_get_scale(HwdoutConfigurationHead *self);
 
+gboolean
+hwdout_configuration_head_get_is_dirty(HwdoutConfigurationHead *self);
+
 G_END_DECLS
 
 #endif /* __HWDOUT_CONFIGURATION_HEAD_H__ */

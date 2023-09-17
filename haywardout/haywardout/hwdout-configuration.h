@@ -26,6 +26,9 @@ hwdout_configuration_get_serial(HwdoutConfiguration *self);
 GListModel *
 hwdout_configuration_get_heads(HwdoutConfiguration *self);
 
+gboolean
+hwdout_configuration_get_is_dirty(HwdoutConfiguration *self);
+
 G_END_DECLS
 
 #endif /* __HWDOUT_CONFIGURATION_H__ */

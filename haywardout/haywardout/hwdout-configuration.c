@@ -22,6 +22,7 @@ struct _HwdoutConfiguration {
 
     GListStore *heads; // `HwdoutConfigurationHead`.
 
+    gboolean is_dirty;
     gboolean finished;
 };
 
@@ -31,6 +32,7 @@ typedef enum {
     PROP_MANAGER = 1,
     PROP_SERIAL,
     PROP_HEADS,
+    PROP_IS_DIRTY,
     N_PROPERTIES
 } HwdoutConfigurationProperty;
 
@@ -44,6 +46,55 @@ typedef enum {
 } HwdoutConfigurationSignal;
 
 static guint signals[N_SIGNALS] = {0};
+
+static gboolean
+hwdout_configuration_check_is_dirty(HwdoutConfiguration *self) {
+    HwdoutConfigurationHead *config_head;
+    guint i;
+
+    g_return_val_if_fail(HWDOUT_IS_CONFIGURATION(self), FALSE);
+
+    for (i = 0; i < g_list_model_get_n_items(G_LIST_MODEL(self->heads)); i++) {
+        config_head =
+            HWDOUT_CONFIGURATION_HEAD(g_list_model_get_item(G_LIST_MODEL(self->heads), i));
+        if (hwdout_configuration_head_get_is_dirty(config_head)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+static void
+hwdout_configuration_update_is_dirty(HwdoutConfiguration *self) {
+    gboolean is_dirty;
+
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION(self));
+
+    is_dirty = hwdout_configuration_check_is_dirty(self);
+    if (self->is_dirty == is_dirty) {
+        return;
+    }
+
+    self->is_dirty = is_dirty;
+
+    g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_IS_DIRTY]);
+}
+
+static void
+handle_configuration_head_is_dirty_changed(
+    HwdoutConfigurationHead *config_head, GParamSpec *pspec, gpointer user_data
+) {
+    HwdoutConfiguration *self = HWDOUT_CONFIGURATION(user_data);
+
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION(self));
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION_HEAD(config_head));
+
+    if (hwdout_configuration_head_get_is_dirty(config_head) == self->is_dirty) {
+        return;
+    }
+
+    hwdout_configuration_update_is_dirty(self);
+}
 
 static void
 handle_wlr_output_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
@@ -81,6 +132,11 @@ hwdout_configuration_constructed(GObject *gobject) {
 
         configuration_head = hwdout_configuration_head_new(self, head);
         g_list_store_append(self->heads, configuration_head);
+
+        g_signal_connect_object(
+            configuration_head, "notify::is-dirty",
+            G_CALLBACK(handle_configuration_head_is_dirty_changed), self, G_CONNECT_DEFAULT
+        );
 
         g_object_unref(G_OBJECT(head));
     }
@@ -142,6 +198,10 @@ hwdout_configuration_get_property(
         g_value_set_object(value, hwdout_configuration_get_heads(self));
         break;
 
+    case PROP_IS_DIRTY:
+        g_value_set_double(value, hwdout_configuration_get_is_dirty(self));
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(gobject, property_id, pspec);
         break;
@@ -193,6 +253,18 @@ hwdout_configuration_class_init(HwdoutConfigurationClass *klass) {
     properties[PROP_HEADS] = g_param_spec_object(
         "heads", "Output heads", "List model containing all of the heads managed by this instance",
         G_TYPE_LIST_MODEL, G_PARAM_READABLE
+    );
+
+    /**
+     * HwdoutConfiguration:is-dirty: (attributes org.gtk.Property.get=hwdout_configuration_get_is_dirty)
+     *
+     * A boolean indicating whether this configuration contains any changes from
+     * the current state.
+     */
+    properties[PROP_IS_DIRTY] = g_param_spec_boolean(
+        "is-dirty", "Dirty", "Whether this object contains any changes from the current state",
+        FALSE, // Default.
+        G_PARAM_READABLE | G_PARAM_EXPLICIT_NOTIFY
     );
 
     g_object_class_install_properties(object_class, N_PROPERTIES, properties);
@@ -351,4 +423,17 @@ hwdout_configuration_get_heads(HwdoutConfiguration *self) {
     g_return_val_if_fail(HWDOUT_IS_CONFIGURATION(self), NULL);
 
     return G_LIST_MODEL(self->heads);
+}
+
+/**
+ * hwdout_configuration_get_is_dirty: (attributes org.gtk.Method.get_property=is-dirty)
+ * @self: a `HwdoutConfiguration`
+ *
+ * Returns: TRUE if this configuration deviates from the current configuration, FALSE otherwise.
+ */
+gboolean
+hwdout_configuration_get_is_dirty(HwdoutConfiguration *self) {
+    g_return_val_if_fail(HWDOUT_IS_CONFIGURATION(self), FALSE);
+
+    return self->is_dirty;
 }
