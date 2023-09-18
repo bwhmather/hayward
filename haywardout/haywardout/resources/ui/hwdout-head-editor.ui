@@ -46,6 +46,11 @@
             <property name="spacing">5</property>
             <property name="hexpand">true</property>
             <property name="halign">fill</property>
+            <binding name="sensitive">
+              <lookup name="is-enabled">
+                <lookup name="head">HwdoutHeadEditor</lookup>
+              </lookup>
+            </binding>
             <child>
               <object class="GtkBox">
                 <property name="spacing">5</property>
@@ -72,11 +77,6 @@
                     <property name="expression">
                       <closure type="gchararray" function="describe_mode" />
                     </property>
-                    <binding name="sensitive">
-                      <lookup name="is-enabled">
-                        <lookup name="head">HwdoutHeadEditor</lookup>
-                      </lookup>
-                    </binding>
                   </object>
                 </child>
               </object>
@@ -97,11 +97,6 @@
                   <object class="GtkSpinButton" id="scale_input">
                     <property name="hexpand">false</property>
                     <property name="halign">end</property>
-                    <binding name="sensitive">
-                      <lookup name="is-enabled">
-                        <lookup name="head">HwdoutHeadEditor</lookup>
-                      </lookup>
-                    </binding>
                   </object>
                 </child>
               </object>
