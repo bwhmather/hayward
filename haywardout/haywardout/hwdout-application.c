@@ -39,7 +39,12 @@ handle_manager_done(HwdoutManager *manager, uint32_t serial, void *data) {
     guint i;
     gint x = 0;
 
+    g_return_if_fail(HWDOUT_IS_MANAGER(manager));
+    g_return_if_fail(HWDOUT_IS_APPLICATION(self));
+
     config = hwdout_configuration_new(self->manager);
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION(config));
+
     config_heads = hwdout_configuration_get_heads(config);
     for (i = 0; i < g_list_model_get_n_items(config_heads); i++) {
         config_head = HWDOUT_CONFIGURATION_HEAD(g_list_model_get_object(config_heads, i));
