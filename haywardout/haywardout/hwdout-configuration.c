@@ -345,6 +345,10 @@ hwdout_configuration_apply(HwdoutConfiguration *self) {
 
     g_return_if_fail(HWDOUT_IS_CONFIGURATION(self));
 
+    if (!hwdout_configuration_get_is_dirty(self)) {
+        return;
+    }
+
     wlr_manager = hwdout_manager_get_wlr_output_manager(self->manager);
 
     wlr_config = zwlr_output_manager_v1_create_configuration(wlr_manager, self->serial);
