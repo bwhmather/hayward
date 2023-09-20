@@ -25,6 +25,17 @@ typedef enum { PROP_MANAGER = 1, PROP_CONFIGURATION, N_PROPERTIES } HwdoutWindow
 static GParamSpec *properties[N_PROPERTIES];
 
 static void
+apply_activated(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+    HwdoutWindow *self = HWDOUT_WINDOW(user_data);
+
+    g_return_if_fail(HWDOUT_IS_WINDOW(self));
+
+    hwdout_configuration_apply(self->configuration);
+}
+
+static GActionEntry entries[] = {{"apply", apply_activated, NULL, NULL, NULL}};
+
+static void
 hwdout_window_reset_configuration(HwdoutWindow *self) {
     GListModel *heads_list;
     GtkNoSelection *heads_selection;
@@ -127,7 +138,16 @@ hwdout_window_class_init(HwdoutWindowClass *klass) {
 
 static void
 hwdout_window_init(HwdoutWindow *self) {
+    GSimpleActionGroup *actions;
+
     gtk_widget_init_template(GTK_WIDGET(self));
+
+    actions = g_simple_action_group_new();
+
+    g_action_map_add_action_entries(G_ACTION_MAP(actions), entries, G_N_ELEMENTS(entries), self);
+
+    gtk_widget_insert_action_group(GTK_WIDGET(self), "win", G_ACTION_GROUP(actions));
+    g_clear_object(&actions);
 }
 
 HwdoutWindow *

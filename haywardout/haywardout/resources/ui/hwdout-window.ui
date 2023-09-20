@@ -59,12 +59,18 @@
           <object class="GtkActionBar">
             <child type="end">
               <object class="GtkButton">
+                <property name="action-name">win.apply</property>
                 <style>
                   <class name="suggested-action" />
                 </style>
                 <child>
                   <object class="GtkLabel">
                     <property name="label">Apply</property>
+                    <binding name="sensitive">
+                      <lookup name="is-dirty">
+                        <lookup name="configuration">HwdoutWindow</lookup>
+                      </lookup>
+                    </binding>
                   </object>
                 </child>
               </object>

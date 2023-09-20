@@ -199,7 +199,7 @@ hwdout_configuration_get_property(
         break;
 
     case PROP_IS_DIRTY:
-        g_value_set_double(value, hwdout_configuration_get_is_dirty(self));
+        g_value_set_boolean(value, hwdout_configuration_get_is_dirty(self));
         break;
 
     default:
