@@ -1,5 +1,5 @@
-#ifndef HWD_TRANSACTION_H
-#define HWD_TRANSACTION_H
+#ifndef HWD_TREE_TRANSACTION_H
+#define HWD_TREE_TRANSACTION_H
 
 #include <config.h>
 
