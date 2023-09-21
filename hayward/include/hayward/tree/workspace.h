@@ -8,7 +8,6 @@
 
 #include <hayward-common/list.h>
 
-#include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>

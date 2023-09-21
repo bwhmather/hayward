@@ -487,8 +487,6 @@ load_main_config(const char *file, bool is_active, bool validating) {
         }
         hwd_switch_retrigger_bindings_for_all();
 
-        reset_outputs();
-
         config->reloading = false;
         if (config->haywardnag_config_errors.client != NULL) {
             haywardnag_show(&config->haywardnag_config_errors);
@@ -896,12 +894,6 @@ free_config(struct hwd_config *config) {
         list_free(config->bars);
     }
     list_free(config->cmd_queue);
-    if (config->output_configs) {
-        for (int i = 0; i < config->output_configs->length; i++) {
-            free_output_config(config->output_configs->items[i]);
-        }
-        list_free(config->output_configs);
-    }
     if (config->input_configs) {
         for (int i = 0; i < config->input_configs->length; i++) {
             free_input_config(config->input_configs->items[i]);

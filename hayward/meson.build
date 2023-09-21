@@ -31,7 +31,6 @@ hayward_sources = files(
 	'src/input/text_input.c',
 
 	'src/config/bar.c',
-	'src/config/output.c',
 	'src/config/seat.c',
 	'src/config/input.c',
 

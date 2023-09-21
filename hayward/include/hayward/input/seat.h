@@ -20,6 +20,7 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/tablet.h>
 #include <hayward/input/text_input.h>
+#include <hayward/output.h>
 
 struct hwd_seat;
 

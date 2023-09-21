@@ -17,11 +17,16 @@
 
 #include <wayland-server-protocol.h>
 
-#include <hayward/config.h>
-
 struct hwd_server;
 struct hwd_window;
 struct hwd_view;
+
+enum scale_filter_mode {
+    SCALE_FILTER_DEFAULT, // the default is currently smart
+    SCALE_FILTER_LINEAR,
+    SCALE_FILTER_NEAREST,
+    SCALE_FILTER_SMART,
+};
 
 struct hwd_output_state {
     int x, y;
@@ -98,12 +103,6 @@ struct hwd_output {
 
 struct hwd_output *
 output_create(struct wlr_output *wlr_output);
-
-void
-output_enable(struct hwd_output *output);
-
-void
-output_disable(struct hwd_output *output);
 
 struct hwd_output *
 output_from_wlr_output(struct wlr_output *output);

@@ -12,12 +12,9 @@
 #include <wlr/types/wlr_switch.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
-#include <xf86drmMode.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include <hayward-common/list.h>
-
-#include <wayland-server-protocol.h>
 
 #include <hayward/haywardnag.h>
 #include <hayward/input/tablet.h>
@@ -26,7 +23,6 @@
 
 struct hwd_window;
 struct hwd_column;
-struct hwd_output;
 
 /**
  * Describes a variable created via the `set` command.
@@ -239,49 +235,6 @@ struct seat_config {
         char *name;
         int size;
     } xcursor_theme;
-};
-
-enum config_dpms {
-    DPMS_IGNORE,
-    DPMS_ON,
-    DPMS_OFF,
-};
-
-enum scale_filter_mode {
-    SCALE_FILTER_DEFAULT, // the default is currently smart
-    SCALE_FILTER_LINEAR,
-    SCALE_FILTER_NEAREST,
-    SCALE_FILTER_SMART,
-};
-
-enum render_bit_depth {
-    RENDER_BIT_DEPTH_DEFAULT, // the default is currently 8
-    RENDER_BIT_DEPTH_8,
-    RENDER_BIT_DEPTH_10,
-};
-
-/**
- * Size and position configuration for a particular output.
- *
- * This is set via the `output` command.
- */
-struct output_config {
-    char *name;
-    int enabled;
-    int width, height;
-    float refresh_rate;
-    int custom_mode;
-    drmModeModeInfo drm_mode;
-    int x, y;
-    float scale;
-    enum scale_filter_mode scale_filter;
-    int32_t transform;
-    enum wl_output_subpixel subpixel;
-    int max_render_time; // In milliseconds
-    int adaptive_sync;
-    enum render_bit_depth render_bit_depth;
-
-    enum config_dpms dpms_state;
 };
 
 enum pango_markup_config {
@@ -514,7 +467,6 @@ struct hwd_config {
     // Context for command handlers
     struct {
         struct input_config *input_config;
-        struct output_config *output_config;
         struct seat_config *seat_config;
         struct hwd_seat *seat;
         struct hwd_workspace *workspace;
@@ -607,27 +559,6 @@ seat_config_get_attachment(struct seat_config *seat_config, char *identifier);
 
 struct seat_config *
 store_seat_config(struct seat_config *seat);
-
-void
-output_get_identifier(char *identifier, size_t len, struct hwd_output *output);
-
-const char *
-hwd_output_scale_filter_to_string(enum scale_filter_mode scale_filter);
-
-struct output_config *
-new_output_config(const char *name);
-
-bool
-apply_output_config(struct output_config *oc, struct hwd_output *output);
-
-bool
-test_output_config(struct output_config *oc, struct hwd_output *output);
-
-void
-reset_outputs(void);
-
-void
-free_output_config(struct output_config *oc);
 
 void
 free_hwd_binding(struct hwd_binding *sb);

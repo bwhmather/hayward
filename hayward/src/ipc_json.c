@@ -450,10 +450,6 @@ ipc_json_describe_output(struct hwd_output *output) {
     json_object_object_add(object, "serial", json_object_new_string(wlr_output->serial));
     json_object_object_add(object, "scale", json_object_new_double(wlr_output->scale));
     json_object_object_add(
-        object, "scale_filter",
-        json_object_new_string(hwd_output_scale_filter_to_string(output->scale_filter))
-    );
-    json_object_object_add(
         object, "transform",
         json_object_new_string(ipc_json_output_transform_description(wlr_output->transform))
     );

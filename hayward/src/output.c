@@ -31,7 +31,6 @@
 
 #include <wlr-output-power-management-unstable-v1-protocol.h>
 
-#include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
@@ -176,9 +175,11 @@ output_set_dirty(struct hwd_output *output) {
     hwd_transaction_manager_ensure_queued(transaction_manager);
 }
 
-void
+static void
 output_enable(struct hwd_output *output) {
-    hwd_assert(!output->enabled, "output is already enabled");
+    if (output->enabled) {
+        return;
+    }
     output->enabled = true;
     list_add(root->outputs, output);
     if (root->pending.active_output == NULL ||
@@ -255,7 +256,7 @@ output_destroy(struct hwd_output *output) {
     free(output);
 }
 
-void
+static void
 output_disable(struct hwd_output *output) {
     hwd_assert(output->enabled, "Expected an enabled output");
 
@@ -356,12 +357,17 @@ output_get_usable_area(struct hwd_output *output, struct wlr_box *box) {
 struct hwd_output *
 output_by_name_or_id(const char *name_or_id) {
     for (int i = 0; i < root->outputs->length; ++i) {
-        struct hwd_output *output = root->outputs->items[i];
+        struct hwd_output *hwd_output = root->outputs->items[i];
+        struct wlr_output *wlr_output = hwd_output->wlr_output;
+
         char identifier[128];
-        output_get_identifier(identifier, sizeof(identifier), output);
+        snprintf(
+            identifier, 128, "%s %s %s", wlr_output->make, wlr_output->model, wlr_output->serial
+        );
+
         if (strcasecmp(identifier, name_or_id) == 0 ||
-            strcasecmp(output->wlr_output->name, name_or_id) == 0) {
-            return output;
+            strcasecmp(hwd_output->wlr_output->name, name_or_id) == 0) {
+            return hwd_output;
         }
     }
     return NULL;
@@ -696,11 +702,25 @@ handle_new_output(struct wl_listener *listener, void *data) {
     output->repaint_timer =
         wl_event_loop_add_timer(server->wl_event_loop, output_repaint_timer_handler, output);
 
-    struct output_config *oc = new_output_config(output->wlr_output->name);
-    apply_output_config(oc, output);
-    free_output_config(oc);
+    // BEGIN TODO this bit should ony be necessary if hwdout not running.
+    wlr_output_enable(wlr_output, true);
 
-    update_output_manager_config(server);
+    if (!wlr_output_commit(wlr_output)) {
+        hwd_log(HWD_ERROR, "Failed to commit output %s", wlr_output->name);
+        return;
+    }
+
+    wlr_output_layout_add(root->output_layout, wlr_output, 0, 0);
+
+    struct wlr_box output_box;
+    wlr_output_layout_get_box(root->output_layout, wlr_output, &output_box);
+    output->lx = output_box.x;
+    output->ly = output_box.y;
+    output->width = output_box.width;
+    output->height = output_box.height;
+
+    output_enable(output);
+    // END TODO
 }
 
 void
@@ -721,49 +741,75 @@ output_manager_apply(
     bool ok = true;
     wl_list_for_each(config_head, &config->heads, link) {
         struct wlr_output *wlr_output = config_head->state.output;
-        struct hwd_output *output = wlr_output->data;
-        if (!output->enabled || config_head->state.enabled) {
+        struct hwd_output *hwd_output = wlr_output->data;
+        if (!hwd_output->enabled || config_head->state.enabled) {
             continue;
         }
-        struct output_config *oc = new_output_config(output->wlr_output->name);
-        oc->enabled = false;
+        wlr_output_enable(wlr_output, false);
 
-        if (test_only) {
-            ok &= test_output_config(oc, output);
-        } else {
-            ok &= apply_output_config(oc, output);
-        }
+        output_disable(hwd_output);
     }
 
     // Then enable outputs that need to
     wl_list_for_each(config_head, &config->heads, link) {
         struct wlr_output *wlr_output = config_head->state.output;
-        struct hwd_output *output = wlr_output->data;
+        struct hwd_output *hwd_output = wlr_output->data;
+
         if (!config_head->state.enabled) {
             continue;
         }
-        struct output_config *oc = new_output_config(output->wlr_output->name);
-        oc->enabled = true;
+
+        // Flag to prevent the output mode event handler from calling us
+        hwd_output->enabling = true;
+
         if (config_head->state.mode != NULL) {
-            struct wlr_output_mode *mode = config_head->state.mode;
-            oc->width = mode->width;
-            oc->height = mode->height;
-            oc->refresh_rate = mode->refresh / 1000.f;
+            wlr_output_set_mode(wlr_output, config_head->state.mode);
         } else {
-            oc->width = config_head->state.custom_mode.width;
-            oc->height = config_head->state.custom_mode.height;
-            oc->refresh_rate = config_head->state.custom_mode.refresh / 1000.f;
+            hwd_log(HWD_DEBUG, "Assigning custom mode to %s", wlr_output->name);
+            wlr_output_set_custom_mode(
+                wlr_output, config_head->state.custom_mode.width,
+                config_head->state.custom_mode.height, config_head->state.custom_mode.refresh
+            );
         }
-        oc->x = config_head->state.x;
-        oc->y = config_head->state.y;
-        oc->transform = config_head->state.transform;
-        oc->scale = config_head->state.scale;
+
+        if (config_head->state.transform != wlr_output->transform) {
+            // TODO
+            // wlr_output_set_transform(config_head->state.transform);
+        }
+
+        if (config_head->state.scale != wlr_output->scale) {
+            // TODO
+            // wlr_output_set_scale(config_head->state.scale);
+        }
 
         if (test_only) {
-            ok &= test_output_config(oc, output);
-        } else {
-            ok &= apply_output_config(oc, output);
+            // TODO
+            continue;
         }
+
+        if (!wlr_output->enabled) {
+            wlr_output_enable(wlr_output, true);
+        }
+
+        if (!wlr_output_commit(wlr_output)) {
+            hwd_log(HWD_ERROR, "Failed to commit output %s", wlr_output->name);
+            hwd_output->enabling = false;
+            ok = false;
+            continue;
+        }
+
+        wlr_output_layout_add(
+            root->output_layout, wlr_output, config_head->state.x, config_head->state.y
+        );
+
+        struct wlr_box output_box;
+        wlr_output_layout_get_box(root->output_layout, wlr_output, &output_box);
+        hwd_output->lx = output_box.x;
+        hwd_output->ly = output_box.y;
+        hwd_output->width = output_box.width;
+        hwd_output->height = output_box.height;
+
+        output_enable(hwd_output);
     }
 
     if (ok) {
@@ -772,10 +818,6 @@ output_manager_apply(
         wlr_output_configuration_v1_send_failed(config);
     }
     wlr_output_configuration_v1_destroy(config);
-
-    if (!test_only) {
-        update_output_manager_config(server);
-    }
 }
 
 void
@@ -797,16 +839,13 @@ handle_output_manager_test(struct wl_listener *listener, void *data) {
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
     struct wlr_output_power_v1_set_mode_event *event = data;
-    struct hwd_output *output = event->output->data;
 
-    struct output_config *oc = new_output_config(output->wlr_output->name);
     switch (event->mode) {
     case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
-        oc->dpms_state = DPMS_OFF;
+        // TODO
         break;
     case ZWLR_OUTPUT_POWER_V1_MODE_ON:
-        oc->dpms_state = DPMS_ON;
+        // TODO
         break;
     }
-    apply_output_config(oc, output);
 }
