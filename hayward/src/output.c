@@ -641,6 +641,7 @@ handle_request_state(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, request_state);
     const struct wlr_output_event_request_state *event = data;
     wlr_output_commit_state(output->wlr_output, event->state);
+    update_output_manager_config(output->server);
 }
 
 static unsigned int last_headless_num = 0;
