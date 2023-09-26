@@ -37,23 +37,30 @@ static GActionEntry entries[] = {{"apply", apply_activated, NULL, NULL, NULL}};
 
 static void
 hwdout_window_reset_configuration(HwdoutWindow *self) {
+    HwdoutConfiguration *new_configuration;
     GListModel *heads_list;
     GtkNoSelection *heads_selection;
 
     g_return_if_fail(HWDOUT_IS_WINDOW(self));
 
-    g_clear_object(&self->configuration);
     if (self->manager == NULL) {
         return;
     }
 
-    self->configuration = hwdout_configuration_new(self->manager);
-    g_return_if_fail(HWDOUT_IS_CONFIGURATION(self->configuration));
+    new_configuration = hwdout_configuration_new(self->manager);
+    g_return_if_fail(HWDOUT_IS_CONFIGURATION(new_configuration));
 
-    heads_list = hwdout_configuration_get_heads(self->configuration);
+    heads_list = hwdout_configuration_get_heads(new_configuration);
+    g_return_if_fail(G_IS_LIST_MODEL(heads_list));
+
     heads_selection = gtk_no_selection_new(heads_list);
+    g_return_if_fail(GTK_IS_SELECTION_MODEL(heads_selection));
+
     gtk_list_view_set_model(self->heads_list_view, GTK_SELECTION_MODEL(heads_selection));
     g_clear_object(&heads_selection);
+
+    g_clear_object(&self->configuration);
+    self->configuration = new_configuration;
 
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_CONFIGURATION]);
 }
