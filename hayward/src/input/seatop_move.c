@@ -12,7 +12,7 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
+#include <hayward-common/log.h>
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
@@ -274,31 +274,38 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     }
 
     struct hwd_window *target_window = column_get_window_at(target_column, cursor->x, cursor->y);
-    if (target_window == NULL) {
-        // Only currently possible if column is empty, which means a bug
-        // elsewhere, but we better to tolerate this.
+    hwd_assert(target_window != NULL, "Can't drag over empty column");
+
+    struct hwd_window *prev_window = window_get_previous_sibling(target_window);
+
+    // There is no previous window or the previous window is shaded and we are
+    // in the top half of the titlebar.
+    struct wlr_box titlebar_top_box;
+    window_get_titlebar_box(target_window, &titlebar_top_box);
+    titlebar_top_box.height /= 2;
+    if ((prev_window == NULL || prev_window->pending.shaded) &&
+        wlr_box_contains_point(&titlebar_top_box, cursor->x, cursor->y)) {
+        e->target_area = titlebar_top_box;
+
+        struct hwd_column *destination_column = target_window->pending.parent;
+        destination_column->pending.show_preview = true;
+        destination_column->pending.preview_target = prev_window;
+        arrange_column(destination_column);
+
+        e->destination_column = destination_column;
         return;
     }
 
-    // Are we over the titlebar of a tiled window?
-    //   - Move titlebar towards active window and draw preview square in its place.
-    //   - Exit when moved outside the original titlebar square.  No hysteresis.
-    struct wlr_box titlebar_box;
-    window_get_titlebar_box(target_window, &titlebar_box);
-    if (wlr_box_contains_point(&titlebar_box, cursor->x, cursor->y)) {
-        e->target_area.x = titlebar_box.x;
-        e->target_area.y = titlebar_box.y;
-        e->target_area.width = titlebar_box.width;
-        e->target_area.height = titlebar_box.height;
+    // This windows is shaded and we are in the bottom half of the titlebar.
+    struct wlr_box titlebar_bottom_box;
+    window_get_titlebar_box(target_window, &titlebar_bottom_box);
+    titlebar_bottom_box.y += titlebar_top_box.height;
+    titlebar_bottom_box.height -= titlebar_top_box.height;
+    if (target_window->pending.shaded &&
+        wlr_box_contains_point(&titlebar_top_box, cursor->x, cursor->y)) {
+        e->target_area = titlebar_bottom_box;
 
-        struct hwd_column *destination_column = target_column;
-        int target_index = list_find(destination_column->pending.children, target_window);
-        int active_index = list_find(
-            destination_column->pending.children, destination_column->pending.active_child
-        );
-        if (destination_column->pending.layout != L_STACKED || target_index <= active_index) {
-            target_window = window_get_previous_sibling(target_window);
-        }
+        struct hwd_column *destination_column = target_window->pending.parent;
         destination_column->pending.show_preview = true;
         destination_column->pending.preview_target = target_window;
         arrange_column(destination_column);
@@ -307,20 +314,19 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         return;
     }
 
-    // Are we at the center of a tiled window?
-    //   - Draw preview square on top of the active window.
-    //   - Exit when moved outside of larger square.
+    // This window is unshaded and we are in a narrow box around the top center.
     struct wlr_box centre_box;
     window_get_content_box(target_window, &centre_box);
     centre_box.width /= 5;
     centre_box.x += 2 * centre_box.width;
     centre_box.height /= 5;
-    centre_box.y += 2 * centre_box.height;
-    if (wlr_box_contains_point(&centre_box, cursor->x, cursor->y)) {
+    centre_box.y += 1 * centre_box.height;
+    if (!target_window->pending.shaded &&
+        wlr_box_contains_point(&centre_box, cursor->x, cursor->y)) {
         e->target_area.x = centre_box.x + centre_box.width;
         e->target_area.y = centre_box.y + centre_box.height;
-        e->target_area.width = titlebar_box.width * 3;
-        e->target_area.height = titlebar_box.height * 3;
+        e->target_area.width = centre_box.width * 3;
+        e->target_area.height = centre_box.height * 3;
 
         struct hwd_column *destination_column = target_window->pending.parent;
         destination_column->pending.show_preview = true;
