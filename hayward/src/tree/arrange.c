@@ -53,10 +53,8 @@ arrange_window(struct hwd_window *window) {
     window_set_dirty(window);
 }
 
-static void
-arrange_column_split(struct hwd_column *column) {
-    hwd_assert(column->pending.layout == L_SPLIT, "Expected split column");
-
+void
+arrange_column(struct hwd_column *column) {
     struct wlr_box box;
     column_get_box(column, &box);
 
@@ -119,96 +117,7 @@ arrange_column_split(struct hwd_column *column) {
             child->pending.height = box.height - child->pending.y;
         }
     }
-}
 
-static void
-arrange_column_stacked(struct hwd_column *column) {
-    hwd_assert(column->pending.layout == L_STACKED, "Expected stacked column");
-
-    struct wlr_box box;
-    column_get_box(column, &box);
-
-    struct hwd_window *active = column->pending.active_child;
-    size_t titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
-
-    int y_offset = 0;
-
-    if (column->pending.show_preview && column->pending.children->length == 0) {
-        column->pending.preview_box.x = column->pending.x;
-        column->pending.preview_box.y = column->pending.y;
-        column->pending.preview_box.width = column->pending.width;
-        column->pending.preview_box.height = column->pending.height;
-        return;
-    }
-
-    int num_titlebars = column->pending.children->length;
-    if (column->pending.show_preview) {
-        if (column->pending.preview_target == NULL) {
-            column->pending.preview_box.x = column->pending.x;
-            column->pending.preview_box.y = column->pending.y + y_offset;
-            column->pending.preview_box.width = column->pending.width;
-            column->pending.preview_box.height = titlebar_height;
-            y_offset += titlebar_height;
-        }
-
-        if (column->pending.preview_target != column->pending.active_child) {
-            num_titlebars += 1;
-        }
-    }
-
-    for (int i = 0; i < column->pending.children->length; ++i) {
-        struct hwd_window *child = column->pending.children->items[i];
-
-        child->pending.x = column->pending.x;
-        child->pending.y = column->pending.y + y_offset;
-        child->pending.width = box.width;
-
-        if (child == active) {
-            child->pending.height = box.height - (num_titlebars - 1) * titlebar_height;
-            child->pending.shaded = false;
-        } else {
-            child->pending.height = titlebar_height;
-            child->pending.shaded = true;
-        }
-
-        y_offset += child->pending.height;
-
-        if (child == column->pending.preview_target) {
-            column->pending.preview_box.x = column->pending.x;
-            column->pending.preview_box.width = column->pending.width;
-
-            if (child == active) {
-                column->pending.preview_box.y = child->pending.y + titlebar_height;
-                column->pending.preview_box.height = child->pending.height - titlebar_height;
-            } else {
-                column->pending.preview_box.y = column->pending.y + y_offset;
-                column->pending.preview_box.height = titlebar_height;
-                y_offset += titlebar_height;
-            }
-        }
-    }
-}
-
-void
-arrange_column(struct hwd_column *column) {
-    if (config->reloading) {
-        return;
-    }
-
-    // Calculate x, y, width and height of children
-    switch (column->pending.layout) {
-    case L_SPLIT:
-        arrange_column_split(column);
-        break;
-    case L_STACKED:
-        arrange_column_stacked(column);
-        break;
-    default:
-        hwd_assert(false, "Unsupported layout");
-        break;
-    }
-
-    list_t *children = column->pending.children;
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
         arrange_window(child);

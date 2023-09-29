@@ -51,17 +51,6 @@ static json_object *
 ipc_json_describe_column(struct hwd_column *column);
 
 static const char *
-ipc_json_layout_description(enum hwd_column_layout l) {
-    switch (l) {
-    case L_SPLIT:
-        return "split";
-    case L_STACKED:
-        return "stacked";
-    }
-    hwd_abort("invalid layout");
-}
-
-static const char *
 ipc_json_output_transform_description(enum wl_output_transform transform) {
     switch (transform) {
     case WL_OUTPUT_TRANSFORM_NORMAL:
@@ -227,14 +216,6 @@ window_get_deco_rect(struct hwd_window *window, struct wlr_box *deco_rect) {
         deco_rect->y = window->pending.y - parent->pending.y;
         deco_rect->width = window->pending.width;
         deco_rect->height = window_titlebar_height();
-
-        if (parent->pending.layout == L_STACKED) {
-            if (!window->view) {
-                size_t siblings = window_get_siblings(window)->length;
-                deco_rect->y -= deco_rect->height * siblings;
-            }
-            deco_rect->y += deco_rect->height * window_sibling_index(window);
-        }
     }
 }
 
@@ -336,10 +317,6 @@ ipc_json_describe_column(struct hwd_column *column) {
     json_object *object = ipc_json_create_node(column->id, "container", name, &box);
 
     json_object_object_add(object, "focused", json_object_new_boolean(column->pending.focused));
-    json_object_object_add(
-        object, "layout",
-        json_object_new_string(ipc_json_layout_description(column->pending.layout))
-    );
 
     bool urgent = column_has_urgent_child(column);
     json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
@@ -379,7 +356,7 @@ ipc_json_describe_window(struct hwd_window *window) {
     struct wlr_box deco_rect = {0, 0, 0, 0};
     window_get_deco_rect(window, &deco_rect);
     size_t count = 1;
-    if (window->pending.parent != NULL && window->pending.parent->pending.layout == L_STACKED) {
+    if (window->pending.parent != NULL) {
         count = window_get_siblings(window)->length;
     }
     box.y += deco_rect.height * count;

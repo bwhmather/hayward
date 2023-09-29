@@ -182,7 +182,6 @@ column_create(void) {
     wl_signal_init(&column->events.begin_destroy);
     wl_signal_init(&column->events.destroy);
 
-    column->pending.layout = L_STACKED;
     column->alpha = 1.0f;
 
     column->pending.children = create_list();

@@ -133,7 +133,6 @@ hwd_cmd cmd_hide_edge_borders;
 hwd_cmd cmd_include;
 hwd_cmd cmd_input;
 hwd_cmd cmd_kill;
-hwd_cmd cmd_layout;
 hwd_cmd cmd_max_render_time;
 hwd_cmd cmd_mode;
 hwd_cmd cmd_move;

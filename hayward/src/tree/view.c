@@ -673,14 +673,11 @@ view_is_visible(struct hwd_view *view) {
         return false;
     }
 
-    // Check view isn't in a stacked container on an inactive tab
+    // Check view isn't in a shaded window.
     struct hwd_window *window = view->window;
     struct hwd_column *column = window->pending.parent;
-    if (column != NULL) {
-        enum hwd_column_layout parent_layout = column->pending.layout;
-        if (parent_layout == L_STACKED && column->pending.active_child != window) {
-            return false;
-        }
+    if (column != NULL && window->pending.shaded) {
+        return false;
     }
 
     // Check view isn't hidden by another fullscreen view

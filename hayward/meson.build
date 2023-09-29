@@ -56,7 +56,6 @@ hayward_sources = files(
 	'src/commands/opacity.c',
 	'src/commands/include.c',
 	'src/commands/input.c',
-	'src/commands/layout.c',
 	'src/commands/mode.c',
 	'src/commands/move.c',
 	'src/commands/nop.c',

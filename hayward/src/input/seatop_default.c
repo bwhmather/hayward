@@ -119,12 +119,6 @@ window_edge_is_external(struct hwd_window *window, enum wlr_edges edge) {
         return column_edge_is_external(window->pending.parent, edge);
     }
 
-    enum hwd_column_layout layout = window->pending.parent->pending.layout;
-
-    if (layout == L_STACKED) {
-        return true;
-    }
-
     list_t *siblings = window_get_siblings(window);
     int index = list_find(siblings, window);
     hwd_assert(index >= 0, "Window not found");
@@ -474,10 +468,6 @@ handle_button(
         // hidden tab, we'd change the active tab when the user
         // probably just wanted to resize.
         struct hwd_window *window_to_focus = window;
-        struct hwd_column *parent = window->pending.parent;
-        if (parent->pending.layout == L_STACKED) {
-            window_to_focus = parent->pending.active_child;
-        }
         root_set_focused_window(root, window_to_focus);
 
         seatop_begin_resize_tiling(
@@ -784,7 +774,6 @@ handle_pointer_axis(struct hwd_seat *seat, struct wlr_pointer_axis_event *event)
     enum wlr_edges edge = window ? find_edge(window, surface, cursor) : WLR_EDGE_NONE;
     bool on_border = edge != WLR_EDGE_NONE;
     bool on_titlebar = window && !on_border && !surface;
-    bool on_titlebar_border = window && on_border && cursor->cursor->y < window->pending.content_y;
     bool on_contents = window && !on_border && surface;
     bool on_workspace = output && !window && !surface;
     float scroll_factor = (ic == NULL || ic->scroll_factor == FLT_MIN) ? 1.0f : ic->scroll_factor;
@@ -809,26 +798,6 @@ handle_pointer_axis(struct hwd_seat *seat, struct wlr_pointer_axis_event *event)
     if (binding) {
         seat_execute_command(seat, binding);
         handled = true;
-    }
-
-    // Scrolling on a stacked title bar (handled as press event)
-    if (!handled && (on_titlebar || on_titlebar_border)) {
-        struct hwd_column *column = window->pending.parent;
-        if (column->pending.layout == L_STACKED) {
-            struct hwd_window *active = column->pending.active_child;
-            list_t *siblings = window_get_siblings(window);
-            int desired =
-                list_find(siblings, active) + round(scroll_factor * event->delta_discrete);
-            if (desired < 0) {
-                desired = 0;
-            } else if (desired >= siblings->length) {
-                desired = siblings->length - 1;
-            }
-
-            struct hwd_window *new_sibling = siblings->items[desired];
-            root_set_focused_window(root, new_sibling);
-            handled = true;
-        }
     }
 
     // Handle mouse bindings - x11 mouse buttons 4-7 - release event

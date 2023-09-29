@@ -120,9 +120,6 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
     }
 
     struct hwd_column *column = window->pending.parent;
-    if (column->pending.layout != L_SPLIT) {
-        return;
-    }
 
     struct hwd_window *prev_sibling = NULL;
     struct hwd_window *next_sibling = NULL;
@@ -294,12 +291,7 @@ resize_set_tiled(
     if (height->amount) {
         if (height->unit == MOVEMENT_UNIT_PPT || height->unit == MOVEMENT_UNIT_DEFAULT) {
             // Convert to px
-            struct hwd_column *parent = window->pending.parent;
-            if (parent->pending.layout != L_SPLIT) {
-                height->amount = parent->pending.height * height->amount / 100;
-            } else {
-                height->amount = window->pending.output->pending.height * height->amount / 100;
-            }
+            height->amount = window->pending.output->pending.height * height->amount / 100;
             height->unit = MOVEMENT_UNIT_PX;
         }
         if (height->unit == MOVEMENT_UNIT_PX) {
