@@ -125,6 +125,15 @@ root_set_active_output(struct hwd_root *root, struct hwd_output *output);
 struct hwd_output *
 root_get_active_output(struct hwd_root *root);
 
+struct wlr_surface *
+root_get_focused_unmanaged(struct hwd_root *root);
+
+struct wlr_layer_surface_v1 *
+root_get_focused_layer(struct hwd_root *root);
+
+struct wlr_surface *
+root_get_focused_surface(struct hwd_root *root);
+
 /**
  * Helper functions that traverse the tree to focus the right window.
  */
@@ -150,12 +159,6 @@ root_set_focused_layer(struct hwd_root *root, struct wlr_layer_surface_v1 *layer
  */
 void
 root_set_focused_surface(struct hwd_root *root, struct wlr_surface *surface);
-
-struct wlr_layer_surface_v1 *
-root_get_focused_layer(struct hwd_root *root);
-
-struct wlr_surface *
-root_get_focused_surface(struct hwd_root *root);
 
 void
 root_commit_focus(struct hwd_root *root);
