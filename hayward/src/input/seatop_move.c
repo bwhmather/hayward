@@ -218,6 +218,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
         workspace_insert_column_first(workspace, target_output, destination_column);
+        destination_column->preview_height_fraction = destination_column->pending.height;
         arrange_workspace(workspace);
         e->destination_column = destination_column;
         return;
@@ -230,6 +231,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
 
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
         workspace_insert_column_last(workspace, target_output, destination_column);
         arrange_workspace(workspace);
         e->destination_column = destination_column;
@@ -253,6 +255,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
 
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
         workspace_insert_column_before(workspace, target_column, destination_column);
         arrange_workspace(workspace);
         e->destination_column = destination_column;
@@ -267,6 +270,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
 
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
         workspace_insert_column_after(workspace, target_column, destination_column);
         arrange_workspace(workspace);
         e->destination_column = destination_column;
@@ -274,7 +278,9 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     }
 
     struct hwd_window *target_window = column_get_window_at(target_column, cursor->x, cursor->y);
-    hwd_assert(target_window != NULL, "Can't drag over empty column");
+    if (target_window == NULL) {
+        return;
+    }
 
     struct hwd_window *prev_window = window_get_previous_sibling(target_window);
 
@@ -290,6 +296,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = target_window->pending.parent;
         destination_column->pending.show_preview = true;
         destination_column->pending.preview_target = prev_window;
+        destination_column->preview_height_fraction = destination_column->active_height_fraction;
         arrange_column(destination_column);
 
         e->destination_column = destination_column;
@@ -308,6 +315,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = target_window->pending.parent;
         destination_column->pending.show_preview = true;
         destination_column->pending.preview_target = target_window;
+        destination_column->preview_height_fraction = destination_column->active_height_fraction;
         arrange_column(destination_column);
 
         e->destination_column = destination_column;
@@ -331,6 +339,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = target_window->pending.parent;
         destination_column->pending.show_preview = true;
         destination_column->pending.preview_target = target_window;
+        destination_column->preview_height_fraction = destination_column->active_height_fraction;
         arrange_column(destination_column);
 
         e->destination_column = destination_column;

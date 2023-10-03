@@ -57,6 +57,10 @@ struct hwd_column {
     // The number of pixels allocated to an active window which is not pinned.
     double active_height_fraction;
 
+    // The number of pixels allocated to the preview, if visible.  Not included
+    // when normalizing.
+    double preview_height_fraction;
+
     // The share of the space of parent workspace this container occupies.
     double width_fraction;
 

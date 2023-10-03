@@ -59,14 +59,22 @@ arrange_column(struct hwd_column *column) {
 
     if (!children->length) {
         column->active_height_fraction = 0.0;
+        column->pending.preview_box.x = column->pending.x;
+        column->pending.preview_box.y = column->pending.y;
+        column->pending.preview_box.width = column->pending.width;
+        column->pending.preview_box.height = column->pending.height;
         return;
     }
 
     int titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
+    int num_titlebars = children->length;
+    if (column->pending.show_preview) {
+        num_titlebars += 1;
+    }
 
     struct wlr_box box;
     column_get_box(column, &box);
-    double available_content_height = box.height - (children->length * titlebar_height);
+    double available_content_height = box.height - (num_titlebars * titlebar_height);
 
     double allocated_content_height = 0.0;
     // Number of windows that should have height allocated.
@@ -117,6 +125,7 @@ arrange_column(struct hwd_column *column) {
 
     // Normalize height fractions.
     column->active_height_fraction *= available_content_height / allocated_content_height;
+    column->preview_height_fraction *= available_content_height / allocated_content_height;
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
         child->height_fraction *= available_content_height / allocated_content_height;
@@ -125,12 +134,31 @@ arrange_column(struct hwd_column *column) {
 
     // Check if currently focused window is pinned.
     struct hwd_window *active_child = column->pending.active_child;
-    if (active_child != NULL && active_child->pending.pinned) {
+    if (column->pending.show_preview) {
+        // Preview window replaces un-pinned focused windows.
+        active_child = NULL;
+        allocated_content_height += column->preview_height_fraction;
+    }
+    if (active_child == NULL || active_child->pending.pinned) {
         allocated_content_height -= column->active_height_fraction;
     }
 
-    // Resize windows
+    // Resize windows.
     double y_offset = 0;
+
+    if (column->pending.show_preview && column->pending.preview_target == NULL) {
+        double preview_height = (double)titlebar_height;
+        preview_height +=
+            column->preview_height_fraction * available_content_height / allocated_content_height;
+
+        column->pending.preview_box.x = column->pending.x;
+        column->pending.preview_box.y = column->pending.y;
+        column->pending.preview_box.width = column->pending.width;
+        column->pending.preview_box.height = round(preview_height);
+
+        y_offset += round(preview_height);
+    }
+
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
 
@@ -152,6 +180,19 @@ arrange_column(struct hwd_column *column) {
         child->pending.height = round(window_height);
 
         y_offset += child->pending.height;
+
+        if (child == column->pending.preview_target) {
+            double preview_height = (double)titlebar_height;
+            preview_height += column->preview_height_fraction * available_content_height /
+                allocated_content_height;
+
+            column->pending.preview_box.x = column->pending.x;
+            column->pending.preview_box.y = column->pending.y + round(y_offset);
+            column->pending.preview_box.width = column->pending.width;
+            column->pending.preview_box.height = round(preview_height);
+
+            y_offset += round(preview_height);
+        }
 
         // TODO Make last visible child use remaining height of parent
     }
