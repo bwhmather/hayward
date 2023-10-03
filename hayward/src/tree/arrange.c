@@ -55,67 +55,105 @@ arrange_window(struct hwd_window *window) {
 
 void
 arrange_column(struct hwd_column *column) {
-    struct wlr_box box;
-    column_get_box(column, &box);
-
     list_t *children = column->pending.children;
 
     if (!children->length) {
+        column->active_height_fraction = 0.0;
         return;
     }
 
-    // Count the number of new windows we are resizing, and how much space
-    // is currently occupied
-    int new_children = 0;
-    double current_height_fraction = 0;
+    int titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
+
+    struct wlr_box box;
+    column_get_box(column, &box);
+    double available_content_height = box.height - (children->length * titlebar_height);
+
+    double allocated_content_height = 0.0;
+    // Number of windows that should have height allocated.
+    int num_eligible = 1;
+    // Number of those windows that do not currently have height allocated.
+    int num_unallocated = 0;
+    if (column->active_height_fraction != 0.0) {
+        allocated_content_height = column->active_height_fraction;
+    } else {
+        num_unallocated += 1;
+    }
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
-        current_height_fraction += child->height_fraction;
-        if (child->height_fraction <= 0) {
-            new_children += 1;
+        if (!child->pending.pinned) {
+            continue;
+        }
+        num_eligible += 1;
+        if (child->height_fraction != 0.0) {
+            allocated_content_height += child->height_fraction;
+        } else {
+            num_unallocated += 1;
         }
     }
 
-    // Calculate each height fraction
-    double total_height_fraction = 0;
-    for (int i = 0; i < children->length; ++i) {
-        struct hwd_window *child = children->items[i];
-        if (child->height_fraction <= 0) {
-            if (current_height_fraction <= 0) {
-                child->height_fraction = 1.0;
-            } else if (children->length > new_children) {
-                child->height_fraction =
-                    current_height_fraction / (children->length - new_children);
-            } else {
-                child->height_fraction = current_height_fraction;
-            }
-        }
-        total_height_fraction += child->height_fraction;
-    }
-    // Normalize height fractions so the sum is 1.0
-    for (int i = 0; i < children->length; ++i) {
-        struct hwd_window *child = children->items[i];
-        child->height_fraction /= total_height_fraction;
+    // Assign a default height for pinned windows if not already set.
+    double default_height;
+    if (num_unallocated == num_eligible) {
+        default_height = available_content_height / ((double)num_unallocated);
+    } else {
+        default_height = allocated_content_height / ((double)(num_eligible - num_unallocated));
     }
 
-    double child_total_height = box.height;
+    if (column->active_height_fraction == 0.0) {
+        column->active_height_fraction = default_height;
+        allocated_content_height += default_height;
+    }
+    for (int i = 0; i < children->length; ++i) {
+        struct hwd_window *child = children->items[i];
+        if (!child->pending.pinned) {
+            continue;
+        }
+        if (child->height_fraction != 0.0) {
+            continue;
+        }
+        child->height_fraction = default_height;
+        allocated_content_height += default_height;
+    }
+
+    // Normalize height fractions.
+    column->active_height_fraction *= available_content_height / allocated_content_height;
+    for (int i = 0; i < children->length; ++i) {
+        struct hwd_window *child = children->items[i];
+        child->height_fraction *= available_content_height / allocated_content_height;
+    }
+    allocated_content_height = available_content_height;
+
+    // Check if currently focused window is pinned.
+    struct hwd_window *active_child = column->pending.active_child;
+    if (active_child != NULL && active_child->pending.pinned) {
+        allocated_content_height -= column->active_height_fraction;
+    }
 
     // Resize windows
     double y_offset = 0;
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
-        child->child_total_height = child_total_height;
-        child->pending.x = column->pending.x;
-        child->pending.y = column->pending.y + y_offset;
-        child->pending.width = box.width;
-        child->pending.height = round(child->height_fraction * child_total_height);
-        y_offset += child->pending.height;
-        child->pending.shaded = false;
 
-        // Make last child use remaining height of parent
-        if (i == children->length - 1) {
-            child->pending.height = box.height - child->pending.y;
+        double window_height = (double)titlebar_height;
+        if (!child->pending.pinned && child != active_child) {
+            child->pending.shaded = true;
+        } else {
+            double height_fraction = child->height_fraction;
+            if (!child->pending.pinned) {
+                height_fraction = column->active_height_fraction;
+            }
+            window_height += height_fraction * available_content_height / allocated_content_height;
+            child->pending.shaded = false;
         }
+
+        child->pending.x = column->pending.x;
+        child->pending.y = column->pending.y + round(y_offset);
+        child->pending.width = box.width;
+        child->pending.height = round(window_height);
+
+        y_offset += child->pending.height;
+
+        // TODO Make last visible child use remaining height of parent
     }
 
     for (int i = 0; i < children->length; ++i) {

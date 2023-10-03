@@ -34,6 +34,11 @@ struct hwd_window_state {
     // Indicates if only the titlebar of the window should be rendered.  Golden
     // source is layout and active child of parent column.  Updated in arrange.
     bool shaded;
+
+    // Indicates that the window should not be shaded when not the active window
+    // in a column.
+    bool pinned;
+
     bool fullscreen;
 
     // Cached backlink to workspace containing the floating window or
@@ -100,7 +105,8 @@ struct hwd_window {
     double saved_x, saved_y;
     double saved_width, saved_height;
 
-    // The share of the space of parent column that this window occupies.
+    // The number of pixels occupied by this window when the containing column
+    // has an un-pinned window focused and this window is pinned.
     double height_fraction;
 
     // The share of space of the parent column that all children occupy.

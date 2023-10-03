@@ -54,6 +54,9 @@ struct hwd_column {
     double saved_x, saved_y;
     double saved_width, saved_height;
 
+    // The number of pixels allocated to an active window which is not pinned.
+    double active_height_fraction;
+
     // The share of the space of parent workspace this container occupies.
     double width_fraction;
 
