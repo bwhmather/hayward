@@ -85,7 +85,7 @@ arrange_column(struct hwd_column *column) {
     // Number of those windows that do not currently have height allocated.
     int num_unallocated = 0;
     if (column->active_height_fraction != 0.0) {
-        allocated_content_height = column->active_height_fraction;
+        allocated_content_height += column->active_height_fraction;
     } else {
         num_unallocated += 1;
     }
