@@ -64,8 +64,8 @@ struct hwd_column {
     // anchor.
     double preview_baseline;
     // Absolute cursor location at time preview was created.
-    int preview_anchor_x;
-    int preview_anchor_y;
+    double preview_anchor_x;
+    double preview_anchor_y;
 
     // The share of the space of parent workspace this container occupies.
     double width_fraction;

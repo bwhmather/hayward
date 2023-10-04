@@ -143,21 +143,24 @@ arrange_column(struct hwd_column *column) {
         allocated_content_height -= column->active_height_fraction;
     }
 
-    // Resize windows.
+    // Distance between top of next window and top of the screen.
     double y_offset = 0;
 
-    if (column->pending.show_preview && column->pending.preview_target == NULL) {
-        double preview_height = (double)titlebar_height;
-        preview_height +=
-            column->preview_height_fraction * available_content_height / allocated_content_height;
+    // The distance, in layout coordinates, between the desired location of the
+    // vertical anchor point in the preview and the top of the preview.
+    double preview_baseline = round(column->preview_baseline * column->preview_height_fraction);
 
-        column->pending.preview_box.x = column->pending.x;
-        column->pending.preview_box.y = column->pending.y;
-        column->pending.preview_box.width = column->pending.width;
-        column->pending.preview_box.height = round(preview_height);
+    // Absolute distance between preview baseline and anchor point if preview is
+    // inserted before this one.
+    double baseline_delta;
 
-        y_offset += round(preview_height);
-    }
+    // Absolute distance between preview baseline and anchor point if preview is
+    // inserted after this one.
+    double next_baseline_delta;
+
+    bool preview_inserted = false;
+
+    next_baseline_delta = fabs(column->pending.y + preview_baseline - column->preview_anchor_y);
 
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
@@ -174,6 +177,29 @@ arrange_column(struct hwd_column *column) {
             child->pending.shaded = false;
         }
 
+        baseline_delta = next_baseline_delta;
+        next_baseline_delta = fabs(
+            column->pending.y + round(y_offset + window_height) + preview_baseline -
+            column->preview_anchor_y
+        );
+        if (column->pending.show_preview && !preview_inserted &&
+            next_baseline_delta > baseline_delta) {
+
+            double preview_height = (double)titlebar_height;
+            preview_height += column->preview_height_fraction * available_content_height /
+                allocated_content_height;
+
+            column->pending.preview_target = window_get_previous_sibling(child);
+            column->pending.preview_box.x = column->pending.x;
+            column->pending.preview_box.y = column->pending.y + round(y_offset);
+            column->pending.preview_box.width = column->pending.width;
+            column->pending.preview_box.height = round(preview_height);
+
+            preview_inserted = true;
+
+            y_offset += preview_height;
+        }
+
         child->pending.x = column->pending.x;
         child->pending.y = column->pending.y + round(y_offset);
         child->pending.width = box.width;
@@ -181,20 +207,22 @@ arrange_column(struct hwd_column *column) {
 
         y_offset += child->pending.height;
 
-        if (child == column->pending.preview_target) {
-            double preview_height = (double)titlebar_height;
-            preview_height += column->preview_height_fraction * available_content_height /
-                allocated_content_height;
-
-            column->pending.preview_box.x = column->pending.x;
-            column->pending.preview_box.y = column->pending.y + round(y_offset);
-            column->pending.preview_box.width = column->pending.width;
-            column->pending.preview_box.height = round(preview_height);
-
-            y_offset += round(preview_height);
-        }
-
         // TODO Make last visible child use remaining height of parent
+    }
+
+    if (column->pending.show_preview && !preview_inserted) {
+        double preview_height = (double)titlebar_height;
+        preview_height +=
+            column->preview_height_fraction * available_content_height / allocated_content_height;
+
+        column->pending.preview_box.x = column->pending.x;
+        column->pending.preview_box.y = column->pending.y + round(y_offset);
+        column->pending.preview_box.width = column->pending.width;
+        column->pending.preview_box.height = round(preview_height);
+
+        preview_inserted = true;
+
+        y_offset += round(preview_height);
     }
 
     for (int i = 0; i < children->length; ++i) {
