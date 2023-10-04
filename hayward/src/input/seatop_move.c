@@ -51,14 +51,10 @@ finalize_move(struct hwd_seat *seat) {
         window_detach(e->window);
         if (e->destination_column->pending.preview_target != NULL) {
             column_add_sibling(e->destination_column->pending.preview_target, e->window, true);
-            if (e->destination_column->pending.active_child ==
-                e->destination_column->pending.preview_target) {
-                root_set_focused_window(root, e->window);
-            }
         } else {
-            // TODO insert as first.
             column_insert_child(e->destination_column, e->window, 0);
         }
+        root_set_focused_window(root, e->window);
         e->destination_column->pending.show_preview = false;
         e->destination_column->pending.preview_target = NULL;
         arrange_column(e->destination_column);
