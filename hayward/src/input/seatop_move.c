@@ -182,6 +182,9 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     }
 
     if (e->destination_column != NULL) {
+        e->destination_column->preview_anchor_x = cursor->x;
+        e->destination_column->preview_anchor_y = cursor->y;
+        arrange_column(e->destination_column);
         return;
     }
 
@@ -206,40 +209,75 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         return;
     }
 
+    struct hwd_column *target_column = workspace_get_column_at(workspace, cursor->x, cursor->y);
+    if (target_column == NULL) {
+        return;
+    }
+
+    // Are we near the center of a column?
+    //  - Find the insertion point that minimizes distance of the anchor point
+    //    from the cursor.
+    //  - Exit when moved to the next insertion point or out of the center.
+    struct wlr_box centre_box;
+    column_get_box(target_column, &centre_box);
+    centre_box.width /= 5;
+    centre_box.x += 2 * centre_box.width;
+    if (wlr_box_contains_point(&centre_box, cursor->x, cursor->y)) {
+        e->target_area = centre_box;
+
+        struct hwd_column *destination_column = target_column;
+        destination_column->pending.show_preview = true;
+        // TODO scale appropriately.
+        destination_column->preview_height_fraction = destination_column->active_height_fraction;
+        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_anchor_x = cursor->x;
+        destination_column->preview_anchor_y = cursor->y;
+
+        arrange_column(destination_column);
+
+        e->destination_column = destination_column;
+        return;
+    }
+
     // Are we near the edge of the output?
     //   - Create placeholder column and draw preview square over whole thing.
     //   - Exit when moved to different output, or some distance away from edge.
     if (cursor->x - target_output->lx < 20) {
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
+        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_anchor_x = cursor->x;
+        destination_column->preview_anchor_y = cursor->y;
+        workspace_insert_column_first(workspace, target_output, destination_column);
+
+        arrange_workspace(workspace);
+
+        e->destination_column = destination_column;
         e->target_area.x = target_output->lx;
         e->target_area.y = target_output->ly;
         e->target_area.width = 40;
         e->target_area.height = target_output->height;
 
-        struct hwd_column *destination_column = column_create();
-        destination_column->pending.show_preview = true;
-        workspace_insert_column_first(workspace, target_output, destination_column);
-        destination_column->preview_height_fraction = destination_column->pending.height;
-        arrange_workspace(workspace);
-        e->destination_column = destination_column;
         return;
     }
     if (target_output->lx + target_output->width - cursor->x < 20) {
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
+        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_anchor_x = cursor->x;
+        destination_column->preview_anchor_y = cursor->y;
+        workspace_insert_column_last(workspace, target_output, destination_column);
+
+        arrange_workspace(workspace);
+
+        e->destination_column = destination_column;
         e->target_area.x = target_output->lx + target_output->width - 40;
         e->target_area.y = target_output->ly;
         e->target_area.width = 40;
         e->target_area.height = target_output->height;
 
-        struct hwd_column *destination_column = column_create();
-        destination_column->pending.show_preview = true;
-        destination_column->preview_height_fraction = destination_column->pending.height;
-        workspace_insert_column_last(workspace, target_output, destination_column);
-        arrange_workspace(workspace);
-        e->destination_column = destination_column;
-        return;
-    }
-
-    struct hwd_column *target_column = workspace_get_column_at(workspace, cursor->x, cursor->y);
-    if (target_column == NULL) {
         return;
     }
 
@@ -248,101 +286,41 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     //   - Exit when we moved outside of slightly larger square (probably a bit
     //     smaller than placeholder column).
     if (cursor->x - target_column->pending.x < 20) {
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
+        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_anchor_x = cursor->x;
+        destination_column->preview_anchor_y = cursor->y;
+        workspace_insert_column_before(workspace, target_column, destination_column);
+
+        arrange_workspace(workspace);
+
+        e->destination_column = destination_column;
         e->target_area.x = target_column->pending.x - 40;
         e->target_area.y = target_column->pending.y;
         e->target_area.width = 80;
         e->target_area.height = target_column->pending.height;
 
-        struct hwd_column *destination_column = column_create();
-        destination_column->pending.show_preview = true;
-        destination_column->preview_height_fraction = destination_column->pending.height;
-        workspace_insert_column_before(workspace, target_column, destination_column);
-        arrange_workspace(workspace);
-        e->destination_column = destination_column;
-
         return;
     }
     if (target_column->pending.x + target_column->pending.width - cursor->x < 20) {
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
+        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_anchor_x = cursor->x;
+        destination_column->preview_anchor_y = cursor->y;
+        workspace_insert_column_after(workspace, target_column, destination_column);
+
+        arrange_workspace(workspace);
+
+        e->destination_column = destination_column;
         e->target_area.x = target_column->pending.x + target_column->pending.width - 40;
         e->target_area.y = target_column->pending.y;
         e->target_area.width = 80; // We want to extend over the next column as well.
         e->target_area.height = target_column->pending.height;
 
-        struct hwd_column *destination_column = column_create();
-        destination_column->pending.show_preview = true;
-        destination_column->preview_height_fraction = destination_column->pending.height;
-        workspace_insert_column_after(workspace, target_column, destination_column);
-        arrange_workspace(workspace);
-        e->destination_column = destination_column;
-        return;
-    }
-
-    struct hwd_window *target_window = column_get_window_at(target_column, cursor->x, cursor->y);
-    if (target_window == NULL) {
-        return;
-    }
-
-    struct hwd_window *prev_window = window_get_previous_sibling(target_window);
-
-    // There is no previous window or the previous window is shaded and we are
-    // in the top half of the titlebar.
-    struct wlr_box titlebar_top_box;
-    window_get_titlebar_box(target_window, &titlebar_top_box);
-    titlebar_top_box.height /= 2;
-    if ((prev_window == NULL || prev_window->pending.shaded) &&
-        wlr_box_contains_point(&titlebar_top_box, cursor->x, cursor->y)) {
-        e->target_area = titlebar_top_box;
-
-        struct hwd_column *destination_column = target_window->pending.parent;
-        destination_column->pending.show_preview = true;
-        destination_column->pending.preview_target = prev_window;
-        destination_column->preview_height_fraction = destination_column->active_height_fraction;
-        arrange_column(destination_column);
-
-        e->destination_column = destination_column;
-        return;
-    }
-
-    // This windows is shaded and we are in the bottom half of the titlebar.
-    struct wlr_box titlebar_bottom_box;
-    window_get_titlebar_box(target_window, &titlebar_bottom_box);
-    titlebar_bottom_box.y += titlebar_top_box.height;
-    titlebar_bottom_box.height -= titlebar_top_box.height;
-    if (target_window->pending.shaded &&
-        wlr_box_contains_point(&titlebar_top_box, cursor->x, cursor->y)) {
-        e->target_area = titlebar_bottom_box;
-
-        struct hwd_column *destination_column = target_window->pending.parent;
-        destination_column->pending.show_preview = true;
-        destination_column->pending.preview_target = target_window;
-        destination_column->preview_height_fraction = destination_column->active_height_fraction;
-        arrange_column(destination_column);
-
-        e->destination_column = destination_column;
-        return;
-    }
-
-    // This window is unshaded and we are in a narrow box around the top center.
-    struct wlr_box centre_box;
-    window_get_content_box(target_window, &centre_box);
-    centre_box.width /= 5;
-    centre_box.x += 2 * centre_box.width;
-    centre_box.height /= 5;
-    centre_box.y += 1 * centre_box.height;
-    if (!target_window->pending.shaded &&
-        wlr_box_contains_point(&centre_box, cursor->x, cursor->y)) {
-        e->target_area.x = centre_box.x + centre_box.width;
-        e->target_area.y = centre_box.y + centre_box.height;
-        e->target_area.width = centre_box.width * 3;
-        e->target_area.height = centre_box.height * 3;
-
-        struct hwd_column *destination_column = target_window->pending.parent;
-        destination_column->pending.show_preview = true;
-        destination_column->pending.preview_target = target_window;
-        destination_column->preview_height_fraction = destination_column->active_height_fraction;
-        arrange_column(destination_column);
-
-        e->destination_column = destination_column;
         return;
     }
 }

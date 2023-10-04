@@ -33,8 +33,8 @@ struct hwd_column_state {
     // new window.  `preview_target` is an optional pointer to a child window
     // that the new window will be inserted after.
     bool show_preview;
-    struct hwd_window *preview_target;
-    struct wlr_box preview_box;
+    struct hwd_window *preview_target; // Populated by `arrange_column`.
+    struct wlr_box preview_box;        // Populated by `arrange_column`.
 
     bool dead;
 };
@@ -60,6 +60,12 @@ struct hwd_column {
     // The number of pixels allocated to the preview, if visible.  Not included
     // when normalizing.
     double preview_height_fraction;
+    // Fraction of distance from top of preview that should be lined up with the
+    // anchor.
+    double preview_baseline;
+    // Absolute cursor location at time preview was created.
+    int preview_anchor_x;
+    int preview_anchor_y;
 
     // The share of the space of parent workspace this container occupies.
     double width_fraction;
