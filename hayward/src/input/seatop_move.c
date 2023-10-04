@@ -209,6 +209,55 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         return;
     }
 
+    // Are we near the edge of the output?
+    //   - Create placeholder column and draw preview square over whole thing.
+    //   - Exit when moved to different output, or some distance away from edge.
+    struct wlr_box left_box;
+    output_get_box(target_output, &left_box);
+    left_box.width = 5;
+    if (wlr_box_contains_point(&left_box, cursor->x, cursor->y)) {
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
+        destination_column->preview_baseline = e->dy / window->pending.height;
+        destination_column->preview_anchor_x = cursor->x;
+        destination_column->preview_anchor_y = cursor->y;
+        workspace_insert_column_first(workspace, target_output, destination_column);
+
+        arrange_workspace(workspace);
+
+        e->destination_column = destination_column;
+        e->target_area.x = left_box.x;
+        e->target_area.y = left_box.y;
+        e->target_area.width = 40;
+        e->target_area.height = left_box.height;
+
+        return;
+    }
+    struct wlr_box right_box;
+    output_get_box(target_output, &right_box);
+    right_box.x += right_box.width - 5;
+    right_box.width = 5;
+    if (wlr_box_contains_point(&right_box, cursor->x, cursor->y)) {
+        struct hwd_column *destination_column = column_create();
+        destination_column->pending.show_preview = true;
+        destination_column->preview_height_fraction = destination_column->pending.height;
+        destination_column->preview_baseline = e->dy / window->pending.height;
+        destination_column->preview_anchor_x = cursor->x;
+        destination_column->preview_anchor_y = cursor->y;
+        workspace_insert_column_last(workspace, target_output, destination_column);
+
+        arrange_workspace(workspace);
+
+        e->destination_column = destination_column;
+        e->target_area.x = right_box.x - 35;
+        e->target_area.y = right_box.y;
+        e->target_area.width = 40;
+        e->target_area.height = right_box.height;
+
+        return;
+    }
+
     struct hwd_column *target_column = workspace_get_column_at(workspace, cursor->x, cursor->y);
     if (target_column == NULL) {
         return;
@@ -236,48 +285,6 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         arrange_column(destination_column);
 
         e->destination_column = destination_column;
-        return;
-    }
-
-    // Are we near the edge of the output?
-    //   - Create placeholder column and draw preview square over whole thing.
-    //   - Exit when moved to different output, or some distance away from edge.
-    if (cursor->x - target_output->lx < 20) {
-        struct hwd_column *destination_column = column_create();
-        destination_column->pending.show_preview = true;
-        destination_column->preview_height_fraction = destination_column->pending.height;
-        destination_column->preview_baseline = e->dy / window->pending.height;
-        destination_column->preview_anchor_x = cursor->x;
-        destination_column->preview_anchor_y = cursor->y;
-        workspace_insert_column_first(workspace, target_output, destination_column);
-
-        arrange_workspace(workspace);
-
-        e->destination_column = destination_column;
-        e->target_area.x = target_output->lx;
-        e->target_area.y = target_output->ly;
-        e->target_area.width = 40;
-        e->target_area.height = target_output->height;
-
-        return;
-    }
-    if (target_output->lx + target_output->width - cursor->x < 20) {
-        struct hwd_column *destination_column = column_create();
-        destination_column->pending.show_preview = true;
-        destination_column->preview_height_fraction = destination_column->pending.height;
-        destination_column->preview_baseline = e->dy / window->pending.height;
-        destination_column->preview_anchor_x = cursor->x;
-        destination_column->preview_anchor_y = cursor->y;
-        workspace_insert_column_last(workspace, target_output, destination_column);
-
-        arrange_workspace(workspace);
-
-        e->destination_column = destination_column;
-        e->target_area.x = target_output->lx + target_output->width - 40;
-        e->target_area.y = target_output->ly;
-        e->target_area.width = 40;
-        e->target_area.height = target_output->height;
-
         return;
     }
 
