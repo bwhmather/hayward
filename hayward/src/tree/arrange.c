@@ -55,10 +55,12 @@ arrange_window(struct hwd_window *window) {
 
 void
 arrange_column(struct hwd_column *column) {
+    struct hwd_window *child = NULL;
     list_t *children = column->pending.children;
 
     if (!children->length) {
         column->active_height_fraction = 0.0;
+        column->pending.preview_target = NULL;
         column->pending.preview_box.x = column->pending.x;
         column->pending.preview_box.y = column->pending.y;
         column->pending.preview_box.width = column->pending.width;
@@ -87,7 +89,7 @@ arrange_column(struct hwd_column *column) {
         num_unallocated += 1;
     }
     for (int i = 0; i < children->length; ++i) {
-        struct hwd_window *child = children->items[i];
+        child = children->items[i];
         if (!child->pending.pinned) {
             continue;
         }
@@ -112,7 +114,7 @@ arrange_column(struct hwd_column *column) {
         allocated_content_height += default_height;
     }
     for (int i = 0; i < children->length; ++i) {
-        struct hwd_window *child = children->items[i];
+        child = children->items[i];
         if (!child->pending.pinned) {
             continue;
         }
@@ -127,7 +129,7 @@ arrange_column(struct hwd_column *column) {
     column->active_height_fraction *= available_content_height / allocated_content_height;
     column->preview_height_fraction *= available_content_height / allocated_content_height;
     for (int i = 0; i < children->length; ++i) {
-        struct hwd_window *child = children->items[i];
+        child = children->items[i];
         child->height_fraction *= available_content_height / allocated_content_height;
     }
     allocated_content_height = available_content_height;
@@ -163,7 +165,7 @@ arrange_column(struct hwd_column *column) {
     next_baseline_delta = fabs(column->pending.y + preview_baseline - column->preview_anchor_y);
 
     for (int i = 0; i < children->length; ++i) {
-        struct hwd_window *child = children->items[i];
+        child = children->items[i];
 
         double window_height = (double)titlebar_height;
         if (!child->pending.pinned && child != active_child) {
@@ -215,6 +217,7 @@ arrange_column(struct hwd_column *column) {
         preview_height +=
             column->preview_height_fraction * available_content_height / allocated_content_height;
 
+        column->pending.preview_target = child;
         column->pending.preview_box.x = column->pending.x;
         column->pending.preview_box.y = column->pending.y + round(y_offset);
         column->pending.preview_box.width = column->pending.width;
