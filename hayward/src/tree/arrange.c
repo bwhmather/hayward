@@ -65,6 +65,7 @@ arrange_column(struct hwd_column *column) {
         column->pending.preview_box.y = column->pending.y;
         column->pending.preview_box.width = column->pending.width;
         column->pending.preview_box.height = column->pending.height;
+        column_set_dirty(column);
         return;
     }
 
