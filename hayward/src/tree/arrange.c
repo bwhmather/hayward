@@ -124,6 +124,9 @@ arrange_column(struct hwd_column *column) {
         child->height_fraction = default_height;
         allocated_content_height += default_height;
     }
+    if (column->preview_height_fraction == 0.0) {
+        column->preview_height_fraction = default_height;
+    }
 
     // Normalize height fractions.
     column->active_height_fraction *= available_content_height / allocated_content_height;
