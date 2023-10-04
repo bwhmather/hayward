@@ -229,7 +229,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         destination_column->pending.show_preview = true;
         // TODO scale appropriately.
         destination_column->preview_height_fraction = destination_column->active_height_fraction;
-        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
         destination_column->preview_anchor_y = cursor->y;
 
@@ -246,7 +246,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
         destination_column->preview_height_fraction = destination_column->pending.height;
-        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_first(workspace, target_output, destination_column);
@@ -265,7 +265,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
         destination_column->preview_height_fraction = destination_column->pending.height;
-        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_last(workspace, target_output, destination_column);
@@ -289,7 +289,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
         destination_column->preview_height_fraction = destination_column->pending.height;
-        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_before(workspace, target_column, destination_column);
@@ -308,7 +308,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
         destination_column->preview_height_fraction = destination_column->pending.height;
-        destination_column->preview_baseline = (double)e->dy / (double)window->pending.height;
+        destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_after(workspace, target_column, destination_column);
