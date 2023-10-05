@@ -170,9 +170,57 @@ arrange_column(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
+        if (!child->pending.pinned) {
+            continue;
+        }
 
         double window_height = (double)titlebar_height;
-        if (!child->pending.pinned && child != active_child) {
+        double height_fraction = child->height_fraction;
+        if (!child->pending.pinned) {
+            height_fraction = column->active_height_fraction;
+        }
+        window_height += height_fraction * available_content_height / allocated_content_height;
+        child->pending.shaded = false;
+
+        baseline_delta = next_baseline_delta;
+        next_baseline_delta = fabs(
+            column->pending.y + round(y_offset + window_height) + preview_baseline -
+            column->preview_anchor_y
+        );
+        if (column->pending.show_preview && !preview_inserted &&
+            next_baseline_delta > baseline_delta) {
+
+            double preview_height = (double)titlebar_height;
+            preview_height += column->preview_height_fraction * available_content_height /
+                allocated_content_height;
+
+            column->pending.preview_target = window_get_previous_sibling(child);
+            column->pending.preview_box.x = column->pending.x;
+            column->pending.preview_box.y = column->pending.y + round(y_offset);
+            column->pending.preview_box.width = column->pending.width;
+            column->pending.preview_box.height = round(preview_height);
+
+            preview_inserted = true;
+
+            y_offset += preview_height;
+        }
+
+        child->pending.x = column->pending.x;
+        child->pending.y = column->pending.y + round(y_offset);
+        child->pending.width = box.width;
+        child->pending.height = round(window_height);
+
+        y_offset += child->pending.height;
+    }
+
+    for (int i = 0; i < children->length; ++i) {
+        child = children->items[i];
+        if (child->pending.pinned) {
+            continue;
+        }
+
+        double window_height = (double)titlebar_height;
+        if (child != active_child) {
             child->pending.shaded = true;
         } else {
             double height_fraction = child->height_fraction;
