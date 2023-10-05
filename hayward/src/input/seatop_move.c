@@ -212,6 +212,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     if (wlr_box_contains_point(&left_box, cursor->x, cursor->y)) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
+        destination_column->pending.preview_pinned = window->pending.pinned;
         destination_column->preview_height_fraction = 0.0; // TODO
         destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
@@ -235,6 +236,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     if (wlr_box_contains_point(&right_box, cursor->x, cursor->y)) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
+        destination_column->pending.preview_pinned = window->pending.pinned;
         destination_column->preview_height_fraction = 0.0; // TODO
         destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
@@ -270,7 +272,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
 
         struct hwd_column *destination_column = target_column;
         destination_column->pending.show_preview = true;
-        // TODO scale appropriately.
+        destination_column->pending.preview_pinned = window->pending.pinned;
         destination_column->preview_height_fraction = 0.0; // TODO
         destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
@@ -289,6 +291,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     if (cursor->x - target_column->pending.x < 20) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
+        destination_column->pending.preview_pinned = window->pending.pinned;
         destination_column->preview_height_fraction = 0.0; // TODO
         destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;
@@ -308,6 +311,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     if (target_column->pending.x + target_column->pending.width - cursor->x < 20) {
         struct hwd_column *destination_column = column_create();
         destination_column->pending.show_preview = true;
+        destination_column->pending.preview_pinned = window->pending.pinned;
         destination_column->preview_height_fraction = 0.0; // TODO
         destination_column->preview_baseline = e->dy / window->pending.height;
         destination_column->preview_anchor_x = cursor->x;

@@ -33,6 +33,7 @@ struct hwd_column_state {
     // new window.  `preview_target` is an optional pointer to a child window
     // that the new window will be inserted after.
     bool show_preview;
+    bool preview_pinned;
     struct hwd_window *preview_target; // Populated by `arrange_column`.
     struct wlr_box preview_box;        // Populated by `arrange_column`.
 

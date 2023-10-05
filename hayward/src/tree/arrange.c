@@ -187,7 +187,7 @@ arrange_column(struct hwd_column *column) {
             column->pending.y + round(y_offset + window_height) + preview_baseline -
             column->preview_anchor_y
         );
-        if (column->pending.show_preview && !preview_inserted &&
+        if (column->pending.show_preview && !preview_inserted && column->pending.preview_pinned &&
             next_baseline_delta > baseline_delta) {
 
             double preview_height = (double)titlebar_height;
@@ -213,6 +213,22 @@ arrange_column(struct hwd_column *column) {
         y_offset += child->pending.height;
     }
 
+    if (column->pending.show_preview && !preview_inserted && column->pending.preview_pinned) {
+        double preview_height = (double)titlebar_height;
+        preview_height +=
+            column->preview_height_fraction * available_content_height / allocated_content_height;
+
+        column->pending.preview_target = child;
+        column->pending.preview_box.x = column->pending.x;
+        column->pending.preview_box.y = column->pending.y + round(y_offset);
+        column->pending.preview_box.width = column->pending.width;
+        column->pending.preview_box.height = round(preview_height);
+
+        preview_inserted = true;
+
+        y_offset += preview_height;
+    }
+
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
         if (child->pending.pinned) {
@@ -236,7 +252,7 @@ arrange_column(struct hwd_column *column) {
             column->pending.y + round(y_offset + window_height) + preview_baseline -
             column->preview_anchor_y
         );
-        if (column->pending.show_preview && !preview_inserted &&
+        if (column->pending.show_preview && !preview_inserted && !column->pending.preview_pinned &&
             next_baseline_delta > baseline_delta) {
 
             double preview_height = (double)titlebar_height;
@@ -264,7 +280,7 @@ arrange_column(struct hwd_column *column) {
         // TODO Make last visible child use remaining height of parent
     }
 
-    if (column->pending.show_preview && !preview_inserted) {
+    if (column->pending.show_preview && !preview_inserted && !column->pending.preview_pinned) {
         double preview_height = (double)titlebar_height;
         preview_height +=
             column->preview_height_fraction * available_content_height / allocated_content_height;
@@ -277,7 +293,7 @@ arrange_column(struct hwd_column *column) {
 
         preview_inserted = true;
 
-        y_offset += round(preview_height);
+        y_offset += preview_height;
     }
 
     for (int i = 0; i < children->length; ++i) {
