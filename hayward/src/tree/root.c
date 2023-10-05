@@ -356,20 +356,6 @@ root_get_active_output(struct hwd_root *root) {
     return root->pending.active_output;
 }
 
-void
-root_set_focused_window(struct hwd_root *root, struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-
-    struct hwd_workspace *workspace = window->pending.workspace;
-    hwd_assert(workspace != NULL, "Expected workspace");
-
-    root_set_focused_layer(root, NULL);
-    root_set_focused_surface(root, NULL);
-
-    root_set_active_workspace(root, workspace);
-    workspace_set_active_window(workspace, window);
-}
-
 static struct wlr_surface *
 root_get_active_unmanaged(struct hwd_root *root) {
     return root->pending.active_unmanaged;
@@ -449,6 +435,20 @@ root_set_focused_layer(struct hwd_root *root, struct wlr_layer_surface_v1 *layer
     }
 
     root->pending.active_layer = layer;
+}
+
+void
+root_set_focused_window(struct hwd_root *root, struct hwd_window *window) {
+    hwd_assert(window != NULL, "Expected window");
+
+    struct hwd_workspace *workspace = window->pending.workspace;
+    hwd_assert(workspace != NULL, "Expected workspace");
+
+    root_set_focused_layer(root, NULL);
+    root_set_focused_surface(root, NULL);
+
+    root_set_active_workspace(root, workspace);
+    workspace_set_active_window(workspace, window);
 }
 
 void

@@ -131,15 +131,6 @@ root_get_focused_unmanaged(struct hwd_root *root);
 struct wlr_layer_surface_v1 *
 root_get_focused_layer(struct hwd_root *root);
 
-struct wlr_surface *
-root_get_focused_surface(struct hwd_root *root);
-
-/**
- * Helper functions that traverse the tree to focus the right window.
- */
-void
-root_set_focused_window(struct hwd_root *root, struct hwd_window *window);
-
 /**
  * The active window is the window that is currently selected.  If the active
  * window is meant to be receiving input events then it will also be set as the
@@ -149,8 +140,17 @@ root_set_focused_window(struct hwd_root *root, struct hwd_window *window);
 struct hwd_window *
 root_get_focused_window(struct hwd_root *root);
 
+struct wlr_surface *
+root_get_focused_surface(struct hwd_root *root);
+
 void
 root_set_focused_layer(struct hwd_root *root, struct wlr_layer_surface_v1 *layer);
+
+/**
+ * Helper functions that traverse the tree to focus the right window.
+ */
+void
+root_set_focused_window(struct hwd_root *root, struct hwd_window *window);
 
 /**
  * Directly set the WLRoots surface that should receive input events.
