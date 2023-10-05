@@ -12,8 +12,6 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
