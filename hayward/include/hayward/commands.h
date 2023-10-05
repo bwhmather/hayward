@@ -138,6 +138,7 @@ hwd_cmd cmd_mode;
 hwd_cmd cmd_move;
 hwd_cmd cmd_nop;
 hwd_cmd cmd_opacity;
+hwd_cmd cmd_pin;
 hwd_cmd cmd_popup_during_fullscreen;
 hwd_cmd cmd_reload;
 hwd_cmd cmd_resize;
