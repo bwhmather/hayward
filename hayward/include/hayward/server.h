@@ -13,6 +13,7 @@
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
+#include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/types/wlr_output_management_v1.h>
@@ -52,7 +53,7 @@ struct hwd_server {
     struct wl_listener new_output;
     struct wl_listener output_layout_change;
 
-    struct wlr_idle *idle;
+    struct wlr_idle_notifier_v1 *idle_notifier_v1;
     struct hwd_idle_inhibit_manager_v1 *idle_inhibit_manager_v1;
 
     struct hwd_layer_shell *layer_shell;

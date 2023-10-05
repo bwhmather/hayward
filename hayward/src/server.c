@@ -21,7 +21,7 @@
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
-#include <wlr/types/wlr_idle.h>
+#include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/types/wlr_output.h>
@@ -123,9 +123,9 @@ server_init(struct hwd_server *server) {
 
     wlr_xdg_output_manager_v1_create(server->wl_display, root->output_layout);
 
-    server->idle = wlr_idle_create(server->wl_display);
+    server->idle_notifier_v1 = wlr_idle_notifier_v1_create(server->wl_display);
     server->idle_inhibit_manager_v1 =
-        hwd_idle_inhibit_manager_v1_create(server->wl_display, server->idle);
+        hwd_idle_inhibit_manager_v1_create(server->wl_display, server->idle_notifier_v1);
 
     server->server_decoration_manager = hwd_server_decoration_manager_create(server->wl_display);
     server->xdg_decoration_manager = hwd_xdg_decoration_manager_create(server->wl_display);
