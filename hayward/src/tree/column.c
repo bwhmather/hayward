@@ -339,28 +339,43 @@ column_find_child(
 }
 
 struct hwd_window *
-column_get_window_at(struct hwd_column *column, double x, double y) {
+column_get_first_child(struct hwd_column *column) {
     hwd_assert(column != NULL, "Expected column");
-    if (!column->pending.children) {
+
+    list_t *children = column->pending.children;
+
+    if (children->length == 0) {
         return NULL;
     }
 
-    struct wlr_box column_box;
-    column_get_box(column, &column_box);
-    if (!wlr_box_contains_point(&column_box, x, y)) {
-        return NULL;
-    }
-
-    for (int i = 0; i < column->pending.children->length; ++i) {
-        struct hwd_window *child = column->pending.children->items[i];
-
-        struct wlr_box child_box;
-        window_get_box(child, &child_box);
-        if (wlr_box_contains_point(&child_box, x, y)) {
+    for (int i = 0; i < children->length; i++) {
+        struct hwd_window *child = children->items[i];
+        if (child->pending.pinned) {
             return child;
         }
     }
-    return NULL;
+
+    return children->items[0];
+}
+
+struct hwd_window *
+column_get_last_child(struct hwd_column *column) {
+    hwd_assert(column != NULL, "Expected column");
+
+    list_t *children = column->pending.children;
+
+    if (children->length == 0) {
+        return NULL;
+    }
+
+    for (int i = children->length; i > 0; i--) {
+        struct hwd_window *child = children->items[i - 1];
+        if (!child->pending.pinned) {
+            return child;
+        }
+    }
+
+    return children->items[children->length - 1];
 }
 
 void

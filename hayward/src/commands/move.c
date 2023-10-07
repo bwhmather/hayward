@@ -132,26 +132,23 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
 
     switch (move_dir) {
     case WLR_DIRECTION_UP: {
-        int current_index = window_sibling_index(window);
-
-        if (current_index == 0) {
+        struct hwd_window *prev_sibling = window_get_previous_sibling(window);
+        if (prev_sibling == NULL || prev_sibling->pending.pinned != window->pending.pinned) {
             return window_move_to_next_output(window, window->pending.output, move_dir);
         }
 
         window_detach(window);
-        column_insert_child(old_column, window, current_index - 1);
+        column_add_sibling(prev_sibling, window, false);
         return true;
     }
     case WLR_DIRECTION_DOWN: {
-        list_t *siblings = window_get_siblings(window);
-        int current_index = window_sibling_index(window);
-
-        if (current_index == siblings->length - 1) {
+        struct hwd_window *next_sibling = window_get_next_sibling(window);
+        if (next_sibling == NULL || next_sibling->pending.pinned != window->pending.pinned) {
             return window_move_to_next_output(window, window->pending.output, move_dir);
         }
 
         window_detach(window);
-        column_insert_child(old_column, window, current_index + 1);
+        column_add_sibling(next_sibling, window, true);
         return true;
     }
     case WLR_DIRECTION_LEFT: {

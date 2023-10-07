@@ -949,11 +949,36 @@ window_get_previous_sibling(struct hwd_window *window) {
     list_t *siblings = window->pending.parent->pending.children;
     int index = list_find(siblings, window);
 
-    if (index <= 0) {
+    if (window->pending.pinned) {
+        while (index > 0) {
+            index -= 1;
+            struct hwd_window *sibling = siblings->items[index];
+            if (sibling->pending.pinned) {
+                return sibling;
+            }
+        }
+        return NULL;
+
+    } else {
+        while (index > 0) {
+            index -= 1;
+            struct hwd_window *sibling = siblings->items[index];
+            if (!sibling->pending.pinned) {
+                return sibling;
+            }
+        }
+
+        index = siblings->length;
+        while (index > 0) {
+            index -= 1;
+            struct hwd_window *sibling = siblings->items[index];
+            if (sibling->pending.pinned) {
+                return sibling;
+            }
+        }
+
         return NULL;
     }
-
-    return siblings->items[index - 1];
 }
 
 struct hwd_window *
@@ -967,15 +992,37 @@ window_get_next_sibling(struct hwd_window *window) {
     list_t *siblings = window->pending.parent->pending.children;
     int index = list_find(siblings, window);
 
-    if (index < 0) {
+    if (window->pending.pinned) {
+        while (index < siblings->length - 1) {
+            index += 1;
+            struct hwd_window *sibling = siblings->items[index];
+            if (sibling->pending.pinned) {
+                return sibling;
+            }
+        }
+
+        index = -1;
+        while (index < siblings->length - 1) {
+            index += 1;
+            struct hwd_window *sibling = siblings->items[index];
+            if (!sibling->pending.pinned) {
+                return sibling;
+            }
+        }
+
+        return NULL;
+
+    } else {
+        while (index < siblings->length - 1) {
+            index += 1;
+            struct hwd_window *sibling = siblings->items[index];
+            if (!sibling->pending.pinned) {
+                return sibling;
+            }
+        }
+
         return NULL;
     }
-
-    if (index >= siblings->length - 1) {
-        return NULL;
-    }
-
-    return siblings->items[index + 1];
 }
 
 struct hwd_window *

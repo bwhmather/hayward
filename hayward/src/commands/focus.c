@@ -100,25 +100,40 @@ window_get_in_direction_tiling(
     }
 
     switch (dir) {
-    case WLR_DIRECTION_UP:
-        // FALLTHROUGH.
-    case WLR_DIRECTION_DOWN: {
-        // Try to move up and down within the current column.
-        int current_idx = window_sibling_index(window);
-        int desired_idx = current_idx + (dir == WLR_DIRECTION_UP ? -1 : 1);
+    case WLR_DIRECTION_UP: {
+        struct hwd_column *column = window->pending.parent;
 
-        list_t *siblings = window_get_siblings(window);
-
-        if (desired_idx >= 0 && desired_idx < siblings->length) {
-            return siblings->items[desired_idx];
+        struct hwd_window *prev_sibling = window_get_previous_sibling(window);
+        if (prev_sibling != NULL) {
+            return prev_sibling;
         }
 
-        if (config->focus_wrapping != WRAP_NO && !wrap_candidate && siblings->length > 1) {
-            if (desired_idx < 0) {
-                wrap_candidate = siblings->items[siblings->length - 1];
-            } else {
-                wrap_candidate = siblings->items[0];
+        if (config->focus_wrapping != WRAP_NO && !wrap_candidate) {
+            prev_sibling = column_get_last_child(column);
+            if (prev_sibling == window) {
+                break;
             }
+            wrap_candidate = prev_sibling;
+            if (config->focus_wrapping == WRAP_FORCE) {
+                return wrap_candidate;
+            }
+        }
+        break;
+    }
+    case WLR_DIRECTION_DOWN: {
+        struct hwd_column *column = window->pending.parent;
+
+        struct hwd_window *next_sibling = window_get_next_sibling(window);
+        if (next_sibling != NULL) {
+            return next_sibling;
+        }
+
+        if (config->focus_wrapping != WRAP_NO && !wrap_candidate) {
+            next_sibling = column_get_first_child(column);
+            if (next_sibling == window) {
+                break;
+            }
+            wrap_candidate = next_sibling;
             if (config->focus_wrapping == WRAP_FORCE) {
                 return wrap_candidate;
             }
