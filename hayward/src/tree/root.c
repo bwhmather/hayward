@@ -28,7 +28,6 @@
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
@@ -172,7 +171,7 @@ static void
 root_handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hwd_root *root = wl_container_of(listener, root, output_layout_change);
 
-    arrange_root(root);
+    root_arrange(root);
 }
 
 struct hwd_root *
@@ -251,6 +250,23 @@ root_set_dirty(struct hwd_root *root) {
     for (int i = 0; i < root->pending.workspaces->length; i++) {
         struct hwd_workspace *workspace = root->pending.workspaces->items[i];
         workspace_set_dirty(workspace);
+    }
+}
+
+void
+root_arrange(struct hwd_root *root) {
+    if (config->reloading) {
+        return;
+    }
+
+    for (int i = 0; i < root->outputs->length; ++i) {
+        struct hwd_output *output = root->outputs->items[i];
+        output_arrange(output);
+    }
+
+    for (int i = 0; i < root->pending.workspaces->length; ++i) {
+        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
+        workspace_arrange(workspace);
     }
 }
 

@@ -101,6 +101,9 @@ void
 workspace_reconcile_detached(struct hwd_workspace *workspace);
 
 void
+workspace_arrange(struct hwd_workspace *workspace);
+
+void
 workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *container);
 
 void

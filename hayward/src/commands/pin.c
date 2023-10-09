@@ -8,7 +8,7 @@
 #include <strings.h>
 
 #include <hayward/config.h>
-#include <hayward/tree/arrange.h>
+#include <hayward/tree/column.h>
 #include <hayward/tree/window.h>
 
 static const char expected_syntax[] = "Expected `pin [enable|disable|toggle]`";
@@ -46,7 +46,7 @@ cmd_pin(int argc, char **argv) {
     if (enable != is_pinned) {
         window->pending.pinned = enable;
         if (window->pending.parent != NULL) {
-            arrange_column(window->pending.parent);
+            column_arrange(window->pending.parent);
         }
     }
 

@@ -30,7 +30,6 @@
 #include <hayward/output.h>
 #include <hayward/scene/text.h>
 #include <hayward/server.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -496,6 +495,37 @@ window_set_moving(struct hwd_window *window, bool moving) {
 }
 
 void
+window_arrange(struct hwd_window *window) {
+    if (config->reloading) {
+        return;
+    }
+
+    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_output *output = workspace_get_active_output(workspace);
+
+    if (window->pending.fullscreen) {
+        window->pending.content_x = output->lx;
+        window->pending.content_y = output->ly;
+        window->pending.content_width = output->width;
+        window->pending.content_height = output->height;
+    } else {
+        window->pending.border_top = window->pending.border_bottom = true;
+        window->pending.border_left = window->pending.border_right = true;
+
+        size_t border_thickness = window->pending.border_thickness;
+        double titlebar_height = window_titlebar_height() + 2 * border_thickness;
+
+        window->pending.content_x = window->pending.x + border_thickness;
+        window->pending.content_y = window->pending.y + titlebar_height;
+        window->pending.content_width = window->pending.width - 2 * border_thickness;
+        window->pending.content_height =
+            window->pending.height - titlebar_height - border_thickness;
+    }
+
+    window_set_dirty(window);
+}
+
+void
 window_end_mouse_operation(struct hwd_window *window) {
     struct hwd_seat *seat;
     wl_list_for_each(seat, &server.input->seats, link) { seatop_unref(seat, window); }
@@ -667,7 +697,7 @@ window_handle_fullscreen_reparent(struct hwd_window *window) {
         output_reconcile(output);
     }
 
-    arrange_workspace(window->pending.workspace);
+    workspace_arrange(window->pending.workspace);
 }
 
 void

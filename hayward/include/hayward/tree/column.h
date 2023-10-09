@@ -110,6 +110,9 @@ column_reconcile(
 void
 column_reconcile_detached(struct hwd_column *column);
 
+void
+column_arrange(struct hwd_column *column);
+
 /**
  * Search a container's descendants a container based on test criteria. Returns
  * the first container that passes the test.

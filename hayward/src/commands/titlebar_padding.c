@@ -8,7 +8,6 @@
 #include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
 
@@ -39,7 +38,7 @@ cmd_titlebar_padding(int argc, char **argv) {
     config->titlebar_h_padding = h_value;
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
-    arrange_workspace(workspace);
+    workspace_arrange(workspace);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

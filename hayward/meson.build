@@ -147,7 +147,6 @@ hayward_sources = files(
 
 	'src/scene/text.c',
 
-	'src/tree/arrange.c',
 	'src/tree/column.c',
 	'src/tree/root.c',
 	'src/tree/transaction.c',

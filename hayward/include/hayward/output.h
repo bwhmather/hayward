@@ -104,6 +104,9 @@ struct hwd_output {
 struct hwd_output *
 output_create(struct wlr_output *wlr_output);
 
+void
+output_arrange(struct hwd_output *wlr_output);
+
 struct hwd_output *
 output_from_wlr_output(struct wlr_output *output);
 

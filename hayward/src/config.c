@@ -36,7 +36,7 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/switch.h>
 #include <hayward/server.h>
-#include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 
 struct hwd_config *config = NULL;
 
@@ -989,7 +989,7 @@ config_update_font_height(void) {
     get_text_metrics(config->font_description, &config->font_height, &config->font_baseline);
 
     if (config->font_height != prev_max_height) {
-        arrange_root(root);
+        root_arrange(root);
     }
 }
 

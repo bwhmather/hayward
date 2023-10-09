@@ -28,7 +28,6 @@
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/tree.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
@@ -268,11 +267,11 @@ cmd_move_window(int argc, char **argv) {
 
         // Re-arrange windows
         if (old_workspace && !old_workspace->pending.dead) {
-            arrange_workspace(old_workspace);
+            workspace_arrange(old_workspace);
         }
         // TODO (hayward) it should often be possible to get away without
         // rearranging the entire workspace.
-        arrange_workspace(workspace);
+        workspace_arrange(workspace);
 
         root_commit_focus(root);
 
@@ -312,8 +311,8 @@ cmd_move_window(int argc, char **argv) {
             workspace_consider_destroy(old_workspace);
         }
 
-        arrange_output(old_output);
-        arrange_output(new_output);
+        output_arrange(old_output);
+        output_arrange(new_output);
 
         return cmd_results_new(CMD_SUCCESS, NULL);
     } else {
@@ -382,9 +381,9 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
 
     struct hwd_workspace *new_workspace = window->pending.workspace;
 
-    arrange_workspace(old_workspace);
+    workspace_arrange(old_workspace);
     if (new_workspace != old_workspace) {
-        arrange_workspace(new_workspace);
+        workspace_arrange(new_workspace);
     }
 
     ipc_event_window(window, "move");

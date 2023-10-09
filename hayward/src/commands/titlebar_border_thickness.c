@@ -8,7 +8,7 @@
 #include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 
 struct cmd_results *
 cmd_titlebar_border_thickness(int argc, char **argv) {
@@ -25,7 +25,7 @@ cmd_titlebar_border_thickness(int argc, char **argv) {
 
     config->titlebar_border_thickness = value;
 
-    arrange_root(root);
+    root_arrange(root);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

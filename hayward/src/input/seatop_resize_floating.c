@@ -20,7 +20,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
 #include <hayward/input/seatop_resize_floating.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
@@ -43,7 +42,7 @@ handle_button(
 
     if (seat->cursor->pressed_button_count == 0) {
         window_set_resizing(window, false);
-        arrange_window(window); // Send configure w/o resizing hint
+        window_arrange(window); // Send configure w/o resizing hint
         seatop_begin_default(seat);
     }
 }
@@ -148,7 +147,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     window->pending.content_width += relative_grow_width;
     window->pending.content_height += relative_grow_height;
 
-    arrange_window(window);
+    window_arrange(window);
 }
 
 static void

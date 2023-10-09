@@ -18,7 +18,6 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/output.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
@@ -110,7 +109,7 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
         next_sibling->width_fraction -= (double)next_amount / next_sibling->child_total_width;
     }
 
-    arrange_workspace(column->pending.workspace);
+    workspace_arrange(column->pending.workspace);
 }
 
 static void
@@ -167,7 +166,7 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
         next_sibling->height_fraction -= (double)next_amount / next_sibling->child_total_height;
     }
 
-    arrange_column(column);
+    column_arrange(column);
 }
 
 void
@@ -236,7 +235,7 @@ resize_adjust_floating(uint32_t axis, struct movement_amount *amount) {
     window->pending.content_width += grow_width;
     window->pending.content_height += grow_height;
 
-    arrange_window(window);
+    window_arrange(window);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -357,7 +356,7 @@ resize_set_floating(
     window->pending.content_width += grow_width;
     window->pending.content_height += grow_height;
 
-    arrange_window(window);
+    window_arrange(window);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

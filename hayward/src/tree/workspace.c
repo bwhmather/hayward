@@ -4,6 +4,7 @@
 
 #include <config.h>
 
+#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -17,11 +18,11 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
+#include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -466,6 +467,115 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
     }
 }
 
+static void
+arrange_floating(struct hwd_workspace *workspace) {
+    list_t *floating = workspace->pending.floating;
+    for (int i = 0; i < floating->length; ++i) {
+        struct hwd_window *floater = floating->items[i];
+        floater->pending.shaded = false;
+        window_arrange(floater);
+    }
+}
+
+static void
+arrange_tiling(struct hwd_workspace *workspace) {
+    list_t *columns = workspace->pending.columns;
+    if (!columns->length) {
+        return;
+    }
+
+    for (int i = 0; i < root->outputs->length; ++i) {
+        struct hwd_output *output = root->outputs->items[i];
+
+        struct wlr_box box;
+        output_get_usable_area(output, &box);
+
+        // Count the number of new columns we are resizing, and how much space
+        // is currently occupied.
+        int new_columns = 0;
+        int total_columns = 0;
+        double current_width_fraction = 0;
+        for (int j = 0; j < columns->length; ++j) {
+            struct hwd_column *column = columns->items[j];
+            if (column->pending.output != output) {
+                continue;
+            }
+
+            current_width_fraction += column->width_fraction;
+            if (column->width_fraction <= 0) {
+                new_columns += 1;
+            }
+            total_columns += 1;
+        }
+
+        // Calculate each width fraction.
+        double total_width_fraction = 0;
+        for (int j = 0; j < columns->length; ++j) {
+            struct hwd_column *column = columns->items[j];
+            if (column->pending.output != output) {
+                continue;
+            }
+
+            if (column->width_fraction <= 0) {
+                if (current_width_fraction <= 0) {
+                    column->width_fraction = 1.0;
+                } else if (total_columns > new_columns) {
+                    column->width_fraction = current_width_fraction / (total_columns - new_columns);
+                } else {
+                    column->width_fraction = current_width_fraction;
+                }
+            }
+            total_width_fraction += column->width_fraction;
+        }
+        // Normalize width fractions so the sum is 1.0.
+        for (int j = 0; j < columns->length; ++j) {
+            struct hwd_column *column = columns->items[j];
+            if (column->pending.output != output) {
+                continue;
+            }
+            column->width_fraction /= total_width_fraction;
+        }
+
+        double columns_total_width = box.width;
+
+        // Resize columns.
+        double column_x = box.x;
+        for (int j = 0; j < columns->length; ++j) {
+            struct hwd_column *column = columns->items[j];
+            column->child_total_width = columns_total_width;
+            column->pending.x = column_x;
+            column->pending.y = box.y;
+            column->pending.width = round(column->width_fraction * columns_total_width);
+            column->pending.height = box.height;
+            column_x += column->pending.width;
+
+            // Make last child use remaining width of parent.
+            if (j == total_columns - 1) {
+                column->pending.width = box.x + box.width - column->pending.x;
+            }
+        }
+    }
+
+    for (int i = 0; i < columns->length; ++i) {
+        struct hwd_column *column = columns->items[i];
+        column_arrange(column);
+    }
+}
+
+void
+workspace_arrange(struct hwd_workspace *workspace) {
+    if (config->reloading) {
+        return;
+    }
+
+    hwd_log(HWD_DEBUG, "Arranging workspace '%s'", workspace->name);
+
+    arrange_tiling(workspace);
+    arrange_floating(workspace);
+
+    workspace_set_dirty(workspace);
+}
+
 void
 workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *window) {
     hwd_assert(workspace != NULL, "Expected workspace");
@@ -874,7 +984,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         }
     }
 
-    arrange_workspace(workspace);
+    workspace_arrange(workspace);
 }
 
 struct hwd_window *

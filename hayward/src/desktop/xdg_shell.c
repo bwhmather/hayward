@@ -27,7 +27,6 @@
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/output.h>
 #include <hayward/tree.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
@@ -366,7 +365,7 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
 
     window_set_fullscreen(window, req->fullscreen);
 
-    arrange_root(root);
+    root_arrange(root);
 }
 
 static void

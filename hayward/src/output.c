@@ -31,12 +31,12 @@
 
 #include <wlr-output-power-management-unstable-v1-protocol.h>
 
+#include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -175,6 +175,28 @@ output_set_dirty(struct hwd_output *output) {
     hwd_transaction_manager_ensure_queued(transaction_manager);
 }
 
+void
+output_arrange(struct hwd_output *output) {
+    if (config->reloading) {
+        return;
+    }
+    struct wlr_box output_box;
+    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
+    output->lx = output_box.x;
+    output->ly = output_box.y;
+    output->width = output_box.width;
+    output->height = output_box.height;
+
+    if (output->pending.fullscreen_window) {
+        struct hwd_window *fs = output->pending.fullscreen_window;
+        fs->pending.x = output->lx;
+        fs->pending.y = output->ly;
+        fs->pending.width = output->width;
+        fs->pending.height = output->height;
+        window_arrange(fs);
+    }
+}
+
 static void
 output_enable(struct hwd_output *output) {
     if (output->enabled) {
@@ -190,7 +212,7 @@ output_enable(struct hwd_output *output) {
     input_manager_configure_xcursor();
 
     arrange_layers(output);
-    arrange_root(root);
+    root_arrange(root);
 }
 
 static void
@@ -240,7 +262,7 @@ output_evacuate(struct hwd_output *output) {
             ipc_event_window(window, "move");
         }
 
-        arrange_workspace(workspace);
+        workspace_arrange(workspace);
     }
 }
 
@@ -280,7 +302,7 @@ output_disable(struct hwd_output *output) {
     output->enabled = false;
     output->current_mode = NULL;
 
-    arrange_root(root);
+    root_arrange(root);
 
     // Reconfigure all devices, since devices with map_to_output directives for
     // an output that goes offline should stop sending events as long as the
@@ -618,7 +640,7 @@ handle_commit(struct wl_listener *listener, void *data) {
 
         if (output->enabled) {
             arrange_layers(output);
-            arrange_output(output);
+            output_arrange(output);
         }
     }
 }

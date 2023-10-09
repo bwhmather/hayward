@@ -11,7 +11,6 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 
@@ -54,7 +53,7 @@ cmd_fullscreen(int argc, char **argv) {
 
     if (enable != is_fullscreen) {
         window_set_fullscreen(window, enable);
-        arrange_root(root);
+        root_arrange(root);
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

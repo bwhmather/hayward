@@ -15,7 +15,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
-#include <hayward/tree/arrange.h>
+#include <hayward/tree/root.h>
 
 static void
 do_reload(void *data) {
@@ -52,7 +52,7 @@ do_reload(void *data) {
     }
     list_free_items_and_destroy(bar_ids);
 
-    arrange_root(root);
+    root_arrange(root);
 }
 
 struct cmd_results *

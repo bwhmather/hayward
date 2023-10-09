@@ -111,6 +111,9 @@ void
 root_destroy(struct hwd_root *root);
 
 void
+root_arrange(struct hwd_root *root);
+
+void
 root_add_workspace(struct hwd_root *root, struct hwd_workspace *workspace);
 void
 root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace);

@@ -10,9 +10,9 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/tree.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 struct cmd_results *
 cmd_floating(int argc, char **argv) {
@@ -36,7 +36,7 @@ cmd_floating(int argc, char **argv) {
         hwd_move_window_to_tiling(window);
     }
 
-    arrange_workspace(window->pending.workspace);
+    workspace_arrange(window->pending.workspace);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

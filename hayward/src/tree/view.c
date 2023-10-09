@@ -42,7 +42,6 @@
 #include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/tree.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
@@ -331,12 +330,12 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
 
     window_set_fullscreen(window, event->fullscreen);
     if (event->fullscreen) {
-        arrange_root(root);
+        root_arrange(root);
     } else {
         if (window->pending.parent) {
-            arrange_column(window->pending.parent);
+            column_arrange(window->pending.parent);
         } else if (window->pending.workspace) {
-            arrange_workspace(window->pending.workspace);
+            workspace_arrange(window->pending.workspace);
         }
     }
 }
@@ -421,9 +420,9 @@ view_map(
         view_set_tiled(view, true);
 
         if (target_sibling) {
-            arrange_column(view->window->pending.parent);
+            column_arrange(view->window->pending.parent);
         } else {
-            arrange_workspace(workspace);
+            workspace_arrange(workspace);
         }
     }
 
@@ -485,7 +484,7 @@ view_unmap(struct hwd_view *view) {
     }
 
     if (workspace && !workspace->pending.dead) {
-        arrange_workspace(workspace);
+        workspace_arrange(workspace);
         workspace_detect_urgent(workspace);
     }
 

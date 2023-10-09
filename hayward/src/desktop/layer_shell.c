@@ -28,7 +28,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/output.h>
-#include <hayward/tree/arrange.h>
 #include <hayward/tree/root.h>
 
 #define HWD_LAYER_SHELL_VERSION 4
@@ -75,7 +74,7 @@ arrange_layers(struct hwd_output *output) {
     if (!wlr_box_equal(&usable_area, &output->usable_area)) {
         hwd_log(HWD_DEBUG, "Usable area changed, rearranging output");
         output->usable_area = usable_area;
-        arrange_output(output);
+        output_arrange(output);
     }
 }
 

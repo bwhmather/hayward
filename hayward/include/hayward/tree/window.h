@@ -180,6 +180,9 @@ window_reconcile_detached(struct hwd_window *window);
 void
 window_set_moving(struct hwd_window *window, bool moving);
 
+void
+window_arrange(struct hwd_window *window);
+
 /**
  * If the window is involved in a drag or resize operation via a mouse, this
  * ends the operation.
