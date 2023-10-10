@@ -55,12 +55,14 @@ struct hwd_column {
     double saved_x, saved_y;
     double saved_width, saved_height;
 
-    // The number of pixels allocated to an active window which is not pinned.
+    // Fraction of vertical space available for content that should be allocated
+    // to an active window which is not pinned.
     double active_height_fraction;
 
-    // The number of pixels allocated to the preview, if visible.  Not included
-    // when normalizing.
+    // "Fraction" of vertical space allocated to the preview, if visible.  Not
+    // included when normalizing.
     double preview_height_fraction;
+
     // Fraction of distance from top of preview that should be lined up with the
     // anchor.
     double preview_baseline;

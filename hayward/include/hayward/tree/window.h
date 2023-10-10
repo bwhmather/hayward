@@ -105,8 +105,9 @@ struct hwd_window {
     double saved_x, saved_y;
     double saved_width, saved_height;
 
-    // The number of pixels occupied by this window when the containing column
-    // has an un-pinned window focused and this window is pinned.
+    // The fraction of vertical space available for content that should be
+    // allocated to this window when the containing column has an un-pinned
+    // window focused and this window is pinned.
     double height_fraction;
 
     // The share of space of the parent column that all children occupy.

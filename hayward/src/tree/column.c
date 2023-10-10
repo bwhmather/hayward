@@ -339,7 +339,7 @@ column_arrange(struct hwd_column *column) {
         return;
     }
 
-    int titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
+    double titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
     int num_titlebars = children->length;
     if (column->pending.show_preview) {
         num_titlebars += 1;
@@ -347,15 +347,14 @@ column_arrange(struct hwd_column *column) {
 
     struct wlr_box box;
     column_get_box(column, &box);
-    double available_content_height = box.height - (num_titlebars * titlebar_height);
 
-    double allocated_content_height = 0.0;
+    double allocated_height_fraction = 0.0;
     // Number of windows that should have height allocated.
     int num_eligible = 1;
-    // Number of those windows that do not currently have height allocated.
+    // Number of those eligible windows that do not yet have height allocated.
     int num_unallocated = 0;
     if (column->active_height_fraction != 0.0) {
-        allocated_content_height += column->active_height_fraction;
+        allocated_height_fraction += column->active_height_fraction;
     } else {
         num_unallocated += 1;
     }
@@ -366,23 +365,23 @@ column_arrange(struct hwd_column *column) {
         }
         num_eligible += 1;
         if (child->height_fraction != 0.0) {
-            allocated_content_height += child->height_fraction;
+            allocated_height_fraction += child->height_fraction;
         } else {
             num_unallocated += 1;
         }
     }
 
     // Assign a default height for pinned windows if not already set.
-    double default_height;
+    double default_height_fraction;
     if (num_unallocated == num_eligible) {
-        default_height = available_content_height / ((double)num_unallocated);
+        default_height_fraction = 1.0 / ((double)num_unallocated);
     } else {
-        default_height = allocated_content_height / ((double)(num_eligible - num_unallocated));
+        default_height_fraction = 1.0 / ((double)(num_eligible - num_unallocated));
     }
 
     if (column->active_height_fraction == 0.0) {
-        column->active_height_fraction = default_height;
-        allocated_content_height += default_height;
+        column->active_height_fraction = default_height_fraction;
+        allocated_height_fraction += default_height_fraction;
     }
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
@@ -392,32 +391,38 @@ column_arrange(struct hwd_column *column) {
         if (child->height_fraction != 0.0) {
             continue;
         }
-        child->height_fraction = default_height;
-        allocated_content_height += default_height;
+        child->height_fraction = default_height_fraction;
+        allocated_height_fraction += default_height_fraction;
     }
     if (column->preview_height_fraction == 0.0) {
-        column->preview_height_fraction = default_height;
+        // Note that the preview height does not count towards the allocated
+        // height fraction.  Once the window is inserted, everything will be
+        // re-normalized.
+        column->preview_height_fraction = default_height_fraction;
     }
 
     // Normalize height fractions.
-    column->active_height_fraction *= available_content_height / allocated_content_height;
-    column->preview_height_fraction *= available_content_height / allocated_content_height;
+    column->active_height_fraction /= allocated_height_fraction;
+    column->preview_height_fraction /= allocated_height_fraction;
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        child->height_fraction *= available_content_height / allocated_content_height;
+        child->height_fraction *= 1.0 / allocated_height_fraction;
     }
-    allocated_content_height = available_content_height;
+
+    double visible_height_fraction = 1.0;
 
     // Check if currently focused window is pinned.
     struct hwd_window *active_child = column->pending.active_child;
     if (column->pending.show_preview) {
         // Preview window replaces un-pinned focused windows.
         active_child = NULL;
-        allocated_content_height += column->preview_height_fraction;
+        visible_height_fraction += column->preview_height_fraction;
     }
     if (active_child == NULL || active_child->pending.pinned) {
-        allocated_content_height -= column->active_height_fraction;
+        visible_height_fraction -= column->active_height_fraction;
     }
+
+    double available_content_height = box.height - (num_titlebars * titlebar_height);
 
     // Distance between top of next window and top of the screen.
     double y_offset = 0;
@@ -444,12 +449,9 @@ column_arrange(struct hwd_column *column) {
             continue;
         }
 
-        double window_height = (double)titlebar_height;
-        double height_fraction = child->height_fraction;
-        if (!child->pending.pinned) {
-            height_fraction = column->active_height_fraction;
-        }
-        window_height += height_fraction * available_content_height / allocated_content_height;
+        double window_height = titlebar_height;
+        window_height +=
+            available_content_height * child->height_fraction / visible_height_fraction;
         child->pending.shaded = false;
 
         baseline_delta = next_baseline_delta;
@@ -460,9 +462,9 @@ column_arrange(struct hwd_column *column) {
         if (column->pending.show_preview && !preview_inserted && column->pending.preview_pinned &&
             next_baseline_delta > baseline_delta) {
 
-            double preview_height = (double)titlebar_height;
-            preview_height += column->preview_height_fraction * available_content_height /
-                allocated_content_height;
+            double preview_height = titlebar_height;
+            preview_height += available_content_height * column->preview_height_fraction /
+                visible_height_fraction;
 
             column->pending.preview_target = window_get_previous_sibling(child);
             column->pending.preview_box.x = column->pending.x;
@@ -484,9 +486,9 @@ column_arrange(struct hwd_column *column) {
     }
 
     if (column->pending.show_preview && !preview_inserted && column->pending.preview_pinned) {
-        double preview_height = (double)titlebar_height;
+        double preview_height = titlebar_height;
         preview_height +=
-            column->preview_height_fraction * available_content_height / allocated_content_height;
+            available_content_height * column->preview_height_fraction / visible_height_fraction;
 
         column->pending.preview_target = child;
         column->pending.preview_box.x = column->pending.x;
@@ -505,15 +507,12 @@ column_arrange(struct hwd_column *column) {
             continue;
         }
 
-        double window_height = (double)titlebar_height;
+        double window_height = titlebar_height;
         if (child != active_child) {
             child->pending.shaded = true;
         } else {
-            double height_fraction = child->height_fraction;
-            if (!child->pending.pinned) {
-                height_fraction = column->active_height_fraction;
-            }
-            window_height += height_fraction * available_content_height / allocated_content_height;
+            window_height +=
+                available_content_height * column->active_height_fraction / visible_height_fraction;
             child->pending.shaded = false;
         }
 
@@ -525,9 +524,9 @@ column_arrange(struct hwd_column *column) {
         if (column->pending.show_preview && !preview_inserted && !column->pending.preview_pinned &&
             next_baseline_delta > baseline_delta) {
 
-            double preview_height = (double)titlebar_height;
-            preview_height += column->preview_height_fraction * available_content_height /
-                allocated_content_height;
+            double preview_height = titlebar_height;
+            preview_height += available_content_height * column->preview_height_fraction /
+                visible_height_fraction;
 
             column->pending.preview_target = window_get_previous_sibling(child);
             column->pending.preview_box.x = column->pending.x;
@@ -551,9 +550,9 @@ column_arrange(struct hwd_column *column) {
     }
 
     if (column->pending.show_preview && !preview_inserted && !column->pending.preview_pinned) {
-        double preview_height = (double)titlebar_height;
+        double preview_height = titlebar_height;
         preview_height +=
-            column->preview_height_fraction * available_content_height / allocated_content_height;
+            available_content_height * column->preview_height_fraction / visible_height_fraction;
 
         column->pending.preview_target = child;
         column->pending.preview_box.x = column->pending.x;
