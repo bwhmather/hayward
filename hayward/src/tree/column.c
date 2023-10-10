@@ -715,6 +715,12 @@ column_remove_child(struct hwd_column *column, struct hwd_window *child) {
         }
     }
 
+    if (child->pending.pinned) {
+        // Rest of column will be normalized on arrange (assuming that we don't
+        // remove any other windows).
+        child->height_fraction *= 1.0 / (1.0 - child->height_fraction);
+    }
+
     window_reconcile_detached(child);
 }
 
