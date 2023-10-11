@@ -107,8 +107,6 @@ do_detach(struct hwd_seat *seat) {
         double fdx = dx / window->pending.width;
         double fdy = dy / window->pending.height;
 
-        // TODO Adjust column widths so that window current column fraction is 1.0.
-
         struct hwd_column *old_parent = window->pending.parent;
         window_detach(window);
         workspace_add_floating(workspace, window);

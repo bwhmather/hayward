@@ -630,23 +630,44 @@ column_get_last_child(struct hwd_column *column) {
 }
 
 void
-column_insert_child(struct hwd_column *column, struct hwd_window *child, int i) {
+column_insert_child(struct hwd_column *column, struct hwd_window *window, int i) {
     hwd_assert(column != NULL, "Expected column");
-    hwd_assert(child != NULL, "Expected child");
+    hwd_assert(window != NULL, "Expected child");
     hwd_assert(i >= 0 && i <= column->pending.children->length, "Expected index to be in bounds");
 
     hwd_assert(
-        !child->pending.workspace && !child->pending.parent,
+        !window->pending.workspace && !window->pending.parent,
         "Windows must be detatched before they can be added to a column"
     );
     if (column->pending.children->length == 0) {
-        column->pending.active_child = child;
+        column->pending.active_child = window;
     }
-    list_insert(column->pending.children, i, child);
+    list_insert(column->pending.children, i, window);
 
-    window_reconcile_tiling(child, column);
+    if (window->pending.pinned) {
+        int num_pinned = 0;
+        for (int i = 0; i < column->pending.children->length; ++i) {
+            struct hwd_window *child = column->pending.children->items[i];
+            if (child->pending.pinned) {
+                num_pinned += 1;
+            }
+        }
 
-    window_handle_fullscreen_reparent(child);
+        double default_height_fraction = 1.0 / num_pinned;
+
+        // Original height fraction is the height fraction that the window would
+        // need to have had in order to have its current height fraction after
+        // being removed from the target column.
+        double original_height_fraction = window->height_fraction * default_height_fraction;
+
+        // Apply same normalization factor as will have been applied to the
+        // other windows in the column.
+        window->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
+    }
+
+    window_reconcile_tiling(window, column);
+
+    window_handle_fullscreen_reparent(window);
 }
 
 void
@@ -668,6 +689,27 @@ column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool aft
 
     list_insert(siblings, index + after, active);
 
+    if (active->pending.pinned) {
+        int num_pinned = 0;
+        for (int i = 0; i < column->pending.children->length; ++i) {
+            struct hwd_window *child = column->pending.children->items[i];
+            if (child->pending.pinned) {
+                num_pinned += 1;
+            }
+        }
+
+        double default_height_fraction = 1.0 / num_pinned;
+
+        // Original height fraction is the height fraction that the window would
+        // need to have had in order to have its current height fraction after
+        // being removed from the target column.
+        double original_height_fraction = active->height_fraction * default_height_fraction;
+
+        // Apply same normalization factor as will have been applied to the
+        // other windows in the column.
+        active->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
+    }
+
     window_reconcile_tiling(fixed, column);
     window_reconcile_tiling(active, column);
 
@@ -675,37 +717,58 @@ column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool aft
 }
 
 void
-column_add_child(struct hwd_column *column, struct hwd_window *child) {
+column_add_child(struct hwd_column *column, struct hwd_window *window) {
     hwd_assert(column != NULL, "Expected column");
-    hwd_assert(child != NULL, "Expected window");
+    hwd_assert(window != NULL, "Expected window");
     hwd_assert(
-        !child->pending.workspace && !child->pending.workspace,
+        !window->pending.workspace && !window->pending.workspace,
         "Windows must be detatched before they can be added to a column"
     );
     if (column->pending.children->length == 0) {
-        column->pending.active_child = child;
+        column->pending.active_child = window;
     }
-    list_add(column->pending.children, child);
+    list_add(column->pending.children, window);
 
-    window_reconcile_tiling(child, column);
+    if (window->pending.pinned) {
+        int num_pinned = 0;
+        for (int i = 0; i < column->pending.children->length; ++i) {
+            struct hwd_window *child = column->pending.children->items[i];
+            if (child->pending.pinned) {
+                num_pinned += 1;
+            }
+        }
 
-    window_handle_fullscreen_reparent(child);
-    window_set_dirty(child);
+        double default_height_fraction = 1.0 / num_pinned;
+
+        // Original height fraction is the height fraction that the window would
+        // need to have had in order to have its current height fraction after
+        // being removed from the target column.
+        double original_height_fraction = window->height_fraction * default_height_fraction;
+
+        // Apply same normalization factor as will have been applied to the
+        // other windows in the column.
+        window->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
+    }
+
+    window_reconcile_tiling(window, column);
+
+    window_handle_fullscreen_reparent(window);
+    window_set_dirty(window);
     column_set_dirty(column);
 }
 
 void
-column_remove_child(struct hwd_column *column, struct hwd_window *child) {
+column_remove_child(struct hwd_column *column, struct hwd_window *window) {
     hwd_assert(column != NULL, "Expected column");
-    hwd_assert(child != NULL, "Expected window");
-    hwd_assert(child->pending.parent == column, "Window is not a child of column");
+    hwd_assert(window != NULL, "Expected window");
+    hwd_assert(window->pending.parent == column, "Window is not a child of column");
 
-    int index = list_find(column->pending.children, child);
+    int index = list_find(column->pending.children, window);
     hwd_assert(index != -1, "Window missing from column child list");
 
     list_del(column->pending.children, index);
 
-    if (column->pending.active_child == child) {
+    if (column->pending.active_child == window) {
         if (column->pending.children->length) {
             column->pending.active_child =
                 column->pending.children->items[index > 0 ? index - 1 : 0];
@@ -715,13 +778,20 @@ column_remove_child(struct hwd_column *column, struct hwd_window *child) {
         }
     }
 
-    if (child->pending.pinned) {
-        // Rest of column will be normalized on arrange (assuming that we don't
-        // remove any other windows).
-        child->height_fraction *= 1.0 / (1.0 - child->height_fraction);
+    if (window->pending.pinned) {
+        int num_pinned = 0;
+        for (int i = 0; i < column->pending.children->length; ++i) {
+            struct hwd_window *child = column->pending.children->items[i];
+            if (child->pending.pinned) {
+                num_pinned += 1;
+            }
+        }
+
+        double default_height_fraction = 1.0 / (num_pinned + 1);
+        window->height_fraction /= default_height_fraction;
     }
 
-    window_reconcile_detached(child);
+    window_reconcile_detached(window);
 }
 
 void

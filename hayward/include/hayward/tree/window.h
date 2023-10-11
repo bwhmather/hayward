@@ -107,7 +107,9 @@ struct hwd_window {
 
     // The fraction of vertical space available for content that should be
     // allocated to this window when the containing column has an un-pinned
-    // window focused and this window is pinned.
+    // window focused and this window is pinned.  When floating, this is
+    // relative to the average height fraction prior to being extracted from a
+    // column.
     double height_fraction;
 
     // The share of space of the parent column that all children occupy.
