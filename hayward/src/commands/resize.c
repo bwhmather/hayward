@@ -127,6 +127,9 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
     }
     if (axis & WLR_EDGE_BOTTOM) {
         next_sibling = window_get_next_sibling(window);
+        if (next_sibling != NULL && !next_sibling->pending.pinned && window->pending.pinned) {
+            next_sibling = column->pending.active_child;
+        }
     }
 
     if (prev_sibling == NULL && next_sibling == NULL) {
@@ -150,20 +153,23 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
         return;
     }
 
-    // We're going to resize so snap all the height fractions to full pixels
-    // to avoid rounding issues
-    list_t *siblings = window_get_siblings(window);
-    for (int i = 0; i < siblings->length; ++i) {
-        struct hwd_window *sibling = siblings->items[i];
-        sibling->height_fraction = sibling->pending.height / sibling->child_total_height;
+    double visible_height_fraction = 1.0;
+    if (!column->pending.active_child->pending.pinned) {
+        visible_height_fraction += column->active_height_fraction;
     }
 
-    window->height_fraction += (double)amount / window->child_total_height;
+    double available_content_height = column->pending.height -
+        (column->pending.children->length * (window_titlebar_height() + 4));
+
+    window->height_fraction +=
+        (double)amount / (available_content_height * visible_height_fraction);
     if (prev_sibling != NULL) {
-        prev_sibling->height_fraction -= (double)prev_amount / prev_sibling->child_total_height;
+        prev_sibling->height_fraction -=
+            (double)prev_amount / (available_content_height * visible_height_fraction);
     }
     if (next_sibling != NULL) {
-        next_sibling->height_fraction -= (double)next_amount / next_sibling->child_total_height;
+        next_sibling->height_fraction -=
+            (double)next_amount / (available_content_height * visible_height_fraction);
     }
 
     column_arrange(column);
