@@ -370,7 +370,7 @@ window_create(struct hwd_view *view) {
     window->view = view;
     window->alpha = 1.0f;
 
-    window->height_fraction = 0.5;
+    window->height_fraction = 1.0;
 
     window->transaction_commit.notify = window_handle_transaction_commit;
     window->transaction_apply.notify = window_handle_transaction_apply;
