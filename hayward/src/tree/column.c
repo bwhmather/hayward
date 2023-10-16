@@ -184,6 +184,7 @@ column_create(void) {
     wl_signal_init(&column->events.begin_destroy);
     wl_signal_init(&column->events.destroy);
 
+    column->pending.layout = L_STACKED;
     column->alpha = 1.0f;
 
     column->pending.children = create_list();
@@ -323,13 +324,12 @@ column_reconcile_detached(struct hwd_column *column) {
     }
 }
 
-void
-column_arrange(struct hwd_column *column) {
+static void
+column_arrange_split(struct hwd_column *column) {
     struct hwd_window *child = NULL;
     list_t *children = column->pending.children;
 
     if (!children->length) {
-        column->active_height_fraction = 0.0;
         column->pending.preview_target = NULL;
         column->pending.preview_box.x = column->pending.x;
         column->pending.preview_box.y = column->pending.y;
@@ -339,87 +339,16 @@ column_arrange(struct hwd_column *column) {
         return;
     }
 
-    double titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
-    int num_titlebars = children->length;
-    if (column->pending.show_preview) {
-        num_titlebars += 1;
-    }
-
     struct wlr_box box;
     column_get_box(column, &box);
 
-    double allocated_height_fraction = 0.0;
-    // Number of windows that should have height allocated.
-    int num_eligible = 1;
-    // Number of those eligible windows that do not yet have height allocated.
-    int num_unallocated = 0;
-    if (column->active_height_fraction != 0.0) {
-        allocated_height_fraction += column->active_height_fraction;
-    } else {
-        num_unallocated += 1;
-    }
-    for (int i = 0; i < children->length; ++i) {
-        child = children->items[i];
-        if (!child->pending.pinned) {
-            continue;
-        }
-        num_eligible += 1;
-        if (child->height_fraction != 0.0) {
-            allocated_height_fraction += child->height_fraction;
-        } else {
-            num_unallocated += 1;
-        }
-    }
-
-    // Assign a default height for pinned windows if not already set.
-    double default_height_fraction;
-    if (num_unallocated == num_eligible) {
-        default_height_fraction = 1.0 / ((double)num_unallocated);
-    } else {
-        default_height_fraction = 1.0 / ((double)(num_eligible - num_unallocated));
-    }
-
-    if (column->active_height_fraction == 0.0) {
-        column->active_height_fraction = default_height_fraction;
-        allocated_height_fraction += default_height_fraction;
-    }
-    for (int i = 0; i < children->length; ++i) {
-        child = children->items[i];
-        if (!child->pending.pinned) {
-            continue;
-        }
-        if (child->height_fraction != 0.0) {
-            continue;
-        }
-        child->height_fraction = default_height_fraction;
-        allocated_height_fraction += default_height_fraction;
-    }
-    if (column->preview_height_fraction == 0.0) {
-        // Note that the preview height does not count towards the allocated
-        // height fraction.  Once the window is inserted, everything will be
-        // re-normalized.
-        column->preview_height_fraction = default_height_fraction;
-    }
-
-    // Normalize height fractions.
-    column->active_height_fraction /= allocated_height_fraction;
-    column->preview_height_fraction /= allocated_height_fraction;
-    for (int i = 0; i < children->length; ++i) {
-        child = children->items[i];
-        child->height_fraction *= 1.0 / allocated_height_fraction;
-    }
+    double titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
+    int num_titlebars = children->length;
 
     double visible_height_fraction = 1.0;
-
-    // Check if currently focused window is pinned.
-    struct hwd_window *active_child = column->pending.active_child;
     if (column->pending.show_preview) {
-        // Preview window replaces un-pinned focused windows.
-        active_child = NULL;
         visible_height_fraction += column->preview_height_fraction;
-    }
-    if (active_child == NULL || active_child->pending.pinned) {
-        visible_height_fraction -= column->active_height_fraction;
+        num_titlebars += 1;
     }
 
     double available_content_height = box.height - (num_titlebars * titlebar_height);
@@ -445,10 +374,6 @@ column_arrange(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        if (!child->pending.pinned) {
-            continue;
-        }
-
         double window_height = titlebar_height;
         window_height +=
             available_content_height * child->height_fraction / visible_height_fraction;
@@ -459,7 +384,7 @@ column_arrange(struct hwd_column *column) {
             column->pending.y + round(y_offset + window_height) + preview_baseline -
             column->preview_anchor_y
         );
-        if (column->pending.show_preview && !preview_inserted && column->pending.preview_pinned &&
+        if (column->pending.show_preview && !preview_inserted &&
             next_baseline_delta > baseline_delta) {
 
             double preview_height = titlebar_height;
@@ -485,7 +410,7 @@ column_arrange(struct hwd_column *column) {
         y_offset += child->pending.height;
     }
 
-    if (column->pending.show_preview && !preview_inserted && column->pending.preview_pinned) {
+    if (column->pending.show_preview && !preview_inserted) {
         double preview_height = titlebar_height;
         preview_height +=
             available_content_height * column->preview_height_fraction / visible_height_fraction;
@@ -500,19 +425,61 @@ column_arrange(struct hwd_column *column) {
 
         y_offset += preview_height;
     }
+}
+
+static void
+column_arrange_stacked(struct hwd_column *column) {
+    struct hwd_window *child = NULL;
+    list_t *children = column->pending.children;
+    struct hwd_window *active_child = column->pending.active_child;
+    if (column->pending.show_preview) {
+        active_child = NULL;
+    }
+
+    if (!children->length) {
+        column->pending.preview_target = NULL;
+        column->pending.preview_box.x = column->pending.x;
+        column->pending.preview_box.y = column->pending.y;
+        column->pending.preview_box.width = column->pending.width;
+        column->pending.preview_box.height = column->pending.height;
+        column_set_dirty(column);
+        return;
+    }
+
+    struct wlr_box box;
+    column_get_box(column, &box);
+
+    double titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
+    int num_titlebars = children->length;
+
+    double available_content_height = box.height - (num_titlebars * titlebar_height);
+
+    // Distance between top of next window and top of the screen.
+    double y_offset = 0;
+
+    // The distance, in layout coordinates, between the desired location of the
+    // vertical anchor point in the preview and the top of the preview.
+    double preview_baseline = round(column->preview_baseline * column->preview_height_fraction);
+
+    // Absolute distance between preview baseline and anchor point if preview is
+    // inserted before this one.
+    double baseline_delta;
+
+    // Absolute distance between preview baseline and anchor point if preview is
+    // inserted after this one.
+    double next_baseline_delta;
+
+    bool preview_inserted = false;
+
+    next_baseline_delta = fabs(column->pending.y + preview_baseline - column->preview_anchor_y);
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        if (child->pending.pinned) {
-            continue;
-        }
-
         double window_height = titlebar_height;
         if (child != active_child) {
             child->pending.shaded = true;
         } else {
-            window_height +=
-                available_content_height * column->active_height_fraction / visible_height_fraction;
+            window_height += available_content_height;
             child->pending.shaded = false;
         }
 
@@ -521,12 +488,10 @@ column_arrange(struct hwd_column *column) {
             column->pending.y + round(y_offset + window_height) + preview_baseline -
             column->preview_anchor_y
         );
-        if (column->pending.show_preview && !preview_inserted && !column->pending.preview_pinned &&
+        if (column->pending.show_preview && !preview_inserted &&
             next_baseline_delta > baseline_delta) {
 
-            double preview_height = titlebar_height;
-            preview_height += available_content_height * column->preview_height_fraction /
-                visible_height_fraction;
+            double preview_height = titlebar_height + available_content_height;
 
             column->pending.preview_target = window_get_previous_sibling(child);
             column->pending.preview_box.x = column->pending.x;
@@ -549,10 +514,8 @@ column_arrange(struct hwd_column *column) {
         // TODO Make last visible child use remaining height of parent
     }
 
-    if (column->pending.show_preview && !preview_inserted && !column->pending.preview_pinned) {
-        double preview_height = titlebar_height;
-        preview_height +=
-            available_content_height * column->preview_height_fraction / visible_height_fraction;
+    if (column->pending.show_preview && !preview_inserted) {
+        double preview_height = titlebar_height + available_content_height;
 
         column->pending.preview_target = child;
         column->pending.preview_box.x = column->pending.x;
@@ -564,7 +527,27 @@ column_arrange(struct hwd_column *column) {
 
         y_offset += preview_height;
     }
+}
 
+void
+column_arrange(struct hwd_column *column) {
+    if (config->reloading) {
+        return;
+    }
+
+    switch (column->pending.layout) {
+    case L_SPLIT:
+        column_arrange_split(column);
+        break;
+    case L_STACKED:
+        column_arrange_stacked(column);
+        break;
+    default:
+        hwd_assert(false, "Unsupported layout");
+        break;
+    }
+
+    list_t *children = column->pending.children;
     for (int i = 0; i < children->length; ++i) {
         struct hwd_window *child = children->items[i];
         window_arrange(child);
@@ -599,13 +582,6 @@ column_get_first_child(struct hwd_column *column) {
         return NULL;
     }
 
-    for (int i = 0; i < children->length; i++) {
-        struct hwd_window *child = children->items[i];
-        if (child->pending.pinned) {
-            return child;
-        }
-    }
-
     return children->items[0];
 }
 
@@ -619,14 +595,22 @@ column_get_last_child(struct hwd_column *column) {
         return NULL;
     }
 
-    for (int i = children->length; i > 0; i--) {
-        struct hwd_window *child = children->items[i - 1];
-        if (!child->pending.pinned) {
-            return child;
-        }
+    return children->items[children->length - 1];
+}
+
+static void
+column_normalize_height_fractions(struct hwd_column *column) {
+    double total = 0.0;
+
+    for (int i = 0; i < column->pending.children->length; ++i) {
+        struct hwd_window *child = column->pending.children->items[i];
+        total += child->height_fraction;
     }
 
-    return children->items[children->length - 1];
+    for (int i = 0; i < column->pending.children->length; ++i) {
+        struct hwd_window *child = column->pending.children->items[i];
+        child->height_fraction /= total;
+    }
 }
 
 void
@@ -644,26 +628,18 @@ column_insert_child(struct hwd_column *column, struct hwd_window *window, int i)
     }
     list_insert(column->pending.children, i, window);
 
-    if (window->pending.pinned) {
-        int num_pinned = 0;
-        for (int i = 0; i < column->pending.children->length; ++i) {
-            struct hwd_window *child = column->pending.children->items[i];
-            if (child->pending.pinned) {
-                num_pinned += 1;
-            }
-        }
+    double default_height_fraction = 1.0 / column->pending.children->length;
 
-        double default_height_fraction = 1.0 / num_pinned;
+    // Original height fraction is the height fraction that the window would
+    // need to have had in order to have its current height fraction after
+    // being removed from the target column.
+    double original_height_fraction = window->height_fraction * default_height_fraction;
 
-        // Original height fraction is the height fraction that the window would
-        // need to have had in order to have its current height fraction after
-        // being removed from the target column.
-        double original_height_fraction = window->height_fraction * default_height_fraction;
+    // Apply same normalization factor as will have been applied to the
+    // other windows in the column.
+    window->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
 
-        // Apply same normalization factor as will have been applied to the
-        // other windows in the column.
-        window->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
-    }
+    column_normalize_height_fractions(column);
 
     window_reconcile_tiling(window, column);
 
@@ -689,26 +665,18 @@ column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool aft
 
     list_insert(siblings, index + after, active);
 
-    if (active->pending.pinned) {
-        int num_pinned = 0;
-        for (int i = 0; i < column->pending.children->length; ++i) {
-            struct hwd_window *child = column->pending.children->items[i];
-            if (child->pending.pinned) {
-                num_pinned += 1;
-            }
-        }
+    double default_height_fraction = 1.0 / column->pending.children->length;
 
-        double default_height_fraction = 1.0 / num_pinned;
+    // Original height fraction is the height fraction that the window would
+    // need to have had in order to have its current height fraction after
+    // being removed from the target column.
+    double original_height_fraction = active->height_fraction * default_height_fraction;
 
-        // Original height fraction is the height fraction that the window would
-        // need to have had in order to have its current height fraction after
-        // being removed from the target column.
-        double original_height_fraction = active->height_fraction * default_height_fraction;
+    // Apply same normalization factor as will have been applied to the
+    // other windows in the column.
+    active->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
 
-        // Apply same normalization factor as will have been applied to the
-        // other windows in the column.
-        active->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
-    }
+    column_normalize_height_fractions(column);
 
     window_reconcile_tiling(fixed, column);
     window_reconcile_tiling(active, column);
@@ -729,26 +697,18 @@ column_add_child(struct hwd_column *column, struct hwd_window *window) {
     }
     list_add(column->pending.children, window);
 
-    if (window->pending.pinned) {
-        int num_pinned = 0;
-        for (int i = 0; i < column->pending.children->length; ++i) {
-            struct hwd_window *child = column->pending.children->items[i];
-            if (child->pending.pinned) {
-                num_pinned += 1;
-            }
-        }
+    double default_height_fraction = 1.0 / column->pending.children->length;
 
-        double default_height_fraction = 1.0 / num_pinned;
+    // Original height fraction is the height fraction that the window would
+    // need to have had in order to have its current height fraction after
+    // being removed from the target column.
+    double original_height_fraction = window->height_fraction * default_height_fraction;
 
-        // Original height fraction is the height fraction that the window would
-        // need to have had in order to have its current height fraction after
-        // being removed from the target column.
-        double original_height_fraction = window->height_fraction * default_height_fraction;
+    // Apply same normalization factor as will have been applied to the
+    // other windows in the column.
+    window->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
 
-        // Apply same normalization factor as will have been applied to the
-        // other windows in the column.
-        window->height_fraction = original_height_fraction / (1.0 - original_height_fraction);
-    }
+    column_normalize_height_fractions(column);
 
     window_reconcile_tiling(window, column);
 
@@ -778,18 +738,10 @@ column_remove_child(struct hwd_column *column, struct hwd_window *window) {
         }
     }
 
-    if (window->pending.pinned) {
-        int num_pinned = 0;
-        for (int i = 0; i < column->pending.children->length; ++i) {
-            struct hwd_window *child = column->pending.children->items[i];
-            if (child->pending.pinned) {
-                num_pinned += 1;
-            }
-        }
+    double default_height_fraction = 1.0 / column->pending.children->length;
+    window->height_fraction /= default_height_fraction;
 
-        double default_height_fraction = 1.0 / (num_pinned + 1);
-        window->height_fraction /= default_height_fraction;
-    }
+    column_normalize_height_fractions(column);
 
     window_reconcile_detached(window);
 }

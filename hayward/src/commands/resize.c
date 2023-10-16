@@ -119,6 +119,9 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
     }
 
     struct hwd_column *column = window->pending.parent;
+    if (column->pending.layout != L_SPLIT) {
+        return;
+    }
 
     struct hwd_window *prev_sibling = NULL;
     struct hwd_window *next_sibling = NULL;
@@ -127,9 +130,6 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
     }
     if (axis & WLR_EDGE_BOTTOM) {
         next_sibling = window_get_next_sibling(window);
-        if (next_sibling != NULL && !next_sibling->pending.pinned && window->pending.pinned) {
-            next_sibling = column->pending.active_child;
-        }
     }
 
     if (prev_sibling == NULL && next_sibling == NULL) {
@@ -154,10 +154,6 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
     }
 
     double visible_height_fraction = 1.0;
-    if (!column->pending.active_child->pending.pinned) {
-        visible_height_fraction += column->active_height_fraction;
-    }
-
     double available_content_height = column->pending.height -
         (column->pending.children->length * (window_titlebar_height() + 4));
 

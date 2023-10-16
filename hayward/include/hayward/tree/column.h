@@ -9,10 +9,17 @@
 
 #include <hayward-common/list.h>
 
+enum hwd_column_layout {
+    L_SPLIT,
+    L_STACKED,
+};
+
 struct hwd_column_state {
     // Position and size in layout coordinates.
     double x, y;
     double width, height;
+
+    enum hwd_column_layout layout;
 
     // Cached backlink to containing workspace.
     struct hwd_workspace *workspace;
@@ -33,7 +40,6 @@ struct hwd_column_state {
     // new window.  `preview_target` is an optional pointer to a child window
     // that the new window will be inserted after.
     bool show_preview;
-    bool preview_pinned;
     struct hwd_window *preview_target; // Populated by `arrange_column`.
     struct wlr_box preview_box;        // Populated by `arrange_column`.
 
@@ -54,10 +60,6 @@ struct hwd_column {
     // Includes borders
     double saved_x, saved_y;
     double saved_width, saved_height;
-
-    // Fraction of vertical space available for content that should be allocated
-    // to an active window which is not pinned.
-    double active_height_fraction;
 
     // "Fraction" of vertical space allocated to the preview, if visible.  Not
     // included when normalizing.
