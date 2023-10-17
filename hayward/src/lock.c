@@ -45,7 +45,7 @@ handle_output_commit(struct wl_listener *listener, void *data) {
     struct hwd_session_lock_surface *surf = wl_container_of(listener, surf, output_commit);
     struct wlr_output_event_commit *event = data;
 
-    if (event->committed &
+    if (event->state->committed &
         (WLR_OUTPUT_STATE_MODE | WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_TRANSFORM)) {
         wlr_session_lock_surface_v1_configure(
             surf->lock_surface, surf->output->width, surf->output->height

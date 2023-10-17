@@ -634,7 +634,7 @@ handle_commit(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, commit);
     struct wlr_output_event_commit *event = data;
 
-    if (event->committed &
+    if (event->state->committed &
         (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_MODE)) {
         update_output_manager_config(output->server);
 
