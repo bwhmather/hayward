@@ -1,30 +1,29 @@
 project(
-	'hayward',
-	'c',
-	version: '1.8-dev',
-	license: 'MIT',
-	meson_version: '>=0.60.0',
-	default_options: [
-		'c_std=c11',
-		'warning_level=2',
-		'werror=true',
-	],
+  'hayward',
+  'c',
+  version: '1.8-dev',
+  license: 'MIT',
+  meson_version: '>=0.60.0',
+  default_options: [
+    'c_std=c11',
+    'warning_level=2',
+    'werror=true',
+  ],
 )
 
-add_project_arguments(
-	[
-		'-DWLR_USE_UNSTABLE',
+add_project_arguments([
+    '-DWLR_USE_UNSTABLE',
 
-		'-Wno-unused-parameter',
-		'-Wno-unused-result',
-		'-Wno-missing-braces',
-		'-Wno-missing-field-initializers',
-		'-Wundef',
-		'-Wvla',
-		'-Wno-switch',
-		'-Wno-pedantic',
-	],
-	language: 'c',
+    '-Wno-unused-parameter',
+    '-Wno-unused-result',
+    '-Wno-missing-braces',
+    '-Wno-missing-field-initializers',
+    '-Wundef',
+    '-Wvla',
+    '-Wno-switch',
+    '-Wno-pedantic',
+  ],
+  language: 'c',
 )
 
 cc = meson.get_compiler('c')
@@ -35,16 +34,16 @@ sysconfdir = get_option('sysconfdir')
 prefix = get_option('prefix')
 
 if is_freebsd
-	add_project_arguments('-D_C11_SOURCE', language: 'c')
+  add_project_arguments('-D_C11_SOURCE', language: 'c')
 endif
 
 # Execute the wlroots subproject, if any
 wlroots_version = ['>=0.17.0', '<0.18.0']
 subproject(
-	'wlroots',
-	default_options: ['examples=false'],
-	required: false,
-	version: wlroots_version,
+  'wlroots',
+  default_options: ['examples=false'],
+  required: false,
+  version: wlroots_version,
 )
 
 jsonc = dependency('json-c', version: '>=0.13')
@@ -77,37 +76,37 @@ rt = cc.find_library('rt')
 xcb_icccm = dependency('xcb-icccm', required: get_option('xwayland'))
 
 wlroots_features = {
-	'xwayland': false,
+  'xwayland': false,
 }
 foreach name, _ : wlroots_features
-	var_name = 'have_' + name.underscorify()
-	have = wlroots.get_variable(pkgconfig: var_name, internal: var_name) == 'true'
-	wlroots_features += { name: have }
+  var_name = 'have_' + name.underscorify()
+  have = wlroots.get_variable(pkgconfig: var_name, internal: var_name) == 'true'
+  wlroots_features += { name: have }
 endforeach
 
 if get_option('xwayland').enabled() and not wlroots_features['xwayland']
-	error('Cannot enable Xwayland in hayward: wlroots has been built without Xwayland support')
+  error('Cannot enable Xwayland in hayward: wlroots has been built without Xwayland support')
 endif
 have_xwayland = xcb.found() and wlroots_features['xwayland']
 
 if get_option('sd-bus-provider') == 'auto'
-	if not get_option('tray').disabled()
-		assert(get_option('auto_features').auto(), 'sd-bus-provider must not be set to auto since auto_features != auto')
-	endif
-	sdbus = dependency(['libsystemd', 'libelogind'],
-		required: false,
-		version: '>=239',
-	)
-	if not sdbus.found()
-		sdbus = dependency('basu', required: false)
-	endif
+  if not get_option('tray').disabled()
+    assert(get_option('auto_features').auto(), 'sd-bus-provider must not be set to auto since auto_features != auto')
+  endif
+  sdbus = dependency(['libsystemd', 'libelogind'],
+    required: false,
+    version: '>=239',
+  )
+  if not sdbus.found()
+    sdbus = dependency('basu', required: false)
+  endif
 else
-	sdbus = dependency(get_option('sd-bus-provider'), required: get_option('tray'))
+  sdbus = dependency(get_option('sd-bus-provider'), required: get_option('tray'))
 endif
 
 tray_deps_found = sdbus.found()
 if get_option('tray').enabled() and not tray_deps_found
-	error('Building with -Dtray=enabled, but sd-bus has not been not found')
+  error('Building with -Dtray=enabled, but sd-bus has not been not found')
 endif
 have_tray = (not get_option('tray').disabled()) and tray_deps_found
 
@@ -122,42 +121,42 @@ conf_data.set10('HAVE_TRAY', have_tray)
 
 scdoc = dependency('scdoc', version: '>=1.9.2', native: true, required: get_option('man-pages'))
 if scdoc.found()
-	scdoc_prog = find_program(scdoc.get_variable(pkgconfig: 'scdoc'), native: true)
-	mandir = get_option('mandir')
-	man_files = [
-		'hayward/hayward.1.scd',
-		'hayward/hayward.5.scd',
-		'hayward/hayward-bar.5.scd',
-		'hayward/hayward-input.5.scd',
-		'hayward/hayward-ipc.7.scd',
-		'hayward/hayward-output.5.scd',
-		'haywardbar/haywardbar-protocol.7.scd',
-		'haywardmsg/haywardmsg.1.scd',
-	]
+  scdoc_prog = find_program(scdoc.get_variable(pkgconfig: 'scdoc'), native: true)
+  mandir = get_option('mandir')
+  man_files = [
+    'hayward/hayward.1.scd',
+    'hayward/hayward.5.scd',
+    'hayward/hayward-bar.5.scd',
+    'hayward/hayward-input.5.scd',
+    'hayward/hayward-ipc.7.scd',
+    'hayward/hayward-output.5.scd',
+    'haywardbar/haywardbar-protocol.7.scd',
+    'haywardmsg/haywardmsg.1.scd',
+  ]
 
-	if get_option('haywardnag')
-		man_files += [
-			'haywardnag/haywardnag.1.scd',
-			'haywardnag/haywardnag.5.scd',
-		]
-	endif
+  if get_option('haywardnag')
+    man_files += [
+      'haywardnag/haywardnag.1.scd',
+      'haywardnag/haywardnag.5.scd',
+    ]
+  endif
 
-	foreach filename : man_files
-		topic = filename.split('.')[-3].split('/')[-1]
-		section = filename.split('.')[-2]
-		output = '@0@.@1@'.format(topic, section)
+  foreach filename : man_files
+    topic = filename.split('.')[-3].split('/')[-1]
+    section = filename.split('.')[-2]
+    output = '@0@.@1@'.format(topic, section)
 
-		custom_target(
-			output,
-			input: filename,
-			output: output,
-			command: scdoc_prog,
-			install: true,
-			feed: true,
-			capture: true,
-			install_dir: '@0@/man@1@'.format(mandir, section)
-		)
-	endforeach
+    custom_target(
+      output,
+      input: filename,
+      output: output,
+      command: scdoc_prog,
+      install: true,
+      feed: true,
+      capture: true,
+      install_dir: '@0@/man@1@'.format(mandir, section)
+    )
+  endforeach
 endif
 
 add_project_arguments('-DSYSCONFDIR="/@0@"'.format(join_paths(prefix, sysconfdir)), language : 'c')
@@ -165,15 +164,15 @@ add_project_arguments('-DSYSCONFDIR="/@0@"'.format(join_paths(prefix, sysconfdir
 version = '"@0@"'.format(meson.project_version())
 git = find_program('git', native: true, required: false)
 if git.found()
-	git_commit = run_command([git, 'rev-parse', '--short', 'HEAD'], check: false)
-	git_branch = run_command([git, 'rev-parse', '--abbrev-ref', 'HEAD'], check: false)
-	if git_commit.returncode() == 0 and git_branch.returncode() == 0
-		version = '"@0@-@1@ (" __DATE__ ", branch \'@2@\')"'.format(
-			meson.project_version(),
-			git_commit.stdout().strip(),
-			git_branch.stdout().strip(),
-		)
-	endif
+  git_commit = run_command([git, 'rev-parse', '--short', 'HEAD'], check: false)
+  git_branch = run_command([git, 'rev-parse', '--abbrev-ref', 'HEAD'], check: false)
+  if git_commit.returncode() == 0 and git_branch.returncode() == 0
+    version = '"@0@-@1@ (" __DATE__ ", branch \'@2@\')"'.format(
+      meson.project_version(),
+      git_commit.stdout().strip(),
+      git_branch.stdout().strip(),
+    )
+  endif
 endif
 add_project_arguments('-DHWD_VERSION=@0@'.format(version), language: 'c')
 
@@ -184,34 +183,34 @@ relative_dir_parts = []
 i = 0
 in_prefix = true
 foreach p : build_root
-	if i >= source_root.length() or not in_prefix or p != source_root[i]
-		in_prefix = false
-		relative_dir_parts += '..'
-	endif
-	i += 1
+  if i >= source_root.length() or not in_prefix or p != source_root[i]
+    in_prefix = false
+    relative_dir_parts += '..'
+  endif
+  i += 1
 endforeach
 i = 0
 in_prefix = true
 foreach p : source_root
-	if i >= build_root.length() or not in_prefix or build_root[i] != p
-		in_prefix = false
-		relative_dir_parts += p
-	endif
-	i += 1
+  if i >= build_root.length() or not in_prefix or build_root[i] != p
+    in_prefix = false
+    relative_dir_parts += p
+  endif
+  i += 1
 endforeach
 relative_dir = join_paths(relative_dir_parts) + '/'
 
 # Strip relative path prefixes from the code if possible, otherwise hide them.
 if cc.has_argument('-fmacro-prefix-map=/prefix/to/hide=')
-	add_project_arguments(
-		'-fmacro-prefix-map=@0@='.format(relative_dir),
-		language: 'c',
-	)
+  add_project_arguments(
+    '-fmacro-prefix-map=@0@='.format(relative_dir),
+    language: 'c',
+  )
 else
-	add_project_arguments(
-		'-DHWD_REL_SRC_DIR="@0@"'.format(relative_dir),
-		language: 'c',
-	)
+  add_project_arguments(
+    '-DHWD_REL_SRC_DIR="@0@"'.format(relative_dir),
+    language: 'c',
+  )
 endif
 
 shared_inc = include_directories('include')
@@ -223,13 +222,13 @@ subdir('hayward')
 subdir('haywardmsg')
 
 if get_option('haywardbar') or get_option('haywardnag')
-	subdir('libhayward-client')
+  subdir('libhayward-client')
 endif
 if get_option('haywardbar')
-	subdir('haywardbar')
+  subdir('haywardbar')
 endif
 if get_option('haywardnag')
-	subdir('haywardnag')
+  subdir('haywardnag')
 endif
 
 subdir('haywardout')
@@ -240,91 +239,91 @@ config.set('prefix', prefix)
 config.set('sysconfdir', join_paths(prefix, sysconfdir))
 
 configure_file(
-	configuration: config,
-	input: 'config.in',
-	output: '@BASENAME@',
-	install_dir: join_paths(sysconfdir, 'hayward')
+  configuration: config,
+  input: 'config.in',
+  output: '@BASENAME@',
+  install_dir: join_paths(sysconfdir, 'hayward')
 )
 
 install_data(
-	'hayward.desktop',
-	install_dir: join_paths(datadir, 'wayland-sessions')
+  'hayward.desktop',
+  install_dir: join_paths(datadir, 'wayland-sessions')
 )
 
 if get_option('default-wallpaper')
-	wallpaper_files = files(
-		'assets/Hayward_Wallpaper_Blue_768x1024.png',
-		'assets/Hayward_Wallpaper_Blue_768x1024_Portrait.png',
-		'assets/Hayward_Wallpaper_Blue_1136x640.png',
-		'assets/Hayward_Wallpaper_Blue_1136x640_Portrait.png',
-		'assets/Hayward_Wallpaper_Blue_1366x768.png',
-		'assets/Hayward_Wallpaper_Blue_1920x1080.png',
-		'assets/Hayward_Wallpaper_Blue_2048x1536.png',
-		'assets/Hayward_Wallpaper_Blue_2048x1536_Portrait.png',
-	)
-	wallpaper_install_dir = join_paths(datadir, 'backgrounds', 'hayward')
+  wallpaper_files = files(
+    'assets/Hayward_Wallpaper_Blue_768x1024.png',
+    'assets/Hayward_Wallpaper_Blue_768x1024_Portrait.png',
+    'assets/Hayward_Wallpaper_Blue_1136x640.png',
+    'assets/Hayward_Wallpaper_Blue_1136x640_Portrait.png',
+    'assets/Hayward_Wallpaper_Blue_1366x768.png',
+    'assets/Hayward_Wallpaper_Blue_1920x1080.png',
+    'assets/Hayward_Wallpaper_Blue_2048x1536.png',
+    'assets/Hayward_Wallpaper_Blue_2048x1536_Portrait.png',
+  )
+  wallpaper_install_dir = join_paths(datadir, 'backgrounds', 'hayward')
 
-	install_data(wallpaper_files, install_dir: wallpaper_install_dir)
+  install_data(wallpaper_files, install_dir: wallpaper_install_dir)
 endif
 
 if get_option('zsh-completions')
-	zsh_files = files(
-		'completions/zsh/_hayward',
-		'completions/zsh/_haywardmsg',
-	)
-	zsh_install_dir = join_paths(datadir, 'zsh', 'site-functions')
+  zsh_files = files(
+    'completions/zsh/_hayward',
+    'completions/zsh/_haywardmsg',
+  )
+  zsh_install_dir = join_paths(datadir, 'zsh', 'site-functions')
 
-	install_data(zsh_files, install_dir: zsh_install_dir)
+  install_data(zsh_files, install_dir: zsh_install_dir)
 endif
 
 if get_option('bash-completions')
-	bash_files = files(
-		'completions/bash/hayward',
-		'completions/bash/haywardmsg',
-	)
+  bash_files = files(
+    'completions/bash/hayward',
+    'completions/bash/haywardmsg',
+  )
 
-	if get_option('haywardbar')
-		bash_files += files('completions/bash/haywardbar')
-	endif
+  if get_option('haywardbar')
+    bash_files += files('completions/bash/haywardbar')
+  endif
 
-	if bash_comp.found()
-		bash_install_dir = bash_comp.get_variable(
-			pkgconfig: 'completionsdir',
-			pkgconfig_define: ['datadir', datadir]
-		)
-	else
-		bash_install_dir = join_paths(datadir, 'bash-completion', 'completions')
-	endif
+  if bash_comp.found()
+    bash_install_dir = bash_comp.get_variable(
+      pkgconfig: 'completionsdir',
+      pkgconfig_define: ['datadir', datadir]
+    )
+  else
+    bash_install_dir = join_paths(datadir, 'bash-completion', 'completions')
+  endif
 
-	install_data(bash_files, install_dir: bash_install_dir)
+  install_data(bash_files, install_dir: bash_install_dir)
 endif
 
 if get_option('fish-completions')
-	fish_files = files(
-		'completions/fish/hayward.fish',
-		'completions/fish/haywardmsg.fish',
-	)
+  fish_files = files(
+    'completions/fish/hayward.fish',
+    'completions/fish/haywardmsg.fish',
+  )
 
-	if get_option('haywardnag')
-		fish_files += files('completions/fish/haywardnag.fish')
-	endif
+  if get_option('haywardnag')
+    fish_files += files('completions/fish/haywardnag.fish')
+  endif
 
-	if fish_comp.found()
-		fish_install_dir = fish_comp.get_variable(
-			pkgconfig: 'completionsdir',
-			pkgconfig_define: ['datadir', datadir]
-		)
-	else
-		fish_install_dir = join_paths(datadir, 'fish', 'vendor_completions.d')
-	endif
+  if fish_comp.found()
+    fish_install_dir = fish_comp.get_variable(
+      pkgconfig: 'completionsdir',
+      pkgconfig_define: ['datadir', datadir]
+    )
+  else
+    fish_install_dir = join_paths(datadir, 'fish', 'vendor_completions.d')
+  endif
 
-	install_data(fish_files, install_dir: fish_install_dir)
+  install_data(fish_files, install_dir: fish_install_dir)
 endif
 
 summary({
-	'xwayland': have_xwayland,
-	'gdk-pixbuf': gdk_pixbuf.found(),
-	'tray': have_tray,
-	'man-pages': scdoc.found(),
+  'xwayland': have_xwayland,
+  'gdk-pixbuf': gdk_pixbuf.found(),
+  'tray': have_tray,
+  'man-pages': scdoc.found(),
 }, bool_yn: true)
 
