@@ -30,11 +30,12 @@
               <object class="GtkSwitch" id="enabled_switch">
                 <property name="halign">end</property>
                 <property name="hexpand">false</property>
-                <binding name="active">
-                  <lookup name="is-enabled">
-                    <lookup name="head">HwdoutHeadEditor</lookup>
-                  </lookup>
-                </binding>
+                <property
+                  name="active"
+                  bind-source="HwdoutHeadEditor"
+                  bind-property="head-is-enabled"
+                  bind-flags="sync-create"
+                />
                 <signal name="state-set" handler="set_is_enabled"/>
               </object>
             </child>
@@ -46,11 +47,12 @@
             <property name="spacing">5</property>
             <property name="hexpand">true</property>
             <property name="halign">fill</property>
-            <binding name="sensitive">
-              <lookup name="is-enabled">
-                <lookup name="head">HwdoutHeadEditor</lookup>
-              </lookup>
-            </binding>
+            <property
+              name="sensitive"
+              bind-source="HwdoutHeadEditor"
+              bind-property="head-is-enabled"
+              bind-flags="sync-create"
+            />
             <child>
               <object class="GtkBox">
                 <property name="spacing">5</property>
@@ -67,13 +69,12 @@
                   <object class="GtkDropDown" id="resolution_dropdown">
                     <property name="hexpand">true</property>
                     <property name="halign">end</property>
-                    <binding name="model">
-                      <lookup name="modes">
-                        <lookup name="head">
-                          <lookup name="head">HwdoutHeadEditor</lookup>
-                        </lookup>
-                      </lookup>
-                    </binding>
+                    <property
+                      name="model"
+                      bind-source="HwdoutHeadEditor"
+                      bind-property="head-modes"
+                      bind-flags="sync-create"
+                    />
                     <property name="expression">
                       <closure type="gchararray" function="describe_mode" />
                     </property>
@@ -97,6 +98,12 @@
                   <object class="GtkSpinButton" id="scale_input">
                     <property name="hexpand">false</property>
                     <property name="halign">end</property>
+                    <property
+                      name="value"
+                      bind-source="HwdoutHeadEditor"
+                      bind-property="head-scale"
+                      bind-flags="sync-create|bidirectional"
+                    />
                   </object>
                 </child>
               </object>
