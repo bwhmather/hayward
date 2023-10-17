@@ -605,7 +605,7 @@ hwdout_head_class_init(HwdoutHeadClass *klass) {
     );
 
     properties[PROP_NAME] = g_param_spec_string(
-        "name", "Name", "Short unique name that identifies the the output",
+        "name", "Name", "Short unique name that identifies the output",
         NULL, // Default.
         G_PARAM_READABLE
     );
