@@ -145,6 +145,7 @@ hayward_sources = files(
 
   'src/control/hwd_workspace_management_v1.c',
 
+  'src/scene/nineslice.c',
   'src/scene/text.c',
 
   'src/tree/column.c',
