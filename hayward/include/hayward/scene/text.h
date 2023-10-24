@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <wlr/types/wlr_scene.h>
+
 struct hwd_text_node {
     int width;
     int max_width;

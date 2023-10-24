@@ -209,9 +209,8 @@ hwdout_head_editor_class_init(HwdoutHeadEditorClass *klass) {
     );
 
     properties[PROP_HEAD_MODE] = g_param_spec_object(
-        "head-mode", "Mode",
-        "Reference to the mode object representing the desired mode", HWDOUT_TYPE_MODE,
-        G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
+        "head-mode", "Mode", "Reference to the mode object representing the desired mode",
+        HWDOUT_TYPE_MODE, G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY
     );
 
     properties[PROP_HEAD_MODES] = g_param_spec_object(
@@ -292,8 +291,7 @@ hwdout_head_editor_set_head(HwdoutHeadEditor *self, HwdoutConfigurationHead *con
 
     g_clear_pointer(&self->mode_binding, g_binding_unbind);
     self->mode_binding = g_object_bind_property(
-        config_head, "mode", self, "head-mode",
-        G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE
+        config_head, "mode", self, "head-mode", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE
     );
 
     g_clear_pointer(&self->transform_binding, g_binding_unbind);
