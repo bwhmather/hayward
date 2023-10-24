@@ -1,13 +1,14 @@
 hayward_sources = files(
   'src/commands.c',
   'src/config.c',
+  'src/haywardnag.c',
   'src/ipc_json.c',
   'src/ipc_server.c',
   'src/lock.c',
   'src/main.c',
   'src/output.c',
   'src/server.c',
-  'src/haywardnag.c',
+  'src/theme.c',
 
   'src/desktop/idle_inhibit_v1.c',
   'src/desktop/layer_shell.c',
