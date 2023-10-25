@@ -16,7 +16,6 @@
 #include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
 
-struct hwd_pid_workspaces;
 struct hwd_window;
 
 struct hwd_root_state {
@@ -73,7 +72,6 @@ struct hwd_root {
     struct hwd_output *fallback_output;
 
     struct hwd_workspace_manager_v1 *workspace_manager;
-    struct wl_list pid_workspaces;
 
     struct wlr_scene *root_scene;
     struct wlr_scene_tree *orphans;
