@@ -154,8 +154,12 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
     }
 
     double visible_height_fraction = 1.0;
-    double available_content_height = column->pending.height -
-        (column->pending.children->length * (window_titlebar_height() + 4));
+    double available_content_height = column->pending.height;
+    list_t *siblings = column->pending.children;
+    for (int i = 0; i < siblings->length; ++i) {
+        struct hwd_window *sibling = siblings->items[i];
+        available_content_height -= window_titlebar_height(sibling);
+    }
 
     window->height_fraction +=
         (double)amount / (available_content_height * visible_height_fraction);

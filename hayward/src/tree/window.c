@@ -132,14 +132,14 @@ window_update_scene(struct hwd_window *window) {
         border_top = border_thickness;
         border_bottom = 0;
         border_title = border_thickness;
-        titlebar_height = window_titlebar_height();
+        titlebar_height = window_committed_titlebar_height(window);
     } else {
         border_left = border_thickness;
         border_right = border_thickness;
         border_top = border_thickness;
         border_bottom = border_thickness;
         border_title = border_thickness;
-        titlebar_height = window_titlebar_height();
+        titlebar_height = window_committed_titlebar_height(window);
     }
 
     struct border_colors *colors = window_get_committed_colors(window);
@@ -562,7 +562,7 @@ window_arrange(struct hwd_window *window) {
         window->pending.border_left = window->pending.border_right = true;
 
         size_t border_thickness = window->pending.border_thickness;
-        double titlebar_height = window_titlebar_height() + 2 * border_thickness;
+        double titlebar_height = window_titlebar_height(window) + 2 * border_thickness;
 
         window->pending.content_x = window->pending.x + border_thickness;
         window->pending.content_y = window->pending.y + titlebar_height;
@@ -606,7 +606,20 @@ window_is_tiling(struct hwd_window *window) {
 }
 
 size_t
-window_titlebar_height(void) {
+window_titlebar_height(struct hwd_window *window) {
+    // TODO
+    return config->font_height + config->titlebar_v_padding * 2;
+}
+
+size_t
+window_committed_titlebar_height(struct hwd_window *window) {
+    // TODO
+    return config->font_height + config->titlebar_v_padding * 2;
+}
+
+size_t
+window_current_titlebar_height(struct hwd_window *window) {
+    // TODO
     return config->font_height + config->titlebar_v_padding * 2;
 }
 
@@ -928,7 +941,7 @@ window_get_titlebar_box(struct hwd_window *window, struct wlr_box *box) {
     hwd_assert(window != NULL, "Expected window");
 
     size_t border_thickness = window->pending.border_thickness;
-    double titlebar_height = window_titlebar_height() + 2 * border_thickness;
+    double titlebar_height = window_titlebar_height(window) + 2 * border_thickness;
 
     box->x = window->pending.x;
     box->y = window->pending.y;
@@ -968,7 +981,7 @@ window_set_geometry_from_content(struct hwd_window *window) {
     hwd_assert(window_is_floating(window), "Expected a floating view");
 
     size_t border_thickness = window->pending.border_thickness;
-    double titlebar_height = window_titlebar_height() + 2 * border_thickness;
+    double titlebar_height = window_titlebar_height(window) + 2 * border_thickness;
 
     window->pending.x = window->pending.content_x - border_thickness;
     window->pending.y = window->pending.content_y - titlebar_height;

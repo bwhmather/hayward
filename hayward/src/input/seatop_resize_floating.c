@@ -79,7 +79,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
 
     struct hwd_window_state *state = &window->current;
     double border_width = state->border_thickness * 2;
-    double border_height = window_titlebar_height() + state->border_thickness;
+    double border_height = window_current_titlebar_height(window) + state->border_thickness;
 
     // Determine new width/height, and accommodate for floating min/max values
     double width = e->ref_width + grow_width;

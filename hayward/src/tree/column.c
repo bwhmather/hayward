@@ -342,21 +342,19 @@ column_arrange_split(struct hwd_column *column) {
     struct wlr_box box;
     column_get_box(column, &box);
 
-    double titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
+    double preview_titlebar_height = 30; // TODO TODO TODO
 
-    int num_titlebars = 0;
     double visible_height_fraction = 0.0;
+    double available_content_height = box.height;
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
         visible_height_fraction += child->height_fraction;
-        num_titlebars += 1;
+        available_content_height -= window_titlebar_height(child);
     }
     if (column->pending.show_preview) {
         visible_height_fraction += column->preview_height_fraction;
-        num_titlebars += 1;
+        available_content_height -= preview_titlebar_height;
     }
-
-    double available_content_height = box.height - (num_titlebars * titlebar_height);
 
     // Distance between top of next window and top of the screen.
     double y_offset = 0;
@@ -379,7 +377,7 @@ column_arrange_split(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        double window_height = titlebar_height;
+        double window_height = window_titlebar_height(child);
         window_height +=
             available_content_height * child->height_fraction / visible_height_fraction;
         child->pending.shaded = false;
@@ -392,7 +390,7 @@ column_arrange_split(struct hwd_column *column) {
         if (column->pending.show_preview && !preview_inserted &&
             next_baseline_delta > baseline_delta) {
 
-            double preview_height = titlebar_height;
+            double preview_height = preview_titlebar_height;
             preview_height += available_content_height * column->preview_height_fraction /
                 visible_height_fraction;
 
@@ -416,7 +414,7 @@ column_arrange_split(struct hwd_column *column) {
     }
 
     if (column->pending.show_preview && !preview_inserted) {
-        double preview_height = titlebar_height;
+        double preview_height = preview_titlebar_height;
         preview_height +=
             available_content_height * column->preview_height_fraction / visible_height_fraction;
 
@@ -454,10 +452,16 @@ column_arrange_stacked(struct hwd_column *column) {
     struct wlr_box box;
     column_get_box(column, &box);
 
-    double titlebar_height = window_titlebar_height() + 2 * config->border_thickness;
-    int num_titlebars = children->length;
+    double preview_titlebar_height = 30; // TODO TODO TODO
 
-    double available_content_height = box.height - (num_titlebars * titlebar_height);
+    double available_content_height = box.height;
+    for (int i = 0; i < children->length; ++i) {
+        child = children->items[i];
+        available_content_height -= window_titlebar_height(child);
+    }
+    if (column->pending.show_preview) {
+        available_content_height -= preview_titlebar_height;
+    }
 
     // Distance between top of next window and top of the screen.
     double y_offset = 0;
@@ -480,7 +484,7 @@ column_arrange_stacked(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        double window_height = titlebar_height;
+        double window_height = window_titlebar_height(child);
         if (child != active_child) {
             child->pending.shaded = true;
         } else {
@@ -496,7 +500,7 @@ column_arrange_stacked(struct hwd_column *column) {
         if (column->pending.show_preview && !preview_inserted &&
             next_baseline_delta > baseline_delta) {
 
-            double preview_height = titlebar_height + available_content_height;
+            double preview_height = preview_titlebar_height + available_content_height;
 
             column->pending.preview_target = window_get_previous_sibling(child);
             column->pending.preview_box.x = column->pending.x;
@@ -520,7 +524,7 @@ column_arrange_stacked(struct hwd_column *column) {
     }
 
     if (column->pending.show_preview && !preview_inserted) {
-        double preview_height = titlebar_height + available_content_height;
+        double preview_height = preview_titlebar_height + available_content_height;
 
         column->pending.preview_target = child;
         column->pending.preview_box.x = column->pending.x;
