@@ -28,6 +28,7 @@
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/theme.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
@@ -157,12 +158,21 @@ root_handle_transaction_apply(struct wl_listener *listener, void *data) {
 
     root_update_scene(root);
 
+    if (root->current.theme != root->committed.theme) {
+        root->orphaned_theme = root->committed.theme;
+    }
+
     root_copy_state(&root->current, &root->committed);
 }
 
 static void
 root_handle_transaction_after_apply(struct wl_listener *listener, void *data) {
     struct hwd_root *root = wl_container_of(listener, root, transaction_after_apply);
+
+    if (root->orphaned_theme != NULL) {
+        hwd_theme_destroy(root->orphaned_theme);
+        root->orphaned_theme = NULL;
+    }
 
     wl_signal_emit_mutable(&root->events.scene_changed, root);
 }
@@ -228,6 +238,15 @@ root_destroy(struct hwd_root *root) {
     list_free(root->current.workspaces);
     wlr_output_layout_destroy(root->output_layout);
     hwd_transaction_manager_destroy(root->transaction_manager);
+
+    hwd_theme_destroy(root->pending.theme);
+    if (root->committed.theme != root->pending.theme) {
+        hwd_theme_destroy(root->committed.theme);
+    }
+    if (root->current.theme != root->committed.theme) {
+        hwd_theme_destroy(root->current.theme);
+    }
+
     free(root);
 }
 
@@ -729,6 +748,26 @@ root_get_output_at(struct hwd_root *root, double x, double y) {
         }
     }
     return NULL;
+}
+
+void
+root_set_theme(struct hwd_root *root, struct hwd_theme *theme) {
+    hwd_assert(root != NULL, "Expected root");
+    hwd_assert(theme != root->pending.theme, "Theme ownership unclear");
+
+    if (root->pending.theme != root->current.theme) {
+        hwd_theme_destroy(root->pending.theme);
+    }
+
+    root->pending.theme = theme;
+
+    root_arrange(root);
+    root_set_dirty(root);
+}
+
+struct hwd_theme *
+root_get_theme(struct hwd_root *root) {
+    return root->pending.theme;
 }
 
 struct hwd_transaction_manager *

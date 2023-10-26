@@ -14,6 +14,7 @@
 
 #include <hayward/config.h>
 #include <hayward/scene/text.h>
+#include <hayward/theme.h>
 
 #define MIN_SANE_W 100
 #define MIN_SANE_H 60
@@ -35,6 +36,9 @@ struct hwd_window_state {
     // source is layout and active child of parent column.  Updated in arrange.
     bool shaded;
     bool fullscreen;
+
+    // Cached reference to currently applicable window theme.
+    struct hwd_theme_window *theme;
 
     // Cached backlink to workspace containing the floating window or
     // column containing the child window.  Should only be updated by

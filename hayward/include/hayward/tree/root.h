@@ -15,6 +15,7 @@
 
 #include <hayward/config.h>
 #include <hayward/control/hwd_workspace_management_v1.h>
+#include <hayward/theme.h>
 
 struct hwd_window;
 
@@ -36,6 +37,8 @@ struct hwd_root_state {
      * priority over active layer and active window.
      */
     struct wlr_surface *active_unmanaged;
+
+    struct hwd_theme *theme;
 };
 
 struct hwd_root {
@@ -72,6 +75,10 @@ struct hwd_root {
     struct hwd_output *fallback_output;
 
     struct hwd_workspace_manager_v1 *workspace_manager;
+
+    // Previously applied theme that should be cleaned up after transaction
+    // apply.
+    struct hwd_theme *orphaned_theme;
 
     struct wlr_scene *root_scene;
     struct wlr_scene_tree *orphans;
@@ -179,6 +186,16 @@ root_find_closest_output(struct hwd_root *root, double x, double y);
 
 struct hwd_output *
 root_get_output_at(struct hwd_root *root, double x, double y);
+
+/**
+ * Passes a new theme to replace the current one.  The `root` takes ownership of
+ * the theme and is responsible for destroying it once done.
+ */
+void
+root_set_theme(struct hwd_root *root, struct hwd_theme *theme);
+
+struct hwd_theme *
+root_get_theme(struct hwd_root *root);
 
 struct hwd_transaction_manager *
 root_get_transaction_manager(struct hwd_root *root);

@@ -30,6 +30,7 @@
 #include <hayward/output.h>
 #include <hayward/scene/text.h>
 #include <hayward/server.h>
+#include <hayward/theme.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -440,6 +441,49 @@ window_detach(struct hwd_window *window) {
     window_set_dirty(window);
 }
 
+static void
+window_update_theme(struct hwd_window *window) {
+    struct hwd_workspace *workspace = window->pending.workspace;
+    if (workspace == NULL) {
+        return;
+    }
+
+    struct hwd_root *root = workspace->pending.root;
+    if (root == NULL) {
+        return;
+    }
+
+    struct hwd_theme *theme = root_get_theme(root);
+    if (theme == NULL) {
+        return;
+    }
+
+    struct hwd_theme_window_type *window_type = &theme->floating;
+    if (window_is_tiling(window)) {
+        if (window_get_previous_sibling(window) == NULL) {
+            window_type = &theme->tiled_head;
+        } else {
+            window_type = &theme->tiled;
+        }
+    }
+
+    if (view_is_urgent(window->view)) {
+        window->pending.theme = &window_type->urgent;
+        return;
+    }
+    if (window->pending.focused) {
+        window->pending.theme = &window_type->focused;
+        return;
+    }
+
+    if (window->pending.parent && window->pending.parent->pending.active_child == window) {
+        window->pending.theme = &window_type->active;
+        return;
+    }
+
+    window->pending.theme = &window_type->inactive;
+}
+
 void
 window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *workspace) {
     hwd_assert(window != NULL, "Expected window");
@@ -452,6 +496,7 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     window->pending.focused =
         workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
 
+    window_update_theme(window);
     window_set_dirty(window);
 }
 
@@ -467,6 +512,7 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
 
     window->pending.focused = column->pending.focused && window == column->pending.active_child;
 
+    window_update_theme(window);
     window_set_dirty(window);
 }
 
@@ -494,6 +540,7 @@ window_set_moving(struct hwd_window *window, bool moving) {
     } else {
         wlr_scene_node_reparent(&window->layers.inner_tree->node, window->scene_tree);
     }
+    window_update_theme(window);
 }
 
 void
