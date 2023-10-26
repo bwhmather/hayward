@@ -12,6 +12,14 @@ hwd_nineslice_node_create(
 );
 
 void
+hwd_nineslice_node_update(
+    struct wlr_scene_node *node,     //
+    struct wlr_buffer *buffer,       //
+    int left_break, int right_break, //
+    int top_break, int bottom_break  //
+);
+
+void
 hwd_nineslice_node_set_size(struct wlr_scene_node *node, int width, int height);
 
 #endif
