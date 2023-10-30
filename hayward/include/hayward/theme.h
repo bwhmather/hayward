@@ -2,8 +2,10 @@
 #define HWD_THEME_H
 
 #include <pango/pango.h>
+#include <wlr/types/wlr_buffer.h>
+#include <wlr/types/wlr_scene.h>
 
-#include <hayward/scene/nineslice.h>
+#include <hayward/scene/colours.h>
 
 struct hwd_theme_nineslice {
     struct wlr_buffer *buffer;
@@ -22,7 +24,7 @@ struct hwd_theme_window {
     struct hwd_theme_nineslice border;
 
     PangoFontDescription *text_font;
-    float text_colour[4];
+    struct hwd_colour text_colour;
 };
 
 struct wlr_scene_node *
@@ -70,10 +72,10 @@ hwd_theme_create_column_separator_node(struct hwd_theme *theme, struct wlr_scene
 int
 hwd_theme_get_column_separator_width(struct hwd_theme *theme);
 
-struct hwd_theme *
-hwd_theme_create_default(void);
-
 void
 hwd_theme_destroy(struct hwd_theme *theme);
+
+struct hwd_theme *
+hwd_theme_create_default(void);
 
 #endif

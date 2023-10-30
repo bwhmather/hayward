@@ -1,6 +1,7 @@
-#ifndef HWD_SCENE_NINESLICE
-#define HWD_SCENE_NINESLICE
+#ifndef HWD_SCENE_NINESLICE_H
+#define HWD_SCENE_NINESLICE_H
 
+#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_scene.h>
 
 struct wlr_scene_node *

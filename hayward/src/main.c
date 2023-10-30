@@ -29,6 +29,7 @@
 #include <hayward/haywardnag.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>
+#include <hayward/theme.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
 
@@ -444,6 +445,8 @@ main(int argc, char **argv) {
         hwd_terminate(EXIT_FAILURE);
         goto shutdown;
     }
+
+    root_set_theme(root, hwd_theme_create_default());
 
     // TODO this probably shouldn't live here
     char *workspace_name = "1";

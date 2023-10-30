@@ -1,5 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
+
 #include "hayward/scene/nineslice.h"
+
+#include <wayland-util.h>
+#include <wlr/types/wlr_buffer.h>
+#include <wlr/types/wlr_scene.h>
+#include <wlr/util/box.h>
 
 #include <hayward-common/log.h>
 
