@@ -126,90 +126,89 @@ hwd_nineslice_node_update(
         buffer_height = buffer->height;
     }
 
+    int left_width = left_break;
+    int centre_width = right_break - left_break;
+    int right_width = buffer_width - right_break;
+
+    int top_height = top_break;
+    int centre_height = bottom_break - top_break;
+    int bottom_height = buffer_height - bottom_break;
+
     struct hwd_nineslice_slices slices;
     hwd_nineslice_unpack(node, &slices);
 
     struct wlr_fbox src_box = {0};
 
     // Top-left.
-    wlr_scene_buffer_set_buffer(slices.tl, buffer);
-
     src_box.x = 0;
     src_box.y = 0;
-    src_box.width = left_break;
-    src_box.height = top_break;
+    src_box.width = left_width;
+    src_box.height = top_height;
+    wlr_scene_buffer_set_buffer(slices.tl, buffer);
     wlr_scene_buffer_set_source_box(slices.tl, &src_box);
 
     // Top-centre.
-    wlr_scene_buffer_set_buffer(slices.tc, buffer);
-
     src_box.x = left_break;
     src_box.y = 0;
-    src_box.width = right_break - left_break;
-    src_box.height = top_break;
+    src_box.width = centre_width;
+    src_box.height = top_height;
+    wlr_scene_buffer_set_buffer(slices.tc, buffer);
     wlr_scene_buffer_set_source_box(slices.tc, &src_box);
 
     // Top-right.
-    wlr_scene_buffer_set_buffer(slices.tr, buffer);
-
     src_box.x = right_break;
     src_box.y = 0;
-    src_box.width = buffer_width - right_break;
-    src_box.height = top_break;
+    src_box.width = right_width;
+    src_box.height = top_height;
+    wlr_scene_buffer_set_buffer(slices.tr, buffer);
     wlr_scene_buffer_set_source_box(slices.tr, &src_box);
 
     // Centre-left.
-    wlr_scene_buffer_set_buffer(slices.cl, buffer);
-
     src_box.x = 0;
     src_box.y = top_break;
-    src_box.width = left_break;
-    src_box.height = bottom_break - top_break;
+    src_box.width = left_width;
+    src_box.height = centre_height;
+    wlr_scene_buffer_set_buffer(slices.cl, buffer);
     wlr_scene_buffer_set_source_box(slices.cl, &src_box);
 
     // Centre-centre.
-    wlr_scene_buffer_set_buffer(slices.cc, buffer);
-
     src_box.x = left_break;
     src_box.y = top_break;
-    src_box.width = right_break - left_break;
-    src_box.height = bottom_break - top_break;
+    src_box.width = centre_width;
+    src_box.height = centre_height;
+    wlr_scene_buffer_set_buffer(slices.cc, buffer);
     wlr_scene_buffer_set_source_box(slices.cc, &src_box);
 
     // Centre-right.
-    wlr_scene_buffer_set_buffer(slices.cr, buffer);
-
     src_box.x = right_break;
     src_box.y = top_break;
-    src_box.width = buffer_width - right_break;
-    src_box.height = bottom_break - top_break;
+    src_box.width = right_width;
+    src_box.height = centre_height;
+    wlr_scene_buffer_set_buffer(slices.cr, buffer);
     wlr_scene_buffer_set_source_box(slices.cr, &src_box);
 
     // Bottom-left.
-    wlr_scene_buffer_set_buffer(slices.bl, buffer);
-
     src_box.x = 0;
     src_box.y = bottom_break;
-    src_box.width = left_break;
-    src_box.height = buffer_height - top_break;
+    src_box.width = left_width;
+    src_box.height = bottom_height;
+    wlr_scene_buffer_set_buffer(slices.bl, buffer);
     wlr_scene_buffer_set_source_box(slices.bl, &src_box);
 
     // Bottom-centre.
-    wlr_scene_buffer_set_buffer(slices.bc, buffer);
-
     src_box.x = left_break;
     src_box.y = bottom_break;
-    src_box.width = right_break - left_break;
-    src_box.height = buffer_height - top_break;
+    src_box.width = centre_width;
+    src_box.height = bottom_height;
+    wlr_scene_buffer_set_buffer(slices.bc, buffer);
     wlr_scene_buffer_set_source_box(slices.bc, &src_box);
 
     // Bottom-right.
-    wlr_scene_buffer_set_buffer(slices.br, buffer);
-
     src_box.x = right_break;
     src_box.y = bottom_break;
-    src_box.width = buffer_width - right_break;
-    src_box.height = buffer_height - top_break;
+    src_box.width = right_width;
+    src_box.height = bottom_height;
+    wlr_scene_buffer_set_buffer(slices.br, buffer);
     wlr_scene_buffer_set_source_box(slices.br, &src_box);
 }
 
@@ -224,66 +223,58 @@ hwd_nineslice_node_set_size(struct wlr_scene_node *node, int width, int height) 
         return;
     }
 
-    int buffer_width = slices.tl->buffer->width;
-    int buffer_height = slices.tl->buffer->height;
-    int left_break = slices.tl->src_box.width;
-    int right_break = slices.tc->src_box.width + left_break;
-    int top_break = slices.tl->src_box.height;
-    int bottom_break = slices.cl->src_box.height + top_break;
+    int left_width = slices.tl->src_box.width;
+    int right_width = slices.tr->src_box.width;
+    int centre_width = width - left_width - right_width;
+    if (centre_width < 0) {
+        centre_width = 0;
+    }
 
-    if (width < (left_break + buffer_width - right_break)) {
-        width = left_break + buffer_width - right_break;
+    int top_height = slices.tl->src_box.height;
+    int bottom_height = slices.bl->src_box.height;
+    int centre_height = height - top_height - bottom_height;
+    if (centre_height < 0) {
+        centre_height = 0;
     }
-    if (height < (top_break + buffer_height - bottom_break)) {
-        height = top_break + buffer_height - bottom_break;
-    }
+
+    int left_break = left_width;
+    int right_break = left_width + centre_width;
+    int top_break = top_height;
+    int bottom_break = top_height + centre_height;
 
     // Top-left.
     wlr_scene_node_set_position(&slices.tl->node, 0, 0);
-    wlr_scene_buffer_set_dest_size(slices.tl, left_break, top_break);
+    wlr_scene_buffer_set_dest_size(slices.tl, left_width, top_height);
 
     // Top-centre.
     wlr_scene_node_set_position(&slices.tc->node, left_break, 0);
-    wlr_scene_buffer_set_dest_size(
-        slices.tc, width - left_break - (buffer_width - right_break), top_break
-    );
+    wlr_scene_buffer_set_dest_size(slices.tc, centre_width, top_height);
 
     // Top-right.
     wlr_scene_node_set_position(&slices.tr->node, right_break, 0);
-    wlr_scene_buffer_set_dest_size(slices.tr, buffer_width - right_break, top_break);
+    wlr_scene_buffer_set_dest_size(slices.tr, right_width, top_height);
 
     // Centre-left.
     wlr_scene_node_set_position(&slices.cl->node, 0, top_break);
-    wlr_scene_buffer_set_dest_size(
-        slices.cl, left_break, height - top_break - (buffer_height - bottom_break)
-    );
+    wlr_scene_buffer_set_dest_size(slices.cl, left_width, centre_height);
 
     // Centre-centre.
     wlr_scene_node_set_position(&slices.cc->node, left_break, top_break);
-    wlr_scene_buffer_set_dest_size(
-        slices.cc, width - left_break - (buffer_width - right_break),
-        height - top_break - (buffer_height - bottom_break)
-    );
+    wlr_scene_buffer_set_dest_size(slices.cc, centre_width, centre_height);
 
     // Centre-right.
     wlr_scene_node_set_position(&slices.cr->node, right_break, top_break);
-    wlr_scene_buffer_set_dest_size(
-        slices.cr, buffer_width - right_break, height - top_break - (buffer_height - bottom_break)
-    );
+    wlr_scene_buffer_set_dest_size(slices.cr, right_width, centre_height);
 
     // Bottom-left.
     wlr_scene_node_set_position(&slices.bl->node, 0, bottom_break);
-    wlr_scene_buffer_set_dest_size(slices.bl, left_break, buffer_height - bottom_break);
+    wlr_scene_buffer_set_dest_size(slices.bl, left_width, bottom_height);
 
     // Bottom-centre.
     wlr_scene_node_set_position(&slices.bc->node, left_break, bottom_break);
-    wlr_scene_buffer_set_dest_size(
-        slices.bc, width - left_break - (buffer_width - right_break), buffer_height - bottom_break
-    );
+    wlr_scene_buffer_set_dest_size(slices.bc, centre_width, bottom_height);
 
     // Bottom-right.
     wlr_scene_node_set_position(&slices.br->node, right_break, bottom_break);
-    wlr_scene_buffer_set_dest_size(
-        slices.br, buffer_width - right_break, buffer_height - bottom_break
-    );
+    wlr_scene_buffer_set_dest_size(slices.br, right_width, bottom_height);
 }
