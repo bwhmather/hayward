@@ -5,7 +5,6 @@
 
 #include <cairo.h>
 #include <drm_fourcc.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
