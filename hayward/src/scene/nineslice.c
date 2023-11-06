@@ -98,7 +98,14 @@ hwd_nineslice_node_create(
     hwd_nineslice_node_update(
         &root->node, buffer, left_break, right_break, top_break, bottom_break
     );
-    hwd_nineslice_node_set_size(&root->node, buffer->width, buffer->height);
+
+    int buffer_width = 0;
+    int buffer_height = 0;
+    if (buffer != NULL) {
+        buffer_width = buffer->width;
+        buffer_height = buffer->height;
+    }
+    hwd_nineslice_node_set_size(&root->node, buffer_width, buffer_height);
 
     return &root->node;
 }
@@ -112,8 +119,12 @@ hwd_nineslice_node_update(
 ) {
     hwd_assert(node != NULL, "Expected node");
 
-    int buffer_width = buffer->width;
-    int buffer_height = buffer->height;
+    int buffer_width = 0;
+    int buffer_height = 0;
+    if (buffer != NULL) {
+        buffer_width = buffer->width;
+        buffer_height = buffer->height;
+    }
 
     struct hwd_nineslice_slices slices;
     hwd_nineslice_unpack(node, &slices);
@@ -208,6 +219,10 @@ hwd_nineslice_node_set_size(struct wlr_scene_node *node, int width, int height) 
 
     struct hwd_nineslice_slices slices;
     hwd_nineslice_unpack(node, &slices);
+
+    if (slices.tl->buffer == NULL) {
+        return;
+    }
 
     int buffer_width = slices.tl->buffer->width;
     int buffer_height = slices.tl->buffer->height;
