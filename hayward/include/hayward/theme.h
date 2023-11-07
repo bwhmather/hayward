@@ -27,14 +27,6 @@ struct hwd_theme_window {
     struct hwd_colour text_colour;
 };
 
-struct wlr_scene_node *
-hwd_theme_window_create_titlebar_node(
-    struct hwd_theme_window *theme, struct wlr_scene_tree *parent
-);
-
-struct wlr_scene_node *
-hwd_theme_window_create_border_node(struct hwd_theme_window *theme, struct wlr_scene_tree *parent);
-
 int
 hwd_theme_window_get_titlebar_height(struct hwd_theme_window *theme);
 

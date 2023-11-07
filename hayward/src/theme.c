@@ -15,23 +15,6 @@
 #include <hayward/scene/cairo.h>
 #include <hayward/scene/colours.h>
 
-struct wlr_scene_node *
-hwd_theme_nineslice_create_node(struct hwd_theme_nineslice *description) {
-    return NULL;
-}
-
-struct wlr_scene_node *
-hwd_theme_window_create_titlebar_node(
-    struct hwd_theme_window *theme, struct wlr_scene_tree *parent
-) {
-    return NULL;
-}
-
-struct wlr_scene_node *
-hwd_theme_window_create_border_node(struct hwd_theme_window *theme, struct wlr_scene_tree *parent) {
-    return NULL;
-}
-
 int
 hwd_theme_window_get_titlebar_height(struct hwd_theme_window *theme) {
     return 26;
