@@ -403,8 +403,6 @@ view_map(
 
     if (view->impl->wants_floating && view->impl->wants_floating(view)) {
         workspace_add_floating(workspace, view->window);
-
-        view->window->pending.border_thickness = config->floating_border_thickness;
         hwd_move_window_to_floating(view->window);
     } else {
         struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
@@ -415,8 +413,6 @@ view_map(
             workspace_insert_column_first(workspace, output, column);
             column_add_child(column, view->window);
         }
-
-        view->window->pending.border_thickness = config->border_thickness;
         view_set_tiled(view, true);
 
         if (target_sibling) {

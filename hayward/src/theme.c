@@ -22,22 +22,33 @@ hwd_theme_window_get_titlebar_height(struct hwd_theme_window *theme) {
 
 int
 hwd_theme_window_get_shaded_titlebar_height(struct hwd_theme_window *theme) {
-    return 0;
+    return 26;
 }
 
 int
 hwd_theme_window_get_border_left(struct hwd_theme_window *theme) {
-    return 0;
+    return theme->border.left_break - 1;
 }
 
 int
 hwd_theme_window_get_border_right(struct hwd_theme_window *theme) {
-    return 0;
+    if (theme->border.buffer == NULL) {
+        return 0;
+    }
+    return theme->border.buffer->width - theme->border.right_break - 1;
+}
+
+int
+hwd_theme_window_get_border_top(struct hwd_theme_window *theme) {
+    return theme->border.top_break - 1;
 }
 
 int
 hwd_theme_window_get_border_bottom(struct hwd_theme_window *theme) {
-    return 0;
+    if (theme->border.buffer == NULL) {
+        return 0;
+    }
+    return theme->border.buffer->height - theme->border.bottom_break - 1;
 }
 
 struct wlr_scene_node *
@@ -233,7 +244,7 @@ gen_floating_border(struct hwd_default_theme_colours colours) {
     outline_inner_border_floating(cairo);
     stroke_border_inner(cairo, colours);
 
-    struct hwd_theme_nineslice out = {buffer, 10, 22, 10, 22};
+    struct hwd_theme_nineslice out = {buffer, 4, 28, 1, 27};
     return out;
 }
 
@@ -348,7 +359,7 @@ gen_tiled_border(struct hwd_default_theme_colours colours) {
     cairo_line_to(cairo, SIZE - 1.5 * BORDER, 0);
     stroke_border_inner(cairo, colours);
 
-    struct hwd_theme_nineslice out = {buffer, 10, 22, 10, 22};
+    struct hwd_theme_nineslice out = {buffer, 3, 29, 1, 28};
     return out;
 }
 

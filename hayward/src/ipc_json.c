@@ -392,9 +392,6 @@ ipc_json_describe_window(struct hwd_window *window) {
         json_object_object_add(object, "percent", json_object_new_double(percent));
     }
 
-    json_object_object_add(
-        object, "current_border_width", json_object_new_int(window->current.border_thickness)
-    );
     json_object_object_add(object, "floating_nodes", json_object_new_array());
 
     struct wlr_box deco_box = {0, 0, 0, 0};

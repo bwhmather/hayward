@@ -94,11 +94,13 @@ window_update_scene(struct hwd_window *window) {
     double y = window->committed.y;
     double width = window->committed.width;
     double height = window->committed.height;
+    double border_left = window->committed.border_left;
+    double border_top = window->committed.border_top;
+    double titlebar_height = window->committed.titlebar_height;
+    bool fullscreen = window->committed.fullscreen;
+    bool shaded = window->committed.shaded;
 
     wlr_scene_node_set_position(&window->layers.inner_tree->node, x, y);
-
-    int titlebar_height = window_committed_titlebar_height(window);
-    bool fullscreen = window->committed.fullscreen;
 
     struct border_colors *colors = window_get_committed_colors(window);
     struct hwd_theme_window *theme = window->committed.theme;
@@ -124,7 +126,7 @@ window_update_scene(struct hwd_window *window) {
     hwd_text_node_set_color(window->layers.titlebar_text, colors->text);
 
     // Border.
-    wlr_scene_node_set_enabled(window->layers.border, !fullscreen);
+    wlr_scene_node_set_enabled(window->layers.border, !fullscreen && !shaded);
     hwd_nineslice_node_update(
         window->layers.border, theme->border.buffer, theme->border.left_break,
         theme->border.right_break, theme->border.top_break, theme->border.bottom_break
@@ -133,9 +135,9 @@ window_update_scene(struct hwd_window *window) {
     hwd_nineslice_node_set_size(window->layers.border, width, height - titlebar_height);
 
     // Content.
-    wlr_scene_node_set_enabled(&window->layers.content_tree->node, !window->committed.shaded);
+    wlr_scene_node_set_enabled(&window->layers.content_tree->node, !shaded);
     wlr_scene_node_set_position(
-        &window->layers.content_tree->node, window->committed.border_thickness, titlebar_height
+        &window->layers.content_tree->node, border_left, titlebar_height + border_top
     );
 
     struct hwd_view *view = window->view;
@@ -476,26 +478,33 @@ window_arrange(struct hwd_window *window) {
         return;
     }
 
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_window_state *state = &window->pending;
+
+    struct hwd_workspace *workspace = state->workspace;
     struct hwd_output *output = workspace_get_active_output(workspace);
 
-    if (window->pending.fullscreen) {
-        window->pending.content_x = output->lx;
-        window->pending.content_y = output->ly;
-        window->pending.content_width = output->width;
-        window->pending.content_height = output->height;
+    if (state->fullscreen) {
+        state->content_x = output->lx;
+        state->content_y = output->ly;
+        state->content_width = output->width;
+        state->content_height = output->height;
     } else {
-        window->pending.border_top = window->pending.border_bottom = true;
-        window->pending.border_left = window->pending.border_right = true;
-
-        size_t border_thickness = window->pending.border_thickness;
-        double titlebar_height = window_titlebar_height(window) + 2 * border_thickness;
-
-        window->pending.content_x = window->pending.x + border_thickness;
-        window->pending.content_y = window->pending.y + titlebar_height;
-        window->pending.content_width = window->pending.width - 2 * border_thickness;
-        window->pending.content_height =
-            window->pending.height - titlebar_height - border_thickness;
+        state->titlebar_height = hwd_theme_window_get_titlebar_height(state->theme);
+        state->border_left = hwd_theme_window_get_border_left(state->theme);
+        state->border_right = hwd_theme_window_get_border_right(state->theme);
+        state->border_top = hwd_theme_window_get_border_top(state->theme);
+        state->border_bottom = hwd_theme_window_get_border_bottom(state->theme);
+        state->content_x = state->x + state->border_left;
+        state->content_y = state->y + state->titlebar_height + state->border_top;
+        state->content_width = state->width - state->border_left - state->border_right;
+        if (state->content_width < 0) {
+            state->content_width = 0;
+        }
+        state->content_height =
+            state->height - state->titlebar_height - state->border_top - state->border_bottom;
+        if (state->content_height < 0) {
+            state->content_height = 0;
+        }
     }
 
     window_set_dirty(window);
@@ -785,10 +794,6 @@ window_floating_resize_and_center(struct hwd_window *window) {
                 output->pending.y + (output->pending.height - window->pending.content_height) / 2;
         }
 
-        // If the view's border is B_NONE then these properties are ignored.
-        window->pending.border_top = window->pending.border_bottom = true;
-        window->pending.border_left = window->pending.border_right = true;
-
         window_set_geometry_from_content(window);
     }
 
@@ -867,13 +872,10 @@ void
 window_get_titlebar_box(struct hwd_window *window, struct wlr_box *box) {
     hwd_assert(window != NULL, "Expected window");
 
-    size_t border_thickness = window->pending.border_thickness;
-    double titlebar_height = window_titlebar_height(window) + 2 * border_thickness;
-
     box->x = window->pending.x;
     box->y = window->pending.y;
     box->width = window->pending.width;
-    box->height = titlebar_height;
+    box->height = window->pending.titlebar_height;
 }
 
 void
@@ -907,13 +909,13 @@ window_set_geometry_from_content(struct hwd_window *window) {
     hwd_assert(window_is_alive(window), "Expected live window");
     hwd_assert(window_is_floating(window), "Expected a floating view");
 
-    size_t border_thickness = window->pending.border_thickness;
-    double titlebar_height = window_titlebar_height(window) + 2 * border_thickness;
+    struct hwd_window_state *state = &window->pending;
 
-    window->pending.x = window->pending.content_x - border_thickness;
-    window->pending.y = window->pending.content_y - titlebar_height;
-    window->pending.width = window->pending.content_width + 2 * border_thickness;
-    window->pending.height = window->pending.content_height + titlebar_height + border_thickness;
+    state->x = state->content_x - state->border_left;
+    state->y = state->content_y - state->border_top - state->titlebar_height;
+    state->width = state->content_width + state->border_left + state->border_right;
+    state->height =
+        state->content_height + state->titlebar_height + state->border_top + state->border_bottom;
 
     window_set_dirty(window);
 }

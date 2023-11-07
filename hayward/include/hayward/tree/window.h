@@ -61,13 +61,12 @@ struct hwd_window_state {
     // be updated by calling one of the `window_reconcile_` functions.
     bool focused;
 
-    int border_thickness;
-    bool border_top;
-    bool border_bottom;
-    bool border_left;
-    bool border_right;
-
     // These are in layout coordinates.
+    double titlebar_height;
+    double border_left;
+    double border_right;
+    double border_top;
+    double border_bottom;
     double content_x, content_y;
     double content_width, content_height;
 

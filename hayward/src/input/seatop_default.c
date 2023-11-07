@@ -139,26 +139,21 @@ find_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_curso
     if (!cont->view || (surface && cont->view->surface != surface)) {
         return WLR_EDGE_NONE;
     }
-    if (!cont->pending.border_thickness) {
-        return WLR_EDGE_NONE;
-    }
     if (cont->pending.fullscreen) {
         return WLR_EDGE_NONE;
     }
 
     enum wlr_edges edge = 0;
-    if (cursor->cursor->x < cont->pending.x + cont->pending.border_thickness) {
+    if (cursor->cursor->x < cont->pending.x + cont->pending.border_left) {
         edge |= WLR_EDGE_LEFT;
     }
-    if (cursor->cursor->y < cont->pending.y + cont->pending.border_thickness) {
+    if (cursor->cursor->y < cont->pending.y + cont->pending.border_top) {
         edge |= WLR_EDGE_TOP;
     }
-    if (cursor->cursor->x >=
-        cont->pending.x + cont->pending.width - cont->pending.border_thickness) {
+    if (cursor->cursor->x >= cont->pending.x + cont->pending.width - cont->pending.border_right) {
         edge |= WLR_EDGE_RIGHT;
     }
-    if (cursor->cursor->y >=
-        cont->pending.y + cont->pending.height - cont->pending.border_thickness) {
+    if (cursor->cursor->y >= cont->pending.y + cont->pending.height - cont->pending.border_bottom) {
         edge |= WLR_EDGE_BOTTOM;
     }
 

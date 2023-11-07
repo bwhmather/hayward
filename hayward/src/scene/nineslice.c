@@ -134,7 +134,6 @@ hwd_nineslice_node_update(
     int centre_height = bottom_break - top_break;
     int bottom_height = buffer_height - bottom_break;
 
-
     struct hwd_nineslice_slices slices;
     hwd_nineslice_unpack(node, &slices);
 

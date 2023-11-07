@@ -40,6 +40,9 @@ int
 hwd_theme_window_get_border_right(struct hwd_theme_window *theme);
 
 int
+hwd_theme_window_get_border_top(struct hwd_theme_window *theme);
+
+int
 hwd_theme_window_get_border_bottom(struct hwd_theme_window *theme);
 
 struct hwd_theme_window_type {
