@@ -128,17 +128,10 @@ struct hwd_window {
 
     struct {
         struct wlr_scene_tree *inner_tree;
-        struct wlr_scene_tree *title_tree;
-        struct wlr_scene_rect *title_background;
-        struct hwd_text_node *title_text;
-        // Line separating title from content.
-        struct wlr_scene_rect *title_border;
 
-        struct wlr_scene_tree *border_tree;
-        struct wlr_scene_rect *border_top;
-        struct wlr_scene_rect *border_bottom;
-        struct wlr_scene_rect *border_left;
-        struct wlr_scene_rect *border_right;
+        struct wlr_scene_node *titlebar;
+        struct hwd_text_node *titlebar_text;
+        struct wlr_scene_node *border;
 
         struct wlr_scene_tree *content_tree;
     } layers;

@@ -28,6 +28,7 @@
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
+#include <hayward/scene/nineslice.h>
 #include <hayward/scene/text.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
@@ -72,35 +73,16 @@ window_init_scene(struct hwd_window *window) {
     struct wlr_scene_tree *scene_tree = wlr_scene_tree_create(window->scene_tree); // TODO
     window->layers.inner_tree = scene_tree;
 
-    const float border_color[] = {1.0, 0.0, 0.0, 1.0};
+    window->layers.titlebar = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
+    hwd_assert(window->layers.titlebar != NULL, "Allocation failed");
+
     const float text_color[] = {1.0, 1.0, 1.0, 1.0};
+    window->layers.titlebar_text =
+        hwd_text_node_create(scene_tree, "", text_color, config->pango_markup);
+    hwd_assert(window->layers.titlebar_text != NULL, "Allocation failed");
 
-    window->layers.title_tree = wlr_scene_tree_create(scene_tree);
-    hwd_assert(window->layers.title_tree != NULL, "Allocation failed");
-    window->layers.title_background =
-        wlr_scene_rect_create(window->layers.title_tree, 0, 0, (const float *)border_color);
-    hwd_assert(window->layers.title_background != NULL, "Allocation failed");
-    window->layers.title_text =
-        hwd_text_node_create(window->layers.title_tree, "", text_color, config->pango_markup);
-    hwd_assert(window->layers.title_background != NULL, "Allocation failed");
-    window->layers.title_border =
-        wlr_scene_rect_create(window->layers.title_tree, 0, 0, (const float *)border_color);
-    hwd_assert(window->layers.title_border != NULL, "Allocation failed");
-
-    window->layers.border_tree = wlr_scene_tree_create(scene_tree);
-    hwd_assert(window->layers.border_tree != NULL, "Allocation failed");
-    window->layers.border_top =
-        wlr_scene_rect_create(window->layers.border_tree, 0, 0, (const float *)border_color);
-    hwd_assert(window->layers.border_top != NULL, "Allocation failed");
-    window->layers.border_bottom =
-        wlr_scene_rect_create(window->layers.border_tree, 0, 0, (const float *)border_color);
-    hwd_assert(window->layers.border_bottom != NULL, "Allocation failed");
-    window->layers.border_left =
-        wlr_scene_rect_create(window->layers.border_tree, 0, 0, (const float *)border_color);
-    hwd_assert(window->layers.border_left != NULL, "Allocation failed");
-    window->layers.border_right =
-        wlr_scene_rect_create(window->layers.border_tree, 0, 0, (const float *)border_color);
-    hwd_assert(window->layers.border_right != NULL, "Allocation failed");
+    window->layers.border = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
+    hwd_assert(window->layers.border != NULL, "Allocation failed");
 
     window->layers.content_tree = wlr_scene_tree_create(scene_tree);
     hwd_assert(window->layers.content_tree != NULL, "Allocation failed");
@@ -115,100 +97,45 @@ window_update_scene(struct hwd_window *window) {
 
     wlr_scene_node_set_position(&window->layers.inner_tree->node, x, y);
 
-    int border_thickness = window->committed.border_thickness;
-
-    int border_left = 0;
-    int border_right = 0;
-    int border_top = 0;
-    int border_bottom = 0;
-    int border_title = 0;
-    int titlebar_height = 0;
-
-    if (window->committed.fullscreen) {
-        // Intentionally blank,
-    } else if (window->committed.shaded) {
-        border_left = border_thickness;
-        border_right = border_thickness;
-        border_top = border_thickness;
-        border_bottom = 0;
-        border_title = border_thickness;
-        titlebar_height = window_committed_titlebar_height(window);
-    } else {
-        border_left = border_thickness;
-        border_right = border_thickness;
-        border_top = border_thickness;
-        border_bottom = border_thickness;
-        border_title = border_thickness;
-        titlebar_height = window_committed_titlebar_height(window);
-    }
+    int titlebar_height = window_committed_titlebar_height(window);
+    bool fullscreen = window->committed.fullscreen;
 
     struct border_colors *colors = window_get_committed_colors(window);
+    struct hwd_theme_window *theme = window->committed.theme;
 
     // Title background.
-    wlr_scene_node_set_enabled(&window->layers.title_background->node, titlebar_height != 0);
-    wlr_scene_node_set_position(&window->layers.title_background->node, border_left, border_top);
-    wlr_scene_rect_set_size(
-        window->layers.title_background, width - border_left - border_right, titlebar_height
+    wlr_scene_node_set_enabled(window->layers.titlebar, !fullscreen);
+    hwd_nineslice_node_update(
+        window->layers.titlebar, theme->titlebar.buffer, theme->titlebar.left_break,
+        theme->titlebar.right_break, theme->titlebar.top_break, theme->titlebar.bottom_break
     );
-    wlr_scene_rect_set_color(window->layers.title_background, colors->background);
+    wlr_scene_node_set_position(window->layers.titlebar, 0, 0);
+    hwd_nineslice_node_set_size(window->layers.titlebar, width, titlebar_height);
 
     // Title text.
-    wlr_scene_node_set_enabled(window->layers.title_text->node, titlebar_height != 0);
+    wlr_scene_node_set_enabled(window->layers.titlebar_text->node, !fullscreen);
     wlr_scene_node_set_position(
-        window->layers.title_text->node, config->titlebar_h_padding, config->titlebar_v_padding
+        window->layers.titlebar_text->node, config->titlebar_h_padding, config->titlebar_v_padding
     );
-    hwd_text_node_set_text(window->layers.title_text, window->formatted_title);
+    hwd_text_node_set_text(window->layers.titlebar_text, window->formatted_title);
     hwd_text_node_set_max_width(
-        window->layers.title_text,
-        width - border_left - border_right - 2 * config->titlebar_h_padding
+        window->layers.titlebar_text, width - 2 * config->titlebar_h_padding
     );
-    hwd_text_node_set_color(window->layers.title_text, colors->text);
+    hwd_text_node_set_color(window->layers.titlebar_text, colors->text);
 
-    // Title border.
-    wlr_scene_node_set_enabled(&window->layers.title_border->node, border_title != 0);
-    wlr_scene_node_set_position(
-        &window->layers.title_border->node, border_left, titlebar_height + border_top
+    // Border.
+    wlr_scene_node_set_enabled(window->layers.border, !fullscreen);
+    hwd_nineslice_node_update(
+        window->layers.border, theme->border.buffer, theme->border.left_break,
+        theme->border.right_break, theme->border.top_break, theme->border.bottom_break
     );
-    wlr_scene_rect_set_size(
-        window->layers.title_border, width - border_left - border_right, border_title
-    );
-    wlr_scene_rect_set_color(window->layers.title_border, colors->border);
-
-    // Border top.
-    wlr_scene_node_set_enabled(&window->layers.border_top->node, border_top != 0);
-    wlr_scene_node_set_position(&window->layers.border_top->node, border_left, 0);
-    wlr_scene_rect_set_size(
-        window->layers.border_top, width - border_left - border_right, border_top
-    );
-    wlr_scene_rect_set_color(window->layers.border_top, colors->border);
-
-    // Border bottom.
-    wlr_scene_node_set_enabled(&window->layers.border_bottom->node, border_bottom != 0);
-    wlr_scene_node_set_position(
-        &window->layers.border_bottom->node, border_left, height - border_bottom
-    );
-    wlr_scene_rect_set_size(
-        window->layers.border_bottom, width - border_left - border_right, border_bottom
-    );
-    wlr_scene_rect_set_color(window->layers.border_bottom, colors->border);
-
-    // Border left.
-    wlr_scene_node_set_enabled(&window->layers.border_left->node, border_left != 0);
-    wlr_scene_node_set_position(&window->layers.border_left->node, 0, 0);
-    wlr_scene_rect_set_size(window->layers.border_left, border_left, height);
-    wlr_scene_rect_set_color(window->layers.border_left, colors->border);
-
-    // Border right.
-    wlr_scene_node_set_enabled(&window->layers.border_right->node, border_right != 0);
-    wlr_scene_node_set_position(&window->layers.border_left->node, width - border_right, 0);
-    wlr_scene_rect_set_size(window->layers.border_right, border_right, height);
-    wlr_scene_rect_set_color(window->layers.border_right, colors->border);
+    wlr_scene_node_set_position(window->layers.border, 0, titlebar_height);
+    hwd_nineslice_node_set_size(window->layers.border, width, height - titlebar_height);
 
     // Content.
     wlr_scene_node_set_enabled(&window->layers.content_tree->node, !window->committed.shaded);
     wlr_scene_node_set_position(
-        &window->layers.content_tree->node, window->committed.border_thickness,
-        titlebar_height + border_top + border_title
+        &window->layers.content_tree->node, window->committed.border_thickness, titlebar_height
     );
 
     struct hwd_view *view = window->view;

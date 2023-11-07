@@ -134,6 +134,7 @@ hwd_nineslice_node_update(
     int centre_height = bottom_break - top_break;
     int bottom_height = buffer_height - bottom_break;
 
+
     struct hwd_nineslice_slices slices;
     hwd_nineslice_unpack(node, &slices);
 
@@ -227,6 +228,8 @@ hwd_nineslice_node_set_size(struct wlr_scene_node *node, int width, int height) 
     int right_width = slices.tr->src_box.width;
     int centre_width = width - left_width - right_width;
     if (centre_width < 0) {
+        left_width += centre_width / 2;
+        right_width = width - left_width;
         centre_width = 0;
     }
 
@@ -234,6 +237,8 @@ hwd_nineslice_node_set_size(struct wlr_scene_node *node, int width, int height) 
     int bottom_height = slices.bl->src_box.height;
     int centre_height = height - top_height - bottom_height;
     if (centre_height < 0) {
+        top_height += centre_height / 2;
+        bottom_height = width - height - top_height;
         centre_height = 0;
     }
 
