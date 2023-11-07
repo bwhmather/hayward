@@ -349,7 +349,7 @@ column_arrange_split(struct hwd_column *column) {
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
         visible_height_fraction += child->height_fraction;
-        available_content_height -= window_titlebar_height(child);
+        available_content_height -= child->pending.titlebar_height;
     }
     if (column->pending.show_preview) {
         visible_height_fraction += column->preview_height_fraction;
@@ -377,7 +377,7 @@ column_arrange_split(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        double window_height = window_titlebar_height(child);
+        double window_height = child->pending.titlebar_height;
         window_height +=
             available_content_height * child->height_fraction / visible_height_fraction;
         child->pending.shaded = false;
@@ -457,7 +457,7 @@ column_arrange_stacked(struct hwd_column *column) {
     double available_content_height = box.height;
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        available_content_height -= window_titlebar_height(child);
+        available_content_height -= child->pending.titlebar_height;
     }
     if (column->pending.show_preview) {
         available_content_height -= preview_titlebar_height;
@@ -484,7 +484,7 @@ column_arrange_stacked(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        double window_height = window_titlebar_height(child);
+        double window_height = child->pending.titlebar_height;
         if (child != active_child) {
             child->pending.shaded = true;
         } else {

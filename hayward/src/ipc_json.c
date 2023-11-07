@@ -208,14 +208,14 @@ window_get_deco_rect(struct hwd_window *window, struct wlr_box *deco_rect) {
         deco_rect->x = window->pending.x;
         deco_rect->y = window->pending.y;
         deco_rect->width = window->pending.width;
-        deco_rect->height = window_titlebar_height(window);
+        deco_rect->height = 0;
     } else {
         struct hwd_column *parent = window->pending.parent;
 
         deco_rect->x = window->pending.x - parent->pending.x;
         deco_rect->y = window->pending.y - parent->pending.y;
         deco_rect->width = window->pending.width;
-        deco_rect->height = window_titlebar_height(window);
+        deco_rect->height = 0;
     }
 }
 

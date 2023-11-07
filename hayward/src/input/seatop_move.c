@@ -100,7 +100,7 @@ do_detach(struct hwd_seat *seat) {
         struct hwd_workspace *workspace = window->pending.workspace;
         struct hwd_output *output = window->pending.output;
 
-        bool on_titlebar = e->ref_ly - window->pending.y <= window_current_titlebar_height(window);
+        bool on_titlebar = e->ref_ly - window->pending.y <= window->pending.titlebar_height;
 
         double dx = e->ref_lx - window->pending.x;
         double dy = e->ref_ly - window->pending.y;

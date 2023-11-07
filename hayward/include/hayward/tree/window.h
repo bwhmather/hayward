@@ -193,15 +193,6 @@ window_is_fullscreen(struct hwd_window *window);
 bool
 window_is_tiling(struct hwd_window *window);
 
-size_t
-window_titlebar_height(struct hwd_window *window);
-
-size_t
-window_committed_titlebar_height(struct hwd_window *window);
-
-size_t
-window_current_titlebar_height(struct hwd_window *window);
-
 void
 window_set_fullscreen(struct hwd_window *window, bool enabled);
 

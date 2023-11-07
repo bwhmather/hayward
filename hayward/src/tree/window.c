@@ -541,24 +541,6 @@ window_is_tiling(struct hwd_window *window) {
     return window->pending.parent != NULL;
 }
 
-size_t
-window_titlebar_height(struct hwd_window *window) {
-    // TODO
-    return config->font_height + config->titlebar_v_padding * 2;
-}
-
-size_t
-window_committed_titlebar_height(struct hwd_window *window) {
-    // TODO
-    return config->font_height + config->titlebar_v_padding * 2;
-}
-
-size_t
-window_current_titlebar_height(struct hwd_window *window) {
-    // TODO
-    return config->font_height + config->titlebar_v_padding * 2;
-}
-
 static void
 set_fullscreen(struct hwd_window *window, bool enable) {
     if (window->view->impl->set_fullscreen) {
