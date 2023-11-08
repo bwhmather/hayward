@@ -68,8 +68,9 @@ static const float BORDER = 1.0;
 static const float RADIUS = 8.0;
 static const size_t SIZE = 32;
 
-static const struct hwd_colour FOCUSED_COLOUR = {0.154, 0.308, 0.42, 1.0};
-static const struct hwd_colour UNFOCUSED_COLOUR = {0.6, 0.6, 0.6, 1.0};
+static const struct hwd_colour FOCUSED_COLOUR = {0.174, 0.404, 0.571, 1.0};
+static const struct hwd_colour ACTIVE_COLOUR = {0.393, 0.393, 0.393, 1.0};
+static const struct hwd_colour INACTIVE_COLOUR = {0.195, 0.195, 0.195, 1.0};
 static const struct hwd_colour URGENT_COLOUR = {0.5, 0.1, 0.1, 1.0};
 static const struct hwd_colour BORDER_OUTER_COLOUR = {0.11, 0.11, 0.11, 1.0};
 static const struct hwd_colour BACKGROUND_COLOUR = {0.6, 0.6, 0.6, 1.0};
@@ -94,19 +95,19 @@ static const struct hwd_default_theme_colours COLOURS_FOCUSED = {
 
 static const struct hwd_default_theme_colours COLOURS_ACTIVE = {
     .foreground = {1.0, 1.0, 1.0, 1.0},
-    .background_titlebar = UNFOCUSED_COLOUR,
+    .background_titlebar = ACTIVE_COLOUR,
     .background_content = BACKGROUND_COLOUR,
     .border_outer = BORDER_OUTER_COLOUR,
-    .border_highlight = UNFOCUSED_COLOUR,
+    .border_highlight = ACTIVE_COLOUR,
     .border_inner = {0.15, 0.15, 0.15, 1.0},
 };
 
 static const struct hwd_default_theme_colours COLOURS_INACTIVE = {
     .foreground = {1.0, 1.0, 1.0, 1.0},
-    .background_titlebar = UNFOCUSED_COLOUR,
+    .background_titlebar = INACTIVE_COLOUR,
     .background_content = BACKGROUND_COLOUR,
     .border_outer = BORDER_OUTER_COLOUR,
-    .border_highlight = UNFOCUSED_COLOUR,
+    .border_highlight = INACTIVE_COLOUR,
     .border_inner = {0.15, 0.15, 0.15, 1.0},
 };
 
