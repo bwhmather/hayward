@@ -13,7 +13,6 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
-#include <hayward/scene/text.h>
 #include <hayward/theme.h>
 
 #define MIN_SANE_W 100
@@ -129,7 +128,7 @@ struct hwd_window {
         struct wlr_scene_tree *inner_tree;
 
         struct wlr_scene_node *titlebar;
-        struct hwd_text_node *titlebar_text;
+        struct wlr_scene_node *titlebar_text;
         struct wlr_scene_node *border;
 
         struct wlr_scene_tree *content_tree;

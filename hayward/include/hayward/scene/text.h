@@ -1,32 +1,25 @@
 #ifndef HWD_SCENE_TEXT_H
 #define HWD_SCENE_TEXT_H
 
+#include <pango/pango.h>
 #include <stdbool.h>
 #include <wlr/types/wlr_scene.h>
 
-struct hwd_text_node {
-    int width;
-    int max_width;
-    int height;
-    int baseline;
-    bool pango_markup;
-    float color[4];
+#include <hayward/scene/colours.h>
 
-    struct wlr_scene_node *node;
-};
-
-struct hwd_text_node *
+struct wlr_scene_node *
 hwd_text_node_create(
-    struct wlr_scene_tree *parent, char *text, const float *color, bool pango_markup
+    struct wlr_scene_tree *parent, char *text, struct hwd_colour color, bool pango_markup,
+    PangoFontDescription *font_description
 );
 
 void
-hwd_text_node_set_color(struct hwd_text_node *node, const float *color);
+hwd_text_node_set_color(struct wlr_scene_node *node, struct hwd_colour color);
 
 void
-hwd_text_node_set_text(struct hwd_text_node *node, char *text);
+hwd_text_node_set_text(struct wlr_scene_node *node, char *text);
 
 void
-hwd_text_node_set_max_width(struct hwd_text_node *node, int max_width);
+hwd_text_node_set_max_width(struct wlr_scene_node *node, int max_width);
 
 #endif

@@ -28,6 +28,7 @@
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
+#include <hayward/scene/colours.h>
 #include <hayward/scene/nineslice.h>
 #include <hayward/scene/text.h>
 #include <hayward/server.h>
@@ -46,21 +47,6 @@ scene_tree_marker_destroy(struct wlr_addon *addon) {
 static const struct wlr_addon_interface scene_tree_marker_interface = {
     .name = "hwd_window", .destroy = scene_tree_marker_destroy};
 
-static struct border_colors *
-window_get_committed_colors(struct hwd_window *window) {
-    if (view_is_urgent(window->view)) {
-        return &config->border_colors.urgent;
-    }
-    if (window->committed.focused) {
-        return &config->border_colors.focused;
-    }
-    if (window->committed.parent && window->committed.parent->committed.active_child == window) {
-        return &config->border_colors.focused_inactive;
-    }
-
-    return &config->border_colors.unfocused;
-}
-
 static void
 window_init_scene(struct hwd_window *window) {
     window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
@@ -76,9 +62,10 @@ window_init_scene(struct hwd_window *window) {
     window->layers.titlebar = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
     hwd_assert(window->layers.titlebar != NULL, "Allocation failed");
 
-    const float text_color[] = {1.0, 1.0, 1.0, 1.0};
-    window->layers.titlebar_text =
-        hwd_text_node_create(scene_tree, "", text_color, config->pango_markup);
+    struct hwd_colour text_color = {1.0, 1.0, 1.0, 1.0};
+    window->layers.titlebar_text = hwd_text_node_create(
+        scene_tree, "", text_color, config->pango_markup, config->font_description
+    );
     hwd_assert(window->layers.titlebar_text != NULL, "Allocation failed");
 
     window->layers.border = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
@@ -102,7 +89,6 @@ window_update_scene(struct hwd_window *window) {
 
     wlr_scene_node_set_position(&window->layers.inner_tree->node, x, y);
 
-    struct border_colors *colors = window_get_committed_colors(window);
     struct hwd_theme_window *theme = window->committed.theme;
 
     // Title background.
@@ -115,15 +101,15 @@ window_update_scene(struct hwd_window *window) {
     hwd_nineslice_node_set_size(window->layers.titlebar, width, titlebar_height);
 
     // Title text.
-    wlr_scene_node_set_enabled(window->layers.titlebar_text->node, !fullscreen);
+    wlr_scene_node_set_enabled(window->layers.titlebar_text, !fullscreen);
     wlr_scene_node_set_position(
-        window->layers.titlebar_text->node, config->titlebar_h_padding, config->titlebar_v_padding
+        window->layers.titlebar_text, config->titlebar_h_padding, config->titlebar_v_padding
     );
     hwd_text_node_set_text(window->layers.titlebar_text, window->formatted_title);
     hwd_text_node_set_max_width(
         window->layers.titlebar_text, width - 2 * config->titlebar_h_padding
     );
-    hwd_text_node_set_color(window->layers.titlebar_text, colors->text);
+    hwd_text_node_set_color(window->layers.titlebar_text, theme->text_colour);
 
     // Border.
     wlr_scene_node_set_enabled(window->layers.border, !fullscreen && !shaded);
