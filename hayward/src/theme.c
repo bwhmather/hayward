@@ -348,19 +348,19 @@ gen_tiled_border(struct hwd_default_theme_colours colours) {
     cairo_line_to(cairo, SIZE, SIZE - 0.5 * BORDER);
     stroke_border_outer(cairo, colours);
 
-    cairo_move_to(cairo, 1.5 * BORDER, 0);
-    cairo_line_to(cairo, 1.5 * BORDER, SIZE - 2.5 * BORDER);
-    cairo_line_to(cairo, SIZE - 1.5 * BORDER, SIZE - 2.5 * BORDER);
-    cairo_line_to(cairo, SIZE - 1.5 * BORDER, 0);
+    cairo_move_to(cairo, 2.5 * BORDER, 0);
+    cairo_line_to(cairo, 2.5 * BORDER, SIZE - 2.5 * BORDER);
+    cairo_line_to(cairo, SIZE - 2.5 * BORDER, SIZE - 2.5 * BORDER);
+    cairo_line_to(cairo, SIZE - 2.5 * BORDER, 0);
     fill_background_content(cairo, colours);
 
-    cairo_move_to(cairo, 1.5 * BORDER, 0);
-    cairo_line_to(cairo, 1.5 * BORDER, SIZE - 2.5 * BORDER);
-    cairo_line_to(cairo, SIZE - 1.5 * BORDER, SIZE - 2.5 * BORDER);
-    cairo_line_to(cairo, SIZE - 1.5 * BORDER, 0);
+    cairo_move_to(cairo, 2.5 * BORDER, 0);
+    cairo_line_to(cairo, 2.5 * BORDER, SIZE - 2.5 * BORDER);
+    cairo_line_to(cairo, SIZE - 2.5 * BORDER, SIZE - 2.5 * BORDER);
+    cairo_line_to(cairo, SIZE - 2.5 * BORDER, 0);
     stroke_border_inner(cairo, colours);
 
-    struct hwd_theme_nineslice out = {buffer, 3, 29, 1, 28};
+    struct hwd_theme_nineslice out = {buffer, 4, 28, 1, 28};
     return out;
 }
 
