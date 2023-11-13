@@ -24,6 +24,7 @@
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
 #include <hayward/scene/nineslice.h>
+#include <hayward/theme.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
