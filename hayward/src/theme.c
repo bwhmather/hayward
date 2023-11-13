@@ -58,7 +58,7 @@ hwd_theme_create_column_separator_node(struct hwd_theme *theme, struct wlr_scene
 
 int
 hwd_theme_get_column_separator_width(struct hwd_theme *theme) {
-    return 0;
+    return theme->column_separator.buffer->width;
 }
 
 void
@@ -433,6 +433,22 @@ gen_tiled(void) {
     return theme;
 }
 
+static struct hwd_theme_nineslice
+gen_separator(void) {
+    struct wlr_buffer *buffer = hwd_cairo_buffer_create(1, 8);
+    cairo_t *cairo = hwd_cairo_buffer_get_context(buffer);
+
+    cairo_move_to(cairo, 0.5, 0);
+    cairo_line_to(cairo, 0.5, 8);
+    cairo_set_line_width(cairo, 1.0);
+    struct hwd_colour c = BORDER_OUTER_COLOUR;
+    cairo_set_source_rgba(cairo, c.r, c.g, c.b, c.a);
+    cairo_stroke(cairo);
+
+    struct hwd_theme_nineslice out = {buffer, 0, 1, 0, 8};
+    return out;
+}
+
 struct hwd_theme *
 hwd_theme_create_default(void) {
     struct hwd_theme *theme = calloc(1, sizeof(struct hwd_theme));
@@ -441,6 +457,8 @@ hwd_theme_create_default(void) {
     theme->floating = gen_floating();
     theme->tiled_head = gen_tiled_head();
     theme->tiled = gen_tiled();
+
+    theme->column_separator = gen_separator();
 
     return theme;
 }
