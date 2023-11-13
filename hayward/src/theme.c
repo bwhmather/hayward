@@ -371,7 +371,7 @@ gen_single_floating(struct hwd_default_theme_colours colours) {
         .shaded_titlebar = {0},
         .border = gen_floating_border(colours),
         .text_font = NULL,
-        .text_colour = {0},
+        .text_colour = colours.foreground,
     };
     return window_theme;
 }
@@ -383,7 +383,7 @@ gen_single_tiled_head(struct hwd_default_theme_colours colours) {
         .shaded_titlebar = gen_tiled_head_shaded_titlebar(colours),
         .border = gen_tiled_border(colours),
         .text_font = NULL,
-        .text_colour = {0},
+        .text_colour = colours.foreground,
     };
     return window_theme;
 }
@@ -395,7 +395,7 @@ gen_single_tiled(struct hwd_default_theme_colours colours) {
         .shaded_titlebar = gen_tiled_shaded_titlebar(colours),
         .border = gen_tiled_border(colours),
         .text_font = NULL,
-        .text_colour = {0},
+        .text_colour = colours.foreground,
     };
     return window_theme;
 };
