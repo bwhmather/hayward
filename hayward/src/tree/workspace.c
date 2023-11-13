@@ -508,13 +508,21 @@ arrange_tiling(struct hwd_workspace *workspace) {
             total_columns += 1;
         }
 
-        // Calculate each width fraction.
+        // Scan for first column, last column, and total width fraction for this
+        // output.
+        struct hwd_column *first_column = NULL;
+        struct hwd_column *last_column = NULL;
         double total_width_fraction = 0;
         for (int j = 0; j < columns->length; ++j) {
             struct hwd_column *column = columns->items[j];
             if (column->pending.output != output) {
                 continue;
             }
+
+            if (first_column == NULL) {
+                first_column = column;
+            }
+            last_column = column;
 
             if (column->width_fraction <= 0) {
                 if (current_width_fraction <= 0) {
@@ -527,6 +535,13 @@ arrange_tiling(struct hwd_workspace *workspace) {
             }
             total_width_fraction += column->width_fraction;
         }
+
+        for (int j = 0; j < columns->length; ++j) {
+            struct hwd_column *column = columns->items[j];
+            column->pending.is_first_child = column == first_column;
+            column->pending.is_last_child = column == last_column;
+        }
+
         // Normalize width fractions so the sum is 1.0.
         for (int j = 0; j < columns->length; ++j) {
             struct hwd_column *column = columns->items[j];

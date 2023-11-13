@@ -32,6 +32,11 @@ struct hwd_column_state {
     // window.  Should only be updated using the reconciliation functions.
     bool focused;
 
+    // Cached flags indicating whether the column is the first or last column on
+    // the column's output.
+    bool is_first_child;
+    bool is_last_child;
+
     list_t *children; // struct hwd_window
 
     struct hwd_window *active_child;
