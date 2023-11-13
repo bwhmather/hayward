@@ -23,6 +23,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/ipc_server.h>
 #include <hayward/output.h>
+#include <hayward/scene/nineslice.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -42,6 +43,9 @@ workspace_init_scene(struct hwd_workspace *workspace) {
     workspace->scene_tree = wlr_scene_tree_create(root->orphans);
     hwd_assert(workspace->scene_tree != NULL, "Allocation failed");
 
+    workspace->layers.separators = wlr_scene_tree_create(workspace->scene_tree);
+    hwd_assert(workspace->layers.separators != NULL, "Allocation failed");
+
     workspace->layers.tiling = wlr_scene_tree_create(workspace->scene_tree);
     hwd_assert(workspace->layers.tiling != NULL, "Allocation failed");
 
@@ -50,6 +54,51 @@ workspace_init_scene(struct hwd_workspace *workspace) {
 
     workspace->layers.fullscreen = wlr_scene_tree_create(workspace->scene_tree);
     hwd_assert(workspace->layers.fullscreen != NULL, "Allocation failed");
+}
+
+static void
+workspace_update_layer_separators(struct hwd_workspace *workspace) {
+    struct hwd_theme *theme = workspace->committed.root->committed.theme;
+    int gap = hwd_theme_get_column_separator_width(theme);
+
+    struct wl_list *link = &workspace->layers.separators->children;
+    list_t *columns = workspace->committed.columns;
+    for (int i = 0; i < columns->length; i++) {
+        struct hwd_column *column = columns->items[i];
+
+        if (column->committed.is_last_child) {
+            continue;
+        }
+
+        struct wlr_scene_node *node;
+        if (link == &workspace->layers.separators->children) {
+            node = hwd_nineslice_node_create(
+                workspace->layers.separators, theme->column_separator.buffer,
+                theme->column_separator.left_break, theme->column_separator.right_break,
+                theme->column_separator.top_break, theme->column_separator.bottom_break
+            );
+            link = &node->link;
+        } else {
+            node = wl_container_of(link, node, link);
+            hwd_nineslice_node_update(
+                node, theme->column_separator.buffer, theme->column_separator.left_break,
+                theme->column_separator.right_break, theme->column_separator.top_break,
+                theme->column_separator.bottom_break
+            );
+        }
+        hwd_nineslice_node_set_size(node, gap, column->committed.height);
+        wlr_scene_node_set_position(
+            node, column->committed.x + column->committed.width, column->committed.y
+        );
+
+        link = link->next;
+    }
+
+    while (link != &workspace->layers.separators->children) {
+        struct wlr_scene_node *node = wl_container_of(link, node, link);
+        link = link->next;
+        wlr_scene_node_destroy(node);
+    }
 }
 
 static void
@@ -142,6 +191,7 @@ static void
 workspace_update_scene(struct hwd_workspace *workspace) {
     wlr_scene_node_set_enabled(&workspace->scene_tree->node, workspace->committed.focused);
 
+    workspace_update_layer_separators(workspace);
     workspace_update_layer_tiling(workspace);
     workspace_update_layer_floating(workspace);
 }
@@ -479,6 +529,9 @@ arrange_floating(struct hwd_workspace *workspace) {
 
 static void
 arrange_tiling(struct hwd_workspace *workspace) {
+    struct hwd_theme *theme = root_get_theme(workspace->pending.root);
+    int gap = hwd_theme_get_column_separator_width(theme);
+
     list_t *columns = workspace->pending.columns;
     if (!columns->length) {
         return;
@@ -551,7 +604,7 @@ arrange_tiling(struct hwd_workspace *workspace) {
             column->width_fraction /= total_width_fraction;
         }
 
-        double columns_total_width = box.width;
+        double columns_total_width = box.width - gap * (total_columns - 1);
 
         // Resize columns.
         double column_x = box.x;
@@ -566,7 +619,7 @@ arrange_tiling(struct hwd_workspace *workspace) {
             column->pending.y = box.y;
             column->pending.width = round(column->width_fraction * columns_total_width);
             column->pending.height = box.height;
-            column_x += column->pending.width;
+            column_x += column->pending.width + gap;
 
             // Make last child use remaining width of parent.
             if (j == total_columns - 1) {
