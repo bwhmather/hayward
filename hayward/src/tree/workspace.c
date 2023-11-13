@@ -58,6 +58,10 @@ workspace_init_scene(struct hwd_workspace *workspace) {
 
 static void
 workspace_update_layer_separators(struct hwd_workspace *workspace) {
+    if (workspace->committed.root == NULL) {
+        return;
+    }
+
     struct hwd_theme *theme = workspace->committed.root->committed.theme;
     int gap = hwd_theme_get_column_separator_width(theme);
 
