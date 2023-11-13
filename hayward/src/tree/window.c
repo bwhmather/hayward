@@ -421,11 +421,15 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     hwd_assert(window_is_alive(window), "Expected live window");
     hwd_assert(column != NULL, "Expected column");
 
-    window->pending.workspace = column->pending.workspace;
-    window->pending.output = column->pending.output;
+    struct hwd_workspace *workspace = column->pending.workspace;
+    struct hwd_output *output = column->pending.output;
+
+    window->pending.workspace = workspace;
+    window->pending.output = output;
     window->pending.parent = column;
 
-    window->pending.focused = column->pending.focused && window == column->pending.active_child;
+    window->pending.focused =
+        workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
 
     window_update_theme(window);
     window_set_dirty(window);
