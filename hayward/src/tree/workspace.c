@@ -557,6 +557,10 @@ arrange_tiling(struct hwd_workspace *workspace) {
         double column_x = box.x;
         for (int j = 0; j < columns->length; ++j) {
             struct hwd_column *column = columns->items[j];
+            if (column->pending.output != output) {
+                continue;
+            }
+
             column->child_total_width = columns_total_width;
             column->pending.x = column_x;
             column->pending.y = box.y;
