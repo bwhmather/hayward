@@ -172,7 +172,13 @@ hwd_text_node_redraw(struct wlr_scene_node *node) {
     }
 
     cairo_t *cairo = hwd_cairo_buffer_get_context(buffer);
+    cairo_save(cairo);
+    cairo_rectangle(cairo, 0, 0, buffer->width, buffer->height);
+    cairo_set_operator(cairo, CAIRO_OPERATOR_CLEAR);
+    cairo_fill(cairo);
+    cairo_restore(cairo);
 
+    cairo_save(cairo);
     cairo_font_options_t *fo = cairo_font_options_create();
     cairo_font_options_set_hint_style(fo, CAIRO_HINT_STYLE_FULL);
     enum wl_output_subpixel subpixel = state->subpixel;
@@ -188,8 +194,10 @@ hwd_text_node_redraw(struct wlr_scene_node *node) {
     cairo_set_source_rgba(cairo, colour.r, colour.g, colour.b, colour.a);
     cairo_move_to(cairo, 0, (config->font_baseline - state->text_baseline) * state->scale);
     hwd_text_node_render_text(cairo, state->font_description, state->scale, state->text);
+    cairo_restore(cairo);
 
     cairo_surface_flush(cairo_get_target(cairo));
+    wlr_scene_buffer_set_buffer_with_damage(scene_buffer, buffer, NULL);
 
     hwd_text_node_reshape(node);
 
