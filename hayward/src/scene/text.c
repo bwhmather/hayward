@@ -8,7 +8,6 @@
 #include <math.h>
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wayland-server-core.h>
@@ -33,7 +32,6 @@ struct hwd_text_node_state {
     // User specified properties.
     char *text;
     int max_width;
-    bool pango_markup;
     PangoFontDescription *font_description;
     struct hwd_colour colour;
 
@@ -92,8 +90,7 @@ hwd_text_node_redraw(struct wlr_scene_node *node) {
     cairo_t *c = cairo_create(NULL);
     cairo_set_antialias(c, CAIRO_ANTIALIAS_BEST);
     get_text_size(
-        c, state->font_description, &state->text_width, NULL, NULL, 1, state->pango_markup, "%s",
-        state->text
+        c, state->font_description, &state->text_width, NULL, NULL, 1, FALSE, "%s", state->text
     );
     cairo_destroy(c);
     get_text_metrics(state->font_description, &state->text_height, &state->text_baseline);
@@ -127,9 +124,7 @@ hwd_text_node_redraw(struct wlr_scene_node *node) {
 
     cairo_set_source_rgba(cairo, colour.r, colour.g, colour.b, colour.a);
     cairo_move_to(cairo, 0, (config->font_baseline - state->text_baseline) * state->scale);
-    render_text(
-        cairo, state->font_description, state->scale, state->pango_markup, "%s", state->text
-    );
+    render_text(cairo, state->font_description, state->scale, FALSE, "%s", state->text);
 
     cairo_surface_flush(cairo_get_target(cairo));
 
@@ -251,7 +246,7 @@ hwd_text_node_handle_destroy(struct wl_listener *listener, void *data) {
 
 struct wlr_scene_node *
 hwd_text_node_create(
-    struct wlr_scene_tree *parent, char *text, struct hwd_colour colour, bool pango_markup,
+    struct wlr_scene_tree *parent, char *text, struct hwd_colour colour,
     PangoFontDescription *font_description
 ) {
 
@@ -276,7 +271,6 @@ hwd_text_node_create(
         return NULL;
     }
     state->max_width = 0;
-    state->pango_markup = pango_markup;
     state->font_description = font_description;
     state->colour = colour;
 

@@ -2,14 +2,13 @@
 #define HWD_SCENE_TEXT_H
 
 #include <pango/pango.h>
-#include <stdbool.h>
 #include <wlr/types/wlr_scene.h>
 
 #include <hayward/scene/colours.h>
 
 struct wlr_scene_node *
 hwd_text_node_create(
-    struct wlr_scene_tree *parent, char *text, struct hwd_colour color, bool pango_markup,
+    struct wlr_scene_tree *parent, char *text, struct hwd_colour color,
     PangoFontDescription *font_description
 );
 

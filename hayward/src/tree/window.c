@@ -63,9 +63,8 @@ window_init_scene(struct hwd_window *window) {
     hwd_assert(window->layers.titlebar != NULL, "Allocation failed");
 
     struct hwd_colour text_color = {1.0, 1.0, 1.0, 1.0};
-    window->layers.titlebar_text = hwd_text_node_create(
-        scene_tree, "", text_color, config->pango_markup, config->font_description
-    );
+    window->layers.titlebar_text =
+        hwd_text_node_create(scene_tree, "", text_color, config->font_description);
     hwd_assert(window->layers.titlebar_text != NULL, "Allocation failed");
 
     window->layers.border = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
