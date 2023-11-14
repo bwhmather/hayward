@@ -11,11 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <sys/types.h>
 #include <time.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/backend.h>
 #include <wlr/backend/headless.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
