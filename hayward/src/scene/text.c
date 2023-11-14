@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/scene/text.h"
 
+#include "hayward-common/pango.h"
+
 #include <cairo.h>
 #include <glib-object.h>
 #include <glib/gmacros.h>
@@ -18,7 +20,6 @@
 #include <wlr/util/box.h>
 
 #include <hayward-common/cairo_util.h>
-#include <hayward-common/pango.h>
 
 #include <wayland-server-protocol.h>
 
@@ -60,6 +61,66 @@ struct hwd_text_node_output {
     struct wl_listener commit;
 };
 
+static PangoLayout *
+hwd_text_node_get_pango_layout(
+    cairo_t *cairo, const PangoFontDescription *desc, const char *text, double scale
+) {
+    PangoLayout *layout = pango_cairo_create_layout(cairo);
+    PangoAttrList *attrs = pango_attr_list_new();
+    pango_layout_set_text(layout, text, -1);
+    pango_attr_list_insert(attrs, pango_attr_scale_new(scale));
+    pango_layout_set_font_description(layout, desc);
+    pango_layout_set_single_paragraph_mode(layout, 1);
+    pango_layout_set_attributes(layout, attrs);
+    pango_attr_list_unref(attrs);
+    return layout;
+}
+
+static void
+hwd_text_node_get_text_size(
+    cairo_t *cairo, const PangoFontDescription *desc, int *width, int *height, int *baseline,
+    double scale, const char *text
+) {
+    PangoLayout *layout = hwd_text_node_get_pango_layout(cairo, desc, text, scale);
+    pango_cairo_update_layout(cairo, layout);
+    pango_layout_get_pixel_size(layout, width, height);
+    if (baseline) {
+        *baseline = pango_layout_get_baseline(layout) / PANGO_SCALE;
+    }
+    g_object_unref(layout);
+}
+
+static void
+hwd_text_node_get_text_metrics(
+    const PangoFontDescription *description, int *height, int *baseline
+) {
+    cairo_t *cairo = cairo_create(NULL);
+    PangoContext *pango = pango_cairo_create_context(cairo);
+    // When passing NULL as a language, pango uses the current locale.
+    PangoFontMetrics *metrics = pango_context_get_metrics(pango, description, NULL);
+
+    *baseline = pango_font_metrics_get_ascent(metrics) / PANGO_SCALE;
+    *height = *baseline + pango_font_metrics_get_descent(metrics) / PANGO_SCALE;
+
+    pango_font_metrics_unref(metrics);
+    g_object_unref(pango);
+    cairo_destroy(cairo);
+}
+
+void
+hwd_text_node_render_text(
+    cairo_t *cairo, PangoFontDescription *desc, double scale, const char *text
+) {
+    PangoLayout *layout = hwd_text_node_get_pango_layout(cairo, desc, text, scale);
+    cairo_font_options_t *fo = cairo_font_options_create();
+    cairo_get_font_options(cairo, fo);
+    pango_cairo_context_set_font_options(pango_layout_get_context(layout), fo);
+    cairo_font_options_destroy(fo);
+    pango_cairo_update_layout(cairo, layout);
+    pango_cairo_show_layout(cairo, layout);
+    g_object_unref(layout);
+}
+
 static void
 hwd_text_node_reshape(struct wlr_scene_node *node) {
     struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(node);
@@ -89,11 +150,13 @@ hwd_text_node_redraw(struct wlr_scene_node *node) {
 
     cairo_t *c = cairo_create(NULL);
     cairo_set_antialias(c, CAIRO_ANTIALIAS_BEST);
-    get_text_size(
-        c, state->font_description, &state->text_width, NULL, NULL, 1, FALSE, "%s", state->text
+    hwd_text_node_get_text_size(
+        c, state->font_description, &state->text_width, NULL, NULL, 1, state->text
     );
     cairo_destroy(c);
-    get_text_metrics(state->font_description, &state->text_height, &state->text_baseline);
+    hwd_text_node_get_text_metrics(
+        state->font_description, &state->text_height, &state->text_baseline
+    );
 
     int buffer_width = ceil(state->text_width * state->scale);
     int buffer_height = ceil(state->text_height * state->scale);
@@ -124,7 +187,7 @@ hwd_text_node_redraw(struct wlr_scene_node *node) {
 
     cairo_set_source_rgba(cairo, colour.r, colour.g, colour.b, colour.a);
     cairo_move_to(cairo, 0, (config->font_baseline - state->text_baseline) * state->scale);
-    render_text(cairo, state->font_description, state->scale, FALSE, "%s", state->text);
+    hwd_text_node_render_text(cairo, state->font_description, state->scale, state->text);
 
     cairo_surface_flush(cairo_get_target(cairo));
 
