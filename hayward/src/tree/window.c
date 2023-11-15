@@ -102,11 +102,11 @@ window_update_scene(struct hwd_window *window) {
     // Title text.
     wlr_scene_node_set_enabled(window->layers.titlebar_text, !fullscreen);
     wlr_scene_node_set_position(
-        window->layers.titlebar_text, config->titlebar_h_padding, config->titlebar_v_padding
+        window->layers.titlebar_text, theme->titlebar_h_padding, theme->titlebar_v_padding
     );
     hwd_text_node_set_text(window->layers.titlebar_text, window->formatted_title);
     hwd_text_node_set_max_width(
-        window->layers.titlebar_text, width - 2 * config->titlebar_h_padding
+        window->layers.titlebar_text, width - 2 * theme->titlebar_h_padding
     );
     hwd_text_node_set_color(window->layers.titlebar_text, theme->text_colour);
 

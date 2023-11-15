@@ -186,10 +186,6 @@ config_defaults(struct hwd_config *config) {
     config->popup_during_fullscreen = POPUP_SMART;
     config->xwayland = XWAYLAND_MODE_LAZY;
 
-    config->titlebar_border_thickness = 1;
-    config->titlebar_h_padding = 5;
-    config->titlebar_v_padding = 4;
-
     // floating view
     config->floating_maximum_width = 0;
     config->floating_maximum_height = 0;

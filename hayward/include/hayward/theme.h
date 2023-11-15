@@ -25,6 +25,8 @@ struct hwd_theme_window {
 
     PangoFontDescription *text_font;
     struct hwd_colour text_colour;
+    int titlebar_h_padding;
+    int titlebar_v_padding;
 };
 
 int

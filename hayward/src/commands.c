@@ -86,9 +86,6 @@ static const struct cmd_handler handlers[] = {
     {"set", cmd_set},
     {"tiling_drag", cmd_tiling_drag},
     {"tiling_drag_threshold", cmd_tiling_drag_threshold},
-    {"title_align", cmd_title_align},
-    {"titlebar_border_thickness", cmd_titlebar_border_thickness},
-    {"titlebar_padding", cmd_titlebar_padding},
     {"unbindcode", cmd_unbindcode},
     {"unbindswitch", cmd_unbindswitch},
     {"unbindsym", cmd_unbindsym},
@@ -116,7 +113,6 @@ static const struct cmd_handler command_handlers[] = {
     {"reload", cmd_reload},
     {"resize", cmd_resize},
     {"shortcuts_inhibitor", cmd_shortcuts_inhibitor},
-    {"title_format", cmd_title_format},
     {"urgent", cmd_urgent},
 };
 
