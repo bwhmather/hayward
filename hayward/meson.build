@@ -37,7 +37,6 @@ hayward_sources = files(
 
   'src/commands/bar.c',
   'src/commands/bind.c',
-  'src/commands/client.c',
   'src/commands/exit.c',
   'src/commands/exec.c',
   'src/commands/exec_always.c',
