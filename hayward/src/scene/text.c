@@ -1,8 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/scene/text.h"
 
-#include "hayward-common/pango.h"
-
 #include <cairo.h>
 #include <glib-object.h>
 #include <glib/gmacros.h>
