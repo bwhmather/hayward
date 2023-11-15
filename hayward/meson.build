@@ -50,7 +50,6 @@ hayward_sources = files(
   'src/commands/font.c',
   'src/commands/force_display_urgency_hint.c',
   'src/commands/fullscreen.c',
-  'src/commands/hide_edge_borders.c',
   'src/commands/kill.c',
   'src/commands/max_render_time.c',
   'src/commands/opacity.c',

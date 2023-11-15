@@ -27,7 +27,6 @@
 #include <hayward-common/log.h>
 #include <hayward-common/pango.h>
 #include <hayward-common/stringop.h>
-#include <hayward-common/util.h>
 
 #include <hayward/commands.h>
 #include <hayward/globals/root.h>
@@ -212,11 +211,6 @@ config_defaults(struct hwd_config *config) {
         goto cleanup;
     config->current_config_path = NULL;
     config->current_config = NULL;
-
-    // borders
-    config->border_thickness = 2;
-    config->floating_border_thickness = 2;
-    config->hide_edge_borders = E_NONE;
 
     config->has_focused_tab_title = false;
 

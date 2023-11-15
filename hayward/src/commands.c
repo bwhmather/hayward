@@ -71,7 +71,6 @@ static const struct cmd_handler handlers[] = {
     {"font", cmd_font},
     {"force_display_urgency_hint", cmd_force_display_urgency_hint},
     {"fullscreen", cmd_fullscreen},
-    {"hide_edge_borders", cmd_hide_edge_borders},
     {"input", cmd_input},
     {"mode", cmd_mode},
     {"popup_during_fullscreen", cmd_popup_during_fullscreen},

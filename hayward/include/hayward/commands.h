@@ -123,7 +123,6 @@ hwd_cmd cmd_font;
 hwd_cmd cmd_force_display_urgency_hint;
 hwd_cmd cmd_fullscreen;
 hwd_cmd cmd_haywardnag_command;
-hwd_cmd cmd_hide_edge_borders;
 hwd_cmd cmd_include;
 hwd_cmd cmd_input;
 hwd_cmd cmd_kill;

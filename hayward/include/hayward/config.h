@@ -435,10 +435,6 @@ struct hwd_config {
     int current_config_line_number;
     char *current_config_line;
 
-    int border_thickness;
-    int floating_border_thickness;
-    enum edge_border_types hide_edge_borders;
-
     bool has_focused_tab_title;
 
     // floating view
