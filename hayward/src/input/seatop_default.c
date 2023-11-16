@@ -143,14 +143,21 @@ find_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_curso
 static enum wlr_edges
 find_resize_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_cursor *cursor) {
     struct hwd_column *column = cont->pending.parent;
-    if (column != NULL && column->pending.layout == L_STACKED) {
+
+    enum wlr_edges edge = find_edge(cont, surface, cursor);
+
+    if (window_is_floating(cont)) {
+        return edge;
+    }
+
+    if (window_edge_is_external(cont, edge)) {
         return WLR_EDGE_NONE;
     }
 
-    enum wlr_edges edge = find_edge(cont, surface, cursor);
-    if (edge && (!window_is_floating(cont)) && window_edge_is_external(cont, edge)) {
+    if (column->pending.layout == L_STACKED && (edge == WLR_EDGE_TOP || edge == WLR_EDGE_BOTTOM)) {
         return WLR_EDGE_NONE;
     }
+
     return edge;
 }
 
