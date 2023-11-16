@@ -57,30 +57,6 @@ struct seatop_default_event {
     size_t pressed_button_count;
 };
 
-static enum wlr_edges
-find_resize_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_cursor *cursor);
-
-static void
-cursor_update_image(struct hwd_cursor *cursor, struct hwd_window *window) {
-    if (window != NULL && window_is_alive(window)) {
-        // Try a window's resize edge
-        enum wlr_edges edge = find_resize_edge(window, NULL, cursor);
-        if (edge == WLR_EDGE_NONE) {
-            cursor_set_image(cursor, "left_ptr", NULL);
-        } else if (window_is_floating(window)) {
-            cursor_set_image(cursor, wlr_xcursor_get_resize_name(edge), NULL);
-        } else {
-            if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
-                cursor_set_image(cursor, "column-resize", NULL);
-            } else {
-                cursor_set_image(cursor, "row-resize", NULL);
-            }
-        }
-    } else {
-        cursor_set_image(cursor, "left_ptr", NULL);
-    }
-}
-
 /*-----------------------------------------\
  * Functions shared by multiple callbacks  /
  *---------------------------------------*/
@@ -176,6 +152,27 @@ find_resize_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hw
         return WLR_EDGE_NONE;
     }
     return edge;
+}
+
+static void
+cursor_update_image(struct hwd_cursor *cursor, struct hwd_window *window) {
+    if (window != NULL && window_is_alive(window)) {
+        // Try a window's resize edge
+        enum wlr_edges edge = find_resize_edge(window, NULL, cursor);
+        if (edge == WLR_EDGE_NONE) {
+            cursor_set_image(cursor, "left_ptr", NULL);
+        } else if (window_is_floating(window)) {
+            cursor_set_image(cursor, wlr_xcursor_get_resize_name(edge), NULL);
+        } else {
+            if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
+                cursor_set_image(cursor, "column-resize", NULL);
+            } else {
+                cursor_set_image(cursor, "row-resize", NULL);
+            }
+        }
+    } else {
+        cursor_set_image(cursor, "left_ptr", NULL);
+    }
 }
 
 /**
