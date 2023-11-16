@@ -111,25 +111,27 @@ window_edge_is_external(struct hwd_window *window, enum wlr_edges edge) {
 }
 
 static enum wlr_edges
-find_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_cursor *cursor) {
-    if (surface && cont->view->surface != surface) {
+find_edge(struct hwd_window *window, struct wlr_surface *surface, struct hwd_cursor *cursor) {
+    if (surface && window->view->surface != surface) {
         return WLR_EDGE_NONE;
     }
-    if (cont->pending.fullscreen) {
+    if (window->pending.fullscreen) {
         return WLR_EDGE_NONE;
     }
 
     enum wlr_edges edge = 0;
-    if (cursor->cursor->x < cont->pending.x + cont->pending.border_left) {
+    if (cursor->cursor->x < window->pending.x + window->pending.border_left) {
         edge |= WLR_EDGE_LEFT;
     }
-    if (cursor->cursor->y < cont->pending.y + cont->pending.border_top) {
+    if (cursor->cursor->y < window->pending.y + window->pending.border_top) {
         edge |= WLR_EDGE_TOP;
     }
-    if (cursor->cursor->x >= cont->pending.x + cont->pending.width - cont->pending.border_right) {
+    if (cursor->cursor->x >=
+        window->pending.x + window->pending.width - window->pending.border_right) {
         edge |= WLR_EDGE_RIGHT;
     }
-    if (cursor->cursor->y >= cont->pending.y + cont->pending.height - cont->pending.border_bottom) {
+    if (cursor->cursor->y >=
+        window->pending.y + window->pending.height - window->pending.border_bottom) {
         edge |= WLR_EDGE_BOTTOM;
     }
 
@@ -141,16 +143,18 @@ find_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_curso
  * Edges that can't be resized are edges of the workspace.
  */
 static enum wlr_edges
-find_resize_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_cursor *cursor) {
-    struct hwd_column *column = cont->pending.parent;
+find_resize_edge(
+    struct hwd_window *window, struct wlr_surface *surface, struct hwd_cursor *cursor
+) {
+    struct hwd_column *column = window->pending.parent;
 
-    enum wlr_edges edge = find_edge(cont, surface, cursor);
+    enum wlr_edges edge = find_edge(window, surface, cursor);
 
-    if (window_is_floating(cont)) {
+    if (window_is_floating(window)) {
         return edge;
     }
 
-    if (window_edge_is_external(cont, edge)) {
+    if (window_edge_is_external(window, edge)) {
         return WLR_EDGE_NONE;
     }
 
