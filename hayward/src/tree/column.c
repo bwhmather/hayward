@@ -284,7 +284,7 @@ column_detach(struct hwd_column *column) {
         return;
     }
 
-    workspace_remove_tiling(workspace, column);
+    workspace_remove_column(workspace, column);
 }
 
 void

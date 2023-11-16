@@ -141,7 +141,7 @@ workspace_insert_column_after(
 );
 
 void
-workspace_remove_tiling(struct hwd_workspace *workspace, struct hwd_column *column);
+workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *column);
 
 struct hwd_column *
 workspace_get_column_at(struct hwd_workspace *workspace, double x, double y);

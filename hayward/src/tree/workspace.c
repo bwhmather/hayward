@@ -866,7 +866,7 @@ workspace_insert_column_after(
 }
 
 void
-workspace_remove_tiling(struct hwd_workspace *workspace, struct hwd_column *column) {
+workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *column) {
     hwd_assert(workspace != NULL, "Expected workspace");
     hwd_assert(column != NULL, "Expected column");
     hwd_assert(column->pending.workspace == workspace, "Column is not a child of workspace");
