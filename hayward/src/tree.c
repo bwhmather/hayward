@@ -48,7 +48,6 @@ window_set_floating(struct hwd_window *window, bool enable) {
         if (window->view) {
             view_set_tiled(window->view, true);
         }
-        window->height_fraction = 0;
 
         struct hwd_column *column = NULL;
         for (int i = 0; i < workspace->pending.columns->length; i++) {
@@ -112,7 +111,6 @@ hwd_move_window_to_column_from_maybe_direction(
         window_detach(window);
         column_insert_child(column, window, index);
         window->pending.width = window->pending.height = 0;
-        window->height_fraction = 0;
     } else {
         hwd_log(HWD_DEBUG, "Reparenting window (perpendicular)");
         struct hwd_window *target_sibling = column->pending.active_child;
@@ -187,7 +185,6 @@ hwd_move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *wo
         }
 
         window->pending.width = window->pending.height = 0;
-        window->height_fraction = 0;
 
         hwd_move_window_to_column(window, column);
     }
@@ -235,7 +232,6 @@ hwd_move_window_to_output_from_direction(
         }
 
         window->pending.width = window->pending.height = 0;
-        window->height_fraction = 0;
 
         hwd_move_window_to_column_from_direction(window, column, move_dir);
     }
