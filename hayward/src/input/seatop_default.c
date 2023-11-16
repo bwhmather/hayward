@@ -112,7 +112,7 @@ window_edge_is_external(struct hwd_window *window, enum wlr_edges edge) {
 
 static enum wlr_edges
 find_edge(struct hwd_window *cont, struct wlr_surface *surface, struct hwd_cursor *cursor) {
-    if (!cont->view || (surface && cont->view->surface != surface)) {
+    if (surface && cont->view->surface != surface) {
         return WLR_EDGE_NONE;
     }
     if (cont->pending.fullscreen) {
