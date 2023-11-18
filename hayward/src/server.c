@@ -26,7 +26,6 @@
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
@@ -49,6 +48,7 @@
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/desktop/server_decoration.h>
+#include <hayward/desktop/wlr_output_management_v1.h>
 #include <hayward/desktop/xdg_activation_v1.h>
 #include <hayward/desktop/xdg_decoration.h>
 #include <hayward/desktop/xdg_shell.h>
@@ -144,11 +144,7 @@ server_init(struct hwd_server *server) {
 
     server->presentation = wlr_presentation_create(server->wl_display, server->backend);
 
-    server->output_manager_v1 = wlr_output_manager_v1_create(server->wl_display);
-    server->output_manager_apply.notify = handle_output_manager_apply;
-    wl_signal_add(&server->output_manager_v1->events.apply, &server->output_manager_apply);
-    server->output_manager_test.notify = handle_output_manager_test;
-    wl_signal_add(&server->output_manager_v1->events.test, &server->output_manager_test);
+    hwd_wlr_output_manager_v1_create(server->wl_display, root->output_layout);
 
     server->output_power_manager_v1 = wlr_output_power_manager_v1_create(server->wl_display);
     server->output_power_manager_set_mode.notify = handle_output_power_manager_set_mode;

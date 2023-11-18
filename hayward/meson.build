@@ -13,6 +13,7 @@ hayward_sources = files(
   'src/desktop/idle_inhibit_v1.c',
   'src/desktop/layer_shell.c',
   'src/desktop/server_decoration.c',
+  'src/desktop/wlr_output_management_v1.c',
   'src/desktop/xdg_activation_v1.c',
   'src/desktop/xdg_decoration.c',
   'src/desktop/xdg_shell.c',

@@ -16,7 +16,6 @@
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
-#include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
@@ -78,10 +77,6 @@ struct hwd_server {
 
     struct wlr_pointer_constraints_v1 *pointer_constraints;
     struct wl_listener pointer_constraint;
-
-    struct wlr_output_manager_v1 *output_manager_v1;
-    struct wl_listener output_manager_apply;
-    struct wl_listener output_manager_test;
 
     struct {
         bool locked;

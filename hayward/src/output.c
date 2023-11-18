@@ -18,7 +18,6 @@
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
@@ -576,34 +575,8 @@ handle_frame(struct wl_listener *listener, void *user_data) {
 }
 
 static void
-update_output_manager_config(struct hwd_server *server) {
-    struct wlr_output_configuration_v1 *config = wlr_output_configuration_v1_create();
-
-    struct hwd_output *output;
-    wl_list_for_each(output, &root->all_outputs, link) {
-        if (output == root->fallback_output) {
-            continue;
-        }
-        struct wlr_output_configuration_head_v1 *config_head =
-            wlr_output_configuration_head_v1_create(config, output->wlr_output);
-        struct wlr_box output_box;
-        wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
-        // We mark the output enabled even if it is switched off by DPMS
-        config_head->state.enabled = output->current_mode != NULL && output->enabled;
-        config_head->state.mode = output->current_mode;
-        if (!wlr_box_empty(&output_box)) {
-            config_head->state.x = output_box.x;
-            config_head->state.y = output_box.y;
-        }
-    }
-
-    wlr_output_manager_v1_set_configuration(server->output_manager_v1, config);
-}
-
-static void
 handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, destroy);
-    struct hwd_server *server = output->server;
 
     output_begin_destroy(output);
 
@@ -622,8 +595,6 @@ handle_destroy(struct wl_listener *listener, void *data) {
     output->scene_output = NULL;
     output->wlr_output->data = NULL;
     output->wlr_output = NULL;
-
-    update_output_manager_config(server);
 }
 
 static void
@@ -633,8 +604,6 @@ handle_commit(struct wl_listener *listener, void *data) {
 
     if (event->state->committed &
         (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_MODE)) {
-        update_output_manager_config(output->server);
-
         if (output->enabled) {
             arrange_layers(output);
             output_arrange(output);
@@ -660,7 +629,6 @@ handle_request_state(struct wl_listener *listener, void *data) {
     struct hwd_output *output = wl_container_of(listener, output, request_state);
     const struct wlr_output_event_request_state *event = data;
     wlr_output_commit_state(output->wlr_output, event->state);
-    update_output_manager_config(output->server);
 }
 
 static unsigned int last_headless_num = 0;
@@ -747,113 +715,7 @@ void
 handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hwd_server *server = wl_container_of(listener, server, output_layout_change);
 
-    update_output_manager_config(server);
-}
-
-static void
-output_manager_apply(
-    struct hwd_server *server, struct wlr_output_configuration_v1 *config, bool test_only
-) {
-    // TODO: perform atomic tests on the whole backend atomically
-
-    struct wlr_output_configuration_head_v1 *config_head;
-    // First disable outputs we need to disable
-    bool ok = true;
-    wl_list_for_each(config_head, &config->heads, link) {
-        struct wlr_output *wlr_output = config_head->state.output;
-        struct hwd_output *hwd_output = wlr_output->data;
-        if (!hwd_output->enabled || config_head->state.enabled) {
-            continue;
-        }
-        wlr_output_enable(wlr_output, false);
-
-        output_disable(hwd_output);
-    }
-
-    // Then enable outputs that need to
-    wl_list_for_each(config_head, &config->heads, link) {
-        struct wlr_output *wlr_output = config_head->state.output;
-        struct hwd_output *hwd_output = wlr_output->data;
-
-        if (!config_head->state.enabled) {
-            continue;
-        }
-
-        // Flag to prevent the output mode event handler from calling us
-        hwd_output->enabling = true;
-
-        if (config_head->state.mode != NULL) {
-            wlr_output_set_mode(wlr_output, config_head->state.mode);
-        } else {
-            hwd_log(HWD_DEBUG, "Assigning custom mode to %s", wlr_output->name);
-            wlr_output_set_custom_mode(
-                wlr_output, config_head->state.custom_mode.width,
-                config_head->state.custom_mode.height, config_head->state.custom_mode.refresh
-            );
-        }
-
-        if (config_head->state.transform != wlr_output->transform) {
-            // TODO
-            // wlr_output_set_transform(config_head->state.transform);
-        }
-
-        if (config_head->state.scale != wlr_output->scale) {
-            // TODO
-            // wlr_output_set_scale(config_head->state.scale);
-        }
-
-        if (test_only) {
-            // TODO
-            continue;
-        }
-
-        if (!wlr_output->enabled) {
-            wlr_output_enable(wlr_output, true);
-        }
-
-        if (!wlr_output_commit(wlr_output)) {
-            hwd_log(HWD_ERROR, "Failed to commit output %s", wlr_output->name);
-            hwd_output->enabling = false;
-            ok = false;
-            continue;
-        }
-
-        wlr_output_layout_add(
-            root->output_layout, wlr_output, config_head->state.x, config_head->state.y
-        );
-
-        struct wlr_box output_box;
-        wlr_output_layout_get_box(root->output_layout, wlr_output, &output_box);
-        hwd_output->lx = output_box.x;
-        hwd_output->ly = output_box.y;
-        hwd_output->width = output_box.width;
-        hwd_output->height = output_box.height;
-
-        output_enable(hwd_output);
-    }
-
-    if (ok) {
-        wlr_output_configuration_v1_send_succeeded(config);
-    } else {
-        wlr_output_configuration_v1_send_failed(config);
-    }
-    wlr_output_configuration_v1_destroy(config);
-}
-
-void
-handle_output_manager_apply(struct wl_listener *listener, void *data) {
-    struct hwd_server *server = wl_container_of(listener, server, output_manager_apply);
-    struct wlr_output_configuration_v1 *config = data;
-
-    output_manager_apply(server, config, false);
-}
-
-void
-handle_output_manager_test(struct wl_listener *listener, void *data) {
-    struct hwd_server *server = wl_container_of(listener, server, output_manager_test);
-    struct wlr_output_configuration_v1 *config = data;
-
-    output_manager_apply(server, config, true);
+    // TODO.
 }
 
 void
