@@ -705,7 +705,7 @@ ipc_client_handle_command(
         }
         struct hwd_output *output;
         wl_list_for_each(output, &root->all_outputs, link) {
-            if (!output->enabled && output != root->fallback_output) {
+            if (!output->enabled) {
                 json_object_array_add(outputs, ipc_json_describe_disabled_output(output));
             }
         }

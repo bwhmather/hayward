@@ -24,7 +24,6 @@
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
@@ -205,11 +204,6 @@ server_init(struct hwd_server *server) {
     } else {
         wlr_multi_backend_add(server->backend, server->headless_backend);
     }
-
-    struct wlr_output *wlr_output = wlr_headless_add_output(server->headless_backend, 800, 600);
-    wlr_output_set_name(wlr_output, "FALLBACK");
-    root->fallback_output = output_create(wlr_output);
-    root->pending.active_output = root->fallback_output;
 
     // This may have been set already via -Dtxn-timeout
     if (!server->txn_timeout_ms) {

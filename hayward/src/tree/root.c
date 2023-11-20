@@ -629,31 +629,13 @@ root_validate(struct hwd_root *root) {
         "Active workspace missing from workspaces list"
     );
 
-    // Validate that there is at least one output.
-    struct hwd_output *active_output = root->pending.active_output;
-    hwd_assert(active_output != NULL, "No active output");
-    if (root->outputs->length == 0) {
-        hwd_assert(active_output == root->fallback_output, "Expected fallback output to be active");
-    } else {
-        hwd_assert(
-            list_find(root->outputs, active_output) != -1,
-            "Expected active output to be in outputs list"
-        );
-    }
-
-    // Validate that the fallback output exists but is not in the outputs list.
-    hwd_assert(root->fallback_output != NULL, "Missing fallback output");
-    hwd_assert(
-        list_find(root->outputs, root->fallback_output) == -1,
-        "Fallback output present in outputs list"
-    );
-
     // Validate that the correct output is focused if workspace is in tiling
     // mode.
     if (active_workspace->pending.focus_mode == F_TILING) {
         if (active_workspace->pending.active_column) {
             hwd_assert(
-                active_output == active_workspace->pending.active_column->pending.output,
+                root->pending.active_output ==
+                    active_workspace->pending.active_column->pending.output,
                 "Expected active output to match active column output"
             );
         }

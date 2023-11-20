@@ -201,8 +201,7 @@ output_enable(struct hwd_output *output) {
     }
     output->enabled = true;
     list_add(root->outputs, output);
-    if (root->pending.active_output == NULL ||
-        root->pending.active_output == root->fallback_output) {
+    if (root->pending.active_output == NULL) {
         root->pending.active_output = output;
     }
 
@@ -290,7 +289,7 @@ output_disable(struct hwd_output *output) {
     list_del(root->outputs, index);
     if (root->pending.active_output == output) {
         if (root->outputs->length == 0) {
-            root->pending.active_output = root->fallback_output;
+            root->pending.active_output = NULL;
         } else {
             root->pending.active_output = root->outputs->items[index - 1 < 0 ? 0 : index - 1];
         }
@@ -637,10 +636,6 @@ void
 handle_new_output(struct wl_listener *listener, void *data) {
     struct hwd_server *server = wl_container_of(listener, server, new_output);
     struct wlr_output *wlr_output = data;
-
-    if (wlr_output == root->fallback_output->wlr_output) {
-        return;
-    }
 
     if (wlr_output_is_headless(wlr_output)) {
         char name[64];

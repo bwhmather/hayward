@@ -71,9 +71,6 @@ struct hwd_root {
 
     list_t *outputs; // struct hwd_output
 
-    // For when there's no connected outputs
-    struct hwd_output *fallback_output;
-
     struct hwd_workspace_manager_v1 *workspace_manager;
 
     // Previously applied theme that should be cleaned up after transaction
