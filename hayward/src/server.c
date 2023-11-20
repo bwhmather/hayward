@@ -9,8 +9,6 @@
 #include <string.h>
 #include <wayland-server-core.h>
 #include <wlr/backend.h>
-#include <wlr/backend/headless.h>
-#include <wlr/backend/multi.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>
@@ -194,15 +192,6 @@ server_init(struct hwd_server *server) {
         hwd_log(HWD_ERROR, "Unable to open wayland socket");
         wlr_backend_destroy(server->backend);
         return false;
-    }
-
-    server->headless_backend = wlr_headless_backend_create(server->wl_display);
-    if (!server->headless_backend) {
-        hwd_log(HWD_ERROR, "Failed to create secondary headless backend");
-        wlr_backend_destroy(server->backend);
-        return false;
-    } else {
-        wlr_multi_backend_add(server->backend, server->headless_backend);
     }
 
     // This may have been set already via -Dtxn-timeout
