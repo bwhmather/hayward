@@ -16,7 +16,6 @@
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
-#include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_session_lock_v1.h>
@@ -89,8 +88,6 @@ struct hwd_server {
         struct wl_listener manager_destroy;
     } session_lock;
 
-    struct wlr_output_power_manager_v1 *output_power_manager_v1;
-    struct wl_listener output_power_manager_set_mode;
     struct wlr_input_method_manager_v2 *input_method;
     struct wlr_text_input_manager_v3 *text_input;
     struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;

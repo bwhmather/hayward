@@ -23,7 +23,6 @@
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
@@ -143,11 +142,6 @@ server_init(struct hwd_server *server) {
 
     hwd_wlr_output_manager_v1_create(server->wl_display, root->output_layout);
 
-    server->output_power_manager_v1 = wlr_output_power_manager_v1_create(server->wl_display);
-    server->output_power_manager_set_mode.notify = handle_output_power_manager_set_mode;
-    wl_signal_add(
-        &server->output_power_manager_v1->events.set_mode, &server->output_power_manager_set_mode
-    );
     server->input_method = wlr_input_method_manager_v2_create(server->wl_display);
     server->text_input = wlr_text_input_manager_v3_create(server->wl_display);
     server->foreign_toplevel_manager = wlr_foreign_toplevel_manager_v1_create(server->wl_display);

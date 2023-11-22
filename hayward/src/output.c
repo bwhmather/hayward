@@ -18,15 +18,12 @@
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
 
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-
-#include <wlr-output-power-management-unstable-v1-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
@@ -711,18 +708,4 @@ handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hwd_server *server = wl_container_of(listener, server, output_layout_change);
 
     // TODO.
-}
-
-void
-handle_output_power_manager_set_mode(struct wl_listener *listener, void *data) {
-    struct wlr_output_power_v1_set_mode_event *event = data;
-
-    switch (event->mode) {
-    case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
-        // TODO
-        break;
-    case ZWLR_OUTPUT_POWER_V1_MODE_ON:
-        // TODO
-        break;
-    }
 }

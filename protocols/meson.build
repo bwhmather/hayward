@@ -20,7 +20,6 @@ protocols = [
   ['wlr-layer-shell-unstable-v1.xml'],
   ['idle.xml'],
   ['wlr-input-inhibitor-unstable-v1.xml'],
-  ['wlr-output-power-management-unstable-v1.xml'],
   ['wlr-output-management-unstable-v1.xml'],
 ]
 
