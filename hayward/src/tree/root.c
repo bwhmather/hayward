@@ -200,7 +200,7 @@ root_create(struct wl_display *display) {
     root->transaction_apply.notify = root_handle_transaction_apply;
     root->transaction_after_apply.notify = root_handle_transaction_after_apply;
 
-    root->output_layout = wlr_output_layout_create();
+    root->output_layout = wlr_output_layout_create(display);
     wl_list_init(&root->all_outputs);
 #if HAVE_XWAYLAND
     wl_list_init(&root->xwayland_unmanaged);
