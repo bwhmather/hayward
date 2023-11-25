@@ -176,7 +176,7 @@ cursor_update_image(struct hwd_cursor *cursor, struct hwd_window *window) {
             cursor_set_image(cursor, wlr_xcursor_get_resize_name(edge), NULL);
         } else {
             if (edge & (WLR_EDGE_LEFT | WLR_EDGE_RIGHT)) {
-                cursor_set_image(cursor, "column-resize", NULL);
+                cursor_set_image(cursor, "col-resize", NULL);
             } else {
                 cursor_set_image(cursor, "row-resize", NULL);
             }
