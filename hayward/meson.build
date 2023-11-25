@@ -7,6 +7,7 @@ hayward_sources = files(
   'src/lock.c',
   'src/main.c',
   'src/output.c',
+  'src/scheduler.c',
   'src/server.c',
   'src/theme.c',
 

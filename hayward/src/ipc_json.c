@@ -458,8 +458,6 @@ ipc_json_describe_output(struct hwd_output *output) {
     );
     json_object_object_add(object, "current_mode", current_mode_object);
 
-    json_object_object_add(object, "max_render_time", json_object_new_int(output->max_render_time));
-
     return object;
 }
 

@@ -5,8 +5,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
-#include <time.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_compositor.h>
@@ -54,8 +52,6 @@ struct hwd_output {
     struct wl_list shell_layers[4]; // hwd_layer_surface::link
     struct wlr_box usable_area;
 
-    struct timespec last_frame;
-
     int lx, ly;        // layout coords
     int width, height; // transformed buffer size
     enum wl_output_subpixel detected_subpixel;
@@ -83,8 +79,6 @@ struct hwd_output {
     struct wl_listener destroy;
     struct wl_listener commit;
     struct wl_listener mode;
-    struct wl_listener present;
-    struct wl_listener frame;
     struct wl_listener request_state;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
@@ -94,11 +88,6 @@ struct hwd_output {
         struct wl_signal disable;
         struct wl_signal begin_destroy;
     } events;
-
-    struct timespec last_presentation;
-    uint32_t refresh_nsec;
-    int max_render_time; // In milliseconds
-    struct wl_event_source *repaint_timer;
 };
 
 struct hwd_output *
