@@ -16,7 +16,6 @@
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
-#include <wlr/types/wlr_input_inhibitor.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/types/wlr_pointer.h>
@@ -291,31 +290,6 @@ handle_new_input(struct wl_listener *listener, void *data) {
 }
 
 static void
-handle_inhibit_activate(struct wl_listener *listener, void *data) {
-    struct hwd_input_manager *input_manager =
-        wl_container_of(listener, input_manager, inhibit_activate);
-
-    struct hwd_seat *seat;
-    wl_list_for_each(seat, &input_manager->seats, link) {
-        seat_set_exclusive_client(seat, input_manager->inhibit->active_client);
-    }
-}
-
-static void
-handle_inhibit_deactivate(struct wl_listener *listener, void *data) {
-    struct hwd_input_manager *input_manager =
-        wl_container_of(listener, input_manager, inhibit_deactivate);
-
-    struct hwd_seat *seat;
-    if (server.session_lock.locked) {
-        // Don't deactivate the grab of a screenlocker
-        return;
-    }
-
-    wl_list_for_each(seat, &input_manager->seats, link) { seat_set_exclusive_client(seat, NULL); }
-}
-
-static void
 handle_keyboard_shortcuts_inhibitor_destroy(struct wl_listener *listener, void *data) {
     struct hwd_keyboard_shortcuts_inhibitor *hwd_inhibitor =
         wl_container_of(listener, hwd_inhibitor, destroy);
@@ -469,12 +443,6 @@ input_manager_create(struct wl_display *wl_display, struct wlr_backend *backend)
     input->virtual_pointer = wlr_virtual_pointer_manager_v1_create(wl_display);
     wl_signal_add(&input->virtual_pointer->events.new_virtual_pointer, &input->virtual_pointer_new);
     input->virtual_pointer_new.notify = handle_virtual_pointer;
-
-    input->inhibit = wlr_input_inhibit_manager_create(wl_display);
-    input->inhibit_activate.notify = handle_inhibit_activate;
-    wl_signal_add(&input->inhibit->events.activate, &input->inhibit_activate);
-    input->inhibit_deactivate.notify = handle_inhibit_deactivate;
-    wl_signal_add(&input->inhibit->events.deactivate, &input->inhibit_deactivate);
 
     input->keyboard_shortcuts_inhibit = wlr_keyboard_shortcuts_inhibit_v1_create(wl_display);
     input->keyboard_shortcuts_inhibit_new_inhibitor.notify =
