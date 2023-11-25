@@ -166,28 +166,6 @@ output_set_dirty(struct hwd_output *output) {
     hwd_transaction_manager_ensure_queued(transaction_manager);
 }
 
-void
-output_arrange(struct hwd_output *output) {
-    if (config->reloading) {
-        return;
-    }
-    struct wlr_box output_box;
-    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
-    output->lx = output_box.x;
-    output->ly = output_box.y;
-    output->width = output_box.width;
-    output->height = output_box.height;
-
-    if (output->pending.fullscreen_window) {
-        struct hwd_window *fs = output->pending.fullscreen_window;
-        fs->pending.x = output->lx;
-        fs->pending.y = output->ly;
-        fs->pending.width = output->width;
-        fs->pending.height = output->height;
-        window_arrange(fs);
-    }
-}
-
 static void
 output_enable(struct hwd_output *output) {
     if (output->enabled) {
@@ -331,6 +309,28 @@ output_reconcile(struct hwd_output *output) {
         workspace_get_fullscreen_window_for_output(workspace, output);
 
     output_set_dirty(output);
+}
+
+void
+output_arrange(struct hwd_output *output) {
+    if (config->reloading) {
+        return;
+    }
+    struct wlr_box output_box;
+    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
+    output->lx = output_box.x;
+    output->ly = output_box.y;
+    output->width = output_box.width;
+    output->height = output_box.height;
+
+    if (output->pending.fullscreen_window) {
+        struct hwd_window *fs = output->pending.fullscreen_window;
+        fs->pending.x = output->lx;
+        fs->pending.y = output->ly;
+        fs->pending.width = output->width;
+        fs->pending.height = output->height;
+        window_arrange(fs);
+    }
 }
 
 struct hwd_output *

@@ -93,14 +93,14 @@ struct hwd_output {
 struct hwd_output *
 output_create(struct wlr_output *wlr_output);
 
-void
-output_arrange(struct hwd_output *wlr_output);
-
 struct hwd_output *
 output_from_wlr_output(struct wlr_output *output);
 
 void
 output_reconcile(struct hwd_output *output);
+
+void
+output_arrange(struct hwd_output *wlr_output);
 
 struct hwd_output *
 output_get_in_direction(struct hwd_output *reference, enum wlr_direction direction);
