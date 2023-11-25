@@ -10,7 +10,7 @@
 struct hwd_xdg_shell {
     struct wlr_xdg_shell *xdg_shell;
 
-    struct wl_listener new_surface;
+    struct wl_listener new_toplevel;
 };
 
 struct hwd_xdg_shell_view {

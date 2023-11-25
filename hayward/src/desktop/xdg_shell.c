@@ -487,18 +487,14 @@ view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface) {
 }
 
 static void
-handle_new_surface(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell *xdg_shell = wl_container_of(listener, xdg_shell, new_surface);
-    struct wlr_xdg_surface *xdg_surface = data;
-
-    if (xdg_surface->role == WLR_XDG_SURFACE_ROLE_POPUP) {
-        hwd_log(HWD_DEBUG, "New xdg_shell popup");
-        return;
-    }
+handle_new_toplevel(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell *xdg_shell = wl_container_of(listener, xdg_shell, new_toplevel);
+    struct wlr_xdg_toplevel *xdg_toplevel = data;
+    struct wlr_xdg_surface *xdg_surface = xdg_toplevel->base;
 
     hwd_log(
-        HWD_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'", xdg_surface->toplevel->title,
-        xdg_surface->toplevel->app_id
+        HWD_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'", xdg_toplevel->title,
+        xdg_toplevel->app_id
     );
 
     wlr_xdg_surface_ping(xdg_surface);
@@ -509,7 +505,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     xdg_shell_view->xdg_shell = xdg_shell;
 
     view_init(&xdg_shell_view->view, HWD_VIEW_XDG_SHELL, &view_impl);
-    xdg_shell_view->view.wlr_xdg_toplevel = xdg_surface->toplevel;
+    xdg_shell_view->view.wlr_xdg_toplevel = xdg_toplevel;
 
     xdg_shell_view->map.notify = handle_map;
     wl_signal_add(&xdg_surface->surface->events.map, &xdg_shell_view->map);
@@ -537,8 +533,8 @@ hwd_xdg_shell_create(struct wl_display *wl_display) {
         return NULL;
     }
 
-    xdg_shell->new_surface.notify = handle_new_surface;
-    wl_signal_add(&xdg_shell->xdg_shell->events.new_surface, &xdg_shell->new_surface);
+    xdg_shell->new_toplevel.notify = handle_new_toplevel;
+    wl_signal_add(&xdg_shell->xdg_shell->events.new_toplevel, &xdg_shell->new_toplevel);
 
     return xdg_shell;
 }
