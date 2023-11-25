@@ -3,8 +3,8 @@
 
 #include <wlr/types/wlr_output_layout.h>
 
-#include <hayward/output.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 

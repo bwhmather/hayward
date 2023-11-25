@@ -1,5 +1,5 @@
-#ifndef HWD_OUTPUT_H
-#define HWD_OUTPUT_H
+#ifndef HWD_TREE_OUTPUT_H
+#define HWD_TREE_OUTPUT_H
 
 #include <config.h>
 

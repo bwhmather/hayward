@@ -51,8 +51,8 @@
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
-#include <hayward/output.h>
 #include <hayward/scheduler.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 
 bool

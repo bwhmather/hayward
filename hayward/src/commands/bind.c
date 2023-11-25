@@ -23,7 +23,7 @@
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
-#include <hayward/output.h>
+#include <hayward/tree/output.h>
 
 static int binding_order = 0;
 

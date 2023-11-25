@@ -19,7 +19,7 @@
 
 #include <hayward/config.h>
 #include <hayward/input/seat.h>
-#include <hayward/output.h>
+#include <hayward/tree/output.h>
 
 #define HWD_CURSOR_PRESSED_BUTTONS_CAP 32
 

@@ -6,7 +6,6 @@ hayward_sources = files(
   'src/ipc_server.c',
   'src/lock.c',
   'src/main.c',
-  'src/output.c',
   'src/scheduler.c',
   'src/server.c',
   'src/theme.c',
@@ -148,6 +147,7 @@ hayward_sources = files(
   'src/scene/text.c',
 
   'src/tree/column.c',
+  'src/tree/output.c',
   'src/tree/root.c',
   'src/tree/transaction.c',
   'src/tree/view.c',

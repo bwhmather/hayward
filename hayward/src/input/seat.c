@@ -51,8 +51,8 @@
 #include <hayward/input/switch.h>
 #include <hayward/input/tablet.h>
 #include <hayward/input/text_input.h>
-#include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>

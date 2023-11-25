@@ -18,8 +18,8 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
 #include <hayward/input/tablet.h>
-#include <hayward/output.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>

@@ -19,7 +19,7 @@
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/ipc_server.h>
-#include <hayward/output.h>
+#include <hayward/tree/output.h>
 
 static void
 log_status(enum libinput_config_status status) {

@@ -25,8 +25,8 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
-#include <hayward/output.h>
 #include <hayward/tree.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>

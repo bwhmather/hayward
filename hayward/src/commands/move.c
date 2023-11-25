@@ -26,9 +26,9 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
-#include <hayward/output.h>
 #include <hayward/tree.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>

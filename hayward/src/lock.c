@@ -15,8 +15,8 @@
 
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/tree/output.h>
 
 struct hwd_session_lock_surface {
     struct wlr_session_lock_surface_v1 *lock_surface;

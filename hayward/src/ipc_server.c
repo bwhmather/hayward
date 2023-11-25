@@ -38,8 +38,8 @@
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_json.h>
-#include <hayward/output.h>
 #include <hayward/server.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>

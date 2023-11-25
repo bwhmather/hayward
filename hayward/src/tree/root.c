@@ -26,10 +26,10 @@
 #include <hayward/control/hwd_workspace_management_v1.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/ipc_server.h>
-#include <hayward/output.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>

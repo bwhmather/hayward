@@ -27,13 +27,13 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
-#include <hayward/output.h>
 #include <hayward/scene/colours.h>
 #include <hayward/scene/nineslice.h>
 #include <hayward/scene/text.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
