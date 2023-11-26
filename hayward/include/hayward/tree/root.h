@@ -14,7 +14,7 @@
 #include <hayward-common/list.h>
 
 #include <hayward/config.h>
-#include <hayward/control/hwd_workspace_management_v1.h>
+#include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/theme.h>
 
 struct hwd_window;

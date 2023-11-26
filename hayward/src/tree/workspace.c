@@ -19,7 +19,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/control/hwd_workspace_management_v1.h>
+#include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
 #include <hayward/ipc_server.h>
 #include <hayward/scene/nineslice.h>

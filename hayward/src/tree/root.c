@@ -23,7 +23,7 @@
 #include <hayward-common/log.h>
 
 #include <hayward/config.h>
-#include <hayward/control/hwd_workspace_management_v1.h>
+#include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/ipc_server.h>
 #include <hayward/server.h>

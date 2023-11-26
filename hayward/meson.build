@@ -10,6 +10,7 @@ hayward_sources = files(
   'src/server.c',
   'src/theme.c',
 
+  'src/desktop/hwd_workspace_management_v1.c',
   'src/desktop/idle_inhibit_v1.c',
   'src/desktop/layer_shell.c',
   'src/desktop/server_decoration.c',
@@ -138,8 +139,6 @@ hayward_sources = files(
   'src/commands/input/xkb_rules.c',
   'src/commands/input/xkb_switch_layout.c',
   'src/commands/input/xkb_variant.c',
-
-  'src/control/hwd_workspace_management_v1.c',
 
   'src/scene/cairo.c',
   'src/scene/colours.c',

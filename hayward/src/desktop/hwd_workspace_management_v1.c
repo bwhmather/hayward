@@ -1,7 +1,7 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
-#include "hayward/control/hwd_workspace_management_v1.h"
+#include "hayward/desktop/hwd_workspace_management_v1.h"
 
 #include <stdbool.h>
 #include <stdint.h>
