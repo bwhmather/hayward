@@ -51,7 +51,6 @@
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
-#include <hayward/scheduler.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 
@@ -112,8 +111,6 @@ server_init(struct hwd_server *server) {
     server->data_device_manager = wlr_data_device_manager_create(server->wl_display);
 
     wlr_gamma_control_manager_v1_create(server->wl_display);
-
-    hwd_scheduler_create(server->wl_display, root->root_scene);
 
     server->new_output.notify = handle_new_output;
     wl_signal_add(&server->backend->events.new_output, &server->new_output);

@@ -28,6 +28,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/ipc_server.h>
+#include <hayward/scheduler.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
@@ -460,6 +461,8 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
     struct wlr_scene_output *scene_output = wlr_scene_output_create(root->root_scene, wlr_output);
     hwd_assert(scene_output != NULL, "Allocation failed");
+
+    hwd_scene_output_scheduler_create(scene_output);
 
     struct hwd_output *output = output_create(wlr_output);
     if (!output) {

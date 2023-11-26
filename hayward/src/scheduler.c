@@ -77,13 +77,13 @@ buffer_timer_try_get(struct wlr_scene_buffer *buffer) {
 struct send_frame_done_data {
     struct timespec when;
     int msec_until_refresh;
-    struct hwd_scheduler_output *scheduler_output;
+    struct hwd_scene_output_scheduler *scheduler_output;
 };
 
 static void
 send_frame_done_iterator(struct wlr_scene_buffer *buffer, int x, int y, void *user_data) {
     struct send_frame_done_data *data = user_data;
-    struct hwd_scheduler_output *scheduler_output = data->scheduler_output;
+    struct hwd_scene_output_scheduler *scheduler_output = data->scheduler_output;
     int view_max_render_time = 0;
 
     if (buffer->primary_output == NULL &&
@@ -128,7 +128,7 @@ send_frame_done_iterator(struct wlr_scene_buffer *buffer, int x, int y, void *us
 
 static int
 output_repaint_timer_handler(void *data) {
-    struct hwd_scheduler_output *scheduler_output = data;
+    struct hwd_scene_output_scheduler *scheduler_output = data;
 
     wlr_scene_output_commit(scheduler_output->scene_output, NULL);
 
@@ -137,7 +137,7 @@ output_repaint_timer_handler(void *data) {
 
 static void
 handle_output_frame(struct wl_listener *listener, void *user_data) {
-    struct hwd_scheduler_output *scheduler_output =
+    struct hwd_scene_output_scheduler *scheduler_output =
         wl_container_of(listener, scheduler_output, output_frame);
     if (!scheduler_output->scene_output->output->enabled) {
         return;
@@ -203,16 +203,13 @@ handle_output_frame(struct wl_listener *listener, void *user_data) {
 
 static void
 handle_scene_output_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_scheduler_output *scheduler_output =
+    struct hwd_scene_output_scheduler *scheduler_output =
         wl_container_of(listener, scheduler_output, scene_output_destroy);
-
-    wl_list_remove(&scheduler_output->link);
 
     wl_list_remove(&scheduler_output->scene_output_destroy.link);
     wl_list_remove(&scheduler_output->output_present.link);
     wl_list_remove(&scheduler_output->output_frame.link);
 
-    scheduler_output->scheduler = NULL;
     scheduler_output->scene_output = NULL;
 
     wl_event_source_remove(scheduler_output->repaint_timer);
@@ -223,7 +220,7 @@ handle_scene_output_destroy(struct wl_listener *listener, void *data) {
 
 static void
 handle_output_present(struct wl_listener *listener, void *data) {
-    struct hwd_scheduler_output *scheduler_output =
+    struct hwd_scene_output_scheduler *scheduler_output =
         wl_container_of(listener, scheduler_output, output_present);
     struct wlr_output_event_present *output_event = data;
 
@@ -235,16 +232,14 @@ handle_output_present(struct wl_listener *listener, void *data) {
     scheduler_output->refresh_nsec = output_event->refresh;
 }
 
-static void
-handle_scene_output_add(struct wl_listener *listener, void *data) {
-    struct hwd_scheduler *scheduler = wl_container_of(listener, scheduler, scene_output_add);
-    struct wlr_scene_output *scene_output = data;
+struct hwd_scene_output_scheduler *
+hwd_scene_output_scheduler_create(struct wlr_scene_output *scene_output) {
     struct wlr_output *wlr_output = scene_output->output;
 
-    struct hwd_scheduler_output *scheduler_output = calloc(1, sizeof(struct hwd_scheduler_output));
+    struct hwd_scene_output_scheduler *scheduler_output =
+        calloc(1, sizeof(struct hwd_scene_output_scheduler));
     hwd_assert(scheduler_output != NULL, "Allocation failed");
 
-    scheduler_output->scheduler = scheduler;
     scheduler_output->scene_output = scene_output;
 
     scheduler_output->scene_output_destroy.notify = handle_scene_output_destroy;
@@ -254,25 +249,9 @@ handle_scene_output_add(struct wl_listener *listener, void *data) {
     scheduler_output->output_frame.notify = handle_output_frame;
     wl_signal_add(&wlr_output->events.frame, &scheduler_output->output_frame);
 
-    struct wl_event_loop *event_loop = wl_display_get_event_loop(scheduler->display);
+    struct wl_event_loop *event_loop = wlr_output->event_loop;
     scheduler_output->repaint_timer =
         wl_event_loop_add_timer(event_loop, output_repaint_timer_handler, scheduler_output);
 
-    wl_list_insert(&scheduler->scheduler_outputs, &scheduler_output->link);
-}
-
-struct hwd_scheduler *
-hwd_scheduler_create(struct wl_display *display, struct wlr_scene *scene) {
-    struct hwd_scheduler *scheduler = calloc(1, sizeof(struct hwd_scheduler));
-    hwd_assert(scheduler != NULL, "Allocation failed");
-
-    scheduler->display = display;
-    scheduler->scene = scene;
-
-    wl_list_init(&scheduler->scheduler_outputs);
-
-    scheduler->scene_output_add.notify = handle_scene_output_add;
-    wl_signal_add(&scene->events.output_add, &scheduler->scene_output_add);
-
-    return scheduler;
+    return scheduler_output;
 }

@@ -6,14 +6,10 @@
 #include <stdint.h>
 #include <time.h>
 #include <wayland-server-core.h>
-#include <wayland-util.h>
 #include <wlr/types/wlr_scene.h>
 
-struct hwd_scheduler_output {
-    struct hwd_scheduler *scheduler;
+struct hwd_scene_output_scheduler {
     struct wlr_scene_output *scene_output;
-
-    struct wl_list link;
 
     struct timespec last_frame;
 
@@ -27,16 +23,7 @@ struct hwd_scheduler_output {
     struct wl_event_source *repaint_timer;
 };
 
-struct hwd_scheduler {
-    struct wl_display *display;
-    struct wlr_scene *scene;
-
-    struct wl_list scheduler_outputs;
-
-    struct wl_listener scene_output_add;
-};
-
-struct hwd_scheduler *
-hwd_scheduler_create(struct wl_display *display, struct wlr_scene *scene);
+struct hwd_scene_output_scheduler *
+hwd_scene_output_scheduler_create(struct wlr_scene_output *scene_output);
 
 #endif
