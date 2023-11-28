@@ -3,7 +3,7 @@ haywardmsg_sources = [
 ]
 
 haywardmsg_deps = [
-  jsonc,
+  jsonc_dep,
   hayward_common_dep,
 ]
 

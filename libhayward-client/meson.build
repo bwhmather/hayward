@@ -8,10 +8,10 @@ hayward_client_lib = static_library(
   'hayward-client',
   hayward_client_sources,
   dependencies: [
-    cairo,
-    pango,
-    pangocairo,
-    wayland_client,
+    cairo_dep,
+    pango_dep,
+    pango_cairo_dep,
+    wayland_client_dep,
     hayward_common_dep,
   ],
   include_directories: [hayward_client_inc, shared_inc]

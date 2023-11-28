@@ -156,25 +156,26 @@ hayward_sources = files(
 )
 
 hayward_deps = [
-  cairo,
-  drm,
-  jsonc,
-  libevdev,
-  libinput,
-  libudev,
-  math,
-  pango,
-  pixman,
-  server_protos,
-  wayland_server,
-  wlroots,
-  xkbcommon,
+  cairo_dep,
+  drm_dep,
+  jsonc_dep,
+  libevdev_dep,
+  libinput_dep,
+  libudev_dep,
+  math_dep,
+  pango_dep,
+  pango_cairo_dep,
+  pixman_dep,
+  server_protos_dep,
+  wayland_server_dep,
+  wlroots_dep,
+  xkbcommon_dep,
   hayward_common_dep,
 ]
 
 if have_xwayland
   hayward_sources += 'src/desktop/xwayland.c'
-  hayward_deps += xcb
+  hayward_deps += xcb_dep
 endif
 
 hayward_inc = include_directories('include')

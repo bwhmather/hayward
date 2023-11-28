@@ -46,45 +46,44 @@ subproject(
   version: wlroots_version,
 )
 
-jsonc = dependency('json-c', version: '>=0.13')
-wayland_server = dependency('wayland-server', version: '>=1.21.0')
-wayland_client = dependency('wayland-client')
-wayland_cursor = dependency('wayland-cursor')
-wayland_egl = dependency('wayland-egl')
-wayland_protos = dependency('wayland-protocols', version: '>=1.24')
-wlroots = dependency('wlroots', version: wlroots_version)
-xkbcommon = dependency('xkbcommon')
-cairo = dependency('cairo')
-pango = dependency('pango')
-pangocairo = dependency('pangocairo')
-gdk_pixbuf = dependency('gdk-pixbuf-2.0', required: get_option('gdk-pixbuf'))
-gtk = dependency('gtk4')
-gtk_wayland = dependency('gtk4-wayland')
-pixman = dependency('pixman-1')
-libevdev = dependency('libevdev')
-libinput = dependency('libinput', version: '>=1.6.0')
-xcb = dependency('xcb', required: get_option('xwayland'))
-drm_full = dependency('libdrm') # only needed for drm_fourcc.h
-drm = drm_full.partial_dependency(compile_args: true, includes: true)
-libudev = dependency('libudev')
-bash_comp = dependency('bash-completion', required: false)
-fish_comp = dependency('fish', required: false)
-math = cc.find_library('m')
-rt = cc.find_library('rt')
+jsonc_dep = dependency('json-c', version: '>=0.13')
+wayland_server_dep = dependency('wayland-server', version: '>=1.21.0')
+wayland_client_dep = dependency('wayland-client')
+wayland_cursor_dep = dependency('wayland-cursor')
+wayland_protos_dep = dependency('wayland-protocols', version: '>=1.24')
+wlroots_dep = dependency('wlroots', version: wlroots_version)
+xkbcommon_dep = dependency('xkbcommon')
+cairo_dep = dependency('cairo')
+pango_dep = dependency('pango')
+pango_cairo_dep = dependency('pangocairo')
+gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', required: get_option('gdk-pixbuf'))
+gtk_dep = dependency('gtk4')
+gtk_wayland_dep = dependency('gtk4-wayland')
+pixman_dep = dependency('pixman-1')
+libevdev_dep = dependency('libevdev')
+libinput_dep = dependency('libinput', version: '>=1.6.0')
+xcb_dep = dependency('xcb', required: get_option('xwayland'))
+drm_full_dep = dependency('libdrm') # only needed for drm_fourcc.h
+drm_dep = drm_full_dep.partial_dependency(compile_args: true, includes: true)
+libudev_dep = dependency('libudev')
+bash_comp_dep = dependency('bash-completion', required: false)
+fish_comp_dep = dependency('fish', required: false)
+math_dep = cc.find_library('m')
+rt_dep = cc.find_library('rt')
 
 wlroots_features = {
   'xwayland': false,
 }
 foreach name, _ : wlroots_features
   var_name = 'have_' + name.underscorify()
-  have = wlroots.get_variable(pkgconfig: var_name, internal: var_name) == 'true'
+  have = wlroots_dep.get_variable(pkgconfig: var_name, internal: var_name) == 'true'
   wlroots_features += { name: have }
 endforeach
 
 if get_option('xwayland').enabled() and not wlroots_features['xwayland']
   error('Cannot enable Xwayland in hayward: wlroots has been built without Xwayland support')
 endif
-have_xwayland = xcb.found() and wlroots_features['xwayland']
+have_xwayland = xcb_dep.found() and wlroots_features['xwayland']
 
 if get_option('sd-bus-provider') == 'auto'
   if not get_option('tray').disabled()
@@ -110,7 +109,7 @@ have_tray = (not get_option('tray').disabled()) and tray_deps_found
 conf_data = configuration_data()
 
 conf_data.set10('HAVE_XWAYLAND', have_xwayland)
-conf_data.set10('HAVE_GDK_PIXBUF', gdk_pixbuf.found())
+conf_data.set10('HAVE_GDK_PIXBUF', gdk_pixbuf_dep.found())
 conf_data.set10('HAVE_LIBSYSTEMD', sdbus.found() and sdbus.name() == 'libsystemd')
 conf_data.set10('HAVE_LIBELOGIND', sdbus.found() and sdbus.name() == 'libelogind')
 conf_data.set10('HAVE_BASU', sdbus.found() and sdbus.name() == 'basu')
@@ -267,8 +266,8 @@ if get_option('bash-completions')
     bash_files += files('completions/bash/haywardbar')
   endif
 
-  if bash_comp.found()
-    bash_install_dir = bash_comp.get_variable(
+  if bash_comp_dep.found()
+    bash_install_dir = bash_comp_dep.get_variable(
       pkgconfig: 'completionsdir',
       pkgconfig_define: ['datadir', datadir]
     )
@@ -289,8 +288,8 @@ if get_option('fish-completions')
     fish_files += files('completions/fish/haywardnag.fish')
   endif
 
-  if fish_comp.found()
-    fish_install_dir = fish_comp.get_variable(
+  if fish_comp_dep.found()
+    fish_install_dir = fish_comp_dep.get_variable(
       pkgconfig: 'completionsdir',
       pkgconfig_define: ['datadir', datadir]
     )
@@ -303,7 +302,7 @@ endif
 
 summary({
   'xwayland': have_xwayland,
-  'gdk-pixbuf': gdk_pixbuf.found(),
+  'gdk-pixbuf': gdk_pixbuf_dep.found(),
   'tray': have_tray,
   'man-pages': scdoc.found(),
 }, bool_yn: true)

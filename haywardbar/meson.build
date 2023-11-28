@@ -20,16 +20,16 @@ if have_tray
 endif
 
 haywardbar_deps = [
-  cairo,
-  client_protos,
-  gdk_pixbuf,
-  jsonc,
-  math,
-  pango,
-  pangocairo,
-  rt,
-  wayland_client,
-  wayland_cursor,
+  cairo_dep,
+  client_protos_dep,
+  gdk_pixbuf_dep,
+  jsonc_dep,
+  math_dep,
+  pango_dep,
+  pango_cairo_dep,
+  rt_dep,
+  wayland_client_dep,
+  wayland_cursor_dep,
   hayward_client_dep,
   hayward_common_dep,
 ]

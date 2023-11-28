@@ -19,11 +19,11 @@ haywardout_sources = [
 ]
 
 haywardout_deps = [
-  client_protos,
-  gtk,
-  gtk_wayland,
-  math,
-  wayland_client,
+  client_protos_dep,
+  gtk_dep,
+  gtk_wayland_dep,
+  math_dep,
+  wayland_client_dep,
 ]
 
 executable(

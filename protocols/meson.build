@@ -1,4 +1,4 @@
-wl_protocol_dir = wayland_protos.get_variable('pkgdatadir')
+wl_protocol_dir = wayland_protos_dep.get_variable('pkgdatadir')
 
 wayland_scanner_dep = dependency('wayland-scanner', required: false, native: true)
 if wayland_scanner_dep.found()
@@ -64,10 +64,10 @@ endforeach
 lib_client_protos = static_library(
   'client_protos',
   wl_protos_src + wl_protos_headers,
-  dependencies: wayland_client.partial_dependency(compile_args: true),
+  dependencies: wayland_client_dep.partial_dependency(compile_args: true),
 )
 
-client_protos = declare_dependency(
+client_protos_dep = declare_dependency(
   link_with: lib_client_protos,
   sources: wl_protos_headers,
 )
@@ -75,10 +75,10 @@ client_protos = declare_dependency(
 lib_server_protos = static_library(
   'server_protos',
   wl_protos_src + wl_protos_headers,
-  dependencies: wayland_server.partial_dependency(compile_args: true),
+  dependencies: wayland_server_dep.partial_dependency(compile_args: true),
 )
 
-server_protos = declare_dependency(
+server_protos_dep = declare_dependency(
   link_with: lib_server_protos,
   sources: wl_protos_headers,
 )

@@ -16,11 +16,11 @@ hayward_common_lib = static_library(
   'hayward-common',
   hayward_common_sources,
   dependencies: [
-    cairo,
-    gdk_pixbuf,
-    pango,
-    pangocairo,
-    wayland_client.partial_dependency(compile_args: true)
+    cairo_dep,
+    gdk_pixbuf_dep,
+    pango_dep,
+    pango_cairo_dep,
+    wayland_client_dep.partial_dependency(compile_args: true)
   ],
   include_directories: [hayward_common_inc, shared_inc]
 )
