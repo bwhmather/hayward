@@ -47,7 +47,6 @@ subproject(
 )
 
 jsonc = dependency('json-c', version: '>=0.13')
-pcre2 = dependency('libpcre2-8')
 wayland_server = dependency('wayland-server', version: '>=1.21.0')
 wayland_client = dependency('wayland-client')
 wayland_cursor = dependency('wayland-cursor')

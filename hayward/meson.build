@@ -164,7 +164,6 @@ hayward_deps = [
   libudev,
   math,
   pango,
-  pcre2,
   glesv2,
   pixman,
   server_protos,
