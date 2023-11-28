@@ -169,7 +169,6 @@ hayward_deps = [
   wayland_server,
   wlroots,
   xkbcommon,
-  xcb_icccm,
   hayward_common_dep,
 ]
 
