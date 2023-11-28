@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/server.h"
-
 #include <config.h>
+
+#include "hayward/server.h"
 
 #include <stdbool.h>
 #include <stdio.h>

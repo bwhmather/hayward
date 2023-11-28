@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
-#include "haywardbar/tray/icon.h"
-
 #include <config.h>
+
+#include "haywardbar/tray/icon.h"
 
 #include <ctype.h>
 #include <dirent.h>

@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/tree/view.h"
-
 #include <config.h>
+
+#include "hayward/tree/view.h"
 
 #include <float.h>
 #include <math.h>

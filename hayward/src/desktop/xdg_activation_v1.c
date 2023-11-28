@@ -1,9 +1,9 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
-#include "hayward/desktop/xdg_activation_v1.h"
-
 #include <config.h>
+
+#include "hayward/desktop/xdg_activation_v1.h"
 
 #include <stdlib.h>
 #include <wayland-server-core.h>

@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/tree/window.h"
-
 #include <config.h>
+
+#include "hayward/tree/window.h"
 
 #include <limits.h>
 #include <math.h>

@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/input/input_manager.h"
-
 #include <config.h>
+
+#include "hayward/input/input_manager.h"
 
 #include <ctype.h>
 #include <libinput.h>

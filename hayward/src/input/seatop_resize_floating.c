@@ -1,9 +1,9 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
 
-#include "hayward/input/seatop_resize_floating.h"
-
 #include <config.h>
+
+#include "hayward/input/seatop_resize_floating.h"
 
 #include <math.h>
 #include <stdbool.h>

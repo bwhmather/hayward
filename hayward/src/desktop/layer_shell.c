@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/desktop/layer_shell.h"
-
 #include <config.h>
+
+#include "hayward/desktop/layer_shell.h"
 
 #include <stdbool.h>
 #include <stdint.h>

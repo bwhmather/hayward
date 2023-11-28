@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
-#include "haywardbar/bar.h"
-
 #include <config.h>
+
+#include "haywardbar/bar.h"
 
 #include <assert.h>
 #include <errno.h>

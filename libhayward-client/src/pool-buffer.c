@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809
-#include "hayward-client/pool-buffer.h"
-
 #include <config.h>
+
+#include "hayward-client/pool-buffer.h"
 
 #include <assert.h>
 #include <cairo.h>

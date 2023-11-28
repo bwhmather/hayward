@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/tree/workspace.h"
-
 #include <config.h>
+
+#include "hayward/tree/workspace.h"
 
 #include <math.h>
 #include <stdbool.h>

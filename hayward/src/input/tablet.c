@@ -1,8 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
-#include "hayward/input/tablet.h"
-
 #include <config.h>
+
+#include "hayward/input/tablet.h"
 
 #include <libinput.h>
 #include <stdlib.h>
