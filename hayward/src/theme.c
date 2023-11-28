@@ -404,7 +404,7 @@ gen_single_tiled(struct hwd_default_theme_colours colours) {
         .titlebar_v_padding = 4,
     };
     return window_theme;
-};
+}
 
 static struct hwd_theme_window_type
 gen_floating(void) {
