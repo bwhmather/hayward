@@ -33,7 +33,7 @@ apply_activated(GSimpleAction *action, GVariant *parameter, gpointer user_data) 
     hwdout_configuration_apply(self->configuration);
 }
 
-static GActionEntry entries[] = {{"apply", apply_activated, NULL, NULL, NULL}};
+static GActionEntry entries[] = {{"apply", apply_activated, NULL, NULL, NULL, {0}}};
 
 static void
 hwdout_window_reset_configuration(HwdoutWindow *self) {
