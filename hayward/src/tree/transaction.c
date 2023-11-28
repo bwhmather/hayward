@@ -14,8 +14,6 @@
 
 #include <hayward/server.h>
 
-struct hwd_transaction_manager *transaction_manager;
-
 static void
 handle_commit(void *data);
 
