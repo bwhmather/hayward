@@ -15,13 +15,9 @@ add_project_arguments([
     '-DWLR_USE_UNSTABLE',
 
     '-Wno-unused-parameter',
-    '-Wno-unused-result',
-    '-Wno-missing-braces',
-    '-Wno-missing-field-initializers',
     '-Wundef',
     '-Wvla',
-    '-Wno-switch',
-    '-Wno-pedantic',
+    '-Wno-overlength-strings',
   ],
   language: 'c',
 )
