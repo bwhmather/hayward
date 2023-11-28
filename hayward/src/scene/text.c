@@ -105,7 +105,7 @@ hwd_text_node_get_text_metrics(
     cairo_destroy(cairo);
 }
 
-void
+static void
 hwd_text_node_render_text(
     cairo_t *cairo, PangoFontDescription *desc, double scale, const char *text
 ) {
