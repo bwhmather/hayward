@@ -101,16 +101,6 @@ seat_get_target_at(
     struct hwd_window **window_out, struct wlr_surface **surface_out, double *sx_out, double *sy_out
 );
 
-/**
- * "Rebase" a cursor on top of whatever view is underneath it.
- *
- * This chooses a cursor icon and sends a motion event to the surface.
- */
-void
-cursor_rebase(struct hwd_cursor *cursor);
-void
-cursor_rebase_all(void);
-
 int
 cursor_get_timeout(struct hwd_cursor *cursor);
 

@@ -24,7 +24,6 @@
 #include <wlr-layer-shell-unstable-v1-protocol.h>
 
 #include <hayward/globals/root.h>
-#include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/tree/output.h>
@@ -217,8 +216,6 @@ handle_map(struct wl_listener *listener, void *data) {
         arrange_layers(layer_surface->output);
         root_commit_focus(root);
     }
-
-    cursor_rebase_all();
 }
 
 static void
@@ -230,8 +227,6 @@ handle_unmap(struct wl_listener *listener, void *data) {
         root_set_focused_layer(root, NULL);
         root_commit_focus(root);
     }
-
-    cursor_rebase_all();
 }
 
 static void

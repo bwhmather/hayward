@@ -38,7 +38,6 @@
 #include <wlr/util/box.h>
 #include <wlr/util/region.h>
 
-#include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
 #include <tablet-unstable-v2-protocol.h>
@@ -157,20 +156,10 @@ seat_get_target_at(
     *surface_out = NULL;
 }
 
-void
+static void
 cursor_rebase(struct hwd_cursor *cursor) {
     uint32_t time_msec = get_current_time_msec();
     seatop_rebase(cursor->seat, time_msec);
-}
-
-void
-cursor_rebase_all(void) {
-    if (!root->outputs->length) {
-        return;
-    }
-
-    struct hwd_seat *seat;
-    wl_list_for_each(seat, &server.input->seats, link) { cursor_rebase(seat->cursor); }
 }
 
 static void
