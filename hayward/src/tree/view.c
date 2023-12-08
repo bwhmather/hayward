@@ -513,8 +513,14 @@ view_center_surface(struct hwd_view *view) {
     // geometry immediately affects the currently active rendering.
     int x = (int)fmax(0, (window->committed.content_width - view->geometry.width) / 2);
     int y = (int)fmax(0, (window->committed.content_height - view->geometry.height) / 2);
+    int width = (int)window->committed.content_width;
+    int height = (int)window->committed.content_height;
 
     wlr_scene_node_set_position(&view->layers.content_tree->node, x, y);
+    wlr_scene_subsurface_tree_set_clip(
+        &view->layers.content_tree->node,
+        &(struct wlr_box){.x = x, .y = y, .width = width, .height = height}
+    );
 }
 
 struct hwd_view *
