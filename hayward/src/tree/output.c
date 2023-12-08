@@ -466,7 +466,6 @@ handle_new_output(struct wl_listener *listener, void *data) {
     if (!output) {
         return;
     }
-    output->server = server;
 
     wl_signal_add(&wlr_output->events.destroy, &output->destroy);
     output->destroy.notify = handle_destroy;

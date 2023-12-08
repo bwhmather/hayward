@@ -45,7 +45,6 @@ struct hwd_output {
 
     struct wlr_output *wlr_output;
 
-    struct hwd_server *server;
     struct wl_list link;
 
     struct wl_list shell_layers[4]; // hwd_layer_surface::link
