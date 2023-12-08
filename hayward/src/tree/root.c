@@ -201,6 +201,7 @@ root_create(struct wl_display *display) {
     root->transaction_after_apply.notify = root_handle_transaction_after_apply;
 
     root->output_layout = wlr_output_layout_create(display);
+
     wl_list_init(&root->all_outputs);
 #if HAVE_XWAYLAND
     wl_list_init(&root->xwayland_unmanaged);
@@ -212,6 +213,8 @@ root_create(struct wl_display *display) {
     root->current.workspaces = create_list();
 
     root_init_scene(root);
+    root->scene_output_layout =
+        wlr_scene_attach_output_layout(root->root_scene, root->output_layout);
 
     root->output_layout_change.notify = root_handle_output_layout_change;
     wl_signal_add(&root->output_layout->events.change, &root->output_layout_change);

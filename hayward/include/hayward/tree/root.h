@@ -60,6 +60,7 @@ struct hwd_root {
     struct wlr_layer_surface_v1 *focused_layer;
 
     struct wlr_output_layout *output_layout;
+    struct wlr_scene_output_layout *scene_output_layout;
 
 #if HAVE_XWAYLAND
     struct wl_list xwayland_unmanaged; // hwd_xwayland_unmanaged::link

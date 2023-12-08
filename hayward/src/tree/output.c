@@ -401,8 +401,6 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&output->commit.link);
     wl_list_remove(&output->request_state.link);
 
-    wlr_scene_output_destroy(output->scene_output);
-    output->scene_output = NULL;
     output->wlr_output->data = NULL;
     output->wlr_output = NULL;
 }
@@ -469,7 +467,6 @@ handle_new_output(struct wl_listener *listener, void *data) {
         return;
     }
     output->server = server;
-    output->scene_output = scene_output;
 
     wl_signal_add(&wlr_output->events.destroy, &output->destroy);
     output->destroy.notify = handle_destroy;
@@ -486,7 +483,9 @@ handle_new_output(struct wl_listener *listener, void *data) {
         return;
     }
 
-    wlr_output_layout_add(root->output_layout, wlr_output, 0, 0);
+    struct wlr_output_layout_output *layout_output =
+        wlr_output_layout_add(root->output_layout, wlr_output, 0, 0);
+    wlr_scene_output_layout_add_output(root->scene_output_layout, layout_output, scene_output);
 
     struct wlr_box output_box;
     wlr_output_layout_get_box(root->output_layout, wlr_output, &output_box);
