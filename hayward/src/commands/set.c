@@ -8,10 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
+#include <hayward/list.h>
+#include <hayward/stringop.h>
 
 // sort in order of longest->shortest
 static int

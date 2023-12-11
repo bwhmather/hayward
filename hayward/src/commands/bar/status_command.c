@@ -8,10 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
+#include <hayward/log.h>
+#include <hayward/stringop.h>
 
 struct cmd_results *
 bar_cmd_status_command(int argc, char **argv) {

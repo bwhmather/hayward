@@ -20,14 +20,13 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/scheduler.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>

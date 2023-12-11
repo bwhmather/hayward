@@ -10,10 +10,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
+#include <hayward/log.h>
+#include <hayward/stringop.h>
 
 struct cmd_results *
 input_cmd_xkb_file(int argc, char **argv) {

@@ -17,10 +17,9 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/cairo_util.h>
-
 #include <wayland-server-protocol.h>
 
+#include <hayward/cairo_util.h>
 #include <hayward/config.h>
 #include <hayward/scene/cairo.h>
 #include <hayward/scene/colours.h>

@@ -3,7 +3,7 @@
 
 #include "hayward/scene/colours.h"
 
-#include <hayward-common/log.h>
+#include <hayward/log.h>
 
 struct hwd_colour
 hwd_lighten(float s, struct hwd_colour in) {

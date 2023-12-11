@@ -30,9 +30,6 @@
 #include <xkbcommon/xkbcommon-names.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
@@ -41,6 +38,8 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/text_input.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 
 static struct modifier_key {

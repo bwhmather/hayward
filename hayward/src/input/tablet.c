@@ -16,9 +16,6 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <tablet-unstable-v2-protocol.h>
 #include <wayland-server-protocol.h>
 
@@ -26,6 +23,8 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 
 static void

@@ -7,10 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
+#include <hayward/log.h>
 
 // must be in order for the bsearch
 static const struct cmd_handler input_handlers[] = {

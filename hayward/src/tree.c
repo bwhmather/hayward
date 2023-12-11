@@ -7,10 +7,9 @@
 #include <stdbool.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/view.h>

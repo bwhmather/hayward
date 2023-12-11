@@ -9,12 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
+#include <hayward/stringop.h>
 
 static struct cmd_results *
 binding_add(struct bar_binding *binding, list_t *mode_bindings) {

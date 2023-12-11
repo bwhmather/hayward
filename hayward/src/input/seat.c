@@ -34,9 +34,6 @@
 #include <wlr/xcursor.h>
 #include <wlr/xwayland/xwayland.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
@@ -51,6 +48,8 @@
 #include <hayward/input/switch.h>
 #include <hayward/input/tablet.h>
 #include <hayward/input/text_input.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>

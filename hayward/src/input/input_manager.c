@@ -23,17 +23,16 @@
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/libinput.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
+#include <hayward/stringop.h>
 #include <hayward/tree/view.h>
 
 #define DEFAULT_SEAT "seat0"

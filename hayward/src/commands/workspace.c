@@ -9,11 +9,10 @@
 #include <stdlib.h>
 #include <strings.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/list.h>
+#include <hayward/stringop.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
 

@@ -14,9 +14,8 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_text_input_v3.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/input/seat.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 
 static struct hwd_text_input *

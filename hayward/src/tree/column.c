@@ -14,11 +14,10 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>

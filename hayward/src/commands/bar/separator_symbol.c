@@ -8,9 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
+#include <hayward/log.h>
 
 struct cmd_results *
 bar_cmd_separator_symbol(int argc, char **argv) {

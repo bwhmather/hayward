@@ -29,9 +29,6 @@
 #include <wlr/xcursor.h>
 #include <wlr/xwayland/xwayland.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
@@ -43,6 +40,8 @@
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/input/seatop_resize_tiling.h>
 #include <hayward/input/tablet.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
@@ -329,8 +328,7 @@ handle_tablet_tool_tip(
         }
 
         // Handle moving a tiled window.
-        if (mod_pressed && !is_floating_or_child &&
-            !window->pending.fullscreen) {
+        if (mod_pressed && !is_floating_or_child && !window->pending.fullscreen) {
             seatop_begin_move(seat, window);
             return;
         }
@@ -559,8 +557,8 @@ handle_button(
     }
 
     // Handle moving a tiling container
-    if ((mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED &&
-        !is_floating && window && !window->pending.fullscreen) {
+    if ((mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED && !is_floating && window &&
+        !window->pending.fullscreen) {
 
         seatop_begin_move(seat, window);
         root_commit_focus(root);

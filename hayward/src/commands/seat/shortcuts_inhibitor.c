@@ -9,11 +9,10 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 
 static struct cmd_results *

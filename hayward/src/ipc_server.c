@@ -25,17 +25,16 @@
 #include <wayland-util.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include <hayward-common/ipc.h>
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/commands.h>
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
+#include <hayward/ipc.h>
 #include <hayward/ipc_json.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>

@@ -8,12 +8,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/input/keyboard.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
+#include <hayward/stringop.h>
 
 struct cmd_results *
 bar_cmd_modifier(int argc, char **argv) {

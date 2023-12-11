@@ -9,10 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 
 struct cmd_results *
 bar_cmd_output(int argc, char **argv) {

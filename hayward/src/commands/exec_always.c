@@ -14,11 +14,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
+#include <hayward/stringop.h>
 
 struct cmd_results *
 cmd_exec_validate(int argc, char **argv) {

@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
+#include <hayward/list.h>
 
 enum hwd_column_layout {
     L_SPLIT,

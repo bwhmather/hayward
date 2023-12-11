@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 
 static void
 merge_seat_config(struct seat_config *dest, struct seat_config *source);

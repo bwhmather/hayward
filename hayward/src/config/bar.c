@@ -16,12 +16,11 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-#include <hayward-common/util.h>
-
 #include <hayward/input/keyboard.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
+#include <hayward/util.h>
 
 void
 free_bar_binding(struct bar_binding *binding) {

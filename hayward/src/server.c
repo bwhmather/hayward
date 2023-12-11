@@ -38,8 +38,6 @@
 #include <wlr/types/wlr_xdg_foreign_v2.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/layer_shell.h>
@@ -51,6 +49,7 @@
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
+#include <hayward/log.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 

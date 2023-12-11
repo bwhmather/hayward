@@ -8,9 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
+#include <hayward/log.h>
 
 struct cmd_results *
 bar_cmd_status_edge_padding(int argc, char **argv) {

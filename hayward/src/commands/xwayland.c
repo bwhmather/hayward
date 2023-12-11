@@ -8,9 +8,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <hayward-common/util.h>
-
 #include <hayward/config.h>
+#include <hayward/util.h>
 
 struct cmd_results *
 cmd_xwayland(int argc, char **argv) {

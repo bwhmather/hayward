@@ -13,14 +13,13 @@
 #include <string.h>
 #include <strings.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
+#include <hayward/stringop.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 

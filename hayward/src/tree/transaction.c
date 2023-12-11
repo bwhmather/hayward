@@ -10,8 +10,7 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 
-#include <hayward-common/log.h>
-
+#include <hayward/log.h>
 #include <hayward/server.h>
 
 static void

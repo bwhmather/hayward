@@ -11,9 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
+#include <hayward/stringop.h>
 
 struct cmd_results *
 cmd_font(int argc, char **argv) {

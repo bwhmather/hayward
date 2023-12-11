@@ -14,8 +14,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
 
-#include <hayward-common/log.h>
-
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>

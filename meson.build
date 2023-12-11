@@ -123,16 +123,7 @@ if scdoc.found()
     'hayward/hayward-input.5.scd',
     'hayward/hayward-ipc.7.scd',
     'hayward/hayward-output.5.scd',
-    'haywardbar/haywardbar-protocol.7.scd',
-    'haywardmsg/haywardmsg.1.scd',
   ]
-
-  if get_option('haywardnag')
-    man_files += [
-      'haywardnag/haywardnag.1.scd',
-      'haywardnag/haywardnag.5.scd',
-    ]
-  endif
 
   foreach filename : man_files
     topic = filename.split('.')[-3].split('/')[-1]
@@ -210,21 +201,7 @@ shared_inc = include_directories('include')
 
 subdir('include')
 subdir('protocols')
-subdir('libhayward-common')
 subdir('hayward')
-subdir('haywardmsg')
-
-if get_option('haywardbar') or get_option('haywardnag')
-  subdir('libhayward-client')
-endif
-if get_option('haywardbar')
-  subdir('haywardbar')
-endif
-if get_option('haywardnag')
-  subdir('haywardnag')
-endif
-
-subdir('haywardout')
 
 config = configuration_data()
 config.set('datadir', join_paths(prefix, datadir))

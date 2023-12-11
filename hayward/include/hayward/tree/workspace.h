@@ -6,9 +6,8 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_scene.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/desktop/hwd_workspace_management_v1.h>
+#include <hayward/list.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>
 

@@ -8,7 +8,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/log.h>
+#include <hayward/log.h>
 
 struct hwd_nineslice_slices {
     struct wlr_scene_buffer *tl;

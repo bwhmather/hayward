@@ -14,11 +14,10 @@
 #include <string.h>
 #include <wlr/backend/libinput.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/ipc_server.h>
+#include <hayward/log.h>
 #include <hayward/tree/output.h>
 
 static void

@@ -19,14 +19,13 @@
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/scene/colours.h>
 #include <hayward/scene/nineslice.h>
 #include <hayward/scene/text.h>

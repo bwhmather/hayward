@@ -8,12 +8,11 @@
 #include <string.h>
 #include <wayland-server-core.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
 

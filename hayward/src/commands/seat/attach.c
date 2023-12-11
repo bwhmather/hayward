@@ -6,9 +6,8 @@
 
 #include <string.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/config.h>
+#include <hayward/list.h>
 
 struct cmd_results *
 seat_cmd_attach(int argc, char **argv) {

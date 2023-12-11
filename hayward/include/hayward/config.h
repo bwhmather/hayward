@@ -14,10 +14,9 @@
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/haywardnag.h>
 #include <hayward/input/tablet.h>
+#include <hayward/list.h>
 
 // TODO: Refactor this shit
 

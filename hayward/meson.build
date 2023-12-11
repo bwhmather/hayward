@@ -152,11 +152,20 @@ hayward_sources = files(
   'src/tree/window.c',
   'src/tree/workspace.c',
   'src/tree.c',
+
+  'src/cairo.c',
+  'src/log.c',
+  'src/loop.c',
+  'src/list.c',
+  'src/pango.c',
+  'src/stringop.c',
+  'src/util.c'
 )
 
 hayward_deps = [
   cairo_dep,
   drm_dep,
+  gdk_pixbuf_dep,
   jsonc_dep,
   libevdev_dep,
   libinput_dep,
@@ -170,7 +179,6 @@ hayward_deps = [
   wlroots_dep,
   xkbcommon_dep,
   xcb_icccm_dep,
-  hayward_common_dep,
 ]
 
 if have_xwayland

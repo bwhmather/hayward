@@ -14,11 +14,10 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_tablet_tool.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/config.h>
 #include <hayward/input/tablet.h>
 #include <hayward/input/text_input.h>
+#include <hayward/list.h>
 #include <hayward/tree/output.h>
 
 struct hwd_seat;

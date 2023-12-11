@@ -19,13 +19,12 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>

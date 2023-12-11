@@ -19,16 +19,15 @@
 #include <wlr/util/log.h>
 #include <wlr/version.h>
 
-#include <hayward-common/ipc-client.h>
-#include <hayward-common/ipc.h>
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/haywardnag.h>
+#include <hayward/ipc-client.h>
+#include <hayward/ipc.h>
 #include <hayward/ipc_server.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
+#include <hayward/stringop.h>
 #include <hayward/theme.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>

@@ -4,15 +4,14 @@
 
 #include "hayward/commands.h"
 
-#include <hayward-common/list.h>
-#include <hayward-common/util.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/list.h>
 #include <hayward/tree.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+#include <hayward/util.h>
 
 struct cmd_results *
 cmd_floating(int argc, char **argv) {

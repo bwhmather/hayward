@@ -12,7 +12,7 @@
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/log.h>
+#include <hayward/log.h>
 
 static void
 output_manager_update_config(struct hwd_wlr_output_manager_v1 *manager) {

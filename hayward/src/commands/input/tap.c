@@ -8,9 +8,8 @@
 #include <libinput.h>
 #include <stdbool.h>
 
-#include <hayward-common/util.h>
-
 #include <hayward/config.h>
+#include <hayward/util.h>
 
 struct cmd_results *
 input_cmd_tap(int argc, char **argv) {

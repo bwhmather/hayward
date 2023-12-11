@@ -10,9 +10,8 @@
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/config.h>
+#include <hayward/list.h>
 #include <hayward/theme.h>
 
 #define MIN_SANE_W 100

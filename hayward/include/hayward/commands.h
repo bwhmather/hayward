@@ -4,10 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/config.h>
 #include <hayward/input/seat.h>
+#include <hayward/list.h>
 
 struct hwd_window;
 

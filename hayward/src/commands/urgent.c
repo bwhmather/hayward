@@ -8,11 +8,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <hayward-common/util.h>
-
 #include <hayward/config.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+#include <hayward/util.h>
 
 struct cmd_results *
 cmd_urgent(int argc, char **argv) {

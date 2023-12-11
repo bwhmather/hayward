@@ -10,11 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 
 // Must be in alphabetical order for bsearch
 static const struct cmd_handler bar_handlers[] = {

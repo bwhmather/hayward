@@ -9,11 +9,10 @@
 #include <string.h>
 #include <strings.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 
 static struct cmd_results *
 bar_set_mode(struct bar_config *bar, const char *mode) {

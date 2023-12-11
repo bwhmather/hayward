@@ -7,9 +7,8 @@
 
 #include <stdbool.h>
 
-#include <hayward-common/util.h>
-
 #include <hayward/config.h>
+#include <hayward/util.h>
 
 struct cmd_results *
 input_cmd_left_handed(int argc, char **argv) {

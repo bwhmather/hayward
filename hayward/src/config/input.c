@@ -13,11 +13,10 @@
 #include <wlr/util/box.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/input/input_manager.h>
 #include <hayward/input/keyboard.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 
 static int

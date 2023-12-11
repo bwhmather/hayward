@@ -38,8 +38,6 @@
 #include <wlr/util/box.h>
 #include <wlr/util/region.h>
 
-#include <hayward-common/log.h>
-
 #include <tablet-unstable-v2-protocol.h>
 #include <wayland-server-protocol.h>
 
@@ -49,6 +47,7 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/tablet.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>

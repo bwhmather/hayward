@@ -11,10 +11,9 @@
 #include <strings.h>
 #include <wayland-util.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>
+#include <hayward/log.h>
 
 static struct cmd_results *
 tray_bind(int argc, char **argv, bool code) {

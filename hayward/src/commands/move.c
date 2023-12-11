@@ -16,22 +16,21 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-#include <hayward-common/util.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
+#include <hayward/stringop.h>
 #include <hayward/tree.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
+#include <hayward/util.h>
 
 static const char expected_syntax[] = "Expected 'move <left|right|up|down> <[px] px>' or "
                                       "'move <window> [to] workspace <name>' or "

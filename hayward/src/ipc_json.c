@@ -26,15 +26,14 @@
 #include <xcb/xproto.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>

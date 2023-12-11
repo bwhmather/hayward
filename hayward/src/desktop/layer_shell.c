@@ -18,14 +18,13 @@
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-
 #include <wlr-layer-shell-unstable-v1-protocol.h>
 
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 

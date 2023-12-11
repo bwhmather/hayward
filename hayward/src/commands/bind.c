@@ -14,15 +14,14 @@
 #include <xkbcommon/xkbcommon-keysyms.h>
 #include <xkbcommon/xkbcommon.h>
 
-#include <hayward-common/list.h>
-#include <hayward-common/log.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
+#include <hayward/list.h>
+#include <hayward/log.h>
+#include <hayward/stringop.h>
 #include <hayward/tree/output.h>
 
 static int binding_order = 0;

@@ -26,10 +26,6 @@
 #include <wlr/util/box.h>
 #include <wlr/xwayland/xwayland.h>
 
-#include <hayward-common/log.h>
-#include <hayward-common/pango.h>
-#include <hayward-common/stringop.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/xdg_shell.h>
@@ -39,7 +35,10 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/ipc_server.h>
+#include <hayward/log.h>
+#include <hayward/pango.h>
 #include <hayward/server.h>
+#include <hayward/stringop.h>
 #include <hayward/tree.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>

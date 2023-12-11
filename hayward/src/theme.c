@@ -10,8 +10,7 @@
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_scene.h>
 
-#include <hayward-common/log.h>
-
+#include <hayward/log.h>
 #include <hayward/scene/cairo.h>
 #include <hayward/scene/colours.h>
 

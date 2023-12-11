@@ -11,9 +11,9 @@
 #include <wayland-server.h>
 #include <wayland-util.h>
 
-#include <hayward-common/log.h>
-
 #include <hwd-workspace-management-unstable-v1-protocol.h>
+
+#include <hayward/log.h>
 
 static void
 manager_set_dirty(struct hwd_workspace_manager_v1 *manager);

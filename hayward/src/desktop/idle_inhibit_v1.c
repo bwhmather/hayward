@@ -11,9 +11,8 @@
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/globals/root.h>
+#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>

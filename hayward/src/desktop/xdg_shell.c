@@ -19,12 +19,11 @@
 #include <wlr/util/box.h>
 #include <wlr/util/edges.h>
 
-#include <hayward-common/log.h>
-
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
+#include <hayward/log.h>
 #include <hayward/tree.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>

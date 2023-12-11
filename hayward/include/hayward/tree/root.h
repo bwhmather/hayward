@@ -11,10 +11,9 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/hwd_workspace_management_v1.h>
+#include <hayward/list.h>
 #include <hayward/theme.h>
 
 struct hwd_window;

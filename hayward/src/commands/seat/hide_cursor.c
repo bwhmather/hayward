@@ -9,13 +9,12 @@
 #include <string.h>
 #include <wayland-util.h>
 
-#include <hayward-common/util.h>
-
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
+#include <hayward/util.h>
 
 struct cmd_results *
 seat_cmd_hide_cursor(int argc, char **argv) {

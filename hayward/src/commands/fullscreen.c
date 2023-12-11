@@ -7,10 +7,9 @@
 #include <stdbool.h>
 #include <strings.h>
 
-#include <hayward-common/list.h>
-
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/list.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 
