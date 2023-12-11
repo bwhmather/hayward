@@ -20,7 +20,6 @@
 #include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/stringop.h>
@@ -256,8 +255,6 @@ cmd_move_window(int argc, char **argv) {
         hwd_move_window_to_workspace(window, workspace);
         workspace_set_active_window(workspace, window);
 
-        ipc_event_window(window, "move");
-
         // If necessary, clean up old column and workspace.
         if (old_parent) {
             column_consider_destroy(old_parent);
@@ -288,8 +285,6 @@ cmd_move_window(int argc, char **argv) {
         }
 
         hwd_move_window_to_output(window, new_output);
-
-        ipc_event_window(window, "move");
 
         if (focus == window) {
             focus = NULL;
@@ -387,13 +382,10 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
         workspace_arrange(new_workspace);
     }
 
-    ipc_event_window(window, "move");
-
     // Hack to re-focus window
     root_set_focused_window(root, window);
 
     if (old_workspace != new_workspace) {
-        ipc_event_workspace(old_workspace, new_workspace, "focus");
         workspace_detect_urgent(old_workspace);
         workspace_detect_urgent(new_workspace);
     }

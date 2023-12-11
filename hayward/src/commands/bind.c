@@ -18,7 +18,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/stringop.h>
@@ -657,7 +656,6 @@ seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding) {
     }
 
     list_t *res_list = execute_command(binding->command, seat, container);
-    bool success = true;
     for (int i = 0; i < res_list->length; ++i) {
         struct cmd_results *results = res_list->items[i];
         if (results->status != CMD_SUCCESS) {
@@ -665,14 +663,10 @@ seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding) {
                 HWD_DEBUG, "could not run command for binding: %s (%s)", binding->command,
                 results->error
             );
-            success = false;
         }
         free_cmd_results(results);
     }
     list_free(res_list);
-    if (success) {
-        ipc_event_binding(binding);
-    }
 }
 
 /**

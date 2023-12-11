@@ -130,8 +130,6 @@ config_defaults(struct hwd_config *config) {
         goto cleanup;
     if (!(config->modes = create_list()))
         goto cleanup;
-    if (!(config->bars = create_list()))
-        goto cleanup;
     if (!(config->criteria = create_list()))
         goto cleanup;
     if (!(config->no_focus = create_list()))
@@ -201,9 +199,6 @@ config_defaults(struct hwd_config *config) {
     config->show_marks = true;
     config->title_align = ALIGN_LEFT;
     config->tiling_drag_threshold = 9;
-
-    if (!(config->active_bar_modifiers = create_list()))
-        goto cleanup;
 
     if (!(config->config_chain = create_list()))
         goto cleanup;
@@ -728,9 +723,6 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
         case CMD_BLOCK:
             hwd_log(HWD_DEBUG, "Entering block '%s'", new_block);
             list_insert(stack, 0, strdup(new_block));
-            if (strcmp(new_block, "bar") == 0) {
-                config->current_bar = NULL;
-            }
             break;
 
         case CMD_BLOCK_END:
@@ -738,9 +730,6 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
                 hwd_log(HWD_DEBUG, "Unmatched '}' on line %i", line_number);
                 success = false;
                 break;
-            }
-            if (strcmp(block, "bar") == 0) {
-                config->current_bar = NULL;
             }
 
             hwd_log(HWD_DEBUG, "Exiting block '%s'", block);
@@ -847,12 +836,6 @@ free_config(struct hwd_config *config) {
         }
         list_free(config->modes);
     }
-    if (config->bars) {
-        for (int i = 0; i < config->bars->length; ++i) {
-            free_bar_config(config->bars->items[i]);
-        }
-        list_free(config->bars);
-    }
     list_free(config->cmd_queue);
     if (config->input_configs) {
         for (int i = 0; i < config->input_configs->length; i++) {
@@ -873,7 +856,6 @@ free_config(struct hwd_config *config) {
         list_free(config->seat_configs);
     }
     list_free(config->no_focus);
-    list_free(config->active_bar_modifiers);
     list_free_items_and_destroy(config->config_chain);
     free(config->floating_scroll_up_cmd);
     free(config->floating_scroll_down_cmd);

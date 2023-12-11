@@ -7,7 +7,6 @@
 #include <stdbool.h>
 #include <wlr/types/wlr_output_layout.h>
 
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/tree/column.h>
@@ -79,8 +78,6 @@ window_set_floating(struct hwd_window *window, bool enable) {
     }
 
     window_end_mouse_operation(window);
-
-    ipc_event_window(window, "floating");
 }
 
 void
@@ -120,8 +117,6 @@ hwd_move_window_to_column_from_maybe_direction(
             column_add_child(column, window);
         }
     }
-
-    ipc_event_window(window, "move");
 
     if (column->pending.workspace) {
         workspace_detect_urgent(column->pending.workspace);

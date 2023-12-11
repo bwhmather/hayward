@@ -18,7 +18,6 @@
 #include <hayward/config.h>
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/scene/nineslice.h>
@@ -308,8 +307,6 @@ workspace_create(const char *name) {
 
     workspace_init_scene(workspace);
 
-    ipc_event_workspace(NULL, workspace, "init");
-
     return workspace;
 }
 
@@ -349,8 +346,6 @@ workspace_begin_destroy(struct hwd_workspace *workspace) {
     hwd_log(HWD_DEBUG, "Destroying workspace '%s'", workspace->name);
 
     workspace->pending.dead = true;
-
-    ipc_event_workspace(NULL, workspace, "empty"); // intentional
 
     workspace_detach(workspace);
 
@@ -444,7 +439,6 @@ workspace_detect_urgent(struct hwd_workspace *workspace) {
 
     if (workspace->urgent != new_urgent) {
         workspace->urgent = new_urgent;
-        ipc_event_workspace(NULL, workspace, "urgent");
     }
 }
 

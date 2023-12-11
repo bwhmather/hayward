@@ -34,7 +34,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc_server.h>
 #include <hayward/log.h>
 #include <hayward/pango.h>
 #include <hayward/server.h>
@@ -451,8 +450,6 @@ view_map(
     if (set_focus) {
         root_set_focused_window(root, view->window);
     }
-
-    ipc_event_window(view->window, "new");
 }
 
 void
@@ -651,8 +648,6 @@ view_update_title(struct hwd_view *view, bool force) {
 
     window_set_dirty(view->window);
 
-    ipc_event_window(view->window, "title");
-
     if (view->foreign_toplevel && title) {
         wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel, title);
     }
@@ -705,8 +700,6 @@ view_set_urgent(struct hwd_view *view, bool enable) {
             view->urgent_timer = NULL;
         }
     }
-
-    ipc_event_window(view->window, "urgent");
 
     workspace_detect_urgent(view->window->pending.workspace);
 }

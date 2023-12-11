@@ -22,8 +22,6 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/haywardnag.h>
-#include <hayward/ipc.h>
-#include <hayward/ipc_server.h>
 #include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
@@ -46,7 +44,6 @@ hwd_terminate(int exit_code) {
         // Running as server
         terminate_request = true;
         exit_value = exit_code;
-        ipc_event_shutdown("exit");
         wl_display_terminate(server.wl_display);
     }
 }
@@ -402,8 +399,6 @@ main(int argc, char **argv) {
         return valid ? 0 : 1;
     }
 
-    ipc_init(&server);
-
     setenv("WAYLAND_DISPLAY", server.socket, true);
     if (!load_main_config(config_path, false, false)) {
         hwd_terminate(EXIT_FAILURE);
@@ -423,7 +418,6 @@ main(int argc, char **argv) {
     }
 
     config->active = true;
-    load_haywardbars();
     run_deferred_commands();
     run_deferred_bindings();
 

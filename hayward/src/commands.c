@@ -54,7 +54,6 @@ checkarg(int argc, const char *name, enum expected_args type, int val) {
 
 /* Keep alphabetized */
 static const struct cmd_handler handlers[] = {
-    {"bar", cmd_bar},
     {"bindcode", cmd_bindcode},
     {"bindswitch", cmd_bindswitch},
     {"bindsym", cmd_bindsym},

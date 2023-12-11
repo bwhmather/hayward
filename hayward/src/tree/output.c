@@ -24,7 +24,6 @@
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/scheduler.h>
@@ -210,8 +209,6 @@ output_evacuate(struct hwd_output *output) {
 
                 window->pending.fullscreen = false;
                 window->pending.output = output;
-
-                ipc_event_window(window, "move");
             }
         }
 
@@ -226,8 +223,6 @@ output_evacuate(struct hwd_output *output) {
             window->pending.output = output;
 
             window_floating_move_to_center(window);
-
-            ipc_event_window(window, "move");
         }
 
         workspace_arrange(workspace);

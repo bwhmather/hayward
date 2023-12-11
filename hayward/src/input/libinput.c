@@ -16,7 +16,6 @@
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
-#include <hayward/ipc_server.h>
 #include <hayward/log.h>
 #include <hayward/tree/output.h>
 
@@ -228,9 +227,9 @@ hwd_input_configure_libinput_device(struct hwd_input_device *input_device) {
             HWD_DEBUG, "%s '%s' is mapped to offline output '%s'; disabling input", ic->input_type,
             ic->identifier, ic->mapped_to_output
         );
-        changed |= set_send_events(device, LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+        set_send_events(device, LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
     } else if (ic->send_events != INT_MIN) {
-        changed |= set_send_events(device, ic->send_events);
+        set_send_events(device, ic->send_events);
     } else {
         // Have to reset to the default mode here, otherwise if ic->send_events
         // is unset and a mapped output just came online after being disabled,
@@ -240,50 +239,46 @@ hwd_input_configure_libinput_device(struct hwd_input_device *input_device) {
     }
 
     if (ic->tap != INT_MIN) {
-        changed |= set_tap(device, ic->tap);
+        set_tap(device, ic->tap);
     }
     if (ic->tap_button_map != INT_MIN) {
-        changed |= set_tap_button_map(device, ic->tap_button_map);
+        set_tap_button_map(device, ic->tap_button_map);
     }
     if (ic->drag != INT_MIN) {
-        changed |= set_tap_drag(device, ic->drag);
+        set_tap_drag(device, ic->drag);
     }
     if (ic->drag_lock != INT_MIN) {
-        changed |= set_tap_drag_lock(device, ic->drag_lock);
+        set_tap_drag_lock(device, ic->drag_lock);
     }
     if (ic->pointer_accel != FLT_MIN) {
-        changed |= set_accel_speed(device, ic->pointer_accel);
+        set_accel_speed(device, ic->pointer_accel);
     }
     if (ic->accel_profile != INT_MIN) {
-        changed |= set_accel_profile(device, ic->accel_profile);
+        set_accel_profile(device, ic->accel_profile);
     }
     if (ic->natural_scroll != INT_MIN) {
-        changed |= set_natural_scroll(device, ic->natural_scroll);
+        set_natural_scroll(device, ic->natural_scroll);
     }
     if (ic->left_handed != INT_MIN) {
-        changed |= set_left_handed(device, ic->left_handed);
+        set_left_handed(device, ic->left_handed);
     }
     if (ic->click_method != INT_MIN) {
-        changed |= set_click_method(device, ic->click_method);
+        set_click_method(device, ic->click_method);
     }
     if (ic->middle_emulation != INT_MIN) {
-        changed |= set_middle_emulation(device, ic->middle_emulation);
+        set_middle_emulation(device, ic->middle_emulation);
     }
     if (ic->scroll_method != INT_MIN) {
-        changed |= set_scroll_method(device, ic->scroll_method);
+        set_scroll_method(device, ic->scroll_method);
     }
     if (ic->scroll_button != INT_MIN) {
-        changed |= set_scroll_button(device, ic->scroll_button);
+        set_scroll_button(device, ic->scroll_button);
     }
     if (ic->dwt != INT_MIN) {
-        changed |= set_dwt(device, ic->dwt);
+        set_dwt(device, ic->dwt);
     }
     if (ic->calibration_matrix.configured) {
-        changed |= set_calibration_matrix(device, ic->calibration_matrix.matrix);
-    }
-
-    if (changed) {
-        ipc_event_input("libinput_config", input_device);
+        set_calibration_matrix(device, ic->calibration_matrix.matrix);
     }
 }
 
@@ -297,34 +292,30 @@ hwd_input_reset_libinput_device(struct hwd_input_device *input_device) {
     hwd_log(HWD_DEBUG, "hwd_input_reset_libinput_device(%s)", input_device->identifier);
     bool changed = false;
 
-    changed |= set_send_events(device, libinput_device_config_send_events_get_default_mode(device));
-    changed |= set_tap(device, libinput_device_config_tap_get_default_enabled(device));
+    set_send_events(device, libinput_device_config_send_events_get_default_mode(device));
+    set_tap(device, libinput_device_config_tap_get_default_enabled(device));
     changed |=
         set_tap_button_map(device, libinput_device_config_tap_get_default_button_map(device));
-    changed |= set_tap_drag(device, libinput_device_config_tap_get_default_drag_enabled(device));
+    set_tap_drag(device, libinput_device_config_tap_get_default_drag_enabled(device));
     changed |=
         set_tap_drag_lock(device, libinput_device_config_tap_get_default_drag_lock_enabled(device));
-    changed |= set_accel_speed(device, libinput_device_config_accel_get_default_speed(device));
-    changed |= set_accel_profile(device, libinput_device_config_accel_get_default_profile(device));
-    changed |= set_natural_scroll(
+    set_accel_speed(device, libinput_device_config_accel_get_default_speed(device));
+    set_accel_profile(device, libinput_device_config_accel_get_default_profile(device));
+    set_natural_scroll(
         device, libinput_device_config_scroll_get_default_natural_scroll_enabled(device)
     );
-    changed |= set_left_handed(device, libinput_device_config_left_handed_get_default(device));
-    changed |= set_click_method(device, libinput_device_config_click_get_default_method(device));
-    changed |= set_middle_emulation(
+    set_left_handed(device, libinput_device_config_left_handed_get_default(device));
+    set_click_method(device, libinput_device_config_click_get_default_method(device));
+    set_middle_emulation(
         device, libinput_device_config_middle_emulation_get_default_enabled(device)
     );
-    changed |= set_scroll_method(device, libinput_device_config_scroll_get_default_method(device));
-    changed |= set_scroll_button(device, libinput_device_config_scroll_get_default_button(device));
-    changed |= set_dwt(device, libinput_device_config_dwt_get_default_enabled(device));
+    set_scroll_method(device, libinput_device_config_scroll_get_default_method(device));
+    set_scroll_button(device, libinput_device_config_scroll_get_default_button(device));
+    set_dwt(device, libinput_device_config_dwt_get_default_enabled(device));
 
     float matrix[6];
     libinput_device_config_calibration_get_default_matrix(device, matrix);
-    changed |= set_calibration_matrix(device, matrix);
-
-    if (changed) {
-        ipc_event_input("libinput_config", input_device);
-    }
+    set_calibration_matrix(device, matrix);
 }
 
 bool

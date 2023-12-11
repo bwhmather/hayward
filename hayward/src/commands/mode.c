@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include <hayward/config.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/stringop.h>
@@ -75,7 +74,6 @@ cmd_mode(int argc, char **argv) {
     if (argc == 1) {
         // trigger IPC mode event
         hwd_log(HWD_DEBUG, "Switching to mode `%s' (pango=%d)", mode->name, mode->pango);
-        ipc_event_mode(config->current_mode->name, config->current_mode->pango);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 

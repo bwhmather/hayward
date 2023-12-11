@@ -28,7 +28,6 @@
 #include <hayward/input/keyboard.h>
 #include <hayward/input/libinput.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/server.h>
@@ -225,8 +224,6 @@ handle_device_destroy(struct wl_listener *listener, void *data) {
     struct hwd_seat *seat = NULL;
     wl_list_for_each(seat, &server.input->seats, link) { seat_remove_device(seat, input_device); }
 
-    ipc_event_input("removed", input_device);
-
     wl_list_remove(&input_device->link);
     wl_list_remove(&input_device->device_destroy.link);
     free(input_device->identifier);
@@ -284,8 +281,6 @@ handle_new_input(struct wl_listener *listener, void *data) {
     if (!added) {
         hwd_log(HWD_DEBUG, "device '%s' is not configured on any seats", input_device->identifier);
     }
-
-    ipc_event_input("added", input_device);
 }
 
 static void

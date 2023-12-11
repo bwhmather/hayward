@@ -328,4 +328,3 @@ expand_path(char **path) {
     wordfree(&p);
     return true;
 }
-

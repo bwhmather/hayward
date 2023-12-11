@@ -37,7 +37,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/text_input.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/server.h>
@@ -713,27 +712,6 @@ handle_keyboard_repeat(void *data) {
 }
 
 static void
-determine_bar_visibility(uint32_t modifiers) {
-    for (int i = 0; i < config->bars->length; ++i) {
-        struct bar_config *bar = config->bars->items[i];
-        if (bar->modifier == 0) {
-            continue;
-        }
-
-        bool vis_by_mod = (~modifiers & bar->modifier) == 0;
-        if (bar->visible_by_modifier != vis_by_mod) {
-            // If visible by modifier is set, send that it is no longer visible
-            // by modifier (regardless of bar mode and state). Otherwise, only
-            // send the visible by modifier status if mode and state are hide
-            if (bar->visible_by_modifier || strcmp(bar->mode, bar->hidden_state) == 0) {
-                bar->visible_by_modifier = vis_by_mod;
-                ipc_event_bar_state_update(bar);
-            }
-        }
-    }
-}
-
-static void
 handle_modifier_event(struct hwd_keyboard *keyboard) {
     if (!keyboard->wlr->group) {
         struct wlr_input_method_keyboard_grab_v2 *kb_grab = keyboard_get_im_grab(keyboard);
@@ -746,17 +724,10 @@ handle_modifier_event(struct hwd_keyboard *keyboard) {
             wlr_seat_set_keyboard(wlr_seat, keyboard->wlr);
             wlr_seat_keyboard_notify_modifiers(wlr_seat, &keyboard->wlr->modifiers);
         }
-
-        uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard->wlr);
-        determine_bar_visibility(modifiers);
     }
 
     if (keyboard->wlr->modifiers.group != keyboard->effective_layout) {
         keyboard->effective_layout = keyboard->wlr->modifiers.group;
-
-        if (!wlr_keyboard_group_from_wlr_keyboard(keyboard->wlr)) {
-            ipc_event_input("xkb_layout", keyboard->seat_device->input_device);
-        }
     }
 }
 
@@ -990,7 +961,6 @@ hwd_keyboard_configure(struct hwd_keyboard *keyboard) {
 
     bool keymap_changed =
         keyboard->keymap ? !wlr_keyboard_keymaps_match(keyboard->keymap, keymap) : true;
-    bool effective_layout_changed = keyboard->effective_layout != 0;
 
     int repeat_rate = 25;
     if (input_config && input_config->repeat_rate != INT_MIN) {
@@ -1067,12 +1037,6 @@ hwd_keyboard_configure(struct hwd_keyboard *keyboard) {
     wl_list_remove(&keyboard->keyboard_modifiers.link);
     wl_signal_add(&keyboard->wlr->events.modifiers, &keyboard->keyboard_modifiers);
     keyboard->keyboard_modifiers.notify = handle_keyboard_modifiers;
-
-    if (keymap_changed) {
-        ipc_event_input("xkb_keymap", keyboard->seat_device->input_device);
-    } else if (effective_layout_changed) {
-        ipc_event_input("xkb_layout", keyboard->seat_device->input_device);
-    }
 }
 
 void

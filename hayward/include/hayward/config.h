@@ -242,102 +242,6 @@ enum pango_markup_config {
     PANGO_MARKUP_DEFAULT // The default is font dependent ("pango:" prefix)
 };
 
-struct bar_config {
-    char *haywardbar_command;
-    struct wl_client *client;
-    struct wl_listener client_destroy;
-
-    /**
-     * One of "dock", "hide", "invisible"
-     *
-     * Always visible in dock mode. Visible only when modifier key is held in
-     * hide mode. Never visible in invisible mode.
-     */
-    char *mode;
-    /**
-     * One of "show" or "hide".
-     *
-     * In "show" mode, it will always be shown on top of the active workspace.
-     */
-    char *hidden_state;
-    bool visible_by_modifier; // only relevant in "hide" mode
-    /**
-     * Id name used to identify the bar through IPC.
-     *
-     * Defaults to bar-x, where x corresponds to the position of the
-     * embedding bar block in the config file (bar-0, bar-1, ...).
-     */
-    char *id;
-    uint32_t modifier;
-    list_t *outputs;
-    char *position;
-    list_t *bindings;
-    char *status_command;
-    enum pango_markup_config pango_markup;
-    int height; // -1 not defined
-    bool workspace_buttons;
-    bool wrap_scroll;
-    char *separator_symbol;
-    bool strip_workspace_numbers;
-    bool strip_workspace_name;
-    bool binding_mode_indicator;
-    bool verbose;
-    int status_padding;
-    int status_edge_padding;
-    uint32_t workspace_min_width;
-    struct {
-        char *background;
-        char *statusline;
-        char *separator;
-        char *focused_background;
-        char *focused_statusline;
-        char *focused_separator;
-        char *focused_workspace_border;
-        char *focused_workspace_bg;
-        char *focused_workspace_text;
-        char *active_workspace_border;
-        char *active_workspace_bg;
-        char *active_workspace_text;
-        char *inactive_workspace_border;
-        char *inactive_workspace_bg;
-        char *inactive_workspace_text;
-        char *urgent_workspace_border;
-        char *urgent_workspace_bg;
-        char *urgent_workspace_text;
-        char *binding_mode_border;
-        char *binding_mode_bg;
-        char *binding_mode_text;
-    } colors;
-
-#if HAVE_TRAY
-    char *icon_theme;
-    struct wl_list tray_bindings; // struct tray_binding::link
-    list_t *tray_outputs;         // char *
-    int tray_padding;
-#endif
-};
-
-struct bar_binding {
-    uint32_t button;
-    bool release;
-    char *command;
-};
-
-#if HAVE_TRAY
-struct tray_binding {
-    uint32_t button;
-    const char *command;
-    struct wl_list link; // struct tray_binding::link
-};
-#endif
-
-struct border_colors {
-    float border[4];
-    float background[4];
-    float text[4];
-    float indicator[4];
-};
-
 enum edge_border_types {
     E_NONE,       /**< Don't hide edge borders */
     E_VERTICAL,   /**< hide vertical edge borders */
@@ -384,7 +288,6 @@ struct hwd_config {
     struct haywardnag_instance haywardnag_config_errors;
     list_t *symbols;
     list_t *modes;
-    list_t *bars;
     list_t *cmd_queue;
     list_t *output_configs;
     list_t *input_configs;
@@ -392,9 +295,7 @@ struct hwd_config {
     list_t *seat_configs;
     list_t *criteria;
     list_t *no_focus;
-    list_t *active_bar_modifiers;
     struct hwd_mode *current_mode;
-    struct bar_config *current_bar;
     uint32_t floating_mod;
     bool floating_mod_inverse;
     uint32_t dragging_key;
@@ -548,21 +449,6 @@ free_switch_binding(struct hwd_switch_binding *binding);
 
 void
 seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding);
-
-void
-load_haywardbar(struct bar_config *bar);
-
-void
-load_haywardbars(void);
-
-struct bar_config *
-default_bar_config(void);
-
-void
-free_bar_config(struct bar_config *bar);
-
-void
-free_bar_binding(struct bar_binding *binding);
 
 /**
  * Updates the value of config->font_height based on the metrics for title's

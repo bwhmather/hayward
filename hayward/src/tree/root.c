@@ -22,7 +22,6 @@
 #include <hayward/config.h>
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/server.h>
@@ -588,11 +587,6 @@ root_commit_focus(struct hwd_root *root) {
         struct hwd_root_focus_changed_event event = {
             .root = root, .old_focus = old_surface, .new_focus = new_surface};
         wl_signal_emit_mutable(&root->events.focus_changed, &event);
-    }
-
-    // Emit ipc events
-    if (new_window != old_window) {
-        ipc_event_window(new_window, "focus");
     }
 }
 

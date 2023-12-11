@@ -23,7 +23,6 @@
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/ipc_server.h>
 #include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/scene/colours.h>
@@ -308,8 +307,6 @@ window_begin_destroy(struct hwd_window *window) {
     hwd_assert(window != NULL, "Expected window");
     hwd_assert(window_is_alive(window), "Expected live window");
 
-    ipc_event_window(window, "close");
-
     window_end_mouse_operation(window);
 
     if (window->pending.parent || window->pending.workspace) {
@@ -577,7 +574,6 @@ window_fullscreen_disable(struct hwd_window *window) {
     }
 
     window_end_mouse_operation(window);
-    ipc_event_window(window, "fullscreen_mode");
 
     window_set_dirty(window);
 }
@@ -617,7 +613,6 @@ window_fullscreen_enable(struct hwd_window *window) {
     }
 
     window_end_mouse_operation(window);
-    ipc_event_window(window, "fullscreen_mode");
 
     window_set_dirty(window);
 }
