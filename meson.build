@@ -386,7 +386,6 @@ install_data(
 if get_option('zsh-completions')
   zsh_files = files(
     'completions/zsh/_hayward',
-    'completions/zsh/_haywardmsg',
   )
   zsh_install_dir = join_paths(datadir, 'zsh', 'site-functions')
 
@@ -396,12 +395,7 @@ endif
 if get_option('bash-completions')
   bash_files = files(
     'completions/bash/hayward',
-    'completions/bash/haywardmsg',
   )
-
-  if get_option('haywardbar')
-    bash_files += files('completions/bash/haywardbar')
-  endif
 
   if bash_comp_dep.found()
     bash_install_dir = bash_comp_dep.get_variable(
@@ -418,12 +412,7 @@ endif
 if get_option('fish-completions')
   fish_files = files(
     'completions/fish/hayward.fish',
-    'completions/fish/haywardmsg.fish',
   )
-
-  if get_option('haywardnag')
-    fish_files += files('completions/fish/haywardnag.fish')
-  endif
 
   if fish_comp_dep.found()
     fish_install_dir = fish_comp_dep.get_variable(
