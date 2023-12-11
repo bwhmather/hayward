@@ -15,9 +15,6 @@ struct hwd_theme_nineslice {
     int bottom_break;
 };
 
-struct wlr_scene_node *
-hwd_theme_nineslice_create_node(struct hwd_theme_nineslice *description);
-
 struct hwd_theme_window {
     struct hwd_theme_nineslice titlebar;
     struct hwd_theme_nineslice shaded_titlebar;

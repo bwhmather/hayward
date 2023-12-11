@@ -21,14 +21,6 @@
 uint32_t
 get_modifier_mask_by_name(const char *name);
 
-/**
- * Get an array of modifier names from modifier_masks
- *
- * Populates the names array and return the number of names added.
- */
-int
-get_modifier_names(const char **names, uint32_t modifier_masks);
-
 struct hwd_shortcut_state {
     /**
      * A list of pressed key ids (either keysyms or keycodes),

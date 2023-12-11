@@ -1,7 +1,6 @@
 #ifndef HWD_DESKTOP_IDLE_INHIBIT_V1_H
 #define HWD_DESKTOP_IDLE_INHIBIT_V1_H
 
-#include <stdbool.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
@@ -32,12 +31,6 @@ struct hwd_idle_inhibitor_v1 {
     struct wl_list link;
     struct wl_listener destroy;
 };
-
-struct hwd_idle_inhibitor_v1 *
-hwd_idle_inhibit_v1_application_inhibitor_for_view(struct hwd_view *view);
-
-bool
-hwd_idle_inhibit_v1_is_active(struct hwd_idle_inhibitor_v1 *inhibitor);
 
 void
 hwd_idle_inhibit_v1_check_active(struct hwd_idle_inhibit_manager_v1 *manager);

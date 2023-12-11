@@ -86,13 +86,6 @@ cmd_results_new(enum cmd_status status, const char *error, ...);
  */
 void
 free_cmd_results(struct cmd_results *results);
-/**
- * Serializes a list of cmd_results to a JSON string.
- *
- * Free the JSON string later on.
- */
-char *
-cmd_results_to_json(list_t *res_list);
 
 void
 window_resize_tiled(struct hwd_window *window, uint32_t axis, int amount);

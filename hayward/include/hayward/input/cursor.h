@@ -134,9 +134,6 @@ get_mouse_bindcode(const char *name, char **error);
 uint32_t
 get_mouse_button(const char *name, char **error);
 
-const char *
-get_mouse_button_name(uint32_t button);
-
 void
 hwd_cursor_constrain(struct hwd_cursor *cursor, struct wlr_pointer_constraint_v1 *constraint);
 

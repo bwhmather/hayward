@@ -27,7 +27,6 @@
 #include <wlr/xwayland/xwayland.h>
 
 #include <hayward/config.h>
-#include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
@@ -97,7 +96,7 @@ view_begin_destroy(struct hwd_view *view) {
     }
 }
 
-const char *
+static const char *
 view_get_title(struct hwd_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_TITLE);
@@ -105,7 +104,7 @@ view_get_title(struct hwd_view *view) {
     return NULL;
 }
 
-const char *
+static const char *
 view_get_app_id(struct hwd_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_APP_ID);
@@ -113,7 +112,7 @@ view_get_app_id(struct hwd_view *view) {
     return NULL;
 }
 
-const char *
+static const char *
 view_get_class(struct hwd_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_CLASS);
@@ -121,47 +120,15 @@ view_get_class(struct hwd_view *view) {
     return NULL;
 }
 
-const char *
+static const char *
 view_get_instance(struct hwd_view *view) {
     if (view->impl->get_string_prop) {
         return view->impl->get_string_prop(view, VIEW_PROP_INSTANCE);
     }
     return NULL;
 }
-#if HAVE_XWAYLAND
-uint32_t
-view_get_x11_window_id(struct hwd_view *view) {
-    if (view->impl->get_int_prop) {
-        return view->impl->get_int_prop(view, VIEW_PROP_X11_WINDOW_ID);
-    }
-    return 0;
-}
 
-uint32_t
-view_get_x11_parent_id(struct hwd_view *view) {
-    if (view->impl->get_int_prop) {
-        return view->impl->get_int_prop(view, VIEW_PROP_X11_PARENT_ID);
-    }
-    return 0;
-}
-#endif
-const char *
-view_get_window_role(struct hwd_view *view) {
-    if (view->impl->get_string_prop) {
-        return view->impl->get_string_prop(view, VIEW_PROP_WINDOW_ROLE);
-    }
-    return NULL;
-}
-
-uint32_t
-view_get_window_type(struct hwd_view *view) {
-    if (view->impl->get_int_prop) {
-        return view->impl->get_int_prop(view, VIEW_PROP_WINDOW_TYPE);
-    }
-    return 0;
-}
-
-const char *
+static const char *
 view_get_shell(struct hwd_view *view) {
     switch (view->type) {
     case HWD_VIEW_XDG_SHELL:
@@ -195,18 +162,6 @@ view_configure(struct hwd_view *view, double lx, double ly, int width, int heigh
         return view->impl->configure(view, lx, ly, width, height);
     }
     return 0;
-}
-
-bool
-view_inhibit_idle(struct hwd_view *view) {
-    struct hwd_idle_inhibitor_v1 *application_inhibitor =
-        hwd_idle_inhibit_v1_application_inhibitor_for_view(view);
-
-    if (!application_inhibitor) {
-        return false;
-    }
-
-    return hwd_idle_inhibit_v1_is_active(application_inhibitor);
 }
 
 void

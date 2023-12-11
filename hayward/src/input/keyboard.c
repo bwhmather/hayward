@@ -64,21 +64,6 @@ get_modifier_mask_by_name(const char *name) {
     return 0;
 }
 
-int
-get_modifier_names(const char **names, uint32_t modifier_masks) {
-    int length = 0;
-    int i;
-    for (i = 0; i < (int)(sizeof(modifiers) / sizeof(struct modifier_key)); ++i) {
-        if ((modifier_masks & modifiers[i].mod) != 0) {
-            names[length] = modifiers[i].name;
-            ++length;
-            modifier_masks ^= modifiers[i].mod;
-        }
-    }
-
-    return length;
-}
-
 static void
 handle_xkb_context_log(
     struct xkb_context *context, enum xkb_log_level level, const char *format, va_list args

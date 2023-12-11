@@ -21,7 +21,6 @@
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 
@@ -747,15 +746,4 @@ column_set_resizing(struct hwd_column *column, bool resizing) {
         struct hwd_window *child = column->pending.children->items[i];
         window_set_resizing(child, resizing);
     }
-}
-
-static bool
-find_urgent_iterator(struct hwd_window *window, void *data) {
-    return window->view && view_is_urgent(window->view);
-}
-
-bool
-column_has_urgent_child(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
-    return column_find_child(column, find_urgent_iterator, NULL);
 }

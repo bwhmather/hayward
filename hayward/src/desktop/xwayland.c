@@ -265,13 +265,6 @@ get_int_prop(struct hwd_view *view, enum hwd_view_prop prop) {
         return 0;
     }
     switch (prop) {
-    case VIEW_PROP_X11_WINDOW_ID:
-        return view->wlr_xwayland_surface->window_id;
-    case VIEW_PROP_X11_PARENT_ID:
-        if (view->wlr_xwayland_surface->parent) {
-            return view->wlr_xwayland_surface->parent->window_id;
-        }
-        return 0;
     case VIEW_PROP_WINDOW_TYPE:
         if (view->wlr_xwayland_surface->window_type_len == 0) {
             return 0;

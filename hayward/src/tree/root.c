@@ -590,16 +590,6 @@ root_commit_focus(struct hwd_root *root) {
     }
 }
 
-void
-root_for_each_workspace(
-    struct hwd_root *root, void (*f)(struct hwd_workspace *workspace, void *data), void *data
-) {
-    for (int i = 0; i < root->pending.workspaces->length; ++i) {
-        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
-        f(workspace, data);
-    }
-}
-
 struct hwd_workspace *
 root_find_workspace(
     struct hwd_root *root, bool (*test)(struct hwd_workspace *workspace, void *data), void *data

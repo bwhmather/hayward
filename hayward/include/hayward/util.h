@@ -2,7 +2,6 @@
 #define HWD_UTIL_H
 
 #include <stdbool.h>
-#include <stdint.h>
 
 enum movement_unit {
     MOVEMENT_UNIT_PX,
@@ -22,14 +21,6 @@ struct movement_amount {
  */
 int
 parse_movement_amount(int argc, char **argv, struct movement_amount *amount);
-
-/**
- * Given a string that represents an RGB(A) color, result will be set to a
- * uint32_t version of the color, as long as it is valid. If it is invalid,
- * then false will be returned and result will be untouched.
- */
-bool
-parse_color(const char *color, uint32_t *result);
 
 /**
  * Given a string that represents a boolean, return the boolean value. This

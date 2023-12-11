@@ -1,35 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/util.h"
 
-#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <strings.h>
 
 #include <hayward/log.h>
-
-bool
-parse_color(const char *color, uint32_t *result) {
-    if (color[0] == '#') {
-        ++color;
-    }
-    int len = strlen(color);
-    if ((len != 6 && len != 8) || !isxdigit(color[0]) || !isxdigit(color[1])) {
-        return false;
-    }
-    char *ptr;
-    uint32_t parsed = strtoul(color, &ptr, 16);
-    if (*ptr != '\0') {
-        return false;
-    }
-    *result = len == 6 ? ((parsed << 8) | 0xFF) : parsed;
-    return true;
-}
 
 bool
 parse_boolean(const char *boolean, bool current) {

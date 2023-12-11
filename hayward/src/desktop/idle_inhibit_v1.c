@@ -61,20 +61,7 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
     hwd_idle_inhibit_v1_check_active(manager);
 }
 
-struct hwd_idle_inhibitor_v1 *
-hwd_idle_inhibit_v1_application_inhibitor_for_view(struct hwd_view *view) {
-    struct hwd_idle_inhibit_manager_v1 *manager = server.idle_inhibit_manager_v1;
-    struct hwd_idle_inhibitor_v1 *inhibitor;
-    wl_list_for_each(inhibitor, &manager->inhibitors, link) {
-        if (inhibitor->mode == INHIBIT_IDLE_APPLICATION &&
-            view_from_wlr_surface(inhibitor->wlr_inhibitor->surface) == view) {
-            return inhibitor;
-        }
-    }
-    return NULL;
-}
-
-bool
+static bool
 hwd_idle_inhibit_v1_is_active(struct hwd_idle_inhibitor_v1 *inhibitor) {
     switch (inhibitor->mode) {
     case INHIBIT_IDLE_APPLICATION:;

@@ -34,10 +34,6 @@ enum hwd_view_prop {
     VIEW_PROP_INSTANCE,
     VIEW_PROP_WINDOW_TYPE,
     VIEW_PROP_WINDOW_ROLE,
-#if HAVE_XWAYLAND
-    VIEW_PROP_X11_WINDOW_ID,
-    VIEW_PROP_X11_PARENT_ID,
-#endif
 };
 
 struct hwd_view_impl {
@@ -124,33 +120,6 @@ view_destroy(struct hwd_view *view);
 void
 view_begin_destroy(struct hwd_view *view);
 
-const char *
-view_get_title(struct hwd_view *view);
-
-const char *
-view_get_app_id(struct hwd_view *view);
-
-const char *
-view_get_class(struct hwd_view *view);
-
-const char *
-view_get_instance(struct hwd_view *view);
-
-uint32_t
-view_get_x11_window_id(struct hwd_view *view);
-
-uint32_t
-view_get_x11_parent_id(struct hwd_view *view);
-
-const char *
-view_get_window_role(struct hwd_view *view);
-
-uint32_t
-view_get_window_type(struct hwd_view *view);
-
-const char *
-view_get_shell(struct hwd_view *view);
-
 void
 view_get_constraints(
     struct hwd_view *view, double *min_width, double *max_width, double *min_height,
@@ -159,9 +128,6 @@ view_get_constraints(
 
 uint32_t
 view_configure(struct hwd_view *view, double lx, double ly, int width, int height);
-
-bool
-view_inhibit_idle(struct hwd_view *view);
 
 void
 view_set_activated(struct hwd_view *view, bool activated);

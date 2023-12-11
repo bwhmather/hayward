@@ -164,7 +164,4 @@ column_get_box(struct hwd_column *column, struct wlr_box *box);
 void
 column_set_resizing(struct hwd_column *column, bool resizing);
 
-bool
-column_has_urgent_child(struct hwd_column *column);
-
 #endif

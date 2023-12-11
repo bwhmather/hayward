@@ -168,11 +168,6 @@ root_set_focused_surface(struct hwd_root *root, struct wlr_surface *surface);
 void
 root_commit_focus(struct hwd_root *root);
 
-void
-root_for_each_workspace(
-    struct hwd_root *root, void (*f)(struct hwd_workspace *workspace, void *data), void *data
-);
-
 struct hwd_workspace *
 root_find_workspace(
     struct hwd_root *root, bool (*test)(struct hwd_workspace *workspace, void *data), void *data

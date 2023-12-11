@@ -1264,23 +1264,6 @@ get_mouse_button(const char *name, char **error) {
     return button;
 }
 
-const char *
-get_mouse_button_name(uint32_t button) {
-    const char *name = libevdev_event_code_get_name(EV_KEY, button);
-    if (!name) {
-        if (button == HWD_SCROLL_UP) {
-            name = "HWD_SCROLL_UP";
-        } else if (button == HWD_SCROLL_DOWN) {
-            name = "HWD_SCROLL_DOWN";
-        } else if (button == HWD_SCROLL_LEFT) {
-            name = "HWD_SCROLL_LEFT";
-        } else if (button == HWD_SCROLL_RIGHT) {
-            name = "HWD_SCROLL_RIGHT";
-        }
-    }
-    return name;
-}
-
 static void
 warp_to_constraint_cursor_hint(struct hwd_cursor *cursor) {
     struct wlr_pointer_constraint_v1 *constraint = cursor->active_constraint;
