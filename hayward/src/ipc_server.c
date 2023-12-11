@@ -23,13 +23,11 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
-#include <wlr/types/wlr_output.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include <hayward-common/ipc.h>
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
-#include <hayward-common/util.h>
 
 #include <hayward/commands.h>
 #include <hayward/config.h>
@@ -39,7 +37,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/ipc_json.h>
 #include <hayward/server.h>
-#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
@@ -688,30 +685,6 @@ ipc_client_handle_command(
     case IPC_SEND_TICK: {
         ipc_event_tick(buf);
         ipc_send_reply(client, payload_type, "{\"success\": true}", 17);
-        goto exit_cleanup;
-    }
-
-    case IPC_GET_OUTPUTS: {
-        json_object *outputs = json_object_new_array();
-        for (int i = 0; i < root->outputs->length; ++i) {
-            struct hwd_output *output = root->outputs->items[i];
-            json_object *output_json = ipc_json_describe_output(output);
-
-            const char *subpixel = hwd_wl_output_subpixel_to_string(output->wlr_output->subpixel);
-            json_object_object_add(
-                output_json, "subpixel_hinting", json_object_new_string(subpixel)
-            );
-            json_object_array_add(outputs, output_json);
-        }
-        struct hwd_output *output;
-        wl_list_for_each(output, &root->all_outputs, link) {
-            if (!output->enabled) {
-                json_object_array_add(outputs, ipc_json_describe_disabled_output(output));
-            }
-        }
-        const char *json_string = json_object_to_json_string(outputs);
-        ipc_send_reply(client, payload_type, json_string, (uint32_t)strlen(json_string));
-        json_object_put(outputs); // free
         goto exit_cleanup;
     }
 

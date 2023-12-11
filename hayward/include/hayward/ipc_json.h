@@ -22,10 +22,6 @@ ipc_json_get_binding_mode(void);
 json_object *
 ipc_json_describe_window(struct hwd_window *window);
 json_object *
-ipc_json_describe_output(struct hwd_output *output);
-json_object *
-ipc_json_describe_disabled_output(struct hwd_output *o);
-json_object *
 ipc_json_describe_workspace(struct hwd_workspace *workspace);
 json_object *
 ipc_json_describe_root(struct hwd_root *root);

@@ -20,7 +20,6 @@
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/box.h>
 #include <wlr/xwayland/xwayland.h>
@@ -30,18 +29,14 @@
 #include <hayward-common/list.h>
 #include <hayward-common/log.h>
 
-#include <wayland-server-protocol.h>
-
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/desktop/xwayland.h>
-#include <hayward/globals/root.h>
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
-#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -49,45 +44,6 @@
 
 static json_object *
 ipc_json_describe_column(struct hwd_column *column);
-
-static const char *
-ipc_json_output_transform_description(enum wl_output_transform transform) {
-    switch (transform) {
-    case WL_OUTPUT_TRANSFORM_NORMAL:
-        return "normal";
-    case WL_OUTPUT_TRANSFORM_90:
-        // Hayward uses clockwise transforms, while WL_OUTPUT_TRANSFORM_*
-        // describes anti-clockwise transforms.
-        return "270";
-    case WL_OUTPUT_TRANSFORM_180:
-        return "180";
-    case WL_OUTPUT_TRANSFORM_270:
-        // Transform also inverted here.
-        return "90";
-    case WL_OUTPUT_TRANSFORM_FLIPPED:
-        return "flipped";
-    case WL_OUTPUT_TRANSFORM_FLIPPED_90:
-        // Inverted.
-        return "flipped-270";
-    case WL_OUTPUT_TRANSFORM_FLIPPED_180:
-        return "flipped-180";
-    case WL_OUTPUT_TRANSFORM_FLIPPED_270:
-        // Inverted.
-        return "flipped-90";
-    }
-    return NULL;
-}
-
-static const char *
-ipc_json_output_adaptive_sync_status_description(enum wlr_output_adaptive_sync_status status) {
-    switch (status) {
-    case WLR_OUTPUT_ADAPTIVE_SYNC_DISABLED:
-        return "disabled";
-    case WLR_OUTPUT_ADAPTIVE_SYNC_ENABLED:
-        return "enabled";
-    }
-    return NULL;
-}
 
 #if HAVE_XWAYLAND
 static const char *
@@ -321,17 +277,6 @@ ipc_json_describe_column(struct hwd_column *column) {
     bool urgent = column_has_urgent_child(column);
     json_object_object_add(object, "urgent", json_object_new_boolean(urgent));
 
-    struct wlr_box parent_box = {0, 0, 0, 0};
-    if (column->pending.output != NULL) {
-        output_get_box(column->pending.output, &parent_box);
-    }
-
-    if (parent_box.width != 0 && parent_box.height != 0) {
-        double percent = ((double)column->pending.width / parent_box.width) *
-            ((double)column->pending.height / parent_box.height);
-        json_object_object_add(object, "percent", json_object_new_double(percent));
-    }
-
     json_object_object_add(object, "floating_nodes", json_object_new_array());
 
     json_object *children = json_object_new_array();
@@ -379,19 +324,6 @@ ipc_json_describe_window(struct hwd_window *window) {
         object, "fullscreen_mode", json_object_new_int(window->pending.fullscreen)
     );
 
-    struct wlr_box parent_box = {0, 0, 0, 0};
-    if (window->pending.parent != NULL) {
-        column_get_box(window->pending.parent, &parent_box);
-    } else {
-        output_get_box(window->pending.output, &parent_box);
-    }
-
-    if (parent_box.width != 0 && parent_box.height != 0) {
-        double percent = ((double)window->pending.width / parent_box.width) *
-            ((double)window->pending.height / parent_box.height);
-        json_object_object_add(object, "percent", json_object_new_double(percent));
-    }
-
     json_object_object_add(object, "floating_nodes", json_object_new_array());
 
     struct wlr_box deco_box = {0, 0, 0, 0};
@@ -399,106 +331,6 @@ ipc_json_describe_window(struct hwd_window *window) {
     json_object_object_add(object, "deco_rect", ipc_json_create_rect(&deco_box));
 
     ipc_json_describe_view(window, object);
-
-    return object;
-}
-
-json_object *
-ipc_json_describe_output(struct hwd_output *output) {
-    char *name = output->wlr_output->name;
-
-    struct wlr_box box;
-    output_get_box(output, &box);
-
-    json_object *object = ipc_json_create_node(output->id, "output", name, &box);
-
-    struct wlr_output *wlr_output = output->wlr_output;
-    json_object_object_add(object, "active", json_object_new_boolean(true));
-    json_object_object_add(object, "dpms", json_object_new_boolean(wlr_output->enabled));
-    bool focused = root_get_active_output(root) == output;
-    json_object_object_add(object, "focused", json_object_new_boolean(focused));
-    json_object_object_add(object, "primary", json_object_new_boolean(false));
-    json_object_object_add(object, "layout", json_object_new_string("output"));
-    json_object_object_add(object, "make", json_object_new_string(wlr_output->make));
-    json_object_object_add(object, "model", json_object_new_string(wlr_output->model));
-    json_object_object_add(object, "serial", json_object_new_string(wlr_output->serial));
-    json_object_object_add(object, "scale", json_object_new_double(wlr_output->scale));
-    json_object_object_add(
-        object, "transform",
-        json_object_new_string(ipc_json_output_transform_description(wlr_output->transform))
-    );
-    const char *adaptive_sync_status =
-        ipc_json_output_adaptive_sync_status_description(wlr_output->adaptive_sync_status);
-    json_object_object_add(
-        object, "adaptive_sync_status", json_object_new_string(adaptive_sync_status)
-    );
-
-    struct hwd_workspace *workspace = root_get_active_workspace(root);
-    hwd_assert(workspace, "Expected output to have a workspace");
-
-    json_object_object_add(object, "current_workspace", json_object_new_string(workspace->name));
-
-    json_object *modes_array = json_object_new_array();
-    struct wlr_output_mode *mode;
-    wl_list_for_each(mode, &wlr_output->modes, link) {
-        json_object *mode_object = json_object_new_object();
-        json_object_object_add(mode_object, "width", json_object_new_int(mode->width));
-        json_object_object_add(mode_object, "height", json_object_new_int(mode->height));
-        json_object_object_add(mode_object, "refresh", json_object_new_int(mode->refresh));
-        json_object_array_add(modes_array, mode_object);
-    }
-
-    json_object_object_add(object, "modes", modes_array);
-
-    json_object *current_mode_object = json_object_new_object();
-    json_object_object_add(current_mode_object, "width", json_object_new_int(wlr_output->width));
-    json_object_object_add(current_mode_object, "height", json_object_new_int(wlr_output->height));
-    json_object_object_add(
-        current_mode_object, "refresh", json_object_new_int(wlr_output->refresh)
-    );
-    json_object_object_add(object, "current_mode", current_mode_object);
-
-    return object;
-}
-
-json_object *
-ipc_json_describe_disabled_output(struct hwd_output *output) {
-    struct wlr_output *wlr_output = output->wlr_output;
-
-    json_object *object = json_object_new_object();
-
-    json_object_object_add(object, "focused", json_object_new_boolean(false));
-    json_object_object_add(object, "type", json_object_new_string("output"));
-    json_object_object_add(object, "name", json_object_new_string(wlr_output->name));
-    json_object_object_add(object, "active", json_object_new_boolean(false));
-    json_object_object_add(object, "dpms", json_object_new_boolean(false));
-    json_object_object_add(object, "primary", json_object_new_boolean(false));
-    json_object_object_add(object, "make", json_object_new_string(wlr_output->make));
-    json_object_object_add(object, "model", json_object_new_string(wlr_output->model));
-    json_object_object_add(object, "serial", json_object_new_string(wlr_output->serial));
-
-    json_object *modes_array = json_object_new_array();
-    struct wlr_output_mode *mode;
-    wl_list_for_each(mode, &wlr_output->modes, link) {
-        json_object *mode_object = json_object_new_object();
-        json_object_object_add(mode_object, "width", json_object_new_int(mode->width));
-        json_object_object_add(mode_object, "height", json_object_new_int(mode->height));
-        json_object_object_add(mode_object, "refresh", json_object_new_int(mode->refresh));
-        json_object_array_add(modes_array, mode_object);
-    }
-
-    json_object_object_add(object, "modes", modes_array);
-
-    json_object_object_add(object, "current_workspace", NULL);
-
-    json_object *rect_object = json_object_new_object();
-    json_object_object_add(rect_object, "x", json_object_new_int(0));
-    json_object_object_add(rect_object, "y", json_object_new_int(0));
-    json_object_object_add(rect_object, "width", json_object_new_int(0));
-    json_object_object_add(rect_object, "height", json_object_new_int(0));
-    json_object_object_add(object, "rect", rect_object);
-
-    json_object_object_add(object, "percent", NULL);
 
     return object;
 }
@@ -556,10 +388,6 @@ ipc_json_describe_root(struct hwd_root *root) {
     json_object *object = ipc_json_create_node(1, "root", name, &box);
 
     json_object *children = json_object_new_array();
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hwd_output *output = root->outputs->items[i];
-        json_object_array_add(children, ipc_json_describe_output(output));
-    }
     for (int i = 0; i < root->pending.workspaces->length; ++i) {
         struct hwd_workspace *workspace = root->pending.workspaces->items[i];
         json_object_array_add(children, ipc_json_describe_workspace(workspace));
