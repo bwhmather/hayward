@@ -1,7 +1,6 @@
 #ifndef HWD_STRINGOP_H
 #define HWD_STRINGOP_H
 
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 

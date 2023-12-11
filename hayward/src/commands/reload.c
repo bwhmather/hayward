@@ -5,12 +5,10 @@
 #include "hayward/commands.h"
 
 #include <stdbool.h>
-#include <string.h>
 #include <wayland-server-core.h>
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/list.h>
 #include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>

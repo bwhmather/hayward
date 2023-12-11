@@ -2,14 +2,14 @@
 #include "hayward/util.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <time.h>
-
-#include <wayland-server-protocol.h>
 
 #include <hayward/log.h>
 

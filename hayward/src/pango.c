@@ -1,15 +1,11 @@
 #include "hayward/pango.h"
 
 #include <cairo.h>
+#include <glib-object.h>
+#include <pango/pango.h>
 #include <pango/pangocairo.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
-#include <hayward/log.h>
 #include <hayward/stringop.h>
 
 size_t

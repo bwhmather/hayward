@@ -1,13 +1,9 @@
 #ifndef HWD_PANGO_H
 #define HWD_PANGO_H
 
-#include <cairo.h>
-#include <pango/pangocairo.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <pango/pango.h>
+#include <stddef.h>
 
-#include <hayward/stringop.h>
 /**
  * Utility function which escape characters a & < > ' ".
  *

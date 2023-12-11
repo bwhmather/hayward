@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <wayland-server-protocol.h>
-
 enum movement_unit {
     MOVEMENT_UNIT_PX,
     MOVEMENT_UNIT_PPT,

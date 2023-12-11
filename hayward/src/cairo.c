@@ -1,7 +1,8 @@
 #include "hayward/cairo_util.h"
 
 #include <cairo.h>
-#include <stdint.h>
+
+#include <wayland-server-protocol.h>
 
 cairo_subpixel_order_t
 to_cairo_subpixel_order(enum wl_output_subpixel subpixel) {

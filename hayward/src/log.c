@@ -1,10 +1,14 @@
 #define _POSIX_C_SOURCE 200112L
 #include "hayward/log.h"
 
+#include <errno.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 

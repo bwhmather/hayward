@@ -1,11 +1,9 @@
 #ifndef HWD_LOG_H
 #define HWD_LOG_H
 
-#include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdnoreturn.h>
-#include <string.h>
 
 typedef enum {
     HWD_SILENT = 0,

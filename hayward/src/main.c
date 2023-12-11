@@ -7,7 +7,6 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +23,6 @@
 #include <hayward/haywardnag.h>
 #include <hayward/log.h>
 #include <hayward/server.h>
-#include <hayward/stringop.h>
 #include <hayward/theme.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/workspace.h>
