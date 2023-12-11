@@ -22,7 +22,6 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/haywardnag.h>
-#include <hayward/ipc-client.h>
 #include <hayward/ipc.h>
 #include <hayward/ipc_server.h>
 #include <hayward/log.h>
@@ -97,16 +96,6 @@ detect_proprietary(int allow_unsupported_gpu) {
     }
     free(line);
     fclose(f);
-}
-
-static void
-run_as_ipc_client(char *command, char *socket_path) {
-    int socketfd = ipc_open_socket(socket_path);
-    uint32_t len = strlen(command);
-    char *resp = ipc_single_command(socketfd, IPC_COMMAND, command, &len);
-    printf("%s\n", resp);
-    free(resp);
-    close(socketfd);
 }
 
 static void
@@ -373,33 +362,6 @@ main(int argc, char **argv) {
     log_kernel();
     log_distro();
     log_env();
-
-    if (optind < argc) { // Behave as IPC client
-        if (optind != 1) {
-            hwd_log(
-                HWD_ERROR,
-                "Detected both options and positional arguments. If you "
-                "are trying to use the IPC client, options are not "
-                "supported. Otherwise, check the provided arguments for "
-                "issues. See `man 1 hayward` or `hayward -h` for usage. If you "
-                "are trying to generate a debug log, use "
-                "`hayward -d 2>hayward.log`."
-            );
-            exit(EXIT_FAILURE);
-        }
-        if (!drop_permissions()) {
-            exit(EXIT_FAILURE);
-        }
-        char *socket_path = getenv("HAYWARDSOCK");
-        if (!socket_path) {
-            hwd_log(HWD_ERROR, "Unable to retrieve socket path");
-            exit(EXIT_FAILURE);
-        }
-        char *command = join_args(argv + optind, argc - optind);
-        run_as_ipc_client(command, socket_path);
-        free(command);
-        return 0;
-    }
 
     detect_proprietary(allow_unsupported_gpu);
 
