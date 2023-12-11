@@ -66,6 +66,7 @@ bash_comp_dep = dependency('bash-completion', required: false)
 fish_comp_dep = dependency('fish', required: false)
 math_dep = cc.find_library('m')
 rt_dep = cc.find_library('rt')
+xcb_icccm_dep = dependency('xcb-icccm', required: get_option('xwayland'))
 
 wlroots_features = {
   'xwayland': false,
