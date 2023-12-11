@@ -123,7 +123,6 @@ hayward_sources = files(
   'src/tree/workspace.c',
   'src/tree.c',
 
-  'src/cairo.c',
   'src/log.c',
   'src/list.c',
   'src/pango.c',
