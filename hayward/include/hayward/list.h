@@ -1,5 +1,5 @@
-#ifndef _HWD_LIST_H
-#define _HWD_LIST_H
+#ifndef HWD_LIST_H
+#define HWD_LIST_H
 
 typedef struct {
     int capacity;
@@ -47,4 +47,5 @@ list_move_to_end(list_t *list, void *item);
  */
 void
 list_free_items_and_destroy(list_t *list);
+
 #endif

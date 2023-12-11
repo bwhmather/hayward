@@ -1,5 +1,5 @@
-#ifndef _HWD_STRINGOP_H
-#define _HWD_STRINGOP_H
+#ifndef HWD_STRINGOP_H
+#define HWD_STRINGOP_H
 
 #include <stdarg.h>
 #include <stdbool.h>

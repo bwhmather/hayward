@@ -1,5 +1,6 @@
-#ifndef _HWD_PANGO_H
-#define _HWD_PANGO_H
+#ifndef HWD_PANGO_H
+#define HWD_PANGO_H
+
 #include <cairo.h>
 #include <pango/pangocairo.h>
 #include <stdarg.h>

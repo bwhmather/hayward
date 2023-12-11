@@ -1,5 +1,5 @@
-#ifndef _HWD_LOG_H
-#define _HWD_LOG_H
+#ifndef HWD_LOG_H
+#define HWD_LOG_H
 
 #include <errno.h>
 #include <stdarg.h>

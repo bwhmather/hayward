@@ -1,5 +1,6 @@
-#ifndef _HWD_CAIRO_UTIL_H
-#define _HWD_CAIRO_UTIL_H
+#ifndef HWD_CAIRO_UTIL_H
+#define HWD_CAIRO_UTIL_H
+
 #include <config.h>
 
 #include <cairo.h>

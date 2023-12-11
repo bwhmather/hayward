@@ -1,5 +1,5 @@
-#ifndef _HWD_UTIL_H
-#define _HWD_UTIL_H
+#ifndef HWD_UTIL_H
+#define HWD_UTIL_H
 
 #include <stdbool.h>
 #include <stdint.h>
