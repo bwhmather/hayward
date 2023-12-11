@@ -138,7 +138,6 @@ hwd_cmd cmd_resize;
 hwd_cmd cmd_seat;
 hwd_cmd cmd_set;
 hwd_cmd cmd_shortcuts_inhibitor;
-hwd_cmd cmd_tiling_drag;
 hwd_cmd cmd_tiling_drag_threshold;
 hwd_cmd cmd_unbindcode;
 hwd_cmd cmd_unbindswitch;

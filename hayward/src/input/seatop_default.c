@@ -329,7 +329,7 @@ handle_tablet_tool_tip(
         }
 
         // Handle moving a tiled window.
-        if (config->tiling_drag && mod_pressed && !is_floating_or_child &&
+        if (mod_pressed && !is_floating_or_child &&
             !window->pending.fullscreen) {
             seatop_begin_move(seat, window);
             return;
@@ -559,7 +559,7 @@ handle_button(
     }
 
     // Handle moving a tiling container
-    if (config->tiling_drag && (mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED &&
+    if ((mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED &&
         !is_floating && window && !window->pending.fullscreen) {
 
         seatop_begin_move(seat, window);

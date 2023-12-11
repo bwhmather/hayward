@@ -201,7 +201,6 @@ config_defaults(struct hwd_config *config) {
     config->reading = false;
     config->show_marks = true;
     config->title_align = ALIGN_LEFT;
-    config->tiling_drag = true;
     config->tiling_drag_threshold = 9;
 
     if (!(config->active_bar_modifiers = create_list()))

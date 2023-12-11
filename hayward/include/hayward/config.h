@@ -425,7 +425,6 @@ struct hwd_config {
     bool show_marks;
     enum alignment title_align;
 
-    bool tiling_drag;
     int tiling_drag_threshold;
 
     list_t *config_chain;

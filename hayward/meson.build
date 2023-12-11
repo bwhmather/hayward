@@ -76,7 +76,6 @@ hayward_sources = files(
   'src/commands/set.c',
   'src/commands/shortcuts_inhibitor.c',
   'src/commands/haywardnag_command.c',
-  'src/commands/tiling_drag.c',
   'src/commands/tiling_drag_threshold.c',
   'src/commands/urgent.c',
   'src/commands/workspace.c',
