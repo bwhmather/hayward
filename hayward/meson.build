@@ -155,7 +155,6 @@ hayward_sources = files(
 
   'src/cairo.c',
   'src/log.c',
-  'src/loop.c',
   'src/list.c',
   'src/pango.c',
   'src/stringop.c',

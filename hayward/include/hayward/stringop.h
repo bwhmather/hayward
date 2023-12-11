@@ -24,10 +24,6 @@ lenient_strcat(char *dest, const char *src);
 char *
 lenient_strncat(char *dest, const char *src, size_t len);
 
-// strcmp that also handles null pointers.
-int
-lenient_strcmp(const char *a, const char *b);
-
 // Simply split a string with delims, free with `list_free_items_and_destroy`
 list_t *
 split_string(const char *str, const char *delims);
@@ -50,10 +46,5 @@ argsep(char **stringp, const char *delim, char *matched_delim);
 // Expand a path using shell replacements such as $HOME and ~
 bool
 expand_path(char **path);
-
-char *
-vformat_str(const char *fmt, va_list args) _HWD_ATTRIB_PRINTF(1, 0);
-char *
-format_str(const char *fmt, ...) _HWD_ATTRIB_PRINTF(1, 2);
 
 #endif

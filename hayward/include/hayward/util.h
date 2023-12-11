@@ -19,23 +19,11 @@ struct movement_amount {
 };
 
 /*
- * Parse units such as "px" or "ppt"
- */
-enum movement_unit
-parse_movement_unit(const char *unit);
-
-/*
  * Parse arguments such as "10", "10px" or "10 px".
  * Returns the number of arguments consumed.
  */
 int
 parse_movement_amount(int argc, char **argv, struct movement_amount *amount);
-
-/**
- * Wrap i into the range [0, max]
- */
-int
-wrap(int i, int max);
 
 /**
  * Given a string that represents an RGB(A) color, result will be set to a
@@ -44,9 +32,6 @@ wrap(int i, int max);
  */
 bool
 parse_color(const char *color, uint32_t *result);
-
-void
-color_to_rgba(float dest[static 4], uint32_t color);
 
 /**
  * Given a string that represents a boolean, return the boolean value. This
@@ -63,9 +48,6 @@ parse_boolean(const char *boolean, bool current);
  */
 float
 parse_float(const char *value);
-
-const char *
-hwd_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel);
 
 bool
 hwd_set_cloexec(int fd, bool cloexec);

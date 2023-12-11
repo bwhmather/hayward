@@ -71,20 +71,6 @@ lenient_strncat(char *dest, const char *src, size_t len) {
     return dest;
 }
 
-// strcmp that also handles null pointers.
-int
-lenient_strcmp(const char *a, const char *b) {
-    if (a == b) {
-        return 0;
-    } else if (!a) {
-        return -1;
-    } else if (!b) {
-        return 1;
-    } else {
-        return strcmp(a, b);
-    }
-}
-
 list_t *
 split_string(const char *str, const char *delims) {
     list_t *res = create_list();
@@ -343,36 +329,3 @@ expand_path(char **path) {
     return true;
 }
 
-char *
-vformat_str(const char *fmt, va_list args) {
-    char *str = NULL;
-    va_list args_copy;
-    va_copy(args_copy, args);
-
-    int len = vsnprintf(NULL, 0, fmt, args);
-    if (len < 0) {
-        hwd_log_errno(HWD_ERROR, "vsnprintf(\"%s\") failed", fmt);
-        goto out;
-    }
-
-    str = malloc(len + 1);
-    if (str == NULL) {
-        hwd_log_errno(HWD_ERROR, "malloc() failed");
-        goto out;
-    }
-
-    vsnprintf(str, len + 1, fmt, args_copy);
-
-out:
-    va_end(args_copy);
-    return str;
-}
-
-char *
-format_str(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    char *str = vformat_str(fmt, args);
-    va_end(args);
-    return str;
-}

@@ -13,11 +13,6 @@
 
 #include <hayward/log.h>
 
-int
-wrap(int i, int max) {
-    return ((i % max) + max) % max;
-}
-
 bool
 parse_color(const char *color, uint32_t *result) {
     if (color[0] == '#') {
@@ -34,14 +29,6 @@ parse_color(const char *color, uint32_t *result) {
     }
     *result = len == 6 ? ((parsed << 8) | 0xFF) : parsed;
     return true;
-}
-
-void
-color_to_rgba(float dest[static 4], uint32_t color) {
-    dest[0] = ((color >> 24) & 0xff) / 255.0;
-    dest[1] = ((color >> 16) & 0xff) / 255.0;
-    dest[2] = ((color >> 8) & 0xff) / 255.0;
-    dest[3] = (color & 0xff) / 255.0;
 }
 
 bool
@@ -70,7 +57,7 @@ parse_float(const char *value) {
     return flt;
 }
 
-enum movement_unit
+static enum movement_unit
 parse_movement_unit(const char *unit) {
     if (strcasecmp(unit, "px") == 0) {
         return MOVEMENT_UNIT_PX;
@@ -106,26 +93,6 @@ parse_movement_amount(int argc, char **argv, struct movement_amount *amount) {
         return 1;
     }
     return 2;
-}
-
-const char *
-hwd_wl_output_subpixel_to_string(enum wl_output_subpixel subpixel) {
-    switch (subpixel) {
-    case WL_OUTPUT_SUBPIXEL_UNKNOWN:
-        return "unknown";
-    case WL_OUTPUT_SUBPIXEL_NONE:
-        return "none";
-    case WL_OUTPUT_SUBPIXEL_HORIZONTAL_RGB:
-        return "rgb";
-    case WL_OUTPUT_SUBPIXEL_HORIZONTAL_BGR:
-        return "bgr";
-    case WL_OUTPUT_SUBPIXEL_VERTICAL_RGB:
-        return "vrgb";
-    case WL_OUTPUT_SUBPIXEL_VERTICAL_BGR:
-        return "vbgr";
-    }
-    hwd_assert(false, "Unknown value for wl_output_subpixel.");
-    return NULL;
 }
 
 bool
