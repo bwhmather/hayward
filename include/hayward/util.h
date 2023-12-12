@@ -15,13 +15,6 @@ struct movement_amount {
     enum movement_unit unit;
 };
 
-/*
- * Parse arguments such as "10", "10px" or "10 px".
- * Returns the number of arguments consumed.
- */
-int
-parse_movement_amount(int argc, char **argv, struct movement_amount *amount);
-
 /**
  * Given a string that represents a boolean, return the boolean value. This
  * function also takes in the current boolean value to support toggling. If
@@ -37,6 +30,13 @@ parse_boolean(const char *boolean, bool current);
  */
 float
 parse_float(const char *value);
+
+/*
+ * Parse arguments such as "10", "10px" or "10 px".
+ * Returns the number of arguments consumed.
+ */
+int
+parse_movement_amount(int argc, char **argv, struct movement_amount *amount);
 
 bool
 hwd_set_cloexec(int fd, bool cloexec);
