@@ -261,7 +261,7 @@ static const struct option long_options[] = {
     {"unsupported-gpu", no_argument, NULL, 'u'},
     {0, 0, 0, 0}};
 
-static const char usage[] = "Usage: hayward [options] [command]\n"
+static const char usage[] = "Usage: hayward [options]\n"
                             "\n"
                             "  -h, --help             Show help message and quit.\n"
                             "  -c, --config <config>  Specify a config file.\n"
