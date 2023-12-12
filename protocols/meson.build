@@ -23,15 +23,6 @@ protocols = [
   ['wlr-output-management-unstable-v1.xml'],
 ]
 
-client_protocols = [
-  [wl_protocol_dir, 'stable/xdg-shell/xdg-shell.xml'],
-  [wl_protocol_dir, 'unstable/xdg-output/xdg-output-unstable-v1.xml'],
-  ['hwd-workspace-management-unstable-v1.xml'],
-  ['wlr-layer-shell-unstable-v1.xml'],
-  ['wlr-input-inhibitor-unstable-v1.xml'],
-  ['wlr-output-management-unstable-v1.xml'],
-]
-
 wl_protos_src = []
 wl_protos_headers = []
 
@@ -50,27 +41,6 @@ foreach p : protocols
     command: [wayland_scanner, 'server-header', '@INPUT@', '@OUTPUT@'],
   )
 endforeach
-
-foreach p : client_protocols
-  xml = join_paths(p)
-  wl_protos_headers += custom_target(
-    xml.underscorify() + '_client_h',
-    input: xml,
-    output: '@BASENAME@-client-protocol.h',
-    command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
-  )
-endforeach
-
-lib_client_protos = static_library(
-  'client_protos',
-  wl_protos_src + wl_protos_headers,
-  dependencies: wayland_client_dep.partial_dependency(compile_args: true),
-)
-
-client_protos_dep = declare_dependency(
-  link_with: lib_client_protos,
-  sources: wl_protos_headers,
-)
 
 lib_server_protos = static_library(
   'server_protos',

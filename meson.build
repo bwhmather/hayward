@@ -42,9 +42,7 @@ subproject(
   version: wlroots_version,
 )
 
-jsonc_dep = dependency('json-c', version: '>=0.13')
 wayland_server_dep = dependency('wayland-server', version: '>=1.21.0')
-wayland_client_dep = dependency('wayland-client')
 wayland_cursor_dep = dependency('wayland-cursor')
 wayland_protos_dep = dependency('wayland-protocols', version: '>=1.24')
 wlroots_dep = dependency('wlroots', version: wlroots_version)
@@ -52,9 +50,6 @@ xkbcommon_dep = dependency('xkbcommon')
 cairo_dep = dependency('cairo')
 pango_dep = dependency('pango')
 pango_cairo_dep = dependency('pangocairo')
-gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', required: get_option('gdk-pixbuf'))
-gtk_dep = dependency('gtk4')
-gtk_wayland_dep = dependency('gtk4-wayland')
 pixman_dep = dependency('pixman-1')
 libevdev_dep = dependency('libevdev')
 libinput_dep = dependency('libinput', version: '>=1.6.0')
@@ -106,11 +101,9 @@ have_tray = (not get_option('tray').disabled()) and tray_deps_found
 conf_data = configuration_data()
 
 conf_data.set10('HAVE_XWAYLAND', have_xwayland)
-conf_data.set10('HAVE_GDK_PIXBUF', gdk_pixbuf_dep.found())
 conf_data.set10('HAVE_LIBSYSTEMD', sdbus.found() and sdbus.name() == 'libsystemd')
 conf_data.set10('HAVE_LIBELOGIND', sdbus.found() and sdbus.name() == 'libelogind')
 conf_data.set10('HAVE_BASU', sdbus.found() and sdbus.name() == 'basu')
-conf_data.set10('HAVE_TRAY', have_tray)
 
 scdoc = dependency('scdoc', version: '>=1.9.2', native: true, required: get_option('man-pages'))
 if scdoc.found()
@@ -335,8 +328,6 @@ hayward_sources = files(
 hayward_deps = [
   cairo_dep,
   drm_dep,
-  gdk_pixbuf_dep,
-  jsonc_dep,
   libevdev_dep,
   libinput_dep,
   libudev_dep,
@@ -464,8 +455,6 @@ endforeach
 
 summary({
   'xwayland': have_xwayland,
-  'gdk-pixbuf': gdk_pixbuf_dep.found(),
-  'tray': have_tray,
   'man-pages': scdoc.found(),
 }, bool_yn: true)
 
