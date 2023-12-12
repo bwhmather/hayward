@@ -64,7 +64,7 @@ workspace_update_layer_separators(struct hwd_workspace *workspace) {
     struct hwd_theme *theme = workspace->committed.root->committed.theme;
     int gap = hwd_theme_get_column_separator_width(theme);
 
-    struct wl_list *link = &workspace->layers.separators->children;
+    struct wl_list *link = workspace->layers.separators->children.next;
     list_t *columns = workspace->committed.columns;
     for (int i = 0; i < columns->length; i++) {
         struct hwd_column *column = columns->items[i];
