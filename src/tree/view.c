@@ -356,7 +356,9 @@ view_map(
 
     if (view->impl->wants_floating && view->impl->wants_floating(view)) {
         workspace_add_floating(workspace, view->window);
-        hwd_move_window_to_floating(view->window);
+        window_floating_set_default_size(view->window);
+        window_floating_resize_and_center(view->window);
+
     } else {
         struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
         if (target_sibling) {
