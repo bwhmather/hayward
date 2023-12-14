@@ -406,6 +406,8 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     window->pending.focused =
         workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
 
+    view_set_tiled(window->view, false);
+
     window_update_theme(window);
     window_set_dirty(window);
 }
@@ -425,6 +427,8 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
 
     window->pending.focused =
         workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
+
+    view_set_tiled(window->view, true);
 
     window_update_theme(window);
     window_set_dirty(window);

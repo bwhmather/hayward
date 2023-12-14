@@ -32,7 +32,6 @@ window_set_floating(struct hwd_window *window, bool enable) {
         struct hwd_column *old_parent = window->pending.parent;
         window_detach(window);
         workspace_add_floating(workspace, window);
-        view_set_tiled(window->view, false);
         window_floating_set_default_size(window);
         window_floating_resize_and_center(window);
         if (old_parent) {
@@ -43,9 +42,6 @@ window_set_floating(struct hwd_window *window, bool enable) {
         struct hwd_output *output = window_get_output(window);
 
         window_detach(window);
-        if (window->view) {
-            view_set_tiled(window->view, true);
-        }
 
         struct hwd_column *column = NULL;
         for (int i = 0; i < workspace->pending.columns->length; i++) {

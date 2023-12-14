@@ -366,7 +366,6 @@ view_map(
             workspace_insert_column_first(workspace, output, column);
             column_add_child(column, view->window);
         }
-        view_set_tiled(view, true);
 
         if (target_sibling) {
             column_arrange(view->window->pending.parent);
