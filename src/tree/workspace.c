@@ -150,27 +150,22 @@ workspace_update_layer_floating(struct hwd_workspace *workspace) {
     struct wl_list *link = &workspace->layers.floating->children;
 
     if (workspace->committed.floating->length) {
-        // Anchor top most window at top of stack.
         list_t *windows = workspace->committed.floating;
-        int window_index = windows->length - 1;
-
-        struct hwd_window *window = windows->items[window_index];
-        wlr_scene_node_reparent(&window->scene_tree->node, workspace->layers.floating);
-        wlr_scene_node_raise_to_top(&window->scene_tree->node);
-
-        struct hwd_window *prev_window = window;
-
-        // Move subsequent windows immediately below it.
-        while (window_index > 0) {
-            window_index--;
-
-            window = windows->items[window_index];
+        struct hwd_window *prev_window = NULL;
+        for (int window_index = windows->length - 1; window_index >= 0; window_index--) {
+            struct hwd_window *window = windows->items[window_index];
             if (window->committed.fullscreen) {
                 continue;
             }
 
             wlr_scene_node_reparent(&window->scene_tree->node, workspace->layers.floating);
-            wlr_scene_node_place_below(&window->scene_tree->node, &prev_window->scene_tree->node);
+            if (prev_window) {
+                wlr_scene_node_place_below(
+                    &window->scene_tree->node, &prev_window->scene_tree->node
+                );
+            } else {
+                wlr_scene_node_raise_to_top(&window->scene_tree->node);
+            }
 
             prev_window = window;
         }
