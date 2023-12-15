@@ -49,27 +49,20 @@ column_update_scene(struct hwd_column *column) {
     struct wl_list *link = &column->layers.child_tree->children;
 
     if (column->committed.children->length) {
-        // Anchor top most child at top of stack.
         list_t *children = column->committed.children;
-        int child_index = children->length - 1;
-
-        struct hwd_window *child = children->items[child_index];
-        wlr_scene_node_reparent(&child->scene_tree->node, column->layers.child_tree);
-        wlr_scene_node_raise_to_top(&child->scene_tree->node);
-
-        struct hwd_window *prev_child = child;
-
-        // Move subsequent children immediately below it.
-        while (child_index > 0) {
-            child_index--;
-
-            child = children->items[child_index];
+        struct hwd_window *prev_child = NULL;
+        for (int child_index = children->length - 1; child_index >= 0; child_index--) {
+            struct hwd_window *child = children->items[child_index];
             if (child->committed.fullscreen) {
                 continue;
             }
 
             wlr_scene_node_reparent(&child->scene_tree->node, column->layers.child_tree);
-            wlr_scene_node_place_below(&child->scene_tree->node, &prev_child->scene_tree->node);
+            if (prev_child != NULL) {
+                wlr_scene_node_place_below(&child->scene_tree->node, &prev_child->scene_tree->node);
+            } else {
+                wlr_scene_node_raise_to_top(&child->scene_tree->node);
+            }
 
             prev_child = child;
         }
