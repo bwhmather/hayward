@@ -8,12 +8,6 @@
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 
-void
-hwd_move_window_to_floating(struct hwd_window *window);
-
-void
-hwd_move_window_to_tiling(struct hwd_window *window);
-
 /**
  * Detaches a window from its current column, and by extension workspace, and
  * attaches it to a new column, possibly in a different workspace.  Where in

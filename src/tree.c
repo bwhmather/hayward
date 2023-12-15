@@ -11,80 +11,8 @@
 #include <hayward/log.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-
-static void
-window_set_floating(struct hwd_window *window, bool enable) {
-    hwd_assert(window != NULL, "Expected window");
-
-    if (window_is_floating(window) == enable) {
-        return;
-    }
-
-    struct hwd_workspace *workspace = window->pending.workspace;
-    hwd_assert(workspace != NULL, "Window not attached to workspace");
-
-    bool focus = workspace_get_active_window(workspace);
-
-    if (enable) {
-        struct hwd_column *old_parent = window->pending.parent;
-        window_detach(window);
-        workspace_add_floating(workspace, window);
-        window_floating_set_default_size(window);
-        window_floating_resize_and_center(window);
-        if (old_parent) {
-            column_consider_destroy(old_parent);
-        }
-    } else {
-        // Returning to tiled
-        struct hwd_output *output = window_get_output(window);
-
-        window_detach(window);
-
-        struct hwd_column *column = NULL;
-        for (int i = 0; i < workspace->pending.columns->length; i++) {
-            struct hwd_column *candidate_column = workspace->pending.columns->items[i];
-
-            if (candidate_column->pending.output != output) {
-                continue;
-            }
-
-            if (column != NULL) {
-                continue;
-            }
-
-            column = candidate_column;
-        }
-        if (workspace->pending.active_column != NULL &&
-            workspace->pending.active_column->pending.output == output) {
-            column = workspace->pending.active_column;
-        }
-        if (column == NULL) {
-            column = column_create();
-            workspace_insert_column_first(workspace, output, column);
-        }
-
-        hwd_move_window_to_column(window, column);
-    }
-
-    if (focus) {
-        workspace_set_active_window(workspace, window);
-    }
-
-    window_end_mouse_operation(window);
-}
-
-void
-hwd_move_window_to_floating(struct hwd_window *window) {
-    window_set_floating(window, true);
-}
-
-void
-hwd_move_window_to_tiling(struct hwd_window *window) {
-    window_set_floating(window, false);
-}
 
 static void
 hwd_move_window_to_column_from_maybe_direction(
