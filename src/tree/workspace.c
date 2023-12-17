@@ -50,9 +50,6 @@ workspace_init_scene(struct hwd_workspace *workspace) {
 
     workspace->layers.floating = wlr_scene_tree_create(workspace->scene_tree);
     hwd_assert(workspace->layers.floating != NULL, "Allocation failed");
-
-    workspace->layers.fullscreen = wlr_scene_tree_create(workspace->scene_tree);
-    hwd_assert(workspace->layers.fullscreen != NULL, "Allocation failed");
 }
 
 static void
@@ -515,6 +512,9 @@ arrange_floating(struct hwd_workspace *workspace) {
     list_t *floating = workspace->pending.floating;
     for (int i = 0; i < floating->length; ++i) {
         struct hwd_window *floater = floating->items[i];
+        if (floater->pending.fullscreen) {
+            continue;
+        }
         floater->pending.shaded = false;
         window_arrange(floater);
     }

@@ -120,7 +120,8 @@ window_update_scene(struct hwd_window *window) {
     // Content.
     wlr_scene_node_set_enabled(&window->layers.content_tree->node, !shaded);
     wlr_scene_node_set_position(
-        &window->layers.content_tree->node, border_left, titlebar_height + border_top
+        &window->layers.content_tree->node, fullscreen ? 0 : border_left,
+        fullscreen ? 0 : titlebar_height + border_top
     );
 
     struct hwd_view *view = window->view;
@@ -555,7 +556,7 @@ window_fullscreen_disable(struct hwd_window *window) {
         return;
     }
 
-    set_fullscreen(window, false);
+    window_end_mouse_operation(window);
 
     if (window_is_floating(window)) {
         window->pending.x = window->saved_x;
@@ -577,7 +578,7 @@ window_fullscreen_disable(struct hwd_window *window) {
         output_reconcile(output);
     }
 
-    window_end_mouse_operation(window);
+    set_fullscreen(window, false);
 
     window_set_dirty(window);
 }
@@ -597,13 +598,13 @@ window_fullscreen_enable(struct hwd_window *window) {
         return;
     }
 
+    window_end_mouse_operation(window);
+
     // Disable previous fullscreen window for output and workspace.
     struct hwd_window *previous = workspace_get_fullscreen_window_for_output(workspace, output);
     if (previous != NULL) {
         window_fullscreen_disable(previous);
     }
-
-    set_fullscreen(window, true);
 
     window->pending.fullscreen = true;
 
@@ -616,7 +617,7 @@ window_fullscreen_enable(struct hwd_window *window) {
         output_reconcile(output);
     }
 
-    window_end_mouse_operation(window);
+    set_fullscreen(window, true);
 
     window_set_dirty(window);
 }

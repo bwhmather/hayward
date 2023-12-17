@@ -56,7 +56,6 @@ struct hwd_workspace {
         struct wlr_scene_tree *separators;
         struct wlr_scene_tree *tiling;
         struct wlr_scene_tree *floating;
-        struct wlr_scene_tree *fullscreen;
     } layers;
 
     struct wl_listener transaction_commit;

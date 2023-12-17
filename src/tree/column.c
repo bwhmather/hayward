@@ -320,16 +320,6 @@ column_arrange_split(struct hwd_column *column) {
     struct hwd_window *child = NULL;
     list_t *children = column->pending.children;
 
-    if (!children->length) {
-        column->pending.preview_target = NULL;
-        column->pending.preview_box.x = column->pending.x;
-        column->pending.preview_box.y = column->pending.y;
-        column->pending.preview_box.width = column->pending.width;
-        column->pending.preview_box.height = column->pending.height;
-        column_set_dirty(column);
-        return;
-    }
-
     struct wlr_box box;
     column_get_box(column, &box);
 
@@ -339,6 +329,9 @@ column_arrange_split(struct hwd_column *column) {
     double available_content_height = box.height;
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
+        if (child->pending.fullscreen) {
+            continue;
+        }
         visible_height_fraction += child->height_fraction;
         available_content_height -= child->pending.titlebar_height;
     }
@@ -369,6 +362,10 @@ column_arrange_split(struct hwd_column *column) {
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
         double window_height = child->pending.titlebar_height;
+        if (child->pending.fullscreen) {
+            continue;
+        }
+
         window_height +=
             available_content_height * child->height_fraction / visible_height_fraction;
         child->pending.shaded = false;
@@ -430,16 +427,6 @@ column_arrange_stacked(struct hwd_column *column) {
         active_child = NULL;
     }
 
-    if (!children->length) {
-        column->pending.preview_target = NULL;
-        column->pending.preview_box.x = column->pending.x;
-        column->pending.preview_box.y = column->pending.y;
-        column->pending.preview_box.width = column->pending.width;
-        column->pending.preview_box.height = column->pending.height;
-        column_set_dirty(column);
-        return;
-    }
-
     struct wlr_box box;
     column_get_box(column, &box);
 
@@ -448,6 +435,9 @@ column_arrange_stacked(struct hwd_column *column) {
     double available_content_height = box.height;
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
+        if (child->pending.fullscreen) {
+            continue;
+        }
         available_content_height -= child->pending.titlebar_height;
     }
     if (column->pending.show_preview) {
@@ -475,6 +465,10 @@ column_arrange_stacked(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
+        if (child->pending.fullscreen) {
+            continue;
+        }
+
         double window_height = child->pending.titlebar_height;
         if (child != active_child) {
             child->pending.shaded = true;
