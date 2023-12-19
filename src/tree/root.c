@@ -4,7 +4,9 @@
 
 #include "hayward/tree/root.h"
 
+#include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <float.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -18,12 +20,12 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>
@@ -119,7 +121,7 @@ root_handle_transaction_before_commit(struct wl_listener *listener, void *data) 
     hwd_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
 
 #ifndef NDEBUG
-    hwd_assert(root->focused_surface == root_get_focused_surface(root), "Focus not committed");
+    assert(root->focused_surface == root_get_focused_surface(root));
 
     root_validate(root);
 #endif
@@ -186,7 +188,7 @@ struct hwd_root *
 root_create(struct wl_display *display) {
     struct hwd_root *root = calloc(1, sizeof(struct hwd_root));
     if (!root) {
-        hwd_log(HWD_ERROR, "Unable to allocate hwd_root");
+        wlr_log(WLR_ERROR, "Unable to allocate hwd_root");
         return NULL;
     }
 
@@ -253,7 +255,7 @@ root_destroy(struct hwd_root *root) {
 
 static void
 root_set_dirty(struct hwd_root *root) {
-    hwd_assert(root != NULL, "Expected root");
+    assert(root != NULL);
 
     if (root->dirty) {
         return;
@@ -323,7 +325,7 @@ root_add_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
 
 void
 root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     int index = list_find(root->pending.workspaces, workspace);
     if (index != -1) {
@@ -331,7 +333,7 @@ root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
     }
 
     if (root->pending.active_workspace == workspace) {
-        hwd_assert(index != -1, "Workspace is active but not attached");
+        assert(index != -1);
         int next_index = index != 0 ? index - 1 : index;
 
         struct hwd_workspace *next_focus = NULL;
@@ -350,7 +352,7 @@ root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
 
 void
 root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     struct hwd_workspace *old_workspace = root->pending.active_workspace;
 
@@ -383,7 +385,7 @@ root_get_active_workspace(struct hwd_root *root) {
 
 void
 root_set_active_output(struct hwd_root *root, struct hwd_output *output) {
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
     root->pending.active_output = output;
 }
 
@@ -405,20 +407,20 @@ root_get_active_layer(struct hwd_root *root) {
 static struct hwd_window *
 root_get_active_window(struct hwd_root *root) {
     struct hwd_workspace *workspace = root_get_active_workspace(root);
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
     return workspace_get_active_window(workspace);
 }
 
 struct wlr_surface *
 root_get_focused_unmanaged(struct hwd_root *root) {
-    hwd_assert(root != NULL, "Expected root");
+    assert(root != NULL);
 
     return root->pending.active_unmanaged;
 }
 
 struct wlr_layer_surface_v1 *
 root_get_focused_layer(struct hwd_root *root) {
-    hwd_assert(root != NULL, "Expected root");
+    assert(root != NULL);
 
     if (root_get_active_unmanaged(root) != NULL) {
         return NULL;
@@ -429,7 +431,7 @@ root_get_focused_layer(struct hwd_root *root) {
 
 struct hwd_window *
 root_get_focused_window(struct hwd_root *root) {
-    hwd_assert(root != NULL, "Expected root");
+    assert(root != NULL);
 
     if (root_get_active_unmanaged(root) != NULL) {
         return NULL;
@@ -440,7 +442,7 @@ root_get_focused_window(struct hwd_root *root) {
     }
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
     return workspace_get_active_window(workspace);
 }
 
@@ -475,10 +477,10 @@ root_set_focused_layer(struct hwd_root *root, struct wlr_layer_surface_v1 *layer
 
 void
 root_set_focused_window(struct hwd_root *root, struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
 
     struct hwd_workspace *workspace = window->pending.workspace;
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     root_set_focused_layer(root, NULL);
     root_set_focused_surface(root, NULL);
@@ -568,7 +570,7 @@ root_commit_focus(struct hwd_root *root) {
                 if (new_view->urgent_timer) {
                     wl_event_source_timer_update(new_view->urgent_timer, config->urgent_timeout);
                 } else {
-                    hwd_log_errno(HWD_ERROR, "Unable to create urgency timer");
+                    wlr_log_errno(WLR_ERROR, "Unable to create urgency timer");
                     root_handle_urgent_timeout(new_view);
                 }
             } else {
@@ -605,24 +607,20 @@ root_find_workspace(
 
 static void
 root_validate(struct hwd_root *root) {
-    hwd_assert(root != NULL, "Missing root");
+    assert(root != NULL);
 
     // Validate that there is at least one workspace.
     struct hwd_workspace *active_workspace = root->pending.active_workspace;
-    hwd_assert(active_workspace != NULL, "No active workspace");
-    hwd_assert(
-        list_find(root->pending.workspaces, active_workspace) != -1,
-        "Active workspace missing from workspaces list"
-    );
+    assert(active_workspace != NULL);
+    assert(list_find(root->pending.workspaces, active_workspace) != -1);
 
     // Validate that the correct output is focused if workspace is in tiling
     // mode.
     if (active_workspace->pending.focus_mode == F_TILING) {
         if (active_workspace->pending.active_column) {
-            hwd_assert(
+            assert(
                 root->pending.active_output ==
-                    active_workspace->pending.active_column->pending.output,
-                "Expected active output to match active column output"
+                active_workspace->pending.active_column->pending.output
             );
         }
     }
@@ -630,45 +628,30 @@ root_validate(struct hwd_root *root) {
     // Recursively validate each workspace.
     for (int i = 0; i < root->pending.workspaces->length; i++) {
         struct hwd_workspace *workspace = root->pending.workspaces->items[i];
-        hwd_assert(workspace != NULL, "Null workspace in workspaces list");
+        assert(workspace != NULL);
 
         // Validate floating windows.
         for (int j = 0; j < workspace->pending.floating->length; j++) {
             struct hwd_window *window = workspace->pending.floating->items[j];
-            hwd_assert(window != NULL, "NULL window in floating list");
+            assert(window != NULL);
 
-            hwd_assert(
-                window->pending.workspace == workspace, "Window workspace does not match expected"
-            );
-            hwd_assert(
-                list_find(root->outputs, window->pending.output) != -1,
-                "Window output missing from list"
-            );
-            hwd_assert(window->pending.parent == NULL, "Floating window has parent column");
+            assert(window->pending.workspace == workspace);
+            assert(list_find(root->outputs, window->pending.output) != -1);
+            assert(window->pending.parent == NULL);
         }
 
         for (int j = 0; j < workspace->pending.columns->length; j++) {
             struct hwd_column *column = workspace->pending.columns->items[j];
 
-            hwd_assert(
-                column->pending.workspace == workspace, "Column workspace does not match expected"
-            );
-            hwd_assert(
-                list_find(root->outputs, column->pending.output) != -1,
-                "Columm output missing from list"
-            );
+            assert(column->pending.workspace == workspace);
+            assert(list_find(root->outputs, column->pending.output) != -1);
 
             for (int k = 0; k < column->pending.children->length; k++) {
                 struct hwd_window *window = column->pending.children->items[k];
 
-                hwd_assert(window->pending.parent == column, "Tiling window parent link broken");
-                hwd_assert(
-                    window->pending.workspace == workspace, "Window workspace does not match parent"
-                );
-                hwd_assert(
-                    window->pending.output == column->pending.output,
-                    "Window output does not match parent"
-                );
+                assert(window->pending.parent == column);
+                assert(window->pending.workspace == workspace);
+                assert(window->pending.output == column->pending.output);
             }
         }
     }
@@ -720,8 +703,8 @@ root_get_output_at(struct hwd_root *root, double x, double y) {
 
 void
 root_set_theme(struct hwd_root *root, struct hwd_theme *theme) {
-    hwd_assert(root != NULL, "Expected root");
-    hwd_assert(theme != root->pending.theme, "Theme ownership unclear");
+    assert(root != NULL);
+    assert(theme != root->pending.theme);
 
     if (root->pending.theme != root->current.theme) {
         hwd_theme_destroy(root->pending.theme);
@@ -740,7 +723,7 @@ root_get_theme(struct hwd_root *root) {
 
 struct hwd_transaction_manager *
 root_get_transaction_manager(struct hwd_root *root) {
-    hwd_assert(root != NULL, "Expected root");
+    assert(root != NULL);
 
     return root->transaction_manager;
 }

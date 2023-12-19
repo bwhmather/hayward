@@ -4,6 +4,7 @@
 
 #include "hayward/config.h"
 
+#include <assert.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <linux/input-event-codes.h>
@@ -20,6 +21,7 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_seat.h>
+#include <wlr/util/log.h>
 #include <wordexp.h>
 #include <xkbcommon/xkbcommon.h>
 
@@ -30,7 +32,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/switch.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/pango.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
@@ -213,7 +214,8 @@ config_defaults(struct hwd_config *config) {
 
     return;
 cleanup:
-    hwd_abort("Unable to allocate config structures");
+    wlr_log(WLR_ERROR, "Unable to allocate config structures");
+    abort();
 }
 
 static bool
@@ -283,21 +285,21 @@ get_config_path(void) {
 static bool
 load_config(const char *path, struct hwd_config *config, struct haywardnag_instance *haywardnag) {
     if (path == NULL) {
-        hwd_log(HWD_ERROR, "Unable to find a config file!");
+        wlr_log(WLR_ERROR, "Unable to find a config file!");
         return false;
     }
 
-    hwd_log(HWD_INFO, "Loading config from %s", path);
+    wlr_log(WLR_INFO, "Loading config from %s", path);
 
     struct stat sb;
     if (stat(path, &sb) == 0 && S_ISDIR(sb.st_mode)) {
-        hwd_log(HWD_ERROR, "%s is a directory not a config file", path);
+        wlr_log(WLR_ERROR, "%s is a directory not a config file", path);
         return false;
     }
 
     FILE *f = fopen(path, "r");
     if (!f) {
-        hwd_log(HWD_ERROR, "Unable to open %s for reading", path);
+        wlr_log(WLR_ERROR, "Unable to open %s for reading", path);
         return false;
     }
 
@@ -305,7 +307,7 @@ load_config(const char *path, struct hwd_config *config, struct haywardnag_insta
     fclose(f);
 
     if (!config_load_success) {
-        hwd_log(HWD_ERROR, "Error(s) loading config!");
+        wlr_log(WLR_ERROR, "Error(s) loading config!");
     }
 
     return config->active || !config->validating || config_load_success;
@@ -320,35 +322,33 @@ load_main_config(const char *file, bool is_active, bool validating) {
         path = get_config_path();
     }
     if (path == NULL) {
-        hwd_log(HWD_ERROR, "Cannot find config file");
+        wlr_log(WLR_ERROR, "Cannot find config file");
         return false;
     }
 
     char *real_path = realpath(path, NULL);
     if (real_path == NULL) {
-        hwd_log(HWD_ERROR, "%s not found", path);
+        wlr_log(WLR_ERROR, "%s not found", path);
         free(path);
         return false;
     }
 
     struct hwd_config *old_config = config;
     config = calloc(1, sizeof(struct hwd_config));
-    if (!config) {
-        hwd_abort("Unable to allocate config");
-    }
+    assert(config != NULL);
 
     config_defaults(config);
     config->validating = validating;
     if (is_active) {
-        hwd_log(
-            HWD_DEBUG, "Performing configuration file %s", validating ? "validation" : "reload"
+        wlr_log(
+            WLR_DEBUG, "Performing configuration file %s", validating ? "validation" : "reload"
         );
         config->reloading = true;
         config->active = true;
 
         // xwayland can only be enabled/disabled at launch
-        hwd_log(
-            HWD_DEBUG, "xwayland will remain %s", old_config->xwayland ? "enabled" : "disabled"
+        wlr_log(
+            WLR_DEBUG, "xwayland will remain %s", old_config->xwayland ? "enabled" : "disabled"
         );
         config->xwayland = old_config->xwayland;
 
@@ -373,7 +373,7 @@ load_main_config(const char *file, bool is_active, bool validating) {
     /*
     DIR *dir = opendir(SYSCONFDIR "/hayward/security.d");
     if (!dir) {
-        hwd_log(HWD_ERROR,
+        wlr_log(WLR_ERROR,
             "%s does not exist, hayward will have no security configuration"
             " and will probably be broken", SYSCONFDIR "/hayward/security.d");
     } else {
@@ -402,7 +402,7 @@ load_main_config(const char *file, bool is_active, bool validating) {
             if (stat(_path, &s) || s.st_uid != 0 || s.st_gid != 0 ||
                     (((s.st_mode & 0777) != 0644) &&
                     (s.st_mode & 0777) != 0444)) {
-                hwd_log(HWD_ERROR,
+                wlr_log(WLR_ERROR,
                     "Refusing to load %s - it must be owned by root "
                     "and mode 644 or 444", _path);
                 success = false;
@@ -470,7 +470,7 @@ load_include_config(
         len = len + strlen(parent_dir) + 2;
         full_path = malloc(len * sizeof(char));
         if (!full_path) {
-            hwd_log(HWD_ERROR, "Unable to allocate full path to included config");
+            wlr_log(WLR_ERROR, "Unable to allocate full path to included config");
             return false;
         }
         snprintf(full_path, len, "%s/%s", parent_dir, path);
@@ -482,7 +482,7 @@ load_include_config(
     free(full_path);
 
     if (real_path == NULL) {
-        hwd_log(HWD_DEBUG, "%s not found.", path);
+        wlr_log(WLR_DEBUG, "%s not found.", path);
         return false;
     }
 
@@ -491,7 +491,7 @@ load_include_config(
     for (j = 0; j < config->config_chain->length; ++j) {
         char *old_path = config->config_chain->items[j];
         if (strcmp(real_path, old_path) == 0) {
-            hwd_log(HWD_DEBUG, "%s already included once, won't be included again.", real_path);
+            wlr_log(WLR_DEBUG, "%s already included once, won't be included again.", real_path);
             free(real_path);
             return false;
         }
@@ -522,7 +522,7 @@ load_include_configs(
     const char *parent_dir = dirname(parent_path);
 
     if (chdir(parent_dir) < 0) {
-        hwd_log(HWD_ERROR, "failed to change working directory");
+        wlr_log(WLR_ERROR, "failed to change working directory");
         goto cleanup;
     }
 
@@ -538,7 +538,7 @@ load_include_configs(
 
     // Attempt to restore working directory before returning.
     if (chdir(wd) < 0) {
-        hwd_log(HWD_ERROR, "failed to change working directory");
+        wlr_log(WLR_ERROR, "failed to change working directory");
     }
 cleanup:
     free(parent_path);
@@ -605,7 +605,7 @@ expand_line(const char *block, const char *line, bool add_brace) {
     int size = (block ? strlen(block) + 1 : 0) + strlen(line) + (add_brace ? 2 : 0) + 1;
     char *expanded = calloc(1, size);
     if (!expanded) {
-        hwd_log(HWD_ERROR, "Cannot allocate expanded line buffer");
+        wlr_log(WLR_ERROR, "Cannot allocate expanded line buffer");
         return NULL;
     }
     snprintf(
@@ -626,7 +626,7 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
         int ret_seek = fseek(file, 0, SEEK_END);
         long ret_tell = ftell(file);
         if (ret_seek == -1 || ret_tell == -1) {
-            hwd_log(HWD_ERROR, "Unable to get size of config file");
+            wlr_log(WLR_ERROR, "Unable to get size of config file");
             return false;
         }
         config_size = ret_tell;
@@ -634,7 +634,7 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
 
         config->current_config = this_config = calloc(1, config_size + 1);
         if (this_config == NULL) {
-            hwd_log(HWD_ERROR, "Unable to allocate buffer for config contents");
+            wlr_log(WLR_ERROR, "Unable to allocate buffer for config contents");
             return false;
         }
     }
@@ -650,7 +650,7 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
     while ((nread = getline_with_cont(&line, &line_size, file, &nlines)) != -1) {
         if (reading_main_config) {
             if (read + nread > config_size) {
-                hwd_log(HWD_ERROR, "Config file changed during reading");
+                wlr_log(WLR_ERROR, "Config file changed during reading");
                 success = false;
                 break;
             }
@@ -664,7 +664,7 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
         }
 
         line_number += nlines;
-        hwd_log(HWD_DEBUG, "Read line %d: %s", line_number, line);
+        wlr_log(WLR_DEBUG, "Read line %d: %s", line_number, line);
 
         strip_whitespace(line);
         if (!*line || line[0] == '#') {
@@ -675,7 +675,7 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
             brace_detected = detect_brace(file);
             if (brace_detected > 0) {
                 line_number += brace_detected;
-                hwd_log(HWD_DEBUG, "Detected open brace on line %d", line_number);
+                wlr_log(WLR_DEBUG, "Detected open brace on line %d", line_number);
             }
         }
         char *block = stack->length ? stack->items[0] : NULL;
@@ -697,8 +697,8 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
         switch (res->status) {
         case CMD_FAILURE:
         case CMD_INVALID:
-            hwd_log(
-                HWD_ERROR, "Error on line %i '%s': %s (%s)", line_number, line, res->error,
+            wlr_log(
+                WLR_ERROR, "Error on line %i '%s': %s (%s)", line_number, line, res->error,
                 config->current_config_path
             );
             if (!config->validating) {
@@ -711,28 +711,28 @@ read_config(FILE *file, struct hwd_config *config, struct haywardnag_instance *h
             break;
 
         case CMD_DEFER:
-            hwd_log(HWD_DEBUG, "Deferring command `%s'", line);
+            wlr_log(WLR_DEBUG, "Deferring command `%s'", line);
             list_add(config->cmd_queue, strdup(expanded));
             break;
 
         case CMD_BLOCK_COMMANDS:
-            hwd_log(HWD_DEBUG, "Entering commands block");
+            wlr_log(WLR_DEBUG, "Entering commands block");
             list_insert(stack, 0, "<commands>");
             break;
 
         case CMD_BLOCK:
-            hwd_log(HWD_DEBUG, "Entering block '%s'", new_block);
+            wlr_log(WLR_DEBUG, "Entering block '%s'", new_block);
             list_insert(stack, 0, strdup(new_block));
             break;
 
         case CMD_BLOCK_END:
             if (!block) {
-                hwd_log(HWD_DEBUG, "Unmatched '}' on line %i", line_number);
+                wlr_log(WLR_DEBUG, "Unmatched '}' on line %i", line_number);
                 success = false;
                 break;
             }
 
-            hwd_log(HWD_DEBUG, "Exiting block '%s'", block);
+            wlr_log(WLR_DEBUG, "Exiting block '%s'", block);
             list_del(stack, 0);
             free(block);
             memset(&config->handler_context, 0, sizeof(config->handler_context));
@@ -755,14 +755,14 @@ run_deferred_commands(void) {
     if (!config->cmd_queue->length) {
         return;
     }
-    hwd_log(HWD_DEBUG, "Running deferred commands");
+    wlr_log(WLR_DEBUG, "Running deferred commands");
     while (config->cmd_queue->length) {
         char *line = config->cmd_queue->items[0];
         list_t *res_list = execute_command(line, NULL, NULL);
         for (int i = 0; i < res_list->length; ++i) {
             struct cmd_results *res = res_list->items[i];
             if (res->status != CMD_SUCCESS) {
-                hwd_log(HWD_ERROR, "Error on line '%s': %s", line, res->error);
+                wlr_log(WLR_ERROR, "Error on line '%s': %s", line, res->error);
             }
             free_cmd_results(res);
         }
@@ -779,7 +779,7 @@ run_deferred_bindings(void) {
         if (!seat->deferred_bindings->length) {
             continue;
         }
-        hwd_log(HWD_DEBUG, "Running deferred bindings for seat %s", seat->wlr_seat->name);
+        wlr_log(WLR_DEBUG, "Running deferred bindings for seat %s", seat->wlr_seat->name);
         while (seat->deferred_bindings->length) {
             struct hwd_binding *binding = seat->deferred_bindings->items[0];
             seat_execute_command(seat, binding);
@@ -799,7 +799,7 @@ config_add_haywardnag_warning(char *fmt, ...) {
 
         char *temp = malloc(length + 1);
         if (!temp) {
-            hwd_log(HWD_ERROR, "Failed to allocate buffer for warning.");
+            wlr_log(WLR_ERROR, "Failed to allocate buffer for warning.");
             return;
         }
 
@@ -897,8 +897,8 @@ do_var_replacement(char *str) {
                 int vvlen = strlen(var->value);
                 char *newstr = malloc(strlen(str) - vnlen + vvlen + 1);
                 if (!newstr) {
-                    hwd_log(
-                        HWD_ERROR,
+                    wlr_log(
+                        WLR_ERROR,
                         "Unable to allocate replacement "
                         "during variable expansion"
                     );
@@ -949,7 +949,7 @@ translate_binding_list(list_t *bindings, list_t *bindsyms, list_t *bindcodes) {
             binding_add_translated(binding, bindcodes);
             break;
         default:
-            hwd_assert(false, "unexpected translated binding type: %d", binding->type);
+            assert(false);
             break;
         }
     }
@@ -979,5 +979,5 @@ translate_keysyms(struct input_config *input_config) {
         mode->keycode_bindings = bindcodes;
     }
 
-    hwd_log(HWD_DEBUG, "Translated keysyms using config for device '%s'", input_config->identifier);
+    wlr_log(WLR_DEBUG, "Translated keysyms using config for device '%s'", input_config->identifier);
 }

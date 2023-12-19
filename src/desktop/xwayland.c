@@ -4,6 +4,7 @@
 
 #include "hayward/desktop/xwayland.h"
 
+#include <assert.h>
 #include <float.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -17,6 +18,7 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include <wlr/xwayland/xwayland.h>
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
@@ -27,7 +29,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
-#include <hayward/log.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
@@ -211,7 +212,7 @@ static struct hwd_xwayland_unmanaged *
 create_unmanaged(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface *xsurface) {
     struct hwd_xwayland_unmanaged *surface = calloc(1, sizeof(struct hwd_xwayland_unmanaged));
     if (surface == NULL) {
-        hwd_log(HWD_ERROR, "Allocation failed");
+        wlr_log(WLR_ERROR, "Allocation failed");
         return NULL;
     }
 
@@ -236,7 +237,7 @@ create_unmanaged(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface *xsu
 
 static struct hwd_xwayland_view *
 xwayland_view_from_view(struct hwd_view *view) {
-    hwd_assert(view->type == HWD_VIEW_XWAYLAND, "Expected xwayland view");
+    assert(view->type == HWD_VIEW_XWAYLAND);
     return (struct hwd_xwayland_view *)view;
 }
 
@@ -529,7 +530,7 @@ handle_unmap(struct wl_listener *listener, void *data) {
 
     struct hwd_view *view = &xwayland_view->view;
 
-    hwd_assert(view->surface, "Cannot unmap unmapped view");
+    assert(view->surface);
 
     view_unmap(view);
     root_commit_focus(root);
@@ -793,12 +794,12 @@ view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface) {
 
 static struct hwd_xwayland_view *
 create_xwayland_view(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface *xsurface) {
-    hwd_log(
-        HWD_DEBUG, "New xwayland surface title='%s' class='%s'", xsurface->title, xsurface->class
+    wlr_log(
+        WLR_DEBUG, "New xwayland surface title='%s' class='%s'", xsurface->title, xsurface->class
     );
 
     struct hwd_xwayland_view *xwayland_view = calloc(1, sizeof(struct hwd_xwayland_view));
-    hwd_assert(xwayland_view, "Failed to allocate view");
+    assert(xwayland_view);
 
     view_init(&xwayland_view->view, HWD_VIEW_XWAYLAND, &view_impl);
     xwayland_view->view.wlr_xwayland_surface = xsurface;
@@ -860,7 +861,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_xwayland_surface *xsurface = data;
 
     if (xsurface->override_redirect) {
-        hwd_log(HWD_DEBUG, "New xwayland unmanaged surface");
+        wlr_log(WLR_DEBUG, "New xwayland unmanaged surface");
         create_unmanaged(xwayland, xsurface);
         return;
     }
@@ -875,7 +876,7 @@ handle_ready(struct wl_listener *listener, void *data) {
     xcb_connection_t *xcb_conn = xcb_connect(NULL, NULL);
     int err = xcb_connection_has_error(xcb_conn);
     if (err) {
-        hwd_log(HWD_ERROR, "XCB connect failed: %d", err);
+        wlr_log(WLR_ERROR, "XCB connect failed: %d", err);
         return;
     }
 
@@ -892,8 +893,8 @@ handle_ready(struct wl_listener *listener, void *data) {
         free(reply);
 
         if (error != NULL) {
-            hwd_log(
-                HWD_ERROR, "could not resolve atom %s, X11 error code %d", atom_map[i],
+            wlr_log(
+                WLR_ERROR, "could not resolve atom %s, X11 error code %d", atom_map[i],
                 error->error_code
             );
             free(error);

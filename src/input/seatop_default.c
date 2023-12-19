@@ -5,6 +5,7 @@
 
 #include "hayward/input/seatop_default.h"
 
+#include <assert.h>
 #include <float.h>
 #include <linux/input-event-codes.h>
 #include <math.h>
@@ -26,6 +27,7 @@
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/edges.h>
+#include <wlr/util/log.h>
 #include <wlr/xcursor.h>
 #include <wlr/xwayland/xwayland.h>
 
@@ -41,7 +43,6 @@
 #include <hayward/input/seatop_resize_tiling.h>
 #include <hayward/input/tablet.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
@@ -88,7 +89,7 @@ column_edge_is_external(struct hwd_column *column, enum wlr_edges edge) {
 
 static bool
 window_edge_is_external(struct hwd_window *window, enum wlr_edges edge) {
-    hwd_assert(window_is_tiling(window), "Expected tiling window");
+    assert(window_is_tiling(window));
 
     if (edge == WLR_EDGE_LEFT || edge == WLR_EDGE_RIGHT) {
         return column_edge_is_external(window->pending.parent, edge);
@@ -96,7 +97,7 @@ window_edge_is_external(struct hwd_window *window, enum wlr_edges edge) {
 
     list_t *siblings = window_get_siblings(window);
     int index = list_find(siblings, window);
-    hwd_assert(index >= 0, "Window not found");
+    assert(index >= 0);
 
     if (edge == WLR_EDGE_TOP && index == 0) {
         return true;
@@ -299,7 +300,7 @@ handle_tablet_tool_tip(
         seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface, &sx, &sy
     );
 
-    hwd_assert(surface, "Expected null-surface tablet input to route through pointer emulation");
+    assert(surface);
 
     struct wlr_layer_surface_v1 *layer = wlr_layer_surface_v1_try_from_wlr_surface(surface);
 #if HAVE_XWAYLAND
@@ -757,7 +758,7 @@ wl_axis_to_button(struct wlr_pointer_axis_event *event) {
     case WLR_AXIS_ORIENTATION_HORIZONTAL:
         return event->delta < 0 ? HWD_SCROLL_LEFT : HWD_SCROLL_RIGHT;
     default:
-        hwd_log(HWD_DEBUG, "Unknown axis orientation");
+        wlr_log(WLR_DEBUG, "Unknown axis orientation");
         return 0;
     }
 }
@@ -874,7 +875,7 @@ seatop_begin_default(struct hwd_seat *seat) {
     seatop_end(seat);
 
     struct seatop_default_event *e = calloc(1, sizeof(struct seatop_default_event));
-    hwd_assert(e, "Unable to allocate seatop_default_event");
+    assert(e);
     seat->seatop_impl = &seatop_impl;
     seat->seatop_data = e;
 

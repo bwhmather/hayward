@@ -6,9 +6,9 @@
 #include "hayward/commands.h"
 
 #include <string.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
-#include <hayward/log.h>
 
 struct cmd_results *
 input_cmd_xkb_variant(int argc, char **argv) {
@@ -23,8 +23,8 @@ input_cmd_xkb_variant(int argc, char **argv) {
 
     ic->xkb_variant = strdup(argv[0]);
 
-    hwd_log(
-        HWD_DEBUG, "set-xkb_variant for config: %s variant: %s", ic->identifier, ic->xkb_variant
+    wlr_log(
+        WLR_DEBUG, "set-xkb_variant for config: %s variant: %s", ic->identifier, ic->xkb_variant
     );
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

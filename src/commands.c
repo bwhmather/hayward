@@ -4,6 +4,7 @@
 
 #include "hayward/commands.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -11,13 +12,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/stringop.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
@@ -154,7 +155,7 @@ execute_command(char *_exec, struct hwd_seat *seat, struct hwd_window *window) {
     if (seat == NULL) {
         // passing a NULL seat means we just pick the default seat
         seat = input_manager_get_default_seat();
-        hwd_assert(seat, "could not find a seat to run the command on");
+        assert(seat);
     }
 
     char *exec = strdup(_exec);
@@ -177,10 +178,10 @@ execute_command(char *_exec, struct hwd_seat *seat, struct hwd_window *window) {
         }
 
         if (strcmp(cmd, "") == 0) {
-            hwd_log(HWD_INFO, "Ignoring empty command.");
+            wlr_log(WLR_INFO, "Ignoring empty command.");
             continue;
         }
-        hwd_log(HWD_INFO, "Handling command '%s'", cmd);
+        wlr_log(WLR_INFO, "Handling command '%s'", cmd);
         // TODO better handling of argv
         int argc;
         char **argv = split_args(cmd, &argc);
@@ -277,7 +278,7 @@ config_command(char *exec, char **new_block) {
     }
 
     // Determine the command handler
-    hwd_log(HWD_INFO, "Config command: %s", exec);
+    wlr_log(WLR_INFO, "Config command: %s", exec);
     const struct cmd_handler *handler = find_core_handler(argv[0]);
     if (!handler || !handler->handle) {
         const char *error =
@@ -296,7 +297,7 @@ config_command(char *exec, char **new_block) {
         argv[1] = temp;
     }
     char *command = do_var_replacement(join_args(argv, argc));
-    hwd_log(HWD_INFO, "After replacement: %s", command);
+    wlr_log(WLR_INFO, "After replacement: %s", command);
     free_argv(argc, argv);
     argv = split_args(command, &argc);
     free(command);
@@ -323,7 +324,7 @@ cleanup:
 struct cmd_results *
 config_subcommand(char **argv, int argc, const struct cmd_handler *handlers, size_t handlers_size) {
     char *command = join_args(argv, argc);
-    hwd_log(HWD_DEBUG, "Subcommand: %s", command);
+    wlr_log(WLR_DEBUG, "Subcommand: %s", command);
     free(command);
 
     const struct cmd_handler *handler = find_handler(argv[0], handlers, handlers_size);
@@ -371,7 +372,7 @@ struct cmd_results *
 cmd_results_new(enum cmd_status status, const char *format, ...) {
     struct cmd_results *results = malloc(sizeof(struct cmd_results));
     if (!results) {
-        hwd_log(HWD_ERROR, "Unable to allocate command results");
+        wlr_log(WLR_ERROR, "Unable to allocate command results");
         return NULL;
     }
     results->status = status;

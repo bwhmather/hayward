@@ -4,6 +4,7 @@
 
 #include "hayward/commands.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_switch.h>
+#include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
 #include <xkbcommon/xkbcommon.h>
 
@@ -19,7 +21,6 @@
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/stringop.h>
 #include <hayward/tree/output.h>
 
@@ -217,8 +218,8 @@ switch_binding_add(
     for (int i = 0; i < mode_bindings->length; ++i) {
         struct hwd_switch_binding *config_binding = mode_bindings->items[i];
         if (binding_switch_compare(binding, config_binding)) {
-            hwd_log(
-                HWD_INFO, "Overwriting binding '%s' to `%s` from `%s`", switchcombo,
+            wlr_log(
+                WLR_INFO, "Overwriting binding '%s' to `%s` from `%s`", switchcombo,
                 binding->command, config_binding->command
             );
             if (warn) {
@@ -236,8 +237,8 @@ switch_binding_add(
 
     if (!overwritten) {
         list_add(mode_bindings, binding);
-        hwd_log(
-            HWD_DEBUG, "%s - Bound %s to command `%s`", bindtype, switchcombo, binding->command
+        wlr_log(
+            WLR_DEBUG, "%s - Bound %s to command `%s`", bindtype, switchcombo, binding->command
         );
     }
 
@@ -255,7 +256,7 @@ switch_binding_remove(
             free_switch_binding(config_binding);
             free_switch_binding(binding);
             list_del(mode_bindings, i);
-            hwd_log(HWD_DEBUG, "%s - Unbound %s switch", bindtype, switchcombo);
+            wlr_log(WLR_DEBUG, "%s - Unbound %s switch", bindtype, switchcombo);
             return cmd_results_new(CMD_SUCCESS, NULL);
         }
     }
@@ -290,8 +291,8 @@ binding_add(
     struct hwd_binding *config_binding = binding_upsert(binding, mode_bindings);
 
     if (config_binding) {
-        hwd_log(
-            HWD_INFO,
+        wlr_log(
+            WLR_INFO,
             "Overwriting binding '%s' for device '%s' "
             "to `%s` from `%s`",
             keycombo, binding->input, binding->command, config_binding->command
@@ -305,8 +306,8 @@ binding_add(
         }
         free_hwd_binding(config_binding);
     } else {
-        hwd_log(
-            HWD_DEBUG, "%s - Bound %s to command `%s` for device '%s'", bindtype, keycombo,
+        wlr_log(
+            WLR_DEBUG, "%s - Bound %s to command `%s` for device '%s'", bindtype, keycombo,
             binding->command, binding->input
         );
     }
@@ -321,8 +322,8 @@ binding_remove(
     for (int i = 0; i < mode_bindings->length; ++i) {
         struct hwd_binding *config_binding = mode_bindings->items[i];
         if (binding_key_compare(binding, config_binding)) {
-            hwd_log(
-                HWD_DEBUG, "%s - Unbound `%s` from device '%s'", bindtype, keycombo, binding->input
+            wlr_log(
+                WLR_DEBUG, "%s - Unbound `%s` from device '%s'", bindtype, keycombo, binding->input
             );
             free_hwd_binding(config_binding);
             free_hwd_binding(binding);
@@ -482,7 +483,7 @@ cmd_bindsym_or_bindcode(int argc, char **argv, bool bindcode, bool unbind) {
 
     // translate keysyms into keycodes
     if (!translate_binding(binding)) {
-        hwd_log(HWD_INFO, "Unable to translate bindsym into bindcode: %s", argv[0]);
+        wlr_log(WLR_INFO, "Unable to translate bindsym into bindcode: %s", argv[0]);
     }
 
     list_t *mode_bindings;
@@ -631,10 +632,10 @@ cmd_unbindswitch(int argc, char **argv) {
 void
 seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding) {
     if (!config->active) {
-        hwd_log(HWD_DEBUG, "deferring command for binding: %s", binding->command);
+        wlr_log(WLR_DEBUG, "deferring command for binding: %s", binding->command);
         struct hwd_binding *deferred = calloc(1, sizeof(struct hwd_binding));
         if (!deferred) {
-            hwd_log(HWD_ERROR, "Failed to allocate deferred binding");
+            wlr_log(WLR_ERROR, "Failed to allocate deferred binding");
             return;
         }
         memcpy(deferred, binding, sizeof(struct hwd_binding));
@@ -643,7 +644,7 @@ seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding) {
         return;
     }
 
-    hwd_log(HWD_DEBUG, "running command for binding: %s", binding->command);
+    wlr_log(WLR_DEBUG, "running command for binding: %s", binding->command);
     struct hwd_window *container = NULL;
     if (binding->type == BINDING_MOUSESYM || binding->type == BINDING_MOUSECODE) {
         struct hwd_output *output;
@@ -659,8 +660,8 @@ seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding) {
     for (int i = 0; i < res_list->length; ++i) {
         struct cmd_results *results = res_list->items[i];
         if (results->status != CMD_SUCCESS) {
-            hwd_log(
-                HWD_DEBUG, "could not run command for binding: %s (%s)", binding->command,
+            wlr_log(
+                WLR_DEBUG, "could not run command for binding: %s (%s)", binding->command,
                 results->error
             );
         }
@@ -741,8 +742,8 @@ translate_binding(struct hwd_binding *binding) {
         struct keycode_matches matches = get_keycode_for_keysym(*keysym);
 
         if (matches.count != 1) {
-            hwd_log(
-                HWD_INFO,
+            wlr_log(
+                WLR_INFO,
                 "Unable to convert keysym %" PRIu32 " into"
                 " a single keycode (found %d matches)",
                 *keysym, matches.count
@@ -752,7 +753,7 @@ translate_binding(struct hwd_binding *binding) {
 
         xkb_keycode_t *keycode = malloc(sizeof(xkb_keycode_t));
         if (!keycode) {
-            hwd_log(HWD_ERROR, "Unable to allocate memory for a keycode");
+            wlr_log(WLR_ERROR, "Unable to allocate memory for a keycode");
             goto error;
         }
 
@@ -777,8 +778,8 @@ binding_add_translated(struct hwd_binding *binding, list_t *mode_bindings) {
     struct hwd_binding *config_binding = binding_upsert(binding, mode_bindings);
 
     if (config_binding) {
-        hwd_log(
-            HWD_INFO,
+        wlr_log(
+            WLR_INFO,
             "Overwriting binding for device '%s' "
             "to `%s` from `%s`",
             binding->input, binding->command, config_binding->command

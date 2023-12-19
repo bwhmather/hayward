@@ -3,6 +3,7 @@
 
 #include "hayward/desktop/hwd_workspace_management_v1.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,8 +13,6 @@
 #include <wayland-util.h>
 
 #include <hwd-workspace-management-unstable-v1-protocol.h>
-
-#include <hayward/log.h>
 
 static void
 manager_set_dirty(struct hwd_workspace_manager_v1 *manager);
@@ -27,12 +26,9 @@ static const struct hwd_workspace_handle_v1_interface workspace_handle_impl = {
 
 static struct hwd_workspace_handle_v1 *
 workspace_handle_from_resource(struct wl_resource *resource) {
-    hwd_assert(
-        wl_resource_instance_of(
-            resource, &hwd_workspace_handle_v1_interface, &workspace_handle_impl
-        ),
-        "Invalid instance"
-    );
+    assert(wl_resource_instance_of(
+        resource, &hwd_workspace_handle_v1_interface, &workspace_handle_impl
+    ));
 
     return wl_resource_get_user_data(resource);
 }
@@ -82,7 +78,7 @@ create_workspace_resource_for_resource(
 
 struct hwd_workspace_handle_v1 *
 hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager) {
-    hwd_assert(manager != NULL, "Expected workspace manager");
+    assert(manager != NULL);
 
     struct hwd_workspace_handle_v1 *workspace = calloc(1, sizeof(struct hwd_workspace_handle_v1));
     if (workspace == NULL) {
@@ -109,7 +105,7 @@ hwd_workspace_handle_v1_create(struct hwd_workspace_manager_v1 *manager) {
 
 void
 hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace handle");
+    assert(workspace != NULL);
 
     wl_signal_emit_mutable(&workspace->events.destroy, workspace);
 
@@ -128,7 +124,7 @@ hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace) {
 void
 hwd_workspace_handle_v1_set_name(struct hwd_workspace_handle_v1 *workspace, const char *name) {
     workspace->name = strdup(name);
-    hwd_assert(workspace->name != NULL, "Could not allocate memory for name");
+    assert(workspace->name != NULL);
 
     struct wl_resource *resource;
     wl_resource_for_each(resource, &workspace->resources) {
@@ -162,12 +158,9 @@ static const struct hwd_workspace_manager_v1_interface workspace_manager_impl = 
 
 static void
 manager_handle_stop(struct wl_client *client, struct wl_resource *resource) {
-    hwd_assert(
-        wl_resource_instance_of(
-            resource, &hwd_workspace_manager_v1_interface, &workspace_manager_impl
-        ),
-        "Invalid instance"
-    );
+    assert(wl_resource_instance_of(
+        resource, &hwd_workspace_manager_v1_interface, &workspace_manager_impl
+    ));
 
     hwd_workspace_manager_v1_send_finished(resource);
     wl_resource_destroy(resource);

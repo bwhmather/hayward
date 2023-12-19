@@ -36,6 +36,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include <wlr/util/region.h>
 
 #include <tablet-unstable-v2-protocol.h>
@@ -47,7 +48,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/tablet.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -374,7 +374,7 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
         if (cursor->pressed_button_count > 0) {
             cursor->pressed_button_count--;
         } else {
-            hwd_log(HWD_ERROR, "Pressed button count was wrong");
+            wlr_log(WLR_ERROR, "Pressed button count was wrong");
         }
     }
 
@@ -642,7 +642,7 @@ handle_tool_axis(struct wl_listener *listener, void *data) {
 
     struct hwd_tablet_tool *hwd_tool = event->tool->data;
     if (!hwd_tool) {
-        hwd_log(HWD_DEBUG, "tool axis before proximity");
+        wlr_log(WLR_DEBUG, "tool axis before proximity");
         return;
     }
 
@@ -753,7 +753,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
     if (!tool->data) {
         struct hwd_tablet *tablet = get_tablet_for_device(cursor, &event->tablet->base);
         if (!tablet) {
-            hwd_log(HWD_ERROR, "no tablet for tablet tool");
+            wlr_log(WLR_ERROR, "no tablet for tablet tool");
             return;
         }
         hwd_tablet_tool_configure(tablet, tool);
@@ -761,7 +761,7 @@ handle_tool_proximity(struct wl_listener *listener, void *data) {
 
     struct hwd_tablet_tool *hwd_tool = tool->data;
     if (!hwd_tool) {
-        hwd_log(HWD_ERROR, "tablet tool not initialized");
+        wlr_log(WLR_ERROR, "tablet tool not initialized");
         return;
     }
 
@@ -784,7 +784,7 @@ handle_tool_button(struct wl_listener *listener, void *data) {
 
     struct hwd_tablet_tool *hwd_tool = event->tool->data;
     if (!hwd_tool) {
-        hwd_log(HWD_DEBUG, "tool button before proximity");
+        wlr_log(WLR_DEBUG, "tool button before proximity");
         return;
     }
     struct wlr_tablet_v2_tablet *tablet_v2 = hwd_tool->tablet->tablet_v2;
@@ -904,7 +904,7 @@ handle_request_pointer_set_cursor(struct wl_listener *listener, void *data) {
 
     // TODO: check cursor mode
     if (focused_client == NULL || event->seat_client->client != focused_client) {
-        hwd_log(HWD_DEBUG, "denying request to set cursor from unfocused client");
+        wlr_log(WLR_DEBUG, "denying request to set cursor from unfocused client");
         return;
     }
 
@@ -1108,10 +1108,10 @@ hwd_cursor_destroy(struct hwd_cursor *cursor) {
 struct hwd_cursor *
 hwd_cursor_create(struct hwd_seat *seat) {
     struct hwd_cursor *cursor = calloc(1, sizeof(struct hwd_cursor));
-    hwd_assert(cursor, "could not allocate hayward cursor");
+    assert(cursor);
 
     struct wlr_cursor *wlr_cursor = wlr_cursor_create();
-    hwd_assert(wlr_cursor, "could not allocate wlr cursor");
+    assert(wlr_cursor);
 
     cursor->seat = seat;
     wlr_cursor_attach_output_layout(wlr_cursor, root->output_layout);

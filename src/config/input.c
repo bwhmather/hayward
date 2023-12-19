@@ -11,12 +11,12 @@
 #include <string.h>
 #include <wayland-util.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include <hayward/input/input_manager.h>
 #include <hayward/input/keyboard.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 
 static int
@@ -30,13 +30,13 @@ struct input_config *
 new_input_config(const char *identifier) {
     struct input_config *input = calloc(1, sizeof(struct input_config));
     if (!input) {
-        hwd_log(HWD_DEBUG, "Unable to allocate input config");
+        wlr_log(WLR_DEBUG, "Unable to allocate input config");
         return NULL;
     }
-    hwd_log(HWD_DEBUG, "new_input_config(%s)", identifier);
+    wlr_log(WLR_DEBUG, "new_input_config(%s)", identifier);
     if (!(input->identifier = strdup(identifier))) {
         free(input);
-        hwd_log(HWD_DEBUG, "Unable to allocate input config");
+        wlr_log(WLR_DEBUG, "Unable to allocate input config");
         return NULL;
     }
 
@@ -218,7 +218,7 @@ validate_wildcard_on_all(struct input_config *wildcard, char **error) {
     for (int i = 0; i < config->input_configs->length; i++) {
         struct input_config *ic = config->input_configs->items[i];
         if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-            hwd_log(HWD_DEBUG, "Validating xkb merge of * on %s", ic->identifier);
+            wlr_log(WLR_DEBUG, "Validating xkb merge of * on %s", ic->identifier);
             if (!validate_xkb_merge(ic, wildcard, error)) {
                 return false;
             }
@@ -227,7 +227,7 @@ validate_wildcard_on_all(struct input_config *wildcard, char **error) {
 
     for (int i = 0; i < config->input_type_configs->length; i++) {
         struct input_config *ic = config->input_type_configs->items[i];
-        hwd_log(HWD_DEBUG, "Validating xkb merge of * config on %s", ic->identifier);
+        wlr_log(WLR_DEBUG, "Validating xkb merge of * config on %s", ic->identifier);
         if (!validate_xkb_merge(ic, wildcard, error)) {
             return false;
         }
@@ -241,14 +241,14 @@ merge_wildcard_on_all(struct input_config *wildcard) {
     for (int i = 0; i < config->input_configs->length; i++) {
         struct input_config *ic = config->input_configs->items[i];
         if (strcmp(wildcard->identifier, ic->identifier) != 0) {
-            hwd_log(HWD_DEBUG, "Merging input * config on %s", ic->identifier);
+            wlr_log(WLR_DEBUG, "Merging input * config on %s", ic->identifier);
             merge_input_config(ic, wildcard);
         }
     }
 
     for (int i = 0; i < config->input_type_configs->length; i++) {
         struct input_config *ic = config->input_type_configs->items[i];
-        hwd_log(HWD_DEBUG, "Merging input * config on %s", ic->identifier);
+        wlr_log(WLR_DEBUG, "Merging input * config on %s", ic->identifier);
         merge_input_config(ic, wildcard);
     }
 }
@@ -262,8 +262,8 @@ validate_type_on_existing(struct input_config *type_wildcard, char **error) {
         }
 
         if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-            hwd_log(
-                HWD_DEBUG, "Validating merge of %s on %s", type_wildcard->identifier, ic->identifier
+            wlr_log(
+                WLR_DEBUG, "Validating merge of %s on %s", type_wildcard->identifier, ic->identifier
             );
             if (!validate_xkb_merge(ic, type_wildcard, error)) {
                 return false;
@@ -282,7 +282,7 @@ merge_type_on_existing(struct input_config *type_wildcard) {
         }
 
         if (strcmp(ic->input_type, type_wildcard->identifier + 5) == 0) {
-            hwd_log(HWD_DEBUG, "Merging %s top of %s", type_wildcard->identifier, ic->identifier);
+            wlr_log(WLR_DEBUG, "Merging %s top of %s", type_wildcard->identifier, ic->identifier);
             merge_input_config(ic, type_wildcard);
         }
     }
@@ -369,7 +369,7 @@ store_input_config(struct input_config *ic, char **error) {
         list_add(config_list, ic);
     }
 
-    hwd_log(HWD_DEBUG, "Config stored for input %s", ic->identifier);
+    wlr_log(WLR_DEBUG, "Config stored for input %s", ic->identifier);
 
     return ic;
 }

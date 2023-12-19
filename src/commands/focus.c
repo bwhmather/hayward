@@ -4,6 +4,7 @@
 
 #include "hayward/commands.h"
 
+#include <assert.h>
 #include <float.h>
 #include <stdbool.h>
 #include <string.h>
@@ -14,7 +15,6 @@
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -46,10 +46,10 @@ parse_direction(const char *name, enum wlr_direction *out) {
  */
 static struct hwd_window *
 get_window_in_output_direction(struct hwd_output *output, enum wlr_direction dir) {
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     if (output->pending.fullscreen_window) {
         return output->pending.fullscreen_window;
@@ -263,7 +263,7 @@ cmd_focus(int argc, char **argv) {
     struct hwd_seat *seat = config->handler_context.seat;
 
     struct hwd_output *output = root_get_active_output(root);
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     struct hwd_window *window = root_get_focused_window(root);
 

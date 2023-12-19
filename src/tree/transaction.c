@@ -4,13 +4,16 @@
 
 #include "hayward/tree/transaction.h"
 
+#include <assert.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+#include <wlr/util/log.h>
 
-#include <hayward/log.h>
 #include <hayward/server.h>
 
 static void
@@ -23,7 +26,7 @@ struct hwd_transaction_manager *
 hwd_transaction_manager_create(void) {
     struct hwd_transaction_manager *transaction_manager =
         calloc(1, sizeof(struct hwd_transaction_manager));
-    hwd_assert(transaction_manager != NULL, "Allocation failed");
+    assert(transaction_manager != NULL);
 
     wl_signal_init(&transaction_manager->events.before_commit);
     wl_signal_init(&transaction_manager->events.commit);
@@ -35,24 +38,12 @@ hwd_transaction_manager_create(void) {
 
 void
 hwd_transaction_manager_destroy(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
+    assert(transaction_manager != NULL);
 
-    hwd_assert(
-        wl_list_empty(&transaction_manager->events.before_commit.listener_list),
-        "Manager still has registered before commit listeners"
-    );
-    hwd_assert(
-        wl_list_empty(&transaction_manager->events.commit.listener_list),
-        "Manager still has registered commit listeners"
-    );
-    hwd_assert(
-        wl_list_empty(&transaction_manager->events.apply.listener_list),
-        "Manager still has registered apply listeners"
-    );
-    hwd_assert(
-        wl_list_empty(&transaction_manager->events.after_apply.listener_list),
-        "Manager still has registered after listeners"
-    );
+    assert(wl_list_empty(&transaction_manager->events.before_commit.listener_list));
+    assert(wl_list_empty(&transaction_manager->events.commit.listener_list));
+    assert(wl_list_empty(&transaction_manager->events.apply.listener_list));
+    assert(wl_list_empty(&transaction_manager->events.after_apply.listener_list));
 
     if (transaction_manager->timer) {
         wl_event_source_remove(transaction_manager->timer);
@@ -66,10 +57,10 @@ hwd_transaction_manager_destroy(struct hwd_transaction_manager *transaction_mana
  */
 static void
 transaction_apply(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
-    hwd_assert(transaction_manager->num_waiting == 0, "Can't apply while waiting");
+    assert(transaction_manager != NULL);
+    assert(transaction_manager->num_waiting == 0);
 
-    hwd_log(HWD_DEBUG, "Applying transaction");
+    wlr_log(WLR_DEBUG, "Applying transaction");
 
     transaction_manager->num_configures = 0;
 
@@ -85,8 +76,8 @@ transaction_apply(struct hwd_transaction_manager *transaction_manager) {
         struct timespec *commit = &transaction_manager->commit_time;
         float ms =
             (now.tv_sec - commit->tv_sec) * 1000 + (now.tv_nsec - commit->tv_nsec) / 1000000.0;
-        hwd_log(
-            HWD_DEBUG, "Transaction: %.1fms waiting (%.1f frames if 60Hz)", ms, ms / (1000.0f / 60)
+        wlr_log(
+            WLR_DEBUG, "Transaction: %.1fms waiting (%.1f frames if 60Hz)", ms, ms / (1000.0f / 60)
         );
     }
 
@@ -95,11 +86,8 @@ transaction_apply(struct hwd_transaction_manager *transaction_manager) {
 
 static void
 transaction_progress(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
-    hwd_assert(
-        transaction_manager->phase == HWD_TRANSACTION_WAITING_CONFIRM,
-        "Expected transaction to be waiting for confirmations"
-    );
+    assert(transaction_manager != NULL);
+    assert(transaction_manager->phase == HWD_TRANSACTION_WAITING_CONFIRM);
 
     if (transaction_manager->num_waiting > 0) {
         return;
@@ -119,7 +107,7 @@ handle_commit(void *data) {
 
     transaction_manager->idle = NULL;
 
-    hwd_assert(transaction_manager->depth == 0, "Transaction was not released");
+    assert(transaction_manager->depth == 0);
 
     transaction_manager->phase = HWD_TRANSACTION_BEFORE_COMMIT;
     wl_signal_emit_mutable(&transaction_manager->events.before_commit, NULL);
@@ -150,8 +138,8 @@ handle_commit(void *data) {
         if (transaction_manager->timer) {
             wl_event_source_timer_update(transaction_manager->timer, server.txn_timeout_ms);
         } else {
-            hwd_log_errno(
-                HWD_ERROR,
+            wlr_log_errno(
+                WLR_ERROR,
                 "Unable to create transaction timer "
                 "(some imperfect frames might be rendered)"
             );
@@ -166,7 +154,7 @@ static int
 handle_timeout(void *data) {
     struct hwd_transaction_manager *transaction_manager = data;
 
-    hwd_log(HWD_DEBUG, "Transaction timed out (%zi waiting)", transaction_manager->num_waiting);
+    wlr_log(WLR_DEBUG, "Transaction timed out (%zi waiting)", transaction_manager->num_waiting);
     transaction_manager->num_waiting = 0;
     transaction_progress(transaction_manager);
 
@@ -175,7 +163,7 @@ handle_timeout(void *data) {
 
 void
 hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
+    assert(transaction_manager != NULL);
 
     transaction_manager->queued = true;
 
@@ -187,28 +175,22 @@ hwd_transaction_manager_ensure_queued(struct hwd_transaction_manager *transactio
 
 void
 hwd_transaction_manager_acquire_commit_lock(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
-    hwd_assert(
-        transaction_manager->phase == HWD_TRANSACTION_COMMIT,
-        "Can only acquire commit lock during commit"
-    );
+    assert(transaction_manager != NULL);
+    assert(transaction_manager->phase == HWD_TRANSACTION_COMMIT);
 
     transaction_manager->num_waiting++;
 }
 
 void
 hwd_transaction_manager_release_commit_lock(struct hwd_transaction_manager *transaction_manager) {
-    hwd_assert(transaction_manager != NULL, "Expected transaction manager");
-    hwd_assert(
-        transaction_manager->phase == HWD_TRANSACTION_WAITING_CONFIRM,
-        "Can only release commit lock while transaction manager is waiting"
-    );
-    hwd_assert(transaction_manager->num_waiting > 0, "All commit locks have already been released");
+    assert(transaction_manager != NULL);
+    assert(transaction_manager->phase == HWD_TRANSACTION_WAITING_CONFIRM);
+    assert(transaction_manager->num_waiting > 0);
 
     transaction_manager->num_waiting--;
 
     if (transaction_manager->num_waiting == 0) {
-        hwd_log(HWD_DEBUG, "Transaction is ready");
+        wlr_log(WLR_DEBUG, "Transaction is ready");
         wl_event_source_timer_update(transaction_manager->timer, 0);
     }
 

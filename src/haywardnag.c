@@ -4,6 +4,7 @@
 
 #include "hayward/haywardnag.h"
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -16,8 +17,8 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+#include <wlr/util/log.h>
 
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/util.h>
 
@@ -42,7 +43,7 @@ haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *hay
 
     if (haywardnag->detailed) {
         if (pipe(haywardnag->fd) != 0) {
-            hwd_log(HWD_ERROR, "Failed to create pipe for haywardnag");
+            wlr_log(WLR_ERROR, "Failed to create pipe for haywardnag");
             return false;
         }
         if (!hwd_set_cloexec(haywardnag->fd[1], true)) {
@@ -52,7 +53,7 @@ haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *hay
 
     int sockets[2];
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0) {
-        hwd_log_errno(HWD_ERROR, "socketpair failed");
+        wlr_log_errno(WLR_ERROR, "socketpair failed");
         goto failed;
     }
     if (!hwd_set_cloexec(sockets[0], true) || !hwd_set_cloexec(sockets[1], true)) {
@@ -61,7 +62,7 @@ haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *hay
 
     haywardnag->client = wl_client_create(server.wl_display, sockets[0]);
     if (haywardnag->client == NULL) {
-        hwd_log_errno(HWD_ERROR, "wl_client_create failed");
+        wlr_log_errno(WLR_ERROR, "wl_client_create failed");
         goto failed;
     }
 
@@ -70,14 +71,14 @@ haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *hay
 
     pid_t pid = fork();
     if (pid < 0) {
-        hwd_log(HWD_ERROR, "Failed to create fork for haywardnag");
+        wlr_log(WLR_ERROR, "Failed to create fork for haywardnag");
         goto failed;
     } else if (pid == 0) {
         restore_nofile_limit();
 
         pid = fork();
         if (pid < 0) {
-            hwd_log_errno(HWD_ERROR, "fork failed");
+            wlr_log_errno(WLR_ERROR, "fork failed");
             _exit(EXIT_FAILURE);
         } else if (pid == 0) {
             if (!hwd_set_cloexec(sockets[1], false)) {
@@ -98,7 +99,7 @@ haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *hay
             char *cmd = malloc(length);
             snprintf(cmd, length, "%s %s", haywardnag_command, haywardnag->args);
             execlp("sh", "sh", "-c", cmd, NULL);
-            hwd_log_errno(HWD_ERROR, "execlp failed");
+            wlr_log_errno(WLR_ERROR, "execlp failed");
             _exit(EXIT_FAILURE);
         }
         _exit(EXIT_SUCCESS);
@@ -106,18 +107,18 @@ haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *hay
 
     if (haywardnag->detailed) {
         if (close(haywardnag->fd[0]) != 0) {
-            hwd_log_errno(HWD_ERROR, "close failed");
+            wlr_log_errno(WLR_ERROR, "close failed");
             return false;
         }
     }
 
     if (close(sockets[1]) != 0) {
-        hwd_log_errno(HWD_ERROR, "close failed");
+        wlr_log_errno(WLR_ERROR, "close failed");
         return false;
     }
 
     if (waitpid(pid, NULL, 0) < 0) {
-        hwd_log_errno(HWD_ERROR, "waitpid failed");
+        wlr_log_errno(WLR_ERROR, "waitpid failed");
         return false;
     }
 
@@ -126,11 +127,11 @@ haywardnag_spawn(const char *haywardnag_command, struct haywardnag_instance *hay
 failed:
     if (haywardnag->detailed) {
         if (close(haywardnag->fd[0]) != 0) {
-            hwd_log_errno(HWD_ERROR, "close failed");
+            wlr_log_errno(WLR_ERROR, "close failed");
             return false;
         }
         if (close(haywardnag->fd[1]) != 0) {
-            hwd_log_errno(HWD_ERROR, "close failed");
+            wlr_log_errno(WLR_ERROR, "close failed");
         }
     }
     return false;
@@ -145,7 +146,7 @@ haywardnag_log(
     }
 
     if (!haywardnag->detailed) {
-        hwd_log(HWD_ERROR, "Attempting to write to non-detailed haywardnag inst");
+        wlr_log(WLR_ERROR, "Attempting to write to non-detailed haywardnag inst");
         return;
     }
 
@@ -160,7 +161,7 @@ haywardnag_log(
 
     char *temp = malloc(length + 1);
     if (!temp) {
-        hwd_log(HWD_ERROR, "Failed to allocate buffer for haywardnag log entry.");
+        wlr_log(WLR_ERROR, "Failed to allocate buffer for haywardnag log entry.");
         return;
     }
 

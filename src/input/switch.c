@@ -4,30 +4,31 @@
 
 #include "hayward/input/switch.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_switch.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 
 struct hwd_switch *
 hwd_switch_create(struct hwd_seat *seat, struct hwd_seat_device *device) {
     struct hwd_switch *switch_device = calloc(1, sizeof(struct hwd_switch));
-    hwd_assert(switch_device, "could not allocate switch");
+    assert(switch_device);
     device->switch_device = switch_device;
     switch_device->seat_device = device;
     switch_device->wlr = wlr_switch_from_input_device(device->input_device->wlr_device);
     switch_device->state = WLR_SWITCH_STATE_OFF;
     wl_list_init(&switch_device->switch_toggle.link);
-    hwd_log(HWD_DEBUG, "Allocated switch for device");
+    wlr_log(WLR_DEBUG, "Allocated switch for device");
 
     return switch_device;
 }
@@ -98,8 +99,8 @@ handle_switch_toggle(struct wl_listener *listener, void *data) {
 
     struct wlr_input_device *wlr_device = hwd_switch->seat_device->input_device->wlr_device;
     char *device_identifier = input_device_get_identifier(wlr_device);
-    hwd_log(
-        HWD_DEBUG, "%s: type %d state %d", device_identifier, event->switch_type,
+    wlr_log(
+        WLR_DEBUG, "%s: type %d state %d", device_identifier, event->switch_type,
         event->switch_state
     );
     free(device_identifier);
@@ -114,7 +115,7 @@ hwd_switch_configure(struct hwd_switch *hwd_switch) {
     wl_list_remove(&hwd_switch->switch_toggle.link);
     wl_signal_add(&hwd_switch->wlr->events.toggle, &hwd_switch->switch_toggle);
     hwd_switch->switch_toggle.notify = handle_switch_toggle;
-    hwd_log(HWD_DEBUG, "Configured switch for device");
+    wlr_log(WLR_DEBUG, "Configured switch for device");
 }
 
 void

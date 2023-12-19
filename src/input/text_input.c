@@ -13,9 +13,9 @@
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_text_input_v3.h>
+#include <wlr/util/log.h>
 
 #include <hayward/input/seat.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 
 static struct hwd_text_input *
@@ -132,7 +132,7 @@ static void
 relay_send_im_state(struct hwd_input_method_relay *relay, struct wlr_text_input_v3 *input) {
     struct wlr_input_method_v2 *input_method = relay->input_method;
     if (!input_method) {
-        hwd_log(HWD_INFO, "Sending IM_DONE but im is gone");
+        wlr_log(WLR_INFO, "Sending IM_DONE but im is gone");
         return;
     }
     // TODO: only send each of those if they were modified
@@ -157,7 +157,7 @@ handle_text_input_enable(struct wl_listener *listener, void *data) {
     struct hwd_text_input *text_input = wl_container_of(listener, text_input, text_input_enable);
 
     if (text_input->relay->input_method == NULL) {
-        hwd_log(HWD_INFO, "Enabling text input when input method is gone");
+        wlr_log(WLR_INFO, "Enabling text input when input method is gone");
         return;
     }
     wlr_input_method_v2_send_activate(text_input->relay->input_method);
@@ -169,12 +169,12 @@ handle_text_input_commit(struct wl_listener *listener, void *data) {
     struct hwd_text_input *text_input = wl_container_of(listener, text_input, text_input_commit);
 
     if (!text_input->input->current_enabled) {
-        hwd_log(HWD_INFO, "Inactive text input tried to commit an update");
+        wlr_log(WLR_INFO, "Inactive text input tried to commit an update");
         return;
     }
-    hwd_log(HWD_DEBUG, "Text input committed update");
+    wlr_log(WLR_DEBUG, "Text input committed update");
     if (text_input->relay->input_method == NULL) {
-        hwd_log(HWD_INFO, "Text input committed, but input method is gone");
+        wlr_log(WLR_INFO, "Text input committed, but input method is gone");
         return;
     }
     relay_send_im_state(text_input->relay, text_input->input);
@@ -183,7 +183,7 @@ handle_text_input_commit(struct wl_listener *listener, void *data) {
 static void
 relay_disable_text_input(struct hwd_input_method_relay *relay, struct hwd_text_input *text_input) {
     if (relay->input_method == NULL) {
-        hwd_log(HWD_DEBUG, "Disabling text input, but input method is gone");
+        wlr_log(WLR_DEBUG, "Disabling text input, but input method is gone");
         return;
     }
     wlr_input_method_v2_send_deactivate(relay->input_method);
@@ -195,7 +195,7 @@ handle_text_input_disable(struct wl_listener *listener, void *data) {
     struct hwd_text_input *text_input = wl_container_of(listener, text_input, text_input_disable);
 
     if (text_input->input->focused_surface == NULL) {
-        hwd_log(HWD_DEBUG, "Disabling text input, but no longer focused");
+        wlr_log(WLR_DEBUG, "Disabling text input, but no longer focused");
         return;
     }
 
@@ -280,7 +280,7 @@ relay_handle_input_method(struct wl_listener *listener, void *data) {
     }
 
     if (relay->input_method != NULL) {
-        hwd_log(HWD_INFO, "Attempted to connect second input method to a seat");
+        wlr_log(WLR_INFO, "Attempted to connect second input method to a seat");
         wlr_input_method_v2_send_unavailable(input_method);
         return;
     }
@@ -335,7 +335,7 @@ hwd_input_method_relay_set_focus(
                 relay_disable_text_input(relay, text_input);
                 wlr_text_input_v3_send_leave(text_input->input);
             } else {
-                hwd_log(HWD_DEBUG, "IM relay set_focus already focused");
+                wlr_log(WLR_DEBUG, "IM relay set_focus already focused");
                 continue;
             }
         }

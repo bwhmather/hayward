@@ -3,12 +3,11 @@
 
 #include "hayward/scene/nineslice.h"
 
+#include <assert.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
-
-#include <hayward/log.h>
 
 struct hwd_nineslice_slices {
     struct wlr_scene_buffer *tl;
@@ -55,45 +54,45 @@ hwd_nineslice_node_create(
     int top_break, int bottom_break  //
 ) {
     struct wlr_scene_tree *root = wlr_scene_tree_create(parent);
-    hwd_assert(root != NULL, "Unable to allocate nineslice tree root");
+    assert(root != NULL);
 
     struct wlr_scene_buffer *slice;
 
     // Top-left.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Top-centre.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Top-right.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Centre-left.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Centre-centre.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Centre-right.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Bottom-left.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Bottom-centre.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     // Bottom-right.
     slice = wlr_scene_buffer_create(root, buffer);
-    hwd_assert(slice != NULL, "Unable to allocate slice");
+    assert(slice != NULL);
 
     hwd_nineslice_node_update(
         &root->node, buffer, left_break, right_break, top_break, bottom_break
@@ -117,7 +116,7 @@ hwd_nineslice_node_update(
     int left_break, int right_break, //
     int top_break, int bottom_break  //
 ) {
-    hwd_assert(node != NULL, "Expected node");
+    assert(node != NULL);
 
     int buffer_width = 0;
     int buffer_height = 0;
@@ -214,7 +213,7 @@ hwd_nineslice_node_update(
 
 void
 hwd_nineslice_node_set_size(struct wlr_scene_node *node, int width, int height) {
-    hwd_assert(node != NULL, "Expected node");
+    assert(node != NULL);
 
     struct hwd_nineslice_slices slices;
     hwd_nineslice_unpack(node, &slices);

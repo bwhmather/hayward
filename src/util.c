@@ -1,14 +1,15 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/util.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
-
-#include <hayward/log.h>
+#include <wlr/util/log.h>
 
 bool
 parse_boolean(const char *boolean, bool current) {
@@ -30,7 +31,7 @@ parse_float(const char *value) {
     char *end;
     float flt = strtof(value, &end);
     if (*end || errno) {
-        hwd_log(HWD_DEBUG, "Invalid float value '%s', defaulting to NAN", value);
+        wlr_log(WLR_DEBUG, "Invalid float value '%s', defaulting to NAN", value);
         return NAN;
     }
     return flt;
@@ -52,7 +53,7 @@ parse_movement_unit(const char *unit) {
 
 int
 parse_movement_amount(int argc, char **argv, struct movement_amount *amount) {
-    hwd_assert(argc > 0, "Expected args in parse_movement_amount");
+    assert(argc > 0);
 
     char *err;
     amount->amount = (int)strtol(argv[0], &err, 10);
@@ -78,7 +79,7 @@ bool
 hwd_set_cloexec(int fd, bool cloexec) {
     int flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
-        hwd_log_errno(HWD_ERROR, "fcntl failed");
+        wlr_log_errno(WLR_ERROR, "fcntl failed");
         return false;
     }
     if (cloexec) {
@@ -87,7 +88,7 @@ hwd_set_cloexec(int fd, bool cloexec) {
         flags = flags & ~FD_CLOEXEC;
     }
     if (fcntl(fd, F_SETFD, flags) == -1) {
-        hwd_log_errno(HWD_ERROR, "fcntl failed");
+        wlr_log_errno(WLR_ERROR, "fcntl failed");
         return false;
     }
     return true;

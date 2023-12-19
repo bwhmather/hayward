@@ -4,13 +4,14 @@
 
 #include "hayward/config.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wlr/util/log.h>
 
 #include <hayward/list.h>
-#include <hayward/log.h>
 
 static void
 merge_seat_config(struct seat_config *dest, struct seat_config *source);
@@ -19,18 +20,18 @@ struct seat_config *
 new_seat_config(const char *name) {
     struct seat_config *seat = calloc(1, sizeof(struct seat_config));
     if (!seat) {
-        hwd_log(HWD_DEBUG, "Unable to allocate seat config");
+        wlr_log(WLR_DEBUG, "Unable to allocate seat config");
         return NULL;
     }
 
     seat->name = strdup(name);
-    hwd_assert(seat->name, "could not allocate name for seat");
+    assert(seat->name);
 
     seat->idle_inhibit_sources = seat->idle_wake_sources = UINT32_MAX;
 
     seat->fallback = -1;
     seat->attachments = create_list();
-    hwd_assert(seat->attachments, "could not allocate seat attachments list");
+    assert(seat->attachments);
     seat->hide_cursor_timeout = -1;
     seat->hide_cursor_when_typing = HIDE_WHEN_TYPING_DEFAULT;
     seat->allow_constrain = CONSTRAIN_DEFAULT;
@@ -47,7 +48,7 @@ merge_wildcard_on_all(struct seat_config *wildcard) {
     for (int i = 0; i < config->seat_configs->length; i++) {
         struct seat_config *sc = config->seat_configs->items[i];
         if (strcmp(wildcard->name, sc->name) != 0) {
-            hwd_log(HWD_DEBUG, "Merging seat * config on %s", sc->name);
+            wlr_log(WLR_DEBUG, "Merging seat * config on %s", sc->name);
             merge_seat_config(sc, wildcard);
         }
     }
@@ -62,16 +63,16 @@ store_seat_config(struct seat_config *sc) {
 
     int i = list_seq_find(config->seat_configs, seat_name_cmp, sc->name);
     if (i >= 0) {
-        hwd_log(HWD_DEBUG, "Merging on top of existing seat config");
+        wlr_log(WLR_DEBUG, "Merging on top of existing seat config");
         struct seat_config *current = config->seat_configs->items[i];
         merge_seat_config(current, sc);
         free_seat_config(sc);
         sc = current;
     } else if (!wildcard) {
-        hwd_log(HWD_DEBUG, "Adding non-wildcard seat config");
+        wlr_log(WLR_DEBUG, "Adding non-wildcard seat config");
         i = list_seq_find(config->seat_configs, seat_name_cmp, "*");
         if (i >= 0) {
-            hwd_log(HWD_DEBUG, "Merging on top of seat * config");
+            wlr_log(WLR_DEBUG, "Merging on top of seat * config");
             struct seat_config *current = new_seat_config(sc->name);
             merge_seat_config(current, config->seat_configs->items[i]);
             merge_seat_config(current, sc);
@@ -81,11 +82,11 @@ store_seat_config(struct seat_config *sc) {
         list_add(config->seat_configs, sc);
     } else {
         // New wildcard config. Just add it
-        hwd_log(HWD_DEBUG, "Adding seat * config");
+        wlr_log(WLR_DEBUG, "Adding seat * config");
         list_add(config->seat_configs, sc);
     }
 
-    hwd_log(HWD_DEBUG, "Config stored for seat %s", sc->name);
+    wlr_log(WLR_DEBUG, "Config stored for seat %s", sc->name);
 
     return sc;
 }
@@ -94,7 +95,7 @@ struct seat_attachment_config *
 seat_attachment_config_new(void) {
     struct seat_attachment_config *attachment = calloc(1, sizeof(struct seat_attachment_config));
     if (!attachment) {
-        hwd_log(HWD_DEBUG, "cannot allocate attachment config");
+        wlr_log(WLR_DEBUG, "cannot allocate attachment config");
         return NULL;
     }
     return attachment;

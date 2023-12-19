@@ -8,11 +8,11 @@
 #include <string.h>
 #include <wayland-util.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 
 static struct cmd_results *
@@ -25,7 +25,7 @@ handle_action(struct seat_config *sc, struct hwd_seat *seat, const char *action)
             wlr_keyboard_shortcuts_inhibitor_v1_deactivate(hwd_inhibitor->inhibitor);
         }
 
-        hwd_log(HWD_DEBUG, "Deactivated all keyboard shortcuts inhibitors");
+        wlr_log(WLR_DEBUG, "Deactivated all keyboard shortcuts inhibitors");
     } else {
         hwd_inhibitor = keyboard_shortcuts_inhibitor_get_for_focused_surface(seat);
         if (!hwd_inhibitor) {
@@ -54,7 +54,7 @@ handle_action(struct seat_config *sc, struct hwd_seat *seat, const char *action)
             wlr_keyboard_shortcuts_inhibitor_v1_deactivate(inhibitor);
         }
 
-        hwd_log(HWD_DEBUG, "%sctivated keyboard shortcuts inhibitor", inhibit ? "A" : "Dea");
+        wlr_log(WLR_DEBUG, "%sctivated keyboard shortcuts inhibitor", inhibit ? "A" : "Dea");
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

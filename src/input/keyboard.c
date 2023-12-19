@@ -4,6 +4,7 @@
 
 #include "hayward/input/keyboard.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -25,6 +26,7 @@
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
+#include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon-compat.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
 #include <xkbcommon/xkbcommon-names.h>
@@ -38,7 +40,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/text_input.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 
 static struct modifier_key {
@@ -75,7 +76,7 @@ handle_xkb_context_log(
 
     char *error = malloc(length);
     if (!error) {
-        hwd_log(HWD_ERROR, "Failed to allocate libxkbcommon log message");
+        wlr_log(WLR_ERROR, "Failed to allocate libxkbcommon log message");
         return;
     }
 
@@ -87,16 +88,16 @@ handle_xkb_context_log(
         error[length - 2] = '\0';
     }
 
-    hwd_log_importance_t importance = HWD_DEBUG;
+    enum wlr_log_importance importance = WLR_DEBUG;
     if (level <= XKB_LOG_LEVEL_ERROR) { // Critical and Error
-        importance = HWD_ERROR;
+        importance = WLR_ERROR;
     } else if (level <= XKB_LOG_LEVEL_INFO) { // Warning and Info
-        importance = HWD_INFO;
+        importance = WLR_INFO;
     }
-    hwd_log(importance, "[xkbcommon] %s", error);
+    wlr_log(importance, "[xkbcommon] %s", error);
 
     char **data = xkb_context_get_user_data(context);
-    if (importance == HWD_ERROR && data && !*data) {
+    if (importance == WLR_ERROR && data && !*data) {
         *data = error;
     } else {
         free(error);
@@ -106,7 +107,7 @@ handle_xkb_context_log(
 struct xkb_keymap *
 hwd_keyboard_compile_keymap(struct input_config *ic, char **error) {
     struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-    hwd_assert(context, "cannot create XKB context");
+    assert(context);
     xkb_context_set_user_data(context, error);
     xkb_context_set_log_fn(context, handle_xkb_context_log);
 
@@ -115,7 +116,7 @@ hwd_keyboard_compile_keymap(struct input_config *ic, char **error) {
     if (ic && ic->xkb_file) {
         FILE *keymap_file = fopen(ic->xkb_file, "r");
         if (!keymap_file) {
-            hwd_log_errno(HWD_ERROR, "cannot read xkb file %s", ic->xkb_file);
+            wlr_log_errno(WLR_ERROR, "cannot read xkb file %s", ic->xkb_file);
             if (error) {
                 size_t len =
                     snprintf(
@@ -137,7 +138,7 @@ hwd_keyboard_compile_keymap(struct input_config *ic, char **error) {
         );
 
         if (fclose(keymap_file) != 0) {
-            hwd_log_errno(HWD_ERROR, "Failed to close xkb file %s", ic->xkb_file);
+            wlr_log_errno(WLR_ERROR, "Failed to close xkb file %s", ic->xkb_file);
         }
     } else {
         struct xkb_rule_names rules = {0};
@@ -291,8 +292,8 @@ get_active_binding(
 
             if (current_input == binding_input && current_locked == binding_locked &&
                 current_inhibited == binding_inhibited && current_group_set == binding_group_set) {
-                hwd_log(
-                    HWD_DEBUG, "Encountered conflicting bindings %d and %d",
+                wlr_log(
+                    WLR_DEBUG, "Encountered conflicting bindings %d and %d",
                     (*current_binding)->order, binding->order
                 );
                 continue;
@@ -551,7 +552,7 @@ handle_key_event(struct hwd_keyboard *keyboard, struct wlr_keyboard_key_event *e
         if (wl_event_source_timer_update(
                 keyboard->key_repeat_source, keyboard->wlr->repeat_info.delay
             ) < 0) {
-            hwd_log(HWD_DEBUG, "failed to set key repeat timer");
+            wlr_log(WLR_DEBUG, "failed to set key repeat timer");
         }
     } else if (keyboard->repeat_binding) {
         hwd_keyboard_disarm_key_repeat(keyboard);
@@ -686,7 +687,7 @@ handle_keyboard_repeat(void *data) {
             if (wl_event_source_timer_update(
                     keyboard->key_repeat_source, 1000 / keyboard->wlr->repeat_info.rate
                 ) < 0) {
-                hwd_log(HWD_DEBUG, "failed to update key repeat timer");
+                wlr_log(WLR_DEBUG, "failed to update key repeat timer");
             }
         }
 
@@ -733,7 +734,7 @@ handle_keyboard_group_modifiers(struct wl_listener *listener, void *data) {
 struct hwd_keyboard *
 hwd_keyboard_create(struct hwd_seat *seat, struct hwd_seat_device *device) {
     struct hwd_keyboard *keyboard = calloc(1, sizeof(struct hwd_keyboard));
-    hwd_assert(keyboard, "could not allocate hayward keyboard");
+    assert(keyboard);
 
     keyboard->seat_device = device;
     keyboard->wlr = wlr_keyboard_from_input_device(device->input_device->wlr_device);
@@ -763,12 +764,12 @@ hwd_keyboard_group_remove(struct hwd_keyboard *keyboard) {
     struct hwd_input_device *device = keyboard->seat_device->input_device;
     struct wlr_keyboard_group *wlr_group = keyboard->wlr->group;
 
-    hwd_log(HWD_DEBUG, "Removing keyboard %s from group %p", device->identifier, (void *)wlr_group);
+    wlr_log(WLR_DEBUG, "Removing keyboard %s from group %p", device->identifier, (void *)wlr_group);
 
     wlr_keyboard_group_remove_keyboard(wlr_group, keyboard->wlr);
 
     if (wl_list_empty(&wlr_group->devices)) {
-        hwd_log(HWD_DEBUG, "Destroying empty keyboard group %p", (void *)wlr_group);
+        wlr_log(WLR_DEBUG, "Destroying empty keyboard group %p", (void *)wlr_group);
         struct hwd_keyboard_group *hwd_group = wlr_group->data;
         wlr_group->data = NULL;
         wl_list_remove(&hwd_group->link);
@@ -845,8 +846,8 @@ hwd_keyboard_group_add(struct hwd_keyboard *keyboard) {
             struct wlr_keyboard_group *wlr_group = group->wlr_group;
             if (wlr_keyboard_keymaps_match(keyboard->keymap, wlr_group->keyboard.keymap) &&
                 repeat_info_match(keyboard, &wlr_group->keyboard)) {
-                hwd_log(
-                    HWD_DEBUG, "Adding keyboard %s to group %p", device->identifier,
+                wlr_log(
+                    WLR_DEBUG, "Adding keyboard %s to group %p", device->identifier,
                     (void *)wlr_group
                 );
                 wlr_keyboard_group_add_keyboard(wlr_group, keyboard->wlr);
@@ -858,13 +859,13 @@ hwd_keyboard_group_add(struct hwd_keyboard *keyboard) {
 
     struct hwd_keyboard_group *hwd_group = calloc(1, sizeof(struct hwd_keyboard_group));
     if (!hwd_group) {
-        hwd_log(HWD_ERROR, "Failed to allocate hwd_keyboard_group");
+        wlr_log(WLR_ERROR, "Failed to allocate hwd_keyboard_group");
         return;
     }
 
     hwd_group->wlr_group = wlr_keyboard_group_create();
     if (!hwd_group->wlr_group) {
-        hwd_log(HWD_ERROR, "Failed to create keyboard group");
+        wlr_log(WLR_ERROR, "Failed to create keyboard group");
         goto cleanup;
     }
     hwd_group->wlr_group->data = hwd_group;
@@ -872,29 +873,29 @@ hwd_keyboard_group_add(struct hwd_keyboard *keyboard) {
     wlr_keyboard_set_repeat_info(
         &hwd_group->wlr_group->keyboard, keyboard->repeat_rate, keyboard->repeat_delay
     );
-    hwd_log(HWD_DEBUG, "Created keyboard group %p", (void *)hwd_group->wlr_group);
+    wlr_log(WLR_DEBUG, "Created keyboard group %p", (void *)hwd_group->wlr_group);
 
     hwd_group->seat_device = calloc(1, sizeof(struct hwd_seat_device));
     if (!hwd_group->seat_device) {
-        hwd_log(HWD_ERROR, "Failed to allocate hwd_seat_device for group");
+        wlr_log(WLR_ERROR, "Failed to allocate hwd_seat_device for group");
         goto cleanup;
     }
     hwd_group->seat_device->hwd_seat = seat;
 
     hwd_group->seat_device->input_device = calloc(1, sizeof(struct hwd_input_device));
     if (!hwd_group->seat_device->input_device) {
-        hwd_log(HWD_ERROR, "Failed to allocate hwd_input_device for group");
+        wlr_log(WLR_ERROR, "Failed to allocate hwd_input_device for group");
         goto cleanup;
     }
     hwd_group->seat_device->input_device->wlr_device = &hwd_group->wlr_group->keyboard.base;
 
     if (!hwd_keyboard_create(seat, hwd_group->seat_device)) {
-        hwd_log(HWD_ERROR, "Failed to allocate hwd_keyboard for group");
+        wlr_log(WLR_ERROR, "Failed to allocate hwd_keyboard for group");
         goto cleanup;
     }
 
-    hwd_log(
-        HWD_DEBUG, "Adding keyboard %s to group %p", device->identifier,
+    wlr_log(
+        WLR_DEBUG, "Adding keyboard %s to group %p", device->identifier,
         (void *)hwd_group->wlr_group
     );
     wlr_keyboard_group_add_keyboard(hwd_group->wlr_group, keyboard->wlr);
@@ -928,18 +929,14 @@ void
 hwd_keyboard_configure(struct hwd_keyboard *keyboard) {
     struct input_config *input_config =
         input_device_get_config(keyboard->seat_device->input_device);
-    hwd_assert(
-        !wlr_keyboard_group_from_wlr_keyboard(keyboard->wlr),
-        "hwd_keyboard_configure should not be called with a "
-        "keyboard group's keyboard"
-    );
+    assert(!wlr_keyboard_group_from_wlr_keyboard(keyboard->wlr));
 
     struct xkb_keymap *keymap = hwd_keyboard_compile_keymap(input_config, NULL);
     if (!keymap) {
-        hwd_log(HWD_ERROR, "Failed to compile keymap. Attempting defaults");
+        wlr_log(WLR_ERROR, "Failed to compile keymap. Attempting defaults");
         keymap = hwd_keyboard_compile_keymap(NULL, NULL);
         if (!keymap) {
-            hwd_log(HWD_ERROR, "Failed to compile default keymap. Aborting configure");
+            wlr_log(WLR_ERROR, "Failed to compile default keymap. Aborting configure");
             return;
         }
     }
@@ -1053,6 +1050,6 @@ hwd_keyboard_disarm_key_repeat(struct hwd_keyboard *keyboard) {
     }
     keyboard->repeat_binding = NULL;
     if (wl_event_source_timer_update(keyboard->key_repeat_source, 0) < 0) {
-        hwd_log(HWD_DEBUG, "failed to disarm key repeat timer");
+        wlr_log(WLR_DEBUG, "failed to disarm key repeat timer");
     }
 }

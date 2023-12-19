@@ -6,10 +6,10 @@
 
 #include <stdbool.h>
 #include <wayland-server-core.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
 
@@ -21,7 +21,7 @@ do_reload(void *data) {
     }
 
     if (!load_main_config(path, true, false)) {
-        hwd_log(HWD_ERROR, "Error(s) reloading config");
+        wlr_log(WLR_ERROR, "Error(s) reloading config");
         return;
     }
 

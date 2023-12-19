@@ -5,10 +5,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/stringop.h>
 
 // Must be in order for the bsearch
@@ -73,7 +73,7 @@ cmd_mode(int argc, char **argv) {
     config->current_mode = mode;
     if (argc == 1) {
         // trigger IPC mode event
-        hwd_log(HWD_DEBUG, "Switching to mode `%s' (pango=%d)", mode->name, mode->pango);
+        wlr_log(WLR_DEBUG, "Switching to mode `%s' (pango=%d)", mode->name, mode->pango);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 

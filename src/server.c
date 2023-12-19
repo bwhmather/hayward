@@ -37,6 +37,7 @@
 #include <wlr/types/wlr_xdg_foreign_v1.h>
 #include <wlr/types/wlr_xdg_foreign_v2.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
@@ -49,19 +50,18 @@
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
-#include <hayward/log.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 
 bool
 server_privileged_prepare(struct hwd_server *server) {
-    hwd_log(HWD_DEBUG, "Preparing Wayland server initialization");
+    wlr_log(WLR_DEBUG, "Preparing Wayland server initialization");
     server->wl_display = wl_display_create();
     server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
     server->backend = wlr_backend_autocreate(server->wl_display, &server->session);
 
     if (!server->backend) {
-        hwd_log(HWD_ERROR, "Unable to create backend");
+        wlr_log(WLR_ERROR, "Unable to create backend");
         return false;
     }
     return true;
@@ -75,18 +75,18 @@ handle_drm_lease_request(struct wl_listener *listener, void *data) {
     struct wlr_drm_lease_request_v1 *req = data;
     struct wlr_drm_lease_v1 *lease = wlr_drm_lease_request_v1_grant(req);
     if (!lease) {
-        hwd_log(HWD_ERROR, "Failed to grant lease request");
+        wlr_log(WLR_ERROR, "Failed to grant lease request");
         wlr_drm_lease_request_v1_reject(req);
     }
 }
 
 bool
 server_init(struct hwd_server *server) {
-    hwd_log(HWD_DEBUG, "Initializing Wayland server");
+    wlr_log(WLR_DEBUG, "Initializing Wayland server");
 
     server->renderer = wlr_renderer_autocreate(server->backend);
     if (!server->renderer) {
-        hwd_log(HWD_ERROR, "Failed to create renderer");
+        wlr_log(WLR_ERROR, "Failed to create renderer");
         return false;
     }
 
@@ -100,7 +100,7 @@ server_init(struct hwd_server *server) {
 
     server->allocator = wlr_allocator_autocreate(server->backend, server->renderer);
     if (!server->allocator) {
-        hwd_log(HWD_ERROR, "Failed to create allocator");
+        wlr_log(WLR_ERROR, "Failed to create allocator");
         return false;
     }
 
@@ -153,8 +153,8 @@ server_init(struct hwd_server *server) {
         server->drm_lease_request.notify = handle_drm_lease_request;
         wl_signal_add(&server->drm_lease_manager->events.request, &server->drm_lease_request);
     } else {
-        hwd_log(HWD_DEBUG, "Failed to create wlr_drm_lease_device_v1");
-        hwd_log(HWD_INFO, "VR will not be available");
+        wlr_log(WLR_DEBUG, "Failed to create wlr_drm_lease_device_v1");
+        wlr_log(WLR_INFO, "VR will not be available");
     }
 
     wlr_export_dmabuf_manager_v1_create(server->wl_display);
@@ -182,7 +182,7 @@ server_init(struct hwd_server *server) {
     }
 
     if (!server->socket) {
-        hwd_log(HWD_ERROR, "Unable to open wayland socket");
+        wlr_log(WLR_ERROR, "Unable to open wayland socket");
         wlr_backend_destroy(server->backend);
         return false;
     }
@@ -212,21 +212,21 @@ bool
 server_start(struct hwd_server *server) {
 #if HAVE_XWAYLAND
     if (config->xwayland != XWAYLAND_MODE_DISABLED) {
-        hwd_log(
-            HWD_DEBUG, "Initializing Xwayland (lazy=%d)", config->xwayland == XWAYLAND_MODE_LAZY
+        wlr_log(
+            WLR_DEBUG, "Initializing Xwayland (lazy=%d)", config->xwayland == XWAYLAND_MODE_LAZY
         );
         server->xwayland = hwd_xwayland_create(
             server->wl_display, server->compositor, config->xwayland == XWAYLAND_MODE_LAZY
         );
         if (!server->xwayland) {
-            hwd_log(HWD_ERROR, "Failed to start Xwayland");
+            wlr_log(WLR_ERROR, "Failed to start Xwayland");
         }
     }
 #endif
 
-    hwd_log(HWD_INFO, "Starting backend on wayland display '%s'", server->socket);
+    wlr_log(WLR_INFO, "Starting backend on wayland display '%s'", server->socket);
     if (!wlr_backend_start(server->backend)) {
-        hwd_log(HWD_ERROR, "Failed to start backend");
+        wlr_log(WLR_ERROR, "Failed to start backend");
         wlr_backend_destroy(server->backend);
         return false;
     }
@@ -236,6 +236,6 @@ server_start(struct hwd_server *server) {
 
 void
 server_run(struct hwd_server *server) {
-    hwd_log(HWD_INFO, "Running compositor on wayland display '%s'", server->socket);
+    wlr_log(WLR_INFO, "Running compositor on wayland display '%s'", server->socket);
     wl_display_run(server->wl_display);
 }

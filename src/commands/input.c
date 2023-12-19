@@ -6,10 +6,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
-#include <hayward/log.h>
 
 // must be in order for the bsearch
 static const struct cmd_handler input_handlers[] = {
@@ -57,7 +57,7 @@ cmd_input(int argc, char **argv) {
         return error;
     }
 
-    hwd_log(HWD_DEBUG, "entering input block: %s", argv[0]);
+    wlr_log(WLR_DEBUG, "entering input block: %s", argv[0]);
 
     config->handler_context.input_config = new_input_config(argv[0]);
     if (!config->handler_context.input_config) {

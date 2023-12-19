@@ -4,11 +4,12 @@
 
 #include "hayward/tree.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/util/log.h>
 
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/window.h>
@@ -26,13 +27,13 @@ hwd_move_window_to_column_from_maybe_direction(
     struct hwd_workspace *old_workspace = window->pending.workspace;
 
     if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
-        hwd_log(HWD_DEBUG, "Reparenting window (parallel)");
+        wlr_log(WLR_DEBUG, "Reparenting window (parallel)");
         int index = move_dir == WLR_DIRECTION_DOWN ? 0 : column->pending.children->length;
         window_detach(window);
         column_insert_child(column, window, index);
         window->pending.width = window->pending.height = 0;
     } else {
-        hwd_log(HWD_DEBUG, "Reparenting window (perpendicular)");
+        wlr_log(WLR_DEBUG, "Reparenting window (perpendicular)");
         struct hwd_window *target_sibling = column->pending.active_child;
         window_detach(window);
         if (target_sibling) {
@@ -65,8 +66,8 @@ hwd_move_window_to_column(struct hwd_window *window, struct hwd_column *column) 
 
 void
 hwd_move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *workspace) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(window != NULL);
+    assert(workspace != NULL);
 
     if (workspace == window->pending.workspace) {
         return;
@@ -112,11 +113,11 @@ void
 hwd_move_window_to_output_from_direction(
     struct hwd_window *window, struct hwd_output *output, enum wlr_direction move_dir
 ) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(output != NULL, "Expected output");
+    assert(window != NULL);
+    assert(output != NULL);
 
     struct hwd_workspace *workspace = window->pending.workspace;
-    hwd_assert(workspace != NULL, "Window is not attached to a workspace");
+    assert(workspace != NULL);
 
     // TODO this should be derived from the window's current position.
     struct hwd_output *old_output = workspace_get_active_output(workspace);

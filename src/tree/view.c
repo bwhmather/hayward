@@ -4,6 +4,7 @@
 
 #include "hayward/tree/view.h"
 
+#include <assert.h>
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
@@ -24,6 +25,7 @@
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include <wlr/xwayland/xwayland.h>
 
 #include <hayward/config.h>
@@ -33,7 +35,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/log.h>
 #include <hayward/pango.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
@@ -47,10 +48,10 @@
 void
 view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl) {
     view->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
-    hwd_assert(view->scene_tree != NULL, "Allocation failed");
+    assert(view->scene_tree != NULL);
 
     view->layers.content_tree = wlr_scene_tree_create(view->scene_tree);
-    hwd_assert(view->layers.content_tree != NULL, "Allocation failed");
+    assert(view->layers.content_tree != NULL);
 
     view->type = type;
     view->impl = impl;
@@ -61,13 +62,10 @@ view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_
 
 void
 view_destroy(struct hwd_view *view) {
-    hwd_assert(view->surface == NULL, "Tried to free mapped view");
-    hwd_assert(view->destroying, "Tried to free view which wasn't marked as destroying");
-    hwd_assert(
-        view->window == NULL,
-        "Tried to free view which still has a container "
-        "(might have a pending transaction?)"
-    );
+    assert(view->surface == NULL);
+    assert(view->destroying);
+    assert(view->window == NULL);
+
     wl_list_remove(&view->events.unmap.listener_list);
 
     wlr_scene_node_destroy(&view->layers.content_tree->node);
@@ -84,7 +82,7 @@ view_destroy(struct hwd_view *view) {
 
 void
 view_begin_destroy(struct hwd_view *view) {
-    hwd_assert(view->surface == NULL, "Tried to destroy a mapped view");
+    assert(view->surface == NULL);
 
     // Unmapping will mark the window as dead and trigger a transaction.  It
     // isn't safe to fully destroy the window until this transaction has
@@ -315,7 +313,7 @@ view_map(
     struct hwd_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
     struct wlr_output *fullscreen_output
 ) {
-    hwd_assert(view->surface == NULL, "cannot map mapped view");
+    assert(view->surface == NULL);
     view->surface = wlr_surface;
     view_populate_pid(view);
     view->window = window_create(view);
@@ -324,13 +322,13 @@ view_map(
     // to honor that request. Otherwise, fallback to assigns, pid mappings,
     // focused workspace, etc
     struct hwd_workspace *workspace = root_get_active_workspace(root);
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     struct hwd_output *output = root_get_active_output(root);
     if (fullscreen_output && fullscreen_output->data) {
         output = fullscreen_output->data;
     }
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     view->foreign_toplevel = wlr_foreign_toplevel_handle_v1_create(server.foreign_toplevel_manager);
     view->foreign_activate_request.notify = handle_foreign_activate_request;
@@ -496,7 +494,7 @@ view_from_wlr_surface(struct wlr_surface *wlr_surface) {
     }
 
     const char *role = wlr_surface->role ? wlr_surface->role->name : NULL;
-    hwd_log(HWD_DEBUG, "Surface of unknown type (role %s): %p", role, (void *)wlr_surface);
+    wlr_log(WLR_DEBUG, "Surface of unknown type (role %s): %p", role, (void *)wlr_surface);
     return NULL;
 }
 
@@ -592,7 +590,7 @@ view_update_title(struct hwd_view *view, bool force) {
     if (title) {
         size_t len = parse_title_format(view, NULL);
         char *buffer = calloc(len + 1, sizeof(char));
-        hwd_assert(buffer, "Unable to allocate title string");
+        assert(buffer);
         parse_title_format(view, buffer);
 
         view->window->title = strdup(title);
@@ -670,7 +668,7 @@ view_freeze_buffer_iterator(struct wlr_scene_buffer *buffer, int sx, int sy, voi
     struct wlr_scene_tree *tree = data;
 
     struct wlr_scene_buffer *sbuf = wlr_scene_buffer_create(tree, NULL);
-    hwd_assert(sbuf != NULL, "Allocation failed");
+    assert(sbuf != NULL);
 
     wlr_scene_buffer_set_dest_size(sbuf, buffer->dst_width, buffer->dst_height);
     wlr_scene_buffer_set_opaque_region(sbuf, &buffer->opaque_region);
@@ -682,10 +680,10 @@ view_freeze_buffer_iterator(struct wlr_scene_buffer *buffer, int sx, int sy, voi
 
 void
 view_freeze_buffer(struct hwd_view *view) {
-    hwd_assert(view->layers.saved_surface_tree == NULL, "Didn't expect saved buffer");
+    assert(view->layers.saved_surface_tree == NULL);
 
     view->layers.saved_surface_tree = wlr_scene_tree_create(view->scene_tree);
-    hwd_assert(view->layers.saved_surface_tree != NULL, "Allocation failed");
+    assert(view->layers.saved_surface_tree != NULL);
 
     // Enable and disable the saved surface tree like so to atomitaclly update
     // the tree. This will prevent over damaging or other weirdness.

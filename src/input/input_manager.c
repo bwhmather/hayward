@@ -4,6 +4,7 @@
 
 #include "hayward/input/input_manager.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <libinput.h>
 #include <stdbool.h>
@@ -22,6 +23,7 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>
@@ -29,7 +31,6 @@
 #include <hayward/input/libinput.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
 #include <hayward/tree/view.h>
@@ -98,7 +99,7 @@ input_device_get_identifier(struct wlr_input_device *device) {
     int len = snprintf(NULL, 0, fmt, vendor, product, name) + 1;
     char *identifier = malloc(len);
     if (!identifier) {
-        hwd_log(HWD_ERROR, "Unable to allocate unique input device name");
+        wlr_log(WLR_ERROR, "Unable to allocate unique input device name");
         return NULL;
     }
 
@@ -202,7 +203,7 @@ void
 input_manager_verify_fallback_seat(void) {
     struct hwd_seat *seat = NULL;
     if (!input_has_seat_fallback_configuration()) {
-        hwd_log(HWD_DEBUG, "no fallback seat config - creating default");
+        wlr_log(WLR_DEBUG, "no fallback seat config - creating default");
         seat = input_manager_get_default_seat();
         struct seat_config *sc = new_seat_config(seat->wlr_seat->name);
         sc->fallback = true;
@@ -217,9 +218,9 @@ handle_device_destroy(struct wl_listener *listener, void *data) {
 
     struct hwd_input_device *input_device = input_hwd_device_from_wlr(device);
 
-    hwd_assert(input_device, "could not find hayward device");
+    assert(input_device);
 
-    hwd_log(HWD_DEBUG, "removing device: '%s'", input_device->identifier);
+    wlr_log(WLR_DEBUG, "removing device: '%s'", input_device->identifier);
 
     struct hwd_seat *seat = NULL;
     wl_list_for_each(seat, &server.input->seats, link) { seat_remove_device(seat, input_device); }
@@ -236,14 +237,14 @@ handle_new_input(struct wl_listener *listener, void *data) {
     struct wlr_input_device *device = data;
 
     struct hwd_input_device *input_device = calloc(1, sizeof(struct hwd_input_device));
-    hwd_assert(input_device, "could not allocate input device");
+    assert(input_device);
     device->data = input_device;
 
     input_device->wlr_device = device;
     input_device->identifier = input_device_get_identifier(device);
     wl_list_insert(&input->devices, &input_device->link);
 
-    hwd_log(HWD_DEBUG, "adding device: '%s'", input_device->identifier);
+    wlr_log(WLR_DEBUG, "adding device: '%s'", input_device->identifier);
 
     apply_input_type_config(input_device);
 
@@ -279,7 +280,7 @@ handle_new_input(struct wl_listener *listener, void *data) {
     }
 
     if (!added) {
-        hwd_log(HWD_DEBUG, "device '%s' is not configured on any seats", input_device->identifier);
+        wlr_log(WLR_DEBUG, "device '%s' is not configured on any seats", input_device->identifier);
     }
 }
 
@@ -288,7 +289,7 @@ handle_keyboard_shortcuts_inhibitor_destroy(struct wl_listener *listener, void *
     struct hwd_keyboard_shortcuts_inhibitor *hwd_inhibitor =
         wl_container_of(listener, hwd_inhibitor, destroy);
 
-    hwd_log(HWD_DEBUG, "Removing keyboard shortcuts inhibitor");
+    wlr_log(WLR_DEBUG, "Removing keyboard shortcuts inhibitor");
 
     // hwd_seat::keyboard_shortcuts_inhibitors
     wl_list_remove(&hwd_inhibitor->link);
@@ -302,11 +303,11 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(struct wl_listener *listener, vo
         wl_container_of(listener, input_manager, keyboard_shortcuts_inhibit_new_inhibitor);
     struct wlr_keyboard_shortcuts_inhibitor_v1 *inhibitor = data;
 
-    hwd_log(HWD_DEBUG, "Adding keyboard shortcuts inhibitor");
+    wlr_log(WLR_DEBUG, "Adding keyboard shortcuts inhibitor");
 
     struct hwd_keyboard_shortcuts_inhibitor *hwd_inhibitor =
         calloc(1, sizeof(struct hwd_keyboard_shortcuts_inhibitor));
-    hwd_assert(hwd_inhibitor, "could not allocate keyboard shortcuts inhibitor");
+    assert(hwd_inhibitor);
     hwd_inhibitor->inhibitor = inhibitor;
 
     hwd_inhibitor->destroy.notify = handle_keyboard_shortcuts_inhibitor_destroy;
@@ -365,7 +366,7 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
                                            : input_manager_get_default_seat();
 
     struct hwd_input_device *input_device = calloc(1, sizeof(struct hwd_input_device));
-    hwd_assert(input_device, "could not allocate input device");
+    assert(input_device);
     device->data = input_device;
 
     input_device->is_virtual = true;
@@ -373,7 +374,7 @@ handle_virtual_keyboard(struct wl_listener *listener, void *data) {
     input_device->identifier = input_device_get_identifier(device);
     wl_list_insert(&input_manager->devices, &input_device->link);
 
-    hwd_log(HWD_DEBUG, "adding virtual keyboard: '%s'", input_device->identifier);
+    wlr_log(WLR_DEBUG, "adding virtual keyboard: '%s'", input_device->identifier);
 
     wl_signal_add(&device->events.destroy, &input_device->device_destroy);
     input_device->device_destroy.notify = handle_device_destroy;
@@ -395,7 +396,7 @@ handle_virtual_pointer(struct wl_listener *listener, void *data) {
         : input_manager_get_default_seat();
 
     struct hwd_input_device *input_device = calloc(1, sizeof(struct hwd_input_device));
-    hwd_assert(input_device, "could not allocate input device");
+    assert(input_device);
     device->data = input_device;
 
     input_device->is_virtual = true;
@@ -403,7 +404,7 @@ handle_virtual_pointer(struct wl_listener *listener, void *data) {
     input_device->identifier = input_device_get_identifier(device);
     wl_list_insert(&input_manager->devices, &input_device->link);
 
-    hwd_log(HWD_DEBUG, "adding virtual pointer: '%s'", input_device->identifier);
+    wlr_log(WLR_DEBUG, "adding virtual pointer: '%s'", input_device->identifier);
 
     wl_signal_add(&device->events.destroy, &input_device->device_destroy);
     input_device->device_destroy.notify = handle_device_destroy;
@@ -529,7 +530,7 @@ input_manager_reset_all_inputs(void) {
 
 void
 input_manager_apply_seat_config(struct seat_config *seat_config) {
-    hwd_log(HWD_DEBUG, "applying seat config for seat %s", seat_config->name);
+    wlr_log(WLR_DEBUG, "applying seat config for seat %s", seat_config->name);
     if (strcmp(seat_config->name, "*") == 0) {
         struct hwd_seat *seat = NULL;
         wl_list_for_each(seat, &server.input->seats, link) {

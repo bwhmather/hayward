@@ -4,6 +4,7 @@
 
 #include "hayward/tree/window.h"
 
+#include <assert.h>
 #include <limits.h>
 #include <math.h>
 #include <stdbool.h>
@@ -18,13 +19,13 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/scene/colours.h>
 #include <hayward/scene/nineslice.h>
 #include <hayward/scene/text.h>
@@ -48,7 +49,7 @@ static const struct wlr_addon_interface scene_tree_marker_interface = {
 static void
 window_init_scene(struct hwd_window *window) {
     window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
-    hwd_assert(window->scene_tree != NULL, "Allocation failed");
+    assert(window->scene_tree != NULL);
     wlr_addon_init(
         &window->scene_tree_marker, &window->scene_tree->node.addons, &scene_tree_marker_interface,
         &scene_tree_marker_interface
@@ -58,18 +59,18 @@ window_init_scene(struct hwd_window *window) {
     window->layers.inner_tree = scene_tree;
 
     window->layers.titlebar = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
-    hwd_assert(window->layers.titlebar != NULL, "Allocation failed");
+    assert(window->layers.titlebar != NULL);
 
     struct hwd_colour text_color = {1.0, 1.0, 1.0, 1.0};
     window->layers.titlebar_text =
         hwd_text_node_create(scene_tree, "", text_color, config->font_description);
-    hwd_assert(window->layers.titlebar_text != NULL, "Allocation failed");
+    assert(window->layers.titlebar_text != NULL);
 
     window->layers.border = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
-    hwd_assert(window->layers.border != NULL, "Allocation failed");
+    assert(window->layers.border != NULL);
 
     window->layers.content_tree = wlr_scene_tree_create(scene_tree);
-    hwd_assert(window->layers.content_tree != NULL, "Allocation failed");
+    assert(window->layers.content_tree != NULL);
 }
 
 static void
@@ -143,10 +144,7 @@ window_update_scene(struct hwd_window *window) {
 
 static void
 window_destroy_scene(struct hwd_window *window) {
-    hwd_assert(
-        &window->scene_tree->node.parent->node == &root->orphans->node,
-        "Window scene tree is still attached"
-    );
+    assert(&window->scene_tree->node.parent->node == &root->orphans->node);
 
     wlr_scene_node_destroy(&window->layers.inner_tree->node);
 
@@ -164,7 +162,7 @@ window_destroy_scene(struct hwd_window *window) {
 
 static bool
 window_should_configure(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
     if (window->pending.dead) {
         return false;
     }
@@ -260,7 +258,7 @@ window_handle_transaction_after_apply(struct wl_listener *listener, void *data) 
 
     wl_list_remove(&listener->link);
 
-    hwd_assert(window->current.dead, "After apply called on live window");
+    assert(window->current.dead);
 
     window_destroy_scene(window);
 
@@ -271,7 +269,7 @@ struct hwd_window *
 window_create(struct hwd_view *view) {
     struct hwd_window *window = calloc(1, sizeof(struct hwd_window));
     if (!window) {
-        hwd_log(HWD_ERROR, "Unable to allocate hwd_window");
+        wlr_log(WLR_ERROR, "Unable to allocate hwd_window");
         return NULL;
     }
 
@@ -299,14 +297,14 @@ window_create(struct hwd_view *view) {
 
 bool
 window_is_alive(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
     return !window->pending.dead;
 }
 
 void
 window_begin_destroy(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
+    assert(window != NULL);
+    assert(window_is_alive(window));
 
     window_end_mouse_operation(window);
 
@@ -322,7 +320,7 @@ window_begin_destroy(struct hwd_window *window) {
 
 void
 window_set_dirty(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
     struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (window->dirty) {
@@ -397,9 +395,9 @@ window_update_theme(struct hwd_window *window) {
 
 void
 window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *workspace) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(workspace != NULL);
 
     window->pending.workspace = workspace;
     window->pending.parent = NULL;
@@ -415,9 +413,9 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
 
 void
 window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
-    hwd_assert(column != NULL, "Expected column");
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(column != NULL);
 
     struct hwd_workspace *workspace = column->pending.workspace;
     struct hwd_output *output = column->pending.output;
@@ -437,7 +435,7 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
 
 void
 window_reconcile_detached(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
 
     window->pending.workspace = NULL;
     window->pending.parent = NULL;
@@ -508,7 +506,7 @@ window_end_mouse_operation(struct hwd_window *window) {
 
 bool
 window_is_floating(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
 
     if (window->pending.workspace == NULL) {
         return false;
@@ -543,14 +541,14 @@ set_fullscreen(struct hwd_window *window, bool enable) {
 
 static void
 window_fullscreen_disable(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
+    assert(window != NULL);
+    assert(window_is_alive(window));
 
     struct hwd_workspace *workspace = window->pending.workspace;
-    hwd_assert(workspace != NULL, "Window must be attached to a workspace");
+    assert(workspace != NULL);
 
     struct hwd_output *output = window->pending.output;
-    hwd_assert(window->pending.output, "Window must have an associated output");
+    assert(window->pending.output);
 
     if (!window->pending.fullscreen) {
         return;
@@ -585,14 +583,14 @@ window_fullscreen_disable(struct hwd_window *window) {
 
 static void
 window_fullscreen_enable(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
+    assert(window != NULL);
+    assert(window_is_alive(window));
 
     struct hwd_workspace *workspace = window->pending.workspace;
-    hwd_assert(workspace != NULL, "Window must be attached to a workspace");
+    assert(workspace != NULL);
 
     struct hwd_output *output = window->pending.output;
-    hwd_assert(window->pending.output, "Window must have an associated output");
+    assert(window->pending.output);
 
     if (window->pending.fullscreen) {
         return;
@@ -633,8 +631,8 @@ window_set_fullscreen(struct hwd_window *window, bool enabled) {
 
 void
 window_handle_fullscreen_reparent(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
+    assert(window != NULL);
+    assert(window_is_alive(window));
 
     struct hwd_workspace *workspace = window->pending.workspace;
     struct hwd_output *output = window->pending.output;
@@ -723,11 +721,11 @@ floating_natural_resize(struct hwd_window *window) {
 
 void
 window_floating_resize_and_center(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
+    assert(window != NULL);
+    assert(window_is_alive(window));
 
     struct hwd_output *output = window->pending.output;
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     struct wlr_box ob;
     wlr_output_layout_get_box(root->output_layout, window->pending.output->wlr_output, &ob);
@@ -772,9 +770,9 @@ window_floating_resize_and_center(struct hwd_window *window) {
 
 void
 window_floating_set_default_size(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
-    hwd_assert(window->pending.workspace, "Expected a window on a workspace");
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(window->pending.workspace);
 
     int min_width, max_width, min_height, max_height;
     floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
@@ -795,9 +793,9 @@ void
 window_floating_move_to(
     struct hwd_window *window, struct hwd_output *output, double lx, double ly
 ) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
-    hwd_assert(window_is_floating(window), "Expected a floating window");
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(window_is_floating(window));
 
     window->pending.x = lx;
     window->pending.y = ly;
@@ -809,9 +807,9 @@ window_floating_move_to(
 
 void
 window_floating_move_to_center(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
-    hwd_assert(window_is_floating(window), "Expected a floating window");
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(window_is_floating(window));
 
     struct hwd_output *output = window->pending.output;
 
@@ -823,14 +821,14 @@ window_floating_move_to_center(struct hwd_window *window) {
 
 struct hwd_output *
 window_get_output(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
 
     return window->pending.output;
 }
 
 void
 window_get_box(struct hwd_window *window, struct wlr_box *box) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
 
     box->x = window->pending.x;
     box->y = window->pending.y;
@@ -855,9 +853,9 @@ window_set_resizing(struct hwd_window *window, bool resizing) {
 
 void
 window_set_geometry_from_content(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window_is_alive(window), "Expected live window");
-    hwd_assert(window_is_floating(window), "Expected a floating view");
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(window_is_floating(window));
 
     struct hwd_window_state *state = &window->pending;
 
@@ -919,7 +917,7 @@ window_get_previous_sibling(struct hwd_window *window) {
 
     list_t *siblings = window->pending.parent->pending.children;
     int index = list_find(siblings, window);
-    hwd_assert(index != -1, "Not found");
+    assert(index != -1);
 
     if (index == 0) {
         return NULL;
@@ -930,7 +928,7 @@ window_get_previous_sibling(struct hwd_window *window) {
 
 struct hwd_window *
 window_get_next_sibling(struct hwd_window *window) {
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
 
     if (!window->pending.parent) {
         return NULL;
@@ -938,7 +936,7 @@ window_get_next_sibling(struct hwd_window *window) {
 
     list_t *siblings = window->pending.parent->pending.children;
     int index = list_find(siblings, window);
-    hwd_assert(index != -1, "Not found");
+    assert(index != -1);
 
     if (index == siblings->length - 1) {
         return NULL;

@@ -4,6 +4,8 @@
 
 #include "hayward/desktop/layer_shell.h"
 
+#include <assert.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -17,6 +19,7 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 
 #include <wlr-layer-shell-unstable-v1-protocol.h>
 
@@ -24,7 +27,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 
@@ -70,7 +72,7 @@ arrange_layers(struct hwd_output *output) {
     arrange_surface(output, &full_area, &usable_area, output->layers.shell_overlay);
 
     if (!wlr_box_equal(&usable_area, &output->usable_area)) {
-        hwd_log(HWD_DEBUG, "Usable area changed, rearranging output");
+        wlr_log(WLR_DEBUG, "Usable area changed, rearranging output");
         output->usable_area = usable_area;
         output_arrange(output);
     }
@@ -89,17 +91,17 @@ hwd_layer_get_scene(struct hwd_output *output, enum zwlr_layer_shell_v1_layer ty
         return output->layers.shell_overlay;
     }
 
-    hwd_assert(false, "unreachable");
+    assert(false);
     return NULL;
 }
 
 static struct hwd_layer_surface *
 hwd_layer_surface_create(struct wlr_scene_layer_surface_v1 *scene) {
     struct hwd_layer_surface *layer_surface = calloc(1, sizeof(struct hwd_layer_surface));
-    hwd_assert(layer_surface != NULL, "Allocation failed");
+    assert(layer_surface != NULL);
 
     struct wlr_scene_tree *popups = wlr_scene_tree_create(root->layers.popups);
-    hwd_assert(popups != NULL, "Allocation failed");
+    assert(popups != NULL);
 
     layer_surface->scene_tree = scene->tree;
     layer_surface->scene = scene;
@@ -310,8 +312,8 @@ static void
 handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_layer_surface_v1 *wlr_layer_surface = data;
 
-    hwd_log(
-        HWD_DEBUG,
+    wlr_log(
+        WLR_DEBUG,
         "new layer surface: namespace %s layer %d anchor %" PRIu32 " size %" PRIu32 "x%" PRIu32
         " margin %" PRIu32 ",%" PRIu32 ",%" PRIu32 ",%" PRIu32 ",",
         wlr_layer_surface->namespace, wlr_layer_surface->pending.layer,
@@ -334,12 +336,12 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     struct wlr_scene_layer_surface_v1 *scene_surface =
         wlr_scene_layer_surface_v1_create(output_layer, wlr_layer_surface);
     if (!scene_surface) {
-        hwd_log(HWD_ERROR, "Could not allocate a wlr_layer_surface_v1");
+        wlr_log(WLR_ERROR, "Could not allocate a wlr_layer_surface_v1");
         return;
     }
 
     struct hwd_layer_surface *surface = hwd_layer_surface_create(scene_surface);
-    hwd_assert(surface != NULL, "Allocation failed");
+    assert(surface != NULL);
 
     wlr_addon_init(
         &surface->scene_tree_marker, &scene_surface->tree->node.addons,

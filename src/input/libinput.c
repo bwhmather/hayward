@@ -6,6 +6,7 @@
 #include "hayward/input/libinput.h"
 
 #include <float.h>
+#include <inttypes.h>
 #include <libinput.h>
 #include <libudev.h>
 #include <limits.h>
@@ -13,17 +14,17 @@
 #include <stdint.h>
 #include <string.h>
 #include <wlr/backend/libinput.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
-#include <hayward/log.h>
 #include <hayward/tree/output.h>
 
 static void
 log_status(enum libinput_config_status status) {
     if (status != LIBINPUT_CONFIG_STATUS_SUCCESS) {
-        hwd_log(
-            HWD_ERROR, "Failed to apply libinput config: %s", libinput_config_status_to_str(status)
+        wlr_log(
+            WLR_ERROR, "Failed to apply libinput config: %s", libinput_config_status_to_str(status)
         );
     }
 }
@@ -33,7 +34,7 @@ set_send_events(struct libinput_device *device, uint32_t mode) {
     if (libinput_device_config_send_events_get_mode(device) == mode) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "send_events_set_mode(%" PRIu32 ")", mode);
+    wlr_log(WLR_DEBUG, "send_events_set_mode(%i)", mode);
     log_status(libinput_device_config_send_events_set_mode(device, mode));
     return true;
 }
@@ -44,7 +45,7 @@ set_tap(struct libinput_device *device, enum libinput_config_tap_state tap) {
         libinput_device_config_tap_get_enabled(device) == tap) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "tap_set_enabled(%d)", tap);
+    wlr_log(WLR_DEBUG, "tap_set_enabled(%d)", tap);
     log_status(libinput_device_config_tap_set_enabled(device, tap));
     return true;
 }
@@ -55,7 +56,7 @@ set_tap_button_map(struct libinput_device *device, enum libinput_config_tap_butt
         libinput_device_config_tap_get_button_map(device) == map) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "tap_set_button_map(%d)", map);
+    wlr_log(WLR_DEBUG, "tap_set_button_map(%d)", map);
     log_status(libinput_device_config_tap_set_button_map(device, map));
     return true;
 }
@@ -66,7 +67,7 @@ set_tap_drag(struct libinput_device *device, enum libinput_config_drag_state dra
         libinput_device_config_tap_get_drag_enabled(device) == drag) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "tap_set_drag_enabled(%d)", drag);
+    wlr_log(WLR_DEBUG, "tap_set_drag_enabled(%d)", drag);
     log_status(libinput_device_config_tap_set_drag_enabled(device, drag));
     return true;
 }
@@ -77,7 +78,7 @@ set_tap_drag_lock(struct libinput_device *device, enum libinput_config_drag_lock
         libinput_device_config_tap_get_drag_lock_enabled(device) == lock) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "tap_set_drag_lock_enabled(%d)", lock);
+    wlr_log(WLR_DEBUG, "tap_set_drag_lock_enabled(%d)", lock);
     log_status(libinput_device_config_tap_set_drag_lock_enabled(device, lock));
     return true;
 }
@@ -88,7 +89,7 @@ set_accel_speed(struct libinput_device *device, double speed) {
         libinput_device_config_accel_get_speed(device) == speed) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "accel_set_speed(%f)", speed);
+    wlr_log(WLR_DEBUG, "accel_set_speed(%f)", speed);
     log_status(libinput_device_config_accel_set_speed(device, speed));
     return true;
 }
@@ -99,7 +100,7 @@ set_accel_profile(struct libinput_device *device, enum libinput_config_accel_pro
         libinput_device_config_accel_get_profile(device) == profile) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "accel_set_profile(%d)", profile);
+    wlr_log(WLR_DEBUG, "accel_set_profile(%d)", profile);
     log_status(libinput_device_config_accel_set_profile(device, profile));
     return true;
 }
@@ -110,7 +111,7 @@ set_natural_scroll(struct libinput_device *d, bool n) {
         libinput_device_config_scroll_get_natural_scroll_enabled(d) == n) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "scroll_set_natural_scroll(%d)", n);
+    wlr_log(WLR_DEBUG, "scroll_set_natural_scroll(%d)", n);
     log_status(libinput_device_config_scroll_set_natural_scroll_enabled(d, n));
     return true;
 }
@@ -121,7 +122,7 @@ set_left_handed(struct libinput_device *device, bool left) {
         libinput_device_config_left_handed_get(device) == left) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "left_handed_set(%d)", left);
+    wlr_log(WLR_DEBUG, "left_handed_set(%d)", left);
     log_status(libinput_device_config_left_handed_set(device, left));
     return true;
 }
@@ -133,7 +134,7 @@ set_click_method(struct libinput_device *device, enum libinput_config_click_meth
         libinput_device_config_click_get_method(device) == method) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "click_set_method(%d)", method);
+    wlr_log(WLR_DEBUG, "click_set_method(%d)", method);
     log_status(libinput_device_config_click_set_method(device, method));
     return true;
 }
@@ -144,7 +145,7 @@ set_middle_emulation(struct libinput_device *dev, enum libinput_config_middle_em
         libinput_device_config_middle_emulation_get_enabled(dev) == mid) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "middle_emulation_set_enabled(%d)", mid);
+    wlr_log(WLR_DEBUG, "middle_emulation_set_enabled(%d)", mid);
     log_status(libinput_device_config_middle_emulation_set_enabled(dev, mid));
     return true;
 }
@@ -156,7 +157,7 @@ set_scroll_method(struct libinput_device *device, enum libinput_config_scroll_me
         libinput_device_config_scroll_get_method(device) == method) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "scroll_set_method(%d)", method);
+    wlr_log(WLR_DEBUG, "scroll_set_method(%d)", method);
     log_status(libinput_device_config_scroll_set_method(device, method));
     return true;
 }
@@ -168,7 +169,7 @@ set_scroll_button(struct libinput_device *dev, uint32_t button) {
         libinput_device_config_scroll_get_button(dev) == button) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "scroll_set_button(%" PRIu32 ")", button);
+    wlr_log(WLR_DEBUG, "scroll_set_button(%" PRIu32 ")", button);
     log_status(libinput_device_config_scroll_set_button(dev, button));
     return true;
 }
@@ -179,7 +180,7 @@ set_dwt(struct libinput_device *device, bool dwt) {
         libinput_device_config_dwt_get_enabled(device) == dwt) {
         return false;
     }
-    hwd_log(HWD_DEBUG, "dwt_set_enabled(%d)", dwt);
+    wlr_log(WLR_DEBUG, "dwt_set_enabled(%d)", dwt);
     log_status(libinput_device_config_dwt_set_enabled(device, dwt));
     return true;
 }
@@ -199,8 +200,8 @@ set_calibration_matrix(struct libinput_device *dev, float mat[6]) {
         }
     }
     if (changed) {
-        hwd_log(
-            HWD_DEBUG, "calibration_set_matrix(%f, %f, %f, %f, %f, %f)", mat[0], mat[1], mat[2],
+        wlr_log(
+            WLR_DEBUG, "calibration_set_matrix(%f, %f, %f, %f, %f, %f)", mat[0], mat[1], mat[2],
             mat[3], mat[4], mat[5]
         );
         log_status(libinput_device_config_calibration_set_matrix(dev, mat));
@@ -216,15 +217,15 @@ hwd_input_configure_libinput_device(struct hwd_input_device *input_device) {
     }
 
     struct libinput_device *device = wlr_libinput_get_device_handle(input_device->wlr_device);
-    hwd_log(
-        HWD_DEBUG, "hwd_input_configure_libinput_device('%s' on '%s')", ic->identifier,
+    wlr_log(
+        WLR_DEBUG, "hwd_input_configure_libinput_device('%s' on '%s')", ic->identifier,
         input_device->identifier
     );
 
     bool changed = false;
     if (ic->mapped_to_output && !output_by_name_or_id(ic->mapped_to_output)) {
-        hwd_log(
-            HWD_DEBUG, "%s '%s' is mapped to offline output '%s'; disabling input", ic->input_type,
+        wlr_log(
+            WLR_DEBUG, "%s '%s' is mapped to offline output '%s'; disabling input", ic->input_type,
             ic->identifier, ic->mapped_to_output
         );
         set_send_events(device, LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
@@ -289,7 +290,7 @@ hwd_input_reset_libinput_device(struct hwd_input_device *input_device) {
     }
 
     struct libinput_device *device = wlr_libinput_get_device_handle(input_device->wlr_device);
-    hwd_log(HWD_DEBUG, "hwd_input_reset_libinput_device(%s)", input_device->identifier);
+    wlr_log(WLR_DEBUG, "hwd_input_reset_libinput_device(%s)", input_device->identifier);
     bool changed = false;
 
     set_send_events(device, libinput_device_config_send_events_get_default_mode(device));

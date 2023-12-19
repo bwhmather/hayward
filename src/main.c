@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include <config.h>
 
+#include <errno.h>
 #include <getopt.h>
 #include <pango/pangocairo.h>
 #include <signal.h>
@@ -21,7 +22,6 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/haywardnag.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/root.h>
@@ -62,10 +62,10 @@ detect_proprietary(int allow_unsupported_gpu) {
     while (getline(&line, &line_size, f) != -1) {
         if (strncmp(line, "nvidia ", 7) == 0) {
             if (allow_unsupported_gpu) {
-                hwd_log(HWD_ERROR, "!!! Proprietary Nvidia drivers are in use !!!");
+                wlr_log(WLR_ERROR, "!!! Proprietary Nvidia drivers are in use !!!");
             } else {
-                hwd_log(
-                    HWD_ERROR,
+                wlr_log(
+                    WLR_ERROR,
                     "Proprietary Nvidia drivers are NOT supported. "
                     "Use Nouveau. To launch hayward anyway, launch with "
                     "--unsupported-gpu and DO NOT report issues."
@@ -76,10 +76,10 @@ detect_proprietary(int allow_unsupported_gpu) {
         }
         if (strstr(line, "fglrx")) {
             if (allow_unsupported_gpu) {
-                hwd_log(HWD_ERROR, "!!! Proprietary AMD drivers are in use !!!");
+                wlr_log(WLR_ERROR, "!!! Proprietary AMD drivers are in use !!!");
             } else {
-                hwd_log(
-                    HWD_ERROR,
+                wlr_log(
+                    WLR_ERROR,
                     "Proprietary AMD drivers do NOT support "
                     "Wayland. Use radeon. To try anyway, launch hayward with "
                     "--unsupported-gpu and DO NOT report issues."
@@ -103,7 +103,7 @@ log_env(void) {
     };
     for (size_t i = 0; i < sizeof(log_vars) / sizeof(char *); ++i) {
         char *value = getenv(log_vars[i]);
-        hwd_log(HWD_INFO, "%s=%s", log_vars[i], value != NULL ? value : "");
+        wlr_log(WLR_INFO, "%s=%s", log_vars[i], value != NULL ? value : "");
     }
 }
 
@@ -116,7 +116,7 @@ log_file(FILE *f) {
         if (line[nread - 1] == '\n') {
             line[nread - 1] = '\0';
         }
-        hwd_log(HWD_INFO, "%s", line);
+        wlr_log(WLR_INFO, "%s", line);
     }
     free(line);
 }
@@ -130,7 +130,7 @@ log_distro(void) {
     for (size_t i = 0; i < sizeof(paths) / sizeof(char *); ++i) {
         FILE *f = fopen(paths[i], "r");
         if (f) {
-            hwd_log(HWD_INFO, "Contents of %s:", paths[i]);
+            wlr_log(WLR_INFO, "Contents of %s:", paths[i]);
             log_file(f);
             fclose(f);
         }
@@ -141,7 +141,7 @@ static void
 log_kernel(void) {
     FILE *f = popen("uname -a", "r");
     if (!f) {
-        hwd_log(HWD_INFO, "Unable to determine kernel version");
+        wlr_log(WLR_INFO, "Unable to determine kernel version");
         return;
     }
     log_file(f);
@@ -151,8 +151,8 @@ log_kernel(void) {
 static bool
 drop_permissions(void) {
     if (getuid() != geteuid() || getgid() != getegid()) {
-        hwd_log(
-            HWD_ERROR,
+        wlr_log(
+            WLR_ERROR,
             "!!! DEPRECATION WARNING: "
             "SUID privilege drop will be removed in a future release, please "
             "migrate to seatd-launch"
@@ -160,17 +160,17 @@ drop_permissions(void) {
 
         // Set the gid and uid in the correct order.
         if (setgid(getgid()) != 0) {
-            hwd_log(HWD_ERROR, "Unable to drop root group, refusing to start");
+            wlr_log(WLR_ERROR, "Unable to drop root group, refusing to start");
             return false;
         }
         if (setuid(getuid()) != 0) {
-            hwd_log(HWD_ERROR, "Unable to drop root user, refusing to start");
+            wlr_log(WLR_ERROR, "Unable to drop root user, refusing to start");
             return false;
         }
     }
     if (setgid(0) != -1 || setuid(0) != -1) {
-        hwd_log(
-            HWD_ERROR,
+        wlr_log(
+            WLR_ERROR,
             "Unable to drop root (we shouldn't be able to "
             "restore it after setuid), refusing to start"
         );
@@ -182,8 +182,8 @@ drop_permissions(void) {
 static void
 increase_nofile_limit(void) {
     if (getrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-        hwd_log_errno(
-            HWD_ERROR,
+        wlr_log_errno(
+            WLR_ERROR,
             "Failed to bump max open files limit: "
             "getrlimit(NOFILE) failed"
         );
@@ -193,12 +193,12 @@ increase_nofile_limit(void) {
     struct rlimit new_rlimit = original_nofile_rlimit;
     new_rlimit.rlim_cur = new_rlimit.rlim_max;
     if (setrlimit(RLIMIT_NOFILE, &new_rlimit) != 0) {
-        hwd_log_errno(
-            HWD_ERROR,
+        wlr_log_errno(
+            WLR_ERROR,
             "Failed to bump max open files limit: "
             "setrlimit(NOFILE) failed"
         );
-        hwd_log(HWD_INFO, "Running with %d max open files", (int)original_nofile_rlimit.rlim_cur);
+        wlr_log(WLR_INFO, "Running with %d max open files", (int)original_nofile_rlimit.rlim_cur);
     }
 }
 
@@ -208,8 +208,8 @@ restore_nofile_limit(void) {
         return;
     }
     if (setrlimit(RLIMIT_NOFILE, &original_nofile_rlimit) != 0) {
-        hwd_log_errno(
-            HWD_ERROR,
+        wlr_log_errno(
+            WLR_ERROR,
             "Failed to restore max open files limit: "
             "setrlimit(NOFILE) failed"
         );
@@ -227,27 +227,8 @@ enable_debug_flag(const char *flag) {
     } else if (strncmp(flag, "txn-timeout=", 12) == 0) {
         server.txn_timeout_ms = atoi(&flag[12]);
     } else {
-        hwd_log(HWD_ERROR, "Unknown debug flag: %s", flag);
+        wlr_log(WLR_ERROR, "Unknown debug flag: %s", flag);
     }
-}
-
-static hwd_log_importance_t
-convert_wlr_log_importance(enum wlr_log_importance importance) {
-    switch (importance) {
-    case WLR_ERROR:
-        return HWD_ERROR;
-    case WLR_INFO:
-        return HWD_INFO;
-    default:
-        return HWD_DEBUG;
-    }
-}
-
-static void
-handle_wlr_log(enum wlr_log_importance importance, const char *fmt, va_list args) {
-    static char hwd_fmt[1024];
-    snprintf(hwd_fmt, sizeof(hwd_fmt), "[wlr] %s", fmt);
-    hwd_vlog(convert_wlr_log_importance(importance), hwd_fmt, args);
 }
 
 static const struct option long_options[] = {
@@ -341,19 +322,16 @@ main(int argc, char **argv) {
     // As the 'callback' function for wlr_log is equivalent to that for
     // hayward, we do not need to override it.
     if (debug) {
-        hwd_log_init(HWD_DEBUG);
-        wlr_log_init(WLR_DEBUG, handle_wlr_log);
+        wlr_log_init(WLR_DEBUG, NULL);
     } else if (verbose) {
-        hwd_log_init(HWD_INFO);
-        wlr_log_init(WLR_INFO, handle_wlr_log);
+        wlr_log_init(WLR_INFO, NULL);
     } else {
-        hwd_log_init(HWD_ERROR);
-        wlr_log_init(WLR_ERROR, handle_wlr_log);
+        wlr_log_init(WLR_ERROR, NULL);
     }
 
     const char *wlr_v_str = WLR_VERSION_STR;
-    hwd_log(HWD_INFO, "Hayward version " HWD_VERSION);
-    hwd_log(HWD_INFO, "wlroots version %s", wlr_v_str);
+    wlr_log(WLR_INFO, "Hayward version " HWD_VERSION);
+    wlr_log(WLR_INFO, "wlroots version %s", wlr_v_str);
     log_kernel();
     log_distro();
     log_env();
@@ -378,7 +356,7 @@ main(int argc, char **argv) {
     // prevent ipc from crashing hayward
     signal(SIGPIPE, SIG_IGN);
 
-    hwd_log(HWD_INFO, "Starting hayward version " HWD_VERSION);
+    wlr_log(WLR_INFO, "Starting hayward version " HWD_VERSION);
 
     root = root_create(server.wl_display);
 
@@ -426,7 +404,7 @@ main(int argc, char **argv) {
     server_run(&server);
 
 shutdown:
-    hwd_log(HWD_INFO, "Shutting down hayward");
+    wlr_log(WLR_INFO, "Shutting down hayward");
 
     server_fini(&server);
     root_destroy(root);

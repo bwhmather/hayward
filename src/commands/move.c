@@ -4,6 +4,7 @@
 
 #include "hayward/commands.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
@@ -21,7 +22,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/stringop.h>
 #include <hayward/tree.h>
 #include <hayward/tree/column.h>
@@ -47,7 +47,7 @@ opposite_direction(enum wlr_direction d) {
     case WLR_DIRECTION_LEFT:
         return WLR_DIRECTION_RIGHT;
     }
-    hwd_assert(false, "Unknown direction");
+    assert(false);
     return 0;
 }
 
@@ -514,7 +514,7 @@ cmd_move_to_position(int argc, char **argv) {
     case MOVEMENT_UNIT_DEFAULT:
         break;
     case MOVEMENT_UNIT_INVALID:
-        hwd_abort("Invalid x unit");
+        return cmd_results_new(CMD_INVALID, "Invalid x unit");
     }
 
     switch (ly.unit) {
@@ -530,7 +530,7 @@ cmd_move_to_position(int argc, char **argv) {
     case MOVEMENT_UNIT_DEFAULT:
         break;
     case MOVEMENT_UNIT_INVALID:
-        hwd_abort("invalid y unit");
+        return cmd_results_new(CMD_INVALID, "invalid y unit");
     }
     if (!absolute) {
         lx.amount += output->pending.x;

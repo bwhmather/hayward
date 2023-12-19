@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "hayward/stringop.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -9,7 +10,6 @@
 #include <wordexp.h>
 
 #include <hayward/list.h>
-#include <hayward/log.h>
 
 static const char whitespace[] = " \f\n\r\t\v";
 
@@ -230,7 +230,7 @@ unescape_string(char *string) {
 
 char *
 join_args(char **argv, int argc) {
-    hwd_assert(argc > 0, "argc should be positive");
+    assert(argc > 0);
 
     int len = 0, i;
     for (i = 0; i < argc; ++i) {

@@ -1,9 +1,8 @@
 #include "hayward/list.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <hayward/log.h>
 
 list_t *
 create_list(void) {
@@ -107,7 +106,7 @@ list_move_to_end(list_t *list, void *item) {
             break;
         }
     }
-    hwd_assert(i < list->length, "Item not found in list");
+    assert(i < list->length);
     list_del(list, i);
     list_add(list, item);
 }

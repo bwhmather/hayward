@@ -5,6 +5,7 @@
 
 #include "hayward/tree/output.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -19,13 +20,13 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/scheduler.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>
@@ -108,7 +109,7 @@ output_handle_transaction_after_apply(struct wl_listener *listener, void *data) 
 
     wl_list_remove(&listener->link);
 
-    hwd_assert(output->current.dead, "After apply called on live output");
+    assert(output->current.dead);
     output_destroy(output);
 }
 
@@ -146,13 +147,13 @@ output_create(struct wlr_output *wlr_output) {
 
 static bool
 output_is_alive(struct hwd_output *output) {
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
     return !output->pending.dead;
 }
 
 static void
 output_set_dirty(struct hwd_output *output) {
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
@@ -231,9 +232,9 @@ output_evacuate(struct hwd_output *output) {
 
 static void
 output_destroy(struct hwd_output *output) {
-    hwd_assert(output->current.dead, "Tried to free output which wasn't marked as destroying");
-    hwd_assert(output->wlr_output == NULL, "Tried to free output which still had a wlr_output");
-    hwd_assert(!output->dirty, "Tried to free output which is queued for the next transaction");
+    assert(output->current.dead);
+    assert(output->wlr_output == NULL);
+    assert(!output->dirty);
 
     output_destroy_scene(output);
 
@@ -242,12 +243,12 @@ output_destroy(struct hwd_output *output) {
 
 static void
 output_disable(struct hwd_output *output) {
-    hwd_assert(output->enabled, "Expected an enabled output");
+    assert(output->enabled);
 
     int index = list_find(root->outputs, output);
-    hwd_assert(index >= 0, "Output not found in root node");
+    assert(index >= 0);
 
-    hwd_log(HWD_DEBUG, "Disabling output '%s'", output->wlr_output->name);
+    wlr_log(WLR_DEBUG, "Disabling output '%s'", output->wlr_output->name);
     wl_signal_emit_mutable(&output->events.disable, output);
 
     output_evacuate(output);
@@ -274,10 +275,10 @@ output_disable(struct hwd_output *output) {
 
 static void
 output_begin_destroy(struct hwd_output *output) {
-    hwd_assert(!output->enabled, "Expected a disabled output");
-    hwd_assert(output_is_alive(output), "Expected live output");
+    assert(!output->enabled);
+    assert(output_is_alive(output));
 
-    hwd_log(HWD_DEBUG, "Destroying output '%s'", output->wlr_output->name);
+    wlr_log(WLR_DEBUG, "Destroying output '%s'", output->wlr_output->name);
 
     output->pending.dead = true;
 
@@ -293,7 +294,7 @@ output_from_wlr_output(struct wlr_output *output) {
 
 void
 output_reconcile(struct hwd_output *output) {
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
     if (workspace == NULL) {
@@ -330,7 +331,7 @@ output_arrange(struct hwd_output *output) {
 
 struct hwd_output *
 output_get_in_direction(struct hwd_output *output, enum wlr_direction direction) {
-    hwd_assert(direction, "got invalid direction: %d", direction);
+    assert(direction);
     struct wlr_box output_box;
     wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
     int lx = output_box.x + output_box.width / 2;
@@ -433,13 +434,13 @@ handle_new_output(struct wl_listener *listener, void *data) {
         wlr_output_set_name(wlr_output, name);
     }
 
-    hwd_log(
-        HWD_DEBUG, "New output %p: %s (non-desktop: %d)", (void *)wlr_output, wlr_output->name,
+    wlr_log(
+        WLR_DEBUG, "New output %p: %s (non-desktop: %d)", (void *)wlr_output, wlr_output->name,
         wlr_output->non_desktop
     );
 
     if (wlr_output->non_desktop) {
-        hwd_log(HWD_DEBUG, "Not configuring non-desktop output");
+        wlr_log(WLR_DEBUG, "Not configuring non-desktop output");
         if (server->drm_lease_manager) {
             wlr_drm_lease_v1_manager_offer_output(server->drm_lease_manager, wlr_output);
         }
@@ -447,12 +448,12 @@ handle_new_output(struct wl_listener *listener, void *data) {
     }
 
     if (!wlr_output_init_render(wlr_output, server->allocator, server->renderer)) {
-        hwd_log(HWD_ERROR, "Failed to init output render");
+        wlr_log(WLR_ERROR, "Failed to init output render");
         return;
     }
 
     struct wlr_scene_output *scene_output = wlr_scene_output_create(root->root_scene, wlr_output);
-    hwd_assert(scene_output != NULL, "Allocation failed");
+    assert(scene_output != NULL);
 
     hwd_scene_output_scheduler_create(scene_output);
 
@@ -472,7 +473,7 @@ handle_new_output(struct wl_listener *listener, void *data) {
     wlr_output_enable(wlr_output, true);
 
     if (!wlr_output_commit(wlr_output)) {
-        hwd_log(HWD_ERROR, "Failed to commit output %s", wlr_output->name);
+        wlr_log(WLR_ERROR, "Failed to commit output %s", wlr_output->name);
         return;
     }
 

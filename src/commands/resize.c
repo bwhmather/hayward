@@ -4,6 +4,7 @@
 
 #include "hayward/commands.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -14,7 +15,6 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -331,7 +331,7 @@ resize_set_floating(
             window->pending.width = width->amount;
             break;
         case MOVEMENT_UNIT_INVALID:
-            hwd_assert(false, "invalid width unit");
+            assert(false);
             break;
         }
     }
@@ -351,7 +351,7 @@ resize_set_floating(
             window->pending.height = height->amount;
             break;
         case MOVEMENT_UNIT_INVALID:
-            hwd_assert(false, "invalid height unit");
+            assert(false);
             break;
         }
     }

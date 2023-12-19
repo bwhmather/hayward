@@ -4,6 +4,7 @@
 
 #include "hayward/desktop/xdg_shell.h"
 
+#include <assert.h>
 #include <float.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -18,12 +19,12 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 #include <wlr/util/edges.h>
+#include <wlr/util/log.h>
 
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
-#include <hayward/log.h>
 #include <hayward/tree.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -61,10 +62,10 @@ popup_unconstrain(struct hwd_xdg_popup *popup) {
     struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
     struct hwd_window *window = view->window;
-    hwd_assert(window != NULL, "Expected window");
+    assert(window != NULL);
 
     struct hwd_output *output = window_get_output(window);
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     // the output box expressed in the coordinate system of the toplevel parent
     // of the popup
@@ -90,10 +91,10 @@ popup_create(
     }
 
     popup->scene_tree = wlr_scene_tree_create(parent);
-    hwd_assert(popup->scene_tree != NULL, "Allocation failed");
+    assert(popup->scene_tree != NULL);
 
     popup->xdg_surface_tree = wlr_scene_xdg_surface_create(popup->scene_tree, xdg_surface);
-    hwd_assert(popup->xdg_surface_tree != NULL, "Allocation failed");
+    assert(popup->xdg_surface_tree != NULL);
 
     // TODO scene descriptor.
 
@@ -115,7 +116,7 @@ popup_create(
 
 static struct hwd_xdg_shell_view *
 xdg_shell_view_from_view(struct hwd_view *view) {
-    hwd_assert(view->type == HWD_VIEW_XDG_SHELL, "Expected xdg_shell view");
+    assert(view->type == HWD_VIEW_XDG_SHELL);
     return (struct hwd_xdg_shell_view *)view;
 }
 
@@ -410,7 +411,7 @@ handle_unmap(struct wl_listener *listener, void *data) {
 
     struct hwd_view *view = &xdg_shell_view->view;
 
-    hwd_assert(view->surface, "Cannot unmap unmapped view");
+    assert(view->surface);
 
     view_unmap(view);
     root_commit_focus(root);
@@ -471,7 +472,7 @@ handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *xdg_shell_view = wl_container_of(listener, xdg_shell_view, destroy);
 
     struct hwd_view *view = &xdg_shell_view->view;
-    hwd_assert(view->surface == NULL, "Tried to destroy a mapped view");
+    assert(view->surface == NULL);
 
     wl_list_remove(&xdg_shell_view->destroy.link);
     wl_list_remove(&xdg_shell_view->map.link);
@@ -491,15 +492,15 @@ handle_new_toplevel(struct wl_listener *listener, void *data) {
     struct wlr_xdg_toplevel *xdg_toplevel = data;
     struct wlr_xdg_surface *xdg_surface = xdg_toplevel->base;
 
-    hwd_log(
-        HWD_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'", xdg_toplevel->title,
+    wlr_log(
+        WLR_DEBUG, "New xdg_shell toplevel title='%s' app_id='%s'", xdg_toplevel->title,
         xdg_toplevel->app_id
     );
 
     wlr_xdg_surface_ping(xdg_surface);
 
     struct hwd_xdg_shell_view *xdg_shell_view = calloc(1, sizeof(struct hwd_xdg_shell_view));
-    hwd_assert(xdg_shell_view, "Failed to allocate view");
+    assert(xdg_shell_view);
 
     xdg_shell_view->xdg_shell = xdg_shell;
 

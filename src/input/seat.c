@@ -31,6 +31,7 @@
 #include <wlr/types/wlr_touch.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 #include <wlr/xcursor.h>
 #include <wlr/xwayland/xwayland.h>
 
@@ -49,7 +50,6 @@
 #include <hayward/input/tablet.h>
 #include <hayward/input/text_input.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -80,7 +80,7 @@ seat_create(const char *seat_name) {
     }
 
     seat->wlr_seat = wlr_seat_create(server.wl_display, seat_name);
-    hwd_assert(seat->wlr_seat, "could not allocate seat");
+    assert(seat->wlr_seat);
     seat->wlr_seat->data = seat;
 
     seat->cursor = hwd_cursor_create(seat);
@@ -321,10 +321,10 @@ handle_request_start_drag(struct wl_listener *listener, void *data) {
 
     // TODO: tablet grabs
 
-    hwd_log(
-        HWD_DEBUG,
+    wlr_log(
+        WLR_DEBUG,
         "Ignoring start_drag request: "
-        "could not validate pointer or touch serial %" PRIu32,
+        "could not validate pointer or touch serial %i",
         event->serial
     );
     wlr_data_source_destroy(event->drag->source);
@@ -337,7 +337,7 @@ handle_start_drag(struct wl_listener *listener, void *data) {
 
     struct hwd_drag *drag = calloc(1, sizeof(struct hwd_drag));
     if (drag == NULL) {
-        hwd_log(HWD_ERROR, "Allocation failed");
+        wlr_log(WLR_ERROR, "Allocation failed");
         return;
     }
     drag->seat = seat;
@@ -351,7 +351,7 @@ handle_start_drag(struct wl_listener *listener, void *data) {
     if (wlr_drag_icon != NULL) {
         struct hwd_drag_icon *icon = calloc(1, sizeof(struct hwd_drag_icon));
         if (icon == NULL) {
-            hwd_log(HWD_ERROR, "Allocation failed");
+            wlr_log(WLR_ERROR, "Allocation failed");
             return;
         }
         icon->seat = seat;
@@ -438,8 +438,8 @@ seat_update_capabilities(struct hwd_seat *seat) {
 
 static void
 seat_reset_input_config(struct hwd_seat *seat, struct hwd_seat_device *hwd_device) {
-    hwd_log(
-        HWD_DEBUG, "Resetting output mapping for input device %s",
+    wlr_log(
+        WLR_DEBUG, "Resetting output mapping for input device %s",
         hwd_device->input_device->identifier
     );
     wlr_cursor_map_input_to_output(
@@ -487,7 +487,7 @@ static void
 seat_apply_input_config(struct hwd_seat *seat, struct hwd_seat_device *hwd_device) {
     struct input_config *ic = input_device_get_config(hwd_device->input_device);
 
-    hwd_log(HWD_DEBUG, "Applying input config to %s", hwd_device->input_device->identifier);
+    wlr_log(WLR_DEBUG, "Applying input config to %s", hwd_device->input_device->identifier);
 
     const char *mapped_to_output = ic == NULL ? NULL : ic->mapped_to_output;
     struct wlr_box *mapped_to_region = ic == NULL ? NULL : ic->mapped_to_region;
@@ -517,8 +517,8 @@ seat_apply_input_config(struct hwd_seat *seat, struct hwd_seat_device *hwd_devic
             hwd_libinput_device_is_builtin(hwd_device->input_device)) {
             mapped_to_output = get_builtin_output_name();
             if (mapped_to_output) {
-                hwd_log(
-                    HWD_DEBUG, "Auto-detected output '%s' for device '%s'", mapped_to_output,
+                wlr_log(
+                    WLR_DEBUG, "Auto-detected output '%s' for device '%s'", mapped_to_output,
                     hwd_device->input_device->identifier
                 );
             }
@@ -528,8 +528,8 @@ seat_apply_input_config(struct hwd_seat *seat, struct hwd_seat_device *hwd_devic
         }
         /* fallthrough */
     case MAPPED_TO_OUTPUT:
-        hwd_log(
-            HWD_DEBUG, "Mapping input device %s to output %s", hwd_device->input_device->identifier,
+        wlr_log(
+            WLR_DEBUG, "Mapping input device %s to output %s", hwd_device->input_device->identifier,
             mapped_to_output
         );
         if (strcmp("*", mapped_to_output) == 0) {
@@ -539,13 +539,13 @@ seat_apply_input_config(struct hwd_seat *seat, struct hwd_seat_device *hwd_devic
             wlr_cursor_map_input_to_region(
                 seat->cursor->cursor, hwd_device->input_device->wlr_device, NULL
             );
-            hwd_log(HWD_DEBUG, "Reset output mapping");
+            wlr_log(WLR_DEBUG, "Reset output mapping");
             return;
         }
         struct hwd_output *output = output_by_name_or_id(mapped_to_output);
         if (!output) {
-            hwd_log(
-                HWD_DEBUG, "Requested output %s for device %s isn't present", mapped_to_output,
+            wlr_log(
+                WLR_DEBUG, "Requested output %s for device %s isn't present", mapped_to_output,
                 hwd_device->input_device->identifier
             );
             return;
@@ -556,11 +556,11 @@ seat_apply_input_config(struct hwd_seat *seat, struct hwd_seat_device *hwd_devic
         wlr_cursor_map_input_to_region(
             seat->cursor->cursor, hwd_device->input_device->wlr_device, NULL
         );
-        hwd_log(HWD_DEBUG, "Mapped to output %s", output->wlr_output->name);
+        wlr_log(WLR_DEBUG, "Mapped to output %s", output->wlr_output->name);
         return;
     case MAPPED_TO_REGION:
-        hwd_log(
-            HWD_DEBUG, "Mapping input device %s to %d,%d %dx%d",
+        wlr_log(
+            WLR_DEBUG, "Mapping input device %s to %d,%d %dx%d",
             hwd_device->input_device->identifier, mapped_to_region->x, mapped_to_region->y,
             mapped_to_region->width, mapped_to_region->height
         );
@@ -706,10 +706,10 @@ seat_reset_device(struct hwd_seat *seat, struct hwd_input_device *input_device) 
         seat_reset_input_config(seat, seat_device);
         break;
     case WLR_INPUT_DEVICE_TABLET_PAD:
-        hwd_log(HWD_DEBUG, "TODO: reset tablet pad");
+        wlr_log(WLR_DEBUG, "TODO: reset tablet pad");
         break;
     case WLR_INPUT_DEVICE_SWITCH:
-        hwd_log(HWD_DEBUG, "TODO: reset switch device");
+        wlr_log(WLR_DEBUG, "TODO: reset switch device");
         break;
     }
 }
@@ -723,12 +723,12 @@ seat_add_device(struct hwd_seat *seat, struct hwd_input_device *input_device) {
 
     struct hwd_seat_device *seat_device = calloc(1, sizeof(struct hwd_seat_device));
     if (!seat_device) {
-        hwd_log(HWD_DEBUG, "could not allocate seat device");
+        wlr_log(WLR_DEBUG, "could not allocate seat device");
         return;
     }
 
-    hwd_log(
-        HWD_DEBUG, "adding device %s to seat %s", input_device->identifier, seat->wlr_seat->name
+    wlr_log(
+        WLR_DEBUG, "adding device %s to seat %s", input_device->identifier, seat->wlr_seat->name
     );
 
     seat_device->hwd_seat = seat;
@@ -748,8 +748,8 @@ seat_remove_device(struct hwd_seat *seat, struct hwd_input_device *input_device)
         return;
     }
 
-    hwd_log(
-        HWD_DEBUG, "removing device %s from seat %s", input_device->identifier, seat->wlr_seat->name
+    wlr_log(
+        WLR_DEBUG, "removing device %s from seat %s", input_device->identifier, seat->wlr_seat->name
     );
 
     seat_device_destroy(seat_device);
@@ -794,7 +794,7 @@ seat_configure_xcursor(struct hwd_seat *seat) {
 
             server.xwayland->xcursor_manager =
                 wlr_xcursor_manager_create(cursor_theme, cursor_size);
-            hwd_assert(server.xwayland->xcursor_manager, "Cannot create XCursor manager for theme");
+            assert(server.xwayland->xcursor_manager);
 
             wlr_xcursor_manager_load(server.xwayland->xcursor_manager, 1);
             struct wlr_xcursor *xcursor =
@@ -819,7 +819,7 @@ seat_configure_xcursor(struct hwd_seat *seat) {
         wlr_xcursor_manager_destroy(seat->cursor->xcursor_manager);
         seat->cursor->xcursor_manager = wlr_xcursor_manager_create(cursor_theme, cursor_size);
         if (!seat->cursor->xcursor_manager) {
-            hwd_log(HWD_ERROR, "Cannot create XCursor manager for theme '%s'", cursor_theme);
+            wlr_log(WLR_ERROR, "Cannot create XCursor manager for theme '%s'", cursor_theme);
         }
     }
 
@@ -828,8 +828,8 @@ seat_configure_xcursor(struct hwd_seat *seat) {
         struct wlr_output *output = hwd_output->wlr_output;
         bool result = wlr_xcursor_manager_load(seat->cursor->xcursor_manager, output->scale);
         if (!result) {
-            hwd_log(
-                HWD_ERROR, "Cannot load xcursor theme for output '%s' with scale %f", output->name,
+            wlr_log(
+                WLR_ERROR, "Cannot load xcursor theme for output '%s' with scale %f", output->name,
                 output->scale
             );
         }
@@ -849,7 +849,7 @@ seat_configure_xcursor(struct hwd_seat *seat) {
 static void
 seat_send_focus(struct hwd_seat *seat, struct wlr_surface *surface) {
     if (!seat_is_input_allowed(seat, surface)) {
-        hwd_log(HWD_DEBUG, "Refusing to set focus, input is inhibited");
+        wlr_log(WLR_DEBUG, "Refusing to set focus, input is inhibited");
         return;
     }
 
@@ -872,7 +872,7 @@ seat_send_unfocus(struct hwd_seat *seat, struct wlr_surface *surface) {
 
 static void
 seat_commit_focus(struct hwd_seat *seat) {
-    hwd_assert(seat != NULL, "Expected seat");
+    assert(seat != NULL);
 
     struct wlr_surface *old_surface = seat->focused_surface;
     struct wlr_surface *new_surface = root_get_focused_surface(root);

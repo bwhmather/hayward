@@ -3,6 +3,7 @@
 
 #include "hayward/desktop/wlr_output_management_v1.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <wayland-server-core.h>
@@ -11,8 +12,7 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output_management_v1.h>
 #include <wlr/util/box.h>
-
-#include <hayward/log.h>
+#include <wlr/util/log.h>
 
 static void
 output_manager_update_config(struct hwd_wlr_output_manager_v1 *manager) {
@@ -62,7 +62,7 @@ output_manager_apply(
         if (config_head->state.mode != NULL) {
             wlr_output_set_mode(wlr_output, config_head->state.mode);
         } else {
-            hwd_log(HWD_DEBUG, "Assigning custom mode to %s", wlr_output->name);
+            wlr_log(WLR_DEBUG, "Assigning custom mode to %s", wlr_output->name);
             wlr_output_set_custom_mode(
                 wlr_output, config_head->state.custom_mode.width,
                 config_head->state.custom_mode.height, config_head->state.custom_mode.refresh
@@ -89,7 +89,7 @@ output_manager_apply(
         }
 
         if (!wlr_output_commit(wlr_output)) {
-            hwd_log(HWD_ERROR, "Failed to commit output %s", wlr_output->name);
+            wlr_log(WLR_ERROR, "Failed to commit output %s", wlr_output->name);
             ok = false;
             continue;
         }
@@ -165,10 +165,10 @@ hwd_wlr_output_manager_v1_create(
     struct wl_display *wl_display, struct wlr_output_layout *output_layout
 ) {
     struct hwd_wlr_output_manager_v1 *manager = calloc(1, sizeof(struct hwd_wlr_output_manager_v1));
-    hwd_assert(manager != NULL, "Allocation failed");
+    assert(manager != NULL);
 
     manager->wlr_manager = wlr_output_manager_v1_create(wl_display);
-    hwd_assert(manager->wlr_manager != NULL, "Allocation failed");
+    assert(manager->wlr_manager != NULL);
     manager->output_manager_apply.notify = handle_output_manager_apply;
     wl_signal_add(&manager->wlr_manager->events.apply, &manager->output_manager_apply);
     manager->output_manager_test.notify = handle_output_manager_test;

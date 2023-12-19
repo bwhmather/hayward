@@ -10,9 +10,9 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
+#include <wlr/util/log.h>
 
 #include <hayward/globals/root.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
@@ -33,7 +33,7 @@ static void
 handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_idle_inhibitor_v1 *inhibitor = wl_container_of(listener, inhibitor, destroy);
 
-    hwd_log(HWD_DEBUG, "Hayward idle inhibitor destroyed");
+    wlr_log(WLR_DEBUG, "Hayward idle inhibitor destroyed");
     destroy_inhibitor(inhibitor);
 }
 
@@ -43,7 +43,7 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
         wl_container_of(listener, manager, new_idle_inhibitor_v1);
     struct wlr_idle_inhibitor_v1 *wlr_inhibitor = data;
 
-    hwd_log(HWD_DEBUG, "New hayward idle inhibitor");
+    wlr_log(WLR_DEBUG, "New hayward idle inhibitor");
 
     struct hwd_idle_inhibitor_v1 *inhibitor = calloc(1, sizeof(struct hwd_idle_inhibitor_v1));
     if (!inhibitor) {

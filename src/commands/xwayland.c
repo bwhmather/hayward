@@ -33,8 +33,8 @@ cmd_xwayland(int argc, char **argv) {
     }
     config->xwayland = xwayland;
 #else
-    hwd_log(
-        HWD_INFO,
+    wlr_log(
+        WLR_INFO,
         "Ignoring `xwayland` command, "
         "hayward hasn't been built with Xwayland support"
     );

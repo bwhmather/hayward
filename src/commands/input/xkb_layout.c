@@ -6,9 +6,9 @@
 #include "hayward/commands.h"
 
 #include <string.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
-#include <hayward/log.h>
 
 struct cmd_results *
 input_cmd_xkb_layout(int argc, char **argv) {
@@ -23,6 +23,6 @@ input_cmd_xkb_layout(int argc, char **argv) {
 
     ic->xkb_layout = strdup(argv[0]);
 
-    hwd_log(HWD_DEBUG, "set-xkb_layout for config: %s layout: %s", ic->identifier, ic->xkb_layout);
+    wlr_log(WLR_DEBUG, "set-xkb_layout for config: %s layout: %s", ic->identifier, ic->xkb_layout);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

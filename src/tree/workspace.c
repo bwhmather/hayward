@@ -4,6 +4,7 @@
 
 #include "hayward/tree/workspace.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -14,12 +15,12 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/scene/nineslice.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>
@@ -40,16 +41,16 @@ workspace_find_window(
 static void
 workspace_init_scene(struct hwd_workspace *workspace) {
     workspace->scene_tree = wlr_scene_tree_create(root->orphans);
-    hwd_assert(workspace->scene_tree != NULL, "Allocation failed");
+    assert(workspace->scene_tree != NULL);
 
     workspace->layers.separators = wlr_scene_tree_create(workspace->scene_tree);
-    hwd_assert(workspace->layers.separators != NULL, "Allocation failed");
+    assert(workspace->layers.separators != NULL);
 
     workspace->layers.tiling = wlr_scene_tree_create(workspace->scene_tree);
-    hwd_assert(workspace->layers.tiling != NULL, "Allocation failed");
+    assert(workspace->layers.tiling != NULL);
 
     workspace->layers.floating = wlr_scene_tree_create(workspace->scene_tree);
-    hwd_assert(workspace->layers.floating != NULL, "Allocation failed");
+    assert(workspace->layers.floating != NULL);
 }
 
 static void
@@ -267,7 +268,7 @@ workspace_handle_transaction_after_apply(struct wl_listener *listener, void *dat
 
     wl_list_remove(&listener->link);
 
-    hwd_assert(workspace->current.dead, "After apply called on live workspace");
+    assert(workspace->current.dead);
     workspace_destroy(workspace);
 }
 
@@ -275,7 +276,7 @@ struct hwd_workspace *
 workspace_create(const char *name) {
     struct hwd_workspace *workspace = calloc(1, sizeof(struct hwd_workspace));
     if (!workspace) {
-        hwd_log(HWD_ERROR, "Unable to allocate hwd_workspace");
+        wlr_log(WLR_ERROR, "Unable to allocate hwd_workspace");
         return NULL;
     }
 
@@ -304,19 +305,15 @@ workspace_create(const char *name) {
 
 bool
 workspace_is_alive(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
     return !workspace->pending.dead;
 }
 
 static void
 workspace_destroy(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(
-        workspace->current.dead, "Tried to free workspace which wasn't marked as destroying"
-    );
-    hwd_assert(
-        !workspace->dirty, "Tried to free workspace which is queued for the next transaction"
-    );
+    assert(workspace != NULL);
+    assert(workspace->current.dead);
+    assert(!workspace->dirty);
 
     workspace_destroy_scene(workspace);
 
@@ -332,10 +329,10 @@ workspace_destroy(struct hwd_workspace *workspace) {
 
 void
 workspace_begin_destroy(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(workspace_is_alive(workspace), "Expected live workspace");
+    assert(workspace != NULL);
+    assert(workspace_is_alive(workspace));
 
-    hwd_log(HWD_DEBUG, "Destroying workspace '%s'", workspace->name);
+    wlr_log(WLR_DEBUG, "Destroying workspace '%s'", workspace->name);
 
     workspace->pending.dead = true;
 
@@ -348,7 +345,7 @@ workspace_begin_destroy(struct hwd_workspace *workspace) {
 
 void
 workspace_consider_destroy(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     if (workspace->pending.columns->length) {
         return;
@@ -367,7 +364,7 @@ workspace_consider_destroy(struct hwd_workspace *workspace) {
 
 void
 workspace_set_dirty(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
     struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (workspace->dirty) {
@@ -409,7 +406,7 @@ workspace_by_name(const char *name) {
 
 bool
 workspace_is_visible(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     if (workspace->pending.dead) {
         return false;
@@ -425,7 +422,7 @@ find_urgent_iterator(struct hwd_window *window, void *data) {
 
 void
 workspace_detect_urgent(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     bool new_urgent = (bool)workspace_find_window(workspace, find_urgent_iterator, NULL);
 
@@ -436,7 +433,7 @@ workspace_detect_urgent(struct hwd_workspace *workspace) {
 
 void
 workspace_detach(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     if (workspace->pending.root != NULL) {
         root_remove_workspace(workspace->pending.root, workspace);
@@ -445,7 +442,7 @@ workspace_detach(struct hwd_workspace *workspace) {
 
 void
 workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     bool dirty = false;
 
@@ -477,7 +474,7 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
 
 void
 workspace_reconcile_detached(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     bool dirty = false;
 
@@ -633,7 +630,7 @@ workspace_arrange(struct hwd_workspace *workspace) {
         return;
     }
 
-    hwd_log(HWD_DEBUG, "Arranging workspace '%s'", workspace->name);
+    wlr_log(WLR_DEBUG, "Arranging workspace '%s'", workspace->name);
 
     arrange_tiling(workspace);
     arrange_floating(workspace);
@@ -643,10 +640,10 @@ workspace_arrange(struct hwd_workspace *workspace) {
 
 void
 workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *window) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window->pending.parent == NULL, "Window still has a parent");
-    hwd_assert(window->pending.workspace == NULL, "Window is already attached to a workspace");
+    assert(workspace != NULL);
+    assert(window != NULL);
+    assert(window->pending.parent == NULL);
+    assert(window->pending.workspace == NULL);
 
     struct hwd_window *prev_active_floating = workspace_get_active_floating_window(workspace);
 
@@ -667,13 +664,13 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *windo
 
 void
 workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *window) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window->pending.workspace == workspace, "Window is not a child of workspace");
-    hwd_assert(window->pending.parent == NULL, "Window is not floating");
+    assert(workspace != NULL);
+    assert(window != NULL);
+    assert(window->pending.workspace == workspace);
+    assert(window->pending.parent == NULL);
 
     int index = list_find(workspace->pending.floating, window);
-    hwd_assert(index != -1, "Window missing from floating list");
+    assert(index != -1);
 
     list_del(workspace->pending.floating, index);
 
@@ -699,8 +696,8 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
 
 struct hwd_column *
 workspace_get_column_first(struct hwd_workspace *workspace, struct hwd_output *output) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(output != NULL, "Expected output");
+    assert(workspace != NULL);
+    assert(output != NULL);
 
     for (int i = 0; i < workspace->pending.columns->length; i++) {
         struct hwd_column *column = workspace->pending.columns->items[i];
@@ -713,8 +710,8 @@ workspace_get_column_first(struct hwd_workspace *workspace, struct hwd_output *o
 
 struct hwd_column *
 workspace_get_column_last(struct hwd_workspace *workspace, struct hwd_output *output) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(output != NULL, "Expected output");
+    assert(workspace != NULL);
+    assert(output != NULL);
 
     for (int i = workspace->pending.columns->length - 1; i >= 0; i--) {
         struct hwd_column *column = workspace->pending.columns->items[i];
@@ -727,9 +724,9 @@ workspace_get_column_last(struct hwd_workspace *workspace, struct hwd_output *ou
 
 struct hwd_column *
 workspace_get_column_before(struct hwd_workspace *workspace, struct hwd_column *column) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == workspace, "Expected column to be part of workspace");
+    assert(workspace != NULL);
+    assert(column != NULL);
+    assert(column->pending.workspace == workspace);
 
     int i = workspace->pending.columns->length - 1;
     for (; i >= 0; i--) {
@@ -738,7 +735,7 @@ workspace_get_column_before(struct hwd_workspace *workspace, struct hwd_column *
             break;
         }
     }
-    hwd_assert(i != -1, "Could not find column in workspace");
+    assert(i != -1);
     i--;
 
     struct hwd_output *output = column->pending.output;
@@ -754,9 +751,9 @@ workspace_get_column_before(struct hwd_workspace *workspace, struct hwd_column *
 
 struct hwd_column *
 workspace_get_column_after(struct hwd_workspace *workspace, struct hwd_column *column) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == workspace, "Expected column to be part of workspace");
+    assert(workspace != NULL);
+    assert(column != NULL);
+    assert(column->pending.workspace == workspace);
 
     int i = 0;
     for (; i < workspace->pending.columns->length; i++) {
@@ -765,7 +762,7 @@ workspace_get_column_after(struct hwd_workspace *workspace, struct hwd_column *c
             break;
         }
     }
-    hwd_assert(i != workspace->pending.columns->length, "Could not find column in workspace");
+    assert(i != workspace->pending.columns->length);
     i++;
 
     struct hwd_output *output = column->pending.output;
@@ -783,11 +780,11 @@ void
 workspace_insert_column_first(
     struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
 ) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(output != NULL, "Expected output");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
-    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+    assert(workspace != NULL);
+    assert(output != NULL);
+    assert(column != NULL);
+    assert(column->pending.workspace == NULL);
+    assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
     list_insert(columns, 0, column);
@@ -800,11 +797,11 @@ void
 workspace_insert_column_last(
     struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_column *column
 ) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(output != NULL, "Expected output");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
-    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+    assert(workspace != NULL);
+    assert(output != NULL);
+    assert(column != NULL);
+    assert(column->pending.workspace == NULL);
+    assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
     list_insert(columns, columns->length, column);
@@ -817,16 +814,16 @@ void
 workspace_insert_column_before(
     struct hwd_workspace *workspace, struct hwd_column *fixed, struct hwd_column *column
 ) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(fixed != NULL, "Expected sibling column");
-    hwd_assert(fixed->pending.workspace != NULL, "Expected sibling column attached to workspace");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
-    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+    assert(workspace != NULL);
+    assert(fixed != NULL);
+    assert(fixed->pending.workspace != NULL);
+    assert(column != NULL);
+    assert(column->pending.workspace == NULL);
+    assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
     int index = list_find(columns, fixed);
-    hwd_assert(index != -1, "Could not find sibling column in columns array");
+    assert(index != -1);
     list_insert(columns, index, column);
 
     column_reconcile(column, workspace, fixed->pending.output);
@@ -837,16 +834,16 @@ void
 workspace_insert_column_after(
     struct hwd_workspace *workspace, struct hwd_column *fixed, struct hwd_column *column
 ) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(fixed != NULL, "Expected sibling column");
-    hwd_assert(fixed->pending.workspace != NULL, "Expected sibling column attached to workspace");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == NULL, "Column is already attached to a workspace");
-    hwd_assert(column->pending.output == NULL, "Column is already attached to an output");
+    assert(workspace != NULL);
+    assert(fixed != NULL);
+    assert(fixed->pending.workspace != NULL);
+    assert(column != NULL);
+    assert(column->pending.workspace == NULL);
+    assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
     int index = list_find(columns, fixed);
-    hwd_assert(index != -1, "Could not find sibling column in columns array");
+    assert(index != -1);
     list_insert(columns, index + 1, column);
 
     column_reconcile(column, workspace, fixed->pending.output);
@@ -855,15 +852,15 @@ workspace_insert_column_after(
 
 void
 workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *column) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->pending.workspace == workspace, "Column is not a child of workspace");
+    assert(workspace != NULL);
+    assert(column != NULL);
+    assert(column->pending.workspace == workspace);
 
     struct hwd_output *output = column->pending.output;
-    hwd_assert(output != NULL, "Expected output");
+    assert(output != NULL);
 
     int index = list_find(workspace->pending.columns, column);
-    hwd_assert(index != -1, "Column is missing from workspace column list");
+    assert(index != -1);
 
     list_del(workspace->pending.columns, index);
 
@@ -916,7 +913,7 @@ workspace_get_column_at(struct hwd_workspace *workspace, double x, double y) {
 
 struct hwd_output *
 workspace_get_active_output(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     struct hwd_column *active_column = workspace->pending.active_column;
     if (active_column != NULL) {
@@ -928,7 +925,7 @@ workspace_get_active_output(struct hwd_workspace *workspace) {
 
 struct hwd_window *
 workspace_get_active_tiling_window(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     struct hwd_column *active_column = workspace->pending.active_column;
     if (active_column == NULL) {
@@ -940,7 +937,7 @@ workspace_get_active_tiling_window(struct hwd_workspace *workspace) {
 
 static struct hwd_window *
 workspace_get_committed_active_tiling_window(struct hwd_workspace *workspace) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     struct hwd_column *active_column = workspace->committed.active_column;
     if (active_column == NULL) {
@@ -976,7 +973,8 @@ workspace_get_active_window(struct hwd_workspace *workspace) {
     case F_FLOATING:
         return workspace_get_active_floating_window(workspace);
     default:
-        hwd_abort("Invalid focus mode");
+        wlr_log(WLR_ERROR, "Invalid focus mode");
+        abort();
     }
 }
 
@@ -988,13 +986,14 @@ workspace_get_committed_active_window(struct hwd_workspace *workspace) {
     case F_FLOATING:
         return workspace_get_committed_active_floating_window(workspace);
     default:
-        hwd_abort("Invalid focus mode");
+        wlr_log(WLR_ERROR, "Invalid focus mode");
+        abort();
     }
 }
 
 void
 workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *window) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     struct hwd_window *prev_active = workspace_get_active_window(workspace);
     if (window == prev_active) {
@@ -1005,10 +1004,10 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         workspace->pending.active_column = NULL;
         workspace->pending.focus_mode = F_TILING;
     } else if (window_is_floating(window)) {
-        hwd_assert(window->pending.workspace == workspace, "Window attached to wrong workspace");
+        assert(window->pending.workspace == workspace);
 
         int index = list_find(workspace->pending.floating, window);
-        hwd_assert(index != -1, "Window missing from list of floating windows");
+        assert(index != -1);
 
         list_del(workspace->pending.floating, index);
         list_add(workspace->pending.floating, window);
@@ -1017,13 +1016,11 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
 
         window_reconcile_floating(window, workspace);
     } else {
-        hwd_assert(window->pending.workspace == workspace, "Window attached to wrong workspace");
+        assert(window->pending.workspace == workspace);
 
         struct hwd_column *old_column = workspace->pending.active_column;
         struct hwd_column *new_column = window->pending.parent;
-        hwd_assert(
-            new_column->pending.workspace == workspace, "Column attached to wrong workspace"
-        );
+        assert(new_column->pending.workspace == workspace);
 
         column_set_active_child(new_column, window);
 
@@ -1089,8 +1086,8 @@ struct hwd_window *
 workspace_get_fullscreen_window_for_output(
     struct hwd_workspace *workspace, struct hwd_output *output
 ) {
-    hwd_assert(workspace != NULL, "Expected workspace");
-    hwd_assert(output != NULL, "Expected output");
+    assert(workspace != NULL);
+    assert(output != NULL);
 
     return workspace_find_window(workspace, is_fullscreen_window_for_output, output);
 }
@@ -1099,7 +1096,7 @@ static struct hwd_window *
 workspace_find_window(
     struct hwd_workspace *workspace, bool (*test)(struct hwd_window *window, void *data), void *data
 ) {
-    hwd_assert(workspace != NULL, "Expected workspace");
+    assert(workspace != NULL);
 
     struct hwd_window *result = NULL;
     // Tiling

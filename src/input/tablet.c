@@ -4,6 +4,7 @@
 
 #include "hayward/input/tablet.h"
 
+#include <assert.h>
 #include <libinput.h>
 #include <stdlib.h>
 #include <wayland-server-core.h>
@@ -15,6 +16,7 @@
 #include <wlr/types/wlr_tablet_pad.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
+#include <wlr/util/log.h>
 
 #include <tablet-unstable-v2-protocol.h>
 #include <wayland-server-protocol.h>
@@ -24,7 +26,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 
 static void
@@ -39,8 +40,8 @@ handle_pad_tablet_destroy(struct wl_listener *listener, void *data) {
 
 static void
 attach_tablet_pad(struct hwd_tablet_pad *tablet_pad, struct hwd_tablet *tablet) {
-    hwd_log(
-        HWD_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
+    wlr_log(
+        WLR_DEBUG, "Attaching tablet pad \"%s\" to tablet tool \"%s\"",
         tablet_pad->seat_device->input_device->wlr_device->name,
         tablet->seat_device->input_device->wlr_device->name
     );
@@ -57,7 +58,7 @@ attach_tablet_pad(struct hwd_tablet_pad *tablet_pad, struct hwd_tablet *tablet) 
 struct hwd_tablet *
 hwd_tablet_create(struct hwd_seat *seat, struct hwd_seat_device *device) {
     struct hwd_tablet *tablet = calloc(1, sizeof(struct hwd_tablet));
-    hwd_assert(tablet, "could not allocate hayward tablet for seat");
+    assert(tablet);
 
     wl_list_insert(&seat->cursor->tablets, &tablet->link);
 
@@ -132,7 +133,7 @@ handle_tablet_tool_set_cursor(struct wl_listener *listener, void *data) {
 
     // TODO: check cursor mode
     if (focused_client == NULL || event->seat_client->client != focused_client) {
-        hwd_log(HWD_DEBUG, "denying request to set cursor from unfocused client");
+        wlr_log(WLR_DEBUG, "denying request to set cursor from unfocused client");
         return;
     }
 
@@ -154,7 +155,7 @@ handle_tablet_tool_destroy(struct wl_listener *listener, void *data) {
 void
 hwd_tablet_tool_configure(struct hwd_tablet *tablet, struct wlr_tablet_tool *wlr_tool) {
     struct hwd_tablet_tool *tool = calloc(1, sizeof(struct hwd_tablet_tool));
-    hwd_assert(tool, "could not allocate hayward tablet tool for tablet");
+    assert(tool);
 
     switch (wlr_tool->type) {
     case WLR_TABLET_TOOL_TYPE_LENS:
@@ -258,7 +259,7 @@ handle_tablet_pad_button(struct wl_listener *listener, void *data) {
 struct hwd_tablet_pad *
 hwd_tablet_pad_create(struct hwd_seat *seat, struct hwd_seat_device *device) {
     struct hwd_tablet_pad *tablet_pad = calloc(1, sizeof(struct hwd_tablet_pad));
-    hwd_assert(tablet_pad, "could not allocate hayward tablet");
+    assert(tablet_pad);
 
     tablet_pad->seat_device = device;
     wl_list_init(&tablet_pad->attach.link);

@@ -5,6 +5,7 @@
 
 #include "hayward/scheduler.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
@@ -14,7 +15,6 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
 
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -46,11 +46,11 @@ static const struct wlr_addon_interface buffer_timer_interface = {
 static struct buffer_timer *
 buffer_timer_assign(struct wlr_scene_buffer *buffer) {
     struct buffer_timer *timer = calloc(1, sizeof(struct buffer_timer));
-    hwd_assert(timer != NULL, "Allocation failed");
+    assert(timer != NULL);
 
     timer->frame_done_timer =
         wl_event_loop_add_timer(server.wl_event_loop, handle_buffer_timer, buffer);
-    hwd_assert(buffer != NULL, "Could not create timer");
+    assert(buffer != NULL);
 
     wlr_addon_init(
         &timer->addon, &buffer->node.addons, &buffer_timer_interface, &buffer_timer_interface
@@ -237,7 +237,7 @@ hwd_scene_output_scheduler_create(struct wlr_scene_output *scene_output) {
 
     struct hwd_scene_output_scheduler *scheduler_output =
         calloc(1, sizeof(struct hwd_scene_output_scheduler));
-    hwd_assert(scheduler_output != NULL, "Allocation failed");
+    assert(scheduler_output != NULL);
 
     scheduler_output->scene_output = scene_output;
 

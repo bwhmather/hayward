@@ -8,11 +8,11 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/types/wlr_seat.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -44,8 +44,8 @@ cmd_shortcuts_inhibitor(int argc, char **argv) {
             }
 
             wlr_keyboard_shortcuts_inhibitor_v1_deactivate(hwd_inhibitor->inhibitor);
-            hwd_log(
-                HWD_DEBUG,
+            wlr_log(
+                WLR_DEBUG,
                 "Deactivated keyboard shortcuts "
                 "inhibitor for seat %s on view",
                 seat->wlr_seat->name

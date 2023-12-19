@@ -6,9 +6,9 @@
 #include "hayward/commands.h"
 
 #include <stdlib.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
-#include <hayward/log.h>
 #include <hayward/stringop.h>
 
 struct cmd_results *
@@ -19,7 +19,7 @@ cmd_exec(int argc, char **argv) {
     }
     if (config->reloading) {
         char *args = join_args(argv, argc);
-        hwd_log(HWD_DEBUG, "Ignoring 'exec %s' due to reload", args);
+        wlr_log(WLR_DEBUG, "Ignoring 'exec %s' due to reload", args);
         free(args);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }

@@ -5,13 +5,14 @@
 
 #include "hayward/commands.h"
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
-#include <hayward/log.h>
 #include <hayward/stringop.h>
 
 struct cmd_results *
@@ -37,18 +38,18 @@ input_cmd_xkb_file(int argc, char **argv) {
             return error;
         }
         if (!ic->xkb_file) {
-            hwd_log(HWD_ERROR, "Failed to allocate expanded path");
+            wlr_log(WLR_ERROR, "Failed to allocate expanded path");
             return cmd_results_new(CMD_FAILURE, "Unable to allocate resource");
         }
 
         bool can_access = access(ic->xkb_file, F_OK) != -1;
         if (!can_access) {
-            hwd_log_errno(HWD_ERROR, "Unable to access xkb file '%s'", ic->xkb_file);
+            wlr_log_errno(WLR_ERROR, "Unable to access xkb file '%s'", ic->xkb_file);
             config_add_haywardnag_warning("Unable to access xkb file '%s'", ic->xkb_file);
         }
     }
     ic->xkb_file_is_set = true;
 
-    hwd_log(HWD_DEBUG, "set-xkb_file for config: %s file: %s", ic->identifier, ic->xkb_file);
+    wlr_log(WLR_DEBUG, "set-xkb_file for config: %s file: %s", ic->identifier, ic->xkb_file);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

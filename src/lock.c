@@ -10,10 +10,10 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_session_lock_v1.h>
+#include <wlr/util/log.h>
 
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/log.h>
 #include <hayward/server.h>
 #include <hayward/tree/output.h>
 
@@ -72,7 +72,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
         return;
     }
 
-    hwd_log(HWD_DEBUG, "new lock layer surface");
+    wlr_log(WLR_DEBUG, "new lock layer surface");
 
     struct hwd_output *output = lock_surface->output->data;
     wlr_session_lock_surface_v1_configure(lock_surface, output->width, output->height);
@@ -92,7 +92,7 @@ handle_new_surface(struct wl_listener *listener, void *data) {
 
 static void
 handle_unlock(struct wl_listener *listener, void *data) {
-    hwd_log(HWD_DEBUG, "session unlocked");
+    wlr_log(WLR_DEBUG, "session unlocked");
     server.session_lock.locked = false;
     server.session_lock.lock = NULL;
 
@@ -103,7 +103,7 @@ handle_unlock(struct wl_listener *listener, void *data) {
 
 static void
 handle_abandon(struct wl_listener *listener, void *data) {
-    hwd_log(HWD_INFO, "session lock abandoned");
+    wlr_log(WLR_INFO, "session lock abandoned");
     server.session_lock.lock = NULL;
 
     wl_list_remove(&server.session_lock.lock_new_surface.link);
@@ -125,7 +125,7 @@ handle_session_lock(struct wl_listener *listener, void *data) {
         return;
     }
 
-    hwd_log(HWD_DEBUG, "session locked");
+    wlr_log(WLR_DEBUG, "session locked");
     server.session_lock.locked = true;
     server.session_lock.lock = lock;
 

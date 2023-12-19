@@ -4,6 +4,7 @@
 
 #include "hayward/tree/column.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -13,11 +14,11 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
-#include <hayward/log.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -33,15 +34,15 @@ column_detach(struct hwd_column *column);
 static void
 column_init_scene(struct hwd_column *column) {
     column->scene_tree = wlr_scene_tree_create(root->orphans);
-    hwd_assert(column->scene_tree != NULL, "Allocation failed");
+    assert(column->scene_tree != NULL);
 
     column->layers.child_tree = wlr_scene_tree_create(column->scene_tree);
-    hwd_assert(column->layers.child_tree != NULL, "Allocation failed");
+    assert(column->layers.child_tree != NULL);
 
     const float preview_color[] = {0.125, 0.267, 0.374, 0.8};
     column->layers.preview_box =
         wlr_scene_rect_create(column->scene_tree, 0, 0, (const float *)preview_color);
-    hwd_assert(column->layers.preview_box != NULL, "Allocation failed");
+    assert(column->layers.preview_box != NULL);
 }
 
 static void
@@ -98,10 +99,7 @@ column_update_scene(struct hwd_column *column) {
 
 static void
 column_destroy_scene(struct hwd_column *column) {
-    hwd_assert(
-        wl_list_empty(&column->layers.child_tree->children),
-        "Can't destroy scene tree of column with children"
-    );
+    assert(wl_list_empty(&column->layers.child_tree->children));
 
     wlr_scene_node_destroy(&column->scene_tree->node);
 }
@@ -155,7 +153,7 @@ column_handle_transaction_after_apply(struct wl_listener *listener, void *data) 
 
     wl_list_remove(&listener->link);
 
-    hwd_assert(column->current.dead, "After apply called on live column");
+    assert(column->current.dead);
     column_destroy(column);
 }
 
@@ -163,7 +161,7 @@ struct hwd_column *
 column_create(void) {
     struct hwd_column *column = calloc(1, sizeof(struct hwd_column));
     if (!column) {
-        hwd_log(HWD_ERROR, "Unable to allocate hwd_column");
+        wlr_log(WLR_ERROR, "Unable to allocate hwd_column");
         return NULL;
     }
 
@@ -191,14 +189,14 @@ column_create(void) {
 
 static bool
 column_is_alive(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
     return !column->pending.dead;
 }
 
 static void
 column_destroy(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column->current.dead, "Tried to free column which wasn't marked as destroying");
+    assert(column != NULL);
+    assert(column->current.dead);
 
     column_destroy_scene(column);
 
@@ -211,8 +209,8 @@ column_destroy(struct hwd_column *column) {
 
 static void
 column_begin_destroy(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(column_is_alive(column), "Expected live column");
+    assert(column != NULL);
+    assert(column_is_alive(column));
 
     column->pending.dead = true;
 
@@ -227,7 +225,7 @@ column_begin_destroy(struct hwd_column *column) {
 
 void
 column_consider_destroy(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
     struct hwd_workspace *workspace = column->pending.workspace;
 
     if (column->pending.children->length) {
@@ -242,7 +240,7 @@ column_consider_destroy(struct hwd_column *column) {
 
 void
 column_set_dirty(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
     struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (column->dirty) {
@@ -268,7 +266,7 @@ column_set_dirty(struct hwd_column *column) {
 
 static void
 column_detach(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
     struct hwd_workspace *workspace = column->pending.workspace;
 
     if (workspace == NULL) {
@@ -282,7 +280,7 @@ void
 column_reconcile(
     struct hwd_column *column, struct hwd_workspace *workspace, struct hwd_output *output
 ) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
 
     column->pending.workspace = workspace;
     column->pending.output = output;
@@ -302,7 +300,7 @@ column_reconcile(
 
 void
 column_reconcile_detached(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
 
     column->pending.workspace = NULL;
     column->pending.output = NULL;
@@ -537,7 +535,7 @@ column_arrange(struct hwd_column *column) {
         column_arrange_stacked(column);
         break;
     default:
-        hwd_assert(false, "Unsupported layout");
+        assert(false);
         break;
     }
 
@@ -553,7 +551,7 @@ struct hwd_window *
 column_find_child(
     struct hwd_column *column, bool (*test)(struct hwd_window *window, void *data), void *data
 ) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
     if (!column->pending.children) {
         return NULL;
     }
@@ -568,7 +566,7 @@ column_find_child(
 
 struct hwd_window *
 column_get_first_child(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
 
     list_t *children = column->pending.children;
 
@@ -581,7 +579,7 @@ column_get_first_child(struct hwd_column *column) {
 
 struct hwd_window *
 column_get_last_child(struct hwd_column *column) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
 
     list_t *children = column->pending.children;
 
@@ -594,14 +592,11 @@ column_get_last_child(struct hwd_column *column) {
 
 void
 column_insert_child(struct hwd_column *column, struct hwd_window *window, int i) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(window != NULL, "Expected child");
-    hwd_assert(i >= 0 && i <= column->pending.children->length, "Expected index to be in bounds");
+    assert(column != NULL);
+    assert(window != NULL);
+    assert(i >= 0 && i <= column->pending.children->length);
 
-    hwd_assert(
-        !window->pending.workspace && !window->pending.parent,
-        "Windows must be detatched before they can be added to a column"
-    );
+    assert(!window->pending.workspace && !window->pending.parent);
     if (column->pending.children->length == 0) {
         column->pending.active_child = window;
     }
@@ -614,20 +609,17 @@ column_insert_child(struct hwd_column *column, struct hwd_window *window, int i)
 
 void
 column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool after) {
-    hwd_assert(fixed != NULL, "Expected fixed window");
-    hwd_assert(active != NULL, "Expected window");
-    hwd_assert(
-        !active->pending.workspace && !active->pending.parent,
-        "Windows must be detatched before they can be added to a column"
-    );
+    assert(fixed != NULL);
+    assert(active != NULL);
+    assert(!active->pending.workspace && !active->pending.parent);
 
     struct hwd_column *column = fixed->pending.parent;
-    hwd_assert(column != NULL, "Expected fixed window to be tiled");
+    assert(column != NULL);
 
     list_t *siblings = column->pending.children;
 
     int index = list_find(siblings, fixed);
-    hwd_assert(index != -1, "Could not find sibling in child array");
+    assert(index != -1);
 
     list_insert(siblings, index + after, active);
 
@@ -639,12 +631,9 @@ column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool aft
 
 void
 column_add_child(struct hwd_column *column, struct hwd_window *window) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(
-        !window->pending.workspace && !window->pending.workspace,
-        "Windows must be detatched before they can be added to a column"
-    );
+    assert(column != NULL);
+    assert(window != NULL);
+    assert(!window->pending.workspace && !window->pending.workspace);
     if (column->pending.children->length == 0) {
         column->pending.active_child = window;
     }
@@ -659,12 +648,12 @@ column_add_child(struct hwd_column *column, struct hwd_window *window) {
 
 void
 column_remove_child(struct hwd_column *column, struct hwd_window *window) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window->pending.parent == column, "Window is not a child of column");
+    assert(column != NULL);
+    assert(window != NULL);
+    assert(window->pending.parent == column);
 
     int index = list_find(column->pending.children, window);
-    hwd_assert(index != -1, "Window missing from column child list");
+    assert(index != -1);
 
     list_del(column->pending.children, index);
 
@@ -683,9 +672,9 @@ column_remove_child(struct hwd_column *column, struct hwd_window *window) {
 
 void
 column_set_active_child(struct hwd_column *column, struct hwd_window *window) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(window != NULL, "Expected window");
-    hwd_assert(window->pending.parent == column, "Window is not a child of column");
+    assert(column != NULL);
+    assert(window != NULL);
+    assert(window->pending.parent == column);
 
     struct hwd_window *prev_active = column->pending.active_child;
 
@@ -708,8 +697,8 @@ column_set_active_child(struct hwd_column *column, struct hwd_window *window) {
 
 void
 column_get_box(struct hwd_column *column, struct wlr_box *box) {
-    hwd_assert(column != NULL, "Expected column");
-    hwd_assert(box != NULL, "Expected box");
+    assert(column != NULL);
+    assert(box != NULL);
 
     box->x = column->pending.x;
     box->y = column->pending.y;
@@ -723,7 +712,7 @@ column_get_box(struct hwd_column *column, struct wlr_box *box) {
  */
 void
 column_set_resizing(struct hwd_column *column, bool resizing) {
-    hwd_assert(column != NULL, "Expected column");
+    assert(column != NULL);
 
     if (!column) {
         return;

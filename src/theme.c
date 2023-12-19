@@ -3,6 +3,7 @@
 
 #include "hayward/theme.h"
 
+#include <assert.h>
 #include <cairo.h>
 #include <math.h>
 #include <stddef.h>
@@ -10,7 +11,6 @@
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_scene.h>
 
-#include <hayward/log.h>
 #include <hayward/scene/cairo.h>
 #include <hayward/scene/colours.h>
 
@@ -457,7 +457,7 @@ gen_separator(void) {
 struct hwd_theme *
 hwd_theme_create_default(void) {
     struct hwd_theme *theme = calloc(1, sizeof(struct hwd_theme));
-    hwd_assert(theme != NULL, "Allocation failed");
+    assert(theme != NULL);
 
     theme->floating = gen_floating();
     theme->tiled_head = gen_tiled_head();

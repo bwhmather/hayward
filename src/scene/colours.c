@@ -3,11 +3,11 @@
 
 #include "hayward/scene/colours.h"
 
-#include <hayward/log.h>
+#include <assert.h>
 
 struct hwd_colour
 hwd_lighten(float s, struct hwd_colour in) {
-    hwd_assert(s >= 0.0 && s <= 1.0, "scale must be between 0 and 1");
+    assert(s >= 0.0 && s <= 1.0);
     struct hwd_colour out = {
         1 - (1 - s) * (1 - in.r),
         1 - (1 - s) * (1 - in.g),
@@ -19,7 +19,7 @@ hwd_lighten(float s, struct hwd_colour in) {
 
 struct hwd_colour
 hwd_darken(float s, struct hwd_colour in) {
-    hwd_assert(s >= 0.0 && s <= 1.0, "scale must be between 0 and 1");
+    assert(s >= 0.0 && s <= 1.0);
     struct hwd_colour out = {
         (1 - s) * in.r,
         (1 - s) * in.g,
