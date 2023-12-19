@@ -234,12 +234,6 @@ struct seat_config {
     } xcursor_theme;
 };
 
-enum pango_markup_config {
-    PANGO_MARKUP_DISABLED = false,
-    PANGO_MARKUP_ENABLED = true,
-    PANGO_MARKUP_DEFAULT // The default is font dependent ("pango:" prefix)
-};
-
 enum edge_border_types {
     E_NONE,       /**< Don't hide edge borders */
     E_VERTICAL,   /**< hide vertical edge borders */
@@ -306,7 +300,6 @@ struct hwd_config {
     PangoFontDescription *font_description; // Used internally for rendering and validating.
     int font_height;
     int font_baseline;
-    bool pango_markup;
     size_t urgent_timeout;
     enum hwd_fowa focus_on_window_activation;
     enum hwd_popup_during_fullscreen popup_during_fullscreen;

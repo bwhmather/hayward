@@ -7,7 +7,6 @@
 
 #include <glib/gtypes.h>
 #include <pango/pango.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,13 +22,7 @@ cmd_font(int argc, char **argv) {
     char *font = join_args(argv, argc);
     free(config->font);
 
-    if (strncmp(font, "pango:", 6) == 0) {
-        config->pango_markup = true;
-        config->font = strdup(font + 6);
-    } else {
-        config->pango_markup = false;
-        config->font = strdup(font);
-    }
+    config->font = strdup(font);
 
     // Parse the font early so we can reject it if it's not valid for pango.
     // Also avoids re-parsing each time we render text.

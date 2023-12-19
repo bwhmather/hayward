@@ -35,7 +35,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
-#include <hayward/pango.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
 #include <hayward/tree.h>
@@ -498,31 +497,13 @@ view_from_wlr_surface(struct wlr_surface *wlr_surface) {
     return NULL;
 }
 
-static char *
-escape_pango_markup(const char *buffer) {
-    size_t length = escape_markup_text(buffer, NULL);
-    char *escaped_title = calloc(length + 1, sizeof(char));
-    escape_markup_text(buffer, escaped_title);
-    return escaped_title;
-}
-
 static size_t
 append_prop(char *buffer, const char *value) {
     if (!value) {
         return 0;
     }
-    // If using pango_markup in font, we need to escape all markup chars
-    // from values to make sure tags are not inserted by clients
-    if (config->pango_markup) {
-        char *escaped_value = escape_pango_markup(value);
-        lenient_strcat(buffer, escaped_value);
-        size_t len = strlen(escaped_value);
-        free(escaped_value);
-        return len;
-    } else {
-        lenient_strcat(buffer, value);
-        return strlen(value);
-    }
+    lenient_strcat(buffer, value);
+    return strlen(value);
 }
 
 /**
