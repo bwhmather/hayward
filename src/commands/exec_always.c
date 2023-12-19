@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>

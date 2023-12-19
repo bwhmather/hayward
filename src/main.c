@@ -14,7 +14,9 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include <wlr/version.h>

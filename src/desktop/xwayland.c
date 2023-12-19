@@ -11,8 +11,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <xcb/xcb.h>
+#include <xcb/xcb_icccm.h>
+#include <xcb/xproto.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_seat.h>
@@ -20,9 +25,6 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include <wlr/xwayland/xwayland.h>
-#include <xcb/xcb.h>
-#include <xcb/xcb_icccm.h>
-#include <xcb/xproto.h>
 
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>

@@ -4,8 +4,10 @@
 #include <pixman.h>
 #include <stdbool.h>
 #include <stdint.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_input_device.h>

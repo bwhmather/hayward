@@ -2,6 +2,7 @@
 #define HWD_DESKTOP_HWD_WORKSPACE_MANAGEMENT_V1_H
 
 #include <stdbool.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 

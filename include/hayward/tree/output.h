@@ -5,15 +5,16 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
-
-#include <wayland-server-protocol.h>
 
 struct hwd_server;
 struct hwd_window;

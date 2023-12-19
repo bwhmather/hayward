@@ -2,6 +2,7 @@
 #define HWD_DESKTOP_WLR_OUTPUT_MANAGEMENT_V1_H
 
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output_management_v1.h>
 

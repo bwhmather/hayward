@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <time.h>
+
 #include <wayland-server-core.h>
 
 /**

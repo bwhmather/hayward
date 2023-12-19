@@ -2,6 +2,7 @@
 #define HWD_INPUT_SEATOP_DOWN_H
 
 #include <stdint.h>
+
 #include <wlr/types/wlr_compositor.h>
 
 #include <hayward/input/seat.h>

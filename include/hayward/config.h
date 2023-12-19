@@ -7,10 +7,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <xkbcommon/xkbcommon.h>
+
 #include <wlr/types/wlr_switch.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/util/box.h>
-#include <xkbcommon/xkbcommon.h>
 
 #include <hayward/haywardnag.h>
 #include <hayward/input/tablet.h>

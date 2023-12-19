@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
+
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_scene.h>
 

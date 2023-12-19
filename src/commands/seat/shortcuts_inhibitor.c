@@ -6,7 +6,9 @@
 
 #include <stdbool.h>
 #include <string.h>
+
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include <wlr/util/log.h>
 

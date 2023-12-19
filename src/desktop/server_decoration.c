@@ -5,7 +5,9 @@
 #include "hayward/desktop/server_decoration.h"
 
 #include <stdlib.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_server_decoration.h>
 
 struct hwd_server_decoration_manager *

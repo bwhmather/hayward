@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wayland-util.h>
 
 #include <hayward/config.h>

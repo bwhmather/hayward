@@ -9,8 +9,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>

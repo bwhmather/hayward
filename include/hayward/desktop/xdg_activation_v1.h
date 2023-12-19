@@ -2,6 +2,7 @@
 #define HWD_DESKTOP_XDG_ACTIVATION_V1_H
 
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_xdg_activation_v1.h>
 
 struct hwd_xdg_activation_v1 {

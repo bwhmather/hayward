@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
+
 #include <wlr/types/wlr_output_layout.h>
 
 #include <hayward/config.h>

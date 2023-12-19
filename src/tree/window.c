@@ -11,8 +11,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/render/wlr_texture.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_output_layout.h>

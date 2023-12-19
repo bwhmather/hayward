@@ -6,7 +6,9 @@
 #include "hayward/desktop/xdg_activation_v1.h"
 
 #include <stdlib.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>

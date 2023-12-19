@@ -14,8 +14,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>

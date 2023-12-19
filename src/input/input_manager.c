@@ -11,8 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/backend.h>
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_cursor.h>

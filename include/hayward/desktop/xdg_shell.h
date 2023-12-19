@@ -2,6 +2,7 @@
 #define HWD_DESKTOP_XDG_SHELL_H
 
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 

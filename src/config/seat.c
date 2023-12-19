@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/list.h>

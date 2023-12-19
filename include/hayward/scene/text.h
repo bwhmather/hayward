@@ -2,6 +2,7 @@
 #define HWD_SCENE_TEXT_H
 
 #include <pango/pango.h>
+
 #include <wlr/types/wlr_scene.h>
 
 #include <hayward/scene/colours.h>

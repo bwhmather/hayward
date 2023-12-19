@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>

@@ -9,7 +9,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 #include <wayland-util.h>
+
 #include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/types/wlr_buffer.h>
 

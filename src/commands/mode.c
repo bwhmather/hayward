@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>

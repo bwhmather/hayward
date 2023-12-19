@@ -9,12 +9,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <xkbcommon/xkbcommon-keysyms.h>
+#include <xkbcommon/xkbcommon.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_switch.h>
 #include <wlr/util/log.h>
-#include <xkbcommon/xkbcommon-keysyms.h>
-#include <xkbcommon/xkbcommon.h>
 
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>

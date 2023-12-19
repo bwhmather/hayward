@@ -2,6 +2,7 @@
 #define HWD_THEME_H
 
 #include <pango/pango.h>
+
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_scene.h>
 

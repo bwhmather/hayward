@@ -2,6 +2,7 @@
 #define HWD_DESKTOP_SERVER_DECORATION_H
 
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_server_decoration.h>
 
 struct hwd_server_decoration_manager {

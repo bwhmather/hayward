@@ -18,12 +18,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <wayland-server-core.h>
-#include <wayland-util.h>
-#include <wlr/types/wlr_seat.h>
-#include <wlr/util/log.h>
 #include <wordexp.h>
 #include <xkbcommon/xkbcommon.h>
+
+#include <wayland-server-core.h>
+#include <wayland-util.h>
+
+#include <wlr/types/wlr_seat.h>
+#include <wlr/util/log.h>
 
 #include <hayward/commands.h>
 #include <hayward/globals/root.h>

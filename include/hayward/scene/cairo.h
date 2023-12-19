@@ -3,6 +3,7 @@
 
 #include <cairo.h>
 #include <stddef.h>
+
 #include <wlr/types/wlr_buffer.h>
 
 struct wlr_buffer *

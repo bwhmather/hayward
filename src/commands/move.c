@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>

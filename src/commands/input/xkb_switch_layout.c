@@ -8,11 +8,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <xkbcommon/xkbcommon.h>
+
 #include <wayland-util.h>
+
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
-#include <xkbcommon/xkbcommon.h>
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>

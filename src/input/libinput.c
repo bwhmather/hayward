@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+
 #include <wlr/backend/libinput.h>
 #include <wlr/util/log.h>
 

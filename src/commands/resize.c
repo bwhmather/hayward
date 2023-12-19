@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <strings.h>
+
 #include <wlr/util/edges.h>
 
 #include <hayward/config.h>

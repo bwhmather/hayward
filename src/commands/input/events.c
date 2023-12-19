@@ -10,7 +10,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <strings.h>
+
 #include <wayland-util.h>
+
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_input_device.h>
 

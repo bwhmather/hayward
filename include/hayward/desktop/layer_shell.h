@@ -2,7 +2,9 @@
 #define HWD_DESKTOP_LAYER_SHELL_H
 
 #include <stdbool.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>

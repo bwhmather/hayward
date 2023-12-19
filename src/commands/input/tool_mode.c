@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <strings.h>
+
 #include <wlr/types/wlr_tablet_tool.h>
 
 #include <hayward/config.h>

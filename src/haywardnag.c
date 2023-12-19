@@ -15,8 +15,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/server.h>

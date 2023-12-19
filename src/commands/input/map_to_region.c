@@ -5,6 +5,7 @@
 #include "hayward/commands.h"
 
 #include <stdlib.h>
+
 #include <wlr/util/box.h>
 
 #include <hayward/config.h>

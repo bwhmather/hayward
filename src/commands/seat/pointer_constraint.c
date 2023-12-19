@@ -6,7 +6,9 @@
 
 #include <stdbool.h>
 #include <string.h>
+
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_seat.h>
 
 #include <hayward/config.h>

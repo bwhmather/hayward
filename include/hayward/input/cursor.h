@@ -8,8 +8,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>

@@ -5,8 +5,10 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_session_lock_v1.h>

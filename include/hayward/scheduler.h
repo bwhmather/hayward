@@ -5,7 +5,9 @@
 
 #include <stdint.h>
 #include <time.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_scene.h>
 
 struct hwd_scene_output_scheduler {

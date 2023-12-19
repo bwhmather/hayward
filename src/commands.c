@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>

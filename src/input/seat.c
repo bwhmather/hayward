@@ -12,8 +12,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
@@ -34,8 +37,6 @@
 #include <wlr/util/log.h>
 #include <wlr/xcursor.h>
 #include <wlr/xwayland/xwayland.h>
-
-#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>

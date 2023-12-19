@@ -2,6 +2,7 @@
 #define HWD_DESKTOP_XDG_DECORATION_H
 
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_xdg_decoration_v1.h>
 
 struct hwd_xdg_decoration_manager {

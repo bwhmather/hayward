@@ -2,8 +2,10 @@
 #define HWD_INPUT_INPUT_MANAGER_H
 
 #include <stdbool.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/backend.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>

@@ -3,7 +3,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_scene.h>
 
 #include <hayward/desktop/hwd_workspace_management_v1.h>

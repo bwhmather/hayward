@@ -3,10 +3,12 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <xkbcommon/xkbcommon.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_keyboard.h>
-#include <xkbcommon/xkbcommon.h>
 
 #include <hayward/config.h>
 #include <hayward/input/seat.h>

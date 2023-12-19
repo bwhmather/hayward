@@ -5,6 +5,7 @@
 #include "hayward/commands.h"
 
 #include <string.h>
+
 #include <wlr/types/wlr_seat.h>
 
 #include <hayward/config.h>

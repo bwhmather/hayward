@@ -4,7 +4,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/render/wlr_texture.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>

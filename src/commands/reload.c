@@ -5,7 +5,9 @@
 #include "hayward/commands.h"
 
 #include <stdbool.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>

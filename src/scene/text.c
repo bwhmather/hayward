@@ -10,14 +10,15 @@
 #include <pango/pangocairo.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
-
-#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/scene/cairo.h>

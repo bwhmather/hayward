@@ -15,8 +15,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <xkbcommon/xkbcommon-compat.h>
+#include <xkbcommon/xkbcommon-keysyms.h>
+#include <xkbcommon/xkbcommon-names.h>
+#include <xkbcommon/xkbcommon.h>
+
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
+
 #include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/types/wlr_input_device.h>
@@ -27,12 +34,6 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/util/log.h>
-#include <xkbcommon/xkbcommon-compat.h>
-#include <xkbcommon/xkbcommon-keysyms.h>
-#include <xkbcommon/xkbcommon-names.h>
-#include <xkbcommon/xkbcommon.h>
-
-#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>

@@ -7,8 +7,11 @@
 #include <assert.h>
 #include <libinput.h>
 #include <stdlib.h>
+
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
+
 #include <wlr/backend/libinput.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_input_device.h>
@@ -19,7 +22,6 @@
 #include <wlr/util/log.h>
 
 #include <tablet-unstable-v2-protocol.h>
-#include <wayland-server-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>

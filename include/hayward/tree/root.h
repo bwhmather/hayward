@@ -4,8 +4,10 @@
 #include <config.h>
 
 #include <stdbool.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output_layout.h>

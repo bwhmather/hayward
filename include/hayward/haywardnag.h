@@ -2,6 +2,7 @@
 #define HWD_HAYWARDNAG_H
 
 #include <stdbool.h>
+
 #include <wayland-server-core.h>
 
 struct haywardnag_instance {

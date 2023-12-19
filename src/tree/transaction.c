@@ -10,8 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/server.h>

@@ -3,6 +3,7 @@
 
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_compositor.h>
 
 struct hwd_seat;

@@ -9,10 +9,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <xkbcommon/xkbcommon.h>
+
 #include <wayland-util.h>
+
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
-#include <xkbcommon/xkbcommon.h>
 
 #include <hayward/input/input_manager.h>
 #include <hayward/input/keyboard.h>

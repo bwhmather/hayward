@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wayland-server-core.h>
 #include <wayland-server.h>
 #include <wayland-util.h>

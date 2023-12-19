@@ -6,8 +6,10 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output_management_v1.h>

@@ -10,8 +10,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>

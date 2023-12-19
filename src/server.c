@@ -7,7 +7,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+
 #include <wayland-server-core.h>
+
 #include <wlr/backend.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/wlr_renderer.h>

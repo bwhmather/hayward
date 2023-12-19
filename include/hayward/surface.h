@@ -2,6 +2,7 @@
 #define HWD_SURFACE_H
 
 #include <wayland-server-core.h>
+
 #include <wlr/types/wlr_compositor.h>
 
 struct hwd_surface {

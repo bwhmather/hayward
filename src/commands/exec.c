@@ -6,6 +6,7 @@
 #include "hayward/commands.h"
 
 #include <stdlib.h>
+
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>

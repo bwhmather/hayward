@@ -7,8 +7,10 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_switch.h>
 #include <wlr/util/log.h>

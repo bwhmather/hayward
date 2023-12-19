@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/util/log.h>
 
