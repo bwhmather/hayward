@@ -50,8 +50,6 @@ struct hwd_output {
     struct wl_list shell_layers[4]; // hwd_layer_surface::link
     struct wlr_box usable_area;
 
-    int lx, ly;        // layout coords
-    int width, height; // transformed buffer size
     enum wl_output_subpixel detected_subpixel;
     enum scale_filter_mode scale_filter;
     // last applied mode when the output is DPMS'ed

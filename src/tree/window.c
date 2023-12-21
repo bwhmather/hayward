@@ -474,10 +474,10 @@ window_arrange(struct hwd_window *window) {
     struct hwd_output *output = workspace_get_active_output(workspace);
 
     if (state->fullscreen) {
-        state->content_x = output->lx;
-        state->content_y = output->ly;
-        state->content_width = output->width;
-        state->content_height = output->height;
+        state->content_x = output->pending.x;
+        state->content_y = output->pending.y;
+        state->content_width = output->pending.width;
+        state->content_height = output->pending.height;
     } else {
         state->titlebar_height = hwd_theme_window_get_titlebar_height(state->theme);
         state->border_left = hwd_theme_window_get_border_left(state->theme);

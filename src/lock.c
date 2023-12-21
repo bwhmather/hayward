@@ -49,7 +49,7 @@ handle_output_commit(struct wl_listener *listener, void *data) {
     if (event->state->committed &
         (WLR_OUTPUT_STATE_MODE | WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_TRANSFORM)) {
         wlr_session_lock_surface_v1_configure(
-            surf->lock_surface, surf->output->width, surf->output->height
+            surf->lock_surface, surf->output->pending.width, surf->output->pending.height
         );
     }
 }
@@ -77,7 +77,9 @@ handle_new_surface(struct wl_listener *listener, void *data) {
     wlr_log(WLR_DEBUG, "new lock layer surface");
 
     struct hwd_output *output = lock_surface->output->data;
-    wlr_session_lock_surface_v1_configure(lock_surface, output->width, output->height);
+    wlr_session_lock_surface_v1_configure(
+        lock_surface, output->pending.width, output->pending.height
+    );
 
     surf->lock_surface = lock_surface;
     surf->surface = lock_surface->surface;

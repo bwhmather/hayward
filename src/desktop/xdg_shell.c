@@ -72,10 +72,10 @@ popup_unconstrain(struct hwd_xdg_popup *popup) {
     // the output box expressed in the coordinate system of the toplevel parent
     // of the popup
     struct wlr_box output_toplevel_sx_box = {
-        .x = output->lx - view->window->pending.content_x + view->geometry.x,
-        .y = output->ly - view->window->pending.content_y + view->geometry.y,
-        .width = output->width,
-        .height = output->height,
+        .x = output->pending.x - view->window->pending.content_x + view->geometry.x,
+        .y = output->pending.y - view->window->pending.content_y + view->geometry.y,
+        .width = output->pending.width,
+        .height = output->pending.height,
     };
 
     wlr_xdg_popup_unconstrain_from_box(wlr_popup, &output_toplevel_sx_box);

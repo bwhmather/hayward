@@ -316,27 +316,31 @@ output_arrange(struct hwd_output *output) {
     }
     struct wlr_box output_box;
     wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
-    output->lx = output_box.x;
-    output->ly = output_box.y;
-    output->width = output_box.width;
-    output->height = output_box.height;
+    output->pending.x = output_box.x;
+    output->pending.y = output_box.y;
+    output->pending.width = output_box.width;
+    output->pending.height = output_box.height;
 
     if (output->pending.fullscreen_window) {
         struct hwd_window *fs = output->pending.fullscreen_window;
-        fs->pending.x = output->lx;
-        fs->pending.y = output->ly;
-        fs->pending.width = output->width;
-        fs->pending.height = output->height;
+        fs->pending.x = output->pending.x;
+        fs->pending.y = output->pending.y;
+        fs->pending.width = output->pending.width;
+        fs->pending.height = output->pending.height;
         window_arrange(fs);
     }
+
+    arrange_layers(output);
+
+    output_set_dirty(output);
 }
 
 void
 output_get_box(struct hwd_output *output, struct wlr_box *box) {
-    box->x = output->lx;
-    box->y = output->ly;
-    box->width = output->width;
-    box->height = output->height;
+    box->x = output->pending.x;
+    box->y = output->pending.y;
+    box->width = output->pending.width;
+    box->height = output->pending.height;
 }
 
 void
@@ -452,10 +456,10 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
     struct wlr_box output_box;
     wlr_output_layout_get_box(root->output_layout, wlr_output, &output_box);
-    output->lx = output_box.x;
-    output->ly = output_box.y;
-    output->width = output_box.width;
-    output->height = output_box.height;
+    output->pending.x = output_box.x;
+    output->pending.y = output_box.y;
+    output->pending.width = output_box.width;
+    output->pending.height = output_box.height;
 
     output_enable(output);
     // END TODO

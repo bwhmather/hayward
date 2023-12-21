@@ -258,10 +258,10 @@ popup_unconstrain(struct hwd_layer_popup *popup) {
     // the output box expressed in the coordinate system of the toplevel parent
     // of the popup
     struct wlr_box output_toplevel_sx_box = {
-        .x = output->lx - lx,
-        .y = output->ly - ly,
-        .width = output->width,
-        .height = output->height,
+        .x = output->pending.x - lx,
+        .y = output->pending.y - ly,
+        .width = output->pending.width,
+        .height = output->pending.height,
     };
 
     wlr_xdg_popup_unconstrain_from_box(wlr_popup, &output_toplevel_sx_box);
