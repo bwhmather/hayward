@@ -75,8 +75,6 @@ struct hwd_output {
     } layers;
 
     struct wl_listener destroy;
-    struct wl_listener commit;
-    struct wl_listener mode;
     struct wl_listener request_state;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;

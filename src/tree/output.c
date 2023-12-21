@@ -379,25 +379,10 @@ handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&output->link);
 
     wl_list_remove(&output->destroy.link);
-    wl_list_remove(&output->commit.link);
     wl_list_remove(&output->request_state.link);
 
     output->wlr_output->data = NULL;
     output->wlr_output = NULL;
-}
-
-static void
-handle_commit(struct wl_listener *listener, void *data) {
-    struct hwd_output *output = wl_container_of(listener, output, commit);
-    struct wlr_output_event_commit *event = data;
-
-    if (event->state->committed &
-        (WLR_OUTPUT_STATE_TRANSFORM | WLR_OUTPUT_STATE_SCALE | WLR_OUTPUT_STATE_MODE)) {
-        if (output->enabled) {
-            arrange_layers(output);
-            output_arrange(output);
-        }
-    }
 }
 
 static void
@@ -450,8 +435,6 @@ handle_new_output(struct wl_listener *listener, void *data) {
 
     wl_signal_add(&wlr_output->events.destroy, &output->destroy);
     output->destroy.notify = handle_destroy;
-    wl_signal_add(&wlr_output->events.commit, &output->commit);
-    output->commit.notify = handle_commit;
     wl_signal_add(&wlr_output->events.request_state, &output->request_state);
     output->request_state.notify = handle_request_state;
 
