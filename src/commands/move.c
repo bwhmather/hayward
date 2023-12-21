@@ -100,7 +100,7 @@ static bool
 window_move_to_next_output(
     struct hwd_window *window, struct hwd_output *output, enum wlr_direction move_dir
 ) {
-    struct hwd_output *next_output = output_get_in_direction(output, move_dir);
+    struct hwd_output *next_output = root_get_output_in_direction(root, output, move_dir);
     if (!next_output) {
         return false;
     }

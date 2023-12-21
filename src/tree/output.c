@@ -331,22 +331,6 @@ output_arrange(struct hwd_output *output) {
     }
 }
 
-struct hwd_output *
-output_get_in_direction(struct hwd_output *output, enum wlr_direction direction) {
-    assert(direction);
-    struct wlr_box output_box;
-    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
-    int lx = output_box.x + output_box.width / 2;
-    int ly = output_box.y + output_box.height / 2;
-    struct wlr_output *wlr_adjacent = wlr_output_layout_adjacent_output(
-        root->output_layout, direction, output->wlr_output, lx, ly
-    );
-    if (!wlr_adjacent) {
-        return NULL;
-    }
-    return output_from_wlr_output(wlr_adjacent);
-}
-
 void
 output_get_box(struct hwd_output *output, struct wlr_box *box) {
     box->x = output->lx;

@@ -92,7 +92,7 @@ window_get_in_direction_tiling(
 
     if (window->pending.fullscreen) {
         // Fullscreen container with a direction - go straight to outputs
-        struct hwd_output *new_output = output_get_in_direction(output, dir);
+        struct hwd_output *new_output = root_get_output_in_direction(root, output, dir);
         if (!new_output) {
             return NULL;
         }
@@ -181,7 +181,7 @@ window_get_in_direction_tiling(
     }
 
     // Check a different output
-    struct hwd_output *new_output = output_get_in_direction(output, dir);
+    struct hwd_output *new_output = root_get_output_in_direction(root, output, dir);
     if (config->focus_wrapping != WRAP_WORKSPACE && new_output) {
         return get_window_in_output_direction(new_output, dir);
     }
@@ -296,7 +296,7 @@ cmd_focus(int argc, char **argv) {
 
     if (window == NULL) {
         // Jump to the next output
-        struct hwd_output *new_output = output_get_in_direction(output, direction);
+        struct hwd_output *new_output = root_get_output_in_direction(root, output, direction);
         if (!new_output) {
             return cmd_results_new(CMD_SUCCESS, NULL);
         }

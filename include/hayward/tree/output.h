@@ -12,7 +12,6 @@
 
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
@@ -100,9 +99,6 @@ output_reconcile(struct hwd_output *output);
 
 void
 output_arrange(struct hwd_output *wlr_output);
-
-struct hwd_output *
-output_get_in_direction(struct hwd_output *reference, enum wlr_direction direction);
 
 void
 output_get_box(struct hwd_output *output, struct wlr_box *box);

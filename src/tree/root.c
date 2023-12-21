@@ -19,6 +19,7 @@
 
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
+#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
@@ -701,6 +702,26 @@ root_get_output_at(struct hwd_root *root, double x, double y) {
         }
     }
     return NULL;
+}
+
+struct hwd_output *
+root_get_output_in_direction(
+    struct hwd_root *root, struct hwd_output *reference, enum wlr_direction direction
+) {
+    // TODO will need to be rewritten based on `hwd_output` to support
+    // duplicated displays.
+    assert(direction);
+    struct wlr_box output_box;
+    wlr_output_layout_get_box(root->output_layout, reference->wlr_output, &output_box);
+    int lx = output_box.x + output_box.width / 2;
+    int ly = output_box.y + output_box.height / 2;
+    struct wlr_output *wlr_adjacent = wlr_output_layout_adjacent_output(
+        root->output_layout, direction, reference->wlr_output, lx, ly
+    );
+    if (!wlr_adjacent) {
+        return NULL;
+    }
+    return output_from_wlr_output(wlr_adjacent);
 }
 
 void

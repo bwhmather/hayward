@@ -181,6 +181,11 @@ root_find_closest_output(struct hwd_root *root, double x, double y);
 struct hwd_output *
 root_get_output_at(struct hwd_root *root, double x, double y);
 
+struct hwd_output *
+root_get_output_in_direction(
+    struct hwd_root *root, struct hwd_output *reference, enum wlr_direction direction
+);
+
 /**
  * Passes a new theme to replace the current one.  The `root` takes ownership of
  * the theme and is responsible for destroying it once done.
