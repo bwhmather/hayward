@@ -139,7 +139,7 @@ server_init(struct hwd_server *server) {
     server->pointer_constraint.notify = handle_pointer_constraint;
     wl_signal_add(&server->pointer_constraints->events.new_constraint, &server->pointer_constraint);
 
-    server->presentation = wlr_presentation_create(server->wl_display, server->backend);
+    wlr_presentation_create(server->wl_display, server->backend);
 
     hwd_wlr_output_manager_v1_create(server->wl_display, root->output_layout);
 

@@ -18,7 +18,6 @@
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
-#include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_text_input_v3.h>
@@ -71,8 +70,6 @@ struct hwd_server {
 
     struct wlr_drm_lease_v1_manager *drm_lease_manager;
     struct wl_listener drm_lease_request;
-
-    struct wlr_presentation *presentation;
 
     struct wlr_pointer_constraints_v1 *pointer_constraints;
     struct wl_listener pointer_constraint;
