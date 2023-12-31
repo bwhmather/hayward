@@ -37,6 +37,15 @@ cmd_floating(int argc, char **argv) {
     window_end_mouse_operation(window);
 
     if (parse_boolean(argv[0], window_is_floating(window))) {
+        struct hwd_column *old_parent = window->pending.parent;
+        window_detach(window);
+        workspace_add_floating(workspace, window);
+        window_floating_set_default_size(window);
+        window_floating_resize_and_center(window);
+        if (old_parent) {
+            column_consider_destroy(old_parent);
+        }
+    } else {
         window_detach(window);
 
         struct hwd_column *column = NULL;
@@ -61,15 +70,6 @@ cmd_floating(int argc, char **argv) {
             column_add_sibling(target_sibling, window, 1);
         } else {
             column_add_child(column, window);
-        }
-    } else {
-        struct hwd_column *old_parent = window->pending.parent;
-        window_detach(window);
-        workspace_add_floating(workspace, window);
-        window_floating_set_default_size(window);
-        window_floating_resize_and_center(window);
-        if (old_parent) {
-            column_consider_destroy(old_parent);
         }
     }
 
