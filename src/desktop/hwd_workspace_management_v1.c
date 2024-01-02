@@ -117,6 +117,7 @@ hwd_workspace_handle_v1_destroy(struct hwd_workspace_handle_v1 *workspace) {
         wl_list_remove(wl_resource_get_link(resource));
         wl_list_init(wl_resource_get_link(resource));
     }
+    wl_list_remove(&workspace->link);
 
     free(workspace->name);
     free(workspace);
