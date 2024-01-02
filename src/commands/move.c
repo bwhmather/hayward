@@ -4,11 +4,9 @@
 
 #include "hayward/commands.h"
 
-#include <assert.h>
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
@@ -33,68 +31,7 @@
 #include <hayward/util.h>
 
 static const char expected_syntax[] = "Expected 'move <left|right|up|down> <[px] px>' or "
-                                      "'move <window> [to] workspace <name>' or "
-                                      "'move <window|workspace> [to] output <name|direction>'";
-
-static enum wlr_direction
-opposite_direction(enum wlr_direction d) {
-    switch (d) {
-    case WLR_DIRECTION_UP:
-        return WLR_DIRECTION_DOWN;
-    case WLR_DIRECTION_DOWN:
-        return WLR_DIRECTION_UP;
-    case WLR_DIRECTION_RIGHT:
-        return WLR_DIRECTION_LEFT;
-    case WLR_DIRECTION_LEFT:
-        return WLR_DIRECTION_RIGHT;
-    }
-    assert(false);
-    return 0;
-}
-
-static struct hwd_output *
-output_in_direction(
-    const char *direction_string, struct hwd_output *reference, int ref_lx, int ref_ly
-) {
-
-    struct {
-        char *name;
-        enum wlr_direction direction;
-    } names[] = {
-        {"up", WLR_DIRECTION_UP},
-        {"down", WLR_DIRECTION_DOWN},
-        {"left", WLR_DIRECTION_LEFT},
-        {"right", WLR_DIRECTION_RIGHT},
-    };
-
-    enum wlr_direction direction = 0;
-
-    for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i) {
-        if (strcasecmp(names[i].name, direction_string) == 0) {
-            direction = names[i].direction;
-            break;
-        }
-    }
-
-    if (reference && direction) {
-        struct wlr_output *target = wlr_output_layout_adjacent_output(
-            root->output_layout, direction, reference->wlr_output, ref_lx, ref_ly
-        );
-
-        if (!target) {
-            target = wlr_output_layout_farthest_output(
-                root->output_layout, opposite_direction(direction), reference->wlr_output, ref_lx,
-                ref_ly
-            );
-        }
-
-        if (target) {
-            return target->data;
-        }
-    }
-
-    return output_by_name_or_id(direction_string);
-}
+                                      "'move <window> [to] workspace <name>'";
 
 static bool
 window_move_to_next_output(
@@ -216,10 +153,6 @@ cmd_move_window(int argc, char **argv) {
 
     struct hwd_column *old_parent = window->pending.parent;
     struct hwd_workspace *old_workspace = window->pending.workspace;
-    struct hwd_output *old_output = window_get_output(window);
-
-    // save focus, in case it needs to be restored
-    struct hwd_window *focus = root_get_focused_window(root);
 
     // determine destination
     if (strcasecmp(argv[0], "workspace") == 0) {
@@ -276,42 +209,6 @@ cmd_move_window(int argc, char **argv) {
 
         return cmd_results_new(CMD_SUCCESS, NULL);
 
-    } else if (strcasecmp(argv[0], "output") == 0) {
-        struct hwd_output *new_output =
-            output_in_direction(argv[1], old_output, window->pending.x, window->pending.y);
-        if (!new_output) {
-            return cmd_results_new(
-                CMD_FAILURE, "Can't find output with name/direction '%s'", argv[1]
-            );
-        }
-
-        hwd_move_window_to_output(window, new_output);
-
-        if (focus == window) {
-            focus = NULL;
-            if (old_parent) {
-                focus = old_parent->pending.active_child;
-            }
-            if (!focus && old_workspace) {
-                focus = workspace_get_active_window(old_workspace);
-            }
-        }
-        if (focus != NULL) {
-            root_set_focused_window(root, focus);
-        }
-        root_commit_focus(root);
-
-        if (old_parent) {
-            column_consider_destroy(old_parent);
-        }
-        if (old_workspace) {
-            workspace_consider_destroy(old_workspace);
-        }
-
-        output_arrange(old_output);
-        output_arrange(new_output);
-
-        return cmd_results_new(CMD_SUCCESS, NULL);
     } else {
         return cmd_results_new(CMD_INVALID, expected_syntax);
     }
@@ -547,7 +444,6 @@ static const char expected_full_syntax[] =
     "'move left|right|up|down [<amount> [px]]'"
     " or 'move [window] [to] workspace"
     "  <name>|next|prev|next_on_output|prev_on_output|(number <num>)'"
-    " or 'move [window] [to] output <name/id>|left|right|up|down'"
     " or 'move [window] [to] [absolute] position <x> [px] <y> [px]'"
     " or 'move [window] [to] [absolute] position center'"
     " or 'move [window] [to] position mouse|cursor|pointer'";
@@ -588,7 +484,7 @@ cmd_move(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, expected_full_syntax);
     }
 
-    if (strcasecmp(argv[0], "workspace") == 0 || strcasecmp(argv[0], "output") == 0) {
+    if (strcasecmp(argv[0], "workspace") == 0) {
         return cmd_move_window(argc, argv);
     } else if (strcasecmp(argv[0], "position") == 0 || (argc > 1 && strcasecmp(argv[0], "absolute") == 0 && strcasecmp(argv[1], "position") == 0)) {
         return cmd_move_to_position(argc, argv);
