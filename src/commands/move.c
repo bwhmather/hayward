@@ -35,7 +35,7 @@ static const char expected_syntax[] = "Expected 'move <left|right|up|down> <[px]
                                       "'move <window> [to] workspace <name>'";
 
 static void
-window_move_to_output_from_direction(
+window_tiling_move_to_output_from_direction(
     struct hwd_window *window, struct hwd_output *output, enum wlr_direction move_dir
 ) {
     assert(window != NULL);
@@ -44,41 +44,31 @@ window_move_to_output_from_direction(
     struct hwd_workspace *workspace = window->pending.workspace;
     assert(workspace != NULL);
 
-    // TODO this should be derived from the window's current position.
-    struct hwd_output *old_output = workspace_get_active_output(workspace);
-    if (window_is_floating(window)) {
-        if (old_output != output && !window->pending.fullscreen) {
-            window_floating_move_to_center(window);
+    struct hwd_column *column = NULL;
+
+    for (int i = 0; i < workspace->pending.columns->length; i++) {
+        struct hwd_column *candidate_column = workspace->pending.columns->items[i];
+
+        if (candidate_column->pending.output != output) {
+            continue;
         }
 
-        return;
-    } else {
-        struct hwd_column *column = NULL;
-
-        for (int i = 0; i < workspace->pending.columns->length; i++) {
-            struct hwd_column *candidate_column = workspace->pending.columns->items[i];
-
-            if (candidate_column->pending.output != output) {
-                continue;
-            }
-
-            if (move_dir == WLR_DIRECTION_LEFT || column == NULL) {
-                column = candidate_column;
-            }
+        if (move_dir == WLR_DIRECTION_LEFT || column == NULL) {
+            column = candidate_column;
         }
-        if (workspace->pending.active_column->pending.output == output &&
-            move_dir != WLR_DIRECTION_UP && move_dir == WLR_DIRECTION_DOWN) {
-            column = workspace->pending.active_column;
-        }
-        if (column == NULL) {
-            column = column_create();
-            workspace_insert_column_first(workspace, output, column);
-        }
-
-        window->pending.width = window->pending.height = 0;
-
-        hwd_move_window_to_column_from_direction(window, column, move_dir);
     }
+    if (workspace->pending.active_column->pending.output == output &&
+        move_dir != WLR_DIRECTION_UP && move_dir == WLR_DIRECTION_DOWN) {
+        column = workspace->pending.active_column;
+    }
+    if (column == NULL) {
+        column = column_create();
+        workspace_insert_column_first(workspace, output, column);
+    }
+
+    window->pending.width = window->pending.height = 0;
+
+    hwd_move_window_to_column_from_direction(window, column, move_dir);
 }
 
 static bool
@@ -89,7 +79,7 @@ window_move_to_next_output(
     if (!next_output) {
         return false;
     }
-    window_move_to_output_from_direction(window, output, move_dir);
+    window_tiling_move_to_output_from_direction(window, output, move_dir);
     return true;
 }
 
