@@ -378,6 +378,11 @@ root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace
         root->pending.active_output = active_output;
     }
 
+    for (int i = 0; i < root->outputs->length; ++i) {
+        struct hwd_output *output = root->outputs->items[i];
+        output_reconcile(output);
+    }
+
     root_set_dirty(root);
 }
 
