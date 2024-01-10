@@ -33,7 +33,7 @@ cmd_fullscreen(int argc, char **argv) {
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 
-    bool is_fullscreen = window->pending.fullscreen;
+    bool is_fullscreen = window_is_fullscreen(window);
 
     if (argc != 1) {
         return cmd_results_new(CMD_INVALID, expected_syntax);

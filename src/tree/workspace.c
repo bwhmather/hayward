@@ -689,7 +689,7 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
         window_reconcile_floating(workspace_get_active_floating_window(workspace), workspace);
     }
 
-    if (window->pending.output && window->pending.fullscreen) {
+    if (window_is_fullscreen(window)) {
         output_reconcile(window->pending.output);
     }
 

@@ -117,7 +117,7 @@ find_edge(struct hwd_window *window, struct wlr_surface *surface, struct hwd_cur
     if (surface && window->view->surface != surface) {
         return WLR_EDGE_NONE;
     }
-    if (window->pending.fullscreen) {
+    if (window_is_fullscreen(window)) {
         return WLR_EDGE_NONE;
     }
 
@@ -331,7 +331,7 @@ handle_tablet_tool_tip(
         }
 
         // Handle moving a tiled window.
-        if (mod_pressed && !is_floating_or_child && !window->pending.fullscreen) {
+        if (mod_pressed && !is_floating_or_child && !window_is_fullscreen(window)) {
             seatop_begin_move(seat, window);
             return;
         }
@@ -561,7 +561,7 @@ handle_button(
 
     // Handle moving a tiling container
     if ((mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED && !is_floating && window &&
-        !window->pending.fullscreen) {
+        !window_is_fullscreen(window)) {
 
         seatop_begin_move(seat, window);
         root_commit_focus(root);

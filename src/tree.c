@@ -123,7 +123,7 @@ hwd_move_window_to_output_from_direction(
     // TODO this should be derived from the window's current position.
     struct hwd_output *old_output = workspace_get_active_output(workspace);
     if (window_is_floating(window)) {
-        if (old_output != output && !window->pending.fullscreen) {
+        if (old_output != output && !window_is_fullscreen(window)) {
             window_floating_move_to_center(window);
         }
 

@@ -377,7 +377,7 @@ handle_request_move(struct wl_listener *listener, void *data) {
 
     struct hwd_view *view = &xdg_shell_view->view;
 
-    if (view->window->pending.fullscreen) {
+    if (window_is_fullscreen(view->window)) {
         return;
     }
 

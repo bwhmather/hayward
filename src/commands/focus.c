@@ -90,7 +90,7 @@ window_get_in_direction_tiling(
     struct hwd_workspace *workspace = window->pending.workspace;
     struct hwd_output *output = window_get_output(window);
 
-    if (window->pending.fullscreen) {
+    if (window_is_fullscreen(window)) {
         // Fullscreen container with a direction - go straight to outputs
         struct hwd_output *new_output = root_get_output_in_direction(root, output, dir);
         if (!new_output) {
@@ -313,7 +313,7 @@ cmd_focus(int argc, char **argv) {
     }
 
     struct hwd_window *next_focus = NULL;
-    if (window_is_floating(window) && !window->pending.fullscreen) {
+    if (window_is_floating(window) && !window_is_fullscreen(window)) {
         next_focus = window_get_in_direction_floating(window, seat, direction);
     } else {
         next_focus = window_get_in_direction_tiling(window, seat, direction);
