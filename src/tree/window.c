@@ -204,6 +204,17 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
     window->dirty = false;
 
+    if (window->pending.fullscreen != window->committed.fullscreen) {
+        if (window->view->impl->set_fullscreen) {
+            window->view->impl->set_fullscreen(window->view, window->pending.fullscreen);
+        }
+        if (window->view->foreign_toplevel) {
+            wlr_foreign_toplevel_handle_v1_set_fullscreen(
+                window->view->foreign_toplevel, window->pending.fullscreen
+            );
+        }
+    }
+
     bool hidden = !window->pending.dead && !view_is_visible(window->view);
     if (window_should_configure(window)) {
         struct hwd_window_state *state = &window->pending;
@@ -532,16 +543,6 @@ window_is_tiling(struct hwd_window *window) {
 }
 
 static void
-set_fullscreen(struct hwd_window *window, bool enable) {
-    if (window->view->impl->set_fullscreen) {
-        window->view->impl->set_fullscreen(window->view, enable);
-    }
-    if (window->view->foreign_toplevel) {
-        wlr_foreign_toplevel_handle_v1_set_fullscreen(window->view->foreign_toplevel, enable);
-    }
-}
-
-static void
 window_fullscreen_disable(struct hwd_window *window) {
     assert(window != NULL);
     assert(window_is_alive(window));
@@ -577,8 +578,6 @@ window_fullscreen_disable(struct hwd_window *window) {
     if (workspace->pending.focused) {
         output_reconcile(output);
     }
-
-    set_fullscreen(window, false);
 
     window_set_dirty(window);
 }
@@ -616,8 +615,6 @@ window_fullscreen_enable(struct hwd_window *window) {
     if (workspace->pending.focused) {
         output_reconcile(output);
     }
-
-    set_fullscreen(window, true);
 
     window_set_dirty(window);
 }
