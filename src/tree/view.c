@@ -39,7 +39,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
-#include <hayward/tree.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -274,22 +273,15 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
     struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
     struct hwd_window *window = view->window;
+    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_output *output = window->pending.output;
 
     if (event->fullscreen && event->output && event->output->data) {
-        struct hwd_output *output = event->output->data;
-        hwd_move_window_to_output(window, output);
+        output = event->output->data;
     }
 
-    window_set_fullscreen(window, event->fullscreen);
-    if (event->fullscreen) {
-        root_arrange(root);
-    } else {
-        if (window->pending.parent) {
-            column_arrange(window->pending.parent);
-        } else if (window->pending.workspace) {
-            workspace_arrange(window->pending.workspace);
-        }
-    }
+    workspace_set_fullscreen_window_for_output(workspace, output, window);
+    root_arrange(root);
 }
 
 static void
@@ -380,7 +372,7 @@ view_map(
         view->window->pending.output->pending.fullscreen_window->view) {
         struct hwd_window *fs = view->window->pending.output->pending.fullscreen_window;
         if (view_is_transient_for(view, fs->view)) {
-            window_set_fullscreen(fs, false);
+            workspace_set_fullscreen_window_for_output(workspace, fs->pending.output, NULL);
         }
     }
 
@@ -388,7 +380,7 @@ view_map(
         // Fullscreen windows still have to have a place as regular
         // tiling or floating windows, so this does not make the
         // previous logic unnecessary.
-        window_set_fullscreen(view->window, true);
+        workspace_set_fullscreen_window_for_output(workspace, output, view->window);
     }
 
     view_update_title(view, false);

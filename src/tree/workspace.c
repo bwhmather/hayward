@@ -1069,6 +1069,37 @@ workspace_get_floating_window_at(struct hwd_workspace *workspace, double x, doub
     return NULL;
 }
 
+void
+workspace_set_fullscreen_window_for_output(
+    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_window *window
+) {
+    assert(workspace != NULL);
+    assert(output != NULL);
+    assert(window == NULL || window->pending.workspace == workspace);
+
+    struct hwd_window *old_window = workspace_get_fullscreen_window_for_output(workspace, output);
+    if (window == old_window) {
+        return;
+    }
+
+    if (old_window != NULL) {
+        window_set_fullscreen(old_window, false);
+    }
+
+    if (window != NULL) {
+        if (window->pending.fullscreen) {
+            // TODO reconcile old output.
+        }
+
+        window->pending.output = output;
+        window_set_fullscreen(window, true);
+    }
+
+    if (workspace->pending.focused) {
+        output_reconcile(output);
+    }
+}
+
 static bool
 is_fullscreen_window_for_output(struct hwd_window *window, void *data) {
     struct hwd_output *output = data;

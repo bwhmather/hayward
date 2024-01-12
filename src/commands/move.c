@@ -72,7 +72,7 @@ window_tiling_move_to_output_from_direction(
 }
 
 static bool
-window_move_to_next_output(
+window_tiling_move_to_next_output(
     struct hwd_window *window, struct hwd_output *output, enum wlr_direction move_dir
 ) {
     struct hwd_output *next_output = root_get_output_in_direction(root, output, move_dir);
@@ -85,20 +85,9 @@ window_move_to_next_output(
 
 // Returns true if moved
 static bool
-window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir) {
-    // If moving a fullscreen view, only consider outputs
-    if (window->pending.fullscreen) {
-        return window_move_to_next_output(window, window->pending.parent->pending.output, move_dir);
-    }
-
-    if (window_is_floating(window)) {
-        return false;
-    }
-
-    // TODO (hayward) windows should always have a parent if not floating.
-    if (!window->pending.parent) {
-        return false;
-    }
+window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir) {
+    assert(window_is_tiling(window));
+    assert(!window_is_fullscreen(window));
 
     struct hwd_column *old_column = window->pending.parent;
     struct hwd_workspace *workspace = old_column->pending.workspace;
@@ -107,7 +96,7 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
     case WLR_DIRECTION_UP: {
         struct hwd_window *prev_sibling = window_get_previous_sibling(window);
         if (prev_sibling == NULL) {
-            return window_move_to_next_output(window, window->pending.output, move_dir);
+            return window_tiling_move_to_next_output(window, window->pending.output, move_dir);
         }
 
         window_detach(window);
@@ -117,7 +106,7 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
     case WLR_DIRECTION_DOWN: {
         struct hwd_window *next_sibling = window_get_next_sibling(window);
         if (next_sibling == NULL) {
-            return window_move_to_next_output(window, window->pending.output, move_dir);
+            return window_tiling_move_to_next_output(window, window->pending.output, move_dir);
         }
 
         window_detach(window);
@@ -133,7 +122,9 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
             // workspace, otherwise insert a new column to  the left and carry
             // on as before.
             if (old_column->pending.children->length == 1) {
-                return window_move_to_next_output(window, old_column->pending.output, move_dir);
+                return window_tiling_move_to_next_output(
+                    window, old_column->pending.output, move_dir
+                );
             }
 
             new_column = column_create();
@@ -157,7 +148,9 @@ window_move_in_direction(struct hwd_window *window, enum wlr_direction move_dir)
             // workspace, otherwise insert a new column to the right and carry
             // on as before.
             if (old_column->pending.children->length == 1) {
-                return window_move_to_next_output(window, old_column->pending.output, move_dir);
+                return window_tiling_move_to_next_output(
+                    window, old_column->pending.output, move_dir
+                );
             }
 
             new_column = column_create();
@@ -267,6 +260,19 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
     if (!window) {
         return cmd_results_new(CMD_FAILURE, "Cannot move workspaces in a direction");
     }
+
+    if (window_is_fullscreen(window)) {
+        struct hwd_output *next_output =
+            root_get_output_in_direction(root, window->pending.output, direction);
+        if (next_output) {
+            workspace_set_fullscreen_window_for_output(
+                window->pending.workspace, next_output, window
+            );
+        }
+        root_arrange(root);
+        return cmd_results_new(CMD_SUCCESS, NULL);
+    }
+
     if (window_is_floating(window)) {
         if (window->pending.fullscreen) {
             return cmd_results_new(CMD_FAILURE, "Cannot move fullscreen floating window");
@@ -298,7 +304,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
     struct hwd_workspace *old_workspace = window->pending.workspace;
     struct hwd_column *old_parent = window->pending.parent;
 
-    if (!window_move_in_direction(window, direction)) {
+    if (!window_tiling_move_in_direction(window, direction)) {
         // Container didn't move
         return cmd_results_new(CMD_SUCCESS, NULL);
     }

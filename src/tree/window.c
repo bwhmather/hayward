@@ -434,7 +434,9 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     struct hwd_output *output = column->pending.output;
 
     window->pending.workspace = workspace;
-    window->pending.output = output;
+    if (!window->pending.fullscreen) {
+        window->pending.output = output;
+    }
     window->pending.parent = column;
 
     window->pending.focused =
@@ -543,12 +545,10 @@ static void
 window_fullscreen_disable(struct hwd_window *window) {
     assert(window != NULL);
     assert(window_is_alive(window));
+    assert(window->pending.output);
 
     struct hwd_workspace *workspace = window->pending.workspace;
     assert(workspace != NULL);
-
-    struct hwd_output *output = window->pending.output;
-    assert(window->pending.output);
 
     if (!window->pending.fullscreen) {
         return;
@@ -563,18 +563,11 @@ window_fullscreen_disable(struct hwd_window *window) {
         window->pending.height = window->saved_height;
     }
 
-    // If the container was mapped as fullscreen and set as floating by
-    // criteria, it needs to be reinitialized as floating to get the proper
-    // size and location
-    if (window_is_floating(window) && (window->pending.width == 0 || window->pending.height == 0)) {
-        window_floating_resize_and_center(window);
+    if (window_is_tiling(window)) {
+        window->pending.output = window->pending.parent->pending.output;
     }
 
     window->pending.fullscreen = false;
-
-    if (workspace->pending.focused) {
-        output_reconcile(output);
-    }
 
     window_set_dirty(window);
 }
@@ -587,31 +580,18 @@ window_fullscreen_enable(struct hwd_window *window) {
     struct hwd_workspace *workspace = window->pending.workspace;
     assert(workspace != NULL);
 
-    struct hwd_output *output = window->pending.output;
-    assert(window->pending.output);
-
     if (window->pending.fullscreen) {
         return;
     }
 
     window_end_mouse_operation(window);
 
-    // Disable previous fullscreen window for output and workspace.
-    struct hwd_window *previous = workspace_get_fullscreen_window_for_output(workspace, output);
-    if (previous != NULL) {
-        window_fullscreen_disable(previous);
-    }
-
-    window->pending.fullscreen = true;
-
     window->saved_x = window->pending.x;
     window->saved_y = window->pending.y;
     window->saved_width = window->pending.width;
     window->saved_height = window->pending.height;
 
-    if (workspace->pending.focused) {
-        output_reconcile(output);
-    }
+    window->pending.fullscreen = true;
 
     window_set_dirty(window);
 }

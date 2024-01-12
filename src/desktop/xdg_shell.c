@@ -27,7 +27,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
-#include <hayward/tree.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -357,15 +356,20 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     }
 
     struct hwd_window *window = view->window;
+    struct hwd_workspace *workspace = window->pending.workspace;
+
     struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
+
+    struct hwd_output *output = window->pending.output;
     if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
-        struct hwd_workspace *workspace = root_get_active_workspace(root);
-        if (workspace && window->pending.workspace != workspace) {
-            hwd_move_window_to_workspace(window, workspace);
-        }
+        output = req->fullscreen_output->data;
     }
 
-    window_set_fullscreen(window, req->fullscreen);
+    if (req->fullscreen) {
+        workspace_set_fullscreen_window_for_output(workspace, output, window);
+    } else if (window_is_fullscreen(window)) {
+        workspace_set_fullscreen_window_for_output(workspace, output, NULL);
+    }
 
     root_arrange(root);
 }

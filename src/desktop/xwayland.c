@@ -31,10 +31,12 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
+#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 static const char *atom_map[ATOM_LAST] = {
     [NET_WM_WINDOW_TYPE_NORMAL] = "_NET_WM_WINDOW_TYPE_NORMAL",
@@ -651,8 +653,15 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
         return;
     }
 
-    window_set_fullscreen(view->window, xsurface->fullscreen);
+    struct hwd_window *window = view->window;
+    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_output *output = window->pending.output;
 
+    if (xsurface->fullscreen != window_is_fullscreen(window)) {
+        workspace_set_fullscreen_window_for_output(
+            workspace, output, xsurface->fullscreen ? window : NULL
+        );
+    }
     root_arrange(root);
 }
 

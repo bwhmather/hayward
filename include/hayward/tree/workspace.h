@@ -164,6 +164,11 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
 struct hwd_window *
 workspace_get_floating_window_at(struct hwd_workspace *workspace, double x, double y);
 
+void
+workspace_set_fullscreen_window_for_output(
+    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_window *window
+);
+
 /**
  * Traverses all windows on the workspace to find the first fullscreen window on
  * the requested output.
