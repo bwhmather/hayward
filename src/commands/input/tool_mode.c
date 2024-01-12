@@ -12,6 +12,7 @@
 #include <hayward/config.h>
 #include <hayward/input/tablet.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 
 static void
 set_tool_mode(
@@ -35,6 +36,8 @@ set_tool_mode(
 
 struct cmd_results *
 input_cmd_tool_mode(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error;
     if ((error = checkarg(argc, "tool_mode", EXPECTED_AT_LEAST, 2))) {
         return error;

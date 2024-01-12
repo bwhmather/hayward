@@ -101,9 +101,8 @@ struct hwd_server {
 extern struct hwd_server server;
 
 struct hwd_debug {
-    bool noatomic;    // Ignore atomic layout updates
-    bool txn_timings; // Log verbose messages about transactions
-    bool txn_wait;    // Always wait for the timeout before applying
+    bool noatomic; // Ignore atomic layout updates
+    bool txn_wait; // Always wait for the timeout before applying
 };
 
 extern struct hwd_debug debug;

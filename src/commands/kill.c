@@ -5,11 +5,14 @@
 #include "hayward/commands.h"
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_kill(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct hwd_window *window = config->handler_context.window;
     if (window == NULL) {
         return cmd_results_new(CMD_INVALID, "Can only kill windows");

@@ -8,9 +8,12 @@
 
 #include <hayward/config.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 seat_cmd_attach(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "attach", EXPECTED_AT_LEAST, 1))) {
         return error;

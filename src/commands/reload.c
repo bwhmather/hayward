@@ -12,9 +12,9 @@
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
-
 static void
 do_reload(void *data) {
     const char *path = NULL;
@@ -32,6 +32,8 @@ do_reload(void *data) {
 
 struct cmd_results *
 cmd_reload(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "reload", EXPECTED_EQUAL_TO, 0))) {
         return error;

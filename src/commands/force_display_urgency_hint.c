@@ -7,9 +7,12 @@
 #include <string.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 cmd_force_display_urgency_hint(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "force_display_urgency_hint", EXPECTED_AT_LEAST, 1))) {
         return error;

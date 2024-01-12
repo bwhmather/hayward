@@ -8,9 +8,12 @@
 #include <string.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 seat_cmd_keyboard_grouping(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "keyboard_grouping", EXPECTED_EQUAL_TO, 1))) {
         return error;

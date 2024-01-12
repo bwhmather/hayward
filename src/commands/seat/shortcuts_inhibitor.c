@@ -15,6 +15,7 @@
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 
 static struct cmd_results *
@@ -65,6 +66,8 @@ handle_action(struct seat_config *sc, struct hwd_seat *seat, const char *action)
 // shortcuts_inhibitor [enable|disable|activate|deactivate|toggle]
 struct cmd_results *
 seat_cmd_shortcuts_inhibitor(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = checkarg(argc, "shortcuts_inhibitor", EXPECTED_EQUAL_TO, 1);
     if (error) {
         return error;

@@ -24,6 +24,7 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/haywardnag.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/root.h>
@@ -224,8 +225,8 @@ enable_debug_flag(const char *flag) {
         debug.noatomic = true;
     } else if (strcmp(flag, "txn-wait") == 0) {
         debug.txn_wait = true;
-    } else if (strcmp(flag, "txn-timings") == 0) {
-        debug.txn_timings = true;
+    } else if (strcmp(flag, "profile") == 0) {
+        hwd_profiler_init();
     } else if (strncmp(flag, "txn-timeout=", 12) == 0) {
         server.txn_timeout_ms = atoi(&flag[12]);
     } else {

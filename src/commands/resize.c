@@ -16,6 +16,7 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -523,6 +524,8 @@ cmd_resize_adjust(int argc, char **argv, int multiplier) {
 
 struct cmd_results *
 cmd_resize(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     if (!root->outputs->length) {
         return cmd_results_new(
             CMD_INVALID, "Can't run this command while there's no outputs connected."

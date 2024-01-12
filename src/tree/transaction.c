@@ -9,13 +9,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 
 #include <wlr/util/log.h>
 
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 
 static void
@@ -54,38 +54,6 @@ hwd_transaction_manager_destroy(struct hwd_transaction_manager *transaction_mana
     free(transaction_manager);
 }
 
-/**
- * Apply a transaction to the "current" state of the tree.
- */
-static void
-transaction_apply(struct hwd_transaction_manager *transaction_manager) {
-    assert(transaction_manager != NULL);
-    assert(transaction_manager->num_waiting == 0);
-
-    wlr_log(WLR_DEBUG, "Applying transaction");
-
-    transaction_manager->num_configures = 0;
-
-    transaction_manager->phase = HWD_TRANSACTION_APPLY;
-    wl_signal_emit_mutable(&transaction_manager->events.apply, NULL);
-
-    transaction_manager->phase = HWD_TRANSACTION_AFTER_APPLY;
-    wl_signal_emit_mutable(&transaction_manager->events.after_apply, NULL);
-
-    if (debug.txn_timings) {
-        struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        struct timespec *commit = &transaction_manager->commit_time;
-        float ms =
-            (now.tv_sec - commit->tv_sec) * 1000 + (now.tv_nsec - commit->tv_nsec) / 1000000.0;
-        wlr_log(
-            WLR_DEBUG, "Transaction: %.1fms waiting (%.1f frames if 60Hz)", ms, ms / (1000.0f / 60)
-        );
-    }
-
-    transaction_manager->phase = HWD_TRANSACTION_IDLE;
-}
-
 static void
 transaction_progress(struct hwd_transaction_manager *transaction_manager) {
     assert(transaction_manager != NULL);
@@ -94,8 +62,27 @@ transaction_progress(struct hwd_transaction_manager *transaction_manager) {
     if (transaction_manager->num_waiting > 0) {
         return;
     }
+    hwd_profiler_mark(
+        "transaction confirm", transaction_manager->begin_waiting_confirm, hwd_profiler_now()
+    );
 
-    transaction_apply(transaction_manager);
+    wlr_log(WLR_DEBUG, "Applying transaction");
+
+    transaction_manager->num_configures = 0;
+
+    transaction_manager->phase = HWD_TRANSACTION_APPLY;
+    hwd_timestamp begin_apply = hwd_profiler_now();
+    wl_signal_emit_mutable(&transaction_manager->events.apply, NULL);
+    hwd_profiler_mark("transaction apply", begin_apply, hwd_profiler_now());
+
+    transaction_manager->phase = HWD_TRANSACTION_AFTER_APPLY;
+    hwd_timestamp begin_after_apply = hwd_profiler_now();
+    wl_signal_emit_mutable(&transaction_manager->events.after_apply, NULL);
+    hwd_profiler_mark("transaction after apply", begin_after_apply, hwd_profiler_now());
+
+    hwd_profiler_mark("transaction", transaction_manager->begin_transaction, hwd_profiler_now());
+
+    transaction_manager->phase = HWD_TRANSACTION_IDLE;
 
     if (transaction_manager->queued && transaction_manager->idle == NULL) {
         transaction_manager->idle =
@@ -111,20 +98,28 @@ handle_commit(void *data) {
 
     assert(transaction_manager->depth == 0);
 
-    transaction_manager->phase = HWD_TRANSACTION_BEFORE_COMMIT;
-    wl_signal_emit_mutable(&transaction_manager->events.before_commit, NULL);
+    transaction_manager->begin_transaction = hwd_profiler_now();
 
+    transaction_manager->phase = HWD_TRANSACTION_BEFORE_COMMIT;
+    hwd_timestamp begin_before_commit = hwd_profiler_now();
+
+    wl_signal_emit_mutable(&transaction_manager->events.before_commit, NULL);
     transaction_manager->queued = false;
 
+    hwd_profiler_mark("transaction before commit", begin_before_commit, hwd_profiler_now());
+
     transaction_manager->phase = HWD_TRANSACTION_COMMIT;
+    hwd_timestamp begin_commit = hwd_profiler_now();
+
     wl_signal_emit_mutable(&transaction_manager->events.commit, NULL);
 
+    hwd_profiler_mark("transaction commit", begin_commit, hwd_profiler_now());
+
     transaction_manager->phase = HWD_TRANSACTION_WAITING_CONFIRM;
+    transaction_manager->begin_waiting_confirm = hwd_profiler_now();
 
     transaction_manager->num_configures = transaction_manager->num_waiting;
-    if (debug.txn_timings) {
-        clock_gettime(CLOCK_MONOTONIC, &transaction_manager->commit_time);
-    }
+
     if (debug.noatomic) {
         transaction_manager->num_waiting = 0;
     } else if (debug.txn_wait) {

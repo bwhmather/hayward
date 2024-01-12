@@ -9,11 +9,14 @@
 #include <string.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_max_render_time(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     if (!argc) {
         return cmd_results_new(CMD_INVALID, "Missing max render time argument.");
     }

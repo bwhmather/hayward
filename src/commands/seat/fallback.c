@@ -8,10 +8,12 @@
 #include <stdbool.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/util.h>
-
 struct cmd_results *
 seat_cmd_fallback(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "fallback", EXPECTED_EQUAL_TO, 1))) {
         return error;

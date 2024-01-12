@@ -7,6 +7,7 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -16,6 +17,8 @@
 
 struct cmd_results *
 cmd_floating(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "floating", EXPECTED_EQUAL_TO, 1))) {
         return error;

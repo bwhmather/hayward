@@ -18,11 +18,14 @@
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
 
 struct cmd_results *
 cmd_exec_validate(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, argv[-1], EXPECTED_AT_LEAST, 1))) {
         return error;
@@ -35,6 +38,8 @@ cmd_exec_validate(int argc, char **argv) {
 
 struct cmd_results *
 cmd_exec_process(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     char *cmd = NULL;
     if (strcmp(argv[0], "--no-startup-id") == 0) {
@@ -109,6 +114,8 @@ cmd_exec_process(int argc, char **argv) {
 
 struct cmd_results *
 cmd_exec_always(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error;
     if ((error = cmd_exec_validate(argc, argv))) {
         return error;

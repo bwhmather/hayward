@@ -11,10 +11,13 @@
 #include <string.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/stringop.h>
 
 struct cmd_results *
 cmd_font(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "font", EXPECTED_AT_LEAST, 1))) {
         return error;

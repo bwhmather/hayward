@@ -5,11 +5,14 @@
 
 #include "hayward/commands.h"
 
+#include <hayward/profiler.h>
 void
 hwd_terminate(int exit_code);
 
 struct cmd_results *
 cmd_exit(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "exit", EXPECTED_EQUAL_TO, 0))) {
         return error;

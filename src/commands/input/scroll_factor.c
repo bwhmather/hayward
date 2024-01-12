@@ -8,10 +8,12 @@
 #include <math.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/util.h>
-
 struct cmd_results *
 input_cmd_scroll_factor(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "scroll_factor", EXPECTED_AT_LEAST, 1))) {
         return error;

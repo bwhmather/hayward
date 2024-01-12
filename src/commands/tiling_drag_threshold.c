@@ -8,9 +8,12 @@
 #include <stdlib.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 cmd_tiling_drag_threshold(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "tiling_drag_threshold", EXPECTED_EQUAL_TO, 1))) {
         return error;

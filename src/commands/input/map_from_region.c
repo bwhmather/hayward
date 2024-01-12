@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 static bool
 parse_coords(const char *str, double *x, double *y, bool *mm) {
@@ -39,6 +40,8 @@ parse_coords(const char *str, double *x, double *y, bool *mm) {
 
 struct cmd_results *
 input_cmd_map_from_region(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "map_from_region", EXPECTED_EQUAL_TO, 2))) {
         return error;

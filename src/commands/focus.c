@@ -16,6 +16,7 @@
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -252,6 +253,8 @@ focus_mode(struct hwd_workspace *workspace, bool floating) {
 
 struct cmd_results *
 cmd_focus(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     if (config->reading || !config->active) {
         return cmd_results_new(CMD_DEFER, NULL);
     }

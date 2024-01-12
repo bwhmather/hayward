@@ -23,6 +23,7 @@
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/scene/nineslice.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>
@@ -628,6 +629,8 @@ arrange_tiling(struct hwd_workspace *workspace) {
 
 void
 workspace_arrange(struct hwd_workspace *workspace) {
+    HWD_PROFILER_TRACE();
+
     if (config->reloading) {
         return;
     }

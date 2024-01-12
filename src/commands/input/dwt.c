@@ -9,10 +9,13 @@
 #include <stdbool.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/util.h>
 
 struct cmd_results *
 input_cmd_dwt(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "dwt", EXPECTED_AT_LEAST, 1))) {
         return error;

@@ -8,10 +8,13 @@
 #include <strings.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_opacity(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "opacity", EXPECTED_AT_LEAST, 1))) {
         return error;

@@ -11,9 +11,12 @@
 
 #include <hayward/config.h>
 #include <hayward/input/keyboard.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 cmd_floating_modifier(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "floating_modifier", EXPECTED_AT_LEAST, 1))) {
         return error;

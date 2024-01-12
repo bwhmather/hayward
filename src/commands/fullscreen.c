@@ -10,6 +10,7 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
@@ -19,6 +20,8 @@ static const char expected_syntax[] = "Expected `fullscreen [enable|disable|togg
 
 struct cmd_results *
 cmd_fullscreen(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "fullscreen", EXPECTED_AT_MOST, 2))) {
         return error;

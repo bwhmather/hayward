@@ -10,6 +10,7 @@
 
 #include <hayward/config.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/stringop.h>
 
 // Must be in order for the bsearch
@@ -22,6 +23,8 @@ static const struct cmd_handler mode_handlers[] = {
 
 struct cmd_results *
 cmd_mode(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "mode", EXPECTED_AT_LEAST, 1))) {
         return error;

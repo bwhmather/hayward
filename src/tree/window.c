@@ -28,6 +28,7 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/scene/colours.h>
 #include <hayward/scene/nineslice.h>
 #include <hayward/scene/text.h>
@@ -477,6 +478,8 @@ window_set_moving(struct hwd_window *window, bool moving) {
 
 void
 window_arrange(struct hwd_window *window) {
+    HWD_PROFILER_TRACE();
+
     if (config->reloading) {
         return;
     }

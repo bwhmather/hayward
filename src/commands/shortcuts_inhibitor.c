@@ -15,12 +15,15 @@
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 struct cmd_results *
 cmd_shortcuts_inhibitor(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "shortcuts_inhibitor", EXPECTED_EQUAL_TO, 1))) {
         return error;

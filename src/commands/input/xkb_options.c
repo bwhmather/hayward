@@ -10,9 +10,12 @@
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 input_cmd_xkb_options(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "xkb_options", EXPECTED_EQUAL_TO, 1))) {
         return error;

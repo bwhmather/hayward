@@ -5,9 +5,10 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <time.h>
 
 #include <wayland-server-core.h>
+
+#include <hayward/profiler.h>
 
 /**
  * Transactions enable us to perform atomic layout updates.
@@ -42,9 +43,11 @@ struct hwd_transaction_manager {
     enum hwd_transaction_phase phase;
     struct wl_event_source *idle;
     struct wl_event_source *timer;
-    struct timespec commit_time;
     size_t num_configures;
     size_t num_waiting;
+
+    hwd_timestamp begin_transaction;
+    hwd_timestamp begin_waiting_confirm;
 
     struct {
         struct wl_signal before_commit;

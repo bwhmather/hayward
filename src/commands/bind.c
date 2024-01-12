@@ -22,6 +22,7 @@
 #include <hayward/input/keyboard.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/stringop.h>
 #include <hayward/tree/output.h>
 
@@ -599,31 +600,37 @@ cmd_bind_or_unbind_switch(int argc, char **argv, bool unbind) {
 
 struct cmd_results *
 cmd_bindsym(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
     return cmd_bindsym_or_bindcode(argc, argv, false, false);
 }
 
 struct cmd_results *
 cmd_bindcode(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
     return cmd_bindsym_or_bindcode(argc, argv, true, false);
 }
 
 struct cmd_results *
 cmd_unbindsym(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
     return cmd_bindsym_or_bindcode(argc, argv, false, true);
 }
 
 struct cmd_results *
 cmd_unbindcode(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
     return cmd_bindsym_or_bindcode(argc, argv, true, true);
 }
 
 struct cmd_results *
 cmd_bindswitch(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
     return cmd_bind_or_unbind_switch(argc, argv, false);
 }
 
 struct cmd_results *
 cmd_unbindswitch(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
     return cmd_bind_or_unbind_switch(argc, argv, true);
 }
 

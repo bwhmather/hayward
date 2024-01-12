@@ -9,12 +9,15 @@
 #include <string.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 #include <hayward/util.h>
 
 struct cmd_results *
 cmd_urgent(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "urgent", EXPECTED_EQUAL_TO, 1))) {
         return error;

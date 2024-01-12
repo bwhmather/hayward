@@ -17,6 +17,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
 
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -129,6 +130,8 @@ send_frame_done_iterator(struct wlr_scene_buffer *buffer, int x, int y, void *us
 
 static int
 output_repaint_timer_handler(void *data) {
+    HWD_PROFILER_TRACE();
+
     struct hwd_scene_output_scheduler *scheduler_output = data;
 
     wlr_scene_output_commit(scheduler_output->scene_output, NULL);

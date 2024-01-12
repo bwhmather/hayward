@@ -5,10 +5,13 @@
 #include <strings.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/util.h>
 
 struct cmd_results *
 cmd_focus_wrapping(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "focus_wrapping", EXPECTED_EQUAL_TO, 1))) {
         return error;

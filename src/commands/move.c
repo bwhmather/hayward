@@ -22,6 +22,7 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/stringop.h>
 #include <hayward/tree.h>
 #include <hayward/tree/column.h>
@@ -494,6 +495,8 @@ static const char expected_full_syntax[] =
 
 struct cmd_results *
 cmd_move(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "move", EXPECTED_AT_LEAST, 1))) {
         return error;

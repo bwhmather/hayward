@@ -15,6 +15,7 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 
 enum operation {
@@ -26,6 +27,8 @@ enum operation {
 // pointer_constraint [enable|disable|escape]
 struct cmd_results *
 seat_cmd_pointer_constraint(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "pointer_constraint", EXPECTED_EQUAL_TO, 1))) {
         return error;

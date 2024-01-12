@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 static const char min_usage[] = "Expected 'floating_minimum_size <width> x <height>'";
 
@@ -45,6 +46,8 @@ handle_command(
 
 struct cmd_results *
 cmd_floating_minimum_size(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     return handle_command(
         argc, argv, "floating_minimum_size", min_usage, &config->floating_minimum_width,
         &config->floating_minimum_height
@@ -53,6 +56,8 @@ cmd_floating_minimum_size(int argc, char **argv) {
 
 struct cmd_results *
 cmd_floating_maximum_size(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     return handle_command(
         argc, argv, "floating_maximum_size", max_usage, &config->floating_maximum_width,
         &config->floating_maximum_height

@@ -18,6 +18,7 @@
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 
 struct xkb_switch_layout_action {
@@ -61,6 +62,8 @@ get_layout_relative(struct wlr_keyboard *kbd, int dir) {
 
 struct cmd_results *
 input_cmd_xkb_switch_layout(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "xkb_switch_layout", EXPECTED_EQUAL_TO, 1))) {
         return error;

@@ -10,10 +10,13 @@
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/stringop.h>
 
 struct cmd_results *
 cmd_haywardnag_command(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "haywardnag_command", EXPECTED_AT_LEAST, 1))) {
         return error;

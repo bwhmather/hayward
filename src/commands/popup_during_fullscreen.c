@@ -5,9 +5,12 @@
 #include <strings.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 cmd_popup_during_fullscreen(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "popup_during_fullscreen", EXPECTED_EQUAL_TO, 1))) {
         return error;

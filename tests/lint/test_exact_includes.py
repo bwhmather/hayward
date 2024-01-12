@@ -93,6 +93,7 @@ def test():
 
         unused = set(includes)
         unused.discard("config.h")
+        unused.discard("sysprof-capture.h")
         if source_path.is_relative_to(INCLUDE_ROOT) and source_path.relative_to(
             INCLUDE_ROOT
         ) == pathlib.Path("input/cursor.h"):

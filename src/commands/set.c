@@ -10,6 +10,7 @@
 
 #include <hayward/config.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/stringop.h>
 
 // sort in order of longest->shortest
@@ -32,6 +33,8 @@ free_hwd_variable(struct hwd_variable *var) {
 
 struct cmd_results *
 cmd_set(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "set", EXPECTED_AT_LEAST, 2))) {
         return error;

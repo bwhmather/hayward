@@ -11,6 +11,7 @@
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/profiler.h>
 
 // must be in order for the bsearch
 // these handlers alter the seat config
@@ -43,6 +44,8 @@ config_handlers(int argc, char **argv) {
 
 struct cmd_results *
 cmd_seat(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "seat", EXPECTED_AT_LEAST, 2))) {
         return error;

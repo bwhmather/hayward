@@ -14,11 +14,14 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 #include <hayward/util.h>
 
 struct cmd_results *
 seat_cmd_hide_cursor(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "hide_cursor", EXPECTED_AT_LEAST, 1))) {
         return error;

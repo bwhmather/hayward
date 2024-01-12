@@ -18,6 +18,7 @@
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 
 static void
@@ -128,6 +129,8 @@ toggle_send_events(int argc, char **argv) {
 
 struct cmd_results *
 input_cmd_events(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "events", EXPECTED_AT_LEAST, 1))) {
         return error;

@@ -42,6 +42,7 @@ subproject(
   version: wlroots_version,
 )
 
+sysprof_dep = dependency('sysprof-capture-4', required: false, include_type: 'system')
 wayland_server_dep = dependency('wayland-server', version: '>=1.21.0')
 wayland_cursor_dep = dependency('wayland-cursor')
 wayland_protos_dep = dependency('wayland-protocols', version: '>=1.24')
@@ -96,6 +97,7 @@ conf_data.set10('HAVE_XWAYLAND', have_xwayland)
 conf_data.set10('HAVE_LIBSYSTEMD', sdbus.found() and sdbus.name() == 'libsystemd')
 conf_data.set10('HAVE_LIBELOGIND', sdbus.found() and sdbus.name() == 'libelogind')
 conf_data.set10('HAVE_BASU', sdbus.found() and sdbus.name() == 'basu')
+conf_data.set10('HAVE_SYSPROF', sysprof_dep.found())
 
 scdoc = dependency('scdoc', version: '>=1.9.2', native: true, required: get_option('man-pages'))
 if scdoc.found()
@@ -327,6 +329,7 @@ hayward_deps = [
   pango_cairo_dep,
   pixman_dep,
   server_protos_dep,
+  sysprof_dep,
   wayland_server_dep,
   wlroots_dep,
   xkbcommon_dep,

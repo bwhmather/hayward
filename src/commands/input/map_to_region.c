@@ -9,9 +9,12 @@
 #include <wlr/util/box.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 struct cmd_results *
 input_cmd_map_to_region(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "map_to_region", EXPECTED_EQUAL_TO, 4))) {
         return error;

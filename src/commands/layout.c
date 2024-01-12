@@ -9,6 +9,7 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
@@ -18,6 +19,8 @@ static const char expected_syntax[] = "Expected 'layout stacking|split'";
 
 struct cmd_results *
 cmd_layout(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "layout", EXPECTED_AT_LEAST, 1))) {
         return error;

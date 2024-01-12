@@ -29,6 +29,7 @@
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/desktop/idle_inhibit_v1.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>
@@ -280,6 +281,8 @@ root_set_dirty(struct hwd_root *root) {
 
 void
 root_arrange(struct hwd_root *root) {
+    HWD_PROFILER_TRACE();
+
     if (config->reloading) {
         return;
     }

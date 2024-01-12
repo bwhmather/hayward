@@ -21,6 +21,7 @@
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
@@ -524,6 +525,8 @@ column_arrange_stacked(struct hwd_column *column) {
 
 void
 column_arrange(struct hwd_column *column) {
+    HWD_PROFILER_TRACE();
+
     if (config->reloading) {
         return;
     }

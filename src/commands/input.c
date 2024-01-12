@@ -11,6 +11,7 @@
 
 #include <hayward/config.h>
 #include <hayward/input/input_manager.h>
+#include <hayward/profiler.h>
 
 // must be in order for the bsearch
 static const struct cmd_handler input_handlers[] = {
@@ -53,6 +54,8 @@ static const struct cmd_handler input_config_handlers[] = {
 
 struct cmd_results *
 cmd_input(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "input", EXPECTED_AT_LEAST, 2))) {
         return error;

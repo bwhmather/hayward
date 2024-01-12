@@ -10,6 +10,7 @@
 #include <strings.h>
 
 #include <hayward/config.h>
+#include <hayward/profiler.h>
 
 static const struct {
     const char *name;
@@ -44,6 +45,8 @@ parse_sources(int argc, char **argv) {
 
 struct cmd_results *
 seat_cmd_idle_inhibit(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "idle_inhibit", EXPECTED_AT_LEAST, 1))) {
         return error;
@@ -62,6 +65,8 @@ seat_cmd_idle_inhibit(int argc, char **argv) {
 
 struct cmd_results *
 seat_cmd_idle_wake(int argc, char **argv) {
+    HWD_PROFILER_TRACE();
+
     struct cmd_results *error = NULL;
     if ((error = checkarg(argc, "idle_wake", EXPECTED_AT_LEAST, 1))) {
         return error;
