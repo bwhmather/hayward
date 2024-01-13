@@ -310,7 +310,6 @@ hayward_sources = files(
   'src/tree/view.c',
   'src/tree/window.c',
   'src/tree/workspace.c',
-  'src/tree.c',
 
   'src/list.c',
   'src/pango.c',
