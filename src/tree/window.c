@@ -550,9 +550,6 @@ window_fullscreen_disable(struct hwd_window *window) {
     assert(window_is_alive(window));
     assert(window->pending.output);
 
-    struct hwd_workspace *workspace = window->pending.workspace;
-    assert(workspace != NULL);
-
     if (!window->pending.fullscreen) {
         return;
     }
@@ -579,9 +576,6 @@ static void
 window_fullscreen_enable(struct hwd_window *window) {
     assert(window != NULL);
     assert(window_is_alive(window));
-
-    struct hwd_workspace *workspace = window->pending.workspace;
-    assert(workspace != NULL);
 
     if (window->pending.fullscreen) {
         return;
