@@ -66,7 +66,6 @@ struct hwd_output {
     struct {
         struct wlr_scene_tree *shell_background;
         struct wlr_scene_tree *shell_bottom;
-        struct wlr_scene_tree *tiling;
         struct wlr_scene_tree *fullscreen;
         struct wlr_scene_tree *shell_top;
         struct wlr_scene_tree *shell_overlay;
