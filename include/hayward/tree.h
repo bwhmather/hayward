@@ -4,7 +4,6 @@
 #include <wlr/types/wlr_output_layout.h>
 
 #include <hayward/tree/column.h>
-#include <hayward/tree/output.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 
@@ -42,13 +41,5 @@ hwd_move_window_to_column(struct hwd_window *window, struct hwd_column *destinat
 
 void
 hwd_move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *workspace);
-
-void
-hwd_move_window_to_output_from_direction(
-    struct hwd_window *window, struct hwd_output *output, enum wlr_direction move_dir
-);
-
-void
-hwd_move_window_to_output(struct hwd_window *window, struct hwd_output *output);
 
 #endif
