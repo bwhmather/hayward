@@ -134,6 +134,12 @@ seat_get_target_at(
     scene_node = wlr_scene_node_at(&root->layers.outputs->node, lx, ly, sx_out, sy_out);
     *surface_out = scene_node_try_get_surface(scene_node);
     while (scene_node != NULL) {
+        struct hwd_window *window = window_for_scene_node(scene_node);
+        if (window != NULL) {
+            *window_out = window;
+            return;
+        }
+
         struct hwd_layer_surface *layer_surface = layer_surface_for_scene_node(scene_node);
         if (layer_surface != NULL) {
             return;
