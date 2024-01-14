@@ -16,6 +16,12 @@ struct hwd_theme_nineslice {
     int bottom_break;
 };
 
+struct hwd_theme_button {
+    struct wlr_buffer *normal;
+    struct wlr_buffer *hover;
+    struct wlr_buffer *press;
+};
+
 struct hwd_theme_window {
     struct hwd_theme_nineslice titlebar;
     struct hwd_theme_nineslice shaded_titlebar;
@@ -23,6 +29,9 @@ struct hwd_theme_window {
 
     PangoFontDescription *text_font;
     struct hwd_colour text_colour;
+
+    struct hwd_theme_button button_close;
+
     int titlebar_h_padding;
     int titlebar_v_padding;
 };

@@ -130,6 +130,7 @@ struct hwd_window {
 
         struct wlr_scene_node *titlebar;
         struct wlr_scene_node *titlebar_text;
+        struct wlr_scene_node *titlebar_button_close;
         struct wlr_scene_node *border;
 
         struct wlr_scene_tree *content_tree;

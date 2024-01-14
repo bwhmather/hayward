@@ -69,6 +69,8 @@ window_init_scene(struct hwd_window *window) {
         hwd_text_node_create(scene_tree, "", text_color, config->font_description);
     assert(window->layers.titlebar_text != NULL);
 
+    window->layers.titlebar_button_close = &wlr_scene_buffer_create(scene_tree, NULL)->node;
+
     window->layers.border = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
     assert(window->layers.border != NULL);
 
@@ -111,6 +113,15 @@ window_update_scene(struct hwd_window *window) {
         window->layers.titlebar_text, width - 2 * theme->titlebar_h_padding
     );
     hwd_text_node_set_color(window->layers.titlebar_text, theme->text_colour);
+
+    wlr_scene_node_set_enabled(window->layers.titlebar_button_close, !fullscreen);
+    wlr_scene_buffer_set_buffer(
+        wlr_scene_buffer_from_node(window->layers.titlebar_button_close), theme->button_close.normal
+    );
+    wlr_scene_node_set_position(
+        window->layers.titlebar_button_close, width - theme->titlebar_h_padding - 16,
+        theme->titlebar_v_padding
+    );
 
     // Border.
     wlr_scene_node_set_enabled(window->layers.border, !fullscreen && !shaded);

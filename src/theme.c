@@ -364,6 +364,43 @@ gen_tiled_border(struct hwd_default_theme_colours colours) {
     return out;
 }
 
+static void
+button_background_normal(cairo_t *cairo, struct hwd_default_theme_colours colours) {
+    cairo_save(cairo);
+    cairo_move_to(cairo, 0, 0);
+    cairo_line_to(cairo, 16, 0);
+    cairo_line_to(cairo, 16, 16);
+    cairo_line_to(cairo, 0, 16);
+    cairo_close_path(cairo);
+    cairo_set_source_rgba(cairo, 1.0, 1.0, 0.0, 1.0);
+    cairo_fill(cairo);
+    cairo_restore(cairo);
+}
+
+static struct hwd_theme_button
+gen_button_close(struct hwd_default_theme_colours colours) {
+    struct wlr_buffer *buffer;
+    cairo_t *cairo;
+    struct hwd_theme_button button;
+
+    buffer = hwd_cairo_buffer_create(16, 16);
+    cairo = hwd_cairo_buffer_get_context(buffer);
+    button_background_normal(cairo, colours);
+    button.normal = buffer;
+
+    buffer = hwd_cairo_buffer_create(16, 16);
+    cairo = hwd_cairo_buffer_get_context(buffer);
+    button_background_normal(cairo, colours);
+    button.hover = buffer;
+
+    buffer = hwd_cairo_buffer_create(16, 16);
+    cairo = hwd_cairo_buffer_get_context(buffer);
+    button_background_normal(cairo, colours);
+    button.press = buffer;
+
+    return button;
+}
+
 static struct hwd_theme_window
 gen_single_floating(struct hwd_default_theme_colours colours) {
     struct hwd_theme_window window_theme = {
@@ -372,6 +409,7 @@ gen_single_floating(struct hwd_default_theme_colours colours) {
         .border = gen_floating_border(colours),
         .text_font = NULL,
         .text_colour = colours.foreground,
+        .button_close = gen_button_close(colours),
         .titlebar_h_padding = 5,
         .titlebar_v_padding = 4,
     };
@@ -386,6 +424,7 @@ gen_single_tiled_head(struct hwd_default_theme_colours colours) {
         .border = gen_tiled_border(colours),
         .text_font = NULL,
         .text_colour = colours.foreground,
+        .button_close = gen_button_close(colours),
         .titlebar_h_padding = 5,
         .titlebar_v_padding = 4,
     };
@@ -400,6 +439,7 @@ gen_single_tiled(struct hwd_default_theme_colours colours) {
         .border = gen_tiled_border(colours),
         .text_font = NULL,
         .text_colour = colours.foreground,
+        .button_close = gen_button_close(colours),
         .titlebar_h_padding = 5,
         .titlebar_v_padding = 4,
     };
