@@ -55,8 +55,6 @@ root_validate(struct hwd_root *root);
 static void
 root_init_scene(struct hwd_root *root) {
     root->root_scene = wlr_scene_create();
-    root->orphans = wlr_scene_tree_create(&root->root_scene->tree);
-    wlr_scene_node_set_enabled(&root->orphans->node, false);
 
     root->layers.workspaces = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.outputs = wlr_scene_tree_create(&root->root_scene->tree);
@@ -103,7 +101,7 @@ root_update_layer_workspaces(struct hwd_root *root) {
         struct wlr_scene_node *node = wl_container_of(link, node, link);
         link = link->prev;
         if (node->parent == root->layers.workspaces) {
-            wlr_scene_node_reparent(node, root->orphans); // TODO
+            wlr_scene_node_reparent(node, NULL);
         }
     }
 }

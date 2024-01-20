@@ -47,7 +47,7 @@
 
 void
 view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl) {
-    view->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
+    view->scene_tree = wlr_scene_tree_create(NULL);
     assert(view->scene_tree != NULL);
 
     view->layers.content_tree = wlr_scene_tree_create(view->scene_tree);

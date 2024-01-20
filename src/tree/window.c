@@ -51,14 +51,14 @@ static const struct wlr_addon_interface scene_tree_marker_interface = {
 
 static void
 window_init_scene(struct hwd_window *window) {
-    window->scene_tree = wlr_scene_tree_create(root->orphans); // TODO
+    window->scene_tree = wlr_scene_tree_create(NULL);
     assert(window->scene_tree != NULL);
     wlr_addon_init(
         &window->scene_tree_marker, &window->scene_tree->node.addons, &scene_tree_marker_interface,
         &scene_tree_marker_interface
     );
 
-    struct wlr_scene_tree *scene_tree = wlr_scene_tree_create(window->scene_tree); // TODO
+    struct wlr_scene_tree *scene_tree = wlr_scene_tree_create(window->scene_tree);
     window->layers.inner_tree = scene_tree;
 
     window->layers.titlebar = hwd_nineslice_node_create(scene_tree, NULL, 0, 0, 0, 0);
@@ -142,7 +142,7 @@ window_update_scene(struct hwd_window *window) {
     struct hwd_view *view = window->view;
     if (view->window != window || window->committed.dead) {
         if (view->scene_tree->node.parent == window->layers.content_tree) {
-            wlr_scene_node_reparent(&view->scene_tree->node, root->orphans);
+            wlr_scene_node_reparent(&view->scene_tree->node, NULL);
         }
     } else {
         // If the view hasn't responded to the configure, center it within
@@ -158,7 +158,7 @@ window_update_scene(struct hwd_window *window) {
 
 static void
 window_destroy_scene(struct hwd_window *window) {
-    assert(&window->scene_tree->node.parent->node == &root->orphans->node);
+    assert(&window->scene_tree->node.parent->node == NULL);
 
     wlr_scene_node_destroy(&window->layers.inner_tree->node);
 

@@ -62,7 +62,7 @@ output_update_scene(struct hwd_output *output) {
         struct wlr_scene_node *node = wl_container_of(link, node, link);
 
         if (fullscreen_window == NULL || node != &fullscreen_window->scene_tree->node) {
-            wlr_scene_node_reparent(node, root->orphans);
+            wlr_scene_node_reparent(node, NULL);
         }
     }
 

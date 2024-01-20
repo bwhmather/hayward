@@ -80,7 +80,6 @@ struct hwd_root {
     struct hwd_theme *orphaned_theme;
 
     struct wlr_scene *root_scene;
-    struct wlr_scene_tree *orphans;
     struct {
         struct wlr_scene_tree *workspaces;
         struct wlr_scene_tree *outputs;

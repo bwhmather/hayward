@@ -43,7 +43,7 @@ workspace_find_window(
 
 static void
 workspace_init_scene(struct hwd_workspace *workspace) {
-    workspace->scene_tree = wlr_scene_tree_create(root->orphans);
+    workspace->scene_tree = wlr_scene_tree_create(NULL);
     assert(workspace->scene_tree != NULL);
 
     workspace->layers.separators = wlr_scene_tree_create(workspace->scene_tree);
@@ -141,7 +141,7 @@ workspace_update_layer_tiling(struct hwd_workspace *workspace) {
         struct wlr_scene_node *node = wl_container_of(link, node, link);
         link = link->prev;
         if (node->parent == workspace->layers.tiling) {
-            wlr_scene_node_reparent(node, root->orphans); // TODO
+            wlr_scene_node_reparent(node, NULL);
         }
     }
 }
@@ -181,7 +181,7 @@ workspace_update_layer_floating(struct hwd_workspace *workspace) {
         struct wlr_scene_node *node = wl_container_of(link, node, link);
         link = link->prev;
         if (node->parent == workspace->layers.floating) {
-            wlr_scene_node_reparent(node, root->orphans); // TODO
+            wlr_scene_node_reparent(node, NULL);
         }
     }
 }

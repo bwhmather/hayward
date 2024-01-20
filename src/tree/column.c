@@ -36,7 +36,7 @@ column_detach(struct hwd_column *column);
 
 static void
 column_init_scene(struct hwd_column *column) {
-    column->scene_tree = wlr_scene_tree_create(root->orphans);
+    column->scene_tree = wlr_scene_tree_create(NULL);
     assert(column->scene_tree != NULL);
 
     column->layers.child_tree = wlr_scene_tree_create(column->scene_tree);
@@ -80,7 +80,7 @@ column_update_scene(struct hwd_column *column) {
         struct wlr_scene_node *node = wl_container_of(link, node, link);
         link = link->prev;
         if (node->parent == column->layers.child_tree) {
-            wlr_scene_node_reparent(node, root->orphans); // TODO
+            wlr_scene_node_reparent(node, NULL);
         }
     }
 
