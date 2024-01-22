@@ -81,10 +81,11 @@ struct hwd_root {
 
     struct wlr_scene *root_scene;
     struct {
+        struct wlr_scene_tree *background;
         struct wlr_scene_tree *workspaces;
-        struct wlr_scene_tree *outputs;
         struct wlr_scene_tree *unmanaged;
         struct wlr_scene_tree *moving;
+        struct wlr_scene_tree *overlay;
         struct wlr_scene_tree *popups;
     } layers;
 

@@ -56,10 +56,11 @@ static void
 root_init_scene(struct hwd_root *root) {
     root->root_scene = wlr_scene_create();
 
+    root->layers.background = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.workspaces = wlr_scene_tree_create(&root->root_scene->tree);
-    root->layers.outputs = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.unmanaged = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.moving = wlr_scene_tree_create(&root->root_scene->tree);
+    root->layers.overlay = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.popups = wlr_scene_tree_create(&root->root_scene->tree);
 }
 

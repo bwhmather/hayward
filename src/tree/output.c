@@ -45,12 +45,14 @@ output_is_alive(struct hwd_output *output);
 
 static void
 output_init_scene(struct hwd_output *output) {
-    output->scene_tree = wlr_scene_tree_create(root->layers.outputs);
-    output->layers.shell_background = wlr_scene_tree_create(output->scene_tree);
-    output->layers.shell_bottom = wlr_scene_tree_create(output->scene_tree);
-    output->layers.fullscreen = wlr_scene_tree_create(output->scene_tree);
-    output->layers.shell_top = wlr_scene_tree_create(output->scene_tree);
-    output->layers.shell_overlay = wlr_scene_tree_create(output->scene_tree);
+    output->scene_tree_background = wlr_scene_tree_create(root->layers.background);
+    output->layers.shell_background = wlr_scene_tree_create(output->scene_tree_background);
+    output->layers.shell_bottom = wlr_scene_tree_create(output->scene_tree_background);
+
+    output->scene_tree_overlay = wlr_scene_tree_create(root->layers.overlay);
+    output->layers.fullscreen = wlr_scene_tree_create(output->scene_tree_overlay);
+    output->layers.shell_top = wlr_scene_tree_create(output->scene_tree_overlay);
+    output->layers.shell_overlay = wlr_scene_tree_create(output->scene_tree_overlay);
 }
 
 static void
@@ -73,7 +75,8 @@ output_update_scene(struct hwd_output *output) {
 
 static void
 output_destroy_scene(struct hwd_output *output) {
-    wlr_scene_node_destroy(&output->scene_tree->node);
+    wlr_scene_node_destroy(&output->scene_tree_background->node);
+    wlr_scene_node_destroy(&output->scene_tree_overlay->node);
 }
 
 static void

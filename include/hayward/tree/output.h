@@ -61,7 +61,8 @@ struct hwd_output {
     struct hwd_output_state committed;
     struct hwd_output_state current;
 
-    struct wlr_scene_tree *scene_tree;
+    struct wlr_scene_tree *scene_tree_background;
+    struct wlr_scene_tree *scene_tree_overlay;
 
     struct {
         struct wlr_scene_tree *shell_background;
