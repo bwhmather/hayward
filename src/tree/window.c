@@ -498,10 +498,10 @@ window_arrange(struct hwd_window *window) {
     struct hwd_window_state *state = &window->pending;
 
     if (state->fullscreen) {
-        state->content_x = state->x;
-        state->content_y = state->y;
-        state->content_width = state->width;
-        state->content_height = state->height;
+        state->content_x = state->output->pending.x;
+        state->content_y = state->output->pending.y;
+        state->content_width = state->output->pending.width;
+        state->content_height = state->output->pending.height;
     } else {
         state->titlebar_height = hwd_theme_window_get_titlebar_height(state->theme);
         state->border_left = hwd_theme_window_get_border_left(state->theme);
@@ -633,21 +633,8 @@ window_handle_fullscreen_reparent(struct hwd_window *window) {
         return;
     }
 
-    // Temporarily mark window as not fullscreen so that we can check the
-    // previous fullscreen window for the workspace.
-    window->pending.fullscreen = false;
-    struct hwd_window *previous = workspace_get_fullscreen_window_for_output(workspace, output);
-    window->pending.fullscreen = true;
-
-    if (previous) {
-        window_fullscreen_disable(previous);
-    }
-
-    if (workspace->pending.focused) {
-        output_reconcile(output);
-    }
-
-    workspace_arrange(window->pending.workspace);
+    workspace_set_fullscreen_window_for_output(workspace, output, window);
+    workspace_arrange(workspace);
 }
 
 void
@@ -854,10 +841,6 @@ window_set_geometry_from_content(struct hwd_window *window) {
 
 bool
 window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor) {
-    if (config->popup_during_fullscreen != POPUP_SMART) {
-        return false;
-    }
-
     return view_is_transient_for(child->view, ancestor->view);
 }
 

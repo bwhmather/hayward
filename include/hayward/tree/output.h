@@ -30,11 +30,6 @@ struct hwd_output_state {
     int x, y;
     int width, height;
 
-    // Cached reference to the first fullscreen window on the active
-    // workspace for this output.  Null if no active workspace or no
-    // fullscreen window on this output.
-    struct hwd_window *fullscreen_window;
-
     bool dead;
 };
 

@@ -252,7 +252,8 @@ should_focus(struct hwd_view *view) {
     }
 
     // View opened "under" fullscreen view should not be given focus.
-    if (map_output != NULL && map_output->pending.fullscreen_window != NULL) {
+    if (map_output != NULL &&
+        workspace_get_fullscreen_window_for_output(map_workspace, map_output) != NULL) {
         return false;
     }
 
@@ -364,15 +365,6 @@ view_map(
             column_arrange(view->window->pending.parent);
         } else {
             workspace_arrange(workspace);
-        }
-    }
-
-    if (config->popup_during_fullscreen == POPUP_LEAVE && view->window->pending.output &&
-        view->window->pending.output->pending.fullscreen_window &&
-        view->window->pending.output->pending.fullscreen_window->view) {
-        struct hwd_window *fs = view->window->pending.output->pending.fullscreen_window;
-        if (view_is_transient_for(view, fs->view)) {
-            workspace_set_fullscreen_window_for_output(workspace, fs->pending.output, NULL);
         }
     }
 
@@ -605,7 +597,7 @@ view_is_visible(struct hwd_view *view) {
     }
 
     // Check view isn't hidden by another fullscreen view
-    struct hwd_window *fs = output->pending.fullscreen_window;
+    struct hwd_window *fs = workspace_get_fullscreen_window_for_output(workspace, output);
     if (fs && !window_is_fullscreen(view->window) && !window_is_transient_for(view->window, fs)) {
         return false;
     }

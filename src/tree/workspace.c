@@ -54,6 +54,9 @@ workspace_init_scene(struct hwd_workspace *workspace) {
 
     workspace->layers.floating = wlr_scene_tree_create(workspace->scene_tree);
     assert(workspace->layers.floating != NULL);
+
+    workspace->layers.fullscreen = wlr_scene_tree_create(workspace->scene_tree);
+    assert(workspace->layers.fullscreen != NULL);
 }
 
 static void
@@ -187,12 +190,50 @@ workspace_update_layer_floating(struct hwd_workspace *workspace) {
 }
 
 static void
+workspace_update_layer_fullscreen(struct hwd_workspace *workspace) {
+    struct wl_list *link = &workspace->layers.fullscreen->children;
+
+    if (workspace->committed.fullscreen->length) {
+        list_t *windows = workspace->committed.fullscreen;
+        struct hwd_window *prev_window = NULL;
+        for (int window_index = windows->length - 1; window_index >= 0; window_index--) {
+            struct hwd_window *window = windows->items[window_index];
+
+            wlr_scene_node_reparent(&window->scene_tree->node, workspace->layers.fullscreen);
+            if (prev_window) {
+                wlr_scene_node_place_below(
+                    &window->scene_tree->node, &prev_window->scene_tree->node
+                );
+            } else {
+                wlr_scene_node_raise_to_top(&window->scene_tree->node);
+            }
+
+            prev_window = window;
+        }
+
+        link = &prev_window->scene_tree->node.link;
+    }
+
+    // Iterate over any nodes that haven't been moved to the top as a result
+    // of belonging to a child and unparent them.
+    link = link->prev;
+    while (link != &workspace->layers.fullscreen->children) {
+        struct wlr_scene_node *node = wl_container_of(link, node, link);
+        link = link->prev;
+        if (node->parent == workspace->layers.fullscreen) {
+            wlr_scene_node_reparent(node, NULL);
+        }
+    }
+}
+
+static void
 workspace_update_scene(struct hwd_workspace *workspace) {
     wlr_scene_node_set_enabled(&workspace->scene_tree->node, workspace->committed.focused);
 
     workspace_update_layer_separators(workspace);
     workspace_update_layer_tiling(workspace);
     workspace_update_layer_floating(workspace);
+    workspace_update_layer_fullscreen(workspace);
 }
 
 static void
@@ -202,10 +243,15 @@ workspace_destroy_scene(struct hwd_workspace *workspace) {
 
 static void
 workspace_copy_state(struct hwd_workspace_state *tgt, struct hwd_workspace_state *src) {
+    list_t *tgt_fullscreen = tgt->fullscreen;
     list_t *tgt_floating = tgt->floating;
     list_t *tgt_columns = tgt->columns;
 
     memcpy(tgt, src, sizeof(struct hwd_workspace_state));
+
+    tgt->fullscreen = tgt_fullscreen;
+    list_clear(tgt->fullscreen);
+    list_cat(tgt->fullscreen, src->fullscreen);
 
     tgt->floating = tgt_floating;
     list_clear(tgt->floating);
@@ -294,10 +340,13 @@ workspace_create(const char *name) {
 
     workspace->name = name ? strdup(name) : NULL;
 
+    workspace->pending.fullscreen = create_list();
     workspace->pending.floating = create_list();
     workspace->pending.columns = create_list();
+    workspace->committed.fullscreen = create_list();
     workspace->committed.floating = create_list();
     workspace->committed.columns = create_list();
+    workspace->current.fullscreen = create_list();
     workspace->current.floating = create_list();
     workspace->current.columns = create_list();
 
@@ -321,10 +370,13 @@ workspace_destroy(struct hwd_workspace *workspace) {
     workspace_destroy_scene(workspace);
 
     free(workspace->name);
+    list_free(workspace->pending.fullscreen);
     list_free(workspace->pending.floating);
     list_free(workspace->pending.columns);
+    list_free(workspace->committed.fullscreen);
     list_free(workspace->committed.floating);
     list_free(workspace->committed.columns);
+    list_free(workspace->current.fullscreen);
     list_free(workspace->current.floating);
     list_free(workspace->current.columns);
     free(workspace);
@@ -358,6 +410,10 @@ workspace_consider_destroy(struct hwd_workspace *workspace) {
         return;
     }
 
+    if (workspace->pending.fullscreen->length) {
+        return;
+    }
+
     if (workspace->pending.focused) {
         return;
     }
@@ -377,6 +433,10 @@ workspace_set_dirty(struct hwd_workspace *workspace) {
     wl_signal_add(&transaction_manager->events.commit, &workspace->transaction_commit);
     hwd_transaction_manager_ensure_queued(transaction_manager);
 
+    for (int i = 0; i < workspace->committed.fullscreen->length; i++) {
+        struct hwd_window *window = workspace->committed.fullscreen->items[i];
+        window_set_dirty(window);
+    }
     for (int i = 0; i < workspace->committed.floating->length; i++) {
         struct hwd_window *window = workspace->committed.floating->items[i];
         window_set_dirty(window);
@@ -386,11 +446,14 @@ workspace_set_dirty(struct hwd_workspace *workspace) {
         column_set_dirty(column);
     }
 
+    for (int i = 0; i < workspace->pending.fullscreen->length; i++) {
+        struct hwd_window *window = workspace->pending.fullscreen->items[i];
+        window_set_dirty(window);
+    }
     for (int i = 0; i < workspace->pending.floating->length; i++) {
         struct hwd_window *window = workspace->pending.floating->items[i];
         window_set_dirty(window);
     }
-
     for (int i = 0; i < workspace->pending.columns->length; i++) {
         struct hwd_column *column = workspace->pending.columns->items[i];
         column_set_dirty(column);
@@ -464,6 +527,8 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
         return;
     }
 
+    // TODO fullscreen.
+
     for (int column_index = 0; column_index < workspace->pending.columns->length; column_index++) {
         struct hwd_column *column = workspace->pending.columns->items[column_index];
         column_reconcile(column, workspace, column->pending.output);
@@ -493,6 +558,8 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
     }
 
     if (dirty) {
+        // TODO fullscreen.
+
         for (int column_index = 0; column_index < workspace->pending.columns->length;
              column_index++) {
             struct hwd_column *column = workspace->pending.columns->items[column_index];
@@ -627,6 +694,22 @@ arrange_tiling(struct hwd_workspace *workspace) {
     }
 }
 
+static void
+arrange_fullscreen(struct hwd_workspace *workspace) {
+    list_t *fullscreen = workspace->pending.fullscreen;
+    for (int i = 0; i < fullscreen->length; ++i) {
+        struct hwd_window *window = fullscreen->items[i];
+
+        window->pending.x = window->pending.output->pending.x;
+        window->pending.y = window->pending.output->pending.y;
+        window->pending.width = window->pending.output->pending.width;
+        window->pending.height = window->pending.output->pending.height;
+        window->pending.shaded = false;
+
+        window_arrange(window);
+    }
+}
+
 void
 workspace_arrange(struct hwd_workspace *workspace) {
     HWD_PROFILER_TRACE();
@@ -639,6 +722,7 @@ workspace_arrange(struct hwd_workspace *workspace) {
 
     arrange_tiling(workspace);
     arrange_floating(workspace);
+    arrange_fullscreen(workspace);
 
     workspace_set_dirty(workspace);
 }
@@ -1086,20 +1170,16 @@ workspace_set_fullscreen_window_for_output(
     }
 
     if (old_window != NULL) {
+        int index = list_find(workspace->pending.fullscreen, old_window);
+        assert(index != -1);
+        list_del(workspace->pending.fullscreen, index);
         window_set_fullscreen(old_window, false);
     }
 
     if (window != NULL) {
-        if (window->pending.fullscreen) {
-            // TODO reconcile old output.
-        }
-
+        list_add(workspace->pending.fullscreen, window);
         window->pending.output = output;
         window_set_fullscreen(window, true);
-    }
-
-    if (workspace->pending.focused) {
-        output_reconcile(output);
     }
 }
 

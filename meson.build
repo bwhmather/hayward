@@ -246,7 +246,6 @@ hayward_sources = files(
   'src/commands/mode.c',
   'src/commands/move.c',
   'src/commands/nop.c',
-  'src/commands/popup_during_fullscreen.c',
   'src/commands/reload.c',
   'src/commands/resize.c',
   'src/commands/seat.c',

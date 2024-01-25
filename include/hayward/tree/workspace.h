@@ -21,8 +21,9 @@ enum hwd_focus_mode {
 struct hwd_view;
 
 struct hwd_workspace_state {
-    list_t *floating; // struct hwd_window
-    list_t *columns;  // struct hwd_column
+    list_t *floating;   // struct hwd_window
+    list_t *columns;    // struct hwd_column
+    list_t *fullscreen; // struct hwd_window
 
     // Cached backlink to root of tree.
     struct hwd_root *root;
@@ -58,6 +59,7 @@ struct hwd_workspace {
         struct wlr_scene_tree *separators;
         struct wlr_scene_tree *tiling;
         struct wlr_scene_tree *floating;
+        struct wlr_scene_tree *fullscreen;
     } layers;
 
     struct wl_listener transaction_commit;

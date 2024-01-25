@@ -242,12 +242,6 @@ enum edge_border_types {
     E_BOTH,       /**< hide vertical and horizontal edge borders */
 };
 
-enum hwd_popup_during_fullscreen {
-    POPUP_SMART,
-    POPUP_IGNORE,
-    POPUP_LEAVE,
-};
-
 enum focus_follows_mouse_mode {
     FOLLOWS_NO,
     FOLLOWS_YES,
@@ -303,7 +297,6 @@ struct hwd_config {
     int font_baseline;
     size_t urgent_timeout;
     enum hwd_fowa focus_on_window_activation;
-    enum hwd_popup_during_fullscreen popup_during_fullscreen;
     enum xwayland_mode xwayland;
 
     // Flags

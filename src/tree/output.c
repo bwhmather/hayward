@@ -50,27 +50,13 @@ output_init_scene(struct hwd_output *output) {
     output->layers.shell_bottom = wlr_scene_tree_create(output->scene_tree_background);
 
     output->scene_tree_overlay = wlr_scene_tree_create(root->layers.overlay);
-    output->layers.fullscreen = wlr_scene_tree_create(output->scene_tree_overlay);
     output->layers.shell_top = wlr_scene_tree_create(output->scene_tree_overlay);
     output->layers.shell_overlay = wlr_scene_tree_create(output->scene_tree_overlay);
 }
 
 static void
 output_update_scene(struct hwd_output *output) {
-    struct hwd_window *fullscreen_window = output->committed.fullscreen_window;
-
-    if (!wl_list_empty(&output->layers.fullscreen->children)) {
-        struct wl_list *link = output->layers.fullscreen->children.next;
-        struct wlr_scene_node *node = wl_container_of(link, node, link);
-
-        if (fullscreen_window == NULL || node != &fullscreen_window->scene_tree->node) {
-            wlr_scene_node_reparent(node, NULL);
-        }
-    }
-
-    if (fullscreen_window != NULL) {
-        wlr_scene_node_reparent(&fullscreen_window->scene_tree->node, output->layers.fullscreen);
-    }
+    // TODO layer transactions
 }
 
 static void
@@ -201,6 +187,8 @@ output_evacuate(struct hwd_output *output) {
     for (int i = 0; i < root->pending.workspaces->length; i++) {
         struct hwd_workspace *workspace = root->pending.workspaces->items[i];
 
+        workspace_set_fullscreen_window_for_output(workspace, output, NULL);
+
         // Move tiling windows.
         for (int j = 0; j < workspace->pending.columns->length; j++) {
             struct hwd_column *column = workspace->pending.columns->items[j];
@@ -212,8 +200,6 @@ output_evacuate(struct hwd_output *output) {
             column->pending.output = new_output;
             for (int k = 0; k < column->pending.children->length; k++) {
                 struct hwd_window *window = column->pending.children->items[k];
-
-                window->pending.fullscreen = false;
                 window->pending.output = output;
             }
         }
@@ -224,8 +210,6 @@ output_evacuate(struct hwd_output *output) {
             if (window->pending.output != output) {
                 continue;
             }
-
-            window->pending.fullscreen = false;
             window->pending.output = output;
 
             window_floating_move_to_center(window);
@@ -300,15 +284,6 @@ output_from_wlr_output(struct wlr_output *output) {
 void
 output_reconcile(struct hwd_output *output) {
     assert(output != NULL);
-
-    struct hwd_workspace *workspace = root_get_active_workspace(root);
-    if (workspace == NULL) {
-        output->pending.fullscreen_window = NULL;
-    }
-
-    output->pending.fullscreen_window =
-        workspace_get_fullscreen_window_for_output(workspace, output);
-
     output_set_dirty(output);
 }
 
@@ -323,15 +298,6 @@ output_arrange(struct hwd_output *output) {
     output->pending.y = output_box.y;
     output->pending.width = output_box.width;
     output->pending.height = output_box.height;
-
-    if (output->pending.fullscreen_window) {
-        struct hwd_window *fs = output->pending.fullscreen_window;
-        fs->pending.x = output->pending.x;
-        fs->pending.y = output->pending.y;
-        fs->pending.width = output->pending.width;
-        fs->pending.height = output->pending.height;
-        window_arrange(fs);
-    }
 
     arrange_layers(output);
 

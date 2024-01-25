@@ -182,7 +182,6 @@ config_defaults(struct hwd_config *config) {
         goto cleanup;
     config->urgent_timeout = 500;
     config->focus_on_window_activation = FOWA_URGENT;
-    config->popup_during_fullscreen = POPUP_SMART;
     config->xwayland = XWAYLAND_MODE_LAZY;
 
     // floating view

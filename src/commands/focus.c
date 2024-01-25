@@ -53,8 +53,10 @@ get_window_in_output_direction(struct hwd_output *output, enum wlr_direction dir
     struct hwd_workspace *workspace = root_get_active_workspace(root);
     assert(workspace != NULL);
 
-    if (output->pending.fullscreen_window) {
-        return output->pending.fullscreen_window;
+    struct hwd_window *fullscreen_window =
+        workspace_get_fullscreen_window_for_output(workspace, output);
+    if (fullscreen_window != NULL) {
+        return fullscreen_window;
     }
 
     switch (dir) {

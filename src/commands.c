@@ -72,7 +72,6 @@ static const struct cmd_handler handlers[] = {
     {"fullscreen", cmd_fullscreen},
     {"input", cmd_input},
     {"mode", cmd_mode},
-    {"popup_during_fullscreen", cmd_popup_during_fullscreen},
     {"seat", cmd_seat},
     {"set", cmd_set},
     {"tiling_drag_threshold", cmd_tiling_drag_threshold},
