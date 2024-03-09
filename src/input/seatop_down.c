@@ -48,7 +48,7 @@ handle_pointer_axis(struct hwd_seat *seat, struct wlr_pointer_axis_event *event)
 
     wlr_seat_pointer_notify_axis(
         seat->wlr_seat, event->time_msec, event->orientation, scroll_factor * event->delta,
-        round(scroll_factor * event->delta_discrete), event->source
+        round(scroll_factor * event->delta_discrete), event->source, event->relative_direction
     );
 }
 
