@@ -60,7 +60,7 @@ server_privileged_prepare(struct hwd_server *server) {
     wlr_log(WLR_DEBUG, "Preparing Wayland server initialization");
     server->wl_display = wl_display_create();
     server->wl_event_loop = wl_display_get_event_loop(server->wl_display);
-    server->backend = wlr_backend_autocreate(server->wl_display, &server->session);
+    server->backend = wlr_backend_autocreate(server->wl_event_loop, &server->session);
 
     if (!server->backend) {
         wlr_log(WLR_ERROR, "Unable to create backend");
