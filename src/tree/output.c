@@ -412,12 +412,17 @@ handle_new_output(struct wl_listener *listener, void *data) {
     output->request_state.notify = handle_request_state;
 
     // BEGIN TODO this bit should ony be necessary if hwdout not running.
-    wlr_output_enable(wlr_output, true);
+    struct wlr_output_state new_state;
+    wlr_output_state_init(&new_state);
 
-    if (!wlr_output_commit(wlr_output)) {
+    wlr_output_state_set_enabled(&new_state, true);
+
+    if (!wlr_output_commit_state(wlr_output, &new_state)) {
         wlr_log(WLR_ERROR, "Failed to commit output %s", wlr_output->name);
+        wlr_output_state_finish(&new_state);
         return;
     }
+    wlr_output_state_finish(&new_state);
 
     struct wlr_output_layout_output *layout_output =
         wlr_output_layout_add(root->output_layout, wlr_output, 0, 0);

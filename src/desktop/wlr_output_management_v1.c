@@ -43,14 +43,33 @@ output_manager_apply(
     struct hwd_wlr_output_manager_v1 *manager, struct wlr_output_configuration_v1 *config,
     bool test_only
 ) {
-    struct wlr_output_configuration_head_v1 *config_head;
-    // First disable outputs we need to disable
     bool ok = true;
+
+    // Disable outputs first to conserve CRTs.
+    struct wlr_output_configuration_head_v1 *config_head;
     wl_list_for_each(config_head, &config->heads, link) {
         struct wlr_output *wlr_output = config_head->state.output;
-        if (!config_head->state.enabled) {
-            wlr_output_enable(wlr_output, false);
+        if (config_head->state.enabled) {
+            continue;
         }
+
+        struct wlr_output_state new_state;
+        wlr_output_state_init(&new_state);
+
+        wlr_output_state_set_enabled(&new_state, false);
+
+        if (test_only) {
+            if (!wlr_output_test_state(wlr_output, &new_state)) {
+                ok = false;
+            }
+        } else {
+            if (!wlr_output_commit_state(wlr_output, &new_state)) {
+                wlr_log(WLR_ERROR, "Failed to commit output %s", wlr_output->name);
+                ok = false;
+            }
+        }
+
+        wlr_output_state_finish(&new_state);
     }
 
     // Then enable outputs that need to
@@ -61,40 +80,35 @@ output_manager_apply(
             continue;
         }
 
+        struct wlr_output_state new_state;
+        wlr_output_state_init(&new_state);
+
+        wlr_output_state_set_enabled(&new_state, true);
+
         if (config_head->state.mode != NULL) {
-            wlr_output_set_mode(wlr_output, config_head->state.mode);
+            wlr_output_state_set_mode(&new_state, config_head->state.mode);
         } else {
-            wlr_log(WLR_DEBUG, "Assigning custom mode to %s", wlr_output->name);
-            wlr_output_set_custom_mode(
-                wlr_output, config_head->state.custom_mode.width,
+            wlr_output_state_set_custom_mode(
+                &new_state, config_head->state.custom_mode.width,
                 config_head->state.custom_mode.height, config_head->state.custom_mode.refresh
             );
         }
 
-        if (config_head->state.transform != wlr_output->transform) {
-            // TODO
-            // wlr_output_set_transform(config_head->state.transform);
-        }
-
-        if (config_head->state.scale != wlr_output->scale) {
-            // TODO
-            // wlr_output_set_scale(config_head->state.scale);
-        }
+        wlr_output_state_set_transform(&new_state, config_head->state.transform);
+        wlr_output_state_set_scale(&new_state, config_head->state.scale);
 
         if (test_only) {
-            // TODO
-            continue;
+            if (!wlr_output_test_state(wlr_output, &new_state)) {
+                ok = false;
+            }
+        } else {
+            if (!wlr_output_commit_state(wlr_output, &new_state)) {
+                wlr_log(WLR_ERROR, "Failed to commit output %s", wlr_output->name);
+                ok = false;
+            }
         }
 
-        if (!wlr_output->enabled) {
-            wlr_output_enable(wlr_output, true);
-        }
-
-        if (!wlr_output_commit(wlr_output)) {
-            wlr_log(WLR_ERROR, "Failed to commit output %s", wlr_output->name);
-            ok = false;
-            continue;
-        }
+        wlr_output_state_finish(&new_state);
 
         wlr_output_layout_add(
             manager->output_layout, wlr_output, config_head->state.x, config_head->state.y
