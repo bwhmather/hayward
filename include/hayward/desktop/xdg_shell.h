@@ -39,6 +39,7 @@ struct hwd_xdg_popup {
     struct wlr_xdg_popup *wlr_xdg_popup;
 
     struct wl_listener new_popup;
+    struct wl_listener commit;
     struct wl_listener destroy;
 };
 

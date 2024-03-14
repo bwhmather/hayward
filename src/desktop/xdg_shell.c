@@ -48,11 +48,21 @@ popup_handle_new_popup(struct wl_listener *listener, void *data) {
 }
 
 static void
+popup_handle_commit(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_popup *popup = wl_container_of(listener, popup, commit);
+
+    if (popup->wlr_xdg_popup->base->initial_commit) {
+        wlr_xdg_surface_schedule_configure(popup->wlr_xdg_popup->base);
+    }
+}
+
+static void
 popup_handle_destroy(struct wl_listener *listener, void *data) {
     struct hwd_xdg_popup *popup = wl_container_of(listener, popup, destroy);
 
     wl_list_remove(&popup->new_popup.link);
     wl_list_remove(&popup->destroy.link);
+    wl_list_remove(&popup->commit.link);
     wlr_scene_node_destroy(&popup->scene_tree->node);
     free(popup);
 }
@@ -107,6 +117,8 @@ popup_create(
 
     wl_signal_add(&xdg_surface->events.new_popup, &popup->new_popup);
     popup->new_popup.notify = popup_handle_new_popup;
+    wl_signal_add(&xdg_surface->surface->events.commit, &popup->commit);
+    popup->commit.notify = popup_handle_commit;
     wl_signal_add(&xdg_surface->events.destroy, &popup->destroy);
     popup->destroy.notify = popup_handle_destroy;
 
