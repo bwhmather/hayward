@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <wayland-server-protocol.h>
+
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_seat.h>
@@ -65,7 +67,7 @@ window_get_resize_sibling(struct hwd_window *window, uint32_t edge) {
 static void
 handle_button(
     struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 ) {
     struct seatop_resize_tiling_event *e = seat->seatop_data;
 

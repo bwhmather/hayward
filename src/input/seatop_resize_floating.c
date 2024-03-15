@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <wayland-server-protocol.h>
+
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
@@ -36,7 +38,7 @@ struct seatop_resize_floating_event {
 static void
 handle_button(
     struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 ) {
     struct seatop_resize_floating_event *e = seat->seatop_data;
     struct hwd_window *window = e->window;

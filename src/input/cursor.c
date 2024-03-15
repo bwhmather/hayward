@@ -373,7 +373,7 @@ handle_pointer_motion_absolute(struct wl_listener *listener, void *data) {
 static void
 dispatch_cursor_button(
     struct hwd_cursor *cursor, struct wlr_input_device *device, uint32_t time_msec, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 ) {
     if (time_msec == 0) {
         time_msec = get_current_time_msec();
@@ -387,7 +387,7 @@ handle_pointer_button(struct wl_listener *listener, void *data) {
     struct hwd_cursor *cursor = wl_container_of(listener, cursor, button);
     struct wlr_pointer_button_event *event = data;
 
-    if (event->state == WLR_BUTTON_PRESSED) {
+    if (event->state == WL_POINTER_BUTTON_STATE_PRESSED) {
         cursor->pressed_button_count++;
     } else {
         if (cursor->pressed_button_count > 0) {
@@ -474,7 +474,7 @@ handle_touch_down(struct wl_listener *listener, void *data) {
         dy = ly - cursor->cursor->y;
         pointer_motion(cursor, event->time_msec, &event->touch->base, dx, dy, dx, dy);
         dispatch_cursor_button(
-            cursor, &event->touch->base, event->time_msec, BTN_LEFT, WLR_BUTTON_PRESSED
+            cursor, &event->touch->base, event->time_msec, BTN_LEFT, WL_POINTER_BUTTON_STATE_PRESSED
         );
     }
 }
@@ -492,7 +492,8 @@ handle_touch_up(struct wl_listener *listener, void *data) {
         if (cursor->pointer_touch_id == cursor->seat->touch_id) {
             cursor->pointer_touch_up = true;
             dispatch_cursor_button(
-                cursor, &event->touch->base, event->time_msec, BTN_LEFT, WLR_BUTTON_RELEASED
+                cursor, &event->touch->base, event->time_msec, BTN_LEFT,
+                WL_POINTER_BUTTON_STATE_RELEASED
             );
         }
     } else {
@@ -729,7 +730,8 @@ handle_tool_tip(struct wl_listener *listener, void *data) {
     if (cursor->simulating_pointer_from_tool_tip && event->state == WLR_TABLET_TOOL_TIP_UP) {
         cursor->simulating_pointer_from_tool_tip = false;
         dispatch_cursor_button(
-            cursor, &event->tablet->base, event->time_msec, BTN_LEFT, WLR_BUTTON_RELEASED
+            cursor, &event->tablet->base, event->time_msec, BTN_LEFT,
+            WL_POINTER_BUTTON_STATE_RELEASED
         );
         wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
     } else if (!surface || !wlr_surface_accepts_tablet_v2(tablet_v2, surface)) {
@@ -741,7 +743,8 @@ handle_tool_tip(struct wl_listener *listener, void *data) {
         } else {
             cursor->simulating_pointer_from_tool_tip = true;
             dispatch_cursor_button(
-                cursor, &event->tablet->base, event->time_msec, BTN_LEFT, WLR_BUTTON_PRESSED
+                cursor, &event->tablet->base, event->time_msec, BTN_LEFT,
+                WL_POINTER_BUTTON_STATE_PRESSED
             );
             wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
         }
@@ -824,7 +827,8 @@ handle_tool_button(struct wl_listener *listener, void *data) {
         case WLR_BUTTON_PRESSED:
             if (cursor->tool_buttons == 0) {
                 dispatch_cursor_button(
-                    cursor, &event->tablet->base, event->time_msec, BTN_RIGHT, event->state
+                    cursor, &event->tablet->base, event->time_msec, BTN_RIGHT,
+                    WL_POINTER_BUTTON_STATE_PRESSED
                 );
             }
             cursor->tool_buttons++;
@@ -832,7 +836,8 @@ handle_tool_button(struct wl_listener *listener, void *data) {
         case WLR_BUTTON_RELEASED:
             if (cursor->tool_buttons == 1) {
                 dispatch_cursor_button(
-                    cursor, &event->tablet->base, event->time_msec, BTN_RIGHT, event->state
+                    cursor, &event->tablet->base, event->time_msec, BTN_RIGHT,
+                    WL_POINTER_BUTTON_STATE_RELEASED
                 );
             }
             cursor->tool_buttons--;

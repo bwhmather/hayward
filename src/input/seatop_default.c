@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
 
 #include <wlr/types/wlr_compositor.h>
@@ -364,7 +365,7 @@ handle_tablet_tool_tip(
 static bool
 trigger_pointer_button_binding(
     struct hwd_seat *seat, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state, uint32_t modifiers, bool on_titlebar, bool on_border,
+    enum wl_pointer_button_state state, uint32_t modifiers, bool on_titlebar, bool on_border,
     bool on_contents, bool on_workspace
 ) {
     // We can reach this for non-pointer devices if we're currently emulating
@@ -379,7 +380,7 @@ trigger_pointer_button_binding(
 
     char *device_identifier = device ? input_device_get_identifier(device) : strdup("*");
     struct hwd_binding *binding = NULL;
-    if (state == WLR_BUTTON_PRESSED) {
+    if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
         state_add_button(e, button);
         binding = get_active_mouse_binding(
             e, config->current_mode->mouse_bindings, modifiers, false, on_titlebar, on_border,
@@ -405,7 +406,7 @@ trigger_pointer_button_binding(
 static void
 handle_button(
     struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 ) {
     struct hwd_cursor *cursor = seat->cursor;
 
@@ -444,7 +445,7 @@ handle_button(
 
     // Handle clicking an empty workspace
     if (output && !window && !surface) {
-        if (state == WLR_BUTTON_PRESSED) {
+        if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
             workspace_set_active_window(workspace, NULL);
             root_commit_focus(root);
         }
@@ -459,7 +460,7 @@ handle_button(
             if (layer->current.keyboard_interactive) {
                 root_set_focused_layer(root, layer);
             }
-            if (state == WLR_BUTTON_PRESSED) {
+            if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
                 seatop_begin_down_on_surface(seat, surface, time_msec, sx, sy);
             }
             root_commit_focus(root);
@@ -469,7 +470,7 @@ handle_button(
     }
 
     // Handle tiling resize via border
-    if (window && resize_edge && button == BTN_LEFT && state == WLR_BUTTON_PRESSED &&
+    if (window && resize_edge && button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED &&
         !is_floating) {
         // If a resize is triggered on a window within a stacked
         // column, change focus to the tab which already had inactive
@@ -489,7 +490,7 @@ handle_button(
 
     // Handle tiling resize via mod
     bool mod_pressed = modifiers & config->floating_mod;
-    if (window && !is_floating && mod_pressed && state == WLR_BUTTON_PRESSED) {
+    if (window && !is_floating && mod_pressed && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         uint32_t btn_resize = config->floating_mod_inverse ? BTN_LEFT : BTN_RIGHT;
         if (button == btn_resize) {
             edge = 0;
@@ -524,7 +525,7 @@ handle_button(
     }
 
     // Handle beginning floating move
-    if (window && is_floating && !is_fullscreen && state == WLR_BUTTON_PRESSED) {
+    if (window && is_floating && !is_fullscreen && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         uint32_t btn_move = config->floating_mod_inverse ? BTN_RIGHT : BTN_LEFT;
         if (button == btn_move && (mod_pressed || on_titlebar)) {
             root_set_focused_window(root, window);
@@ -535,7 +536,7 @@ handle_button(
     }
 
     // Handle beginning floating resize
-    if (window && is_floating && !is_fullscreen && state == WLR_BUTTON_PRESSED) {
+    if (window && is_floating && !is_fullscreen && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         // Via border
         if (button == BTN_LEFT && resize_edge != WLR_EDGE_NONE) {
             seatop_begin_resize_floating(seat, window, resize_edge);
@@ -560,8 +561,8 @@ handle_button(
     }
 
     // Handle moving a tiling container
-    if ((mod_pressed || on_titlebar) && state == WLR_BUTTON_PRESSED && !is_floating && window &&
-        !window_is_fullscreen(window)) {
+    if ((mod_pressed || on_titlebar) && state == WL_POINTER_BUTTON_STATE_PRESSED && !is_floating &&
+        window && !window_is_fullscreen(window)) {
 
         seatop_begin_move(seat, window);
         root_commit_focus(root);
@@ -569,19 +570,19 @@ handle_button(
     }
 
     // Handle mousedown on a container surface
-    if (surface && window && state == WLR_BUTTON_PRESSED) {
+    if (surface && window && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         root_set_focused_window(root, window);
         root_commit_focus(root);
 
         seatop_begin_down(seat, window, time_msec, sx, sy);
         root_commit_focus(root);
 
-        seat_pointer_notify_button(seat, time_msec, button, WLR_BUTTON_PRESSED);
+        seat_pointer_notify_button(seat, time_msec, button, WL_POINTER_BUTTON_STATE_PRESSED);
         return;
     }
 
     // Handle clicking a container surface or decorations
-    if (window && state == WLR_BUTTON_PRESSED) {
+    if (window && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         root_set_focused_window(root, window);
         root_commit_focus(root);
 

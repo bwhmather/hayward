@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
 
 #include <wlr/types/wlr_compositor.h>
@@ -27,7 +28,7 @@ struct hwd_seat;
 struct hwd_seatop_impl {
     void (*button)(
         struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-        enum wlr_button_state state
+        enum wl_pointer_button_state state
     );
     void (*pointer_motion)(struct hwd_seat *seat, uint32_t time_msec);
     void (*pointer_axis)(struct hwd_seat *seat, struct wlr_pointer_axis_event *event);
@@ -180,13 +181,13 @@ seat_get_config_by_name(const char *name);
 
 void
 seat_pointer_notify_button(
-    struct hwd_seat *seat, uint32_t time_msec, uint32_t button, enum wlr_button_state state
+    struct hwd_seat *seat, uint32_t time_msec, uint32_t button, enum wl_pointer_button_state state
 );
 
 void
 seatop_button(
     struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 );
 
 void

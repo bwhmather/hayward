@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include <wayland-server-core.h>
+#include <wayland-server-protocol.h>
 #include <wayland-util.h>
 
 #include <wlr/types/wlr_compositor.h>
@@ -55,7 +56,7 @@ handle_pointer_axis(struct hwd_seat *seat, struct wlr_pointer_axis_event *event)
 static void
 handle_button(
     struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 ) {
     seat_pointer_notify_button(seat, time_msec, button, state);
 

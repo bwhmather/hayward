@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <wayland-server-protocol.h>
+
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_seat.h>
@@ -74,7 +76,7 @@ finalize_move(struct hwd_seat *seat) {
 static void
 handle_button(
     struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 ) {
     if (seat->cursor->pressed_button_count == 0) {
         finalize_move(seat);

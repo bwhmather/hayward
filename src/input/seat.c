@@ -989,7 +989,7 @@ seat_get_config_by_name(const char *name) {
 
 void
 seat_pointer_notify_button(
-    struct hwd_seat *seat, uint32_t time_msec, uint32_t button, enum wlr_button_state state
+    struct hwd_seat *seat, uint32_t time_msec, uint32_t button, enum wl_pointer_button_state state
 ) {
     seat->last_button_serial =
         wlr_seat_pointer_notify_button(seat->wlr_seat, time_msec, button, state);
@@ -998,7 +998,7 @@ seat_pointer_notify_button(
 void
 seatop_button(
     struct hwd_seat *seat, uint32_t time_msec, struct wlr_input_device *device, uint32_t button,
-    enum wlr_button_state state
+    enum wl_pointer_button_state state
 ) {
     if (seat->seatop_impl->button) {
         seat->seatop_impl->button(seat, time_msec, device, button, state);
