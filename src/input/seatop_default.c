@@ -756,9 +756,9 @@ handle_tablet_tool_motion(struct hwd_seat *seat, struct hwd_tablet_tool *tool, u
 static uint32_t
 wl_axis_to_button(struct wlr_pointer_axis_event *event) {
     switch (event->orientation) {
-    case WLR_AXIS_ORIENTATION_VERTICAL:
+    case WL_POINTER_AXIS_VERTICAL_SCROLL:
         return event->delta < 0 ? HWD_SCROLL_UP : HWD_SCROLL_DOWN;
-    case WLR_AXIS_ORIENTATION_HORIZONTAL:
+    case WL_POINTER_AXIS_HORIZONTAL_SCROLL:
         return event->delta < 0 ? HWD_SCROLL_LEFT : HWD_SCROLL_RIGHT;
     default:
         wlr_log(WLR_DEBUG, "Unknown axis orientation");
