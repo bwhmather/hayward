@@ -414,7 +414,7 @@ seat_update_capabilities(struct hwd_seat *seat) {
         case WLR_INPUT_DEVICE_TOUCH:
             caps |= WL_SEAT_CAPABILITY_TOUCH;
             break;
-        case WLR_INPUT_DEVICE_TABLET_TOOL:
+        case WLR_INPUT_DEVICE_TABLET:
             caps |= WL_SEAT_CAPABILITY_POINTER;
             break;
         case WLR_INPUT_DEVICE_SWITCH:
@@ -477,7 +477,7 @@ static bool
 is_touch_or_tablet_tool(struct hwd_seat_device *seat_device) {
     switch (seat_device->input_device->wlr_device->type) {
     case WLR_INPUT_DEVICE_TOUCH:
-    case WLR_INPUT_DEVICE_TABLET_TOOL:
+    case WLR_INPUT_DEVICE_TABLET:
         return true;
     default:
         return false;
@@ -676,7 +676,7 @@ seat_configure_device(struct hwd_seat *seat, struct hwd_input_device *input_devi
     case WLR_INPUT_DEVICE_TOUCH:
         seat_configure_touch(seat, seat_device);
         break;
-    case WLR_INPUT_DEVICE_TABLET_TOOL:
+    case WLR_INPUT_DEVICE_TABLET:
         seat_configure_tablet_tool(seat, seat_device);
         break;
     case WLR_INPUT_DEVICE_TABLET_PAD:
@@ -703,7 +703,7 @@ seat_reset_device(struct hwd_seat *seat, struct hwd_input_device *input_device) 
     case WLR_INPUT_DEVICE_TOUCH:
         seat_reset_input_config(seat, seat_device);
         break;
-    case WLR_INPUT_DEVICE_TABLET_TOOL:
+    case WLR_INPUT_DEVICE_TABLET:
         seat_reset_input_config(seat, seat_device);
         break;
     case WLR_INPUT_DEVICE_TABLET_PAD:
