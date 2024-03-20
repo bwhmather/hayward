@@ -305,7 +305,6 @@ window_create(struct hwd_view *view) {
     wl_signal_init(&window->events.destroy);
 
     window->view = view;
-    window->alpha = 1.0f;
 
     window->height_fraction = 1.0;
 

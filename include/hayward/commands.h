@@ -122,7 +122,6 @@ hwd_cmd cmd_max_render_time;
 hwd_cmd cmd_mode;
 hwd_cmd cmd_move;
 hwd_cmd cmd_nop;
-hwd_cmd cmd_opacity;
 hwd_cmd cmd_reload;
 hwd_cmd cmd_resize;
 hwd_cmd cmd_seat;

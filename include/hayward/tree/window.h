@@ -114,8 +114,6 @@ struct hwd_window {
     // Used for doing the resize calculations.
     double child_total_height;
 
-    float alpha;
-
     struct wlr_texture *title_focused;
     struct wlr_texture *title_focused_inactive;
     struct wlr_texture *title_focused_tab_title;

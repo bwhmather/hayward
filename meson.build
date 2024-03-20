@@ -239,7 +239,6 @@ hayward_sources = files(
   'src/commands/fullscreen.c',
   'src/commands/kill.c',
   'src/commands/max_render_time.c',
-  'src/commands/opacity.c',
   'src/commands/include.c',
   'src/commands/input.c',
   'src/commands/layout.c',
