@@ -303,6 +303,11 @@ handle_commit(struct wl_listener *listener, void *data) {
     struct hwd_view *view = &xdg_shell_view->view;
     struct wlr_xdg_surface *xdg_surface = view->wlr_xdg_toplevel->base;
 
+    if (xdg_surface->initial_commit) {
+        wlr_xdg_surface_schedule_configure(xdg_surface);
+        return;
+    }
+
     struct wlr_box new_geo;
     wlr_xdg_surface_get_geometry(xdg_surface, &new_geo);
     bool new_size = new_geo.width != view->geometry.width ||
