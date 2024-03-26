@@ -34,7 +34,7 @@
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 
-#define HWD_XDG_SHELL_VERSION 2
+#define HWD_XDG_SHELL_VERSION 5
 
 static struct hwd_xdg_popup *
 popup_create(struct wlr_xdg_popup *wlr_popup, struct hwd_view *view, struct wlr_scene_tree *parent);
