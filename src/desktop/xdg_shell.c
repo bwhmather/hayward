@@ -308,6 +308,10 @@ handle_commit(struct wl_listener *listener, void *data) {
         return;
     }
 
+    if (!xdg_surface->surface->mapped) {
+        return;
+    }
+
     struct wlr_box new_geo;
     wlr_xdg_surface_get_geometry(xdg_surface, &new_geo);
     bool new_size = new_geo.width != view->geometry.width ||
