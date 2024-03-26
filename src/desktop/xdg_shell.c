@@ -539,8 +539,11 @@ handle_new_toplevel(struct wl_listener *listener, void *data) {
     xdg_shell_view->destroy.notify = handle_destroy;
     wl_signal_add(&xdg_surface->events.destroy, &xdg_shell_view->destroy);
 
-    xdg_surface->data = xdg_shell_view;
+    wlr_xdg_toplevel_set_wm_capabilities(xdg_toplevel, XDG_TOPLEVEL_WM_CAPABILITIES_FULLSCREEN);
+
     wlr_scene_xdg_surface_create(xdg_shell_view->view.layers.content_tree, xdg_surface);
+
+    xdg_surface->data = xdg_shell_view;
 }
 
 struct hwd_xdg_shell *
