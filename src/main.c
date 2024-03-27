@@ -243,7 +243,8 @@ static const struct option long_options[] = {
     {"verbose", no_argument, NULL, 'V'},
     {"get-socketpath", no_argument, NULL, 'p'},
     {"unsupported-gpu", no_argument, NULL, 'u'},
-    {0, 0, 0, 0}};
+    {0, 0, 0, 0}
+};
 
 static const char usage[] = "Usage: hayward [options]\n"
                             "\n"

@@ -58,7 +58,8 @@ surface_scene_marker_destroy(struct wlr_addon *addon) {
 }
 
 static const struct wlr_addon_interface unmanaged_surface_scene_marker_interface = {
-    .name = "hwd_xwayland_unmanaged", .destroy = surface_scene_marker_destroy};
+    .name = "hwd_xwayland_unmanaged", .destroy = surface_scene_marker_destroy
+};
 
 static void
 unmanaged_handle_request_configure(struct wl_listener *listener, void *data) {

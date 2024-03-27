@@ -597,7 +597,8 @@ root_commit_focus(struct hwd_root *root) {
 
     if (old_surface != new_surface) {
         struct hwd_root_focus_changed_event event = {
-            .root = root, .old_focus = old_surface, .new_focus = new_surface};
+            .root = root, .old_focus = old_surface, .new_focus = new_surface
+        };
         wl_signal_emit_mutable(&root->events.focus_changed, &event);
     }
 }

@@ -264,7 +264,8 @@ get_config_path(void) {
         {.prefix = home, .config_folder = ".i3"},
         {.prefix = config_home, .config_folder = "i3"},
         {.prefix = SYSCONFDIR, .config_folder = "hayward"},
-        {.prefix = SYSCONFDIR, .config_folder = "i3"}};
+        {.prefix = SYSCONFDIR, .config_folder = "i3"}
+    };
 
     size_t num_config_paths = sizeof(config_paths) / sizeof(config_paths[0]);
     for (size_t i = 0; i < num_config_paths; i++) {

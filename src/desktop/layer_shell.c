@@ -40,7 +40,8 @@ surface_scene_marker_destroy(struct wlr_addon *addon) {
 }
 
 static const struct wlr_addon_interface scene_tree_marker_interface = {
-    .name = "hwd_layer_surface", .destroy = surface_scene_marker_destroy};
+    .name = "hwd_layer_surface", .destroy = surface_scene_marker_destroy
+};
 
 struct hwd_layer_surface *
 layer_surface_for_scene_node(struct wlr_scene_node *node);

@@ -47,7 +47,8 @@ hwd_profiler_mark(const char *message, hwd_timestamp begin, hwd_timestamp end) {
 #define HWD_PROFILER_TRACE()                                                                       \
     __attribute__((cleanup(hwd_profiler_span_cleanup__))                                           \
     ) struct hwd_profiler_span HWD_PROFILER_TRACE_SPAN_NAME_(__func__, __LINE__) = {               \
-        .begin = hwd_profiler_now(), .message = __func__};                                         \
+        .begin = hwd_profiler_now(), .message = __func__                                           \
+    };                                                                                             \
     (void)HWD_PROFILER_TRACE_SPAN_NAME_(__func__, __LINE__)
 
 static inline void

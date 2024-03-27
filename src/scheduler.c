@@ -44,7 +44,8 @@ handle_buffer_timer_destroy(struct wlr_addon *addon) {
 }
 
 static const struct wlr_addon_interface buffer_timer_interface = {
-    .name = "hwd_buffer_timer", .destroy = handle_buffer_timer_destroy};
+    .name = "hwd_buffer_timer", .destroy = handle_buffer_timer_destroy
+};
 
 static struct buffer_timer *
 buffer_timer_assign(struct wlr_scene_buffer *buffer) {

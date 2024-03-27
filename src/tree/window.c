@@ -47,7 +47,8 @@ scene_tree_marker_destroy(struct wlr_addon *addon) {
 }
 
 static const struct wlr_addon_interface scene_tree_marker_interface = {
-    .name = "hwd_window", .destroy = scene_tree_marker_destroy};
+    .name = "hwd_window", .destroy = scene_tree_marker_destroy
+};
 
 static void
 window_init_scene(struct hwd_window *window) {
