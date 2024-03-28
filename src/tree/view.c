@@ -174,7 +174,7 @@ view_set_activated(struct hwd_view *view, bool activated) {
 
 void
 view_request_activate(struct hwd_view *view) {
-    struct hwd_workspace *workspace = view->window->pending.workspace;
+    struct hwd_workspace *workspace = view->window->workspace;
 
     switch (config->focus_on_window_activation) {
     case FOWA_SMART:
@@ -238,7 +238,7 @@ view_populate_pid(struct hwd_view *view) {
 static bool
 should_focus(struct hwd_view *view) {
     struct hwd_workspace *active_workspace = root_get_active_workspace(root);
-    struct hwd_workspace *map_workspace = view->window->pending.workspace;
+    struct hwd_workspace *map_workspace = view->window->workspace;
     struct hwd_output *map_output = window_get_output(view->window);
 
     // Views cannot be focused if not mapped.
@@ -408,7 +408,7 @@ view_unmap(struct hwd_view *view) {
     }
 
     struct hwd_column *parent = view->window->parent;
-    struct hwd_workspace *workspace = view->window->pending.workspace;
+    struct hwd_workspace *workspace = view->window->workspace;
     window_begin_destroy(view->window);
     if (parent) {
         column_consider_destroy(parent);
@@ -581,7 +581,7 @@ view_is_visible(struct hwd_view *view) {
     if (view->window->pending.dead) {
         return false;
     }
-    struct hwd_workspace *workspace = view->window->pending.workspace;
+    struct hwd_workspace *workspace = view->window->workspace;
     if (!workspace) {
         return false;
     }
@@ -624,7 +624,7 @@ view_set_urgent(struct hwd_view *view, bool enable) {
         }
     }
 
-    workspace_detect_urgent(view->window->pending.workspace);
+    workspace_detect_urgent(view->window->workspace);
 }
 
 bool

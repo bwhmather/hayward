@@ -61,7 +61,7 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
         return;
     }
 
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
     struct hwd_column *column = window->parent;
 
     struct hwd_column *prev_sibling = NULL;

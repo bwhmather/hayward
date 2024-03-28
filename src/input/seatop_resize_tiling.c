@@ -138,7 +138,7 @@ void
 seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enum wlr_edges edge) {
     seatop_end(seat);
 
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
 
     struct seatop_resize_tiling_event *e = calloc(1, sizeof(struct seatop_resize_tiling_event));
     if (!e) {

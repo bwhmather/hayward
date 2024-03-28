@@ -489,7 +489,7 @@ void
 root_set_focused_window(struct hwd_root *root, struct hwd_window *window) {
     assert(window != NULL);
 
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
     assert(workspace != NULL);
 
     root_set_focused_layer(root, NULL);
@@ -556,12 +556,12 @@ root_commit_focus(struct hwd_root *root) {
     }
 
     if (new_window != NULL && new_window != old_window) {
-        struct hwd_workspace *new_workspace = new_window->pending.workspace;
+        struct hwd_workspace *new_workspace = new_window->workspace;
         struct hwd_view *new_view = new_window->view;
 
         struct hwd_workspace *old_workspace = NULL;
         if (old_window != NULL) {
-            old_workspace = old_window->pending.workspace;
+            old_workspace = old_window->workspace;
         }
 
         view_set_activated(new_view, true);
@@ -646,7 +646,7 @@ root_validate(struct hwd_root *root) {
             struct hwd_window *window = workspace->pending.floating->items[j];
             assert(window != NULL);
 
-            assert(window->pending.workspace == workspace);
+            assert(window->workspace == workspace);
             assert(window->parent == NULL);
         }
 
@@ -660,7 +660,7 @@ root_validate(struct hwd_root *root) {
                 struct hwd_window *window = column->pending.children->items[k];
 
                 assert(window->parent == column);
-                assert(window->pending.workspace == workspace);
+                assert(window->workspace == workspace);
             }
         }
     }

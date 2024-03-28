@@ -214,7 +214,7 @@ execute_command(char *_exec, struct hwd_seat *seat, struct hwd_window *window) {
             config->handler_context.workspace = root_get_active_workspace(root);
             config->handler_context.window = NULL;
         } else {
-            config->handler_context.workspace = window->pending.workspace;
+            config->handler_context.workspace = window->workspace;
             config->handler_context.window = window;
         }
 

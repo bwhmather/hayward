@@ -319,7 +319,7 @@ output_arrange(struct hwd_output *output) {
     for (int i = output->fullscreen_windows->length - 1; i >= 0; i--) {
         struct hwd_window *fullscreen_window = output->fullscreen_windows->items[i];
 
-        if (fullscreen_window->pending.workspace != root->pending.active_workspace) {
+        if (fullscreen_window->workspace != root->pending.active_workspace) {
             continue;
         }
 

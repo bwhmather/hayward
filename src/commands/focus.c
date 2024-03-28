@@ -90,7 +90,7 @@ window_get_in_direction_tiling(
 ) {
     struct hwd_window *wrap_candidate = NULL;
 
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
     struct hwd_output *output = window_get_output(window);
 
     if (window_is_fullscreen(window)) {
@@ -206,12 +206,12 @@ window_get_in_direction_floating(
     double closest_distance = DBL_MAX;
     struct hwd_window *closest_container = NULL;
 
-    if (!container->pending.workspace) {
+    if (!container->workspace) {
         return NULL;
     }
 
-    for (int i = 0; i < container->pending.workspace->pending.floating->length; i++) {
-        struct hwd_window *floater = container->pending.workspace->pending.floating->items[i];
+    for (int i = 0; i < container->workspace->pending.floating->length; i++) {
+        struct hwd_window *floater = container->workspace->pending.floating->items[i];
         if (floater == container) {
             continue;
         }

@@ -44,7 +44,7 @@ move_window_to_column_from_maybe_direction(
         return;
     }
 
-    struct hwd_workspace *old_workspace = window->pending.workspace;
+    struct hwd_workspace *old_workspace = window->workspace;
 
     if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
         wlr_log(WLR_DEBUG, "Reparenting window (parallel)");
@@ -89,7 +89,7 @@ move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *worksp
     assert(window != NULL);
     assert(workspace != NULL);
 
-    if (workspace == window->pending.workspace) {
+    if (workspace == window->workspace) {
         return;
     }
 
@@ -135,7 +135,7 @@ window_tiling_move_to_output_from_direction(
     assert(window != NULL);
     assert(output != NULL);
 
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
     assert(workspace != NULL);
 
     struct hwd_column *column = NULL;
@@ -278,7 +278,7 @@ cmd_move_window(int argc, char **argv) {
     }
 
     struct hwd_column *old_parent = window->parent;
-    struct hwd_workspace *old_workspace = window->pending.workspace;
+    struct hwd_workspace *old_workspace = window->workspace;
 
     // determine destination
     if (strcasecmp(argv[0], "workspace") == 0) {
@@ -394,7 +394,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
         window_floating_move_to(window, output, lx, ly);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
-    struct hwd_workspace *old_workspace = window->pending.workspace;
+    struct hwd_workspace *old_workspace = window->workspace;
     struct hwd_column *old_parent = window->parent;
 
     if (!window_tiling_move_in_direction(window, direction)) {
@@ -410,7 +410,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
         workspace_consider_destroy(old_workspace);
     }
 
-    struct hwd_workspace *new_workspace = window->pending.workspace;
+    struct hwd_workspace *new_workspace = window->workspace;
 
     workspace_arrange(old_workspace);
     if (new_workspace != old_workspace) {

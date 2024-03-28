@@ -33,7 +33,7 @@ cmd_floating(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, "Can only float windows");
     }
 
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
     struct hwd_output *output = window_get_output(window);
     struct hwd_window *focused_window = workspace_get_active_window(workspace);
 

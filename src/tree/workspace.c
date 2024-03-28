@@ -651,7 +651,7 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *windo
     assert(workspace != NULL);
     assert(window != NULL);
     assert(window->parent == NULL);
-    assert(window->pending.workspace == NULL);
+    assert(window->workspace == NULL);
 
     struct hwd_window *prev_active_floating = workspace_get_active_floating_window(workspace);
 
@@ -675,7 +675,7 @@ void
 workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *window) {
     assert(workspace != NULL);
     assert(window != NULL);
-    assert(window->pending.workspace == workspace);
+    assert(window->workspace == workspace);
     assert(window->parent == NULL);
 
     int index = list_find(workspace->pending.floating, window);
@@ -1013,7 +1013,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         workspace->pending.active_column = NULL;
         workspace->pending.focus_mode = F_TILING;
     } else if (window_is_floating(window)) {
-        assert(window->pending.workspace == workspace);
+        assert(window->workspace == workspace);
 
         int index = list_find(workspace->pending.floating, window);
         assert(index != -1);
@@ -1025,7 +1025,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
 
         window_reconcile_floating(window, workspace);
     } else {
-        assert(window->pending.workspace == workspace);
+        assert(window->workspace == workspace);
 
         struct hwd_column *old_column = workspace->pending.active_column;
         struct hwd_column *new_column = window->parent;

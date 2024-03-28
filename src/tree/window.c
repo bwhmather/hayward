@@ -339,7 +339,7 @@ window_begin_destroy(struct hwd_window *window) {
     list_free(window->output_history);
     list_free(window->fullscreen_output_history);
 
-    if (window->parent || window->pending.workspace) {
+    if (window->parent || window->workspace) {
         window_detach(window);
     }
 
@@ -366,7 +366,7 @@ window_set_dirty(struct hwd_window *window) {
 void
 window_detach(struct hwd_window *window) {
     struct hwd_column *column = window->parent;
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
 
     if (workspace == NULL) {
         return;
@@ -383,7 +383,7 @@ window_detach(struct hwd_window *window) {
 
 static void
 window_update_theme(struct hwd_window *window) {
-    struct hwd_workspace *workspace = window->pending.workspace;
+    struct hwd_workspace *workspace = window->workspace;
     if (workspace == NULL) {
         return;
     }
@@ -430,7 +430,7 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     assert(window_is_alive(window));
     assert(workspace != NULL);
 
-    window->pending.workspace = workspace;
+    window->workspace = workspace;
     window->parent = NULL;
 
     window->pending.focused =
@@ -450,7 +450,7 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
 
     struct hwd_workspace *workspace = column->pending.workspace;
 
-    window->pending.workspace = workspace;
+    window->workspace = workspace;
     list_clear(window->output_history); // TODO
     list_add(window->output_history, column->pending.output);
     window->parent = column;
@@ -468,7 +468,7 @@ void
 window_reconcile_detached(struct hwd_window *window) {
     assert(window != NULL);
 
-    window->pending.workspace = NULL;
+    window->workspace = NULL;
     window->parent = NULL;
 
     window->pending.focused = false;
@@ -558,7 +558,7 @@ window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
     list_add(window->output_history, new_output);
 
     if (current_column != NULL) {
-        struct hwd_workspace *workspace = window->pending.workspace;
+        struct hwd_workspace *workspace = window->workspace;
 
         // TODO choose first or last based on relative positions of outputs.
         struct hwd_column *new_column = workspace_get_column_last(workspace, new_output);
@@ -584,7 +584,7 @@ bool
 window_is_floating(struct hwd_window *window) {
     assert(window != NULL);
 
-    if (window->pending.workspace == NULL) {
+    if (window->workspace == NULL) {
         return false;
     }
 
@@ -644,7 +644,7 @@ window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output
     // TODO should be re-derived in arrange.
     window->pending.fullscreen = true;
 
-    workspace_arrange(window->pending.workspace);
+    workspace_arrange(window->workspace);
     output_arrange(output);
     window_set_dirty(window);
 }
@@ -675,7 +675,7 @@ window_unfullscreen(struct hwd_window *window) {
     // TODO should be re-derived in arranged.
     window->pending.fullscreen = false;
 
-    workspace_arrange(window->pending.workspace);
+    workspace_arrange(window->workspace);
     window_set_dirty(window);
 }
 
@@ -785,7 +785,7 @@ void
 window_floating_set_default_size(struct hwd_window *window) {
     assert(window != NULL);
     assert(window_is_alive(window));
-    assert(window->pending.workspace);
+    assert(window->workspace);
 
     struct hwd_output *output = window_get_output(window);
 
@@ -906,7 +906,7 @@ window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor) {
 void
 window_raise_floating(struct hwd_window *window) {
     // Bring window to front by putting it at the end of the floating list.
-    if (window->pending.workspace == NULL) {
+    if (window->workspace == NULL) {
         return;
     }
 
@@ -914,7 +914,7 @@ window_raise_floating(struct hwd_window *window) {
         return;
     }
 
-    list_move_to_end(window->pending.workspace->pending.floating, window);
+    list_move_to_end(window->workspace->pending.floating, window);
 
     window_set_dirty(window);
 }
@@ -925,7 +925,7 @@ window_get_siblings(struct hwd_window *window) {
         return window->parent->pending.children;
     }
     if (window_is_floating(window)) {
-        return window->pending.workspace->pending.floating;
+        return window->workspace->pending.floating;
     }
     return NULL;
 }
