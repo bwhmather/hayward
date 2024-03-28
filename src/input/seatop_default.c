@@ -95,7 +95,7 @@ window_edge_is_external(struct hwd_window *window, enum wlr_edges edge) {
     assert(window_is_tiling(window));
 
     if (edge == WLR_EDGE_LEFT || edge == WLR_EDGE_RIGHT) {
-        return column_edge_is_external(window->pending.parent, edge);
+        return column_edge_is_external(window->parent, edge);
     }
 
     list_t *siblings = window_get_siblings(window);
@@ -149,7 +149,7 @@ static enum wlr_edges
 find_resize_edge(
     struct hwd_window *window, struct wlr_surface *surface, struct hwd_cursor *cursor
 ) {
-    struct hwd_column *column = window->pending.parent;
+    struct hwd_column *column = window->parent;
 
     enum wlr_edges edge = find_edge(window, surface, cursor);
 

@@ -45,11 +45,6 @@ struct hwd_window_state {
     // calling one of the `window_reconcile_` functions.
     struct hwd_workspace *workspace;
 
-    // Cached backlink to the column containing the window.  Null if window
-    // is not part of a column.  Should only be updated by calling one of
-    // the `window_reconcile_` functions.
-    struct hwd_column *parent;
-
     // Cached flag indicating whether the window is focused.  Should only
     // be updated by calling one of the `window_reconcile_` functions.
     bool focused;
@@ -78,6 +73,11 @@ struct hwd_window {
     struct hwd_window_state current;
 
     bool dirty;
+
+    // Cached backlink to the column containing the window.  Null if window
+    // is not part of a column.  Should only be updated by calling one of
+    // the `window_reconcile_` functions.
+    struct hwd_column *parent;
 
     // A list of disabled outputs that this window has been evacuated from, in
     // priority order from highest (earliest) to lowest (most recent).  If the

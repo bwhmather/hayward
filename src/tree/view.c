@@ -364,7 +364,7 @@ view_map(
         }
 
         if (target_sibling) {
-            column_arrange(view->window->pending.parent);
+            column_arrange(view->window->parent);
         } else {
             workspace_arrange(workspace);
         }
@@ -407,7 +407,7 @@ view_unmap(struct hwd_view *view) {
         view->foreign_toplevel = NULL;
     }
 
-    struct hwd_column *parent = view->window->pending.parent;
+    struct hwd_column *parent = view->window->parent;
     struct hwd_workspace *workspace = view->window->pending.workspace;
     window_begin_destroy(view->window);
     if (parent) {
@@ -593,7 +593,7 @@ view_is_visible(struct hwd_view *view) {
 
     // Check view isn't in a shaded window.
     struct hwd_window *window = view->window;
-    struct hwd_column *column = window->pending.parent;
+    struct hwd_column *column = window->parent;
     if (column != NULL && window->pending.shaded) {
         return false;
     }

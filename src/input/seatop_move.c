@@ -110,7 +110,7 @@ do_detach(struct hwd_seat *seat) {
         double fdx = dx / window->pending.width;
         double fdy = dy / window->pending.height;
 
-        struct hwd_column *old_parent = window->pending.parent;
+        struct hwd_column *old_parent = window->parent;
         window_detach(window);
         workspace_add_floating(workspace, window);
         if (old_parent) {

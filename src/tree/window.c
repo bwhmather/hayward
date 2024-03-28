@@ -339,7 +339,7 @@ window_begin_destroy(struct hwd_window *window) {
     list_free(window->output_history);
     list_free(window->fullscreen_output_history);
 
-    if (window->pending.parent || window->pending.workspace) {
+    if (window->parent || window->pending.workspace) {
         window_detach(window);
     }
 
@@ -365,7 +365,7 @@ window_set_dirty(struct hwd_window *window) {
 
 void
 window_detach(struct hwd_window *window) {
-    struct hwd_column *column = window->pending.parent;
+    struct hwd_column *column = window->parent;
     struct hwd_workspace *workspace = window->pending.workspace;
 
     if (workspace == NULL) {
@@ -416,7 +416,7 @@ window_update_theme(struct hwd_window *window) {
         return;
     }
 
-    if (window->pending.parent && window->pending.parent->pending.active_child == window) {
+    if (window->parent && window->parent->pending.active_child == window) {
         window->pending.theme = &window_type->active;
         return;
     }
@@ -431,7 +431,7 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     assert(workspace != NULL);
 
     window->pending.workspace = workspace;
-    window->pending.parent = NULL;
+    window->parent = NULL;
 
     window->pending.focused =
         workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
@@ -453,7 +453,7 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     window->pending.workspace = workspace;
     list_clear(window->output_history); // TODO
     list_add(window->output_history, column->pending.output);
-    window->pending.parent = column;
+    window->parent = column;
 
     window->pending.focused =
         workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
@@ -469,7 +469,7 @@ window_reconcile_detached(struct hwd_window *window) {
     assert(window != NULL);
 
     window->pending.workspace = NULL;
-    window->pending.parent = NULL;
+    window->parent = NULL;
 
     window->pending.focused = false;
 
@@ -553,7 +553,7 @@ window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
         return;
     }
 
-    struct hwd_column *current_column = window->pending.parent;
+    struct hwd_column *current_column = window->parent;
 
     list_add(window->output_history, new_output);
 
@@ -568,7 +568,7 @@ window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
         }
 
         list_add(new_column->pending.children, window);
-        window->pending.parent = new_column;
+        window->parent = new_column;
     }
 
     window_set_dirty(window);
@@ -588,7 +588,7 @@ window_is_floating(struct hwd_window *window) {
         return false;
     }
 
-    if (window->pending.parent != NULL) {
+    if (window->parent != NULL) {
         return false;
     }
 
@@ -602,7 +602,7 @@ window_is_fullscreen(struct hwd_window *window) {
 
 bool
 window_is_tiling(struct hwd_window *window) {
-    return window->pending.parent != NULL;
+    return window->parent != NULL;
 }
 
 void
@@ -922,7 +922,7 @@ window_raise_floating(struct hwd_window *window) {
 list_t *
 window_get_siblings(struct hwd_window *window) {
     if (window_is_tiling(window)) {
-        return window->pending.parent->pending.children;
+        return window->parent->pending.children;
     }
     if (window_is_floating(window)) {
         return window->pending.workspace->pending.floating;
@@ -937,11 +937,11 @@ window_sibling_index(struct hwd_window *window) {
 
 struct hwd_window *
 window_get_previous_sibling(struct hwd_window *window) {
-    if (!window->pending.parent) {
+    if (!window->parent) {
         return NULL;
     }
 
-    list_t *siblings = window->pending.parent->pending.children;
+    list_t *siblings = window->parent->pending.children;
     int index = list_find(siblings, window);
     assert(index != -1);
 
@@ -956,11 +956,11 @@ struct hwd_window *
 window_get_next_sibling(struct hwd_window *window) {
     assert(window != NULL);
 
-    if (!window->pending.parent) {
+    if (!window->parent) {
         return NULL;
     }
 
-    list_t *siblings = window->pending.parent->pending.children;
+    list_t *siblings = window->parent->pending.children;
     int index = list_find(siblings, window);
     assert(index != -1);
 

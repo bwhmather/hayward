@@ -551,7 +551,7 @@ root_commit_focus(struct hwd_root *root) {
 
         window_set_dirty(old_window);
         if (window_is_tiling(old_window)) {
-            column_set_dirty(old_window->pending.parent);
+            column_set_dirty(old_window->parent);
         }
     }
 
@@ -647,7 +647,7 @@ root_validate(struct hwd_root *root) {
             assert(window != NULL);
 
             assert(window->pending.workspace == workspace);
-            assert(window->pending.parent == NULL);
+            assert(window->parent == NULL);
         }
 
         for (int j = 0; j < workspace->pending.columns->length; j++) {
@@ -659,7 +659,7 @@ root_validate(struct hwd_root *root) {
             for (int k = 0; k < column->pending.children->length; k++) {
                 struct hwd_window *window = column->pending.children->items[k];
 
-                assert(window->pending.parent == column);
+                assert(window->parent == column);
                 assert(window->pending.workspace == workspace);
             }
         }

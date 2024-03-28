@@ -40,7 +40,7 @@ move_window_to_column_from_maybe_direction(
     struct hwd_window *window, struct hwd_column *column, bool has_move_dir,
     enum wlr_direction move_dir
 ) {
-    if (window->pending.parent == column) {
+    if (window->parent == column) {
         return;
     }
 
@@ -183,7 +183,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
     assert(window_is_tiling(window));
     assert(!window_is_fullscreen(window));
 
-    struct hwd_column *old_column = window->pending.parent;
+    struct hwd_column *old_column = window->parent;
     struct hwd_output *output = window_get_output(window);
     struct hwd_workspace *workspace = old_column->pending.workspace;
 
@@ -277,7 +277,7 @@ cmd_move_window(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "Can only move windows");
     }
 
-    struct hwd_column *old_parent = window->pending.parent;
+    struct hwd_column *old_parent = window->parent;
     struct hwd_workspace *old_workspace = window->pending.workspace;
 
     // determine destination
@@ -395,7 +395,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
     struct hwd_workspace *old_workspace = window->pending.workspace;
-    struct hwd_column *old_parent = window->pending.parent;
+    struct hwd_column *old_parent = window->parent;
 
     if (!window_tiling_move_in_direction(window, direction)) {
         // Container didn't move

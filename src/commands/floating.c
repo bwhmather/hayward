@@ -40,7 +40,7 @@ cmd_floating(int argc, char **argv) {
     window_end_mouse_operation(window);
 
     if (parse_boolean(argv[0], window_is_floating(window))) {
-        struct hwd_column *old_parent = window->pending.parent;
+        struct hwd_column *old_parent = window->parent;
         window_detach(window);
         workspace_add_floating(workspace, window);
         window_floating_set_default_size(window);
