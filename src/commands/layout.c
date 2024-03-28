@@ -38,7 +38,7 @@ cmd_layout(int argc, char **argv) {
     }
 
     if (window_is_floating(window)) {
-        return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating containers");
+        return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating windows");
     }
 
     struct hwd_column *column = window->parent;

@@ -398,7 +398,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
     struct hwd_column *old_parent = window->parent;
 
     if (!window_tiling_move_in_direction(window, direction)) {
-        // Container didn't move
+        // Window didn't move
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 

@@ -860,10 +860,10 @@ check_constraint_region(struct hwd_cursor *cursor) {
     if (cursor->active_confine_requires_warp && view) {
         cursor->active_confine_requires_warp = false;
 
-        struct hwd_window *container = view->window;
+        struct hwd_window *window = view->window;
 
-        double sx = cursor->cursor->x - container->pending.content_x + view->geometry.x;
-        double sy = cursor->cursor->y - container->pending.content_y + view->geometry.y;
+        double sx = cursor->cursor->x - window->pending.content_x + view->geometry.x;
+        double sy = cursor->cursor->y - window->pending.content_y + view->geometry.y;
 
         if (!pixman_region32_contains_point(region, floor(sx), floor(sy), NULL)) {
             int nboxes;
@@ -873,8 +873,8 @@ check_constraint_region(struct hwd_cursor *cursor) {
                 double sy = (boxes[0].y1 + boxes[0].y2) / 2.;
 
                 wlr_cursor_warp_closest(
-                    cursor->cursor, NULL, sx + container->pending.content_x - view->geometry.x,
-                    sy + container->pending.content_y - view->geometry.y
+                    cursor->cursor, NULL, sx + window->pending.content_x - view->geometry.x,
+                    sy + window->pending.content_y - view->geometry.y
                 );
 
                 cursor_rebase(cursor);
@@ -1297,10 +1297,10 @@ warp_to_constraint_cursor_hint(struct hwd_cursor *cursor) {
         double sy = constraint->current.cursor_hint.y;
 
         struct hwd_view *view = view_from_wlr_surface(constraint->surface);
-        struct hwd_window *container = view->window;
+        struct hwd_window *window = view->window;
 
-        double lx = sx + container->pending.content_x - view->geometry.x;
-        double ly = sy + container->pending.content_y - view->geometry.y;
+        double lx = sx + window->pending.content_x - view->geometry.x;
+        double ly = sy + window->pending.content_y - view->geometry.y;
 
         wlr_cursor_warp(cursor->cursor, NULL, lx, ly);
 

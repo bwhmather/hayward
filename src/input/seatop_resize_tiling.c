@@ -26,7 +26,7 @@
 #include <hayward/tree/workspace.h>
 
 struct seatop_resize_tiling_event {
-    struct hwd_window *container; // leaf container
+    struct hwd_window *window;
 
     // Container, or ancestor of container which will be resized
     // horizontally/vertically.
@@ -110,20 +110,20 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     }
 
     if (amount_x != 0) {
-        window_resize_tiled(e->container, e->edge_x, amount_x);
+        window_resize_tiled(e->window, e->edge_x, amount_x);
     }
     if (amount_y != 0) {
-        window_resize_tiled(e->container, e->edge_y, amount_y);
+        window_resize_tiled(e->window, e->edge_y, amount_y);
     }
 }
 
 static void
-handle_unref(struct hwd_seat *seat, struct hwd_window *container) {
+handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
     struct seatop_resize_tiling_event *e = seat->seatop_data;
-    if (e->container == container) {
+    if (e->window == window) {
         seatop_begin_default(seat);
     }
-    if (e->h_sib == container->parent || e->v_sib == container) {
+    if (e->h_sib == window->parent || e->v_sib == window) {
         seatop_begin_default(seat);
     }
 }
@@ -144,7 +144,7 @@ seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enu
     if (!e) {
         return;
     }
-    e->container = window;
+    e->window = window;
     e->edge = edge;
 
     e->ref_lx = seat->cursor->cursor->x;
@@ -152,7 +152,7 @@ seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enu
 
     if (edge & WLR_EDGE_LEFT) {
         e->edge_x = WLR_EDGE_LEFT;
-        e->h_container = e->container->parent;
+        e->h_container = e->window->parent;
         e->h_sib = workspace_get_column_before(workspace, e->h_container);
 
         if (e->h_sib) {
@@ -162,7 +162,7 @@ seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enu
         }
     } else if (edge & WLR_EDGE_RIGHT) {
         e->edge_x = WLR_EDGE_RIGHT;
-        e->h_container = e->container->parent;
+        e->h_container = e->window->parent;
         e->h_sib = workspace_get_column_after(workspace, e->h_container);
 
         if (e->h_sib) {
@@ -173,7 +173,7 @@ seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enu
     }
     if (edge & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM)) {
         e->edge_y = edge & (WLR_EDGE_TOP | WLR_EDGE_BOTTOM);
-        e->v_container = e->container;
+        e->v_container = e->window;
         e->v_sib = window_get_resize_sibling(e->v_container, e->edge_y);
 
         if (e->v_container) {

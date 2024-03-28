@@ -41,7 +41,7 @@ struct hwd_seatop_impl {
         enum wlr_tablet_tool_tip_state state
     );
     void (*end)(struct hwd_seat *seat);
-    void (*unref)(struct hwd_seat *seat, struct hwd_window *container);
+    void (*unref)(struct hwd_seat *seat, struct hwd_window *window);
     void (*render)(struct hwd_seat *seat, struct hwd_output *output, pixman_region32_t *damage);
     bool allow_set_cursor;
 };
@@ -216,11 +216,11 @@ seatop_end(struct hwd_seat *seat);
 
 /**
  * Instructs the seatop implementation to drop any references to the given
- * container (eg. because the container is destroying).
+ * window (eg. because the window is destroying).
  * The seatop may choose to abort itself in response to this.
  */
 void
-seatop_unref(struct hwd_seat *seat, struct hwd_window *container);
+seatop_unref(struct hwd_seat *seat, struct hwd_window *window);
 
 bool
 seatop_allows_set_cursor(struct hwd_seat *seat);

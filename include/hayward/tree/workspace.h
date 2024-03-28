@@ -105,7 +105,7 @@ void
 workspace_arrange(struct hwd_workspace *workspace);
 
 void
-workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *container);
+workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *window);
 
 void
 workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *window);

@@ -479,7 +479,7 @@ handle_commit(struct wl_listener *listener, void *data) {
 
     if (new_size) {
         // The client changed its surface size in this commit. For floating
-        // containers, we resize the container to match. For tiling containers,
+        // windows, we resize the window to match. For tiling windows,
         // we only recenter the surface.
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {

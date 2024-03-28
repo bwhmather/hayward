@@ -79,7 +79,7 @@ struct hwd_column {
     double preview_anchor_x;
     double preview_anchor_y;
 
-    // The share of the space of parent workspace this container occupies.
+    // The share of the space of parent workspace this column occupies.
     double width_fraction;
 
     // The share of space of the parent workspace that all children occupy.
@@ -109,7 +109,7 @@ struct hwd_column *
 column_create(void);
 
 void
-column_consider_destroy(struct hwd_column *container);
+column_consider_destroy(struct hwd_column *column);
 
 void
 column_set_dirty(struct hwd_column *column);
@@ -124,13 +124,9 @@ column_reconcile_detached(struct hwd_column *column);
 void
 column_arrange(struct hwd_column *column);
 
-/**
- * Search a container's descendants a container based on test criteria. Returns
- * the first container that passes the test.
- */
 struct hwd_window *
 column_find_child(
-    struct hwd_column *container, bool (*test)(struct hwd_window *view, void *data), void *data
+    struct hwd_column *column, bool (*test)(struct hwd_window *view, void *data), void *data
 );
 
 struct hwd_window *

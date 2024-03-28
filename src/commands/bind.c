@@ -653,18 +653,18 @@ seat_execute_command(struct hwd_seat *seat, struct hwd_binding *binding) {
     }
 
     wlr_log(WLR_DEBUG, "running command for binding: %s", binding->command);
-    struct hwd_window *container = NULL;
+    struct hwd_window *window = NULL;
     if (binding->type == BINDING_MOUSESYM || binding->type == BINDING_MOUSECODE) {
         struct hwd_output *output;
         struct wlr_surface *surface = NULL;
         double sx, sy;
         seat_get_target_at(
-            seat, seat->cursor->cursor->x, seat->cursor->cursor->y, &output, &container, &surface,
-            &sx, &sy
+            seat, seat->cursor->cursor->x, seat->cursor->cursor->y, &output, &window, &surface, &sx,
+            &sy
         );
     }
 
-    list_t *res_list = execute_command(binding->command, seat, container);
+    list_t *res_list = execute_command(binding->command, seat, window);
     for (int i = 0; i < res_list->length; ++i) {
         struct cmd_results *results = res_list->items[i];
         if (results->status != CMD_SUCCESS) {

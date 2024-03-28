@@ -192,7 +192,7 @@ window_resize_tiled(struct hwd_window *window, uint32_t axis, int amount) {
 }
 
 /**
- * Implement `resize <grow|shrink>` for a floating container.
+ * Implement `resize <grow|shrink>` for a floating window.
  */
 static struct cmd_results *
 resize_adjust_floating(uint32_t axis, struct movement_amount *amount) {
@@ -248,7 +248,7 @@ resize_adjust_floating(uint32_t axis, struct movement_amount *amount) {
 }
 
 /**
- * Implement `resize <grow|shrink>` for a tiled container.
+ * Implement `resize <grow|shrink>` for a tiled window.
  */
 static struct cmd_results *
 resize_adjust_tiled(uint32_t axis, struct movement_amount *amount) {
@@ -276,7 +276,7 @@ resize_adjust_tiled(uint32_t axis, struct movement_amount *amount) {
 }
 
 /**
- * Implement `resize set` for a tiled container.
+ * Implement `resize set` for a tiled window.
  */
 static struct cmd_results *
 resize_set_tiled(
@@ -311,7 +311,7 @@ resize_set_tiled(
 }
 
 /**
- * Implement `resize set` for a floating container.
+ * Implement `resize set` for a floating window.
  */
 static struct cmd_results *
 resize_set_floating(
@@ -496,7 +496,7 @@ cmd_resize_adjust(int argc, char **argv, int multiplier) {
 
     struct hwd_window *window = config->handler_context.window;
     if (window && window_is_floating(window)) {
-        // Floating containers can only resize in px. Choose an amount which
+        // Floating windows can only resize in px. Choose an amount which
         // uses px, with fallback to an amount that specified no unit.
         if (first_amount.unit == MOVEMENT_UNIT_PX) {
             return resize_adjust_floating(axis, &first_amount);

@@ -94,7 +94,7 @@ window_get_in_direction_tiling(
     struct hwd_output *output = window_get_output(window);
 
     if (window_is_fullscreen(window)) {
-        // Fullscreen container with a direction - go straight to outputs
+        // Fullscreen window with a direction - go straight to outputs
         struct hwd_output *new_output = root_get_output_in_direction(root, output, dir);
         if (!new_output) {
             return NULL;
@@ -199,20 +199,20 @@ window_get_in_direction_tiling(
 
 static struct hwd_window *
 window_get_in_direction_floating(
-    struct hwd_window *container, struct hwd_seat *seat, enum wlr_direction dir
+    struct hwd_window *window, struct hwd_seat *seat, enum wlr_direction dir
 ) {
-    double ref_lx = container->pending.x + container->pending.width / 2;
-    double ref_ly = container->pending.y + container->pending.height / 2;
+    double ref_lx = window->pending.x + window->pending.width / 2;
+    double ref_ly = window->pending.y + window->pending.height / 2;
     double closest_distance = DBL_MAX;
-    struct hwd_window *closest_container = NULL;
+    struct hwd_window *closest_window = NULL;
 
-    if (!container->workspace) {
+    if (!window->workspace) {
         return NULL;
     }
 
-    for (int i = 0; i < container->workspace->pending.floating->length; i++) {
-        struct hwd_window *floater = container->workspace->pending.floating->items[i];
-        if (floater == container) {
+    for (int i = 0; i < window->workspace->pending.floating->length; i++) {
+        struct hwd_window *floater = window->workspace->pending.floating->items[i];
+        if (floater == window) {
             continue;
         }
         float distance = dir == WLR_DIRECTION_LEFT || dir == WLR_DIRECTION_RIGHT
@@ -226,11 +226,11 @@ window_get_in_direction_floating(
         }
         if (distance < closest_distance) {
             closest_distance = distance;
-            closest_container = floater;
+            closest_window = floater;
         }
     }
 
-    return closest_container;
+    return closest_window;
 }
 
 static struct cmd_results *
@@ -246,7 +246,7 @@ focus_mode(struct hwd_workspace *workspace, bool floating) {
         root_commit_focus(root);
     } else {
         return cmd_results_new(
-            CMD_FAILURE, "Failed to find a %s container in workspace.",
+            CMD_FAILURE, "Failed to find a %s window in workspace.",
             floating ? "floating" : "tiling"
         );
     }

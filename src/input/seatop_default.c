@@ -337,7 +337,7 @@ handle_tablet_tool_tip(
             return;
         }
 
-        // Handle tapping on a container surface
+        // Handle tapping on a window surface.
         root_set_focused_window(root, window);
         seatop_begin_down(seat, window, time_msec, sx, sy);
         root_commit_focus(root);
@@ -560,7 +560,7 @@ handle_button(
         }
     }
 
-    // Handle moving a tiling container
+    // Handle moving a tiling window.
     if ((mod_pressed || on_titlebar) && state == WL_POINTER_BUTTON_STATE_PRESSED && !is_floating &&
         window && !window_is_fullscreen(window)) {
 
@@ -569,7 +569,7 @@ handle_button(
         return;
     }
 
-    // Handle mousedown on a container surface
+    // Handle mousedown on a window surface.
     if (surface && window && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         root_set_focused_window(root, window);
         root_commit_focus(root);
@@ -581,7 +581,7 @@ handle_button(
         return;
     }
 
-    // Handle clicking a container surface or decorations
+    // Handle clicking a window surface or decorations.
     if (window && state == WL_POINTER_BUTTON_STATE_PRESSED) {
         root_set_focused_window(root, window);
         root_commit_focus(root);

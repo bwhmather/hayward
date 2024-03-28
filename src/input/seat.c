@@ -842,11 +842,6 @@ seat_configure_xcursor(struct hwd_seat *seat) {
     wlr_cursor_warp(seat->cursor->cursor, NULL, seat->cursor->cursor->x, seat->cursor->cursor->y);
 }
 
-/**
- * If container is a view, set it as active and enable keyboard input.
- * If container is a container, set all child views as active and don't enable
- * keyboard input on any.
- */
 static void
 seat_send_focus(struct hwd_seat *seat, struct wlr_surface *surface) {
     if (!seat_is_input_allowed(seat, surface)) {
