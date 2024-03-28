@@ -328,7 +328,7 @@ column_arrange_split(struct hwd_column *column) {
     double available_content_height = box.height;
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        if (child->pending.fullscreen) {
+        if (window_is_fullscreen(child)) {
             continue;
         }
         visible_height_fraction += child->height_fraction;
@@ -361,7 +361,7 @@ column_arrange_split(struct hwd_column *column) {
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
         double window_height = child->pending.titlebar_height;
-        if (child->pending.fullscreen) {
+        if (window_is_fullscreen(child)) {
             continue;
         }
 
@@ -434,7 +434,7 @@ column_arrange_stacked(struct hwd_column *column) {
     double available_content_height = box.height;
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        if (child->pending.fullscreen) {
+        if (window_is_fullscreen(child)) {
             continue;
         }
         available_content_height -= child->pending.titlebar_height;
@@ -464,7 +464,7 @@ column_arrange_stacked(struct hwd_column *column) {
 
     for (int i = 0; i < children->length; ++i) {
         child = children->items[i];
-        if (child->pending.fullscreen) {
+        if (window_is_fullscreen(child)) {
             continue;
         }
 
@@ -606,8 +606,6 @@ column_insert_child(struct hwd_column *column, struct hwd_window *window, int i)
     list_insert(column->pending.children, i, window);
 
     window_reconcile_tiling(window, column);
-
-    window_handle_fullscreen_reparent(window);
 }
 
 void
@@ -628,8 +626,6 @@ column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool aft
 
     window_reconcile_tiling(fixed, column);
     window_reconcile_tiling(active, column);
-
-    window_handle_fullscreen_reparent(active);
 }
 
 void
@@ -644,7 +640,6 @@ column_add_child(struct hwd_column *column, struct hwd_window *window) {
 
     window_reconcile_tiling(window, column);
 
-    window_handle_fullscreen_reparent(window);
     window_set_dirty(window);
     column_set_dirty(column);
 }

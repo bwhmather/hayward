@@ -282,6 +282,8 @@ static struct cmd_results *
 resize_set_tiled(
     struct hwd_window *window, struct movement_amount *width, struct movement_amount *height
 ) {
+    struct hwd_output *output = window_get_output(window);
+
     if (width->amount) {
         if (width->unit == MOVEMENT_UNIT_PPT || width->unit == MOVEMENT_UNIT_DEFAULT) {
             // Convert to px
@@ -297,7 +299,7 @@ resize_set_tiled(
     if (height->amount) {
         if (height->unit == MOVEMENT_UNIT_PPT || height->unit == MOVEMENT_UNIT_DEFAULT) {
             // Convert to px
-            height->amount = window->pending.output->pending.height * height->amount / 100;
+            height->amount = output->pending.height * height->amount / 100;
             height->unit = MOVEMENT_UNIT_PX;
         }
         if (height->unit == MOVEMENT_UNIT_PX) {
@@ -315,6 +317,8 @@ static struct cmd_results *
 resize_set_floating(
     struct hwd_window *window, struct movement_amount *width, struct movement_amount *height
 ) {
+    struct hwd_output *output = window_get_output(window);
+
     int min_width, max_width, min_height, max_height, grow_width = 0, grow_height = 0;
     floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
 
@@ -322,7 +326,7 @@ resize_set_floating(
         switch (width->unit) {
         case MOVEMENT_UNIT_PPT:
             // Convert to px
-            width->amount = window->pending.output->pending.width * width->amount / 100;
+            width->amount = output->pending.width * width->amount / 100;
             width->unit = MOVEMENT_UNIT_PX;
             // Falls through
         case MOVEMENT_UNIT_PX:
@@ -342,7 +346,6 @@ resize_set_floating(
         switch (height->unit) {
         case MOVEMENT_UNIT_PPT:
             // Convert to px
-            height->amount = window->pending.output->pending.height * height->amount / 100;
             height->unit = MOVEMENT_UNIT_PX;
             // Falls through
         case MOVEMENT_UNIT_PX:

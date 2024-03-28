@@ -307,6 +307,9 @@ window_create(struct hwd_view *view) {
 
     window->view = view;
 
+    window->output_history = create_list();
+    window->fullscreen_output_history = create_list();
+
     window->height_fraction = 1.0;
 
     window->transaction_commit.notify = window_handle_transaction_commit;
@@ -332,6 +335,9 @@ window_begin_destroy(struct hwd_window *window) {
     assert(window_is_alive(window));
 
     window_end_mouse_operation(window);
+
+    list_free(window->output_history);
+    list_free(window->fullscreen_output_history);
 
     if (window->pending.parent || window->pending.workspace) {
         window_detach(window);
@@ -443,12 +449,10 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     assert(column != NULL);
 
     struct hwd_workspace *workspace = column->pending.workspace;
-    struct hwd_output *output = column->pending.output;
 
     window->pending.workspace = workspace;
-    if (!window->pending.fullscreen) {
-        window->pending.output = output;
-    }
+    list_clear(window->output_history); // TODO
+    list_add(window->output_history, column->pending.output);
     window->pending.parent = column;
 
     window->pending.focused =
@@ -497,11 +501,13 @@ window_arrange(struct hwd_window *window) {
 
     struct hwd_window_state *state = &window->pending;
 
-    if (state->fullscreen) {
-        state->content_x = state->output->pending.x;
-        state->content_y = state->output->pending.y;
-        state->content_width = state->output->pending.width;
-        state->content_height = state->output->pending.height;
+    if (window_is_fullscreen(window)) {
+        struct hwd_output *output = window_get_fullscreen_output(window);
+        state->fullscreen = true;
+        state->content_x = output->pending.x;
+        state->content_y = output->pending.y;
+        state->content_width = output->pending.width;
+        state->content_height = output->pending.height;
     } else {
         state->titlebar_height = hwd_theme_window_get_titlebar_height(state->theme);
         state->border_left = hwd_theme_window_get_border_left(state->theme);
@@ -519,6 +525,50 @@ window_arrange(struct hwd_window *window) {
         if (state->content_height < 0) {
             state->content_height = 0;
         }
+    }
+
+    window_set_dirty(window);
+}
+
+void
+window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
+    struct hwd_output *new_output = NULL;
+    // TODO smarter selection.
+    // TODO ignore disabled outputs.
+    if (root->outputs->length > 1) {
+        new_output = root->outputs->items[0];
+        if (new_output == old_output) {
+            new_output = root->outputs->items[1];
+        }
+    }
+
+    if (window_get_fullscreen_output(window) == old_output) {
+        list_add(window->fullscreen_output_history, new_output);
+    }
+
+    assert(window->output_history->length > 0);
+    struct hwd_output *current_output =
+        window->output_history->items[window->output_history->length - 1];
+    if (current_output != old_output) {
+        return;
+    }
+
+    struct hwd_column *current_column = window->pending.parent;
+
+    list_add(window->output_history, new_output);
+
+    if (current_column != NULL) {
+        struct hwd_workspace *workspace = window->pending.workspace;
+
+        // TODO choose first or last based on relative positions of outputs.
+        struct hwd_column *new_column = workspace_get_column_last(workspace, new_output);
+        if (new_column == NULL) {
+            new_column = column_create();
+            workspace_insert_column_last(workspace, new_output, new_column);
+        }
+
+        list_add(new_column->pending.children, window);
+        window->pending.parent = new_column;
     }
 
     window_set_dirty(window);
@@ -547,7 +597,7 @@ window_is_floating(struct hwd_window *window) {
 
 bool
 window_is_fullscreen(struct hwd_window *window) {
-    return window->pending.fullscreen;
+    return window_get_fullscreen_output(window) != NULL;
 }
 
 bool
@@ -555,86 +605,78 @@ window_is_tiling(struct hwd_window *window) {
     return window->pending.parent != NULL;
 }
 
-static void
-window_fullscreen_disable(struct hwd_window *window) {
+void
+window_fullscreen(struct hwd_window *window) {
     assert(window != NULL);
-    assert(window_is_alive(window));
-    assert(window->pending.output);
 
-    if (!window->pending.fullscreen) {
+    struct hwd_output *output = window_get_output(window);
+    window_fullscreen_on_output(window, output);
+}
+
+void
+window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output) {
+    assert(output != NULL);
+    assert(window != NULL);
+
+    if (window_get_fullscreen_output(window) == output) {
         return;
     }
 
     window_end_mouse_operation(window);
 
+    for (int i = 0; i < window->fullscreen_output_history->length; i++) {
+        struct hwd_output *output = window->fullscreen_output_history->items[i];
+
+        list_remove(output->fullscreen_windows, window);
+        output_consider_destroy(output);
+    }
+    list_clear(window->fullscreen_output_history);
+
+    list_add(window->fullscreen_output_history, output);
+    list_add(output->fullscreen_windows, window);
+
+    // TODO should be re-derived in arrange.
+    window->saved_x = window->pending.x;
+    window->saved_y = window->pending.y;
+    window->saved_width = window->pending.width;
+    window->saved_height = window->pending.height;
+
+    // TODO should be re-derived in arrange.
+    window->pending.fullscreen = true;
+
+    workspace_arrange(window->pending.workspace);
+    output_arrange(output);
+    window_set_dirty(window);
+}
+
+void
+window_unfullscreen(struct hwd_window *window) {
+    assert(window != NULL);
+
+    window_end_mouse_operation(window);
+
+    for (int i = 0; i < window->fullscreen_output_history->length; i++) {
+        struct hwd_output *output = window->fullscreen_output_history->items[i];
+
+        list_remove(output->fullscreen_windows, window);
+        output_arrange(output);
+        output_consider_destroy(output);
+    }
+    list_clear(window->fullscreen_output_history);
+
     if (window_is_floating(window)) {
+        // TODO should be re-derived in arrange.
         window->pending.x = window->saved_x;
         window->pending.y = window->saved_y;
         window->pending.width = window->saved_width;
         window->pending.height = window->saved_height;
     }
 
-    if (window_is_tiling(window)) {
-        window->pending.output = window->pending.parent->pending.output;
-    }
-
+    // TODO should be re-derived in arranged.
     window->pending.fullscreen = false;
 
+    workspace_arrange(window->pending.workspace);
     window_set_dirty(window);
-}
-
-static void
-window_fullscreen_enable(struct hwd_window *window) {
-    assert(window != NULL);
-    assert(window_is_alive(window));
-
-    if (window->pending.fullscreen) {
-        return;
-    }
-
-    window_end_mouse_operation(window);
-
-    window->saved_x = window->pending.x;
-    window->saved_y = window->pending.y;
-    window->saved_width = window->pending.width;
-    window->saved_height = window->pending.height;
-
-    window->pending.fullscreen = true;
-
-    window_set_dirty(window);
-}
-
-void
-window_set_fullscreen(struct hwd_window *window, bool enabled) {
-    if (enabled) {
-        window_fullscreen_enable(window);
-    } else {
-        window_fullscreen_disable(window);
-    }
-}
-
-void
-window_handle_fullscreen_reparent(struct hwd_window *window) {
-    assert(window != NULL);
-    assert(window_is_alive(window));
-
-    struct hwd_workspace *workspace = window->pending.workspace;
-    struct hwd_output *output = window->pending.output;
-
-    if (!window->pending.fullscreen) {
-        return;
-    }
-
-    if (!workspace) {
-        return;
-    }
-
-    if (!output) {
-        return;
-    }
-
-    workspace_set_fullscreen_window_for_output(workspace, output, window);
-    workspace_arrange(workspace);
 }
 
 void
@@ -695,11 +737,11 @@ window_floating_resize_and_center(struct hwd_window *window) {
     assert(window != NULL);
     assert(window_is_alive(window));
 
-    struct hwd_output *output = window->pending.output;
+    struct hwd_output *output = window_get_output(window);
     assert(output != NULL);
 
     struct wlr_box ob;
-    wlr_output_layout_get_box(root->output_layout, window->pending.output->wlr_output, &ob);
+    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &ob);
     if (wlr_box_empty(&ob)) {
         // On NOOP output. Will be called again when moved to an output
         window->pending.x = 0;
@@ -745,10 +787,12 @@ window_floating_set_default_size(struct hwd_window *window) {
     assert(window_is_alive(window));
     assert(window->pending.workspace);
 
+    struct hwd_output *output = window_get_output(window);
+
     int min_width, max_width, min_height, max_height;
     floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
     struct wlr_box box = {0};
-    output_get_box(window->pending.output, &box);
+    output_get_box(output, &box);
 
     double width = fmax(min_width, fmin(box.width * 0.5, max_width));
     double height = fmax(min_height, fmin(box.height * 0.75, max_height));
@@ -782,7 +826,7 @@ window_floating_move_to_center(struct hwd_window *window) {
     assert(window_is_alive(window));
     assert(window_is_floating(window));
 
-    struct hwd_output *output = window->pending.output;
+    struct hwd_output *output = window_get_output(window);
 
     double new_lx = output->pending.x + (output->pending.width - output->pending.width) / 2;
     double new_ly = output->pending.y + (output->pending.height - output->pending.height) / 2;
@@ -794,7 +838,22 @@ struct hwd_output *
 window_get_output(struct hwd_window *window) {
     assert(window != NULL);
 
-    return window->pending.output;
+    struct hwd_output *fullscreen_output = window_get_fullscreen_output(window);
+    if (fullscreen_output != NULL) {
+        return fullscreen_output;
+    }
+
+    assert(window->output_history->length > 0);
+    return window->output_history->items[window->output_history->length - 1];
+}
+
+struct hwd_output *
+window_get_fullscreen_output(struct hwd_window *window) {
+    if (window->fullscreen_output_history->length == 0) {
+        return NULL;
+    }
+
+    return window->fullscreen_output_history->items[window->fullscreen_output_history->length - 1];
 }
 
 void

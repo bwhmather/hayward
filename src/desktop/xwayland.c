@@ -655,13 +655,10 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     }
 
     struct hwd_window *window = view->window;
-    struct hwd_workspace *workspace = window->pending.workspace;
-    struct hwd_output *output = window->pending.output;
+    struct hwd_output *output = window_get_output(window);
 
     if (xsurface->fullscreen != window_is_fullscreen(window)) {
-        workspace_set_fullscreen_window_for_output(
-            workspace, output, xsurface->fullscreen ? window : NULL
-        );
+        window_fullscreen_on_output(window, output);
     }
     root_arrange(root);
 }
@@ -698,7 +695,7 @@ handle_request_move(struct wl_listener *listener, void *data) {
     if (!xsurface->surface->mapped) {
         return;
     }
-    if (view->window->pending.fullscreen) {
+    if (window_is_fullscreen(view->window)) {
         return;
     }
     struct hwd_seat *seat = input_manager_current_seat();

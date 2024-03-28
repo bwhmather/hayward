@@ -101,7 +101,7 @@ do_detach(struct hwd_seat *seat) {
 
     if (!window_is_floating(window)) {
         struct hwd_workspace *workspace = window->pending.workspace;
-        struct hwd_output *output = window->pending.output;
+        struct hwd_output *output = window_get_output(window);
 
         bool on_titlebar = e->ref_ly - window->pending.y <= window->pending.titlebar_height;
 
@@ -160,7 +160,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
     struct wlr_cursor *cursor = seat->cursor->cursor;
 
     struct hwd_window *window = e->window;
-    struct hwd_output *output = window->pending.output;
+    struct hwd_output *output = window_get_output(window);
     struct hwd_workspace *workspace = root_get_active_workspace(root);
 
     window_floating_move_to(window, output, cursor->x - e->dx, cursor->y - e->dy);

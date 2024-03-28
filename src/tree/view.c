@@ -239,7 +239,7 @@ static bool
 should_focus(struct hwd_view *view) {
     struct hwd_workspace *active_workspace = root_get_active_workspace(root);
     struct hwd_workspace *map_workspace = view->window->pending.workspace;
-    struct hwd_output *map_output = view->window->pending.output;
+    struct hwd_output *map_output = window_get_output(view->window);
 
     // Views cannot be focused if not mapped.
     if (map_workspace == NULL) {
@@ -252,9 +252,12 @@ should_focus(struct hwd_view *view) {
     }
 
     // View opened "under" fullscreen view should not be given focus.
-    if (map_output != NULL &&
-        workspace_get_fullscreen_window_for_output(map_workspace, map_output) != NULL) {
-        return false;
+    if (map_output != NULL) {
+        struct hwd_window *fullscreen_window =
+            workspace_get_fullscreen_window_for_output(map_workspace, map_output);
+        if (fullscreen_window != NULL && fullscreen_window != view->window) {
+            return false;
+        }
     }
 
     return true;
@@ -274,14 +277,13 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
     struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
 
     struct hwd_window *window = view->window;
-    struct hwd_workspace *workspace = window->pending.workspace;
-    struct hwd_output *output = window->pending.output;
 
     if (event->fullscreen && event->output && event->output->data) {
-        output = event->output->data;
+        struct hwd_output *output = event->output->data;
+        window_fullscreen_on_output(window, output);
+    } else {
+        window_fullscreen(window);
     }
-
-    workspace_set_fullscreen_window_for_output(workspace, output, window);
     root_arrange(root);
 }
 
@@ -372,7 +374,7 @@ view_map(
         // Fullscreen windows still have to have a place as regular
         // tiling or floating windows, so this does not make the
         // previous logic unnecessary.
-        workspace_set_fullscreen_window_for_output(workspace, output, view->window);
+        window_fullscreen_on_output(view->window, output);
     }
 
     view_update_title(view, false);
@@ -584,7 +586,7 @@ view_is_visible(struct hwd_view *view) {
         return false;
     }
 
-    struct hwd_output *output = view->window->pending.output;
+    struct hwd_output *output = window_get_output(view->window);
     if (!output) {
         return false;
     }

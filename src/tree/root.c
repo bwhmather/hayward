@@ -647,7 +647,6 @@ root_validate(struct hwd_root *root) {
             assert(window != NULL);
 
             assert(window->pending.workspace == workspace);
-            assert(list_find(root->outputs, window->pending.output) != -1);
             assert(window->pending.parent == NULL);
         }
 
@@ -662,7 +661,6 @@ root_validate(struct hwd_root *root) {
 
                 assert(window->pending.parent == column);
                 assert(window->pending.workspace == workspace);
-                assert(window->pending.output == column->pending.output);
             }
         }
     }

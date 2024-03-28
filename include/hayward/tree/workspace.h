@@ -21,9 +21,8 @@ enum hwd_focus_mode {
 struct hwd_view;
 
 struct hwd_workspace_state {
-    list_t *floating;   // struct hwd_window
-    list_t *columns;    // struct hwd_column
-    list_t *fullscreen; // struct hwd_window
+    list_t *floating; // struct hwd_window
+    list_t *columns;  // struct hwd_column
 
     // Cached backlink to root of tree.
     struct hwd_root *root;
@@ -59,7 +58,6 @@ struct hwd_workspace {
         struct wlr_scene_tree *separators;
         struct wlr_scene_tree *tiling;
         struct wlr_scene_tree *floating;
-        struct wlr_scene_tree *fullscreen;
     } layers;
 
     struct wl_listener transaction_commit;
@@ -165,11 +163,6 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
 
 struct hwd_window *
 workspace_get_floating_window_at(struct hwd_workspace *workspace, double x, double y);
-
-void
-workspace_set_fullscreen_window_for_output(
-    struct hwd_workspace *workspace, struct hwd_output *output, struct hwd_window *window
-);
 
 /**
  * Traverses all windows on the workspace to find the first fullscreen window on

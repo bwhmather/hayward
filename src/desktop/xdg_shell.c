@@ -23,6 +23,8 @@
 #include <wlr/util/edges.h>
 #include <wlr/util/log.h>
 
+#include <xdg-shell-protocol.h>
+
 #include <hayward/globals/root.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
@@ -32,7 +34,6 @@
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
 
 #define HWD_XDG_SHELL_VERSION 5
 
@@ -377,19 +378,19 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     }
 
     struct hwd_window *window = view->window;
-    struct hwd_workspace *workspace = window->pending.workspace;
 
     struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 
-    struct hwd_output *output = window->pending.output;
+    struct hwd_output *output = window_get_output(window);
+
     if (req->fullscreen && req->fullscreen_output && req->fullscreen_output->data) {
         output = req->fullscreen_output->data;
     }
 
     if (req->fullscreen) {
-        workspace_set_fullscreen_window_for_output(workspace, output, window);
+        window_fullscreen_on_output(window, output);
     } else if (window_is_fullscreen(window)) {
-        workspace_set_fullscreen_window_for_output(workspace, output, NULL);
+        window_unfullscreen(window);
     }
 
     root_arrange(root);

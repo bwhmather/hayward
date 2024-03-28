@@ -45,13 +45,6 @@ struct hwd_window_state {
     // calling one of the `window_reconcile_` functions.
     struct hwd_workspace *workspace;
 
-    // Cached backlink to the primary output of the window.  If the window
-    // is tiling then this will simply be the output of the column.  If the
-    // window is floating then it will be the closest output to the centre
-    // of the window.  Should only be updated by calling one of the
-    // `window_reconcile_` functions.
-    struct hwd_output *output;
-
     // Cached backlink to the column containing the window.  Null if window
     // is not part of a column.  Should only be updated by calling one of
     // the `window_reconcile_` functions.
@@ -86,6 +79,34 @@ struct hwd_window {
 
     bool dirty;
 
+    // A list of disabled outputs that this window has been evacuated from, in
+    // priority order from highest (earliest) to lowest (most recent).  If the
+    // pending output for a window is disabled, the window will be moved to a
+    // new output and the old output will be added to the end of this list.  If
+    // an output in this list is subsequently re-enabled then it will be set as
+    // the pending output and later entries in this list will be cleared.  If a
+    // window is moved manually then its history will be cleared.
+    //
+    // The goal is to make sure that windows always stay exactly where you put
+    // them, regardless of how many times outputs are unplugged or reconfigured.
+    list_t *output_history; // struct dtl_output *
+
+    // If the window's workspace is current, the window is not moving, this
+    // pointer is set and the output it points to is enabled the the window will
+    // be fullscreen on this output.  If any of these conditions do not hold
+    // then this pointer will be ignored until that changes.
+    list_t *fullscreen_output_history; // struct dtl_output *
+
+    // This is the last manually assigned floating position of the window.  If a
+    // floating window is made tiling or fullscreen, this will be preserved so
+    // that the window can be restored to the same position later.  If it is
+    // evacuated to a different screen, this will be preserved and the new
+    // current size and position will be derived from it.
+    double saved_x, saved_y;
+    double saved_width, saved_height;
+
+    // If true, the window has been plucked from the normal plane of existance
+    // and is being moved in sync with the mouse.
     bool moving;
 
     // Identifier tracking the serial of the configure event sent during at the
@@ -96,12 +117,6 @@ struct hwd_window {
 
     char *title;           // The view's title (unformatted)
     char *formatted_title; // The title displayed in the title bar
-
-    // For C_ROOT, this has no meaning
-    // For other types, this is the position in layout coordinates
-    // Includes borders
-    double saved_x, saved_y;
-    double saved_width, saved_height;
 
     // The fraction of vertical space available for content that should be
     // allocated to this window when the containing column has an un-pinned
@@ -177,6 +192,12 @@ void
 window_arrange(struct hwd_window *window);
 
 /**
+ * Move window out of soon to be disabled output.
+ */
+void
+window_evacuate(struct hwd_window *window, struct hwd_output *output);
+
+/**
  * If the window is involved in a drag or resize operation via a mouse, this
  * ends the operation.
  */
@@ -193,10 +214,13 @@ bool
 window_is_tiling(struct hwd_window *window);
 
 void
-window_set_fullscreen(struct hwd_window *window, bool enabled);
+window_fullscreen(struct hwd_window *window);
 
 void
-window_handle_fullscreen_reparent(struct hwd_window *window);
+window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output);
+
+void
+window_unfullscreen(struct hwd_window *window);
 
 void
 floating_calculate_constraints(int *min_width, int *max_width, int *min_height, int *max_height);
@@ -221,6 +245,9 @@ window_floating_move_to_center(struct hwd_window *window);
 
 struct hwd_output *
 window_get_output(struct hwd_window *window);
+
+struct hwd_output *
+window_get_fullscreen_output(struct hwd_window *window);
 
 /**
  * Get a window's box in layout coordinates.

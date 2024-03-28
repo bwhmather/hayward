@@ -11,10 +11,8 @@
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
 #include <hayward/profiler.h>
-#include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
 
 static const char expected_syntax[] = "Expected `fullscreen [enable|disable|toggle]`";
 
@@ -55,12 +53,10 @@ cmd_fullscreen(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, expected_syntax);
     }
 
-    if (enable != is_fullscreen) {
-        struct hwd_workspace *workspace = window->pending.workspace;
-        struct hwd_output *output = window->pending.output;
-
-        workspace_set_fullscreen_window_for_output(workspace, output, enable ? window : NULL);
-        root_arrange(root);
+    if (enable) {
+        window_fullscreen(window);
+    } else {
+        window_unfullscreen(window);
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

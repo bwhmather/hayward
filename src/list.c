@@ -54,6 +54,14 @@ list_del(list_t *list, int index) {
 }
 
 void
+list_remove(list_t *list, void *item) {
+    int index = list_find(list, item);
+    if (index != -1) {
+        list_del(list, index);
+    }
+}
+
+void
 list_clear(list_t *list) {
     list->length = 0;
 }

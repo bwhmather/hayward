@@ -15,6 +15,8 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
+#include <hayward/list.h>
+
 struct hwd_server;
 struct hwd_window;
 struct hwd_view;
@@ -30,11 +32,20 @@ struct hwd_output_state {
     int x, y;
     int width, height;
 
+    struct hwd_window *fullscreen_window;
+
+    bool disabled;
     bool dead;
 };
 
 struct hwd_output {
     size_t id;
+
+    // A list of all windows that are currently fullscreened on this output.
+    // When the output is disabled, this will include windows that would be
+    // fullscreen if this were otherwise.  The visible fullscreen window is the
+    // last window on the current workspace in this list.
+    list_t *fullscreen_windows; // struct hwd_window
 
     bool dirty;
 
@@ -62,8 +73,8 @@ struct hwd_output {
     struct {
         struct wlr_scene_tree *shell_background;
         struct wlr_scene_tree *shell_bottom;
-        struct wlr_scene_tree *fullscreen;
         struct wlr_scene_tree *shell_top;
+        struct wlr_scene_tree *fullscreen;
         struct wlr_scene_tree *shell_overlay;
     } layers;
 
@@ -84,6 +95,9 @@ output_create(struct wlr_output *wlr_output);
 
 struct hwd_output *
 output_from_wlr_output(struct wlr_output *output);
+
+void
+output_consider_destroy(struct hwd_output *output);
 
 void
 output_reconcile(struct hwd_output *output);

@@ -96,9 +96,8 @@ move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *worksp
     if (window_is_floating(window)) {
         window_detach(window);
         workspace_add_floating(workspace, window);
-        window_handle_fullscreen_reparent(window);
     } else {
-        struct hwd_output *output = window->pending.parent->pending.output;
+        struct hwd_output *output = window_get_output(window);
         struct hwd_column *column = NULL;
 
         for (int i = 0; i < workspace->pending.columns->length; i++) {
@@ -185,13 +184,14 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
     assert(!window_is_fullscreen(window));
 
     struct hwd_column *old_column = window->pending.parent;
+    struct hwd_output *output = window_get_output(window);
     struct hwd_workspace *workspace = old_column->pending.workspace;
 
     switch (move_dir) {
     case WLR_DIRECTION_UP: {
         struct hwd_window *prev_sibling = window_get_previous_sibling(window);
         if (prev_sibling == NULL) {
-            return window_tiling_move_to_next_output(window, window->pending.output, move_dir);
+            return window_tiling_move_to_next_output(window, output, move_dir);
         }
 
         window_detach(window);
@@ -201,7 +201,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
     case WLR_DIRECTION_DOWN: {
         struct hwd_window *next_sibling = window_get_next_sibling(window);
         if (next_sibling == NULL) {
-            return window_tiling_move_to_next_output(window, window->pending.output, move_dir);
+            return window_tiling_move_to_next_output(window, output, move_dir);
         }
 
         window_detach(window);
@@ -357,19 +357,17 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
     }
 
     if (window_is_fullscreen(window)) {
-        struct hwd_output *next_output =
-            root_get_output_in_direction(root, window->pending.output, direction);
+        struct hwd_output *output = window_get_output(window);
+        struct hwd_output *next_output = root_get_output_in_direction(root, output, direction);
         if (next_output) {
-            workspace_set_fullscreen_window_for_output(
-                window->pending.workspace, next_output, window
-            );
+            window_fullscreen_on_output(window, next_output);
         }
         root_arrange(root);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 
     if (window_is_floating(window)) {
-        if (window->pending.fullscreen) {
+        if (window_is_fullscreen(window)) {
             return cmd_results_new(CMD_FAILURE, "Cannot move fullscreen floating window");
         }
         double lx = window->pending.x;
@@ -536,7 +534,7 @@ cmd_move_to_position(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, "Invalid y position specified");
     }
 
-    struct hwd_output *output = window->pending.output;
+    struct hwd_output *output = window_get_output(window);
 
     switch (lx.unit) {
     case MOVEMENT_UNIT_PPT:
