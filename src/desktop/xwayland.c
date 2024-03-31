@@ -36,7 +36,6 @@
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
 
 static const char *atom_map[ATOM_LAST] = {
     [NET_WM_WINDOW_TYPE_NORMAL] = "_NET_WM_WINDOW_TYPE_NORMAL",
