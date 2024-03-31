@@ -411,14 +411,15 @@ endif
 
 test_suites = {
   'lint': [
+    'commands-and-headers-match',
     'exact-includes',
-    'unused-symbols',
     'include-guards',
     'no-circular-includes',
-    'commands-and-headers-match',
-    'tree-header-orders-match',
-    'source-and-header-orders-match',
     'source-and-header-contents-match',
+    'source-and-header-orders-match',
+    'source-heading',
+    'tree-header-orders-match',
+    'unused-symbols',
   ],
 }
 

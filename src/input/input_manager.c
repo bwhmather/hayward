@@ -1,5 +1,6 @@
 #define _XOPEN_SOURCE 700
 #define _POSIX_C_SOURCE 200809L
+
 #include <config.h>
 
 #include "hayward/input/input_manager.h"
@@ -15,9 +16,9 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 
-#include <wlr/config.h>
 #include <wlr/backend.h>
 #include <wlr/backend/libinput.h>
+#include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
