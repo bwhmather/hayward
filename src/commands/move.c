@@ -104,7 +104,7 @@ move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *worksp
         for (int i = 0; i < workspace->pending.columns->length; i++) {
             struct hwd_column *candidate_column = workspace->pending.columns->items[i];
 
-            if (candidate_column->pending.output != output) {
+            if (candidate_column->output != output) {
                 continue;
             }
 
@@ -115,7 +115,7 @@ move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *worksp
             column = candidate_column;
         }
         if (workspace->pending.active_column != NULL &&
-            workspace->pending.active_column->pending.output == output) {
+            workspace->pending.active_column->output == output) {
             column = workspace->pending.active_column;
         }
         if (column == NULL) {
@@ -144,7 +144,7 @@ window_tiling_move_to_output_from_direction(
     for (int i = 0; i < workspace->pending.columns->length; i++) {
         struct hwd_column *candidate_column = workspace->pending.columns->items[i];
 
-        if (candidate_column->pending.output != output) {
+        if (candidate_column->output != output) {
             continue;
         }
 
@@ -152,8 +152,8 @@ window_tiling_move_to_output_from_direction(
             column = candidate_column;
         }
     }
-    if (workspace->pending.active_column->pending.output == output &&
-        move_dir != WLR_DIRECTION_UP && move_dir == WLR_DIRECTION_DOWN) {
+    if (workspace->pending.active_column->output == output && move_dir != WLR_DIRECTION_UP &&
+        move_dir == WLR_DIRECTION_DOWN) {
         column = workspace->pending.active_column;
     }
     if (column == NULL) {
@@ -218,9 +218,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
             // workspace, otherwise insert a new column to  the left and carry
             // on as before.
             if (old_column->pending.children->length == 1) {
-                return window_tiling_move_to_next_output(
-                    window, old_column->pending.output, move_dir
-                );
+                return window_tiling_move_to_next_output(window, old_column->output, move_dir);
             }
 
             new_column = column_create();
@@ -228,7 +226,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
             new_column->width_fraction = 0;
             new_column->layout = L_STACKED;
 
-            workspace_insert_column_first(workspace, old_column->pending.output, new_column);
+            workspace_insert_column_first(workspace, old_column->output, new_column);
         }
 
         move_window_to_column_from_direction(window, new_column, move_dir);
@@ -244,9 +242,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
             // workspace, otherwise insert a new column to the right and carry
             // on as before.
             if (old_column->pending.children->length == 1) {
-                return window_tiling_move_to_next_output(
-                    window, old_column->pending.output, move_dir
-                );
+                return window_tiling_move_to_next_output(window, old_column->output, move_dir);
             }
 
             new_column = column_create();
@@ -254,7 +250,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
             new_column->width_fraction = 0;
             new_column->layout = L_STACKED;
 
-            workspace_insert_column_last(workspace, old_column->pending.output, new_column);
+            workspace_insert_column_last(workspace, old_column->output, new_column);
         }
 
         move_window_to_column_from_direction(window, new_column, move_dir);

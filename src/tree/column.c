@@ -285,7 +285,7 @@ column_reconcile(
     assert(column != NULL);
 
     column->workspace = workspace;
-    column->pending.output = output;
+    column->output = output;
 
     if (workspace_is_visible(workspace) && workspace->pending.focus_mode == F_TILING &&
         column == workspace->pending.active_column) {
@@ -305,7 +305,7 @@ column_reconcile_detached(struct hwd_column *column) {
     assert(column != NULL);
 
     column->workspace = NULL;
-    column->pending.output = NULL;
+    column->output = NULL;
 
     column->pending.focused = false;
 

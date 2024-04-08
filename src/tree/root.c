@@ -630,10 +630,7 @@ root_validate(struct hwd_root *root) {
     // mode.
     if (active_workspace->pending.focus_mode == F_TILING) {
         if (active_workspace->pending.active_column) {
-            assert(
-                root->pending.active_output ==
-                active_workspace->pending.active_column->pending.output
-            );
+            assert(root->pending.active_output == active_workspace->pending.active_column->output);
         }
     }
 
@@ -655,7 +652,7 @@ root_validate(struct hwd_root *root) {
             struct hwd_column *column = workspace->pending.columns->items[j];
 
             assert(column->workspace == workspace);
-            assert(list_find(root->outputs, column->pending.output) != -1);
+            assert(list_find(root->outputs, column->output) != -1);
 
             for (int k = 0; k < column->pending.children->length; k++) {
                 struct hwd_window *window = column->pending.children->items[k];

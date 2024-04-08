@@ -55,13 +55,13 @@ cmd_floating(int argc, char **argv) {
         struct hwd_column *column = NULL;
         for (int i = 0; i < workspace->pending.columns->length; i++) {
             struct hwd_column *candidate_column = workspace->pending.columns->items[i];
-            if (candidate_column->pending.output == output) {
+            if (candidate_column->output == output) {
                 column = candidate_column;
                 break;
             }
         }
         if (workspace->pending.active_column != NULL &&
-            workspace->pending.active_column->pending.output == output) {
+            workspace->pending.active_column->output == output) {
             column = workspace->pending.active_column;
         }
         if (column == NULL) {

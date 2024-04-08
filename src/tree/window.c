@@ -453,7 +453,7 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
 
     window->workspace = workspace;
     list_clear(window->output_history); // TODO
-    list_add(window->output_history, column->pending.output);
+    list_add(window->output_history, column->output);
     window->parent = column;
 
     window->pending.focused =

@@ -21,10 +21,6 @@ struct hwd_column_state {
     double x, y;
     double width, height;
 
-    // Backling to output.  This is actually the golden source, but should
-    // always be updated using the reconciliation functions.
-    struct hwd_output *output;
-
     // Cached flag indicating whether the column contains the focused
     // window.  Should only be updated using the reconciliation functions.
     bool focused;
@@ -61,6 +57,10 @@ struct hwd_column {
 
     // Cached backlink to containing workspace.
     struct hwd_workspace *workspace;
+
+    // Backling to output.  This is actually the golden source, but should
+    // always be updated using the reconciliation functions.
+    struct hwd_output *output;
 
     // "Fraction" of vertical space allocated to the preview, if visible.  Not
     // included when normalizing.

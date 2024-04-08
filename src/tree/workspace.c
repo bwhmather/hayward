@@ -468,7 +468,7 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
 
     for (int column_index = 0; column_index < workspace->pending.columns->length; column_index++) {
         struct hwd_column *column = workspace->pending.columns->items[column_index];
-        column_reconcile(column, workspace, column->pending.output);
+        column_reconcile(column, workspace, column->output);
     }
 
     for (int window_index = 0; window_index < workspace->pending.floating->length; window_index++) {
@@ -500,7 +500,7 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
         for (int column_index = 0; column_index < workspace->pending.columns->length;
              column_index++) {
             struct hwd_column *column = workspace->pending.columns->items[column_index];
-            column_reconcile(column, workspace, column->pending.output);
+            column_reconcile(column, workspace, column->output);
         }
 
         for (int window_index = 0; window_index < workspace->pending.floating->length;
@@ -547,7 +547,7 @@ arrange_tiling(struct hwd_workspace *workspace) {
         double current_width_fraction = 0;
         for (int j = 0; j < columns->length; ++j) {
             struct hwd_column *column = columns->items[j];
-            if (column->pending.output != output) {
+            if (column->output != output) {
                 continue;
             }
 
@@ -565,7 +565,7 @@ arrange_tiling(struct hwd_workspace *workspace) {
         double total_width_fraction = 0;
         for (int j = 0; j < columns->length; ++j) {
             struct hwd_column *column = columns->items[j];
-            if (column->pending.output != output) {
+            if (column->output != output) {
                 continue;
             }
 
@@ -595,7 +595,7 @@ arrange_tiling(struct hwd_workspace *workspace) {
         // Normalize width fractions so the sum is 1.0.
         for (int j = 0; j < columns->length; ++j) {
             struct hwd_column *column = columns->items[j];
-            if (column->pending.output != output) {
+            if (column->output != output) {
                 continue;
             }
             column->width_fraction /= total_width_fraction;
@@ -607,7 +607,7 @@ arrange_tiling(struct hwd_workspace *workspace) {
         double column_x = box.x;
         for (int j = 0; j < columns->length; ++j) {
             struct hwd_column *column = columns->items[j];
-            if (column->pending.output != output) {
+            if (column->output != output) {
                 continue;
             }
 
@@ -711,7 +711,7 @@ workspace_get_column_first(struct hwd_workspace *workspace, struct hwd_output *o
 
     for (int i = 0; i < workspace->pending.columns->length; i++) {
         struct hwd_column *column = workspace->pending.columns->items[i];
-        if (column->pending.output == output) {
+        if (column->output == output) {
             return column;
         }
     }
@@ -725,7 +725,7 @@ workspace_get_column_last(struct hwd_workspace *workspace, struct hwd_output *ou
 
     for (int i = workspace->pending.columns->length - 1; i >= 0; i--) {
         struct hwd_column *column = workspace->pending.columns->items[i];
-        if (column->pending.output == output) {
+        if (column->output == output) {
             return column;
         }
     }
@@ -748,10 +748,10 @@ workspace_get_column_before(struct hwd_workspace *workspace, struct hwd_column *
     assert(i != -1);
     i--;
 
-    struct hwd_output *output = column->pending.output;
+    struct hwd_output *output = column->output;
     for (; i >= 0; i--) {
         struct hwd_column *candidate_column = workspace->pending.columns->items[i];
-        if (candidate_column->pending.output == output) {
+        if (candidate_column->output == output) {
             return candidate_column;
         }
     }
@@ -775,10 +775,10 @@ workspace_get_column_after(struct hwd_workspace *workspace, struct hwd_column *c
     assert(i != workspace->pending.columns->length);
     i++;
 
-    struct hwd_output *output = column->pending.output;
+    struct hwd_output *output = column->output;
     for (; i < workspace->pending.columns->length; i++) {
         struct hwd_column *candidate_column = workspace->pending.columns->items[i];
-        if (candidate_column->pending.output == output) {
+        if (candidate_column->output == output) {
             return candidate_column;
         }
     }
@@ -794,7 +794,7 @@ workspace_insert_column_first(
     assert(output != NULL);
     assert(column != NULL);
     assert(column->workspace == NULL);
-    assert(column->pending.output == NULL);
+    assert(column->output == NULL);
 
     list_t *columns = workspace->pending.columns;
     list_insert(columns, 0, column);
@@ -811,7 +811,7 @@ workspace_insert_column_last(
     assert(output != NULL);
     assert(column != NULL);
     assert(column->workspace == NULL);
-    assert(column->pending.output == NULL);
+    assert(column->output == NULL);
 
     list_t *columns = workspace->pending.columns;
     list_insert(columns, columns->length, column);
@@ -829,14 +829,14 @@ workspace_insert_column_before(
     assert(fixed->workspace != NULL);
     assert(column != NULL);
     assert(column->workspace == NULL);
-    assert(column->pending.output == NULL);
+    assert(column->output == NULL);
 
     list_t *columns = workspace->pending.columns;
     int index = list_find(columns, fixed);
     assert(index != -1);
     list_insert(columns, index, column);
 
-    column_reconcile(column, workspace, fixed->pending.output);
+    column_reconcile(column, workspace, fixed->output);
     workspace_set_dirty(workspace);
 }
 
@@ -849,14 +849,14 @@ workspace_insert_column_after(
     assert(fixed->workspace != NULL);
     assert(column != NULL);
     assert(column->workspace == NULL);
-    assert(column->pending.output == NULL);
+    assert(column->output == NULL);
 
     list_t *columns = workspace->pending.columns;
     int index = list_find(columns, fixed);
     assert(index != -1);
     list_insert(columns, index + 1, column);
 
-    column_reconcile(column, workspace, fixed->pending.output);
+    column_reconcile(column, workspace, fixed->output);
     workspace_set_dirty(workspace);
 }
 
@@ -866,7 +866,7 @@ workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *colu
     assert(column != NULL);
     assert(column->workspace == workspace);
 
-    struct hwd_output *output = column->pending.output;
+    struct hwd_output *output = column->output;
     assert(output != NULL);
 
     int index = list_find(workspace->pending.columns, column);
@@ -881,7 +881,7 @@ workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *colu
              candidate_index++) {
             struct hwd_column *candidate = workspace->pending.columns->items[candidate_index];
 
-            if (candidate->pending.output != output) {
+            if (candidate->output != output) {
                 continue;
             }
 
@@ -927,7 +927,7 @@ workspace_get_active_output(struct hwd_workspace *workspace) {
 
     struct hwd_column *active_column = workspace->pending.active_column;
     if (active_column != NULL) {
-        return active_column->pending.output;
+        return active_column->output;
     }
 
     return NULL;
@@ -1039,12 +1039,12 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
 
         struct hwd_root *root = workspace->pending.root;
         if (root_get_active_workspace(root) == workspace) {
-            root_set_active_output(root, new_column->pending.output);
+            root_set_active_output(root, new_column->output);
         }
 
-        column_reconcile(new_column, workspace, new_column->pending.output);
+        column_reconcile(new_column, workspace, new_column->output);
         if (old_column != NULL && old_column != new_column) {
-            column_reconcile(old_column, workspace, old_column->pending.output);
+            column_reconcile(old_column, workspace, old_column->output);
         }
     }
 

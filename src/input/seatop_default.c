@@ -75,7 +75,7 @@ column_edge_is_external(struct hwd_column *column, enum wlr_edges edge) {
     }
 
     struct hwd_workspace *workspace = column->workspace;
-    struct hwd_output *output = column->pending.output;
+    struct hwd_output *output = column->output;
 
     if (edge == WLR_EDGE_LEFT) {
         struct hwd_column *first_column = workspace_get_column_first(workspace, output);
