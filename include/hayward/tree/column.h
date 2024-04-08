@@ -21,8 +21,6 @@ struct hwd_column_state {
     double x, y;
     double width, height;
 
-    enum hwd_column_layout layout;
-
     // Cached backlink to containing workspace.
     struct hwd_workspace *workspace;
 
@@ -61,6 +59,8 @@ struct hwd_column {
     struct hwd_column_state current;
 
     bool dirty;
+
+    enum hwd_column_layout layout;
 
     // "Fraction" of vertical space allocated to the preview, if visible.  Not
     // included when normalizing.

@@ -161,7 +161,7 @@ find_resize_edge(
         return WLR_EDGE_NONE;
     }
 
-    if (column->pending.layout == L_STACKED && (edge == WLR_EDGE_TOP || edge == WLR_EDGE_BOTTOM)) {
+    if (column->layout == L_STACKED && (edge == WLR_EDGE_TOP || edge == WLR_EDGE_BOTTOM)) {
         return WLR_EDGE_NONE;
     }
 

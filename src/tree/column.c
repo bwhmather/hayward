@@ -176,7 +176,7 @@ column_create(void) {
     wl_signal_init(&column->events.begin_destroy);
     wl_signal_init(&column->events.destroy);
 
-    column->pending.layout = L_STACKED;
+    column->layout = L_STACKED;
 
     column->pending.children = create_list();
     column->committed.children = create_list();
@@ -531,7 +531,7 @@ column_arrange(struct hwd_column *column) {
         return;
     }
 
-    switch (column->pending.layout) {
+    switch (column->layout) {
     case L_SPLIT:
         column_arrange_split(column);
         break;

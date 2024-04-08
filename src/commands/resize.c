@@ -121,7 +121,7 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
     }
 
     struct hwd_column *column = window->parent;
-    if (column->pending.layout != L_SPLIT) {
+    if (column->layout != L_SPLIT) {
         return;
     }
 

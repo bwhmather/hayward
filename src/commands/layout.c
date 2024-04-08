@@ -47,7 +47,7 @@ cmd_layout(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
     }
 
-    enum hwd_column_layout old_layout = column->pending.layout;
+    enum hwd_column_layout old_layout = column->layout;
 
     enum hwd_column_layout new_layout;
     if (strcasecmp(argv[0], "split") == 0) {
@@ -59,7 +59,7 @@ cmd_layout(int argc, char **argv) {
     }
 
     if (new_layout != old_layout) {
-        column->pending.layout = new_layout;
+        column->layout = new_layout;
         workspace_arrange(workspace);
     }
 
