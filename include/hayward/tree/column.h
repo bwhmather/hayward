@@ -62,12 +62,6 @@ struct hwd_column {
 
     bool dirty;
 
-    // For C_ROOT, this has no meaning
-    // For other types, this is the position in layout coordinates
-    // Includes borders
-    double saved_x, saved_y;
-    double saved_width, saved_height;
-
     // "Fraction" of vertical space allocated to the preview, if visible.  Not
     // included when normalizing.
     double preview_height_fraction;
@@ -85,8 +79,6 @@ struct hwd_column {
     // The share of space of the parent workspace that all children occupy.
     // Used for doing the resize calculations
     double child_total_width;
-
-    float alpha;
 
     struct wlr_scene_tree *scene_tree;
 
