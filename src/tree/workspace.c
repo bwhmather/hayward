@@ -736,7 +736,7 @@ struct hwd_column *
 workspace_get_column_before(struct hwd_workspace *workspace, struct hwd_column *column) {
     assert(workspace != NULL);
     assert(column != NULL);
-    assert(column->pending.workspace == workspace);
+    assert(column->workspace == workspace);
 
     int i = workspace->pending.columns->length - 1;
     for (; i >= 0; i--) {
@@ -763,7 +763,7 @@ struct hwd_column *
 workspace_get_column_after(struct hwd_workspace *workspace, struct hwd_column *column) {
     assert(workspace != NULL);
     assert(column != NULL);
-    assert(column->pending.workspace == workspace);
+    assert(column->workspace == workspace);
 
     int i = 0;
     for (; i < workspace->pending.columns->length; i++) {
@@ -793,7 +793,7 @@ workspace_insert_column_first(
     assert(workspace != NULL);
     assert(output != NULL);
     assert(column != NULL);
-    assert(column->pending.workspace == NULL);
+    assert(column->workspace == NULL);
     assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
@@ -810,7 +810,7 @@ workspace_insert_column_last(
     assert(workspace != NULL);
     assert(output != NULL);
     assert(column != NULL);
-    assert(column->pending.workspace == NULL);
+    assert(column->workspace == NULL);
     assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
@@ -826,9 +826,9 @@ workspace_insert_column_before(
 ) {
     assert(workspace != NULL);
     assert(fixed != NULL);
-    assert(fixed->pending.workspace != NULL);
+    assert(fixed->workspace != NULL);
     assert(column != NULL);
-    assert(column->pending.workspace == NULL);
+    assert(column->workspace == NULL);
     assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
@@ -846,9 +846,9 @@ workspace_insert_column_after(
 ) {
     assert(workspace != NULL);
     assert(fixed != NULL);
-    assert(fixed->pending.workspace != NULL);
+    assert(fixed->workspace != NULL);
     assert(column != NULL);
-    assert(column->pending.workspace == NULL);
+    assert(column->workspace == NULL);
     assert(column->pending.output == NULL);
 
     list_t *columns = workspace->pending.columns;
@@ -864,7 +864,7 @@ void
 workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *column) {
     assert(workspace != NULL);
     assert(column != NULL);
-    assert(column->pending.workspace == workspace);
+    assert(column->workspace == workspace);
 
     struct hwd_output *output = column->pending.output;
     assert(output != NULL);
@@ -1030,7 +1030,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
 
         struct hwd_column *old_column = workspace->pending.active_column;
         struct hwd_column *new_column = window->parent;
-        assert(new_column->pending.workspace == workspace);
+        assert(new_column->workspace == workspace);
 
         column_set_active_child(new_column, window);
 

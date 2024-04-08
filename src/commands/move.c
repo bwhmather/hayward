@@ -64,11 +64,11 @@ move_window_to_column_from_maybe_direction(
         }
     }
 
-    if (column->pending.workspace) {
-        workspace_detect_urgent(column->pending.workspace);
+    if (column->workspace) {
+        workspace_detect_urgent(column->workspace);
     }
 
-    if (old_workspace && old_workspace != column->pending.workspace) {
+    if (old_workspace && old_workspace != column->workspace) {
         workspace_detect_urgent(old_workspace);
     }
 }
@@ -186,7 +186,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
 
     struct hwd_column *old_column = window->parent;
     struct hwd_output *output = window_get_output(window);
-    struct hwd_workspace *workspace = old_column->pending.workspace;
+    struct hwd_workspace *workspace = old_column->workspace;
 
     switch (move_dir) {
     case WLR_DIRECTION_UP: {

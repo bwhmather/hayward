@@ -654,7 +654,7 @@ root_validate(struct hwd_root *root) {
         for (int j = 0; j < workspace->pending.columns->length; j++) {
             struct hwd_column *column = workspace->pending.columns->items[j];
 
-            assert(column->pending.workspace == workspace);
+            assert(column->workspace == workspace);
             assert(list_find(root->outputs, column->pending.output) != -1);
 
             for (int k = 0; k < column->pending.children->length; k++) {

@@ -111,7 +111,7 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
         next_sibling->width_fraction -= (double)next_amount / next_sibling->child_total_width;
     }
 
-    workspace_arrange(column->pending.workspace);
+    workspace_arrange(column->workspace);
 }
 
 static void

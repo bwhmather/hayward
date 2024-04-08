@@ -21,9 +21,6 @@ struct hwd_column_state {
     double x, y;
     double width, height;
 
-    // Cached backlink to containing workspace.
-    struct hwd_workspace *workspace;
-
     // Backling to output.  This is actually the golden source, but should
     // always be updated using the reconciliation functions.
     struct hwd_output *output;
@@ -61,6 +58,9 @@ struct hwd_column {
     bool dirty;
 
     enum hwd_column_layout layout;
+
+    // Cached backlink to containing workspace.
+    struct hwd_workspace *workspace;
 
     // "Fraction" of vertical space allocated to the preview, if visible.  Not
     // included when normalizing.

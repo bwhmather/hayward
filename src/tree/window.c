@@ -449,7 +449,7 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     assert(window_is_alive(window));
     assert(column != NULL);
 
-    struct hwd_workspace *workspace = column->pending.workspace;
+    struct hwd_workspace *workspace = column->workspace;
 
     window->workspace = workspace;
     list_clear(window->output_history); // TODO

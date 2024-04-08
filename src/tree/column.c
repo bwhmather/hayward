@@ -216,7 +216,7 @@ column_begin_destroy(struct hwd_column *column) {
 
     column->pending.dead = true;
 
-    if (column->pending.workspace) {
+    if (column->workspace) {
         column_detach(column);
     }
 
@@ -228,7 +228,7 @@ column_begin_destroy(struct hwd_column *column) {
 void
 column_consider_destroy(struct hwd_column *column) {
     assert(column != NULL);
-    struct hwd_workspace *workspace = column->pending.workspace;
+    struct hwd_workspace *workspace = column->workspace;
 
     if (column->pending.children->length) {
         return;
@@ -269,7 +269,7 @@ column_set_dirty(struct hwd_column *column) {
 static void
 column_detach(struct hwd_column *column) {
     assert(column != NULL);
-    struct hwd_workspace *workspace = column->pending.workspace;
+    struct hwd_workspace *workspace = column->workspace;
 
     if (workspace == NULL) {
         return;
@@ -284,7 +284,7 @@ column_reconcile(
 ) {
     assert(column != NULL);
 
-    column->pending.workspace = workspace;
+    column->workspace = workspace;
     column->pending.output = output;
 
     if (workspace_is_visible(workspace) && workspace->pending.focus_mode == F_TILING &&
@@ -304,7 +304,7 @@ void
 column_reconcile_detached(struct hwd_column *column) {
     assert(column != NULL);
 
-    column->pending.workspace = NULL;
+    column->workspace = NULL;
     column->pending.output = NULL;
 
     column->pending.focused = false;
