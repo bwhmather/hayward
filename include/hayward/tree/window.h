@@ -231,15 +231,9 @@ window_floating_resize_and_center(struct hwd_window *window);
 void
 window_floating_set_default_size(struct hwd_window *window);
 
-/**
- * Move a floating window to a new layout-local position.
- */
 void
 window_floating_move_to(struct hwd_window *window, struct hwd_output *output, double lx, double ly);
 
-/**
- * Move a floating window to the center of the workspace.
- */
 void
 window_floating_move_to_center(struct hwd_window *window);
 
@@ -249,9 +243,6 @@ window_get_output(struct hwd_window *window);
 struct hwd_output *
 window_get_fullscreen_output(struct hwd_window *window);
 
-/**
- * Get a window's box in layout coordinates.
- */
 void
 window_get_box(struct hwd_window *window, struct wlr_box *box);
 
