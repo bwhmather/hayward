@@ -27,11 +27,6 @@ struct hwd_workspace_state {
     // Cached backlink to root of tree.
     struct hwd_root *root;
 
-    // The column that should be given focus if this workspace is focused and
-    // focus_mode is F_TILING.
-    struct hwd_column *active_column;
-
-    enum hwd_focus_mode focus_mode;
     bool focused;
 
     bool dead;
@@ -49,6 +44,12 @@ struct hwd_workspace {
     char *name;
 
     bool urgent;
+
+    // The column that should be given focus if this workspace is focused and
+    // focus_mode is F_TILING.
+    struct hwd_column *active_column;
+
+    enum hwd_focus_mode focus_mode;
 
     struct hwd_workspace_handle_v1 *workspace_handle;
 
@@ -155,8 +156,6 @@ struct hwd_window *
 workspace_get_active_floating_window(struct hwd_workspace *workspace);
 struct hwd_window *
 workspace_get_active_window(struct hwd_workspace *workspace);
-struct hwd_window *
-workspace_get_committed_active_window(struct hwd_workspace *workspace);
 
 void
 workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *window);

@@ -114,9 +114,8 @@ move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *worksp
 
             column = candidate_column;
         }
-        if (workspace->pending.active_column != NULL &&
-            workspace->pending.active_column->output == output) {
-            column = workspace->pending.active_column;
+        if (workspace->active_column != NULL && workspace->active_column->output == output) {
+            column = workspace->active_column;
         }
         if (column == NULL) {
             column = column_create();
@@ -152,9 +151,9 @@ window_tiling_move_to_output_from_direction(
             column = candidate_column;
         }
     }
-    if (workspace->pending.active_column->output == output && move_dir != WLR_DIRECTION_UP &&
+    if (workspace->active_column->output == output && move_dir != WLR_DIRECTION_UP &&
         move_dir == WLR_DIRECTION_DOWN) {
-        column = workspace->pending.active_column;
+        column = workspace->active_column;
     }
     if (column == NULL) {
         column = column_create();

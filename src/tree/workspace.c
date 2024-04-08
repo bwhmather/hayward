@@ -686,7 +686,7 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
 
     if (workspace->pending.floating->length == 0) {
         // Switch back to tiling mode.
-        workspace->pending.focus_mode = F_TILING;
+        workspace->focus_mode = F_TILING;
 
         struct hwd_window *next_active = workspace_get_active_tiling_window(workspace);
         if (next_active != NULL) {
@@ -874,7 +874,7 @@ workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *colu
 
     list_del(workspace->pending.columns, index);
 
-    if (workspace->pending.active_column == column) {
+    if (workspace->active_column == column) {
         struct hwd_column *next_active = NULL;
 
         for (int candidate_index = 0; candidate_index < workspace->pending.columns->length;
@@ -892,7 +892,7 @@ workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *colu
             next_active = candidate;
         }
 
-        workspace->pending.active_column = next_active;
+        workspace->active_column = next_active;
 
         if (next_active != NULL) {
             column_reconcile(next_active, workspace, output);
@@ -925,7 +925,7 @@ struct hwd_output *
 workspace_get_active_output(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
 
-    struct hwd_column *active_column = workspace->pending.active_column;
+    struct hwd_column *active_column = workspace->active_column;
     if (active_column != NULL) {
         return active_column->output;
     }
@@ -937,24 +937,12 @@ struct hwd_window *
 workspace_get_active_tiling_window(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
 
-    struct hwd_column *active_column = workspace->pending.active_column;
+    struct hwd_column *active_column = workspace->active_column;
     if (active_column == NULL) {
         return NULL;
     }
 
     return active_column->pending.active_child;
-}
-
-static struct hwd_window *
-workspace_get_committed_active_tiling_window(struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    struct hwd_column *active_column = workspace->committed.active_column;
-    if (active_column == NULL) {
-        return NULL;
-    }
-
-    return active_column->committed.active_child;
 }
 
 struct hwd_window *
@@ -966,35 +954,13 @@ workspace_get_active_floating_window(struct hwd_workspace *workspace) {
     return workspace->pending.floating->items[workspace->pending.floating->length - 1];
 }
 
-static struct hwd_window *
-workspace_get_committed_active_floating_window(struct hwd_workspace *workspace) {
-    if (workspace->committed.floating->length == 0) {
-        return NULL;
-    }
-
-    return workspace->committed.floating->items[workspace->committed.floating->length - 1];
-}
-
 struct hwd_window *
 workspace_get_active_window(struct hwd_workspace *workspace) {
-    switch (workspace->pending.focus_mode) {
+    switch (workspace->focus_mode) {
     case F_TILING:
         return workspace_get_active_tiling_window(workspace);
     case F_FLOATING:
         return workspace_get_active_floating_window(workspace);
-    default:
-        wlr_log(WLR_ERROR, "Invalid focus mode");
-        abort();
-    }
-}
-
-struct hwd_window *
-workspace_get_committed_active_window(struct hwd_workspace *workspace) {
-    switch (workspace->committed.focus_mode) {
-    case F_TILING:
-        return workspace_get_committed_active_tiling_window(workspace);
-    case F_FLOATING:
-        return workspace_get_committed_active_floating_window(workspace);
     default:
         wlr_log(WLR_ERROR, "Invalid focus mode");
         abort();
@@ -1011,8 +977,8 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
     }
 
     if (window == NULL) {
-        workspace->pending.active_column = NULL;
-        workspace->pending.focus_mode = F_TILING;
+        workspace->active_column = NULL;
+        workspace->focus_mode = F_TILING;
     } else if (window_is_floating(window)) {
         assert(window->workspace == workspace);
 
@@ -1022,20 +988,20 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         list_del(workspace->pending.floating, index);
         list_add(workspace->pending.floating, window);
 
-        workspace->pending.focus_mode = F_FLOATING;
+        workspace->focus_mode = F_FLOATING;
 
         window_reconcile_floating(window, workspace);
     } else {
         assert(window->workspace == workspace);
 
-        struct hwd_column *old_column = workspace->pending.active_column;
+        struct hwd_column *old_column = workspace->active_column;
         struct hwd_column *new_column = window->parent;
         assert(new_column->workspace == workspace);
 
         column_set_active_child(new_column, window);
 
-        workspace->pending.active_column = new_column;
-        workspace->pending.focus_mode = F_TILING;
+        workspace->active_column = new_column;
+        workspace->focus_mode = F_TILING;
 
         struct hwd_root *root = workspace->pending.root;
         if (root_get_active_workspace(root) == workspace) {

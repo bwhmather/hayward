@@ -60,9 +60,8 @@ cmd_floating(int argc, char **argv) {
                 break;
             }
         }
-        if (workspace->pending.active_column != NULL &&
-            workspace->pending.active_column->output == output) {
-            column = workspace->pending.active_column;
+        if (workspace->active_column != NULL && workspace->active_column->output == output) {
+            column = workspace->active_column;
         }
         if (column == NULL) {
             column = column_create();

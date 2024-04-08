@@ -287,8 +287,8 @@ column_reconcile(
     column->workspace = workspace;
     column->output = output;
 
-    if (workspace_is_visible(workspace) && workspace->pending.focus_mode == F_TILING &&
-        column == workspace->pending.active_column) {
+    if (workspace_is_visible(workspace) && workspace->focus_mode == F_TILING &&
+        column == workspace->active_column) {
         column->pending.focused = true;
     } else {
         column->pending.focused = false;

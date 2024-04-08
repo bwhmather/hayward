@@ -628,9 +628,9 @@ root_validate(struct hwd_root *root) {
 
     // Validate that the correct output is focused if workspace is in tiling
     // mode.
-    if (active_workspace->pending.focus_mode == F_TILING) {
-        if (active_workspace->pending.active_column) {
-            assert(root->pending.active_output == active_workspace->pending.active_column->output);
+    if (active_workspace->focus_mode == F_TILING) {
+        if (active_workspace->active_column) {
+            assert(root->pending.active_output == active_workspace->active_column->output);
         }
     }
 
