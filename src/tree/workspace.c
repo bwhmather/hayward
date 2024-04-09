@@ -67,7 +67,7 @@ workspace_update_layer_separators(struct hwd_workspace *workspace) {
     int gap = hwd_theme_get_column_separator_width(theme);
 
     struct wl_list *link = workspace->layers.separators->children.next;
-    list_t *columns = workspace->committed.visible_columns;
+    list_t *columns = workspace->committed.columns;
     for (int i = 0; i < columns->length; i++) {
         struct hwd_column *column = columns->items[i];
 
@@ -110,9 +110,9 @@ static void
 workspace_update_layer_tiling(struct hwd_workspace *workspace) {
     struct wl_list *link = &workspace->layers.tiling->children;
 
-    if (workspace->committed.visible_columns->length) {
+    if (workspace->committed.columns->length) {
         // Anchor top most column at top of stack.
-        list_t *columns = workspace->committed.visible_columns;
+        list_t *columns = workspace->committed.columns;
         int column_index = columns->length - 1;
 
         struct hwd_column *column = columns->items[column_index];
@@ -151,8 +151,8 @@ static void
 workspace_update_layer_floating(struct hwd_workspace *workspace) {
     struct wl_list *link = &workspace->layers.floating->children;
 
-    if (workspace->committed.visible_floating->length) {
-        list_t *windows = workspace->committed.visible_floating;
+    if (workspace->committed.floating->length) {
+        list_t *windows = workspace->committed.floating;
         struct hwd_window *prev_window = NULL;
         for (int window_index = windows->length - 1; window_index >= 0; window_index--) {
             struct hwd_window *window = windows->items[window_index];
@@ -203,18 +203,18 @@ workspace_destroy_scene(struct hwd_workspace *workspace) {
 
 static void
 workspace_copy_state(struct hwd_workspace_state *tgt, struct hwd_workspace_state *src) {
-    list_t *tgt_floating = tgt->visible_floating;
-    list_t *tgt_columns = tgt->visible_columns;
+    list_t *tgt_floating = tgt->floating;
+    list_t *tgt_columns = tgt->columns;
 
     memcpy(tgt, src, sizeof(struct hwd_workspace_state));
 
-    tgt->visible_floating = tgt_floating;
-    list_clear(tgt->visible_floating);
-    list_cat(tgt->visible_floating, src->visible_floating);
+    tgt->floating = tgt_floating;
+    list_clear(tgt->floating);
+    list_cat(tgt->floating, src->floating);
 
-    tgt->visible_columns = tgt_columns;
-    list_clear(tgt->visible_columns);
-    list_cat(tgt->visible_columns, src->visible_columns);
+    tgt->columns = tgt_columns;
+    list_clear(tgt->columns);
+    list_cat(tgt->columns, src->columns);
 }
 
 static void
@@ -295,12 +295,12 @@ workspace_create(const char *name) {
 
     workspace->name = name ? strdup(name) : NULL;
 
-    workspace->pending.visible_floating = create_list();
-    workspace->pending.visible_columns = create_list();
-    workspace->committed.visible_floating = create_list();
-    workspace->committed.visible_columns = create_list();
-    workspace->current.visible_floating = create_list();
-    workspace->current.visible_columns = create_list();
+    workspace->pending.floating = create_list();
+    workspace->pending.columns = create_list();
+    workspace->committed.floating = create_list();
+    workspace->committed.columns = create_list();
+    workspace->current.floating = create_list();
+    workspace->current.columns = create_list();
 
     workspace->floating = create_list();
     workspace->columns = create_list();
@@ -328,12 +328,12 @@ workspace_destroy(struct hwd_workspace *workspace) {
     list_free(workspace->floating);
 
     free(workspace->name);
-    list_free(workspace->pending.visible_floating);
+    list_free(workspace->pending.floating);
     list_free(workspace->columns);
-    list_free(workspace->committed.visible_floating);
-    list_free(workspace->committed.visible_columns);
-    list_free(workspace->current.visible_floating);
-    list_free(workspace->current.visible_columns);
+    list_free(workspace->committed.floating);
+    list_free(workspace->committed.columns);
+    list_free(workspace->current.floating);
+    list_free(workspace->current.columns);
     free(workspace);
 }
 
@@ -384,12 +384,12 @@ workspace_set_dirty(struct hwd_workspace *workspace) {
     wl_signal_add(&transaction_manager->events.commit, &workspace->transaction_commit);
     hwd_transaction_manager_ensure_queued(transaction_manager);
 
-    for (int i = 0; i < workspace->committed.visible_floating->length; i++) {
-        struct hwd_window *window = workspace->committed.visible_floating->items[i];
+    for (int i = 0; i < workspace->committed.floating->length; i++) {
+        struct hwd_window *window = workspace->committed.floating->items[i];
         window_set_dirty(window);
     }
-    for (int i = 0; i < workspace->committed.visible_columns->length; i++) {
-        struct hwd_column *column = workspace->committed.visible_columns->items[i];
+    for (int i = 0; i < workspace->committed.columns->length; i++) {
+        struct hwd_column *column = workspace->committed.columns->items[i];
         column_set_dirty(column);
     }
 
@@ -517,7 +517,7 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
 
 static void
 arrange_floating(struct hwd_workspace *workspace) {
-    list_clear(workspace->pending.visible_floating);
+    list_clear(workspace->pending.floating);
 
     for (int i = 0; i < workspace->floating->length; ++i) {
         struct hwd_window *window = workspace->floating->items[i];
@@ -531,7 +531,7 @@ arrange_floating(struct hwd_workspace *workspace) {
         window->pending.shaded = false;
         window_arrange(window);
 
-        list_add(workspace->pending.visible_floating, window);
+        list_add(workspace->pending.floating, window);
     }
 }
 
@@ -540,7 +540,7 @@ arrange_tiling(struct hwd_workspace *workspace) {
     struct hwd_theme *theme = root_get_theme(workspace->pending.root);
     int gap = hwd_theme_get_column_separator_width(theme);
 
-    list_t *columns = workspace->pending.visible_columns;
+    list_t *columns = workspace->pending.columns;
     list_clear(columns);
     for (int i = 0; i < workspace->columns->length; ++i) {
         struct hwd_column *column = workspace->columns->items[i];

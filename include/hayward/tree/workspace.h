@@ -21,8 +21,8 @@ enum hwd_focus_mode {
 struct hwd_view;
 
 struct hwd_workspace_state {
-    list_t *visible_floating; // struct hwd_window
-    list_t *visible_columns;  // struct hwd_column
+    list_t *floating; // struct hwd_window
+    list_t *columns;  // struct hwd_column
 
     // Cached backlink to root of tree.
     struct hwd_root *root;
