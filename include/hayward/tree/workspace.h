@@ -21,8 +21,8 @@ enum hwd_focus_mode {
 struct hwd_view;
 
 struct hwd_workspace_state {
-    list_t *floating; // struct hwd_window
-    list_t *columns;  // struct hwd_column
+    list_t *visible_floating; // struct hwd_window
+    list_t *columns;          // struct hwd_column
 
     // Cached backlink to root of tree.
     struct hwd_root *root;
@@ -44,6 +44,8 @@ struct hwd_workspace {
     char *name;
 
     bool urgent;
+
+    list_t *floating; // struct hwd_window
 
     // The column that should be given focus if this workspace is focused and
     // focus_mode is F_TILING.

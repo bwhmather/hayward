@@ -210,8 +210,8 @@ output_evacuate(struct hwd_output *output) {
             }
         }
 
-        for (int j = 0; j < workspace->pending.floating->length; j++) {
-            struct hwd_window *window = workspace->pending.floating->items[j];
+        for (int j = 0; j < workspace->floating->length; j++) {
+            struct hwd_window *window = workspace->floating->items[j];
             window_evacuate(window, output);
         }
 

@@ -640,8 +640,8 @@ root_validate(struct hwd_root *root) {
         assert(workspace != NULL);
 
         // Validate floating windows.
-        for (int j = 0; j < workspace->pending.floating->length; j++) {
-            struct hwd_window *window = workspace->pending.floating->items[j];
+        for (int j = 0; j < workspace->floating->length; j++) {
+            struct hwd_window *window = workspace->floating->items[j];
             assert(window != NULL);
 
             assert(window->workspace == workspace);

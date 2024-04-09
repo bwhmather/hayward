@@ -151,8 +151,8 @@ static void
 workspace_update_layer_floating(struct hwd_workspace *workspace) {
     struct wl_list *link = &workspace->layers.floating->children;
 
-    if (workspace->committed.floating->length) {
-        list_t *windows = workspace->committed.floating;
+    if (workspace->committed.visible_floating->length) {
+        list_t *windows = workspace->committed.visible_floating;
         struct hwd_window *prev_window = NULL;
         for (int window_index = windows->length - 1; window_index >= 0; window_index--) {
             struct hwd_window *window = windows->items[window_index];
@@ -203,14 +203,14 @@ workspace_destroy_scene(struct hwd_workspace *workspace) {
 
 static void
 workspace_copy_state(struct hwd_workspace_state *tgt, struct hwd_workspace_state *src) {
-    list_t *tgt_floating = tgt->floating;
+    list_t *tgt_floating = tgt->visible_floating;
     list_t *tgt_columns = tgt->columns;
 
     memcpy(tgt, src, sizeof(struct hwd_workspace_state));
 
-    tgt->floating = tgt_floating;
-    list_clear(tgt->floating);
-    list_cat(tgt->floating, src->floating);
+    tgt->visible_floating = tgt_floating;
+    list_clear(tgt->visible_floating);
+    list_cat(tgt->visible_floating, src->visible_floating);
 
     tgt->columns = tgt_columns;
     list_clear(tgt->columns);
@@ -295,12 +295,14 @@ workspace_create(const char *name) {
 
     workspace->name = name ? strdup(name) : NULL;
 
-    workspace->pending.floating = create_list();
+    workspace->pending.visible_floating = create_list();
     workspace->pending.columns = create_list();
-    workspace->committed.floating = create_list();
+    workspace->committed.visible_floating = create_list();
     workspace->committed.columns = create_list();
-    workspace->current.floating = create_list();
+    workspace->current.visible_floating = create_list();
     workspace->current.columns = create_list();
+
+    workspace->floating = create_list();
 
     workspace_init_scene(workspace);
 
@@ -321,12 +323,14 @@ workspace_destroy(struct hwd_workspace *workspace) {
 
     workspace_destroy_scene(workspace);
 
+    list_free(workspace->floating);
+
     free(workspace->name);
-    list_free(workspace->pending.floating);
+    list_free(workspace->pending.visible_floating);
     list_free(workspace->pending.columns);
-    list_free(workspace->committed.floating);
+    list_free(workspace->committed.visible_floating);
     list_free(workspace->committed.columns);
-    list_free(workspace->current.floating);
+    list_free(workspace->current.visible_floating);
     list_free(workspace->current.columns);
     free(workspace);
 }
@@ -355,7 +359,7 @@ workspace_consider_destroy(struct hwd_workspace *workspace) {
         return;
     }
 
-    if (workspace->pending.floating->length) {
+    if (workspace->floating->length) {
         return;
     }
 
@@ -378,8 +382,8 @@ workspace_set_dirty(struct hwd_workspace *workspace) {
     wl_signal_add(&transaction_manager->events.commit, &workspace->transaction_commit);
     hwd_transaction_manager_ensure_queued(transaction_manager);
 
-    for (int i = 0; i < workspace->committed.floating->length; i++) {
-        struct hwd_window *window = workspace->committed.floating->items[i];
+    for (int i = 0; i < workspace->committed.visible_floating->length; i++) {
+        struct hwd_window *window = workspace->committed.visible_floating->items[i];
         window_set_dirty(window);
     }
     for (int i = 0; i < workspace->committed.columns->length; i++) {
@@ -387,8 +391,8 @@ workspace_set_dirty(struct hwd_workspace *workspace) {
         column_set_dirty(column);
     }
 
-    for (int i = 0; i < workspace->pending.floating->length; i++) {
-        struct hwd_window *window = workspace->pending.floating->items[i];
+    for (int i = 0; i < workspace->floating->length; i++) {
+        struct hwd_window *window = workspace->floating->items[i];
         window_set_dirty(window);
     }
     for (int i = 0; i < workspace->pending.columns->length; i++) {
@@ -471,8 +475,8 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
         column_reconcile(column, workspace, column->output);
     }
 
-    for (int window_index = 0; window_index < workspace->pending.floating->length; window_index++) {
-        struct hwd_window *window = workspace->pending.floating->items[window_index];
+    for (int window_index = 0; window_index < workspace->floating->length; window_index++) {
+        struct hwd_window *window = workspace->floating->items[window_index];
         window_reconcile_floating(window, workspace);
     }
 }
@@ -503,9 +507,8 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
             column_reconcile(column, workspace, column->output);
         }
 
-        for (int window_index = 0; window_index < workspace->pending.floating->length;
-             window_index++) {
-            struct hwd_window *window = workspace->pending.floating->items[window_index];
+        for (int window_index = 0; window_index < workspace->floating->length; window_index++) {
+            struct hwd_window *window = workspace->floating->items[window_index];
             window_reconcile_floating(window, workspace);
         }
     }
@@ -513,14 +516,21 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
 
 static void
 arrange_floating(struct hwd_workspace *workspace) {
-    list_t *floating = workspace->pending.floating;
-    for (int i = 0; i < floating->length; ++i) {
-        struct hwd_window *floater = floating->items[i];
-        if (window_is_fullscreen(floater)) {
+    list_clear(workspace->pending.visible_floating);
+
+    for (int i = 0; i < workspace->floating->length; ++i) {
+        struct hwd_window *window = workspace->floating->items[i];
+        if (window_is_fullscreen(window)) {
             continue;
         }
-        floater->pending.shaded = false;
-        window_arrange(floater);
+        if (window->moving) {
+            continue;
+        }
+
+        window->pending.shaded = false;
+        window_arrange(window);
+
+        list_add(workspace->pending.visible_floating, window);
     }
 }
 
@@ -656,7 +666,7 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *windo
 
     struct hwd_window *prev_active_floating = workspace_get_active_floating_window(workspace);
 
-    list_add(workspace->pending.floating, window);
+    list_add(workspace->floating, window);
 
     // TODO
     if (window->output_history->length == 0) {
@@ -679,12 +689,12 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
     assert(window->workspace == workspace);
     assert(window->parent == NULL);
 
-    int index = list_find(workspace->pending.floating, window);
+    int index = list_find(workspace->floating, window);
     assert(index != -1);
 
-    list_del(workspace->pending.floating, index);
+    list_del(workspace->floating, index);
 
-    if (workspace->pending.floating->length == 0) {
+    if (workspace->floating->length == 0) {
         // Switch back to tiling mode.
         workspace->focus_mode = F_TILING;
 
@@ -947,11 +957,11 @@ workspace_get_active_tiling_window(struct hwd_workspace *workspace) {
 
 struct hwd_window *
 workspace_get_active_floating_window(struct hwd_workspace *workspace) {
-    if (workspace->pending.floating->length == 0) {
+    if (workspace->floating->length == 0) {
         return NULL;
     }
 
-    return workspace->pending.floating->items[workspace->pending.floating->length - 1];
+    return workspace->floating->items[workspace->floating->length - 1];
 }
 
 struct hwd_window *
@@ -982,11 +992,11 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
     } else if (window_is_floating(window)) {
         assert(window->workspace == workspace);
 
-        int index = list_find(workspace->pending.floating, window);
+        int index = list_find(workspace->floating, window);
         assert(index != -1);
 
-        list_del(workspace->pending.floating, index);
-        list_add(workspace->pending.floating, window);
+        list_del(workspace->floating, index);
+        list_add(workspace->floating, window);
 
         workspace->focus_mode = F_FLOATING;
 
@@ -1027,8 +1037,8 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
 
 struct hwd_window *
 workspace_get_floating_window_at(struct hwd_workspace *workspace, double x, double y) {
-    for (int i = workspace->pending.floating->length - 1; i >= 0; i--) {
-        struct hwd_window *window = workspace->pending.floating->items[i];
+    for (int i = workspace->floating->length - 1; i >= 0; i--) {
+        struct hwd_window *window = workspace->floating->items[i];
 
         if (window->moving) {
             continue;
@@ -1076,8 +1086,8 @@ workspace_find_window(
         }
     }
     // Floating
-    for (int i = 0; i < workspace->pending.floating->length; ++i) {
-        struct hwd_window *child = workspace->pending.floating->items[i];
+    for (int i = 0; i < workspace->floating->length; ++i) {
+        struct hwd_window *child = workspace->floating->items[i];
         if (test(child, data)) {
             return child;
         }

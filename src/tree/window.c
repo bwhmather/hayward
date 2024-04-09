@@ -915,7 +915,7 @@ window_raise_floating(struct hwd_window *window) {
         return;
     }
 
-    list_move_to_end(window->workspace->pending.floating, window);
+    list_move_to_end(window->workspace->floating, window);
 
     window_set_dirty(window);
 }
@@ -926,7 +926,7 @@ window_get_siblings(struct hwd_window *window) {
         return window->parent->pending.children;
     }
     if (window_is_floating(window)) {
-        return window->workspace->pending.floating;
+        return window->workspace->floating;
     }
     return NULL;
 }

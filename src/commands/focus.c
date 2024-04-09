@@ -211,8 +211,8 @@ window_get_in_direction_floating(
         return NULL;
     }
 
-    for (int i = 0; i < window->workspace->pending.floating->length; i++) {
-        struct hwd_window *floater = window->workspace->pending.floating->items[i];
+    for (int i = 0; i < window->workspace->floating->length; i++) {
+        struct hwd_window *floater = window->workspace->floating->items[i];
         if (floater == window) {
             continue;
         }
