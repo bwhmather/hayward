@@ -101,8 +101,8 @@ move_window_to_workspace(struct hwd_window *window, struct hwd_workspace *worksp
         struct hwd_output *output = window_get_output(window);
         struct hwd_column *column = NULL;
 
-        for (int i = 0; i < workspace->pending.columns->length; i++) {
-            struct hwd_column *candidate_column = workspace->pending.columns->items[i];
+        for (int i = 0; i < workspace->columns->length; i++) {
+            struct hwd_column *candidate_column = workspace->columns->items[i];
 
             if (candidate_column->output != output) {
                 continue;
@@ -140,8 +140,8 @@ window_tiling_move_to_output_from_direction(
 
     struct hwd_column *column = NULL;
 
-    for (int i = 0; i < workspace->pending.columns->length; i++) {
-        struct hwd_column *candidate_column = workspace->pending.columns->items[i];
+    for (int i = 0; i < workspace->columns->length; i++) {
+        struct hwd_column *candidate_column = workspace->columns->items[i];
 
         if (candidate_column->output != output) {
             continue;

@@ -53,8 +53,8 @@ cmd_floating(int argc, char **argv) {
         window_detach(window);
 
         struct hwd_column *column = NULL;
-        for (int i = 0; i < workspace->pending.columns->length; i++) {
-            struct hwd_column *candidate_column = workspace->pending.columns->items[i];
+        for (int i = 0; i < workspace->columns->length; i++) {
+            struct hwd_column *candidate_column = workspace->columns->items[i];
             if (candidate_column->output == output) {
                 column = candidate_column;
                 break;

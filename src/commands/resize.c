@@ -97,7 +97,7 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
 
     // We're going to resize so snap all the width fractions to full pixels
     // to avoid rounding issues
-    list_t *siblings = workspace->pending.columns;
+    list_t *siblings = workspace->columns;
     for (int i = 0; i < siblings->length; ++i) {
         struct hwd_column *sibling = siblings->items[i];
         sibling->width_fraction = sibling->pending.width / sibling->child_total_width;
