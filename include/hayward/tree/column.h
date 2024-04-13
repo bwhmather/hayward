@@ -21,8 +21,8 @@ struct hwd_column_state {
     double x, y;
     double width, height;
 
-    // Cached flag indicating whether the column contains the focused
-    // window.  Should only be updated using the reconciliation functions.
+    // Cached flag indicating whether the column contains the focused window.
+    // Should only be updated using the reconciliation functions.
     bool focused;
 
     // Cached flags indicating whether the column is the first or last column on

@@ -40,8 +40,8 @@ struct hwd_window_state {
     // Cached reference to currently applicable window theme.
     struct hwd_theme_window *theme;
 
-    // Cached flag indicating whether the window is focused.  Should only
-    // be updated by calling one of the `window_reconcile_` functions.
+    // Cached flag indicating whether the window is focused.  Should only be
+    // updated by calling one of the `window_reconcile_` functions.
     bool focused;
 
     // These are in layout coordinates.
@@ -69,14 +69,14 @@ struct hwd_window {
 
     bool dirty;
 
-    // Cached backlink to workspace containing the floating window or
-    // column containing the child window.  Should only be updated by
-    // calling one of the `window_reconcile_` functions.
+    // Cached backlink to workspace containing the floating window or  column
+    // containing the child window.  Should only be updated by calling one of
+    // the `window_reconcile_` functions.
     struct hwd_workspace *workspace;
 
-    // Cached backlink to the column containing the window.  Null if window
-    // is not part of a column.  Should only be updated by calling one of
-    // the `window_reconcile_` functions.
+    // Cached backlink to the column containing the window.  Null if window is
+    // not part of a column.  Should only be updated by calling one of the
+    // `window_reconcile_` functions.
     struct hwd_column *parent;
 
     // A list of disabled outputs that this window has been evacuated from, in
@@ -105,7 +105,7 @@ struct hwd_window {
     double saved_x, saved_y;
     double saved_width, saved_height;
 
-    // If true, the window has been plucked from the normal plane of existance
+    // If true, the window has been plucked from the normal plane of existence
     // and is being moved in sync with the mouse.
     bool moving;
 
