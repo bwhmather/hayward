@@ -182,6 +182,8 @@ column_create(void) {
     column->committed.children = create_list();
     column->current.children = create_list();
 
+    column->children = create_list();
+
     column->transaction_commit.notify = column_handle_transaction_commit;
     column->transaction_apply.notify = column_handle_transaction_apply;
     column->transaction_after_apply.notify = column_handle_transaction_after_apply;
@@ -201,6 +203,8 @@ column_destroy(struct hwd_column *column) {
     assert(column->current.dead);
 
     column_destroy_scene(column);
+
+    list_free(column->children);
 
     list_free(column->pending.children);
     list_free(column->committed.children);
@@ -230,7 +234,7 @@ column_consider_destroy(struct hwd_column *column) {
     assert(column != NULL);
     struct hwd_workspace *workspace = column->workspace;
 
-    if (column->pending.children->length) {
+    if (column->children->length) {
         return;
     }
     column_begin_destroy(column);
@@ -260,8 +264,8 @@ column_set_dirty(struct hwd_column *column) {
         }
     }
 
-    for (int i = 0; i < column->pending.children->length; i++) {
-        struct hwd_window *child = column->pending.children->items[i];
+    for (int i = 0; i < column->children->length; i++) {
+        struct hwd_window *child = column->children->items[i];
         window_set_dirty(child);
     }
 }
@@ -294,8 +298,8 @@ column_reconcile(
         column->pending.focused = false;
     }
 
-    for (int child_index = 0; child_index < column->pending.children->length; child_index++) {
-        struct hwd_window *child = column->pending.children->items[child_index];
+    for (int child_index = 0; child_index < column->children->length; child_index++) {
+        struct hwd_window *child = column->children->items[child_index];
         window_reconcile_tiling(child, column);
     }
 }
@@ -309,8 +313,8 @@ column_reconcile_detached(struct hwd_column *column) {
 
     column->pending.focused = false;
 
-    for (int child_index = 0; child_index < column->pending.children->length; child_index++) {
-        struct hwd_window *child = column->pending.children->items[child_index];
+    for (int child_index = 0; child_index < column->children->length; child_index++) {
+        struct hwd_window *child = column->children->items[child_index];
         window_reconcile_tiling(child, column);
     }
 }
@@ -318,7 +322,13 @@ column_reconcile_detached(struct hwd_column *column) {
 static void
 column_arrange_split(struct hwd_column *column) {
     struct hwd_window *child = NULL;
+
     list_t *children = column->pending.children;
+    list_clear(children);
+    for (int i = 0; i < column->children->length; ++i) {
+        struct hwd_window *window = column->children->items[i];
+        list_add(children, window);
+    }
 
     struct wlr_box box;
     column_get_box(column, &box);
@@ -421,7 +431,14 @@ column_arrange_split(struct hwd_column *column) {
 static void
 column_arrange_stacked(struct hwd_column *column) {
     struct hwd_window *child = NULL;
+
     list_t *children = column->pending.children;
+    list_clear(children);
+    for (int i = 0; i < column->children->length; ++i) {
+        struct hwd_window *window = column->children->items[i];
+        list_add(children, window);
+    }
+
     struct hwd_window *active_child = column->pending.active_child;
     if (column->pending.show_preview) {
         active_child = NULL;
@@ -556,11 +573,11 @@ column_find_child(
     struct hwd_column *column, bool (*test)(struct hwd_window *window, void *data), void *data
 ) {
     assert(column != NULL);
-    if (!column->pending.children) {
+    if (!column->children) {
         return NULL;
     }
-    for (int i = 0; i < column->pending.children->length; ++i) {
-        struct hwd_window *child = column->pending.children->items[i];
+    for (int i = 0; i < column->children->length; ++i) {
+        struct hwd_window *child = column->children->items[i];
         if (test(child, data)) {
             return child;
         }
@@ -572,7 +589,7 @@ struct hwd_window *
 column_get_first_child(struct hwd_column *column) {
     assert(column != NULL);
 
-    list_t *children = column->pending.children;
+    list_t *children = column->children;
 
     if (children->length == 0) {
         return NULL;
@@ -585,7 +602,7 @@ struct hwd_window *
 column_get_last_child(struct hwd_column *column) {
     assert(column != NULL);
 
-    list_t *children = column->pending.children;
+    list_t *children = column->children;
 
     if (children->length == 0) {
         return NULL;
@@ -598,13 +615,13 @@ void
 column_insert_child(struct hwd_column *column, struct hwd_window *window, int i) {
     assert(column != NULL);
     assert(window != NULL);
-    assert(i >= 0 && i <= column->pending.children->length);
+    assert(i >= 0 && i <= column->children->length);
 
     assert(!window->workspace && !window->parent);
-    if (column->pending.children->length == 0) {
+    if (column->children->length == 0) {
         column->pending.active_child = window;
     }
-    list_insert(column->pending.children, i, window);
+    list_insert(column->children, i, window);
 
     window_reconcile_tiling(window, column);
 }
@@ -618,7 +635,7 @@ column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool aft
     struct hwd_column *column = fixed->parent;
     assert(column != NULL);
 
-    list_t *siblings = column->pending.children;
+    list_t *siblings = column->children;
 
     int index = list_find(siblings, fixed);
     assert(index != -1);
@@ -634,10 +651,10 @@ column_add_child(struct hwd_column *column, struct hwd_window *window) {
     assert(column != NULL);
     assert(window != NULL);
     assert(!window->workspace && !window->parent);
-    if (column->pending.children->length == 0) {
+    if (column->children->length == 0) {
         column->pending.active_child = window;
     }
-    list_add(column->pending.children, window);
+    list_add(column->children, window);
 
     window_reconcile_tiling(window, column);
 
@@ -651,15 +668,14 @@ column_remove_child(struct hwd_column *column, struct hwd_window *window) {
     assert(window != NULL);
     assert(window->parent == column);
 
-    int index = list_find(column->pending.children, window);
+    int index = list_find(column->children, window);
     assert(index != -1);
 
-    list_del(column->pending.children, index);
+    list_del(column->children, index);
 
     if (column->pending.active_child == window) {
-        if (column->pending.children->length) {
-            column->pending.active_child =
-                column->pending.children->items[index > 0 ? index - 1 : 0];
+        if (column->children->length) {
+            column->pending.active_child = column->children->items[index > 0 ? index - 1 : 0];
             window_reconcile_tiling(column->pending.active_child, column);
         } else {
             column->pending.active_child = NULL;
@@ -717,8 +733,8 @@ column_set_resizing(struct hwd_column *column, bool resizing) {
         return;
     }
 
-    for (int i = 0; i < column->pending.children->length; ++i) {
-        struct hwd_window *child = column->pending.children->items[i];
+    for (int i = 0; i < column->children->length; ++i) {
+        struct hwd_window *child = column->children->items[i];
         window_set_resizing(child, resizing);
     }
 }

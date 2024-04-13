@@ -49,7 +49,7 @@ move_window_to_column_from_maybe_direction(
 
     if (has_move_dir && (move_dir == WLR_DIRECTION_UP || move_dir == WLR_DIRECTION_DOWN)) {
         wlr_log(WLR_DEBUG, "Reparenting window (parallel)");
-        int index = move_dir == WLR_DIRECTION_DOWN ? 0 : column->pending.children->length;
+        int index = move_dir == WLR_DIRECTION_DOWN ? 0 : column->children->length;
         window_detach(window);
         column_insert_child(column, window, index);
         window->pending.width = window->pending.height = 0;
@@ -216,7 +216,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
             // only child of this column then attempt to move it to the next
             // workspace, otherwise insert a new column to  the left and carry
             // on as before.
-            if (old_column->pending.children->length == 1) {
+            if (old_column->children->length == 1) {
                 return window_tiling_move_to_next_output(window, old_column->output, move_dir);
             }
 
@@ -240,7 +240,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
             // only child of this column then attempt to move it to the next
             // workspace, otherwise insert a new column to the right and carry
             // on as before.
-            if (old_column->pending.children->length == 1) {
+            if (old_column->children->length == 1) {
                 return window_tiling_move_to_next_output(window, old_column->output, move_dir);
             }
 

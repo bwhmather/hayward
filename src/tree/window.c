@@ -568,7 +568,7 @@ window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
             workspace_insert_column_last(workspace, new_output, new_column);
         }
 
-        list_add(new_column->pending.children, window);
+        list_add(new_column->children, window);
         window->parent = new_column;
     }
 
@@ -923,7 +923,7 @@ window_raise_floating(struct hwd_window *window) {
 list_t *
 window_get_siblings(struct hwd_window *window) {
     if (window_is_tiling(window)) {
-        return window->parent->pending.children;
+        return window->parent->children;
     }
     if (window_is_floating(window)) {
         return window->workspace->floating;
@@ -942,7 +942,7 @@ window_get_previous_sibling(struct hwd_window *window) {
         return NULL;
     }
 
-    list_t *siblings = window->parent->pending.children;
+    list_t *siblings = window->parent->children;
     int index = list_find(siblings, window);
     assert(index != -1);
 
@@ -961,7 +961,7 @@ window_get_next_sibling(struct hwd_window *window) {
         return NULL;
     }
 
-    list_t *siblings = window->parent->pending.children;
+    list_t *siblings = window->parent->children;
     int index = list_find(siblings, window);
     assert(index != -1);
 

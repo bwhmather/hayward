@@ -654,8 +654,8 @@ root_validate(struct hwd_root *root) {
             assert(column->workspace == workspace);
             assert(list_find(root->outputs, column->output) != -1);
 
-            for (int k = 0; k < column->pending.children->length; k++) {
-                struct hwd_window *window = column->pending.children->items[k];
+            for (int k = 0; k < column->children->length; k++) {
+                struct hwd_window *window = column->children->items[k];
 
                 assert(window->parent == column);
                 assert(window->workspace == workspace);

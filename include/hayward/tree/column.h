@@ -53,6 +53,8 @@ struct hwd_column {
 
     bool dirty;
 
+    list_t *children; // struct hwd_window
+
     enum hwd_column_layout layout;
 
     // Cached backlink to containing workspace.
