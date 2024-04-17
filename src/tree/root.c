@@ -69,7 +69,7 @@ static void
 root_update_layer_workspaces(struct hwd_root *root) {
     struct wl_list *link = &root->layers.workspaces->children;
 
-    if (root->committed.active_workspace != root->current.active_workspace) {
+    if (root->committed.workspace != root->current.workspace) {
         link = link->prev;
         while (link != &root->layers.workspaces->children) {
             struct wlr_scene_node *node = wl_container_of(link, node, link);
@@ -80,7 +80,7 @@ root_update_layer_workspaces(struct hwd_root *root) {
         }
 
         wlr_scene_node_reparent(
-            &root->committed.active_workspace->scene_tree->node, root->layers.workspaces
+            &root->committed.workspace->scene_tree->node, root->layers.workspaces
         );
     }
 }
@@ -251,6 +251,8 @@ root_arrange(struct hwd_root *root) {
         return;
     }
 
+    root->pending.workspace = root->active_workspace;
+
     for (int i = 0; i < root->outputs->length; ++i) {
         struct hwd_output *output = root->outputs->items[i];
         output_arrange(output);
@@ -284,7 +286,7 @@ root_add_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
     list_add(root->workspaces, workspace);
     list_stable_sort(root->workspaces, sort_workspace_cmp_qsort);
 
-    if (root->pending.active_workspace == NULL) {
+    if (root->active_workspace == NULL) {
         root_set_active_workspace(root, workspace);
     }
     workspace_reconcile(workspace, root);
@@ -302,7 +304,7 @@ root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
         list_del(root->workspaces, index);
     }
 
-    if (root->pending.active_workspace == workspace) {
+    if (root->active_workspace == workspace) {
         assert(index != -1);
         int next_index = index != 0 ? index - 1 : index;
 
@@ -324,13 +326,13 @@ void
 root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
     assert(workspace != NULL);
 
-    struct hwd_workspace *old_workspace = root->pending.active_workspace;
+    struct hwd_workspace *old_workspace = root->active_workspace;
 
     if (workspace == old_workspace) {
         return;
     }
 
-    root->pending.active_workspace = workspace;
+    root->active_workspace = workspace;
 
     if (old_workspace != NULL) {
         workspace_reconcile(old_workspace, root);
@@ -355,7 +357,7 @@ root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace
 
 struct hwd_workspace *
 root_get_active_workspace(struct hwd_root *root) {
-    return root->pending.active_workspace;
+    return root->active_workspace;
 }
 
 void
@@ -469,8 +471,8 @@ root_set_focused_surface(struct hwd_root *root, struct wlr_surface *surface) {
     if (surface != NULL) {
         root_set_focused_layer(root, NULL);
 
-        if (root->pending.active_workspace != NULL) {
-            workspace_set_active_window(root->pending.active_workspace, NULL);
+        if (root->active_workspace != NULL) {
+            workspace_set_active_window(root->active_workspace, NULL);
         }
     }
 
@@ -586,7 +588,7 @@ root_validate(struct hwd_root *root) {
     assert(root != NULL);
 
     // Validate that there is at least one workspace.
-    struct hwd_workspace *active_workspace = root->pending.active_workspace;
+    struct hwd_workspace *active_workspace = root->active_workspace;
     assert(active_workspace != NULL);
     assert(list_find(root->workspaces, active_workspace) != -1);
 

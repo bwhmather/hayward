@@ -21,7 +21,7 @@
 struct hwd_window;
 
 struct hwd_root_state {
-    struct hwd_workspace *active_workspace;
+    struct hwd_workspace *workspace;
     struct hwd_output *active_output;
 
     /**
@@ -50,6 +50,7 @@ struct hwd_root {
     struct hwd_transaction_manager *transaction_manager;
 
     list_t *workspaces;
+    struct hwd_workspace *active_workspace;
 
     struct wlr_surface *focused_surface;
     struct hwd_window *focused_window;
