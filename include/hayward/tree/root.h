@@ -22,7 +22,6 @@ struct hwd_window;
 
 struct hwd_root_state {
     struct hwd_workspace *workspace;
-    struct hwd_output *active_output;
 
     /**
      * An optional layer (top/bottom/side bar) that should receive input
@@ -68,6 +67,7 @@ struct hwd_root {
     struct wl_list all_outputs; // hwd_output::link
 
     list_t *outputs; // struct hwd_output
+    struct hwd_output *active_output;
 
     struct hwd_workspace_manager_v1 *workspace_manager;
 

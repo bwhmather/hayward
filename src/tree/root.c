@@ -344,7 +344,7 @@ root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace
 
     struct hwd_output *active_output = workspace_get_active_output(workspace);
     if (active_output != NULL) {
-        root->pending.active_output = active_output;
+        root->active_output = active_output;
     }
 
     for (int i = 0; i < root->outputs->length; ++i) {
@@ -363,12 +363,12 @@ root_get_active_workspace(struct hwd_root *root) {
 void
 root_set_active_output(struct hwd_root *root, struct hwd_output *output) {
     assert(output != NULL);
-    root->pending.active_output = output;
+    root->active_output = output;
 }
 
 struct hwd_output *
 root_get_active_output(struct hwd_root *root) {
-    return root->pending.active_output;
+    return root->active_output;
 }
 
 static struct wlr_surface *
@@ -596,7 +596,7 @@ root_validate(struct hwd_root *root) {
     // mode.
     if (active_workspace->focus_mode == F_TILING) {
         if (active_workspace->active_column) {
-            assert(root->pending.active_output == active_workspace->active_column->output);
+            assert(root->active_output == active_workspace->active_column->output);
         }
     }
 

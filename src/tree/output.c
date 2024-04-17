@@ -182,8 +182,8 @@ output_enable(struct hwd_output *output) {
     }
     output->enabled = true;
     list_add(root->outputs, output);
-    if (root->pending.active_output == NULL) {
-        root->pending.active_output = output;
+    if (root->active_output == NULL) {
+        root->active_output = output;
     }
 
     input_manager_configure_xcursor();
@@ -245,11 +245,11 @@ output_disable(struct hwd_output *output) {
     output_evacuate(output);
 
     list_del(root->outputs, index);
-    if (root->pending.active_output == output) {
+    if (root->active_output == output) {
         if (root->outputs->length == 0) {
-            root->pending.active_output = NULL;
+            root->active_output = NULL;
         } else {
-            root->pending.active_output = root->outputs->items[index - 1 < 0 ? 0 : index - 1];
+            root->active_output = root->outputs->items[index - 1 < 0 ? 0 : index - 1];
         }
     }
 
