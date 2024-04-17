@@ -69,42 +69,19 @@ static void
 root_update_layer_workspaces(struct hwd_root *root) {
     struct wl_list *link = &root->layers.workspaces->children;
 
-    if (root->committed.workspaces->length) {
-        // Anchor top most workspace at top of stack.
-        list_t *workspaces = root->committed.workspaces;
-        int workspace_index = workspaces->length - 1;
-
-        struct hwd_workspace *workspace = workspaces->items[workspace_index];
-        wlr_scene_node_reparent(&workspace->scene_tree->node, root->layers.workspaces);
-        wlr_scene_node_raise_to_top(&workspace->scene_tree->node);
-
-        struct hwd_workspace *prev_workspace = workspace;
-
-        // Move subsequent workspaces immediately below it.
-        while (workspace_index > 0) {
-            workspace_index--;
-
-            workspace = workspaces->items[workspace_index];
-            wlr_scene_node_reparent(&workspace->scene_tree->node, root->layers.workspaces);
-            wlr_scene_node_place_below(
-                &workspace->scene_tree->node, &prev_workspace->scene_tree->node
-            );
-
-            prev_workspace = workspace;
-        }
-
-        link = &prev_workspace->scene_tree->node.link;
-    }
-
-    // Iterate over any nodes that haven't been moved to the top as a result
-    // of belonging to a child and unparent them.
-    link = link->prev;
-    while (link != &root->layers.workspaces->children) {
-        struct wlr_scene_node *node = wl_container_of(link, node, link);
+    if (root->committed.active_workspace != root->current.active_workspace) {
         link = link->prev;
-        if (node->parent == root->layers.workspaces) {
-            wlr_scene_node_reparent(node, NULL);
+        while (link != &root->layers.workspaces->children) {
+            struct wlr_scene_node *node = wl_container_of(link, node, link);
+            link = link->prev;
+            if (node->parent == root->layers.workspaces) {
+                wlr_scene_node_reparent(node, NULL);
+            }
         }
+
+        wlr_scene_node_reparent(
+            &root->committed.active_workspace->scene_tree->node, root->layers.workspaces
+        );
     }
 }
 
@@ -133,13 +110,7 @@ root_handle_transaction_before_commit(struct wl_listener *listener, void *data) 
 
 static void
 root_copy_state(struct hwd_root_state *tgt, struct hwd_root_state *src) {
-    list_t *tgt_workspaces = tgt->workspaces;
-
     memcpy(tgt, src, sizeof(struct hwd_root_state));
-
-    tgt->workspaces = tgt_workspaces;
-    list_clear(tgt->workspaces);
-    list_cat(tgt->workspaces, src->workspaces);
 }
 
 static void
@@ -211,10 +182,9 @@ root_create(struct wl_display *display) {
     wl_list_init(&root->xwayland_unmanaged);
 #endif
     wl_list_init(&root->drag_icons);
+
     root->outputs = create_list();
-    root->pending.workspaces = create_list();
-    root->committed.workspaces = create_list();
-    root->current.workspaces = create_list();
+    root->workspaces = create_list();
 
     root_init_scene(root);
     root->scene_output_layout =
@@ -239,10 +209,9 @@ root_destroy(struct hwd_root *root) {
 
     wl_list_remove(&root->output_layout_change.link);
     wl_list_remove(&root->transaction_before_commit.link);
+
+    list_free(root->workspaces);
     list_free(root->outputs);
-    list_free(root->pending.workspaces);
-    list_free(root->committed.workspaces);
-    list_free(root->current.workspaces);
     wlr_output_layout_destroy(root->output_layout);
     hwd_transaction_manager_destroy(root->transaction_manager);
 
@@ -268,13 +237,8 @@ root_set_dirty(struct hwd_root *root) {
     wl_signal_add(&root->transaction_manager->events.commit, &root->transaction_commit);
     hwd_transaction_manager_ensure_queued(root->transaction_manager);
 
-    for (int i = 0; i < root->committed.workspaces->length; i++) {
-        struct hwd_workspace *workspace = root->committed.workspaces->items[i];
-        workspace_set_dirty(workspace);
-    }
-
-    for (int i = 0; i < root->pending.workspaces->length; i++) {
-        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
+    for (int i = 0; i < root->workspaces->length; i++) {
+        struct hwd_workspace *workspace = root->workspaces->items[i];
         workspace_set_dirty(workspace);
     }
 }
@@ -292,8 +256,8 @@ root_arrange(struct hwd_root *root) {
         output_arrange(output);
     }
 
-    for (int i = 0; i < root->pending.workspaces->length; ++i) {
-        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
+    for (int i = 0; i < root->workspaces->length; ++i) {
+        struct hwd_workspace *workspace = root->workspaces->items[i];
         workspace_arrange(workspace);
     }
 }
@@ -317,8 +281,8 @@ sort_workspace_cmp_qsort(const void *_a, const void *_b) {
 
 void
 root_add_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
-    list_add(root->pending.workspaces, workspace);
-    list_stable_sort(root->pending.workspaces, sort_workspace_cmp_qsort);
+    list_add(root->workspaces, workspace);
+    list_stable_sort(root->workspaces, sort_workspace_cmp_qsort);
 
     if (root->pending.active_workspace == NULL) {
         root_set_active_workspace(root, workspace);
@@ -333,9 +297,9 @@ void
 root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
     assert(workspace != NULL);
 
-    int index = list_find(root->pending.workspaces, workspace);
+    int index = list_find(root->workspaces, workspace);
     if (index != -1) {
-        list_del(root->pending.workspaces, index);
+        list_del(root->workspaces, index);
     }
 
     if (root->pending.active_workspace == workspace) {
@@ -343,8 +307,8 @@ root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
         int next_index = index != 0 ? index - 1 : index;
 
         struct hwd_workspace *next_focus = NULL;
-        if (next_index < root->pending.workspaces->length) {
-            next_focus = root->pending.workspaces->items[next_index];
+        if (next_index < root->workspaces->length) {
+            next_focus = root->workspaces->items[next_index];
         }
 
         root_set_active_workspace(root, next_focus);
@@ -608,8 +572,8 @@ struct hwd_workspace *
 root_find_workspace(
     struct hwd_root *root, bool (*test)(struct hwd_workspace *workspace, void *data), void *data
 ) {
-    for (int i = 0; i < root->pending.workspaces->length; ++i) {
-        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
+    for (int i = 0; i < root->workspaces->length; ++i) {
+        struct hwd_workspace *workspace = root->workspaces->items[i];
         if (test(workspace, data)) {
             return workspace;
         }
@@ -624,7 +588,7 @@ root_validate(struct hwd_root *root) {
     // Validate that there is at least one workspace.
     struct hwd_workspace *active_workspace = root->pending.active_workspace;
     assert(active_workspace != NULL);
-    assert(list_find(root->pending.workspaces, active_workspace) != -1);
+    assert(list_find(root->workspaces, active_workspace) != -1);
 
     // Validate that the correct output is focused if workspace is in tiling
     // mode.
@@ -635,8 +599,8 @@ root_validate(struct hwd_root *root) {
     }
 
     // Recursively validate each workspace.
-    for (int i = 0; i < root->pending.workspaces->length; i++) {
-        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
+    for (int i = 0; i < root->workspaces->length; i++) {
+        struct hwd_workspace *workspace = root->workspaces->items[i];
         assert(workspace != NULL);
 
         // Validate floating windows.

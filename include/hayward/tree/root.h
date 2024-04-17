@@ -21,8 +21,6 @@
 struct hwd_window;
 
 struct hwd_root_state {
-    list_t *workspaces;
-
     struct hwd_workspace *active_workspace;
     struct hwd_output *active_output;
 
@@ -51,11 +49,8 @@ struct hwd_root {
 
     struct hwd_transaction_manager *transaction_manager;
 
-    /**
-     * Focus state needs to be updated as soon as it changes in order for input
-     * to be routed to the right place and so is committed outside the normal
-     * state structure.
-     */
+    list_t *workspaces;
+
     struct wlr_surface *focused_surface;
     struct hwd_window *focused_window;
     struct wlr_layer_surface_v1 *focused_layer;

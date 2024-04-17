@@ -199,8 +199,8 @@ output_evacuate(struct hwd_output *output) {
         window_evacuate(window, output);
     }
 
-    for (int i = 0; i < root->pending.workspaces->length; i++) {
-        struct hwd_workspace *workspace = root->pending.workspaces->items[i];
+    for (int i = 0; i < root->workspaces->length; i++) {
+        struct hwd_workspace *workspace = root->workspaces->items[i];
 
         for (int j = 0; j < workspace->columns->length; j++) {
             struct hwd_column *column = workspace->columns->items[j];
