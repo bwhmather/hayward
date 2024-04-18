@@ -217,8 +217,11 @@ static void
 column_begin_destroy(struct hwd_column *column) {
     assert(column != NULL);
     assert(column_is_alive(column));
+    assert(column->children->length == 0);
+
 
     column->pending.dead = true;
+    list_clear(column->pending.children);
 
     if (column->workspace) {
         column_detach(column);
