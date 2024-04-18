@@ -168,8 +168,6 @@ config_defaults(struct hwd_config *config) {
 
     config->floating_mod = 0;
     config->floating_mod_inverse = false;
-    config->dragging_key = BTN_LEFT;
-    config->resizing_key = BTN_RIGHT;
 
     if (!(config->font = strdup("monospace 10")))
         goto cleanup;

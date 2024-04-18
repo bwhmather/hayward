@@ -272,8 +272,6 @@ struct hwd_config {
     struct hwd_mode *current_mode;
     uint32_t floating_mod;
     bool floating_mod_inverse;
-    uint32_t dragging_key;
-    uint32_t resizing_key;
     char *font;                             // Used for IPC.
     PangoFontDescription *font_description; // Used internally for rendering and validating.
     int font_height;
