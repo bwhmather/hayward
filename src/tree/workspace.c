@@ -341,10 +341,15 @@ void
 workspace_begin_destroy(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
     assert(workspace_is_alive(workspace));
+    assert(workspace->floating->length == 0);
+    assert(workspace->columns->length == 0);
 
     wlr_log(WLR_DEBUG, "Destroying workspace '%s'", workspace->name);
 
     workspace->pending.dead = true;
+
+    list_clear(workspace->pending.floating);
+    list_clear(workspace->pending.columns);
 
     workspace_detach(workspace);
 
