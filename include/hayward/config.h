@@ -248,12 +248,6 @@ enum focus_wrapping_mode {
     WRAP_WORKSPACE,
 };
 
-enum alignment {
-    ALIGN_LEFT,
-    ALIGN_CENTER,
-    ALIGN_RIGHT,
-};
-
 enum xwayland_mode {
     XWAYLAND_MODE_DISABLED,
     XWAYLAND_MODE_LAZY,
@@ -301,7 +295,6 @@ struct hwd_config {
     bool reading;
     bool validating;
     bool show_marks;
-    enum alignment title_align;
 
     int tiling_drag_threshold;
 

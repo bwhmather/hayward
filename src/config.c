@@ -200,7 +200,6 @@ config_defaults(struct hwd_config *config) {
     config->failed = false;
     config->reading = false;
     config->show_marks = true;
-    config->title_align = ALIGN_LEFT;
     config->tiling_drag_threshold = 9;
 
     if (!(config->config_chain = create_list()))
