@@ -235,13 +235,6 @@ struct seat_config {
     } xcursor_theme;
 };
 
-enum edge_border_types {
-    E_NONE,       /**< Don't hide edge borders */
-    E_VERTICAL,   /**< hide vertical edge borders */
-    E_HORIZONTAL, /**< hide horizontal edge borders */
-    E_BOTH,       /**< hide vertical and horizontal edge borders */
-};
-
 enum focus_follows_mouse_mode {
     FOLLOWS_NO,
     FOLLOWS_YES,
