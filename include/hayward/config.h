@@ -274,10 +274,6 @@ struct hwd_config {
     bool floating_mod_inverse;
     uint32_t dragging_key;
     uint32_t resizing_key;
-    char *floating_scroll_up_cmd;
-    char *floating_scroll_down_cmd;
-    char *floating_scroll_left_cmd;
-    char *floating_scroll_right_cmd;
     char *font;                             // Used for IPC.
     PangoFontDescription *font_description; // Used internally for rendering and validating.
     int font_height;

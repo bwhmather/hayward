@@ -171,14 +171,6 @@ config_defaults(struct hwd_config *config) {
     config->dragging_key = BTN_LEFT;
     config->resizing_key = BTN_RIGHT;
 
-    if (!(config->floating_scroll_up_cmd = strdup("")))
-        goto cleanup;
-    if (!(config->floating_scroll_down_cmd = strdup("")))
-        goto cleanup;
-    if (!(config->floating_scroll_left_cmd = strdup("")))
-        goto cleanup;
-    if (!(config->floating_scroll_right_cmd = strdup("")))
-        goto cleanup;
     if (!(config->font = strdup("monospace 10")))
         goto cleanup;
     config->urgent_timeout = 500;
@@ -811,10 +803,6 @@ free_config(struct hwd_config *config) {
     }
     list_free(config->no_focus);
     list_free_items_and_destroy(config->config_chain);
-    free(config->floating_scroll_up_cmd);
-    free(config->floating_scroll_down_cmd);
-    free(config->floating_scroll_left_cmd);
-    free(config->floating_scroll_right_cmd);
     free(config->font);
     free(config->haywardnag_command);
     free((char *)config->current_config_path);
