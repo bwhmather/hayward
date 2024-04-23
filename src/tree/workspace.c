@@ -59,11 +59,7 @@ workspace_init_scene(struct hwd_workspace *workspace) {
 
 static void
 workspace_update_layer_separators(struct hwd_workspace *workspace) {
-    if (workspace->committed.root == NULL) {
-        return;
-    }
-
-    struct hwd_theme *theme = workspace->committed.root->committed.theme;
+    struct hwd_theme *theme = workspace->root->committed.theme;
     int gap = hwd_theme_get_column_separator_width(theme);
 
     struct wl_list *link = workspace->layers.separators->children.next;
@@ -227,13 +223,12 @@ workspace_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
     wl_signal_add(&transaction_manager->events.apply, &workspace->transaction_apply);
 
-    struct hwd_root *root = workspace->pending.root;
-    if (root != workspace->committed.root && workspace->workspace_handle != NULL) {
+    if (workspace->pending.dead && workspace->workspace_handle != NULL) {
         hwd_workspace_handle_v1_destroy(workspace->workspace_handle);
         workspace->workspace_handle = NULL;
     }
 
-    if (root != NULL) {
+    if (!workspace->pending.dead) {
         if (workspace->workspace_handle == NULL) {
             workspace->workspace_handle = hwd_workspace_handle_v1_create(root->workspace_manager);
             hwd_workspace_handle_v1_set_name(workspace->workspace_handle, workspace->name);
@@ -449,8 +444,8 @@ void
 workspace_detach(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
 
-    if (workspace->pending.root != NULL) {
-        root_remove_workspace(workspace->pending.root, workspace);
+    if (workspace->root != NULL) {
+        root_remove_workspace(workspace->root, workspace);
     }
 }
 
@@ -460,8 +455,8 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
 
     bool dirty = false;
 
-    if (workspace->pending.root != root) {
-        workspace->pending.root = root;
+    if (workspace->root != root) {
+        workspace->root = root;
         dirty = true;
     }
 
@@ -494,8 +489,8 @@ workspace_reconcile_detached(struct hwd_workspace *workspace) {
 
     bool dirty = false;
 
-    if (workspace->pending.root != NULL) {
-        workspace->pending.root = NULL;
+    if (workspace->root != NULL) {
+        workspace->root = NULL;
         dirty = true;
     }
 
@@ -542,7 +537,7 @@ arrange_floating(struct hwd_workspace *workspace) {
 
 static void
 arrange_tiling(struct hwd_workspace *workspace) {
-    struct hwd_theme *theme = root_get_theme(workspace->pending.root);
+    struct hwd_theme *theme = root_get_theme(workspace->root);
     int gap = hwd_theme_get_column_separator_width(theme);
 
     list_t *columns = workspace->pending.columns;
@@ -684,7 +679,7 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *windo
 
     // TODO
     if (window->output_history->length == 0) {
-        list_add(window->output_history, root_get_active_output(workspace->pending.root));
+        list_add(window->output_history, root_get_active_output(workspace->root));
     }
 
     window_reconcile_floating(window, workspace);
@@ -1027,7 +1022,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         workspace->active_column = new_column;
         workspace->focus_mode = F_TILING;
 
-        struct hwd_root *root = workspace->pending.root;
+        struct hwd_root *root = workspace->root;
         if (root_get_active_workspace(root) == workspace) {
             root_set_active_output(root, new_column->output);
         }

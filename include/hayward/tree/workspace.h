@@ -24,9 +24,6 @@ struct hwd_workspace_state {
     list_t *floating; // struct hwd_window
     list_t *columns;  // struct hwd_column
 
-    // Cached backlink to root of tree.
-    struct hwd_root *root;
-
     bool focused;
 
     bool dead;
@@ -44,6 +41,9 @@ struct hwd_workspace {
     char *name;
 
     bool urgent;
+
+    // Cached backlink to root of tree.
+    struct hwd_root *root;
 
     list_t *floating; // struct hwd_window
     list_t *columns;  // struct hwd_column

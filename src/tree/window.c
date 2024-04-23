@@ -389,7 +389,7 @@ window_update_theme(struct hwd_window *window) {
         return;
     }
 
-    struct hwd_root *root = workspace->pending.root;
+    struct hwd_root *root = workspace->root;
     if (root == NULL) {
         return;
     }
