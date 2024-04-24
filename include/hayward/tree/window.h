@@ -125,10 +125,6 @@ struct hwd_window {
     // column.
     double height_fraction;
 
-    // The share of space of the parent column that all children occupy.
-    // Used for doing the resize calculations.
-    double child_total_height;
-
     struct wlr_texture *title_focused;
     struct wlr_texture *title_focused_inactive;
     struct wlr_texture *title_focused_tab_title;
