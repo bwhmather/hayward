@@ -391,6 +391,7 @@ main(int argc, char **argv) {
     char *workspace_name = "1";
     struct hwd_workspace *workspace = workspace_create(workspace_name);
     root_add_workspace(root, workspace);
+    root_arrange(root);
 
     if (!server_start(&server)) {
         hwd_terminate(EXIT_FAILURE);
