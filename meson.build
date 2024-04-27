@@ -99,35 +99,6 @@ conf_data.set10('HAVE_LIBELOGIND', sdbus.found() and sdbus.name() == 'libelogind
 conf_data.set10('HAVE_BASU', sdbus.found() and sdbus.name() == 'basu')
 conf_data.set10('HAVE_SYSPROF', sysprof_dep.found())
 
-scdoc = dependency('scdoc', version: '>=1.9.2', native: true, required: get_option('man-pages'))
-if scdoc.found()
-  scdoc_prog = find_program(scdoc.get_variable(pkgconfig: 'scdoc'), native: true)
-  mandir = get_option('mandir')
-  man_files = [
-    'man/hayward.1.scd',
-    'man/hayward.5.scd',
-    'man/hayward-input.5.scd',
-    'man/hayward-output.5.scd',
-  ]
-
-  foreach filename : man_files
-    topic = filename.split('.')[-3].split('/')[-1]
-    section = filename.split('.')[-2]
-    output = '@0@.@1@'.format(topic, section)
-
-    custom_target(
-      output,
-      input: filename,
-      output: output,
-      command: scdoc_prog,
-      install: true,
-      feed: true,
-      capture: true,
-      install_dir: '@0@/man@1@'.format(mandir, section)
-    )
-  endforeach
-endif
-
 add_project_arguments('-DSYSCONFDIR="/@0@"'.format(join_paths(prefix, sysconfdir)), language : 'c')
 
 version = '"@0@"'.format(meson.project_version())
@@ -447,6 +418,5 @@ endforeach
 
 summary({
   'xwayland': have_xwayland,
-  'man-pages': scdoc.found(),
 }, bool_yn: true)
 
