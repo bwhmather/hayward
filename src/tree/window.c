@@ -503,29 +503,43 @@ window_arrange(struct hwd_window *window) {
     struct hwd_window_state *state = &window->pending;
 
     if (window_is_fullscreen(window)) {
-        struct hwd_output *output = window_get_fullscreen_output(window);
         state->fullscreen = true;
-        state->content_x = output->pending.x;
-        state->content_y = output->pending.y;
-        state->content_width = output->pending.width;
-        state->content_height = output->pending.height;
+
+        state->titlebar_height = 0;
+        state->border_left = 0;
+        state->border_right = 0;
+        state->border_top = 0;
+        state->border_bottom = 0;
     } else {
+        state->fullscreen = false;
+
         state->titlebar_height = hwd_theme_window_get_titlebar_height(state->theme);
         state->border_left = hwd_theme_window_get_border_left(state->theme);
         state->border_right = hwd_theme_window_get_border_right(state->theme);
         state->border_top = hwd_theme_window_get_border_top(state->theme);
         state->border_bottom = hwd_theme_window_get_border_bottom(state->theme);
-        state->content_x = state->x + state->border_left;
-        state->content_y = state->y + state->titlebar_height + state->border_top;
-        state->content_width = state->width - state->border_left - state->border_right;
-        if (state->content_width < 0) {
-            state->content_width = 0;
+
+        if (window_is_floating(window)) {
+            // TODO in all other cases, pending position and size are set by
+            // parent.
+            struct hwd_output *output = window_get_output(window);
+            state->x = output->pending.x + window->saved_x;
+            state->y = output->pending.y + window->saved_y;
+            state->width = window->saved_width;
+            state->height = window->saved_height;
         }
-        state->content_height =
-            state->height - state->titlebar_height - state->border_top - state->border_bottom;
-        if (state->content_height < 0) {
-            state->content_height = 0;
-        }
+    }
+
+    state->content_x = state->x + state->border_left;
+    state->content_y = state->y + state->titlebar_height + state->border_top;
+    state->content_width = state->width - state->border_left - state->border_right;
+    if (state->content_width < 0) {
+        state->content_width = 0;
+    }
+    state->content_height =
+        state->height - state->titlebar_height - state->border_top - state->border_bottom;
+    if (state->content_height < 0) {
+        state->content_height = 0;
     }
 
     window_set_dirty(window);
@@ -722,15 +736,18 @@ static void
 floating_natural_resize(struct hwd_window *window) {
     int min_width, max_width, min_height, max_height;
     floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
-    if (!window->view) {
-        window->pending.width = fmax(min_width, fmin(window->pending.width, max_width));
-        window->pending.height = fmax(min_height, fmin(window->pending.height, max_height));
-    } else {
-        struct hwd_view *view = window->view;
-        window->pending.content_width = fmax(min_width, fmin(view->natural_width, max_width));
-        window->pending.content_height = fmax(min_height, fmin(view->natural_height, max_height));
-        window_set_geometry_from_content(window);
-    }
+
+    int titlebar_height = hwd_theme_window_get_titlebar_height(window->pending.theme);
+    int border_left = hwd_theme_window_get_border_left(window->pending.theme);
+    int border_right = hwd_theme_window_get_border_right(window->pending.theme);
+    int border_top = hwd_theme_window_get_border_top(window->pending.theme);
+    int border_bottom = hwd_theme_window_get_border_bottom(window->pending.theme);
+
+    window->saved_width =
+        fmax(min_width, fmin(window->view->natural_width, max_width)) + border_left + border_right;
+    window->saved_height = fmax(min_height, fmin(window->view->natural_height, max_height)) +
+        titlebar_height + border_top + border_bottom;
+    window_set_geometry_from_content(window);
 }
 
 void

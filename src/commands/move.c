@@ -366,8 +366,12 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
         if (window_is_fullscreen(window)) {
             return cmd_results_new(CMD_FAILURE, "Cannot move fullscreen floating window");
         }
-        double lx = window->pending.x;
-        double ly = window->pending.y;
+
+        struct hwd_output *old_output = window_get_output(window);
+
+        double lx = window->saved_x + old_output->pending.x;
+        double ly = window->saved_y + old_output->pending.y;
+
         switch (direction) {
         case WLR_DIRECTION_LEFT:
             lx -= move_amt;
@@ -385,9 +389,15 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
 
         double cx = lx + window->pending.width / 2;
         double cy = ly + window->pending.height / 2;
-        struct hwd_output *output = root_find_closest_output(root, cx, cy);
+        struct hwd_output *new_output = root_find_closest_output(root, cx, cy);
 
-        window_floating_move_to(window, output, lx, ly);
+        list_clear(window->output_history); // TODO unref old outputs.
+        list_add(window->output_history, new_output);
+
+        window->saved_x = lx - new_output->pending.x;
+        window->saved_y = ly - new_output->pending.y;
+        window_arrange(window);
+
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
     struct hwd_workspace *old_workspace = window->workspace;
