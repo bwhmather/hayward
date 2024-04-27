@@ -58,8 +58,6 @@ xcb_dep = dependency('xcb', required: get_option('xwayland'))
 drm_full_dep = dependency('libdrm') # only needed for drm_fourcc.h
 drm_dep = drm_full_dep.partial_dependency(compile_args: true, includes: true)
 libudev_dep = dependency('libudev')
-bash_comp_dep = dependency('bash-completion', required: false)
-fish_comp_dep = dependency('fish', required: false)
 math_dep = cc.find_library('m')
 rt_dep = cc.find_library('rt')
 xcb_icccm_dep = dependency('xcb-icccm', required: get_option('xwayland'))
@@ -335,50 +333,6 @@ install_data(
   'hayward.desktop',
   install_dir: join_paths(datadir, 'wayland-sessions')
 )
-
-if get_option('zsh-completions')
-  zsh_files = files(
-    'completions/zsh/_hayward',
-  )
-  zsh_install_dir = join_paths(datadir, 'zsh', 'site-functions')
-
-  install_data(zsh_files, install_dir: zsh_install_dir)
-endif
-
-if get_option('bash-completions')
-  bash_files = files(
-    'completions/bash/hayward',
-  )
-
-  if bash_comp_dep.found()
-    bash_install_dir = bash_comp_dep.get_variable(
-      pkgconfig: 'completionsdir',
-      pkgconfig_define: ['datadir', datadir]
-    )
-  else
-    bash_install_dir = join_paths(datadir, 'bash-completion', 'completions')
-  endif
-
-  install_data(bash_files, install_dir: bash_install_dir)
-endif
-
-if get_option('fish-completions')
-  fish_files = files(
-    'completions/fish/hayward.fish',
-  )
-
-  if fish_comp_dep.found()
-    fish_install_dir = fish_comp_dep.get_variable(
-      pkgconfig: 'completionsdir',
-      pkgconfig_define: ['datadir', datadir]
-    )
-  else
-    fish_install_dir = join_paths(datadir, 'fish', 'vendor_completions.d')
-  endif
-
-  install_data(fish_files, install_dir: fish_install_dir)
-endif
-
 
 test_suites = {
   'lint': [
