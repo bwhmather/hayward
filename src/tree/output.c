@@ -63,9 +63,10 @@ output_update_scene(struct hwd_output *output) {
     while (link != &output->layers.fullscreen->children) {
         struct wlr_scene_node *node = wl_container_of(link, node, link);
         link = link->next;
-        if (node != &fullscreen_window->scene_tree->node) {
-            wlr_scene_node_reparent(node, NULL);
+        if (fullscreen_window == NULL || node == &fullscreen_window->scene_tree->node) {
+            continue;
         }
+        wlr_scene_node_reparent(node, NULL);
     }
 
     if (fullscreen_window != NULL) {
