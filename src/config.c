@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <libgen.h>
-#include <linux/input-event-codes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
