@@ -214,9 +214,9 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     wl_list_remove(&listener->link);
-    wl_signal_add(&transaction_manager->events.apply, &window->transaction_apply);
-
     window->dirty = false;
+
+    wl_signal_add(&transaction_manager->events.apply, &window->transaction_apply);
 
     if (window->pending.fullscreen != window->committed.fullscreen) {
         if (window->view->impl->set_fullscreen) {
@@ -496,53 +496,49 @@ void
 window_arrange(struct hwd_window *window) {
     HWD_PROFILER_TRACE();
 
-    if (config->reloading) {
-        return;
-    }
+    if (window->dirty) {
+        struct hwd_window_state *state = &window->pending;
 
-    struct hwd_window_state *state = &window->pending;
+        if (window_is_fullscreen(window)) {
+            state->fullscreen = true;
 
-    if (window_is_fullscreen(window)) {
-        state->fullscreen = true;
+            state->titlebar_height = 0;
+            state->border_left = 0;
+            state->border_right = 0;
+            state->border_top = 0;
+            state->border_bottom = 0;
+        } else {
+            state->fullscreen = false;
 
-        state->titlebar_height = 0;
-        state->border_left = 0;
-        state->border_right = 0;
-        state->border_top = 0;
-        state->border_bottom = 0;
-    } else {
-        state->fullscreen = false;
+            state->titlebar_height = hwd_theme_window_get_titlebar_height(state->theme);
+            state->border_left = hwd_theme_window_get_border_left(state->theme);
+            state->border_right = hwd_theme_window_get_border_right(state->theme);
+            state->border_top = hwd_theme_window_get_border_top(state->theme);
+            state->border_bottom = hwd_theme_window_get_border_bottom(state->theme);
 
-        state->titlebar_height = hwd_theme_window_get_titlebar_height(state->theme);
-        state->border_left = hwd_theme_window_get_border_left(state->theme);
-        state->border_right = hwd_theme_window_get_border_right(state->theme);
-        state->border_top = hwd_theme_window_get_border_top(state->theme);
-        state->border_bottom = hwd_theme_window_get_border_bottom(state->theme);
+            if (window_is_floating(window)) {
+                // TODO in all other cases, pending position and size are set by
+                // parent.
+                struct hwd_output *output = window_get_output(window);
+                state->x = output->pending.x + window->saved_x;
+                state->y = output->pending.y + window->saved_y;
+                state->width = window->saved_width;
+                state->height = window->saved_height;
+            }
+        }
 
-        if (window_is_floating(window)) {
-            // TODO in all other cases, pending position and size are set by
-            // parent.
-            struct hwd_output *output = window_get_output(window);
-            state->x = output->pending.x + window->saved_x;
-            state->y = output->pending.y + window->saved_y;
-            state->width = window->saved_width;
-            state->height = window->saved_height;
+        state->content_x = state->x + state->border_left;
+        state->content_y = state->y + state->titlebar_height + state->border_top;
+        state->content_width = state->width - state->border_left - state->border_right;
+        if (state->content_width < 0) {
+            state->content_width = 0;
+        }
+        state->content_height =
+            state->height - state->titlebar_height - state->border_top - state->border_bottom;
+        if (state->content_height < 0) {
+            state->content_height = 0;
         }
     }
-
-    state->content_x = state->x + state->border_left;
-    state->content_y = state->y + state->titlebar_height + state->border_top;
-    state->content_width = state->width - state->border_left - state->border_right;
-    if (state->content_width < 0) {
-        state->content_width = 0;
-    }
-    state->content_height =
-        state->height - state->titlebar_height - state->border_top - state->border_bottom;
-    if (state->content_height < 0) {
-        state->content_height = 0;
-    }
-
-    window_set_dirty(window);
 }
 
 void
@@ -659,8 +655,8 @@ window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output
     // TODO should be re-derived in arrange.
     window->pending.fullscreen = true;
 
-    workspace_arrange(window->workspace);
-    output_arrange(output);
+    workspace_set_dirty(window->workspace);
+    output_set_dirty(output);
     window_set_dirty(window);
 }
 
@@ -674,7 +670,7 @@ window_unfullscreen(struct hwd_window *window) {
         struct hwd_output *output = window->fullscreen_output_history->items[i];
 
         list_remove(output->fullscreen_windows, window);
-        output_arrange(output);
+        output_set_dirty(output);
         output_consider_destroy(output);
     }
     list_clear(window->fullscreen_output_history);
@@ -690,7 +686,7 @@ window_unfullscreen(struct hwd_window *window) {
     // TODO should be re-derived in arranged.
     window->pending.fullscreen = false;
 
-    workspace_arrange(window->workspace);
+    workspace_set_dirty(window->workspace);
     window_set_dirty(window);
 }
 

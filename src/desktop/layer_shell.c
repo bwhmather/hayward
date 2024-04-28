@@ -78,7 +78,7 @@ arrange_layers(struct hwd_output *output) {
     if (!wlr_box_equal(&usable_area, &output->usable_area)) {
         wlr_log(WLR_DEBUG, "Usable area changed, rearranging output");
         output->usable_area = usable_area;
-        output_arrange(output);
+        output_set_dirty(output);
     }
 }
 

@@ -45,7 +45,7 @@ handle_button(
 
     if (seat->cursor->pressed_button_count == 0) {
         window_set_resizing(window, false);
-        window_arrange(window); // Send configure w/o resizing hint
+        window_set_dirty(window); // Send configure w/o resizing hint
         seatop_begin_default(seat);
     }
 }
@@ -150,7 +150,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     window->pending.content_width += relative_grow_width;
     window->pending.content_height += relative_grow_height;
 
-    window_arrange(window);
+    window_set_dirty(window);
 }
 
 static void

@@ -381,26 +381,9 @@ workspace_set_dirty(struct hwd_workspace *workspace) {
         return;
     }
     workspace->dirty = true;
+
     wl_signal_add(&transaction_manager->events.commit, &workspace->transaction_commit);
     hwd_transaction_manager_ensure_queued(transaction_manager);
-
-    for (int i = 0; i < workspace->committed.floating->length; i++) {
-        struct hwd_window *window = workspace->committed.floating->items[i];
-        window_set_dirty(window);
-    }
-    for (int i = 0; i < workspace->committed.columns->length; i++) {
-        struct hwd_column *column = workspace->committed.columns->items[i];
-        column_set_dirty(column);
-    }
-
-    for (int i = 0; i < workspace->floating->length; i++) {
-        struct hwd_window *window = workspace->floating->items[i];
-        window_set_dirty(window);
-    }
-    for (int i = 0; i < workspace->columns->length; i++) {
-        struct hwd_column *column = workspace->columns->items[i];
-        column_set_dirty(column);
-    }
 }
 
 static bool
@@ -529,9 +512,10 @@ arrange_floating(struct hwd_workspace *workspace) {
         }
 
         window->pending.shaded = false;
-        window_arrange(window);
 
         list_add(workspace->pending.floating, window);
+
+        window_set_dirty(window);
     }
 }
 
@@ -644,9 +628,9 @@ arrange_tiling(struct hwd_workspace *workspace) {
         }
     }
 
-    for (int i = 0; i < columns->length; ++i) {
+    for (int i = 0; i < columns->length; i++) {
         struct hwd_column *column = columns->items[i];
-        column_arrange(column);
+        column_set_dirty(column);
     }
 }
 
@@ -654,16 +638,28 @@ void
 workspace_arrange(struct hwd_workspace *workspace) {
     HWD_PROFILER_TRACE();
 
-    if (config->reloading) {
-        return;
-    }
-
     wlr_log(WLR_DEBUG, "Arranging workspace '%s'", workspace->name);
 
-    arrange_tiling(workspace);
-    arrange_floating(workspace);
+    if (workspace->dirty) {
+        arrange_tiling(workspace);
+        arrange_floating(workspace);
 
-    workspace_set_dirty(workspace);
+        struct hwd_output *output = NULL;
+        wl_list_for_each(output, &workspace->root->all_outputs, link) { output_set_dirty(output); }
+    }
+
+    for (int i = 0; i < workspace->pending.columns->length; i++) {
+        struct hwd_column *column = workspace->pending.columns->items[i];
+        column_arrange(column);
+    }
+    for (int i = 0; i < workspace->pending.floating->length; i++) {
+        struct hwd_window *window = workspace->pending.floating->items[i];
+        window_arrange(window);
+    }
+
+    // TODO should only be visible outputs.
+    struct hwd_output *output = NULL;
+    wl_list_for_each(output, &workspace->root->all_outputs, link) { output_arrange(output); }
 }
 
 void
@@ -1041,7 +1037,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         }
     }
 
-    workspace_arrange(workspace);
+    workspace_set_dirty(workspace);
 }
 
 struct hwd_window *

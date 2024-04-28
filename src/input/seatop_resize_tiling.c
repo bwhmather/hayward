@@ -75,12 +75,12 @@ handle_button(
         if (e->h_container) {
             column_set_resizing(e->h_container, false);
             column_set_resizing(e->h_sib, false);
-            workspace_arrange(e->h_container->workspace);
+            workspace_set_dirty(e->h_container->workspace);
         }
         if (e->v_container) {
             window_set_resizing(e->v_container, false);
             window_set_resizing(e->v_sib, false);
-            column_arrange(e->v_container->parent);
+            column_set_dirty(e->v_container->parent);
         }
         seatop_begin_default(seat);
     }

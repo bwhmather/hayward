@@ -59,7 +59,7 @@ finalize_move(struct hwd_seat *seat) {
         root_set_focused_window(root, e->window);
         e->destination_column->pending.show_preview = false;
         e->destination_column->pending.preview_target = NULL;
-        column_arrange(e->destination_column);
+        column_set_dirty(e->destination_column);
     } else {
         // The window is already at the right location, but we want to bind it to
         // the correct output.
@@ -174,13 +174,13 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         e->destination_column->pending.preview_target = NULL;
         column_consider_destroy(e->destination_column);
         e->destination_column = NULL;
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
     }
 
     if (e->destination_column != NULL) {
         e->destination_column->preview_anchor_x = cursor->x;
         e->destination_column->preview_anchor_y = cursor->y;
-        column_arrange(e->destination_column);
+        column_set_dirty(e->destination_column);
         return;
     }
 
@@ -220,7 +220,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_first(workspace, target_output, destination_column);
 
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
 
         e->destination_column = destination_column;
         e->target_area.x = left_box.x;
@@ -243,7 +243,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_last(workspace, target_output, destination_column);
 
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
 
         e->destination_column = destination_column;
         e->target_area.x = right_box.x - 35;
@@ -277,7 +277,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         destination_column->preview_anchor_x = cursor->x;
         destination_column->preview_anchor_y = cursor->y;
 
-        column_arrange(destination_column);
+        column_set_dirty(destination_column);
 
         e->destination_column = destination_column;
         return;
@@ -296,7 +296,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_before(workspace, target_column, destination_column);
 
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
 
         e->destination_column = destination_column;
         e->target_area.x = target_column->pending.x - 40;
@@ -315,7 +315,7 @@ handle_pointer_motion_postthreshold(struct hwd_seat *seat) {
         destination_column->preview_anchor_y = cursor->y;
         workspace_insert_column_after(workspace, target_column, destination_column);
 
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
 
         e->destination_column = destination_column;
         e->target_area.x = target_column->pending.x + target_column->pending.width - 40;

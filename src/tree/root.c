@@ -42,6 +42,9 @@
 
 struct hwd_root *root;
 
+static void
+root_arrange(struct hwd_root *root);
+
 struct hwd_pid_workspace {
     pid_t pid;
     char *workspace_name;
@@ -101,6 +104,8 @@ root_handle_transaction_before_commit(struct wl_listener *listener, void *data) 
 
     hwd_idle_inhibit_v1_check_active(server.idle_inhibit_manager_v1);
 
+    root_arrange(root);
+
 #ifndef NDEBUG
     assert(root->focused_surface == root_get_focused_surface(root));
 
@@ -156,7 +161,7 @@ static void
 root_handle_output_layout_change(struct wl_listener *listener, void *data) {
     struct hwd_root *root = wl_container_of(listener, root, output_layout_change);
 
-    root_arrange(root);
+    root_set_dirty(root);
 }
 
 struct hwd_root *
@@ -226,7 +231,7 @@ root_destroy(struct hwd_root *root) {
     free(root);
 }
 
-static void
+void
 root_set_dirty(struct hwd_root *root) {
     assert(root != NULL);
 
@@ -234,33 +239,21 @@ root_set_dirty(struct hwd_root *root) {
         return;
     }
     root->dirty = true;
+
     wl_signal_add(&root->transaction_manager->events.commit, &root->transaction_commit);
     hwd_transaction_manager_ensure_queued(root->transaction_manager);
-
-    for (int i = 0; i < root->workspaces->length; i++) {
-        struct hwd_workspace *workspace = root->workspaces->items[i];
-        workspace_set_dirty(workspace);
-    }
 }
 
-void
+static void
 root_arrange(struct hwd_root *root) {
     HWD_PROFILER_TRACE();
 
-    if (config->reloading) {
-        return;
+    if (root->dirty) {
+        root->pending.workspace = root->active_workspace;
     }
 
-    root->pending.workspace = root->active_workspace;
-
-    for (int i = 0; i < root->outputs->length; ++i) {
-        struct hwd_output *output = root->outputs->items[i];
-        output_arrange(output);
-    }
-
-    for (int i = 0; i < root->workspaces->length; ++i) {
-        struct hwd_workspace *workspace = root->workspaces->items[i];
-        workspace_arrange(workspace);
+    if (root->pending.workspace != NULL) {
+        workspace_arrange(root->pending.workspace);
     }
 }
 

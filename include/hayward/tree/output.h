@@ -100,10 +100,13 @@ void
 output_consider_destroy(struct hwd_output *output);
 
 void
+output_set_dirty(struct hwd_output *output);
+
+void
 output_reconcile(struct hwd_output *output);
 
 void
-output_arrange(struct hwd_output *wlr_output);
+output_arrange(struct hwd_output *output);
 
 void
 output_get_box(struct hwd_output *output, struct wlr_box *box);

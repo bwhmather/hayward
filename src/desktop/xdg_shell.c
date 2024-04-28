@@ -393,8 +393,6 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     } else if (window_is_fullscreen(window)) {
         window_unfullscreen(window);
     }
-
-    root_arrange(root);
 }
 
 static void

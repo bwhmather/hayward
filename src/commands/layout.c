@@ -60,7 +60,7 @@ cmd_layout(int argc, char **argv) {
 
     if (new_layout != old_layout) {
         column->layout = new_layout;
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
     }
 
     return cmd_results_new(CMD_SUCCESS, NULL);

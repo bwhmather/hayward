@@ -161,21 +161,6 @@ output_is_alive(struct hwd_output *output) {
 }
 
 static void
-output_set_dirty(struct hwd_output *output) {
-    assert(output != NULL);
-
-    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
-
-    if (output->dirty) {
-        return;
-    }
-
-    output->dirty = true;
-    wl_signal_add(&transaction_manager->events.commit, &output->transaction_commit);
-    hwd_transaction_manager_ensure_queued(transaction_manager);
-}
-
-static void
 output_enable(struct hwd_output *output) {
     if (output->enabled) {
         return;
@@ -188,8 +173,7 @@ output_enable(struct hwd_output *output) {
 
     input_manager_configure_xcursor();
 
-    arrange_layers(output);
-    root_arrange(root);
+    root_set_dirty(root);
 }
 
 static void
@@ -215,7 +199,7 @@ output_evacuate(struct hwd_output *output) {
             window_evacuate(window, output);
         }
 
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
     }
 }
 
@@ -256,7 +240,7 @@ output_disable(struct hwd_output *output) {
     output->enabled = false;
     output->current_mode = NULL;
 
-    root_arrange(root);
+    root_set_dirty(root);
 
     // Reconfigure all devices, since devices with map_to_output directives for
     // an output that goes offline should stop sending events as long as the
@@ -297,6 +281,21 @@ output_consider_destroy(struct hwd_output *output) {
 }
 
 void
+output_set_dirty(struct hwd_output *output) {
+    assert(output != NULL);
+
+    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
+
+    if (output->dirty) {
+        return;
+    }
+
+    output->dirty = true;
+    wl_signal_add(&transaction_manager->events.commit, &output->transaction_commit);
+    hwd_transaction_manager_ensure_queued(transaction_manager);
+}
+
+void
 output_reconcile(struct hwd_output *output) {
     assert(output != NULL);
     output_set_dirty(output);
@@ -304,40 +303,43 @@ output_reconcile(struct hwd_output *output) {
 
 void
 output_arrange(struct hwd_output *output) {
-    if (config->reloading) {
-        return;
-    }
+    HWD_PROFILER_TRACE();
 
-    struct wlr_box output_box;
-    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
-    output->pending.x = output_box.x;
-    output->pending.y = output_box.y;
-    output->pending.width = output_box.width;
-    output->pending.height = output_box.height;
+    if (output->dirty) {
+        struct wlr_box output_box;
+        wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
+        output->pending.x = output_box.x;
+        output->pending.y = output_box.y;
+        output->pending.width = output_box.width;
+        output->pending.height = output_box.height;
 
-    output->pending.fullscreen_window = NULL;
-    for (int i = output->fullscreen_windows->length - 1; i >= 0; i--) {
-        struct hwd_window *fullscreen_window = output->fullscreen_windows->items[i];
+        output->pending.fullscreen_window = NULL;
+        for (int i = output->fullscreen_windows->length - 1; i >= 0; i--) {
+            struct hwd_window *fullscreen_window = output->fullscreen_windows->items[i];
 
-        if (fullscreen_window->workspace != root->active_workspace) {
-            continue;
+            if (fullscreen_window->workspace != root->active_workspace) {
+                continue;
+            }
+
+            output->pending.fullscreen_window = fullscreen_window;
+
+            fullscreen_window->pending.x = output->pending.x;
+            fullscreen_window->pending.y = output->pending.y;
+            fullscreen_window->pending.width = output->pending.width;
+            fullscreen_window->pending.height = output->pending.height;
+            fullscreen_window->pending.shaded = false;
+
+            window_set_dirty(fullscreen_window);
+
+            break;
         }
 
-        output->pending.fullscreen_window = fullscreen_window;
-
-        fullscreen_window->pending.x = output->pending.x;
-        fullscreen_window->pending.y = output->pending.y;
-        fullscreen_window->pending.width = output->pending.width;
-        fullscreen_window->pending.height = output->pending.height;
-        fullscreen_window->pending.shaded = false;
-
-        window_arrange(output->pending.fullscreen_window);
-        break;
+        arrange_layers(output);
     }
 
-    arrange_layers(output);
-
-    output_set_dirty(output);
+    if (output->pending.fullscreen_window) {
+        window_arrange(output->pending.fullscreen_window);
+    }
 }
 
 void

@@ -111,7 +111,7 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
         next_sibling->width_fraction -= (double)next_amount / next_sibling->child_total_width;
     }
 
-    workspace_arrange(column->workspace);
+    workspace_set_dirty(column->workspace);
 }
 
 static void
@@ -174,7 +174,7 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
             (double)next_amount / (available_content_height * visible_height_fraction);
     }
 
-    column_arrange(column);
+    column_set_dirty(column);
 }
 
 void
@@ -243,7 +243,7 @@ resize_adjust_floating(uint32_t axis, struct movement_amount *amount) {
     window->pending.content_width += grow_width;
     window->pending.content_height += grow_height;
 
-    window_arrange(window);
+    window_set_dirty(window);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
@@ -367,7 +367,7 @@ resize_set_floating(
     window->pending.content_width += grow_width;
     window->pending.content_height += grow_height;
 
-    window_arrange(window);
+    window_set_dirty(window);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

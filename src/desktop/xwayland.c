@@ -660,7 +660,6 @@ handle_request_fullscreen(struct wl_listener *listener, void *data) {
     if (xsurface->fullscreen != window_is_fullscreen(window)) {
         window_fullscreen_on_output(window, output);
     }
-    root_arrange(root);
 }
 
 static void

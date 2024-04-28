@@ -80,7 +80,7 @@ cmd_floating(int argc, char **argv) {
         workspace_set_active_window(workspace, window);
     }
 
-    workspace_arrange(workspace);
+    workspace_set_dirty(workspace);
 
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

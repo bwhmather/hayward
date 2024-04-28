@@ -28,7 +28,7 @@ do_reload(void *data) {
         return;
     }
 
-    root_arrange(root);
+    root_set_dirty(root);
 }
 
 struct cmd_results *

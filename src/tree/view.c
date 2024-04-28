@@ -285,7 +285,6 @@ handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
     } else {
         window_fullscreen(window);
     }
-    root_arrange(root);
 }
 
 static void
@@ -365,9 +364,9 @@ view_map(
         }
 
         if (target_sibling) {
-            column_arrange(view->window->parent);
+            column_set_dirty(view->window->parent);
         } else {
-            workspace_arrange(workspace);
+            workspace_set_dirty(workspace);
         }
     }
 
@@ -418,7 +417,7 @@ view_unmap(struct hwd_view *view) {
     }
 
     if (workspace && !workspace->pending.dead) {
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
         workspace_detect_urgent(workspace);
     }
 

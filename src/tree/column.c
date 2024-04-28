@@ -259,18 +259,6 @@ column_set_dirty(struct hwd_column *column) {
     column->dirty = true;
     wl_signal_add(&transaction_manager->events.commit, &column->transaction_commit);
     hwd_transaction_manager_ensure_queued(transaction_manager);
-
-    for (int i = 0; i < column->committed.children->length; i++) {
-        struct hwd_window *child = column->committed.children->items[i];
-        if (window_is_alive(child)) {
-            window_set_dirty(child);
-        }
-    }
-
-    for (int i = 0; i < column->children->length; i++) {
-        struct hwd_window *child = column->children->items[i];
-        window_set_dirty(child);
-    }
 }
 
 static void
@@ -429,6 +417,11 @@ column_arrange_split(struct hwd_column *column) {
 
         y_offset += preview_height;
     }
+
+    for (int i = 0; i < column->pending.children->length; i++) {
+        struct hwd_window *window = column->pending.children->items[i];
+        window_set_dirty(window);
+    }
 }
 
 static void
@@ -541,34 +534,35 @@ column_arrange_stacked(struct hwd_column *column) {
 
         y_offset += preview_height;
     }
+
+    for (int i = 0; i < column->pending.children->length; i++) {
+        struct hwd_window *window = column->pending.children->items[i];
+        window_set_dirty(window);
+    }
 }
 
 void
 column_arrange(struct hwd_column *column) {
     HWD_PROFILER_TRACE();
 
-    if (config->reloading) {
-        return;
+    if (column->dirty) {
+        switch (column->layout) {
+        case L_SPLIT:
+            column_arrange_split(column);
+            break;
+        case L_STACKED:
+            column_arrange_stacked(column);
+            break;
+        default:
+            assert(false);
+            break;
+        }
     }
 
-    switch (column->layout) {
-    case L_SPLIT:
-        column_arrange_split(column);
-        break;
-    case L_STACKED:
-        column_arrange_stacked(column);
-        break;
-    default:
-        assert(false);
-        break;
+    for (int i = 0; i < column->pending.children->length; i++) {
+        struct hwd_window *window = column->pending.children->items[i];
+        window_arrange(window);
     }
-
-    list_t *children = column->pending.children;
-    for (int i = 0; i < children->length; ++i) {
-        struct hwd_window *child = children->items[i];
-        window_arrange(child);
-    }
-    column_set_dirty(column);
 }
 
 struct hwd_window *

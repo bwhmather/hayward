@@ -321,11 +321,11 @@ cmd_move_window(int argc, char **argv) {
 
         // Re-arrange windows
         if (old_workspace && !old_workspace->pending.dead) {
-            workspace_arrange(old_workspace);
+            workspace_set_dirty(old_workspace);
         }
         // TODO (hayward) it should often be possible to get away without
         // rearranging the entire workspace.
-        workspace_arrange(workspace);
+        workspace_set_dirty(workspace);
 
         root_commit_focus(root);
 
@@ -358,7 +358,6 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
         if (next_output) {
             window_fullscreen_on_output(window, next_output);
         }
-        root_arrange(root);
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
 
@@ -396,7 +395,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
 
         window->saved_x = lx - new_output->pending.x;
         window->saved_y = ly - new_output->pending.y;
-        window_arrange(window);
+        window_set_dirty(window);
 
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
@@ -418,9 +417,9 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
 
     struct hwd_workspace *new_workspace = window->workspace;
 
-    workspace_arrange(old_workspace);
+    workspace_set_dirty(old_workspace);
     if (new_workspace != old_workspace) {
-        workspace_arrange(new_workspace);
+        workspace_set_dirty(new_workspace);
     }
 
     // Hack to re-focus window
