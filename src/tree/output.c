@@ -24,7 +24,7 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 
-#include <hayward/config.h>
+#include <hayward/profiler.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>

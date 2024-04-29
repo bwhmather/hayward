@@ -20,7 +20,6 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 
-#include <hayward/config.h>
 #include <hayward/desktop/hwd_workspace_management_v1.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>

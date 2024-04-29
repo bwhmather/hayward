@@ -19,7 +19,6 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 
-#include <hayward/config.h>
 #include <hayward/globals/root.h>
 #include <hayward/list.h>
 #include <hayward/profiler.h>
