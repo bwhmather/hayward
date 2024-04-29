@@ -59,6 +59,8 @@ struct hwd_window_state {
 struct hwd_window {
     size_t id;
 
+    struct hwd_root *root;
+
     // Forward link to the view.  The window owns the view only if the view's
     // window pointer also points back to the window.
     struct hwd_view *view;
@@ -156,7 +158,7 @@ struct hwd_window {
 };
 
 struct hwd_window *
-window_create(struct hwd_view *view);
+window_create(struct hwd_root *root, struct hwd_view *view);
 
 bool
 window_is_alive(struct hwd_window *window);
@@ -219,7 +221,9 @@ void
 window_unfullscreen(struct hwd_window *window);
 
 void
-floating_calculate_constraints(int *min_width, int *max_width, int *min_height, int *max_height);
+floating_calculate_constraints(
+    struct hwd_window *window, int *min_width, int *max_width, int *min_height, int *max_height
+);
 
 void
 window_floating_resize_and_center(struct hwd_window *window);

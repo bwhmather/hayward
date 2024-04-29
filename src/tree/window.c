@@ -25,7 +25,6 @@
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>
-#include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/list.h>
@@ -211,7 +210,8 @@ window_should_configure(struct hwd_window *window) {
 static void
 window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_window *window = wl_container_of(listener, window, transaction_commit);
-    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
+    struct hwd_transaction_manager *transaction_manager =
+        root_get_transaction_manager(window->root);
 
     wl_list_remove(&listener->link);
     window->dirty = false;
@@ -257,7 +257,8 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
 static void
 window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     struct hwd_window *window = wl_container_of(listener, window, transaction_apply);
-    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
+    struct hwd_transaction_manager *transaction_manager =
+        root_get_transaction_manager(window->root);
 
     wl_list_remove(&listener->link);
     window->is_configuring = false;
@@ -293,7 +294,7 @@ window_handle_transaction_after_apply(struct wl_listener *listener, void *data) 
 }
 
 struct hwd_window *
-window_create(struct hwd_view *view) {
+window_create(struct hwd_root *root, struct hwd_view *view) {
     struct hwd_window *window = calloc(1, sizeof(struct hwd_window));
     if (!window) {
         wlr_log(WLR_ERROR, "Unable to allocate hwd_window");
@@ -306,6 +307,7 @@ window_create(struct hwd_view *view) {
     wl_signal_init(&window->events.begin_destroy);
     wl_signal_init(&window->events.destroy);
 
+    window->root = root;
     window->view = view;
 
     window->output_history = create_list();
@@ -353,7 +355,8 @@ window_begin_destroy(struct hwd_window *window) {
 void
 window_set_dirty(struct hwd_window *window) {
     assert(window != NULL);
-    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
+    struct hwd_transaction_manager *transaction_manager =
+        root_get_transaction_manager(window->root);
 
     if (window->dirty) {
         return;
@@ -384,17 +387,7 @@ window_detach(struct hwd_window *window) {
 
 static void
 window_update_theme(struct hwd_window *window) {
-    struct hwd_workspace *workspace = window->workspace;
-    if (workspace == NULL) {
-        return;
-    }
-
-    struct hwd_root *root = workspace->root;
-    if (root == NULL) {
-        return;
-    }
-
-    struct hwd_theme *theme = root_get_theme(root);
+    struct hwd_theme *theme = root_get_theme(window->root);
     if (theme == NULL) {
         return;
     }
@@ -485,7 +478,7 @@ window_set_moving(struct hwd_window *window, bool moving) {
     window->moving = moving;
 
     if (moving) {
-        wlr_scene_node_reparent(&window->layers.inner_tree->node, root->layers.moving);
+        wlr_scene_node_reparent(&window->layers.inner_tree->node, window->root->layers.moving);
     } else {
         wlr_scene_node_reparent(&window->layers.inner_tree->node, window->scene_tree);
     }
@@ -546,10 +539,10 @@ window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
     struct hwd_output *new_output = NULL;
     // TODO smarter selection.
     // TODO ignore disabled outputs.
-    if (root->outputs->length > 1) {
-        new_output = root->outputs->items[0];
+    if (window->root->outputs->length > 1) {
+        new_output = window->root->outputs->items[0];
         if (new_output == old_output) {
-            new_output = root->outputs->items[1];
+            new_output = window->root->outputs->items[1];
         }
     }
 
@@ -688,7 +681,9 @@ window_unfullscreen(struct hwd_window *window) {
 }
 
 void
-floating_calculate_constraints(int *min_width, int *max_width, int *min_height, int *max_height) {
+floating_calculate_constraints(
+    struct hwd_window *window, int *min_width, int *max_width, int *min_height, int *max_height
+) {
     if (config->floating_minimum_width == -1) { // no minimum
         *min_width = 0;
     } else if (config->floating_minimum_width == 0) { // automatic
@@ -706,7 +701,7 @@ floating_calculate_constraints(int *min_width, int *max_width, int *min_height, 
     }
 
     struct wlr_box box;
-    wlr_output_layout_get_box(root->output_layout, NULL, &box);
+    wlr_output_layout_get_box(window->root->output_layout, NULL, &box);
 
     if (config->floating_maximum_width == -1) { // no maximum
         *max_width = INT_MAX;
@@ -728,7 +723,7 @@ floating_calculate_constraints(int *min_width, int *max_width, int *min_height, 
 static void
 floating_natural_resize(struct hwd_window *window) {
     int min_width, max_width, min_height, max_height;
-    floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
+    floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
 
     int titlebar_height = hwd_theme_window_get_titlebar_height(window->pending.theme);
     int border_left = hwd_theme_window_get_border_left(window->pending.theme);
@@ -752,7 +747,7 @@ window_floating_resize_and_center(struct hwd_window *window) {
     assert(output != NULL);
 
     struct wlr_box ob;
-    wlr_output_layout_get_box(root->output_layout, output->wlr_output, &ob);
+    wlr_output_layout_get_box(window->root->output_layout, output->wlr_output, &ob);
     if (wlr_box_empty(&ob)) {
         // On NOOP output. Will be called again when moved to an output
         window->pending.x = 0;
@@ -801,7 +796,7 @@ window_floating_set_default_size(struct hwd_window *window) {
     struct hwd_output *output = window_get_output(window);
 
     int min_width, max_width, min_height, max_height;
-    floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
+    floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
     struct wlr_box box = {0};
     output_get_box(output, &box);
 

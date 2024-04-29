@@ -88,7 +88,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     double width = e->ref_width + grow_width;
     double height = e->ref_height + grow_height;
     int min_width, max_width, min_height, max_height;
-    floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
+    floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
     width = fmin(width, max_width - border_width);
     width = fmax(width, min_width + border_width);
     width = fmax(width, 1);

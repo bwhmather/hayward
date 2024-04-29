@@ -24,11 +24,11 @@
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 
-#include <hayward/profiler.h>
 #include <hayward/desktop/layer_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/list.h>
+#include <hayward/profiler.h>
 #include <hayward/scheduler.h>
 #include <hayward/server.h>
 #include <hayward/tree/column.h>

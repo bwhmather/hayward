@@ -312,7 +312,7 @@ view_map(
     assert(view->surface == NULL);
     view->surface = wlr_surface;
     view_populate_pid(view);
-    view->window = window_create(view);
+    view->window = window_create(root, view);
 
     // If there is a request to be opened fullscreen on a specific output, try
     // to honor that request. Otherwise, fallback to assigns, pid mappings,

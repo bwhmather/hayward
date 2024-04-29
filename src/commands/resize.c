@@ -208,7 +208,7 @@ resize_adjust_floating(uint32_t axis, struct movement_amount *amount) {
 
     // Make sure we're not adjusting beyond floating min/max size
     int min_width, max_width, min_height, max_height;
-    floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
+    floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
     if (window->pending.width + grow_width < min_width) {
         grow_width = min_width - window->pending.width;
     } else if (window->pending.width + grow_width > max_width) {
@@ -321,7 +321,7 @@ resize_set_floating(
     struct hwd_output *output = window_get_output(window);
 
     int min_width, max_width, min_height, max_height, grow_width = 0, grow_height = 0;
-    floating_calculate_constraints(&min_width, &max_width, &min_height, &max_height);
+    floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
 
     if (width->amount) {
         switch (width->unit) {
