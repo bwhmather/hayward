@@ -435,7 +435,7 @@ column_arrange_stacked(struct hwd_column *column) {
         list_add(children, window);
     }
 
-    struct hwd_window *active_child = column->pending.active_child;
+    struct hwd_window *active_child = column->active_child;
     if (column->pending.show_preview) {
         active_child = NULL;
     }
@@ -616,7 +616,7 @@ column_insert_child(struct hwd_column *column, struct hwd_window *window, int i)
 
     assert(!window->workspace && !window->parent);
     if (column->children->length == 0) {
-        column->pending.active_child = window;
+        column->active_child = window;
     }
     list_insert(column->children, i, window);
 
@@ -649,7 +649,7 @@ column_add_child(struct hwd_column *column, struct hwd_window *window) {
     assert(window != NULL);
     assert(!window->workspace && !window->parent);
     if (column->children->length == 0) {
-        column->pending.active_child = window;
+        column->active_child = window;
     }
     list_add(column->children, window);
 
@@ -670,12 +670,12 @@ column_remove_child(struct hwd_column *column, struct hwd_window *window) {
 
     list_del(column->children, index);
 
-    if (column->pending.active_child == window) {
+    if (column->active_child == window) {
         if (column->children->length) {
-            column->pending.active_child = column->children->items[index > 0 ? index - 1 : 0];
-            window_reconcile_tiling(column->pending.active_child, column);
+            column->active_child = column->children->items[index > 0 ? index - 1 : 0];
+            window_reconcile_tiling(column->active_child, column);
         } else {
-            column->pending.active_child = NULL;
+            column->active_child = NULL;
         }
     }
 
@@ -688,13 +688,13 @@ column_set_active_child(struct hwd_column *column, struct hwd_window *window) {
     assert(window != NULL);
     assert(window->parent == column);
 
-    struct hwd_window *prev_active = column->pending.active_child;
+    struct hwd_window *prev_active = column->active_child;
 
     if (window == prev_active) {
         return;
     }
 
-    column->pending.active_child = window;
+    column->active_child = window;
 
     window_reconcile_tiling(window, column);
     window_set_dirty(window);

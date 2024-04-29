@@ -68,7 +68,7 @@ cmd_floating(int argc, char **argv) {
             workspace_insert_column_first(workspace, output, column);
         }
 
-        struct hwd_window *target_sibling = column->pending.active_child;
+        struct hwd_window *target_sibling = column->active_child;
         if (target_sibling) {
             column_add_sibling(target_sibling, window, 1);
         } else {

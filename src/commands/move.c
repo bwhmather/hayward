@@ -55,7 +55,7 @@ move_window_to_column_from_maybe_direction(
         window->pending.width = window->pending.height = 0;
     } else {
         wlr_log(WLR_DEBUG, "Reparenting window (perpendicular)");
-        struct hwd_window *target_sibling = column->pending.active_child;
+        struct hwd_window *target_sibling = column->active_child;
         window_detach(window);
         if (target_sibling) {
             column_add_sibling(target_sibling, window, 1);

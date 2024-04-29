@@ -32,8 +32,6 @@ struct hwd_column_state {
 
     list_t *children; // struct hwd_window
 
-    struct hwd_window *active_child;
-
     // Whether the column should render a preview of the effect of inserting a
     // new window.  `preview_target` is an optional pointer to a child window
     // that the new window will be inserted after.
@@ -54,6 +52,7 @@ struct hwd_column {
     bool dirty;
 
     list_t *children; // struct hwd_window
+    struct hwd_window *active_child;
 
     enum hwd_column_layout layout;
 

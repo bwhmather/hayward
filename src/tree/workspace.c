@@ -957,7 +957,7 @@ workspace_get_active_tiling_window(struct hwd_workspace *workspace) {
         return NULL;
     }
 
-    return active_column->pending.active_child;
+    return active_column->active_child;
 }
 
 struct hwd_window *

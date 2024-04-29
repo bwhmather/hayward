@@ -417,7 +417,7 @@ window_update_theme(struct hwd_window *window) {
         return;
     }
 
-    if (window->parent && window->parent->pending.active_child == window) {
+    if (window->parent && window->parent->active_child == window) {
         window->pending.theme = &window_type->active;
         return;
     }

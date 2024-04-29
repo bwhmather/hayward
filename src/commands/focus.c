@@ -66,14 +66,14 @@ get_window_in_output_direction(struct hwd_output *output, enum wlr_direction dir
         if (column == NULL) {
             return NULL;
         }
-        return column->pending.active_child;
+        return column->active_child;
     }
     case WLR_DIRECTION_RIGHT: {
         struct hwd_column *column = workspace_get_column_first(workspace, output);
         if (column == NULL) {
             return NULL;
         }
-        return column->pending.active_child;
+        return column->active_child;
     }
     case WLR_DIRECTION_UP: {
         return workspace_get_active_tiling_window(workspace);
@@ -149,7 +149,7 @@ window_get_in_direction_tiling(
 
         struct hwd_column *next_column = workspace_get_column_before(workspace, column);
         if (next_column != NULL) {
-            return next_column->pending.active_child;
+            return next_column->active_child;
         }
 
         if (config->focus_wrapping == WRAP_NO) {
@@ -157,7 +157,7 @@ window_get_in_direction_tiling(
         }
 
         struct hwd_column *wrap_column = workspace_get_column_last(workspace, output);
-        wrap_candidate = wrap_column->pending.active_child;
+        wrap_candidate = wrap_column->active_child;
         if (config->focus_wrapping == WRAP_FORCE && wrap_candidate != NULL) {
             return wrap_candidate;
         }
@@ -168,7 +168,7 @@ window_get_in_direction_tiling(
 
         struct hwd_column *next_column = workspace_get_column_after(workspace, column);
         if (next_column != NULL) {
-            return next_column->pending.active_child;
+            return next_column->active_child;
         }
 
         if (config->focus_wrapping == WRAP_NO) {
@@ -176,7 +176,7 @@ window_get_in_direction_tiling(
         }
 
         struct hwd_column *wrap_column = workspace_get_column_first(workspace, output);
-        wrap_candidate = wrap_column->pending.active_child;
+        wrap_candidate = wrap_column->active_child;
         if (config->focus_wrapping == WRAP_FORCE && wrap_candidate != NULL) {
             return wrap_candidate;
         }
