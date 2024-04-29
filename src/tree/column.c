@@ -620,6 +620,8 @@ column_insert_child(struct hwd_column *column, struct hwd_window *window, int i)
     list_insert(column->children, i, window);
 
     window_reconcile_tiling(window, column);
+
+    column_set_dirty(column);
 }
 
 void
@@ -640,6 +642,8 @@ column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool aft
 
     window_reconcile_tiling(fixed, column);
     window_reconcile_tiling(active, column);
+
+    column_set_dirty(column);
 }
 
 void
@@ -654,7 +658,6 @@ column_add_child(struct hwd_column *column, struct hwd_window *window) {
 
     window_reconcile_tiling(window, column);
 
-    window_set_dirty(window);
     column_set_dirty(column);
 }
 
@@ -696,11 +699,9 @@ column_set_active_child(struct hwd_column *column, struct hwd_window *window) {
     column->active_child = window;
 
     window_reconcile_tiling(window, column);
-    window_set_dirty(window);
 
     if (prev_active) {
         window_reconcile_tiling(prev_active, column);
-        window_set_dirty(prev_active);
     }
 
     column_set_dirty(column);

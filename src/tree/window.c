@@ -582,7 +582,7 @@ window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
         window->parent = new_column;
     }
 
-    window_set_dirty(window);
+    workspace_set_dirty(window->workspace);
 }
 
 void
@@ -656,8 +656,6 @@ window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output
     window->pending.fullscreen = true;
 
     workspace_set_dirty(window->workspace);
-    output_set_dirty(output);
-    window_set_dirty(window);
 }
 
 void
@@ -687,7 +685,6 @@ window_unfullscreen(struct hwd_window *window) {
     window->pending.fullscreen = false;
 
     workspace_set_dirty(window->workspace);
-    window_set_dirty(window);
 }
 
 void
@@ -930,7 +927,7 @@ window_raise_floating(struct hwd_window *window) {
 
     list_move_to_end(window->workspace->floating, window);
 
-    window_set_dirty(window);
+    workspace_set_dirty(window->workspace);
 }
 
 list_t *
