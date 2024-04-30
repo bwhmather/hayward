@@ -665,17 +665,6 @@ window_unfullscreen(struct hwd_window *window) {
     }
     list_clear(window->fullscreen_output_history);
 
-    if (window_is_floating(window)) {
-        // TODO should be re-derived in arrange.
-        window->pending.x = window->saved_x;
-        window->pending.y = window->saved_y;
-        window->pending.width = window->saved_width;
-        window->pending.height = window->saved_height;
-    }
-
-    // TODO should be re-derived in arranged.
-    window->pending.fullscreen = false;
-
     workspace_set_dirty(window->workspace);
 }
 
