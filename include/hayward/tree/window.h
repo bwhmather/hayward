@@ -104,8 +104,8 @@ struct hwd_window {
     // that the window can be restored to the same position later.  If it is
     // evacuated to a different screen, this will be preserved and the new
     // current size and position will be derived from it.
-    double saved_x, saved_y;
-    double saved_width, saved_height;
+    double floating_x, floating_y;
+    double floating_width, floating_height;
 
     // If true, the window has been plucked from the normal plane of existence
     // and is being moved in sync with the mouse.

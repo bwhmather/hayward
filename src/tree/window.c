@@ -513,10 +513,10 @@ window_arrange(struct hwd_window *window) {
                 // TODO in all other cases, pending position and size are set by
                 // parent.
                 struct hwd_output *output = window_get_output(window);
-                state->x = output->pending.x + window->saved_x;
-                state->y = output->pending.y + window->saved_y;
-                state->width = window->saved_width;
-                state->height = window->saved_height;
+                state->x = output->pending.x + window->floating_x;
+                state->y = output->pending.y + window->floating_y;
+                state->width = window->floating_width;
+                state->height = window->floating_height;
             }
         }
 
@@ -719,9 +719,9 @@ floating_natural_resize(struct hwd_window *window) {
     int border_top = hwd_theme_window_get_border_top(window->pending.theme);
     int border_bottom = hwd_theme_window_get_border_bottom(window->pending.theme);
 
-    window->saved_width =
+    window->floating_width =
         fmax(min_width, fmin(window->view->natural_width, max_width)) + border_left + border_right;
-    window->saved_height = fmax(min_height, fmin(window->view->natural_height, max_height)) +
+    window->floating_height = fmax(min_height, fmin(window->view->natural_height, max_height)) +
         titlebar_height + border_top + border_bottom;
     window_set_geometry_from_content(window);
 }
