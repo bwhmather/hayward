@@ -22,6 +22,7 @@ struct hwd_window;
 
 struct hwd_root_state {
     struct hwd_workspace *workspace;
+    list_t *outputs;
 
     /**
      * An optional layer (top/bottom/side bar) that should receive input

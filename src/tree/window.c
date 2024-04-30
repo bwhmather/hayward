@@ -628,6 +628,10 @@ window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output
 
     window_end_mouse_operation(window);
 
+    if (window_get_fullscreen_output(window) != NULL) {
+        output_set_dirty(window_get_fullscreen_output(window));
+    }
+
     for (int i = 0; i < window->fullscreen_output_history->length; i++) {
         struct hwd_output *output = window->fullscreen_output_history->items[i];
 
@@ -639,16 +643,11 @@ window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output
     list_add(window->fullscreen_output_history, output);
     list_add(output->fullscreen_windows, window);
 
-    // TODO should be re-derived in arrange.
-    window->saved_x = window->pending.x;
-    window->saved_y = window->pending.y;
-    window->saved_width = window->pending.width;
-    window->saved_height = window->pending.height;
-
-    // TODO should be re-derived in arrange.
-    window->pending.fullscreen = true;
-
+    output_set_dirty(output);
     workspace_set_dirty(window->workspace);
+    if (window->parent != NULL) {
+        column_set_dirty(window->parent);
+    }
 }
 
 void

@@ -175,6 +175,10 @@ root_create(struct wl_display *display) {
     root->transaction_manager = hwd_transaction_manager_create();
     root->workspace_manager = hwd_workspace_manager_v1_create(display);
 
+    root->pending.outputs = create_list();
+    root->committed.outputs = create_list();
+    root->current.outputs = create_list();
+
     root->transaction_before_commit.notify = root_handle_transaction_before_commit;
     root->transaction_commit.notify = root_handle_transaction_commit;
     root->transaction_apply.notify = root_handle_transaction_apply;
@@ -250,10 +254,25 @@ root_arrange(struct hwd_root *root) {
 
     if (root->dirty) {
         root->pending.workspace = root->active_workspace;
+        if (root->active_workspace) {
+            workspace_set_dirty(root->pending.workspace);
+        }
+
+        list_clear(root->pending.outputs);
+        struct hwd_output *output;
+        wl_list_for_each(output, &root->all_outputs, link) {
+            list_add(root->pending.outputs, output);
+            output_set_dirty(output);
+        }
     }
 
     if (root->pending.workspace != NULL) {
         workspace_arrange(root->pending.workspace);
+    }
+
+    for (int i = 0; i < root->pending.outputs->length; i++) {
+        struct hwd_output *output = root->pending.outputs->items[i];
+        output_arrange(output);
     }
 }
 

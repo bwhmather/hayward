@@ -642,9 +642,6 @@ workspace_arrange(struct hwd_workspace *workspace) {
     if (workspace->dirty) {
         arrange_tiling(workspace);
         arrange_floating(workspace);
-
-        struct hwd_output *output = NULL;
-        wl_list_for_each(output, &workspace->root->all_outputs, link) { output_set_dirty(output); }
     }
 
     for (int i = 0; i < workspace->pending.columns->length; i++) {
@@ -655,10 +652,6 @@ workspace_arrange(struct hwd_workspace *workspace) {
         struct hwd_window *window = workspace->pending.floating->items[i];
         window_arrange(window);
     }
-
-    // TODO should only be visible outputs.
-    struct hwd_output *output = NULL;
-    wl_list_for_each(output, &workspace->root->all_outputs, link) { output_arrange(output); }
 }
 
 void
