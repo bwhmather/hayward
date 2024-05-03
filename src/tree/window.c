@@ -311,7 +311,6 @@ window_create(struct hwd_root *root, struct hwd_view *view) {
     window->view = view;
 
     window->output_history = create_list();
-    window->fullscreen_output_history = create_list();
 
     window->height_fraction = 1.0;
 
@@ -339,12 +338,9 @@ window_begin_destroy(struct hwd_window *window) {
 
     window_end_mouse_operation(window);
 
+    // TODO unref outputs.
+    // TODO unref columns.
     list_free(window->output_history);
-    list_free(window->fullscreen_output_history);
-
-    if (window->parent || window->workspace) {
-        window_detach(window);
-    }
 
     wl_signal_emit_mutable(&window->events.begin_destroy, window);
 
@@ -445,9 +441,11 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     struct hwd_workspace *workspace = column->workspace;
 
     window->workspace = workspace;
-    list_clear(window->output_history); // TODO
-    list_add(window->output_history, column->output);
     window->parent = column;
+
+    list_clear(window->output_history);
+    list_add(window->output_history, column->output);
+    window->output = column->output;
 
     window->pending.focused =
         workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
@@ -536,46 +534,77 @@ window_arrange(struct hwd_window *window) {
 
 void
 window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
-    struct hwd_output *new_output = NULL;
-    // TODO smarter selection.
-    // TODO ignore disabled outputs.
-    if (window->root->outputs->length > 1) {
-        new_output = window->root->outputs->items[0];
-        if (new_output == old_output) {
-            new_output = window->root->outputs->items[1];
-        }
-    }
-
-    if (window_get_fullscreen_output(window) == old_output) {
-        list_add(window->fullscreen_output_history, new_output);
-    }
-
-    assert(window->output_history->length > 0);
-    struct hwd_output *current_output =
-        window->output_history->items[window->output_history->length - 1];
-    if (current_output != old_output) {
+    if (window_get_output(window) != old_output) {
         return;
     }
 
-    struct hwd_column *current_column = window->parent;
+    // Find the most earliest enabled output in history.
+    struct hwd_output *new_output = NULL;
+    for (int i = 0; i < window->output_history->length; i++) {
+        struct hwd_output *candidate_output = window->output_history->items[i];
+        if (candidate_output->enabled) {
+            new_output = candidate_output;
+            break;
+        }
+    }
 
-    list_add(window->output_history, new_output);
+    // Fallback to picking a new output using "heuristics" (TODO).
+    if (new_output == NULL) {
+        for (int i = 0; i < window->root->outputs->length; i++) {
+            struct hwd_output *candidate_output = window->output_history->items[i];
+            if (candidate_output->enabled) {
+                new_output = candidate_output;
+                list_add(window->output_history, new_output);
+                break;
+            }
+        }
+    }
 
-    if (current_column != NULL) {
+    assert(new_output != NULL);
+
+    // Select a column in the new output if tiling.
+    if (window->parent && !window->fullscreen) {
         struct hwd_workspace *workspace = window->workspace;
 
+        struct hwd_column *new_column = NULL;
+
         // TODO choose first or last based on relative positions of outputs.
-        struct hwd_column *new_column = workspace_get_column_last(workspace, new_output);
+        for (int i = 0; i < workspace->columns->length; i++) {
+            struct hwd_column *column = workspace->columns->items[i];
+            if (column->output != new_output) {
+                continue;
+            }
+
+            new_column = column;
+
+            if (list_find(column->children, window) != -1) {
+                break;
+            }
+        }
+
         if (new_column == NULL) {
             new_column = column_create();
             workspace_insert_column_last(workspace, new_output, new_column);
         }
 
-        list_add(new_column->children, window);
-        window->parent = new_column;
+        assert(new_column != NULL);
+
+        if (list_find(new_column->children, window) == -1) {
+            list_add(new_column->children, window);
+        }
+
+        column_set_dirty(new_column);
     }
 
-    workspace_set_dirty(window->workspace);
+    if (window->fullscreen) {
+        if (list_find(new_output->fullscreen_windows, window) == -1) {
+            list_add(new_output->fullscreen_windows, window);
+        }
+    }
+
+    window->output = new_output;
+    window_set_dirty(window);
+    output_set_dirty(new_output);
 }
 
 void
@@ -601,7 +630,7 @@ window_is_floating(struct hwd_window *window) {
 
 bool
 window_is_fullscreen(struct hwd_window *window) {
-    return window_get_fullscreen_output(window) != NULL;
+    return window->fullscreen;
 }
 
 bool
@@ -622,50 +651,75 @@ window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output
     assert(output != NULL);
     assert(window != NULL);
 
-    if (window_get_fullscreen_output(window) == output) {
+    struct hwd_output *current_output = window_get_output(window);
+
+    if (window_is_fullscreen(window) && output == current_output) {
         return;
     }
 
     window_end_mouse_operation(window);
 
-    if (window_get_fullscreen_output(window) != NULL) {
-        output_set_dirty(window_get_fullscreen_output(window));
-    }
-
-    for (int i = 0; i < window->fullscreen_output_history->length; i++) {
-        struct hwd_output *output = window->fullscreen_output_history->items[i];
-
+    if (window_is_fullscreen(window)) {
         list_remove(output->fullscreen_windows, window);
-        output_consider_destroy(output);
+        output_set_dirty(current_output);
     }
-    list_clear(window->fullscreen_output_history);
 
-    list_add(window->fullscreen_output_history, output);
-    list_add(output->fullscreen_windows, window);
-
-    output_set_dirty(output);
     workspace_set_dirty(window->workspace);
     if (window->parent != NULL) {
         column_set_dirty(window->parent);
     }
+
+    if (output != current_output) {
+        list_remove(window->output_history, output);
+        int current_output_index = list_find(window->output_history, current_output);
+        assert(current_output_index != -1);
+        list_insert(window->output_history, current_output_index, output);
+        window->output = output;
+    }
+
+    list_add(output->fullscreen_windows, window);
+    output_set_dirty(output);
+
+    window->fullscreen = true;
 }
 
 void
 window_unfullscreen(struct hwd_window *window) {
     assert(window != NULL);
 
+    if (!window_is_fullscreen(window)) {
+        return;
+    }
+
     window_end_mouse_operation(window);
 
-    for (int i = 0; i < window->fullscreen_output_history->length; i++) {
-        struct hwd_output *output = window->fullscreen_output_history->items[i];
-
+    for (int i = 0; i < window->root->outputs->length; i++) {
+        struct hwd_output *output = window->root->outputs->items[i];
         list_remove(output->fullscreen_windows, window);
-        output_set_dirty(output);
-        output_consider_destroy(output);
     }
-    list_clear(window->fullscreen_output_history);
 
-    workspace_set_dirty(window->workspace);
+    if (window->parent != NULL) {
+        if (window->parent->output != window_get_output(window)) {
+            list_remove(window->output_history, window->parent->output);
+            int current_output_index = list_find(window->output_history, window->output);
+            list_insert(window->output_history, current_output_index, window->parent->output);
+            window->output = window->parent->output;
+        }
+
+        if (!window->parent->output->enabled) {
+            // TODO pick better column.
+        }
+
+        // TODO set window as active in column if has focus.
+
+        column_set_dirty(window->parent);
+    } else {
+        // TODO raise window if has focus.
+
+        workspace_set_dirty(window->workspace);
+    }
+
+    window->fullscreen = false;
 }
 
 void
@@ -831,23 +885,7 @@ window_floating_move_to_center(struct hwd_window *window) {
 struct hwd_output *
 window_get_output(struct hwd_window *window) {
     assert(window != NULL);
-
-    struct hwd_output *fullscreen_output = window_get_fullscreen_output(window);
-    if (fullscreen_output != NULL) {
-        return fullscreen_output;
-    }
-
-    assert(window->output_history->length > 0);
-    return window->output_history->items[window->output_history->length - 1];
-}
-
-struct hwd_output *
-window_get_fullscreen_output(struct hwd_window *window) {
-    if (window->fullscreen_output_history->length == 0) {
-        return NULL;
-    }
-
-    return window->fullscreen_output_history->items[window->fullscreen_output_history->length - 1];
+    return window->output;
 }
 
 void

@@ -705,7 +705,7 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
     }
 
     if (window_is_fullscreen(window)) {
-        output_reconcile(window_get_fullscreen_output(window));
+        output_reconcile(window_get_output(window));
     }
 
     window_reconcile_detached(window);

@@ -77,8 +77,10 @@ struct hwd_window {
     struct hwd_workspace *workspace;
 
     // Cached backlink to the column containing the window.  Null if window is
-    // not part of a column.  Should only be updated by calling one of the
-    // `window_reconcile_` functions.
+    // not part of a column.  The pointed to column will be the only column on
+    // this output with a forward link to this window.  If the window is not
+    // fullscreen then the column output will match the latest active output in
+    // the window's history.
     struct hwd_column *parent;
 
     // A list of disabled outputs that this window has been evacuated from, in
@@ -92,12 +94,7 @@ struct hwd_window {
     // The goal is to make sure that windows always stay exactly where you put
     // them, regardless of how many times outputs are unplugged or reconfigured.
     list_t *output_history; // struct dtl_output *
-
-    // If the window's workspace is current, the window is not moving, this
-    // pointer is set and the output it points to is enabled the the window will
-    // be fullscreen on this output.  If any of these conditions do not hold
-    // then this pointer will be ignored until that changes.
-    list_t *fullscreen_output_history; // struct dtl_output *
+    struct hwd_output *output;
 
     // This is the last manually assigned floating position of the window.  If a
     // floating window is made tiling or fullscreen, this will be preserved so
@@ -106,6 +103,8 @@ struct hwd_window {
     // current size and position will be derived from it.
     double floating_x, floating_y;
     double floating_width, floating_height;
+
+    bool fullscreen;
 
     // If true, the window has been plucked from the normal plane of existence
     // and is being moved in sync with the mouse.
@@ -239,9 +238,6 @@ window_floating_move_to_center(struct hwd_window *window);
 
 struct hwd_output *
 window_get_output(struct hwd_window *window);
-
-struct hwd_output *
-window_get_fullscreen_output(struct hwd_window *window);
 
 void
 window_get_box(struct hwd_window *window, struct wlr_box *box);

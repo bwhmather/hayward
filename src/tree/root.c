@@ -596,6 +596,85 @@ root_find_workspace(
 }
 
 static void
+window_validate(struct hwd_window *window) {
+    // Validate that the window is on an output that exists.
+    assert(window->output != NULL);
+    assert(window->output->enabled);
+
+    // Validate that the window's current output is the first output in its
+    // history that is not disabled.
+    bool output_in_history = false;
+    for (int i = 0; i < window->output_history->length; i++) {
+        struct hwd_output *output = window->output_history->items[i];
+        if (output == window->output) {
+            output_in_history = true;
+            break;
+        }
+        assert(!output->enabled);
+    }
+    assert(output_in_history);
+
+    // Validate that the window is in a workspace that exists.
+    assert(window->workspace != NULL);
+    assert(!window->workspace->pending.dead); // TODO move out of transaction state.
+
+    if (window->parent) {
+        // Validate that tiling or fullscreen tiling windows are referenced by
+        // their preferred column.
+        assert(list_find(window->parent->children, window) != -1);
+
+        // Note that we don't validate that the window doesn't appear in the
+        // workspace's floating window list.
+
+        if (!window->fullscreen) {
+            // We still want windows that have asked to be made fullscreen on a
+            // particular window to go back to their original column once done.
+            assert(window->parent->output == window->output);
+        }
+
+        assert(window->parent->workspace == window->workspace);
+    }
+
+    if (window->fullscreen) {
+        assert(list_find(window->output->fullscreen_windows, window) != -1);
+    }
+}
+
+static void
+column_validate(struct hwd_column *column) {
+    assert(column->workspace != NULL);
+    assert(!column->workspace->pending.dead); // TODO
+
+    assert(column->output != NULL);
+
+    for (int i = 0; i < column->children->length; i++) {
+        struct hwd_window *window = column->children->items[i];
+        assert(window->workspace == column->workspace);
+
+        assert(!window->pending.dead); // TODO
+
+        // TODO validate that no columns on this output reference the window.
+        assert(window->fullscreen || window->parent != column || window->output == column->output);
+
+        // TODO should only be called once per window.
+        window_validate(window);
+    }
+}
+
+static void
+output_validate(struct hwd_output *output) {
+    assert(list_find(root->outputs, output) != -1);
+
+    for (int i = 0; i < output->fullscreen_windows->length; i++) {
+        struct hwd_window *window = output->fullscreen_windows->items[i];
+        assert(window->fullscreen);
+
+        // TODO should only be called once per window.
+        window_validate(window);
+    }
+}
+
+static void
 root_validate(struct hwd_root *root) {
     assert(root != NULL);
 
@@ -620,25 +699,20 @@ root_validate(struct hwd_root *root) {
         // Validate floating windows.
         for (int j = 0; j < workspace->floating->length; j++) {
             struct hwd_window *window = workspace->floating->items[j];
-            assert(window != NULL);
 
-            assert(window->workspace == workspace);
-            assert(window->parent == NULL);
+            // TODO should only be called once per window.
+            window_validate(window);
         }
 
         for (int j = 0; j < workspace->columns->length; j++) {
             struct hwd_column *column = workspace->columns->items[j];
-
-            assert(column->workspace == workspace);
-            assert(list_find(root->outputs, column->output) != -1);
-
-            for (int k = 0; k < column->children->length; k++) {
-                struct hwd_window *window = column->children->items[k];
-
-                assert(window->parent == column);
-                assert(window->workspace == workspace);
-            }
+            column_validate(column);
         }
+    }
+
+    for (int i = 0; i < root->outputs->length; i++) {
+        struct hwd_output *output = root->outputs->items[i];
+        output_validate(output);
     }
 }
 
