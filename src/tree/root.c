@@ -597,6 +597,16 @@ root_find_workspace(
 
 static void
 window_validate(struct hwd_window *window) {
+    if (window->dead) {
+        assert(window->workspace == NULL);
+
+        assert(window->parent == NULL);
+
+        assert(window->output == NULL);
+        assert(window->output_history->length == 0);
+    }
+
+
     // Validate that the window is on an output that exists.
     assert(window->output != NULL);
     assert(window->output->enabled);
@@ -616,7 +626,7 @@ window_validate(struct hwd_window *window) {
 
     // Validate that the window is in a workspace that exists.
     assert(window->workspace != NULL);
-    assert(!window->workspace->pending.dead); // TODO move out of transaction state.
+    assert(!window->workspace->dead);
 
     if (window->parent) {
         // Validate that tiling or fullscreen tiling windows are referenced by
@@ -642,8 +652,13 @@ window_validate(struct hwd_window *window) {
 
 static void
 column_validate(struct hwd_column *column) {
+    if (column->dead) {
+        assert(column->workspace == NULL);
+        assert(column->children->length == 0);
+    }
+
     assert(column->workspace != NULL);
-    assert(!column->workspace->pending.dead); // TODO
+    assert(!column->workspace->dead);
 
     assert(column->output != NULL);
 
@@ -651,7 +666,7 @@ column_validate(struct hwd_column *column) {
         struct hwd_window *window = column->children->items[i];
         assert(window->workspace == column->workspace);
 
-        assert(!window->pending.dead); // TODO
+        assert(!window->dead);
 
         // TODO validate that no columns on this output reference the window.
         assert(window->fullscreen || window->parent != column || window->output == column->output);
@@ -747,7 +762,7 @@ root_get_output_at(struct hwd_root *root, double x, double y) {
     for (int i = 0; i < root->outputs->length; i++) {
         struct hwd_output *output = root->outputs->items[i];
 
-        if (output->pending.dead) {
+        if (output->dead) {
             continue;
         }
 

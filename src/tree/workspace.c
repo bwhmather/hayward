@@ -307,7 +307,7 @@ workspace_create(const char *name) {
 bool
 workspace_is_alive(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
-    return !workspace->pending.dead;
+    return !workspace->dead;
 }
 
 static void
@@ -331,7 +331,7 @@ workspace_destroy(struct hwd_workspace *workspace) {
     free(workspace);
 }
 
-void
+static void
 workspace_begin_destroy(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
     assert(workspace_is_alive(workspace));
@@ -340,10 +340,7 @@ workspace_begin_destroy(struct hwd_workspace *workspace) {
 
     wlr_log(WLR_DEBUG, "Destroying workspace '%s'", workspace->name);
 
-    workspace->pending.dead = true;
-
-    list_clear(workspace->pending.floating);
-    list_clear(workspace->pending.columns);
+    workspace->dead = true;
 
     workspace_detach(workspace);
 
@@ -399,7 +396,7 @@ bool
 workspace_is_visible(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
 
-    if (workspace->pending.dead) {
+    if (workspace->dead) {
         return false;
     }
 
@@ -640,6 +637,7 @@ workspace_arrange(struct hwd_workspace *workspace) {
     wlr_log(WLR_DEBUG, "Arranging workspace '%s'", workspace->name);
 
     if (workspace->dirty) {
+        workspace->pending.dead = workspace->dead;
         arrange_tiling(workspace);
         arrange_floating(workspace);
     }

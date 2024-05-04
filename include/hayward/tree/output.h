@@ -48,6 +48,7 @@ struct hwd_output {
     list_t *fullscreen_windows; // struct hwd_window
 
     bool dirty;
+    bool dead;
 
     struct wlr_output *wlr_output;
 

@@ -416,7 +416,7 @@ view_unmap(struct hwd_view *view) {
         workspace_consider_destroy(workspace);
     }
 
-    if (workspace && !workspace->pending.dead) {
+    if (workspace && !workspace->dead) {
         workspace_set_dirty(workspace);
         workspace_detect_urgent(workspace);
     }
@@ -578,7 +578,7 @@ view_update_title(struct hwd_view *view, bool force) {
 
 bool
 view_is_visible(struct hwd_view *view) {
-    if (view->window->pending.dead) {
+    if (view->window->dead) {
         return false;
     }
     struct hwd_workspace *workspace = view->window->workspace;

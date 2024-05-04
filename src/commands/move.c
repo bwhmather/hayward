@@ -320,7 +320,7 @@ cmd_move_window(int argc, char **argv) {
         }
 
         // Re-arrange windows
-        if (old_workspace && !old_workspace->pending.dead) {
+        if (old_workspace && !old_workspace->dead) {
             workspace_set_dirty(old_workspace);
         }
         // TODO (hayward) it should often be possible to get away without

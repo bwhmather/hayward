@@ -328,7 +328,7 @@ window_create(struct hwd_root *root, struct hwd_view *view) {
 bool
 window_is_alive(struct hwd_window *window) {
     assert(window != NULL);
-    return !window->pending.dead;
+    return !window->dead;
 }
 
 void
@@ -345,7 +345,7 @@ window_begin_destroy(struct hwd_window *window) {
     wl_signal_emit_mutable(&window->events.begin_destroy, window);
 
     window_set_dirty(window);
-    window->pending.dead = true;
+    window->dead = true;
 }
 
 void
@@ -489,6 +489,8 @@ window_arrange(struct hwd_window *window) {
 
     if (window->dirty) {
         struct hwd_window_state *state = &window->pending;
+
+        window->pending.dead = window->dead;
 
         if (window_is_fullscreen(window)) {
             state->fullscreen = true;

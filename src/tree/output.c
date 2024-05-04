@@ -158,7 +158,7 @@ output_create(struct wlr_output *wlr_output) {
 static bool
 output_is_alive(struct hwd_output *output) {
     assert(output != NULL);
-    return !output->pending.dead;
+    return !output->dead;
 }
 
 static void
@@ -256,7 +256,7 @@ output_begin_destroy(struct hwd_output *output) {
 
     wlr_log(WLR_DEBUG, "Destroying output '%s'", output->wlr_output->name);
 
-    output->pending.dead = true;
+    output->dead = true;
 
     wl_signal_emit_mutable(&output->events.begin_destroy, output);
 
@@ -307,6 +307,8 @@ output_arrange(struct hwd_output *output) {
     HWD_PROFILER_TRACE();
 
     if (output->dirty) {
+        output->pending.dead = output->dead;
+
         struct wlr_box output_box;
         wlr_output_layout_get_box(root->output_layout, output->wlr_output, &output_box);
         output->pending.x = output_box.x;

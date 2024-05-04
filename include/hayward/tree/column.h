@@ -50,6 +50,7 @@ struct hwd_column {
     struct hwd_column_state current;
 
     bool dirty;
+    bool dead;
 
     list_t *children; // struct hwd_window
     struct hwd_window *active_child;

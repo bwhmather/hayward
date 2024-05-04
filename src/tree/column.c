@@ -193,7 +193,7 @@ column_create(void) {
 static bool
 column_is_alive(struct hwd_column *column) {
     assert(column != NULL);
-    return !column->pending.dead;
+    return !column->dead;
 }
 
 static void
@@ -218,7 +218,7 @@ column_begin_destroy(struct hwd_column *column) {
     assert(column_is_alive(column));
     assert(column->children->length == 0);
 
-    column->pending.dead = true;
+    column->dead = true;
 
     list_clear(column->pending.children);
 
@@ -545,6 +545,8 @@ column_arrange(struct hwd_column *column) {
     HWD_PROFILER_TRACE();
 
     if (column->dirty) {
+        column->pending.dead = column->dead;
+
         switch (column->layout) {
         case L_SPLIT:
             column_arrange_split(column);

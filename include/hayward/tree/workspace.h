@@ -37,6 +37,7 @@ struct hwd_workspace {
     struct hwd_workspace_state current;
 
     bool dirty;
+    bool dead;
 
     char *name;
 
@@ -78,9 +79,6 @@ workspace_create(const char *name);
 
 bool
 workspace_is_alive(struct hwd_workspace *workspace);
-
-void
-workspace_begin_destroy(struct hwd_workspace *workspace);
 
 void
 workspace_consider_destroy(struct hwd_workspace *workspace);

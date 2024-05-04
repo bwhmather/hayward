@@ -70,6 +70,7 @@ struct hwd_window {
     struct hwd_window_state current;
 
     bool dirty;
+    bool dead;
 
     // Cached backlink to workspace containing the floating window or  column
     // containing the child window.  Should only be updated by calling one of
