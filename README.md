@@ -6,8 +6,26 @@
 
 # hayward
 
-Hayward is a [Wayland] compositor which replicates the wmii interaction model.
-It started as a fork of [sway].
+Hayward is a hybrid floating/tiling [Wayland] compositor.
+It supports arranging manually windows into columns using the keyboard or mouse.
+Hayward exists because the primary developer, a long time user of `wmii`, was too lazy to learn a new interaction model.
+
+Hayward was created with [sway] as a starting point and continues to depend on [wlroots].
+
+Goals:
+  - Legible - It should be immediately obvious what state hayward is in.
+  - Predictable - The effect of a mouse or keyboard operation should be obvious based on current state.
+  - Spatial - Windows always stay where you put them so that you can rely on spatial memory to find them again.
+  - Fast - Responding to user input should never take more than a frame.  Animations must not block interaction.
+  - Discoverable - All operations can be performed using either mouse or keyboard.  Keyboard shortcuts are consistent and documented.
+  - Pretty - Hayward aims to be a full-featured (heavy weight) window manager and does not compromise on looks.
+  - Robust - Shouldn't crash.  Best in class multi-output support (windows remember positions)
+
+Non-goals:
+  - Scripting support - Automatic layout conflicts with legibility, predictability and focus on spatial memory.  User scripting brings instability and slow downs.
+  - Configurability - Options that aren't used by developers won't be adequately maintained.
+  - Touch screen support - Hayward is a real window manager for real computers.
+  - World domination - Hayward exists to make its primary developer happy.
 
 ## Installation
 
