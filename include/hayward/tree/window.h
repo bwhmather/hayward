@@ -258,9 +258,6 @@ window_raise_floating(struct hwd_window *window);
 list_t *
 window_get_siblings(struct hwd_window *window);
 
-int
-window_sibling_index(struct hwd_window *child);
-
 struct hwd_window *
 window_get_previous_sibling(struct hwd_window *window);
 struct hwd_window *

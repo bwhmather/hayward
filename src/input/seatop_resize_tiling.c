@@ -49,19 +49,15 @@ struct seatop_resize_tiling_event {
 
 static struct hwd_window *
 window_get_resize_sibling(struct hwd_window *window, uint32_t edge) {
-    list_t *siblings = window_get_siblings(window);
-    int offset = (edge & WLR_EDGE_TOP) ? -1 : 1;
-    int index = window_sibling_index(window) + offset;
-
-    if (index < 0) {
-        return NULL;
+    if (edge & WLR_EDGE_TOP) {
+        return window_get_previous_sibling(window);
     }
 
-    if (index >= siblings->length) {
-        return NULL;
+    if (edge & WLR_EDGE_BOTTOM) {
+        return window_get_next_sibling(window);
     }
 
-    return siblings->items[index];
+    return NULL;
 }
 
 static void
