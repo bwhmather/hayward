@@ -338,8 +338,15 @@ window_begin_destroy(struct hwd_window *window) {
 
     window_end_mouse_operation(window);
 
-    // TODO unref outputs.
-    // TODO unref columns.
+    window_detach(window);
+
+    for (int i = 0; i < window->output_history->length; i++) {
+        struct hwd_output *output = window->output_history->items[i];
+        if (window->fullscreen) {
+            list_remove(output->fullscreen_windows, window);
+            output_set_dirty(output); // TODO
+        }
+    }
     list_free(window->output_history);
 
     wl_signal_emit_mutable(&window->events.begin_destroy, window);
