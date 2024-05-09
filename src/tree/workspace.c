@@ -665,7 +665,9 @@ workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *windo
 
     // TODO
     if (window->output_history->length == 0) {
-        list_add(window->output_history, root_get_active_output(workspace->root));
+        struct hwd_output *output = root_get_active_output(workspace->root);
+        list_add(window->output_history, output);
+        window->output = output;
     }
 
     window_reconcile_floating(window, workspace);
