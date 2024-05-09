@@ -960,17 +960,6 @@ window_raise_floating(struct hwd_window *window) {
     workspace_set_dirty(window->workspace);
 }
 
-list_t *
-window_get_siblings(struct hwd_window *window) {
-    if (window_is_tiling(window)) {
-        return window->parent->children;
-    }
-    if (window_is_floating(window)) {
-        return window->workspace->floating;
-    }
-    return NULL;
-}
-
 struct hwd_window *
 window_get_previous_sibling(struct hwd_window *window) {
     if (!window->parent) {

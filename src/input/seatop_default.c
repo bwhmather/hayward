@@ -98,15 +98,11 @@ window_edge_is_external(struct hwd_window *window, enum wlr_edges edge) {
         return column_edge_is_external(window->parent, edge);
     }
 
-    list_t *siblings = window_get_siblings(window);
-    int index = list_find(siblings, window);
-    assert(index >= 0);
-
-    if (edge == WLR_EDGE_TOP && index == 0) {
+    if (edge == WLR_EDGE_TOP && window_get_previous_sibling(window) == NULL) {
         return true;
     }
 
-    if (edge == WLR_EDGE_BOTTOM && index == siblings->length - 1) {
+    if (edge == WLR_EDGE_BOTTOM && window_get_next_sibling(window) == NULL) {
         return true;
     }
 

@@ -255,9 +255,6 @@ window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor);
 void
 window_raise_floating(struct hwd_window *window);
 
-list_t *
-window_get_siblings(struct hwd_window *window);
-
 struct hwd_window *
 window_get_previous_sibling(struct hwd_window *window);
 struct hwd_window *
