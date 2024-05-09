@@ -606,7 +606,6 @@ window_validate(struct hwd_window *window) {
         assert(window->output_history->length == 0);
     }
 
-
     // Validate that the window is on an output that exists.
     assert(window->output != NULL);
     assert(window->output->enabled);
