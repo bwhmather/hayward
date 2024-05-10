@@ -20,7 +20,6 @@
 #include <hayward/input/cursor.h>
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
-#include <hayward/list.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
