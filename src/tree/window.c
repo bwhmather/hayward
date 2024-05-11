@@ -809,31 +809,19 @@ window_floating_resize_and_center(struct hwd_window *window) {
     }
 
     floating_natural_resize(window);
-    if (!window->view) {
-        if (window->pending.width > output->pending.width ||
-            window->pending.height > output->pending.height) {
-            window->pending.x = ob.x + (ob.width - window->pending.width) / 2;
-            window->pending.y = ob.y + (ob.height - window->pending.height) / 2;
-        } else {
-            window->pending.x =
-                output->pending.x + (output->pending.width - window->pending.width) / 2;
-            window->pending.y =
-                output->pending.y + (output->pending.height - window->pending.height) / 2;
-        }
-    } else {
-        if (window->pending.content_width > output->pending.width ||
-            window->pending.content_height > output->pending.height) {
-            window->pending.content_x = ob.x + (ob.width - window->pending.content_width) / 2;
-            window->pending.content_y = ob.y + (ob.height - window->pending.content_height) / 2;
-        } else {
-            window->pending.content_x =
-                output->pending.x + (output->pending.width - window->pending.content_width) / 2;
-            window->pending.content_y =
-                output->pending.y + (output->pending.height - window->pending.content_height) / 2;
-        }
 
-        window_set_geometry_from_content(window);
+    if (window->pending.content_width > output->pending.width ||
+        window->pending.content_height > output->pending.height) {
+        window->pending.content_x = ob.x + (ob.width - window->pending.content_width) / 2;
+        window->pending.content_y = ob.y + (ob.height - window->pending.content_height) / 2;
+    } else {
+        window->pending.content_x =
+            output->pending.x + (output->pending.width - window->pending.content_width) / 2;
+        window->pending.content_y =
+            output->pending.y + (output->pending.height - window->pending.content_height) / 2;
     }
+
+    window_set_geometry_from_content(window);
 
     window_set_dirty(window);
 }
