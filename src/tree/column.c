@@ -281,13 +281,6 @@ column_reconcile(
     column->workspace = workspace;
     column->output = output;
 
-    if (workspace_is_visible(workspace) && workspace->focus_mode == F_TILING &&
-        column == workspace->active_column) {
-        column->pending.focused = true;
-    } else {
-        column->pending.focused = false;
-    }
-
     for (int child_index = 0; child_index < column->children->length; child_index++) {
         struct hwd_window *child = column->children->items[child_index];
         window_reconcile_tiling(child, column);
@@ -300,8 +293,6 @@ column_reconcile_detached(struct hwd_column *column) {
 
     column->workspace = NULL;
     column->output = NULL;
-
-    column->pending.focused = false;
 
     for (int child_index = 0; child_index < column->children->length; child_index++) {
         struct hwd_window *child = column->children->items[child_index];
