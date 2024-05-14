@@ -105,13 +105,6 @@ void
 column_set_dirty(struct hwd_column *column);
 
 void
-column_reconcile(
-    struct hwd_column *column, struct hwd_workspace *workspace, struct hwd_output *output
-);
-void
-column_reconcile_detached(struct hwd_column *column);
-
-void
 column_arrange(struct hwd_column *column);
 
 struct hwd_window *

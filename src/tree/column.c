@@ -28,12 +28,6 @@
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 
-static bool
-column_is_alive(struct hwd_column *column);
-
-static void
-column_detach(struct hwd_column *column);
-
 static void
 column_init_scene(struct hwd_column *column) {
     column->scene_tree = wlr_scene_tree_create(NULL);
@@ -190,12 +184,6 @@ column_create(void) {
     return column;
 }
 
-static bool
-column_is_alive(struct hwd_column *column) {
-    assert(column != NULL);
-    return !column->dead;
-}
-
 static void
 column_destroy(struct hwd_column *column) {
     assert(column != NULL);
@@ -212,38 +200,62 @@ column_destroy(struct hwd_column *column) {
     free(column);
 }
 
-static void
-column_begin_destroy(struct hwd_column *column) {
-    assert(column != NULL);
-    assert(column_is_alive(column));
-    assert(column->children->length == 0);
-
-    column->dead = true;
-
-    list_clear(column->pending.children);
-
-    if (column->workspace) {
-        column_detach(column);
-    }
-
-    wl_signal_emit_mutable(&column->events.begin_destroy, column);
-
-    column_set_dirty(column);
-}
-
 void
 column_consider_destroy(struct hwd_column *column) {
     assert(column != NULL);
-    struct hwd_workspace *workspace = column->workspace;
+
+    if (column->dead) {
+        return;
+    }
 
     if (column->children->length) {
         return;
     }
-    column_begin_destroy(column);
+
+    struct hwd_workspace *workspace = column->workspace;
+    assert(workspace != NULL);
+
+    struct hwd_output *output = column->output;
+    assert(output != NULL);
+
+    int index = list_find(workspace->columns, column);
+    assert(index != -1);
+
+    list_del(workspace->columns, index);
+
+    if (workspace->active_column == column) {
+        struct hwd_column *next_active = NULL;
+
+        for (int candidate_index = 0; candidate_index < workspace->columns->length;
+             candidate_index++) {
+            struct hwd_column *candidate = workspace->columns->items[candidate_index];
+
+            if (candidate->output != output) {
+                continue;
+            }
+
+            if (next_active != NULL && candidate_index >= index) {
+                break;
+            }
+
+            next_active = candidate;
+        }
+
+        workspace->active_column = next_active;
+
+        if (next_active != NULL) {
+            column_set_dirty(next_active);
+        }
+    }
+
+    wl_signal_emit_mutable(&column->events.begin_destroy, column);
 
     if (workspace) {
         workspace_consider_destroy(workspace);
     }
+
+    column_set_dirty(column);
+    workspace_set_dirty(workspace);
 }
 
 void
@@ -258,46 +270,6 @@ column_set_dirty(struct hwd_column *column) {
     column->dirty = true;
     wl_signal_add(&transaction_manager->events.commit, &column->transaction_commit);
     hwd_transaction_manager_ensure_queued(transaction_manager);
-}
-
-static void
-column_detach(struct hwd_column *column) {
-    assert(column != NULL);
-    struct hwd_workspace *workspace = column->workspace;
-
-    if (workspace == NULL) {
-        return;
-    }
-
-    workspace_remove_column(workspace, column);
-}
-
-void
-column_reconcile(
-    struct hwd_column *column, struct hwd_workspace *workspace, struct hwd_output *output
-) {
-    assert(column != NULL);
-
-    column->workspace = workspace;
-    column->output = output;
-
-    for (int child_index = 0; child_index < column->children->length; child_index++) {
-        struct hwd_window *child = column->children->items[child_index];
-        window_reconcile_tiling(child, column);
-    }
-}
-
-void
-column_reconcile_detached(struct hwd_column *column) {
-    assert(column != NULL);
-
-    column->workspace = NULL;
-    column->output = NULL;
-
-    for (int child_index = 0; child_index < column->children->length; child_index++) {
-        struct hwd_window *child = column->children->items[child_index];
-        window_reconcile_tiling(child, column);
-    }
 }
 
 static void

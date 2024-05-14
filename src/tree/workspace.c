@@ -429,7 +429,7 @@ workspace_is_visible(struct hwd_workspace *workspace) {
         return false;
     }
 
-    return workspace->pending.focused;
+    return workspace->root->active_workspace == workspace;
 }
 
 static bool
@@ -761,7 +761,10 @@ workspace_insert_column_first(
     list_t *columns = workspace->columns;
     list_insert(columns, 0, column);
 
-    column_reconcile(column, workspace, output);
+    column->workspace = workspace;
+    column->output = output;
+
+    column_set_dirty(column);
     workspace_set_dirty(workspace);
 }
 
@@ -778,7 +781,10 @@ workspace_insert_column_last(
     list_t *columns = workspace->columns;
     list_insert(columns, columns->length, column);
 
-    column_reconcile(column, workspace, output);
+    column->workspace = workspace;
+    column->output = output;
+
+    column_set_dirty(column);
     workspace_set_dirty(workspace);
 }
 
@@ -798,7 +804,10 @@ workspace_insert_column_before(
     assert(index != -1);
     list_insert(columns, index, column);
 
-    column_reconcile(column, workspace, fixed->output);
+    column->workspace = workspace;
+    column->output = fixed->output;
+
+    column_set_dirty(column);
     workspace_set_dirty(workspace);
 }
 
@@ -818,55 +827,11 @@ workspace_insert_column_after(
     assert(index != -1);
     list_insert(columns, index + 1, column);
 
-    column_reconcile(column, workspace, fixed->output);
-    workspace_set_dirty(workspace);
-}
+    column->workspace = workspace;
+    column->output = fixed->output;
 
-void
-workspace_remove_column(struct hwd_workspace *workspace, struct hwd_column *column) {
-    assert(workspace != NULL);
-    assert(column != NULL);
-    assert(column->workspace == workspace);
-
-    struct hwd_output *output = column->output;
-    assert(output != NULL);
-
-    int index = list_find(workspace->columns, column);
-    assert(index != -1);
-
-    list_del(workspace->columns, index);
-
-    if (workspace->active_column == column) {
-        struct hwd_column *next_active = NULL;
-
-        for (int candidate_index = 0; candidate_index < workspace->columns->length;
-             candidate_index++) {
-            struct hwd_column *candidate = workspace->columns->items[candidate_index];
-
-            if (candidate->output != output) {
-                continue;
-            }
-
-            if (next_active != NULL && candidate_index >= index) {
-                break;
-            }
-
-            next_active = candidate;
-        }
-
-        workspace->active_column = next_active;
-
-        if (next_active != NULL) {
-            column_reconcile(next_active, workspace, output);
-
-            column_set_dirty(next_active);
-        }
-    }
-
-    column_reconcile_detached(column);
-
-    workspace_set_dirty(workspace);
     column_set_dirty(column);
+    workspace_set_dirty(workspace);
 }
 
 struct hwd_column *
@@ -956,7 +921,6 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
     } else {
         assert(window->workspace == workspace);
 
-        struct hwd_column *old_column = workspace->active_column;
         struct hwd_column *new_column = window->parent;
         assert(new_column->workspace == workspace);
 
@@ -968,11 +932,6 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         struct hwd_root *root = workspace->root;
         if (root_get_active_workspace(root) == workspace) {
             root_set_active_output(root, new_column->output);
-        }
-
-        column_reconcile(new_column, workspace, new_column->output);
-        if (old_column != NULL && old_column != new_column) {
-            column_reconcile(old_column, workspace, old_column->output);
         }
     }
 

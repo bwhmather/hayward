@@ -430,12 +430,8 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     window->workspace = workspace;
     window->parent = NULL;
 
-    window->pending.focused =
-        workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
-
     view_set_tiled(window->view, false);
 
-    window_update_theme(window);
     window_set_dirty(window);
 }
 
@@ -454,12 +450,8 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     list_add(window->output_history, column->output);
     window->output = column->output;
 
-    window->pending.focused =
-        workspace_is_visible(workspace) && workspace_get_active_window(workspace) == window;
-
     view_set_tiled(window->view, true);
 
-    window_update_theme(window);
     window_set_dirty(window);
 }
 
@@ -469,8 +461,6 @@ window_reconcile_detached(struct hwd_window *window) {
 
     window->workspace = NULL;
     window->parent = NULL;
-
-    window->pending.focused = false;
 
     window_set_dirty(window);
 }
@@ -487,7 +477,8 @@ window_set_moving(struct hwd_window *window, bool moving) {
     } else {
         wlr_scene_node_reparent(&window->layers.inner_tree->node, window->scene_tree);
     }
-    window_update_theme(window);
+
+    window_set_dirty(window);
 }
 
 void
@@ -498,6 +489,12 @@ window_arrange(struct hwd_window *window) {
         struct hwd_window_state *state = &window->pending;
 
         window->pending.dead = window->dead;
+
+        window->pending.focused =
+            (!window->dead && workspace_is_visible(window->workspace) &&
+             workspace_get_active_window(window->workspace) == window);
+
+        window_update_theme(window);
 
         if (window_is_fullscreen(window)) {
             state->fullscreen = true;
