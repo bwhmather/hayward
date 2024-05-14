@@ -302,8 +302,7 @@ cmd_move_window(int argc, char **argv) {
             }
         }
         if (!workspace) {
-            workspace = workspace_create(workspace_name);
-            root_add_workspace(root, workspace);
+            workspace = workspace_create(root, workspace_name);
         }
         free(workspace_name);
 

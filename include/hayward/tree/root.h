@@ -115,11 +115,6 @@ void
 root_set_dirty(struct hwd_root *root);
 
 void
-root_add_workspace(struct hwd_root *root, struct hwd_workspace *workspace);
-void
-root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace);
-
-void
 root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace);
 struct hwd_workspace *
 root_get_active_workspace(struct hwd_root *root);

@@ -43,7 +43,6 @@ struct hwd_workspace {
 
     bool urgent;
 
-    // Cached backlink to root of tree.
     struct hwd_root *root;
 
     list_t *floating; // struct hwd_window
@@ -75,7 +74,7 @@ struct hwd_workspace {
 };
 
 struct hwd_workspace *
-workspace_create(const char *name);
+workspace_create(struct hwd_root *root, const char *name);
 
 bool
 workspace_is_alive(struct hwd_workspace *workspace);
@@ -96,12 +95,7 @@ void
 workspace_detect_urgent(struct hwd_workspace *workspace);
 
 void
-workspace_detach(struct hwd_workspace *workspace);
-
-void
-workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root);
-void
-workspace_reconcile_detached(struct hwd_workspace *workspace);
+workspace_reconcile(struct hwd_workspace *workspace);
 
 void
 workspace_arrange(struct hwd_workspace *workspace);

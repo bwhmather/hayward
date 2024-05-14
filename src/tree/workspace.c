@@ -6,6 +6,7 @@
 #include "hayward/tree/workspace.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -270,8 +271,27 @@ workspace_handle_transaction_after_apply(struct wl_listener *listener, void *dat
     workspace_destroy(workspace);
 }
 
+static int
+sort_workspace_cmp_qsort(const void *_a, const void *_b) {
+    struct hwd_workspace *a = *(void **)_a;
+    struct hwd_workspace *b = *(void **)_b;
+
+    if (isdigit(a->name[0]) && isdigit(b->name[0])) {
+        int a_num = strtol(a->name, NULL, 10);
+        int b_num = strtol(b->name, NULL, 10);
+        return (a_num < b_num) ? -1 : (a_num > b_num);
+    } else if (isdigit(a->name[0])) {
+        return -1;
+    } else if (isdigit(b->name[0])) {
+        return 1;
+    }
+    return 0;
+}
+
 struct hwd_workspace *
-workspace_create(const char *name) {
+workspace_create(struct hwd_root *root, const char *name) {
+    assert(root != NULL);
+
     struct hwd_workspace *workspace = calloc(1, sizeof(struct hwd_workspace));
     if (!workspace) {
         wlr_log(WLR_ERROR, "Unable to allocate hwd_workspace");
@@ -299,7 +319,18 @@ workspace_create(const char *name) {
     workspace->floating = create_list();
     workspace->columns = create_list();
 
+    workspace->root = root;
+    list_add(root->workspaces, workspace);
+    list_stable_sort(root->workspaces, sort_workspace_cmp_qsort);
+
+    if (root->active_workspace == NULL) {
+        root_set_active_workspace(root, workspace);
+    }
+
     workspace_init_scene(workspace);
+
+    root_set_dirty(root);
+    workspace_set_dirty(workspace);
 
     return workspace;
 }
@@ -342,11 +373,27 @@ workspace_begin_destroy(struct hwd_workspace *workspace) {
 
     workspace->dead = true;
 
-    workspace_detach(workspace);
+    int index = list_find(root->workspaces, workspace);
+    if (index != -1) {
+        list_del(root->workspaces, index);
+    }
+
+    if (root->active_workspace == workspace) {
+        assert(index != -1);
+        int next_index = index != 0 ? index - 1 : index;
+
+        struct hwd_workspace *next_focus = NULL;
+        if (next_index < root->workspaces->length) {
+            next_focus = root->workspaces->items[next_index];
+        }
+
+        root_set_active_workspace(root, next_focus);
+    }
 
     wl_signal_emit_mutable(&workspace->events.begin_destroy, workspace);
 
     workspace_set_dirty(workspace);
+    root_set_dirty(root);
 }
 
 void
@@ -420,24 +467,10 @@ workspace_detect_urgent(struct hwd_workspace *workspace) {
 }
 
 void
-workspace_detach(struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    if (workspace->root != NULL) {
-        root_remove_workspace(workspace->root, workspace);
-    }
-}
-
-void
-workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
+workspace_reconcile(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
 
     bool dirty = false;
-
-    if (workspace->root != root) {
-        workspace->root = root;
-        dirty = true;
-    }
 
     bool should_focus = workspace == root_get_active_workspace(root);
     if (should_focus != workspace->pending.focused) {
@@ -459,38 +492,6 @@ workspace_reconcile(struct hwd_workspace *workspace, struct hwd_root *root) {
     for (int window_index = 0; window_index < workspace->floating->length; window_index++) {
         struct hwd_window *window = workspace->floating->items[window_index];
         window_reconcile_floating(window, workspace);
-    }
-}
-
-void
-workspace_reconcile_detached(struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    bool dirty = false;
-
-    if (workspace->root != NULL) {
-        workspace->root = NULL;
-        dirty = true;
-    }
-
-    bool should_focus = false;
-    if (should_focus != workspace->pending.focused) {
-        workspace->pending.focused = should_focus;
-        dirty = true;
-    }
-
-    if (dirty) {
-        // TODO fullscreen.
-
-        for (int column_index = 0; column_index < workspace->columns->length; column_index++) {
-            struct hwd_column *column = workspace->columns->items[column_index];
-            column_reconcile(column, workspace, column->output);
-        }
-
-        for (int window_index = 0; window_index < workspace->floating->length; window_index++) {
-            struct hwd_window *window = workspace->floating->items[window_index];
-            window_reconcile_floating(window, workspace);
-        }
     }
 }
 

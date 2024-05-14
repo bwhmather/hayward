@@ -389,8 +389,7 @@ main(int argc, char **argv) {
 
     // TODO this probably shouldn't live here
     char *workspace_name = "1";
-    struct hwd_workspace *workspace = workspace_create(workspace_name);
-    root_add_workspace(root, workspace);
+    workspace_create(root, workspace_name);
 
     if (!server_start(&server)) {
         hwd_terminate(EXIT_FAILURE);

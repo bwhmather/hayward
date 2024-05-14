@@ -6,7 +6,6 @@
 #include "hayward/tree/root.h"
 
 #include <assert.h>
-#include <ctype.h>
 #include <errno.h>
 #include <float.h>
 #include <stdbool.h>
@@ -276,64 +275,6 @@ root_arrange(struct hwd_root *root) {
     }
 }
 
-static int
-sort_workspace_cmp_qsort(const void *_a, const void *_b) {
-    struct hwd_workspace *a = *(void **)_a;
-    struct hwd_workspace *b = *(void **)_b;
-
-    if (isdigit(a->name[0]) && isdigit(b->name[0])) {
-        int a_num = strtol(a->name, NULL, 10);
-        int b_num = strtol(b->name, NULL, 10);
-        return (a_num < b_num) ? -1 : (a_num > b_num);
-    } else if (isdigit(a->name[0])) {
-        return -1;
-    } else if (isdigit(b->name[0])) {
-        return 1;
-    }
-    return 0;
-}
-
-void
-root_add_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
-    list_add(root->workspaces, workspace);
-    list_stable_sort(root->workspaces, sort_workspace_cmp_qsort);
-
-    if (root->active_workspace == NULL) {
-        root_set_active_workspace(root, workspace);
-    }
-    workspace_reconcile(workspace, root);
-
-    root_set_dirty(root);
-    workspace_set_dirty(workspace);
-}
-
-void
-root_remove_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    int index = list_find(root->workspaces, workspace);
-    if (index != -1) {
-        list_del(root->workspaces, index);
-    }
-
-    if (root->active_workspace == workspace) {
-        assert(index != -1);
-        int next_index = index != 0 ? index - 1 : index;
-
-        struct hwd_workspace *next_focus = NULL;
-        if (next_index < root->workspaces->length) {
-            next_focus = root->workspaces->items[next_index];
-        }
-
-        root_set_active_workspace(root, next_focus);
-    }
-
-    workspace_reconcile_detached(workspace);
-
-    workspace_set_dirty(workspace);
-    root_set_dirty(root);
-}
-
 void
 root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace) {
     assert(workspace != NULL);
@@ -347,11 +288,11 @@ root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace
     root->active_workspace = workspace;
 
     if (old_workspace != NULL) {
-        workspace_reconcile(old_workspace, root);
+        workspace_reconcile(old_workspace);
         workspace_consider_destroy(old_workspace);
         workspace_set_dirty(old_workspace);
     }
-    workspace_reconcile(workspace, root);
+    workspace_reconcile(workspace);
     workspace_set_dirty(workspace);
 
     struct hwd_output *active_output = workspace_get_active_output(workspace);
