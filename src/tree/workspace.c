@@ -362,12 +362,25 @@ workspace_destroy(struct hwd_workspace *workspace) {
     free(workspace);
 }
 
-static void
-workspace_begin_destroy(struct hwd_workspace *workspace) {
+void
+workspace_consider_destroy(struct hwd_workspace *workspace) {
     assert(workspace != NULL);
-    assert(workspace_is_alive(workspace));
-    assert(workspace->floating->length == 0);
-    assert(workspace->columns->length == 0);
+
+    if (workspace->dead) {
+        return;
+    }
+
+    if (workspace->columns->length) {
+        return;
+    }
+
+    if (workspace->floating->length) {
+        return;
+    }
+
+    if (workspace == root_get_active_workspace(workspace->root)) {
+        return;
+    }
 
     wlr_log(WLR_DEBUG, "Destroying workspace '%s'", workspace->name);
 
@@ -378,41 +391,10 @@ workspace_begin_destroy(struct hwd_workspace *workspace) {
         list_del(root->workspaces, index);
     }
 
-    if (root->active_workspace == workspace) {
-        assert(index != -1);
-        int next_index = index != 0 ? index - 1 : index;
-
-        struct hwd_workspace *next_focus = NULL;
-        if (next_index < root->workspaces->length) {
-            next_focus = root->workspaces->items[next_index];
-        }
-
-        root_set_active_workspace(root, next_focus);
-    }
-
     wl_signal_emit_mutable(&workspace->events.begin_destroy, workspace);
 
     workspace_set_dirty(workspace);
     root_set_dirty(root);
-}
-
-void
-workspace_consider_destroy(struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    if (workspace->columns->length) {
-        return;
-    }
-
-    if (workspace->floating->length) {
-        return;
-    }
-
-    if (workspace->pending.focused) {
-        return;
-    }
-
-    workspace_begin_destroy(workspace);
 }
 
 void
@@ -463,35 +445,6 @@ workspace_detect_urgent(struct hwd_workspace *workspace) {
 
     if (workspace->urgent != new_urgent) {
         workspace->urgent = new_urgent;
-    }
-}
-
-void
-workspace_reconcile(struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    bool dirty = false;
-
-    bool should_focus = workspace == root_get_active_workspace(root);
-    if (should_focus != workspace->pending.focused) {
-        workspace->pending.focused = should_focus;
-        dirty = true;
-    }
-
-    if (!dirty) {
-        return;
-    }
-
-    // TODO fullscreen.
-
-    for (int column_index = 0; column_index < workspace->columns->length; column_index++) {
-        struct hwd_column *column = workspace->columns->items[column_index];
-        column_reconcile(column, workspace, column->output);
-    }
-
-    for (int window_index = 0; window_index < workspace->floating->length; window_index++) {
-        struct hwd_window *window = workspace->floating->items[window_index];
-        window_reconcile_floating(window, workspace);
     }
 }
 
@@ -638,6 +591,7 @@ workspace_arrange(struct hwd_workspace *workspace) {
     wlr_log(WLR_DEBUG, "Arranging workspace '%s'", workspace->name);
 
     if (workspace->dirty) {
+        workspace->pending.focused = workspace == root_get_active_workspace(root);
         workspace->pending.dead = workspace->dead;
         arrange_tiling(workspace);
         arrange_floating(workspace);

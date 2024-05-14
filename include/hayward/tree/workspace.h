@@ -95,9 +95,6 @@ void
 workspace_detect_urgent(struct hwd_workspace *workspace);
 
 void
-workspace_reconcile(struct hwd_workspace *workspace);
-
-void
 workspace_arrange(struct hwd_workspace *workspace);
 
 void

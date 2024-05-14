@@ -288,11 +288,9 @@ root_set_active_workspace(struct hwd_root *root, struct hwd_workspace *workspace
     root->active_workspace = workspace;
 
     if (old_workspace != NULL) {
-        workspace_reconcile(old_workspace);
         workspace_consider_destroy(old_workspace);
         workspace_set_dirty(old_workspace);
     }
-    workspace_reconcile(workspace);
     workspace_set_dirty(workspace);
 
     struct hwd_output *active_output = workspace_get_active_output(workspace);
