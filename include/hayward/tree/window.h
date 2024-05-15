@@ -102,6 +102,10 @@ struct hwd_window {
     // that the window can be restored to the same position later.  If it is
     // evacuated to a different screen, this will be preserved and the new
     // current size and position will be derived from it.
+    // `floating_x` and `floating_y` are the offsets of the center of the window
+    // content in _output_ coordinates.
+    // `floating_width` and `floating_height` are the size of the content of the
+    // window in _layout_ coordinates.
     double floating_x, floating_y;
     double floating_width, floating_height;
 

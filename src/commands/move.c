@@ -367,8 +367,8 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
 
         struct hwd_output *old_output = window_get_output(window);
 
-        double lx = window->floating_x + old_output->pending.x;
-        double ly = window->floating_y + old_output->pending.y;
+        double lx = (window->floating_x * old_output->pending.width) + old_output->pending.x;
+        double ly = (window->floating_y * old_output->pending.height) + old_output->pending.y;
 
         switch (direction) {
         case WLR_DIRECTION_LEFT:
@@ -385,15 +385,13 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
             break;
         }
 
-        double cx = lx + window->floating_width / 2;
-        double cy = ly + window->floating_height / 2;
-        struct hwd_output *new_output = root_find_closest_output(root, cx, cy);
+        struct hwd_output *new_output = root_find_closest_output(root, lx, ly);
 
         list_clear(window->output_history); // TODO unref old outputs.
         list_add(window->output_history, new_output);
 
-        window->floating_x = lx - new_output->pending.x;
-        window->floating_y = ly - new_output->pending.y;
+        window->floating_x = (lx - new_output->pending.x) / new_output->pending.width;
+        window->floating_y = (ly - new_output->pending.y) / new_output->pending.height;
         window_set_dirty(window);
 
         return cmd_results_new(CMD_SUCCESS, NULL);

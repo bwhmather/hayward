@@ -515,10 +515,16 @@ window_arrange(struct hwd_window *window) {
                 // TODO in all other cases, pending position and size are set by
                 // parent.
                 struct hwd_output *output = window_get_output(window);
-                state->x = output->pending.x + window->floating_x;
-                state->y = output->pending.y + window->floating_y;
-                state->width = window->floating_width;
-                state->height = window->floating_height;
+
+                double center_x = output->pending.x + (window->floating_x * output->pending.width);
+                double center_y = output->pending.y + (window->floating_y * output->pending.height);
+
+                state->x = center_x - (window->floating_width / 2) - state->border_left;
+                state->y = center_y - (window->floating_height / 2) - state->titlebar_height -
+                    state->border_top;
+                state->width = window->floating_width + state->border_left + state->border_right;
+                state->height = window->floating_height + state->titlebar_height +
+                    state->border_top + state->border_bottom;
             }
         }
 
@@ -768,21 +774,11 @@ floating_calculate_constraints(
 
 static void
 floating_natural_resize(struct hwd_window *window) {
-    struct hwd_theme_window *theme = window_get_theme(window);
-
     int min_width, max_width, min_height, max_height;
     floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
 
-    int titlebar_height = hwd_theme_window_get_titlebar_height(theme);
-    int border_left = hwd_theme_window_get_border_left(theme);
-    int border_right = hwd_theme_window_get_border_right(theme);
-    int border_top = hwd_theme_window_get_border_top(theme);
-    int border_bottom = hwd_theme_window_get_border_bottom(theme);
-
-    window->floating_width =
-        fmax(min_width, fmin(window->view->natural_width, max_width)) + border_left + border_right;
-    window->floating_height = fmax(min_height, fmin(window->view->natural_height, max_height)) +
-        titlebar_height + border_top + border_bottom;
+    window->floating_width = fmax(min_width, fmin(window->view->natural_width, max_width));
+    window->floating_height = fmax(min_height, fmin(window->view->natural_height, max_height));
     window_set_geometry_from_content(window);
 }
 
