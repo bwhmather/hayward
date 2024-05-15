@@ -437,9 +437,9 @@ view_unmap(struct hwd_view *view) {
 void
 view_update_size(struct hwd_view *view) {
     struct hwd_window *window = view->window;
-    window->pending.content_width = view->geometry.width;
-    window->pending.content_height = view->geometry.height;
-    window_set_geometry_from_content(window);
+    window->floating_width = view->geometry.width;
+    window->floating_height = view->geometry.height;
+    window_set_dirty(window);
 }
 
 void
