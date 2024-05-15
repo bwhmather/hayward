@@ -47,7 +47,7 @@ struct hwd_xwayland_view {
 
     struct hwd_xwayland *xwayland;
 
-    struct wlr_scene_surface *surface_scene;
+    struct wlr_scene_tree *surface_scene;
 
     struct wl_listener commit;
     struct wl_listener request_move;

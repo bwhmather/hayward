@@ -562,7 +562,7 @@ handle_map(struct wl_listener *listener, void *data) {
     view_map(view, xsurface->surface, xsurface->fullscreen, NULL);
 
     xwayland_view->surface_scene =
-        wlr_scene_surface_create(view->layers.content_tree, xsurface->surface);
+        wlr_scene_subsurface_tree_create(view->layers.content_tree, xsurface->surface);
     root_commit_focus(root);
 }
 
