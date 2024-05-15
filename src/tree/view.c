@@ -634,53 +634,6 @@ view_is_urgent(struct hwd_view *view) {
     return view->urgent.tv_sec || view->urgent.tv_nsec;
 }
 
-static void
-view_freeze_buffer_iterator(struct wlr_scene_buffer *buffer, int sx, int sy, void *data) {
-    struct wlr_scene_tree *tree = data;
-
-    struct wlr_scene_buffer *sbuf = wlr_scene_buffer_create(tree, NULL);
-    assert(sbuf != NULL);
-
-    wlr_scene_buffer_set_dest_size(sbuf, buffer->dst_width, buffer->dst_height);
-    wlr_scene_buffer_set_opaque_region(sbuf, &buffer->opaque_region);
-    wlr_scene_buffer_set_source_box(sbuf, &buffer->src_box);
-    wlr_scene_node_set_position(&sbuf->node, sx, sy);
-    wlr_scene_buffer_set_transform(sbuf, buffer->transform);
-    wlr_scene_buffer_set_buffer(sbuf, buffer->buffer);
-}
-
-void
-view_freeze_buffer(struct hwd_view *view) {
-    assert(view->layers.saved_surface_tree == NULL);
-
-    view->layers.saved_surface_tree = wlr_scene_tree_create(view->scene_tree);
-    assert(view->layers.saved_surface_tree != NULL);
-
-    // Enable and disable the saved surface tree like so to atomitaclly update
-    // the tree. This will prevent over damaging or other weirdness.
-    wlr_scene_node_set_enabled(&view->layers.saved_surface_tree->node, false);
-
-    wlr_scene_node_for_each_buffer(
-        &view->layers.content_tree->node, view_freeze_buffer_iterator,
-        view->layers.saved_surface_tree
-    );
-
-    wlr_scene_node_set_enabled(&view->layers.content_tree->node, false);
-    wlr_scene_node_set_enabled(&view->layers.saved_surface_tree->node, true);
-}
-
-void
-view_unfreeze_buffer(struct hwd_view *view) {
-    if (view->layers.saved_surface_tree == NULL) {
-        return;
-    }
-
-    wlr_scene_node_destroy(&view->layers.saved_surface_tree->node);
-    view->layers.saved_surface_tree = NULL;
-
-    wlr_scene_node_set_enabled(&view->layers.content_tree->node, true);
-}
-
 bool
 view_is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
     return child->impl->is_transient_for && child->impl->is_transient_for(child, ancestor);

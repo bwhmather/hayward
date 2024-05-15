@@ -335,7 +335,8 @@ handle_commit(struct wl_listener *listener, void *data) {
 
     bool success = view_notify_ready_by_serial(view, xdg_surface->current.configure_serial);
 
-    if (view->layers.saved_surface_tree != NULL && !success) {
+    // TODO don't send if transaction is in progress.
+    if (!success) {
         view_send_frame_done(view);
     }
 }

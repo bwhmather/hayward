@@ -51,6 +51,53 @@ static const struct wlr_addon_interface scene_tree_marker_interface = {
 };
 
 static void
+window_freeze_content_iterator(struct wlr_scene_buffer *buffer, int sx, int sy, void *data) {
+    struct wlr_scene_tree *tree = data;
+
+    struct wlr_scene_buffer *sbuf = wlr_scene_buffer_create(tree, NULL);
+    assert(sbuf != NULL);
+
+    wlr_scene_buffer_set_dest_size(sbuf, buffer->dst_width, buffer->dst_height);
+    wlr_scene_buffer_set_opaque_region(sbuf, &buffer->opaque_region);
+    wlr_scene_buffer_set_source_box(sbuf, &buffer->src_box);
+    wlr_scene_node_set_position(&sbuf->node, sx, sy);
+    wlr_scene_buffer_set_transform(sbuf, buffer->transform);
+    wlr_scene_buffer_set_buffer(sbuf, buffer->buffer);
+}
+
+static void
+window_freeze_content(struct hwd_window *window) {
+    assert(window->layers.saved_content_tree == NULL);
+
+    window->layers.saved_content_tree = wlr_scene_tree_create(window->scene_tree);
+    assert(window->layers.saved_content_tree != NULL);
+
+    // Enable and disable the saved surface tree like so to atomitaclly update
+    // the tree. This will prevent over damaging or other weirdness.
+    wlr_scene_node_set_enabled(&window->layers.saved_content_tree->node, false);
+
+    wlr_scene_node_for_each_buffer(
+        &window->layers.content_tree->node, window_freeze_content_iterator,
+        window->layers.saved_content_tree
+    );
+
+    wlr_scene_node_set_enabled(&window->layers.content_tree->node, false);
+    wlr_scene_node_set_enabled(&window->layers.saved_content_tree->node, true);
+}
+
+static void
+window_unfreeze_content(struct hwd_window *window) {
+    if (window->layers.saved_content_tree == NULL) {
+        return;
+    }
+
+    wlr_scene_node_destroy(&window->layers.saved_content_tree->node);
+    window->layers.saved_content_tree = NULL;
+
+    wlr_scene_node_set_enabled(&window->layers.content_tree->node, true);
+}
+
+static void
 window_init_scene(struct hwd_window *window) {
     window->scene_tree = wlr_scene_tree_create(NULL);
     assert(window->scene_tree != NULL);
@@ -248,7 +295,7 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         // mapping and its default geometry doesn't intersect an output.
         view_send_frame_done(window->view);
 
-        view_freeze_buffer(window->view);
+        window_freeze_content(window);
     }
 
     memcpy(&window->committed, &window->pending, sizeof(struct hwd_window_state));
@@ -263,7 +310,7 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     wl_list_remove(&listener->link);
     window->is_configuring = false;
 
-    view_unfreeze_buffer(window->view);
+    window_unfreeze_content(window);
 
     window_update_scene(window);
 

@@ -65,7 +65,6 @@ struct hwd_view {
 
     struct {
         struct wlr_scene_tree *content_tree;
-        struct wlr_scene_tree *saved_surface_tree;
     } layers;
 
     struct hwd_window *window;   // NULL if unmapped and transactions finished
@@ -192,12 +191,6 @@ view_set_urgent(struct hwd_view *view, bool enable);
 
 bool
 view_is_urgent(struct hwd_view *view);
-
-void
-view_freeze_buffer(struct hwd_view *view);
-
-void
-view_unfreeze_buffer(struct hwd_view *view);
 
 bool
 view_is_transient_for(struct hwd_view *child, struct hwd_view *ancestor);

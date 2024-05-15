@@ -149,6 +149,7 @@ struct hwd_window {
         struct wlr_scene_node *border;
 
         struct wlr_scene_tree *content_tree;
+        struct wlr_scene_tree *saved_content_tree;
     } layers;
 
     struct wl_listener transaction_commit;
