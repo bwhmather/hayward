@@ -388,11 +388,11 @@ window_detach(struct hwd_window *window) {
     window_set_dirty(window);
 }
 
-static void
-window_update_theme(struct hwd_window *window) {
+static struct hwd_theme_window *
+window_get_theme(struct hwd_window *window) {
     struct hwd_theme *theme = root_get_theme(window->root);
     if (theme == NULL) {
-        return;
+        return NULL;
     }
 
     struct hwd_theme_window_type *window_type = &theme->floating;
@@ -405,20 +405,18 @@ window_update_theme(struct hwd_window *window) {
     }
 
     if (view_is_urgent(window->view)) {
-        window->pending.theme = &window_type->urgent;
-        return;
+        return &window_type->urgent;
     }
-    if (window->pending.focused) {
-        window->pending.theme = &window_type->focused;
-        return;
+
+    if (workspace_get_active_window(window->workspace) == window) {
+        return &window_type->focused;
     }
 
     if (window->parent && window->parent->active_child == window) {
-        window->pending.theme = &window_type->active;
-        return;
+        return &window_type->active;
     }
 
-    window->pending.theme = &window_type->inactive;
+    return &window_type->inactive;
 }
 
 void
@@ -488,13 +486,13 @@ window_arrange(struct hwd_window *window) {
     if (window->dirty) {
         struct hwd_window_state *state = &window->pending;
 
-        window->pending.dead = window->dead;
+        state->dead = window->dead;
 
-        window->pending.focused =
+        state->focused =
             (!window->dead && workspace_is_visible(window->workspace) &&
              workspace_get_active_window(window->workspace) == window);
 
-        window_update_theme(window);
+        state->theme = window_get_theme(window);
 
         if (window_is_fullscreen(window)) {
             state->fullscreen = true;
@@ -770,14 +768,16 @@ floating_calculate_constraints(
 
 static void
 floating_natural_resize(struct hwd_window *window) {
+    struct hwd_theme_window *theme = window_get_theme(window);
+
     int min_width, max_width, min_height, max_height;
     floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
 
-    int titlebar_height = hwd_theme_window_get_titlebar_height(window->pending.theme);
-    int border_left = hwd_theme_window_get_border_left(window->pending.theme);
-    int border_right = hwd_theme_window_get_border_right(window->pending.theme);
-    int border_top = hwd_theme_window_get_border_top(window->pending.theme);
-    int border_bottom = hwd_theme_window_get_border_bottom(window->pending.theme);
+    int titlebar_height = hwd_theme_window_get_titlebar_height(theme);
+    int border_left = hwd_theme_window_get_border_left(theme);
+    int border_right = hwd_theme_window_get_border_right(theme);
+    int border_top = hwd_theme_window_get_border_top(theme);
+    int border_bottom = hwd_theme_window_get_border_bottom(theme);
 
     window->floating_width =
         fmax(min_width, fmin(window->view->natural_width, max_width)) + border_left + border_right;
