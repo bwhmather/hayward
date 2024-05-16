@@ -34,7 +34,6 @@
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
@@ -281,18 +280,18 @@ get_int_prop(struct hwd_view *view, enum hwd_view_prop prop) {
     }
 }
 
-static uint32_t
+static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     struct hwd_xwayland_view *xwayland_view = xwayland_view_from_view(view);
     if (xwayland_view == NULL) {
-        return 0;
+        return;
     }
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
 
     wlr_xwayland_surface_configure(xsurface, lx, ly, width, height);
+    window_begin_configure(view->window);
 
-    // xwayland doesn't give us a serial for the configure
-    return 0;
+    view_send_frame_done(view);
 }
 
 static void
@@ -445,12 +444,8 @@ static bool
 view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int width, int height) {
     struct hwd_window *window = view->window;
     struct hwd_window_state *state = &window->committed;
-    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
 
     if (!window->is_configuring) {
-        return false;
-    }
-    if (window->configure_serial != 0) {
         return false;
     }
 
@@ -459,7 +454,8 @@ view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int wid
         return false;
     }
 
-    hwd_transaction_manager_release_commit_lock(transaction_manager);
+    window_end_configure(window);
+
     return true;
 }
 
@@ -627,18 +623,8 @@ handle_request_configure(struct wl_listener *listener, void *data) {
         view->natural_width = ev->width;
         view->natural_height = ev->height;
         window_floating_resize_and_center(view->window);
-
-        configure(
-            view, view->window->pending.content_x, view->window->pending.content_y,
-            view->window->pending.content_width, view->window->pending.content_height
-        );
-        window_set_dirty(view->window);
-    } else {
-        configure(
-            view, view->window->current.content_x, view->window->current.content_y,
-            view->window->current.content_width, view->window->current.content_height
-        );
     }
+    window_set_dirty(view->window);
 }
 
 static void

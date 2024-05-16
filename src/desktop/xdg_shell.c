@@ -32,7 +32,6 @@
 #include <hayward/input/seatop_resize_floating.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
@@ -162,13 +161,14 @@ get_string_prop(struct hwd_view *view, enum hwd_view_prop prop) {
     }
 }
 
-static uint32_t
+static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
-    struct hwd_xdg_shell_view *xdg_shell_view = xdg_shell_view_from_view(view);
-    if (xdg_shell_view == NULL) {
-        return 0;
-    }
-    return wlr_xdg_toplevel_set_size(view->wlr_xdg_toplevel, width, height);
+    struct hwd_window *window = view->window;
+    struct hwd_xdg_shell_view *shell_view = (struct hwd_xdg_shell_view *)view;
+
+    shell_view->configure_serial = wlr_xdg_toplevel_set_size(view->wlr_xdg_toplevel, width, height);
+
+    window_begin_configure(window);
 }
 
 static void
@@ -281,19 +281,19 @@ static const struct hwd_view_impl view_impl = {
 static bool
 view_notify_ready_by_serial(struct hwd_view *view, uint32_t serial) {
     struct hwd_window *window = view->window;
-    struct hwd_transaction_manager *transaction_manager = root_get_transaction_manager(root);
+    struct hwd_xdg_shell_view *shell_view = (struct hwd_xdg_shell_view *)view;
 
     if (!window->is_configuring) {
         return false;
     }
-    if (window->configure_serial == 0) {
+    if (shell_view->configure_serial == 0) {
         return false;
     }
-    if (serial != window->configure_serial) {
+    if (serial != shell_view->configure_serial) {
         return false;
     }
 
-    hwd_transaction_manager_release_commit_lock(transaction_manager);
+    window_end_configure(window);
 
     return true;
 }

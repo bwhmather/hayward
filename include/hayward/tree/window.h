@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 #include <wayland-server-core.h>
 
@@ -115,10 +114,6 @@ struct hwd_window {
     // and is being moved in sync with the mouse.
     bool moving;
 
-    // Identifier tracking the serial of the configure event sent during at the
-    // beginning of the current commit.  Used to discard responses for previous
-    // configures.
-    uint32_t configure_serial;
     bool is_configuring;
 
     char *title;           // The view's title (unformatted)
@@ -161,6 +156,11 @@ struct hwd_window {
         struct wl_signal destroy;
     } events;
 };
+
+void
+window_begin_configure(struct hwd_window *window);
+void
+window_end_configure(struct hwd_window *window);
 
 struct hwd_window *
 window_create(struct hwd_root *root, struct hwd_view *view);

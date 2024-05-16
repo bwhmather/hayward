@@ -45,7 +45,7 @@ struct hwd_view_impl {
     );
     const char *(*get_string_prop)(struct hwd_view *view, enum hwd_view_prop prop);
     uint32_t (*get_int_prop)(struct hwd_view *view, enum hwd_view_prop prop);
-    uint32_t (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);
+    void (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);
     void (*set_activated)(struct hwd_view *view, bool activated);
     void (*set_tiled)(struct hwd_view *view, bool tiled);
     void (*set_fullscreen)(struct hwd_view *view, bool fullscreen);
@@ -127,7 +127,7 @@ view_get_constraints(
     double *max_height
 );
 
-uint32_t
+void
 view_configure(struct hwd_view *view, double lx, double ly, int width, int height);
 
 void

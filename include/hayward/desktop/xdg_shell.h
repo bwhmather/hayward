@@ -1,6 +1,8 @@
 #ifndef HWD_DESKTOP_XDG_SHELL_H
 #define HWD_DESKTOP_XDG_SHELL_H
 
+#include <stdint.h>
+
 #include <wayland-server-core.h>
 
 #include <wlr/types/wlr_scene.h>
@@ -18,6 +20,11 @@ struct hwd_xdg_shell_view {
     struct hwd_view view;
 
     struct hwd_xdg_shell *xdg_shell;
+
+    // Identifier tracking the serial of the configure event sent during at the
+    // beginning of the current commit.  Used to discard responses for previous
+    // configures.
+    uint32_t configure_serial;
 
     struct wl_listener commit;
     struct wl_listener request_move;

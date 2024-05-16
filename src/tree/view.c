@@ -10,7 +10,6 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -155,12 +154,9 @@ view_get_constraints(
     }
 }
 
-uint32_t
+void
 view_configure(struct hwd_view *view, double lx, double ly, int width, int height) {
-    if (view->impl->configure) {
-        return view->impl->configure(view, lx, ly, width, height);
-    }
-    return 0;
+    view->impl->configure(view, lx, ly, width, height);
 }
 
 void

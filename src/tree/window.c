@@ -228,6 +228,12 @@ window_should_configure(struct hwd_window *window) {
     if (window->pending.dead) {
         return false;
     }
+
+    if (!view_is_visible(window->view)) {
+        // Don't want to delay transaction for hidden view.
+        return false;
+    }
+
     // TODO if the window's view initiated the change, it should not be
     // reconfigured.
     struct hwd_window_state *cstate = &window->committed;
@@ -254,6 +260,33 @@ window_should_configure(struct hwd_window *window) {
     return true;
 }
 
+void
+window_begin_configure(struct hwd_window *window) {
+    if (window->is_configuring) {
+        return;
+    }
+
+    window_freeze_content(window);
+
+    struct hwd_transaction_manager *transaction_manager =
+        root_get_transaction_manager(window->root);
+    hwd_transaction_manager_acquire_commit_lock(transaction_manager);
+
+    window->is_configuring = true;
+}
+
+void
+window_end_configure(struct hwd_window *window) {
+    if (!window->is_configuring) {
+        return;
+    }
+    window->is_configuring = false;
+
+    struct hwd_transaction_manager *transaction_manager =
+        root_get_transaction_manager(window->root);
+    hwd_transaction_manager_release_commit_lock(transaction_manager);
+}
+
 static void
 window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_window *window = wl_container_of(listener, window, transaction_commit);
@@ -276,26 +309,13 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         }
     }
 
-    bool hidden = !window->pending.dead && !view_is_visible(window->view);
     if (window_should_configure(window)) {
         struct hwd_window_state *state = &window->pending;
 
-        window->configure_serial = view_configure(
+        view_configure(
             window->view, state->content_x, state->content_y, state->content_width,
             state->content_height
         );
-        if (!hidden) {
-            hwd_transaction_manager_acquire_commit_lock(transaction_manager);
-            window->is_configuring = true;
-        }
-
-        // From here on we are rendering a saved buffer of the view, which
-        // means we can send a frame done event to make the client redraw it
-        // as soon as possible. Additionally, this is required if a view is
-        // mapping and its default geometry doesn't intersect an output.
-        view_send_frame_done(window->view);
-
-        window_freeze_content(window);
     }
 
     memcpy(&window->committed, &window->pending, sizeof(struct hwd_window_state));
