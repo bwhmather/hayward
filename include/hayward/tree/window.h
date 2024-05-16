@@ -152,6 +152,8 @@ struct hwd_window {
     struct wl_listener transaction_after_apply;
 
     struct {
+        struct wl_signal commit;
+
         struct wl_signal begin_destroy;
         struct wl_signal destroy;
     } events;

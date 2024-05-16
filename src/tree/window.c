@@ -309,6 +309,8 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
         }
     }
 
+    wl_signal_emit_mutable(&window->events.commit, window);
+
     if (window_should_configure(window)) {
         struct hwd_window_state *state = &window->pending;
 
@@ -371,6 +373,7 @@ window_create(struct hwd_root *root, struct hwd_view *view) {
     static size_t next_id = 1;
     window->id = next_id++;
 
+    wl_signal_init(&window->events.commit);
     wl_signal_init(&window->events.begin_destroy);
     wl_signal_init(&window->events.destroy);
 
