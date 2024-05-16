@@ -392,11 +392,15 @@ void
 hwd_text_node_set_text(struct wlr_scene_node *node, char *text) {
     struct hwd_text_node_state *state = node->data;
 
-    if (strcmp(state->text, text) == 0) {
+    if (text != NULL && state->text != NULL && strcmp(state->text, text) == 0) {
         return;
     }
 
-    char *new_text = strdup(text);
+    if (text == state->text) {
+        return;
+    }
+
+    char *new_text = strdup(text != NULL ? text : "");
     if (!new_text) {
         return;
     }
