@@ -84,7 +84,6 @@ struct hwd_xwayland_unmanaged {
 
     struct wl_listener xsurface_request_activate;
     struct wl_listener xsurface_request_configure;
-    struct wl_listener request_fullscreen;
     struct wl_listener xsurface_set_geometry;
     struct wl_listener xsurface_map;
     struct wl_listener xsurface_unmap;
