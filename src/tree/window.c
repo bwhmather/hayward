@@ -155,7 +155,7 @@ window_update_scene(struct hwd_window *window) {
     wlr_scene_node_set_position(
         window->layers.titlebar_text, theme->titlebar_h_padding, theme->titlebar_v_padding
     );
-    hwd_text_node_set_text(window->layers.titlebar_text, window->formatted_title);
+    hwd_text_node_set_text(window->layers.titlebar_text, window->title);
     hwd_text_node_set_max_width(
         window->layers.titlebar_text, width - 2 * theme->titlebar_h_padding
     );
@@ -213,7 +213,6 @@ window_destroy_scene(struct hwd_window *window) {
     wlr_scene_node_destroy(&window->scene_tree->node);
 
     free(window->title);
-    free(window->formatted_title);
     wlr_texture_destroy(window->title_focused);
     wlr_texture_destroy(window->title_focused_inactive);
     wlr_texture_destroy(window->title_unfocused);

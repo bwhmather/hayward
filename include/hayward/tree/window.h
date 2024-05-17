@@ -116,8 +116,7 @@ struct hwd_window {
 
     bool is_configuring;
 
-    char *title;           // The view's title (unformatted)
-    char *formatted_title; // The title displayed in the title bar
+    char *title;
 
     // The fraction of vertical space available for content that should be
     // allocated to this window when the containing column has an un-pinned

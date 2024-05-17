@@ -70,8 +70,6 @@ view_destroy(struct hwd_view *view) {
     wlr_scene_node_destroy(&view->layers.content_tree->node);
     wlr_scene_node_destroy(&view->scene_tree->node);
 
-    free(view->title_format);
-
     if (view->impl->destroy) {
         view->impl->destroy(view);
     } else {
@@ -99,43 +97,6 @@ view_get_title(struct hwd_view *view) {
         return view->impl->get_string_prop(view, VIEW_PROP_TITLE);
     }
     return NULL;
-}
-
-static const char *
-view_get_app_id(struct hwd_view *view) {
-    if (view->impl->get_string_prop) {
-        return view->impl->get_string_prop(view, VIEW_PROP_APP_ID);
-    }
-    return NULL;
-}
-
-static const char *
-view_get_class(struct hwd_view *view) {
-    if (view->impl->get_string_prop) {
-        return view->impl->get_string_prop(view, VIEW_PROP_CLASS);
-    }
-    return NULL;
-}
-
-static const char *
-view_get_instance(struct hwd_view *view) {
-    if (view->impl->get_string_prop) {
-        return view->impl->get_string_prop(view, VIEW_PROP_INSTANCE);
-    }
-    return NULL;
-}
-
-static const char *
-view_get_shell(struct hwd_view *view) {
-    switch (view->type) {
-    case HWD_VIEW_XDG_SHELL:
-        return "xdg_shell";
-#if HAVE_XWAYLAND
-    case HWD_VIEW_XWAYLAND:
-        return "xwayland";
-#endif
-    }
-    return "unknown";
 }
 
 void
@@ -412,62 +373,6 @@ view_from_wlr_surface(struct wlr_surface *wlr_surface) {
     return NULL;
 }
 
-static size_t
-append_prop(char *buffer, const char *value) {
-    if (!value) {
-        return 0;
-    }
-    lenient_strcat(buffer, value);
-    return strlen(value);
-}
-
-/**
- * Calculate and return the length of the formatted title.
- * If buffer is not NULL, also populate the buffer with the formatted title.
- */
-static size_t
-parse_title_format(struct hwd_view *view, char *buffer) {
-    if (!view->title_format || strcmp(view->title_format, "%title") == 0) {
-        return append_prop(buffer, view_get_title(view));
-    }
-
-    size_t len = 0;
-    char *format = view->title_format;
-    char *next = strchr(format, '%');
-    while (next) {
-        // Copy everything up to the %
-        lenient_strncat(buffer, format, next - format);
-        len += next - format;
-        format = next;
-
-        if (strncmp(next, "%title", 6) == 0) {
-            len += append_prop(buffer, view_get_title(view));
-            format += 6;
-        } else if (strncmp(next, "%app_id", 7) == 0) {
-            len += append_prop(buffer, view_get_app_id(view));
-            format += 7;
-        } else if (strncmp(next, "%class", 6) == 0) {
-            len += append_prop(buffer, view_get_class(view));
-            format += 6;
-        } else if (strncmp(next, "%instance", 9) == 0) {
-            len += append_prop(buffer, view_get_instance(view));
-            format += 9;
-        } else if (strncmp(next, "%shell", 6) == 0) {
-            len += append_prop(buffer, view_get_shell(view));
-            format += 6;
-        } else {
-            lenient_strcat(buffer, "%");
-            ++format;
-            ++len;
-        }
-        next = strchr(format, '%');
-    }
-    lenient_strcat(buffer, format);
-    len += strlen(format);
-
-    return len;
-}
-
 void
 view_update_title(struct hwd_view *view, bool force) {
     const char *title = view_get_title(view);
@@ -482,18 +387,10 @@ view_update_title(struct hwd_view *view, bool force) {
     }
 
     free(view->window->title);
-    free(view->window->formatted_title);
     if (title) {
-        size_t len = parse_title_format(view, NULL);
-        char *buffer = calloc(len + 1, sizeof(char));
-        assert(buffer);
-        parse_title_format(view, buffer);
-
         view->window->title = strdup(title);
-        view->window->formatted_title = buffer;
     } else {
         view->window->title = NULL;
-        view->window->formatted_title = NULL;
     }
 
     window_set_dirty(view->window);
