@@ -29,16 +29,16 @@ struct hwd_xdg_shell_view {
     // configures.
     uint32_t configure_serial;
 
-    struct wl_listener commit;
-    struct wl_listener request_move;
-    struct wl_listener request_resize;
-    struct wl_listener request_fullscreen;
-    struct wl_listener set_title;
-    struct wl_listener set_app_id;
-    struct wl_listener new_popup;
-    struct wl_listener map;
-    struct wl_listener unmap;
-    struct wl_listener destroy;
+    struct wl_listener wlr_surface_commit;
+    struct wl_listener wlr_toplevel_request_move;
+    struct wl_listener wlr_toplevel_request_resize;
+    struct wl_listener wlr_toplevel_request_fullscreen;
+    struct wl_listener wlr_toplevel_set_title;
+    struct wl_listener wlr_toplevel_set_app_id;
+    struct wl_listener xdg_surface_new_popup;
+    struct wl_listener xdg_surface_map;
+    struct wl_listener xdg_surface_unmap;
+    struct wl_listener xdg_surface_destroy;
 };
 
 struct hwd_xdg_popup {
@@ -48,9 +48,9 @@ struct hwd_xdg_popup {
     struct wlr_scene_tree *xdg_surface_tree;
     struct wlr_xdg_popup *wlr_xdg_popup;
 
-    struct wl_listener new_popup;
-    struct wl_listener commit;
-    struct wl_listener destroy;
+    struct wl_listener wlr_surface_commit;
+    struct wl_listener xdg_surface_new_popup;
+    struct wl_listener xdg_surface_destroy;
 };
 
 struct hwd_view *
