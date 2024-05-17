@@ -287,10 +287,25 @@ get_int_prop(struct hwd_view *view, enum hwd_view_prop prop) {
 
 static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
-    struct hwd_xwayland_view *xwayland_view = hwd_xwayland_view_from_view(view);
-    if (xwayland_view == NULL) {
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    if (self == NULL) {
         return;
     }
+
+    if (!view_is_visible(view)) {
+        return;
+    }
+
+    if (self->configured_x == (int)lx && self->configured_y == (int)ly &&
+        self->configured_width == width && self->configured_height == height) {
+        return;
+    }
+
+    self->configured_x = lx;
+    self->configured_y = ly;
+    self->configured_width = width;
+    self->configured_height = height;
+
     struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
 
     wlr_xwayland_surface_configure(xsurface, lx, ly, width, height);

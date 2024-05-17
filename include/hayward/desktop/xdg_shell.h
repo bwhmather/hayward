@@ -21,6 +21,9 @@ struct hwd_xdg_shell_view {
 
     struct hwd_xdg_shell *xdg_shell;
 
+    int configured_width;
+    int configured_height;
+
     // Identifier tracking the serial of the configure event sent during at the
     // beginning of the current commit.  Used to discard responses for previous
     // configures.

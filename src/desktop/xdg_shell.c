@@ -164,9 +164,19 @@ get_string_prop(struct hwd_view *view, enum hwd_view_prop prop) {
 static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     struct hwd_window *window = view->window;
-    struct hwd_xdg_shell_view *shell_view = (struct hwd_xdg_shell_view *)view;
+    struct hwd_xdg_shell_view *self = (struct hwd_xdg_shell_view *)view;
 
-    shell_view->configure_serial = wlr_xdg_toplevel_set_size(view->wlr_xdg_toplevel, width, height);
+    if (!view_is_visible(view)) {
+        return;
+    }
+
+    if (self->configured_width == width && self->configured_height == height) {
+        return;
+    }
+    self->configured_width = width;
+    self->configured_height = height;
+
+    self->configure_serial = wlr_xdg_toplevel_set_size(view->wlr_xdg_toplevel, width, height);
 
     window_begin_configure(window);
 }

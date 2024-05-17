@@ -222,44 +222,6 @@ window_destroy_scene(struct hwd_window *window) {
     wlr_texture_destroy(window->title_focused_tab_title);
 }
 
-static bool
-window_should_configure(struct hwd_window *window) {
-    assert(window != NULL);
-    if (window->pending.dead) {
-        return false;
-    }
-
-    if (!view_is_visible(window->view)) {
-        // Don't want to delay transaction for hidden view.
-        return false;
-    }
-
-    // TODO if the window's view initiated the change, it should not be
-    // reconfigured.
-    struct hwd_window_state *cstate = &window->committed;
-    struct hwd_window_state *nstate = &window->pending;
-
-#if HAVE_XWAYLAND
-    // Xwayland views are position-aware and need to be reconfigured
-    // when their position changes.
-    if (window->view->type == HWD_VIEW_XWAYLAND) {
-        // Hayward logical coordinates are doubles, but they get truncated to
-        // integers when sent to Xwayland through `xcb_configure_window`.
-        // X11 apps will not respond to duplicate configure requests (from their
-        // truncated point of view) and cause transactions to time out.
-        if ((int)cstate->content_x != (int)nstate->content_x ||
-            (int)cstate->content_y != (int)nstate->content_y) {
-            return true;
-        }
-    }
-#endif
-    if (cstate->content_width == nstate->content_width &&
-        cstate->content_height == nstate->content_height) {
-        return false;
-    }
-    return true;
-}
-
 void
 window_begin_configure(struct hwd_window *window) {
     if (window->is_configuring) {
@@ -311,14 +273,10 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
     wl_signal_emit_mutable(&window->events.commit, window);
 
-    if (window_should_configure(window)) {
-        struct hwd_window_state *state = &window->pending;
-
-        view_configure(
-            window->view, state->content_x, state->content_y, state->content_width,
-            state->content_height
-        );
-    }
+    view_configure(
+        window->view, window->pending.content_x, window->pending.content_y,
+        window->pending.content_width, window->pending.content_height
+    );
 
     memcpy(&window->committed, &window->pending, sizeof(struct hwd_window_state));
 }
