@@ -148,21 +148,6 @@ get_constraints(
     *max_height = state->max_height > 0 ? state->max_height : DBL_MAX;
 }
 
-static const char *
-get_string_prop(struct hwd_view *view, enum hwd_view_prop prop) {
-    if (xdg_shell_view_from_view(view) == NULL) {
-        return NULL;
-    }
-    switch (prop) {
-    case VIEW_PROP_TITLE:
-        return view->wlr_xdg_toplevel->title;
-    case VIEW_PROP_APP_ID:
-        return view->wlr_xdg_toplevel->app_id;
-    default:
-        return NULL;
-    }
-}
-
 static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     struct hwd_window *window = view->window;
@@ -277,7 +262,6 @@ destroy(struct hwd_view *view) {
 
 static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
-    .get_string_prop = get_string_prop,
     .configure = configure,
     .set_activated = set_activated,
     .set_tiled = set_tiled,

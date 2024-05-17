@@ -9,7 +9,6 @@
 #include <float.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <xcb/xcb.h>
@@ -250,41 +249,6 @@ hwd_xwayland_view_from_view(struct hwd_view *view) {
     return (struct hwd_xwayland_view *)view;
 }
 
-static const char *
-get_string_prop(struct hwd_view *view, enum hwd_view_prop prop) {
-    if (hwd_xwayland_view_from_view(view) == NULL) {
-        return NULL;
-    }
-    switch (prop) {
-    case VIEW_PROP_TITLE:
-        return view->wlr_xwayland_surface->title;
-    case VIEW_PROP_CLASS:
-        return view->wlr_xwayland_surface->class;
-    case VIEW_PROP_INSTANCE:
-        return view->wlr_xwayland_surface->instance;
-    case VIEW_PROP_WINDOW_ROLE:
-        return view->wlr_xwayland_surface->role;
-    default:
-        return NULL;
-    }
-}
-
-static uint32_t
-get_int_prop(struct hwd_view *view, enum hwd_view_prop prop) {
-    if (hwd_xwayland_view_from_view(view) == NULL) {
-        return 0;
-    }
-    switch (prop) {
-    case VIEW_PROP_WINDOW_TYPE:
-        if (view->wlr_xwayland_surface->window_type_len == 0) {
-            return 0;
-        }
-        return view->wlr_xwayland_surface->window_type[0];
-    default:
-        return 0;
-    }
-}
-
 static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
@@ -436,8 +400,6 @@ get_constraints(
 
 static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
-    .get_string_prop = get_string_prop,
-    .get_int_prop = get_int_prop,
     .configure = configure,
     .set_activated = set_activated,
     .set_tiled = set_tiled,

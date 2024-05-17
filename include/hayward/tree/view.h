@@ -4,7 +4,6 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <sys/types.h>
 #include <time.h>
 
@@ -29,22 +28,11 @@ enum hwd_view_type {
 #endif
 };
 
-enum hwd_view_prop {
-    VIEW_PROP_TITLE,
-    VIEW_PROP_APP_ID,
-    VIEW_PROP_CLASS,
-    VIEW_PROP_INSTANCE,
-    VIEW_PROP_WINDOW_TYPE,
-    VIEW_PROP_WINDOW_ROLE,
-};
-
 struct hwd_view_impl {
     void (*get_constraints)(
         struct hwd_view *view, double *min_width, double *max_width, double *min_height,
         double *max_height
     );
-    const char *(*get_string_prop)(struct hwd_view *view, enum hwd_view_prop prop);
-    uint32_t (*get_int_prop)(struct hwd_view *view, enum hwd_view_prop prop);
     void (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);
     void (*set_activated)(struct hwd_view *view, bool activated);
     void (*set_tiled)(struct hwd_view *view, bool tiled);
