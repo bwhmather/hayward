@@ -19,7 +19,6 @@
 #include <wayland-util.h>
 
 #include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_pointer_constraints_v1.h>
@@ -164,9 +163,6 @@ view_set_activated(struct hwd_view *view, bool activated) {
     if (view->impl->set_activated) {
         view->impl->set_activated(view, activated);
     }
-    if (view->foreign_toplevel) {
-        wlr_foreign_toplevel_handle_v1_set_activated(view->foreign_toplevel, activated);
-    }
 }
 
 void
@@ -260,46 +256,6 @@ should_focus(struct hwd_view *view) {
     return true;
 }
 
-static void
-handle_foreign_activate_request(struct wl_listener *listener, void *data) {
-    struct hwd_view *view = wl_container_of(listener, view, foreign_activate_request);
-
-    root_set_focused_window(root, view->window);
-    window_raise_floating(view->window);
-}
-
-static void
-handle_foreign_fullscreen_request(struct wl_listener *listener, void *data) {
-    struct hwd_view *view = wl_container_of(listener, view, foreign_fullscreen_request);
-    struct wlr_foreign_toplevel_handle_v1_fullscreen_event *event = data;
-
-    struct hwd_window *window = view->window;
-
-    if (event->fullscreen && event->output && event->output->data) {
-        struct hwd_output *output = event->output->data;
-        window_fullscreen_on_output(window, output);
-    } else {
-        window_fullscreen(window);
-    }
-}
-
-static void
-handle_foreign_close_request(struct wl_listener *listener, void *data) {
-    struct hwd_view *view = wl_container_of(listener, view, foreign_close_request);
-
-    view_close(view);
-}
-
-static void
-handle_foreign_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_view *view = wl_container_of(listener, view, foreign_destroy);
-
-    wl_list_remove(&view->foreign_activate_request.link);
-    wl_list_remove(&view->foreign_fullscreen_request.link);
-    wl_list_remove(&view->foreign_close_request.link);
-    wl_list_remove(&view->foreign_destroy.link);
-}
-
 void
 view_map(
     struct hwd_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
@@ -321,28 +277,6 @@ view_map(
         output = fullscreen_output->data;
     }
     assert(output != NULL);
-
-    view->foreign_toplevel = wlr_foreign_toplevel_handle_v1_create(server.foreign_toplevel_manager);
-    view->foreign_activate_request.notify = handle_foreign_activate_request;
-    wl_signal_add(
-        &view->foreign_toplevel->events.request_activate, &view->foreign_activate_request
-    );
-    view->foreign_fullscreen_request.notify = handle_foreign_fullscreen_request;
-    wl_signal_add(
-        &view->foreign_toplevel->events.request_fullscreen, &view->foreign_fullscreen_request
-    );
-    view->foreign_close_request.notify = handle_foreign_close_request;
-    wl_signal_add(&view->foreign_toplevel->events.request_close, &view->foreign_close_request);
-    view->foreign_destroy.notify = handle_foreign_destroy;
-    wl_signal_add(&view->foreign_toplevel->events.destroy, &view->foreign_destroy);
-
-    const char *app_id;
-    const char *class;
-    if ((app_id = view_get_app_id(view)) != NULL) {
-        wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel, app_id);
-    } else if ((class = view_get_class(view)) != NULL) {
-        wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel, class);
-    }
 
     if (view->impl->wants_floating && view->impl->wants_floating(view)) {
         workspace_add_floating(workspace, view->window);
@@ -396,11 +330,6 @@ view_unmap(struct hwd_view *view) {
     if (view->urgent_timer) {
         wl_event_source_remove(view->urgent_timer);
         view->urgent_timer = NULL;
-    }
-
-    if (view->foreign_toplevel) {
-        wlr_foreign_toplevel_handle_v1_destroy(view->foreign_toplevel);
-        view->foreign_toplevel = NULL;
     }
 
     struct hwd_column *parent = view->window->parent;
@@ -568,10 +497,6 @@ view_update_title(struct hwd_view *view, bool force) {
     }
 
     window_set_dirty(view->window);
-
-    if (view->foreign_toplevel && title) {
-        wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel, title);
-    }
 }
 
 bool

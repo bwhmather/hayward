@@ -14,7 +14,6 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
-#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
@@ -89,7 +88,6 @@ struct hwd_server {
 
     struct wlr_input_method_manager_v2 *input_method;
     struct wlr_text_input_manager_v3 *text_input;
-    struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 
     struct hwd_xdg_activation_v1 *xdg_activation_v1;
 

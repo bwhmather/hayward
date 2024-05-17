@@ -88,12 +88,6 @@ struct hwd_view {
     // transaction state. Updated on every commit.
     struct wlr_box geometry;
 
-    struct wlr_foreign_toplevel_handle_v1 *foreign_toplevel;
-    struct wl_listener foreign_activate_request;
-    struct wl_listener foreign_fullscreen_request;
-    struct wl_listener foreign_close_request;
-    struct wl_listener foreign_destroy;
-
     bool destroying;
 
     union {

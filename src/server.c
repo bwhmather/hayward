@@ -21,7 +21,6 @@
 #include <wlr/types/wlr_drm.h>
 #include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
-#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
@@ -147,7 +146,6 @@ server_init(struct hwd_server *server) {
 
     server->input_method = wlr_input_method_manager_v2_create(server->wl_display);
     server->text_input = wlr_text_input_manager_v3_create(server->wl_display);
-    server->foreign_toplevel_manager = wlr_foreign_toplevel_manager_v1_create(server->wl_display);
 
     hwd_session_lock_init();
 

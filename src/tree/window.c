@@ -17,7 +17,6 @@
 #include <wayland-util.h>
 
 #include <wlr/render/wlr_texture.h>
-#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
@@ -263,11 +262,6 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     if (window->pending.fullscreen != window->committed.fullscreen) {
         if (window->view->impl->set_fullscreen) {
             window->view->impl->set_fullscreen(window->view, window->pending.fullscreen);
-        }
-        if (window->view->foreign_toplevel) {
-            wlr_foreign_toplevel_handle_v1_set_fullscreen(
-                window->view->foreign_toplevel, window->pending.fullscreen
-            );
         }
     }
 
