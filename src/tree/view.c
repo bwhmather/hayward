@@ -9,9 +9,7 @@
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <time.h>
 
@@ -37,7 +35,6 @@
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
 #include <hayward/server.h>
-#include <hayward/stringop.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -89,14 +86,6 @@ view_begin_destroy(struct hwd_view *view) {
     if (!view->window) {
         view_destroy(view);
     }
-}
-
-static const char *
-view_get_title(struct hwd_view *view) {
-    if (view->impl->get_string_prop) {
-        return view->impl->get_string_prop(view, VIEW_PROP_TITLE);
-    }
-    return NULL;
 }
 
 void
@@ -268,8 +257,6 @@ view_map(
         window_fullscreen_on_output(view->window, output);
     }
 
-    view_update_title(view, false);
-
     bool set_focus = should_focus(view);
 
 #if HAVE_XWAYLAND
@@ -371,29 +358,6 @@ view_from_wlr_surface(struct wlr_surface *wlr_surface) {
     const char *role = wlr_surface->role ? wlr_surface->role->name : NULL;
     wlr_log(WLR_DEBUG, "Surface of unknown type (role %s): %p", role, (void *)wlr_surface);
     return NULL;
-}
-
-void
-view_update_title(struct hwd_view *view, bool force) {
-    const char *title = view_get_title(view);
-
-    if (!force) {
-        if (title && view->window->title && strcmp(title, view->window->title) == 0) {
-            return;
-        }
-        if (!title && !view->window->title) {
-            return;
-        }
-    }
-
-    free(view->window->title);
-    if (title) {
-        view->window->title = strdup(title);
-    } else {
-        view->window->title = NULL;
-    }
-
-    window_set_dirty(view->window);
 }
 
 bool

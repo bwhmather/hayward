@@ -582,6 +582,8 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     // Put it back into the tree
     view_map(view, xsurface->surface, xsurface->fullscreen, NULL);
 
+    window_set_title(view->window, view->wlr_xwayland_surface->title);
+
     xwayland_view->surface_scene =
         wlr_scene_subsurface_tree_create(view->layers.content_tree, xsurface->surface);
     root_commit_focus(root);
@@ -750,14 +752,13 @@ hwd_xwayland_view_handle_xsurface_set_title(struct wl_listener *listener, void *
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_title);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
-    if (xsurface->surface == NULL) {
+
+    struct hwd_window *window = view->window;
+    if (window == NULL) {
         return;
     }
-    if (!xsurface->surface->mapped) {
-        return;
-    }
-    view_update_title(view, false);
+
+    window_set_title(window, view->wlr_xwayland_surface->title);
 }
 
 static void

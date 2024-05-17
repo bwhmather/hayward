@@ -359,7 +359,12 @@ hwd_xdg_shell_view_handle_wlr_toplevel_set_title(struct wl_listener *listener, v
 
     struct hwd_view *view = &self->view;
 
-    view_update_title(view, false);
+    struct hwd_window *window = view->window;
+    if (window == NULL) {
+        return;
+    }
+
+    window_set_title(window, view->wlr_xdg_toplevel->title);
 }
 
 static void

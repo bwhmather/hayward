@@ -208,6 +208,9 @@ window_evacuate(struct hwd_window *window, struct hwd_output *output);
 void
 window_end_mouse_operation(struct hwd_window *window);
 
+void
+window_set_title(struct hwd_window *window, const char *title);
+
 bool
 window_is_floating(struct hwd_window *window);
 

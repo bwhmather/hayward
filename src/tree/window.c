@@ -644,6 +644,17 @@ window_end_mouse_operation(struct hwd_window *window) {
     wl_list_for_each(seat, &server.input->seats, link) { seatop_unref(seat, window); }
 }
 
+void
+window_set_title(struct hwd_window *window, const char *title) {
+    assert(window != NULL);
+    assert(title != NULL);
+
+    free(window->title);
+    window->title = strdup(title);
+
+    window_set_dirty(window);
+}
+
 bool
 window_is_floating(struct hwd_window *window) {
     assert(window != NULL);

@@ -164,14 +164,6 @@ struct hwd_view *
 view_from_wlr_surface(struct wlr_surface *surface);
 
 /**
- * Re-read the view's title property and update any relevant title bars.
- * The force argument makes it recreate the title bars even if the title hasn't
- * changed.
- */
-void
-view_update_title(struct hwd_view *view, bool force);
-
-/**
  * Returns true if there's a possibility the view may be rendered on screen.
  * Intended for damage tracking.
  */
