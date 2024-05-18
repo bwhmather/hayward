@@ -10,7 +10,6 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <time.h>
 
 #include <wayland-server-core.h>
@@ -159,25 +158,6 @@ view_close_popups(struct hwd_view *view) {
     }
 }
 
-static void
-view_populate_pid(struct hwd_view *view) {
-    pid_t pid;
-    switch (view->type) {
-#if HAVE_XWAYLAND
-    case HWD_VIEW_XWAYLAND:;
-        struct wlr_xwayland_surface *surf =
-            wlr_xwayland_surface_try_from_wlr_surface(view->surface);
-        pid = surf->pid;
-        break;
-#endif
-    case HWD_VIEW_XDG_SHELL:;
-        struct wl_client *client = wl_resource_get_client(view->surface->resource);
-        wl_client_get_credentials(client, &pid, NULL, NULL);
-        break;
-    }
-    view->pid = pid;
-}
-
 static bool
 should_focus(struct hwd_view *view) {
     struct hwd_workspace *active_workspace = root_get_active_workspace(root);
@@ -213,7 +193,6 @@ view_map(
 ) {
     assert(view->surface == NULL);
     view->surface = wlr_surface;
-    view_populate_pid(view);
     view->window = window_create(root, view);
 
     // If there is a request to be opened fullscreen on a specific output, try

@@ -163,10 +163,6 @@ hwd_xwayland_unmanaged_handle_xsurface_request_activate(struct wl_listener *list
     if (!xsurface->surface->mapped) {
         return;
     }
-    struct hwd_window *focus = root_get_focused_window(root);
-    if (focus && focus->view && focus->view->pid != xsurface->pid) {
-        return;
-    }
 
     root_set_focused_surface(root, xsurface->surface);
     root_commit_focus(root);

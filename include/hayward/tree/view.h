@@ -4,7 +4,6 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <sys/types.h>
 #include <time.h>
 
 #include <wayland-server-core.h>
@@ -55,8 +54,6 @@ struct hwd_view {
 
     struct hwd_window *window;   // NULL if unmapped and transactions finished
     struct wlr_surface *surface; // NULL for unmapped views
-
-    pid_t pid;
 
     // The size the view would want to be if it weren't tiled.
     // Used when changing a view from tiled to floating.
