@@ -252,9 +252,6 @@ hwd_xwayland_view_from_view(struct hwd_view *view) {
 static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
-    if (self == NULL) {
-        return;
-    }
 
     if (!view_is_visible(view)) {
         return;
@@ -270,7 +267,7 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     self->configured_width = width;
     self->configured_height = height;
 
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
 
     wlr_xwayland_surface_configure(xsurface, lx, ly, width, height);
     window_begin_configure(view->window);
@@ -280,10 +277,8 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
 
 static void
 set_activated(struct hwd_view *view, bool activated) {
-    if (hwd_xwayland_view_from_view(view) == NULL) {
-        return;
-    }
-    struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
 
     if (activated && surface->minimized) {
         wlr_xwayland_surface_set_minimized(surface, false);
@@ -295,30 +290,23 @@ set_activated(struct hwd_view *view, bool activated) {
 
 static void
 set_tiled(struct hwd_view *view, bool tiled) {
-    if (hwd_xwayland_view_from_view(view) == NULL) {
-        return;
-    }
-    struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
     wlr_xwayland_surface_set_maximized(surface, tiled);
 }
 
 static void
 set_fullscreen(struct hwd_view *view, bool fullscreen) {
-    if (hwd_xwayland_view_from_view(view) == NULL) {
-        return;
-    }
-    struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
     wlr_xwayland_surface_set_fullscreen(surface, fullscreen);
 }
 
 static bool
 wants_floating(struct hwd_view *view) {
-    struct hwd_xwayland_view *xwayland_view = hwd_xwayland_view_from_view(view);
-    if (xwayland_view == NULL) {
-        return false;
-    }
-    struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
-    struct hwd_xwayland *xwayland = xwayland_view->xwayland;
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
+    struct hwd_xwayland *xwayland = self->xwayland;
 
     if (surface->modal) {
         return true;
@@ -346,12 +334,9 @@ wants_floating(struct hwd_view *view) {
 
 static bool
 is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
-    if (hwd_xwayland_view_from_view(child) == NULL) {
-        return false;
-    }
-    struct wlr_xwayland_surface *surface = child->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *surface = hwd_xwayland_view_from_view(child)->wlr_xwayland_surface;
     while (surface) {
-        if (surface->parent == ancestor->wlr_xwayland_surface) {
+        if (surface->parent == hwd_xwayland_view_from_view(ancestor)->wlr_xwayland_surface) {
             return true;
         }
         surface = surface->parent;
@@ -361,19 +346,14 @@ is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
 
 static void
 _close(struct hwd_view *view) {
-    if (hwd_xwayland_view_from_view(view) == NULL) {
-        return;
-    }
-    wlr_xwayland_surface_close(view->wlr_xwayland_surface);
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    wlr_xwayland_surface_close(self->wlr_xwayland_surface);
 }
 
 static void
 destroy(struct hwd_view *view) {
-    struct hwd_xwayland_view *xwayland_view = hwd_xwayland_view_from_view(view);
-    if (xwayland_view == NULL) {
-        return;
-    }
-    free(xwayland_view);
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    free(self);
 }
 
 static void
@@ -381,7 +361,8 @@ get_constraints(
     struct hwd_view *view, double *min_width, double *max_width, double *min_height,
     double *max_height
 ) {
-    struct wlr_xwayland_surface *surface = view->wlr_xwayland_surface;
+    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
     xcb_size_hints_t *size_hints = surface->size_hints;
 
     if (size_hints == NULL) {
@@ -443,11 +424,10 @@ view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int wid
 
 static void
 hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *data) {
-    struct hwd_xwayland_view *xwayland_view =
-        wl_container_of(listener, xwayland_view, xsurface_commit);
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_commit);
 
-    struct hwd_view *view = &xwayland_view->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct hwd_view *view = &self->view;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     struct wlr_surface_state *state = &xsurface->surface->current;
 
     struct wlr_box new_geo;
@@ -480,73 +460,70 @@ hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *dat
 
 static void
 hwd_xwayland_view_handle_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_xwayland_view *xwayland_view =
-        wl_container_of(listener, xwayland_view, xsurface_destroy);
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_destroy);
 
-    struct hwd_view *view = &xwayland_view->view;
+    struct hwd_view *view = &self->view;
 
     if (view->surface) {
         view_unmap(view);
-        wl_list_remove(&xwayland_view->xsurface_commit.link);
+        wl_list_remove(&self->xsurface_commit.link);
     }
 
-    xwayland_view->view.wlr_xwayland_surface = NULL;
+    self->wlr_xwayland_surface = NULL;
 
-    wl_list_remove(&xwayland_view->xsurface_destroy.link);
-    wl_list_remove(&xwayland_view->xsurface_request_configure.link);
-    wl_list_remove(&xwayland_view->xsurface_request_fullscreen.link);
-    wl_list_remove(&xwayland_view->xsurface_request_minimize.link);
-    wl_list_remove(&xwayland_view->xsurface_request_move.link);
-    wl_list_remove(&xwayland_view->xsurface_request_resize.link);
-    wl_list_remove(&xwayland_view->xsurface_request_activate.link);
-    wl_list_remove(&xwayland_view->xsurface_set_title.link);
-    wl_list_remove(&xwayland_view->xsurface_set_class.link);
-    wl_list_remove(&xwayland_view->xsurface_set_role.link);
-    wl_list_remove(&xwayland_view->xsurface_set_window_type.link);
-    wl_list_remove(&xwayland_view->xsurface_set_hints.link);
-    wl_list_remove(&xwayland_view->xsurface_associate.link);
-    wl_list_remove(&xwayland_view->xsurface_dissociate.link);
-    wl_list_remove(&xwayland_view->xsurface_override_redirect.link);
-    view_begin_destroy(&xwayland_view->view);
+    wl_list_remove(&self->xsurface_destroy.link);
+    wl_list_remove(&self->xsurface_request_configure.link);
+    wl_list_remove(&self->xsurface_request_fullscreen.link);
+    wl_list_remove(&self->xsurface_request_minimize.link);
+    wl_list_remove(&self->xsurface_request_move.link);
+    wl_list_remove(&self->xsurface_request_resize.link);
+    wl_list_remove(&self->xsurface_request_activate.link);
+    wl_list_remove(&self->xsurface_set_title.link);
+    wl_list_remove(&self->xsurface_set_class.link);
+    wl_list_remove(&self->xsurface_set_role.link);
+    wl_list_remove(&self->xsurface_set_window_type.link);
+    wl_list_remove(&self->xsurface_set_hints.link);
+    wl_list_remove(&self->xsurface_associate.link);
+    wl_list_remove(&self->xsurface_dissociate.link);
+    wl_list_remove(&self->xsurface_override_redirect.link);
+    view_begin_destroy(&self->view);
 }
 
 static void
 hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
-    struct hwd_xwayland_view *xwayland_view =
-        wl_container_of(listener, xwayland_view, xsurface_unmap);
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_unmap);
 
-    struct hwd_view *view = &xwayland_view->view;
+    struct hwd_view *view = &self->view;
 
     assert(view->surface);
 
     view_unmap(view);
     root_commit_focus(root);
 
-    wl_list_remove(&xwayland_view->xsurface_commit.link);
+    wl_list_remove(&self->xsurface_commit.link);
 }
 
 static void
 hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) {
-    struct hwd_xwayland_view *xwayland_view =
-        wl_container_of(listener, xwayland_view, xsurface_map);
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_map);
 
-    struct hwd_view *view = &xwayland_view->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct hwd_view *view = &self->view;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
 
     view->natural_width = xsurface->width;
     view->natural_height = xsurface->height;
 
     // Wire up the commit listener here, because xwayland map/unmap can change
     // the underlying wlr_surface
-    wl_signal_add(&xsurface->surface->events.commit, &xwayland_view->xsurface_commit);
-    xwayland_view->xsurface_commit.notify = hwd_xwayland_view_handle_xsurface_commit;
+    wl_signal_add(&xsurface->surface->events.commit, &self->xsurface_commit);
+    self->xsurface_commit.notify = hwd_xwayland_view_handle_xsurface_commit;
 
     // Put it back into the tree
     view_map(view, xsurface->surface, xsurface->fullscreen, NULL);
 
-    window_set_title(view->window, view->wlr_xwayland_surface->title);
+    window_set_title(view->window, self->wlr_xwayland_surface->title);
 
-    xwayland_view->surface_scene =
+    self->surface_scene =
         wlr_scene_subsurface_tree_create(view->layers.content_tree, xsurface->surface);
     root_commit_focus(root);
 }
@@ -576,8 +553,7 @@ static void
 hwd_xwayland_view_handle_xsurface_associate(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_associate);
 
-    struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
 
     wl_signal_add(&xsurface->surface->events.map, &self->xsurface_map);
     self->xsurface_map.notify = hwd_xwayland_view_handle_xsurface_map;
@@ -600,7 +576,7 @@ hwd_xwayland_view_handle_xsurface_request_configure(struct wl_listener *listener
     struct wlr_xwayland_surface_configure_event *ev = data;
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL || !xsurface->surface->mapped) {
         wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width, ev->height);
         return;
@@ -619,7 +595,7 @@ hwd_xwayland_view_handle_xsurface_request_fullscreen(struct wl_listener *listene
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_fullscreen);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
     }
@@ -641,7 +617,7 @@ hwd_xwayland_view_handle_xsurface_request_minimize(struct wl_listener *listener,
     struct wlr_xwayland_minimize_event *e = data;
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
     }
@@ -658,7 +634,7 @@ hwd_xwayland_view_handle_xsurface_request_move(struct wl_listener *listener, voi
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_move);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
     }
@@ -678,7 +654,7 @@ hwd_xwayland_view_handle_xsurface_request_resize(struct wl_listener *listener, v
     struct wlr_xwayland_resize_event *e = data;
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
     }
@@ -697,7 +673,7 @@ hwd_xwayland_view_handle_xsurface_request_activate(struct wl_listener *listener,
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_activate);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
     }
@@ -720,7 +696,7 @@ hwd_xwayland_view_handle_xsurface_set_title(struct wl_listener *listener, void *
         return;
     }
 
-    window_set_title(window, view->wlr_xwayland_surface->title);
+    window_set_title(window, self->wlr_xwayland_surface->title);
 }
 
 static void
@@ -743,7 +719,7 @@ hwd_xwayland_view_handle_xsurface_set_hints(struct wl_listener *listener, void *
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_hints);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xwayland_surface *xsurface = view->wlr_xwayland_surface;
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
     }
@@ -778,7 +754,7 @@ create_xwayland_view(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface 
     assert(self);
 
     view_init(&self->view, HWD_VIEW_XWAYLAND, &view_impl);
-    self->view.wlr_xwayland_surface = xsurface;
+    self->wlr_xwayland_surface = xsurface;
     self->xwayland = xwayland;
 
     wl_signal_add(&xsurface->events.destroy, &self->xsurface_destroy);

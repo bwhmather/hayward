@@ -47,6 +47,8 @@ struct hwd_xwayland_view {
 
     struct hwd_xwayland *xwayland;
 
+    struct wlr_xwayland_surface *wlr_xwayland_surface;
+
     int configured_x;
     int configured_y;
     int configured_width;

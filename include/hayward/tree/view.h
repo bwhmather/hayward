@@ -13,7 +13,6 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
-#include <wlr/xwayland/xwayland.h>
 
 #include <hayward/config.h>
 
@@ -74,12 +73,6 @@ struct hwd_view {
     struct wlr_box geometry;
 
     bool destroying;
-
-    union {
-#if HAVE_XWAYLAND
-        struct wlr_xwayland_surface *wlr_xwayland_surface;
-#endif
-    };
 
     struct {
         struct wl_signal unmap;
