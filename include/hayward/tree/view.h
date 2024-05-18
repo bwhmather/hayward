@@ -12,7 +12,6 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 #include <wlr/xwayland/xwayland.h>
 
@@ -77,7 +76,6 @@ struct hwd_view {
     bool destroying;
 
     union {
-        struct wlr_xdg_toplevel *wlr_xdg_toplevel;
 #if HAVE_XWAYLAND
         struct wlr_xwayland_surface *wlr_xwayland_surface;
 #endif

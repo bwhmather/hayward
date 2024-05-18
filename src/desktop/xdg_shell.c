@@ -141,7 +141,10 @@ get_constraints(
     struct hwd_view *view, double *min_width, double *max_width, double *min_height,
     double *max_height
 ) {
-    struct wlr_xdg_toplevel_state *state = &view->wlr_xdg_toplevel->current;
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
+    struct wlr_xdg_toplevel_state *state = &self->wlr_xdg_toplevel->current;
+
     *min_width = state->min_width > 0 ? state->min_width : DBL_MIN;
     *max_width = state->max_width > 0 ? state->max_width : DBL_MAX;
     *min_height = state->min_height > 0 ? state->min_height : DBL_MIN;
@@ -150,8 +153,9 @@ get_constraints(
 
 static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
     struct hwd_window *window = view->window;
-    struct hwd_xdg_shell_view *self = (struct hwd_xdg_shell_view *)view;
 
     if (!view_is_visible(view)) {
         return;
@@ -163,51 +167,50 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     self->configured_width = width;
     self->configured_height = height;
 
-    self->configure_serial = wlr_xdg_toplevel_set_size(view->wlr_xdg_toplevel, width, height);
+    self->configure_serial = wlr_xdg_toplevel_set_size(self->wlr_xdg_toplevel, width, height);
 
     window_begin_configure(window);
 }
 
 static void
 set_activated(struct hwd_view *view, bool activated) {
-    if (xdg_shell_view_from_view(view) == NULL) {
-        return;
-    }
-    wlr_xdg_toplevel_set_activated(view->wlr_xdg_toplevel, activated);
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
+    wlr_xdg_toplevel_set_activated(self->wlr_xdg_toplevel, activated);
 }
 
 static void
 set_tiled(struct hwd_view *view, bool tiled) {
-    if (xdg_shell_view_from_view(view) == NULL) {
-        return;
-    }
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
     enum wlr_edges edges = WLR_EDGE_NONE;
     if (tiled) {
         edges = WLR_EDGE_LEFT | WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
     }
-    wlr_xdg_toplevel_set_tiled(view->wlr_xdg_toplevel, edges);
+    wlr_xdg_toplevel_set_tiled(self->wlr_xdg_toplevel, edges);
 }
 
 static void
 set_fullscreen(struct hwd_view *view, bool fullscreen) {
-    if (xdg_shell_view_from_view(view) == NULL) {
-        return;
-    }
-    wlr_xdg_toplevel_set_fullscreen(view->wlr_xdg_toplevel, fullscreen);
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
+    wlr_xdg_toplevel_set_fullscreen(self->wlr_xdg_toplevel, fullscreen);
 }
 
 static void
 set_resizing(struct hwd_view *view, bool resizing) {
-    if (xdg_shell_view_from_view(view) == NULL) {
-        return;
-    }
-    wlr_xdg_toplevel_set_resizing(view->wlr_xdg_toplevel, resizing);
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
+    wlr_xdg_toplevel_set_resizing(self->wlr_xdg_toplevel, resizing);
 }
 
 static bool
 wants_floating(struct hwd_view *view) {
-    struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
+    struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
     struct wlr_xdg_toplevel_state *state = &toplevel->current;
+
     if (state->max_width != 0) {
         return true;
     }
@@ -222,12 +225,11 @@ wants_floating(struct hwd_view *view) {
 
 static bool
 is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
-    if (xdg_shell_view_from_view(child) == NULL) {
-        return false;
-    }
-    struct wlr_xdg_toplevel *toplevel = child->wlr_xdg_toplevel;
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(child);
+
+    struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
     while (toplevel) {
-        if (toplevel->parent == ancestor->wlr_xdg_toplevel) {
+        if (toplevel->parent == xdg_shell_view_from_view(ancestor)->wlr_xdg_toplevel) {
             return true;
         }
         toplevel = toplevel->parent;
@@ -237,27 +239,25 @@ is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
 
 static void
 _close(struct hwd_view *view) {
-    if (xdg_shell_view_from_view(view) == NULL) {
-        return;
-    }
-    wlr_xdg_toplevel_send_close(view->wlr_xdg_toplevel);
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
+    wlr_xdg_toplevel_send_close(self->wlr_xdg_toplevel);
 }
 
 static void
 close_popups(struct hwd_view *view) {
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+
     struct wlr_xdg_popup *popup, *tmp;
-    wl_list_for_each_safe(popup, tmp, &view->wlr_xdg_toplevel->base->popups, link) {
+    wl_list_for_each_safe(popup, tmp, &self->wlr_xdg_toplevel->base->popups, link) {
         wlr_xdg_popup_destroy(popup);
     }
 }
 
 static void
 destroy(struct hwd_view *view) {
-    struct hwd_xdg_shell_view *xdg_shell_view = xdg_shell_view_from_view(view);
-    if (xdg_shell_view == NULL) {
-        return;
-    }
-    free(xdg_shell_view);
+    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+    free(self);
 }
 
 static const struct hwd_view_impl view_impl = {
@@ -299,7 +299,7 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_surface_commit);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xdg_surface *xdg_surface = view->wlr_xdg_toplevel->base;
+    struct wlr_xdg_surface *xdg_surface = self->wlr_xdg_toplevel->base;
 
     if (xdg_surface->initial_commit) {
         wlr_xdg_surface_schedule_configure(xdg_surface);
@@ -348,7 +348,7 @@ hwd_xdg_shell_view_handle_wlr_toplevel_set_title(struct wl_listener *listener, v
         return;
     }
 
-    window_set_title(window, view->wlr_xdg_toplevel->title);
+    window_set_title(window, self->wlr_xdg_toplevel->title);
 }
 
 static void
@@ -372,7 +372,7 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_fullscreen(
     struct hwd_xdg_shell_view *self =
         wl_container_of(listener, self, wlr_toplevel_request_fullscreen);
 
-    struct wlr_xdg_toplevel *toplevel = self->view.wlr_xdg_toplevel;
+    struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
     struct hwd_view *view = &self->view;
 
     if (!toplevel->base->surface->mapped) {
@@ -456,7 +456,7 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, xdg_surface_map);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xdg_toplevel *toplevel = view->wlr_xdg_toplevel;
+    struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
 
     view->natural_width = toplevel->base->current.geometry.width;
     view->natural_height = toplevel->base->current.geometry.height;
@@ -505,7 +505,7 @@ hwd_xdg_shell_view_handle_xdg_surface_destroy(struct wl_listener *listener, void
     wl_list_remove(&self->xdg_surface_destroy.link);
     wl_list_remove(&self->xdg_surface_map.link);
     wl_list_remove(&self->xdg_surface_unmap.link);
-    view->wlr_xdg_toplevel = NULL;
+    self->wlr_xdg_toplevel = NULL;
     view_begin_destroy(view);
 }
 
@@ -533,7 +533,7 @@ hwd_xdg_shell_handle_new_toplevel(struct wl_listener *listener, void *data) {
     xdg_shell_view->xdg_shell = self;
 
     view_init(&xdg_shell_view->view, HWD_VIEW_XDG_SHELL, &view_impl);
-    xdg_shell_view->view.wlr_xdg_toplevel = xdg_toplevel;
+    xdg_shell_view->wlr_xdg_toplevel = xdg_toplevel;
 
     xdg_shell_view->xdg_surface_map.notify = hwd_xdg_shell_view_handle_xdg_surface_map;
     wl_signal_add(&xdg_surface->surface->events.map, &xdg_shell_view->xdg_surface_map);

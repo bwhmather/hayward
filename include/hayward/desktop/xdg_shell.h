@@ -21,6 +21,8 @@ struct hwd_xdg_shell_view {
 
     struct hwd_xdg_shell *xdg_shell;
 
+    struct wlr_xdg_toplevel *wlr_xdg_toplevel;
+
     int configured_width;
     int configured_height;
 
