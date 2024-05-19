@@ -30,10 +30,12 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
+#include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 #define HWD_XDG_SHELL_VERSION 5
 
@@ -439,8 +441,31 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
 
     assert(view->surface);
 
-    view_unmap(view);
+    wl_signal_emit(&view->events.unmap, view);
+
+    if (view->urgent_timer) {
+        wl_event_source_remove(view->urgent_timer);
+        view->urgent_timer = NULL;
+    }
+
+    struct hwd_column *parent = view->window->parent;
+    struct hwd_workspace *workspace = view->window->workspace;
+    window_begin_destroy(view->window);
+    if (parent) {
+        column_consider_destroy(parent);
+    }
+    if (workspace) {
+        workspace_consider_destroy(workspace);
+    }
+
+    if (workspace && !workspace->dead) {
+        workspace_set_dirty(workspace);
+        workspace_detect_urgent(workspace);
+    }
+
     root_commit_focus(root);
+
+    view->surface = NULL;
 
     wl_list_remove(&self->wlr_surface_commit.link);
     wl_list_remove(&self->xdg_surface_new_popup.link);
@@ -451,12 +476,41 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
     wl_list_remove(&self->wlr_toplevel_set_app_id.link);
 }
 
+static bool
+should_focus(struct hwd_view *view) {
+    struct hwd_workspace *active_workspace = root_get_active_workspace(root);
+    struct hwd_workspace *map_workspace = view->window->workspace;
+    struct hwd_output *map_output = window_get_output(view->window);
+
+    // Views cannot be focused if not mapped.
+    if (map_workspace == NULL) {
+        return false;
+    }
+
+    // Views can only take focus if they are mapped into the active workspace.
+    if (map_workspace != active_workspace) {
+        return false;
+    }
+
+    // View opened "under" fullscreen view should not be given focus.
+    if (map_output != NULL) {
+        struct hwd_window *fullscreen_window =
+            workspace_get_fullscreen_window_for_output(map_workspace, map_output);
+        if (fullscreen_window != NULL && fullscreen_window != view->window) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 static void
 hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, xdg_surface_map);
 
     struct hwd_view *view = &self->view;
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
+    struct wlr_surface *wlr_surface = toplevel->base->surface;
 
     view->natural_width = toplevel->base->current.geometry.width;
     view->natural_height = toplevel->base->current.geometry.height;
@@ -465,10 +519,55 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
         view->natural_height = toplevel->base->surface->current.height;
     }
 
-    view_map(
-        view, toplevel->base->surface, toplevel->requested.fullscreen,
-        toplevel->requested.fullscreen_output
-    );
+    assert(view->surface == NULL);
+    view->surface = wlr_surface;
+    view->window = window_create(root, view);
+
+    // If there is a request to be opened fullscreen on a specific output, try
+    // to honor that request. Otherwise, fallback to assigns, pid mappings,
+    // focused workspace, etc
+    struct hwd_workspace *workspace = root_get_active_workspace(root);
+    assert(workspace != NULL);
+
+    struct hwd_output *output = root_get_active_output(root);
+    if (toplevel->requested.fullscreen_output && toplevel->requested.fullscreen_output->data) {
+        output = toplevel->requested.fullscreen_output->data;
+    }
+    assert(output != NULL);
+
+    if (view->impl->wants_floating && view->impl->wants_floating(view)) {
+        workspace_add_floating(workspace, view->window);
+        window_floating_set_default_size(view->window);
+        window_floating_resize_and_center(view->window);
+
+    } else {
+        struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
+        if (target_sibling) {
+            column_add_sibling(target_sibling, view->window, 1);
+        } else {
+            struct hwd_column *column = column_create();
+            workspace_insert_column_first(workspace, output, column);
+            column_add_child(column, view->window);
+        }
+
+        if (target_sibling) {
+            column_set_dirty(view->window->parent);
+        } else {
+            workspace_set_dirty(workspace);
+        }
+    }
+
+    if (toplevel->requested.fullscreen) {
+        // Fullscreen windows still have to have a place as regular
+        // tiling or floating windows, so this does not make the
+        // previous logic unnecessary.
+        window_fullscreen_on_output(view->window, output);
+    }
+
+    if (should_focus(view)) {
+        root_set_focused_window(root, view->window);
+    }
+
     root_commit_focus(root);
 
     self->wlr_surface_commit.notify = xdg_shell_view_handle_wlr_surface_commit;

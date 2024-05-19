@@ -31,10 +31,12 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_move.h>
 #include <hayward/input/seatop_resize_floating.h>
+#include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
+#include <hayward/tree/workspace.h>
 
 static const char *atom_map[ATOM_LAST] = {
     [NET_WM_WINDOW_TYPE_NORMAL] = "_NET_WM_WINDOW_TYPE_NORMAL",
@@ -460,8 +462,9 @@ hwd_xwayland_view_handle_destroy(struct wl_listener *listener, void *data) {
 
     struct hwd_view *view = &self->view;
 
+    assert(view->surface == NULL);
     if (view->surface) {
-        view_unmap(view);
+        //        view_unmap(view);
         wl_list_remove(&self->xsurface_commit.link);
     }
 
@@ -493,10 +496,67 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
 
     assert(view->surface);
 
-    view_unmap(view);
+    wl_signal_emit(&view->events.unmap, view);
+
+    if (view->urgent_timer) {
+        wl_event_source_remove(view->urgent_timer);
+        view->urgent_timer = NULL;
+    }
+
+    struct hwd_column *parent = view->window->parent;
+    struct hwd_workspace *workspace = view->window->workspace;
+    window_begin_destroy(view->window);
+    if (parent) {
+        column_consider_destroy(parent);
+    }
+    if (workspace) {
+        workspace_consider_destroy(workspace);
+    }
+
+    if (workspace && !workspace->dead) {
+        workspace_set_dirty(workspace);
+        workspace_detect_urgent(workspace);
+    }
+
     root_commit_focus(root);
 
+    view->surface = NULL;
+
     wl_list_remove(&self->xsurface_commit.link);
+}
+
+static bool
+should_focus(struct hwd_xwayland_view *self) {
+    struct hwd_view *view = &self->view;
+    struct hwd_workspace *active_workspace = root_get_active_workspace(root);
+    struct hwd_workspace *map_workspace = view->window->workspace;
+    struct hwd_output *map_output = window_get_output(view->window);
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
+
+    // Views cannot be focused if not mapped.
+    if (map_workspace == NULL) {
+        return false;
+    }
+
+    // Views can only take focus if they are mapped into the active workspace.
+    if (map_workspace != active_workspace) {
+        return false;
+    }
+
+    // View opened "under" fullscreen view should not be given focus.
+    if (map_output != NULL) {
+        struct hwd_window *fullscreen_window =
+            workspace_get_fullscreen_window_for_output(map_workspace, map_output);
+        if (fullscreen_window != NULL && fullscreen_window != view->window) {
+            return false;
+        }
+    }
+
+    if (wlr_xwayland_icccm_input_model(xsurface) == WLR_ICCCM_INPUT_MODEL_NONE) {
+        return false;
+    }
+
+    return true;
 }
 
 static void
@@ -514,8 +574,48 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     wl_signal_add(&xsurface->surface->events.commit, &self->xsurface_commit);
     self->xsurface_commit.notify = hwd_xwayland_view_handle_xsurface_commit;
 
-    // Put it back into the tree
-    view_map(view, xsurface->surface, xsurface->fullscreen, NULL);
+    assert(view->surface == NULL);
+    view->surface = xsurface->surface;
+    view->window = window_create(root, view);
+
+    struct hwd_workspace *workspace = root_get_active_workspace(root);
+    assert(workspace != NULL);
+
+    struct hwd_output *output = root_get_active_output(root);
+    assert(output != NULL);
+
+    if (view->impl->wants_floating && view->impl->wants_floating(view)) {
+        workspace_add_floating(workspace, view->window);
+        window_floating_set_default_size(view->window);
+        window_floating_resize_and_center(view->window);
+
+    } else {
+        struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
+        if (target_sibling) {
+            column_add_sibling(target_sibling, view->window, 1);
+        } else {
+            struct hwd_column *column = column_create();
+            workspace_insert_column_first(workspace, output, column);
+            column_add_child(column, view->window);
+        }
+
+        if (target_sibling) {
+            column_set_dirty(view->window->parent);
+        } else {
+            workspace_set_dirty(workspace);
+        }
+    }
+
+    if (xsurface->fullscreen) {
+        // Fullscreen windows still have to have a place as regular
+        // tiling or floating windows, so this does not make the
+        // previous logic unnecessary.
+        window_fullscreen_on_output(view->window, output);
+    }
+
+    if (should_focus(self)) {
+        root_set_focused_window(root, view->window);
+    }
 
     window_set_title(view->window, self->wlr_xwayland_surface->title);
 

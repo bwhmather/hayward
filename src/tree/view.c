@@ -17,8 +17,6 @@
 
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
-#include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_pointer_constraints_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
@@ -30,10 +28,6 @@
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
 #include <hayward/globals/root.h>
-#include <hayward/input/cursor.h>
-#include <hayward/input/input_manager.h>
-#include <hayward/input/seat.h>
-#include <hayward/server.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
@@ -156,134 +150,6 @@ view_close_popups(struct hwd_view *view) {
     if (view->impl->close_popups) {
         view->impl->close_popups(view);
     }
-}
-
-static bool
-should_focus(struct hwd_view *view) {
-    struct hwd_workspace *active_workspace = root_get_active_workspace(root);
-    struct hwd_workspace *map_workspace = view->window->workspace;
-    struct hwd_output *map_output = window_get_output(view->window);
-
-    // Views cannot be focused if not mapped.
-    if (map_workspace == NULL) {
-        return false;
-    }
-
-    // Views can only take focus if they are mapped into the active workspace.
-    if (map_workspace != active_workspace) {
-        return false;
-    }
-
-    // View opened "under" fullscreen view should not be given focus.
-    if (map_output != NULL) {
-        struct hwd_window *fullscreen_window =
-            workspace_get_fullscreen_window_for_output(map_workspace, map_output);
-        if (fullscreen_window != NULL && fullscreen_window != view->window) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void
-view_map(
-    struct hwd_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
-    struct wlr_output *fullscreen_output
-) {
-    assert(view->surface == NULL);
-    view->surface = wlr_surface;
-    view->window = window_create(root, view);
-
-    // If there is a request to be opened fullscreen on a specific output, try
-    // to honor that request. Otherwise, fallback to assigns, pid mappings,
-    // focused workspace, etc
-    struct hwd_workspace *workspace = root_get_active_workspace(root);
-    assert(workspace != NULL);
-
-    struct hwd_output *output = root_get_active_output(root);
-    if (fullscreen_output && fullscreen_output->data) {
-        output = fullscreen_output->data;
-    }
-    assert(output != NULL);
-
-    if (view->impl->wants_floating && view->impl->wants_floating(view)) {
-        workspace_add_floating(workspace, view->window);
-        window_floating_set_default_size(view->window);
-        window_floating_resize_and_center(view->window);
-
-    } else {
-        struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
-        if (target_sibling) {
-            column_add_sibling(target_sibling, view->window, 1);
-        } else {
-            struct hwd_column *column = column_create();
-            workspace_insert_column_first(workspace, output, column);
-            column_add_child(column, view->window);
-        }
-
-        if (target_sibling) {
-            column_set_dirty(view->window->parent);
-        } else {
-            workspace_set_dirty(workspace);
-        }
-    }
-
-    if (fullscreen) {
-        // Fullscreen windows still have to have a place as regular
-        // tiling or floating windows, so this does not make the
-        // previous logic unnecessary.
-        window_fullscreen_on_output(view->window, output);
-    }
-
-    bool set_focus = should_focus(view);
-
-#if HAVE_XWAYLAND
-    struct wlr_xwayland_surface *xsurface = wlr_xwayland_surface_try_from_wlr_surface(wlr_surface);
-    if (xsurface != NULL) {
-        set_focus &= wlr_xwayland_icccm_input_model(xsurface) != WLR_ICCCM_INPUT_MODEL_NONE;
-    }
-#endif
-
-    if (set_focus) {
-        root_set_focused_window(root, view->window);
-    }
-}
-
-void
-view_unmap(struct hwd_view *view) {
-    wl_signal_emit(&view->events.unmap, view);
-
-    if (view->urgent_timer) {
-        wl_event_source_remove(view->urgent_timer);
-        view->urgent_timer = NULL;
-    }
-
-    struct hwd_column *parent = view->window->parent;
-    struct hwd_workspace *workspace = view->window->workspace;
-    window_begin_destroy(view->window);
-    if (parent) {
-        column_consider_destroy(parent);
-    } else if (workspace) {
-        workspace_consider_destroy(workspace);
-    }
-
-    if (workspace && !workspace->dead) {
-        workspace_set_dirty(workspace);
-        workspace_detect_urgent(workspace);
-    }
-
-    struct hwd_seat *seat;
-    wl_list_for_each(seat, &server.input->seats, link) {
-        if (seat->cursor->active_constraint) {
-            struct wlr_surface *constrain_surface = seat->cursor->active_constraint->surface;
-            if (view_from_wlr_surface(constrain_surface) == view) {
-                hwd_cursor_constrain(seat->cursor, NULL);
-            }
-        }
-    }
-
-    view->surface = NULL;
 }
 
 void

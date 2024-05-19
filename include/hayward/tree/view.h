@@ -9,7 +9,6 @@
 #include <wayland-server-core.h>
 
 #include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
@@ -115,21 +114,6 @@ view_close(struct hwd_view *view);
 
 void
 view_close_popups(struct hwd_view *view);
-
-/**
- * Map a view, ie. make it visible in the tree.
- *
- * `fullscreen` should be set to true (and optionally `fullscreen_output`
- * should be populated) if the view should be made fullscreen immediately.
- */
-void
-view_map(
-    struct hwd_view *view, struct wlr_surface *wlr_surface, bool fullscreen,
-    struct wlr_output *fullscreen_output
-);
-
-void
-view_unmap(struct hwd_view *view);
 
 void
 view_update_size(struct hwd_view *view);
