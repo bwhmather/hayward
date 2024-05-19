@@ -301,8 +301,7 @@ set_fullscreen(struct hwd_view *view, bool fullscreen) {
 }
 
 static bool
-wants_floating(struct hwd_view *view) {
-    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+wants_floating(struct hwd_xwayland_view *self) {
     struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
     struct hwd_xwayland *xwayland = self->xwayland;
 
@@ -383,7 +382,6 @@ static const struct hwd_view_impl view_impl = {
     .set_activated = set_activated,
     .set_tiled = set_tiled,
     .set_fullscreen = set_fullscreen,
-    .wants_floating = wants_floating,
     .is_transient_for = is_transient_for,
     .close = _close,
     .destroy = destroy,
@@ -584,7 +582,7 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     struct hwd_output *output = root_get_active_output(root);
     assert(output != NULL);
 
-    if (view->impl->wants_floating && view->impl->wants_floating(view)) {
+    if (wants_floating(self)) {
         workspace_add_floating(workspace, view->window);
         window_floating_set_default_size(view->window);
         window_floating_resize_and_center(view->window);

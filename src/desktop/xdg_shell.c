@@ -207,9 +207,7 @@ set_resizing(struct hwd_view *view, bool resizing) {
 }
 
 static bool
-wants_floating(struct hwd_view *view) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
-
+wants_floating(struct hwd_xdg_shell_view *self) {
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
     struct wlr_xdg_toplevel_state *state = &toplevel->current;
 
@@ -269,7 +267,6 @@ static const struct hwd_view_impl view_impl = {
     .set_tiled = set_tiled,
     .set_fullscreen = set_fullscreen,
     .set_resizing = set_resizing,
-    .wants_floating = wants_floating,
     .is_transient_for = is_transient_for,
     .close = _close,
     .close_popups = close_popups,
@@ -535,7 +532,7 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
     }
     assert(output != NULL);
 
-    if (view->impl->wants_floating && view->impl->wants_floating(view)) {
+    if (wants_floating(self)) {
         workspace_add_floating(workspace, view->window);
         window_floating_set_default_size(view->window);
         window_floating_resize_and_center(view->window);

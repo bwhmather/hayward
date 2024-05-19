@@ -34,7 +34,6 @@ struct hwd_view_impl {
     void (*set_tiled)(struct hwd_view *view, bool tiled);
     void (*set_fullscreen)(struct hwd_view *view, bool fullscreen);
     void (*set_resizing)(struct hwd_view *view, bool resizing);
-    bool (*wants_floating)(struct hwd_view *view);
     bool (*is_transient_for)(struct hwd_view *child, struct hwd_view *ancestor);
     void (*close)(struct hwd_view *view);
     void (*close_popups)(struct hwd_view *view);
