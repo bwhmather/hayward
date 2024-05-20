@@ -178,6 +178,15 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
         dirty = true;
     }
 
+    bool fullscreen = window_is_fullscreen(window);
+    if (fullscreen != self->configured_is_fullscreen) {
+        self->configured_is_fullscreen = fullscreen;
+
+        wlr_xdg_toplevel_set_fullscreen(self->wlr_xdg_toplevel, fullscreen);
+
+        dirty = true;
+    }
+
     if (self->configured_width != width || self->configured_height != height) {
         self->configured_width = width;
         self->configured_height = height;
@@ -198,13 +207,6 @@ set_activated(struct hwd_view *view, bool activated) {
     struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
 
     wlr_xdg_toplevel_set_activated(self->wlr_xdg_toplevel, activated);
-}
-
-static void
-set_fullscreen(struct hwd_view *view, bool fullscreen) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
-
-    wlr_xdg_toplevel_set_fullscreen(self->wlr_xdg_toplevel, fullscreen);
 }
 
 static void
@@ -272,7 +274,6 @@ static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
     .configure = configure,
     .set_activated = set_activated,
-    .set_fullscreen = set_fullscreen,
     .set_resizing = set_resizing,
     .is_transient_for = is_transient_for,
     .close = _close,

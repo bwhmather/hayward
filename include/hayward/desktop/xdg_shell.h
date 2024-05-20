@@ -25,7 +25,7 @@ struct hwd_xdg_shell_view {
     struct wlr_xdg_toplevel *wlr_xdg_toplevel;
 
     bool configured_is_tiled;
-
+    bool configured_is_fullscreen;
     int configured_width;
     int configured_height;
 

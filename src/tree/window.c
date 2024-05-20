@@ -258,12 +258,6 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
     wl_signal_add(&transaction_manager->events.apply, &window->transaction_apply);
 
-    if (window->pending.fullscreen != window->committed.fullscreen) {
-        if (window->view->impl->set_fullscreen) {
-            window->view->impl->set_fullscreen(window->view, window->pending.fullscreen);
-        }
-    }
-
     wl_signal_emit_mutable(&window->events.commit, window);
 
     view_configure(

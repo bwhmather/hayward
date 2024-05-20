@@ -31,7 +31,6 @@ struct hwd_view_impl {
     );
     void (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);
     void (*set_activated)(struct hwd_view *view, bool activated);
-    void (*set_fullscreen)(struct hwd_view *view, bool fullscreen);
     void (*set_resizing)(struct hwd_view *view, bool resizing);
     bool (*is_transient_for)(struct hwd_view *child, struct hwd_view *ancestor);
     void (*close)(struct hwd_view *view);

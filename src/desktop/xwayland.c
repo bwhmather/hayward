@@ -268,6 +268,15 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
         dirty = true;
     }
 
+    bool fullscreen = window_is_fullscreen(window);
+    if (fullscreen != self->configured_is_fullscreen) {
+        self->configured_is_fullscreen = fullscreen;
+
+        wlr_xwayland_surface_set_fullscreen(xsurface, fullscreen);
+
+        dirty = true;
+    }
+
     if (self->configured_x != (int)lx || self->configured_y != (int)ly ||
         self->configured_width != width || self->configured_height != height) {
         self->configured_x = lx;
@@ -297,13 +306,6 @@ set_activated(struct hwd_view *view, bool activated) {
 
     wlr_xwayland_surface_activate(surface, activated);
     wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
-}
-
-static void
-set_fullscreen(struct hwd_view *view, bool fullscreen) {
-    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
-    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
-    wlr_xwayland_surface_set_fullscreen(surface, fullscreen);
 }
 
 static bool
@@ -386,7 +388,6 @@ static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
     .configure = configure,
     .set_activated = set_activated,
-    .set_fullscreen = set_fullscreen,
     .is_transient_for = is_transient_for,
     .close = _close,
     .destroy = destroy,
