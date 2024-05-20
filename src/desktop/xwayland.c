@@ -620,7 +620,11 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
         root_set_focused_window(root, view->window);
     }
 
-    window_set_title(view->window, self->wlr_xwayland_surface->title);
+    char const *title = self->wlr_xwayland_surface->title;
+    if (title == NULL) {
+        title = "";
+    }
+    window_set_title(view->window, title);
 
     self->surface_scene =
         wlr_scene_subsurface_tree_create(view->layers.content_tree, xsurface->surface);
