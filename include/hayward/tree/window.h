@@ -108,6 +108,10 @@ struct hwd_window {
     double floating_x, floating_y;
     double floating_width, floating_height;
 
+    double natural_width, natural_height;
+    double minimum_width, minimum_height;
+    double maximum_width, maximum_height;
+
     bool fullscreen;
 
     // If true, the window has been plucked from the normal plane of existence
@@ -210,6 +214,15 @@ window_end_mouse_operation(struct hwd_window *window);
 
 void
 window_set_title(struct hwd_window *window, const char *title);
+
+void
+window_set_natural_size(struct hwd_window *window, double width, double height);
+
+void
+window_set_minimum_size(struct hwd_window *window, double min_width, double min_height);
+
+void
+window_set_maximum_size(struct hwd_window *window, double max_width, double max_height);
 
 bool
 window_is_floating(struct hwd_window *window);

@@ -306,7 +306,12 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_surface_commit);
 
     struct hwd_view *view = &self->view;
-    struct wlr_xdg_surface *xdg_surface = self->wlr_xdg_toplevel->base;
+    struct hwd_window *window = view->window;
+    struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
+    struct wlr_xdg_surface *xdg_surface = toplevel->base;
+
+    window_set_minimum_size(window, toplevel->current.min_width, toplevel->current.min_height);
+    window_set_maximum_size(window, toplevel->current.max_width, toplevel->current.max_height);
 
     if (xdg_surface->initial_commit) {
         wlr_xdg_surface_schedule_configure(xdg_surface);
@@ -517,13 +522,6 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
     struct wlr_surface *wlr_surface = toplevel->base->surface;
 
-    view->natural_width = toplevel->base->current.geometry.width;
-    view->natural_height = toplevel->base->current.geometry.height;
-    if (!view->natural_width && !view->natural_height) {
-        view->natural_width = toplevel->base->surface->current.width;
-        view->natural_height = toplevel->base->surface->current.height;
-    }
-
     assert(view->surface == NULL);
     view->surface = wlr_surface;
     view->window = window_create(root, view);
@@ -539,6 +537,14 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
         output = toplevel->requested.fullscreen_output->data;
     }
     assert(output != NULL);
+
+    double natural_width = toplevel->base->current.geometry.width;
+    double natural_height = toplevel->base->current.geometry.height;
+    if (!natural_width && !natural_height) {
+        natural_width = toplevel->base->surface->current.width;
+        natural_height = toplevel->base->surface->current.height;
+    }
+    window_set_natural_size(view->window, natural_width, natural_height);
 
     if (wants_floating(self)) {
         workspace_add_floating(workspace, view->window);

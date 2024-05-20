@@ -23,7 +23,6 @@
 #include <hayward/input/seat.h>
 #include <hayward/input/seatop_default.h>
 #include <hayward/input/seatop_resize_floating.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 struct seatop_resize_floating_event {
@@ -95,20 +94,6 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
     height = fmin(height, max_height - border_height);
     height = fmax(height, min_height + border_height);
     height = fmax(height, 1);
-
-    // Apply the view's min/max size
-    if (window->view) {
-        double view_min_width, view_max_width, view_min_height, view_max_height;
-        view_get_constraints(
-            window->view, &view_min_width, &view_max_width, &view_min_height, &view_max_height
-        );
-        width = fmin(width, view_max_width - border_width);
-        width = fmax(width, view_min_width + border_width);
-        width = fmax(width, 1);
-        height = fmin(height, view_max_height - border_height);
-        height = fmax(height, view_min_height + border_height);
-        height = fmax(height, 1);
-    }
 
     // Recalculate these, in case we hit a min/max limit
     grow_width = width - e->ref_width;

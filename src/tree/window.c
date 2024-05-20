@@ -645,6 +645,51 @@ window_set_title(struct hwd_window *window, const char *title) {
     window_set_dirty(window);
 }
 
+void
+window_set_natural_size(struct hwd_window *window, double width, double height) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+
+    if (window->natural_width != width) {
+        window->natural_width = width;
+        window_set_dirty(window);
+    }
+    if (window->natural_height != height) {
+        window->natural_height = height;
+        window_set_dirty(window);
+    }
+}
+
+void
+window_set_minimum_size(struct hwd_window *window, double min_width, double min_height) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+
+    if (window->minimum_width != min_width) {
+        window->minimum_width = min_width;
+        window_set_dirty(window);
+    }
+    if (window->minimum_height != min_height) {
+        window->minimum_height = min_height;
+        window_set_dirty(window);
+    }
+}
+
+void
+window_set_maximum_size(struct hwd_window *window, double max_width, double max_height) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+
+    if (window->maximum_width != max_width) {
+        window->maximum_width = max_width;
+        window_set_dirty(window);
+    }
+    if (window->maximum_height != max_height) {
+        window->maximum_height = max_height;
+        window_set_dirty(window);
+    }
+}
+
 bool
 window_is_floating(struct hwd_window *window) {
     assert(window != NULL);
@@ -765,6 +810,9 @@ floating_calculate_constraints(
     } else {
         *min_width = config->floating_minimum_width;
     }
+    if (window->minimum_width != 0) {
+        *min_width = fmax(*min_width, window->minimum_width);
+    }
 
     if (config->floating_minimum_height == -1) { // no minimum
         *min_height = 0;
@@ -772,6 +820,9 @@ floating_calculate_constraints(
         *min_height = 50;
     } else {
         *min_height = config->floating_minimum_height;
+    }
+    if (window->minimum_height != 0) {
+        *min_height = fmax(*min_height, window->minimum_height);
     }
 
     struct wlr_box box;
@@ -784,6 +835,9 @@ floating_calculate_constraints(
     } else {
         *max_width = config->floating_maximum_width;
     }
+    if (window->maximum_width != 0) {
+        *max_width = fmin(*max_width, window->maximum_width);
+    }
 
     if (config->floating_maximum_height == -1) { // no maximum
         *max_height = INT_MAX;
@@ -792,6 +846,9 @@ floating_calculate_constraints(
     } else {
         *max_height = config->floating_maximum_height;
     }
+    if (window->maximum_height != 0) {
+        *max_height = fmin(*max_height, window->maximum_height);
+    }
 }
 
 static void
@@ -799,8 +856,8 @@ floating_natural_resize(struct hwd_window *window) {
     int min_width, max_width, min_height, max_height;
     floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
 
-    window->floating_width = fmax(min_width, fmin(window->view->natural_width, max_width));
-    window->floating_height = fmax(min_height, fmin(window->view->natural_height, max_height));
+    window->floating_width = fmax(min_width, fmin(window->natural_width, max_width));
+    window->floating_height = fmax(min_height, fmin(window->natural_height, max_height));
     window_set_geometry_from_content(window);
 }
 

@@ -51,10 +51,6 @@ struct hwd_view {
     struct hwd_window *window;   // NULL if unmapped and transactions finished
     struct wlr_surface *surface; // NULL for unmapped views
 
-    // The size the view would want to be if it weren't tiled.
-    // Used when changing a view from tiled to floating.
-    int natural_width, natural_height;
-
     bool using_csd;
 
     struct timespec urgent;
@@ -84,12 +80,6 @@ view_destroy(struct hwd_view *view);
 
 void
 view_begin_destroy(struct hwd_view *view);
-
-void
-view_get_constraints(
-    struct hwd_view *view, double *min_width, double *max_width, double *min_height,
-    double *max_height
-);
 
 void
 view_configure(struct hwd_view *view, double lx, double ly, int width, int height);

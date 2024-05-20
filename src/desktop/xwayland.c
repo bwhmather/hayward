@@ -570,9 +570,6 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
 
-    view->natural_width = xsurface->width;
-    view->natural_height = xsurface->height;
-
     // Wire up the commit listener here, because xwayland map/unmap can change
     // the underlying wlr_surface
     wl_signal_add(&xsurface->surface->events.commit, &self->xsurface_commit);
@@ -587,6 +584,8 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
 
     struct hwd_output *output = root_get_active_output(root);
     assert(output != NULL);
+
+    window_set_natural_size(view->window, xsurface->width, xsurface->height);
 
     if (wants_floating(self)) {
         workspace_add_floating(workspace, view->window);
@@ -683,8 +682,7 @@ hwd_xwayland_view_handle_xsurface_request_configure(struct wl_listener *listener
     }
     if (window_is_floating(view->window)) {
         // Respect minimum and maximum sizes
-        view->natural_width = ev->width;
-        view->natural_height = ev->height;
+        window_set_natural_size(view->window, ev->width, ev->height);
         window_floating_resize_and_center(view->window);
     }
     window_set_dirty(view->window);
