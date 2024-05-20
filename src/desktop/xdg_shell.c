@@ -163,15 +163,34 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
         return;
     }
 
-    if (self->configured_width == width && self->configured_height == height) {
-        return;
+    bool dirty = false;
+
+    bool tiled = window_is_tiling(window);
+    if (tiled != self->configured_is_tiled) {
+        self->configured_is_tiled = tiled;
+
+        enum wlr_edges edges = WLR_EDGE_NONE;
+        if (window_is_tiling(window)) {
+            edges = WLR_EDGE_LEFT | WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
+        }
+        wlr_xdg_toplevel_set_tiled(self->wlr_xdg_toplevel, edges);
+
+        dirty = true;
     }
-    self->configured_width = width;
-    self->configured_height = height;
 
-    self->configure_serial = wlr_xdg_toplevel_set_size(self->wlr_xdg_toplevel, width, height);
+    if (self->configured_width != width || self->configured_height != height) {
+        self->configured_width = width;
+        self->configured_height = height;
 
-    window_begin_configure(window);
+        wlr_xdg_toplevel_set_size(self->wlr_xdg_toplevel, width, height);
+
+        dirty = true;
+    }
+
+    if (dirty) {
+        self->configure_serial = wlr_xdg_surface_schedule_configure(self->wlr_xdg_toplevel->base);
+        window_begin_configure(window);
+    }
 }
 
 static void
@@ -179,17 +198,6 @@ set_activated(struct hwd_view *view, bool activated) {
     struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
 
     wlr_xdg_toplevel_set_activated(self->wlr_xdg_toplevel, activated);
-}
-
-static void
-set_tiled(struct hwd_view *view, bool tiled) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
-
-    enum wlr_edges edges = WLR_EDGE_NONE;
-    if (tiled) {
-        edges = WLR_EDGE_LEFT | WLR_EDGE_RIGHT | WLR_EDGE_TOP | WLR_EDGE_BOTTOM;
-    }
-    wlr_xdg_toplevel_set_tiled(self->wlr_xdg_toplevel, edges);
 }
 
 static void
@@ -264,7 +272,6 @@ static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
     .configure = configure,
     .set_activated = set_activated,
-    .set_tiled = set_tiled,
     .set_fullscreen = set_fullscreen,
     .set_resizing = set_resizing,
     .is_transient_for = is_transient_for,

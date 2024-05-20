@@ -49,6 +49,7 @@ struct hwd_xwayland_view {
 
     struct wlr_xwayland_surface *wlr_xwayland_surface;
 
+    bool configured_is_tiled;
     int configured_x;
     int configured_y;
     int configured_width;

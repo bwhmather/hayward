@@ -250,27 +250,40 @@ hwd_xwayland_view_from_view(struct hwd_view *view) {
 static void
 configure(struct hwd_view *view, double lx, double ly, int width, int height) {
     struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
+    struct hwd_window *window = view->window;
 
     if (!view_is_visible(view)) {
         return;
     }
 
-    if (self->configured_x == (int)lx && self->configured_y == (int)ly &&
-        self->configured_width == width && self->configured_height == height) {
-        return;
+    bool dirty = false;
+
+    bool tiled = window_is_tiling(window);
+    if (tiled != self->configured_is_tiled) {
+        self->configured_is_tiled = tiled;
+
+        wlr_xwayland_surface_set_maximized(xsurface, tiled);
+
+        dirty = true;
     }
 
-    self->configured_x = lx;
-    self->configured_y = ly;
-    self->configured_width = width;
-    self->configured_height = height;
+    if (self->configured_x != (int)lx || self->configured_y != (int)ly ||
+        self->configured_width != width || self->configured_height != height) {
+        self->configured_x = lx;
+        self->configured_y = ly;
+        self->configured_width = width;
+        self->configured_height = height;
 
-    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
+        wlr_xwayland_surface_configure(xsurface, lx, ly, width, height);
 
-    wlr_xwayland_surface_configure(xsurface, lx, ly, width, height);
-    window_begin_configure(view->window);
+        dirty = true;
+    }
 
-    view_send_frame_done(view);
+    if (dirty) {
+        window_begin_configure(view->window);
+        view_send_frame_done(view);
+    }
 }
 
 static void
@@ -284,13 +297,6 @@ set_activated(struct hwd_view *view, bool activated) {
 
     wlr_xwayland_surface_activate(surface, activated);
     wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
-}
-
-static void
-set_tiled(struct hwd_view *view, bool tiled) {
-    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
-    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
-    wlr_xwayland_surface_set_maximized(surface, tiled);
 }
 
 static void
@@ -380,7 +386,6 @@ static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
     .configure = configure,
     .set_activated = set_activated,
-    .set_tiled = set_tiled,
     .set_fullscreen = set_fullscreen,
     .is_transient_for = is_transient_for,
     .close = _close,

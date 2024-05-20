@@ -1,6 +1,7 @@
 #ifndef HWD_DESKTOP_XDG_SHELL_H
 #define HWD_DESKTOP_XDG_SHELL_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <wayland-server-core.h>
@@ -22,6 +23,8 @@ struct hwd_xdg_shell_view {
     struct hwd_xdg_shell *xdg_shell;
 
     struct wlr_xdg_toplevel *wlr_xdg_toplevel;
+
+    bool configured_is_tiled;
 
     int configured_width;
     int configured_height;

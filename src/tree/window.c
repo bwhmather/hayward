@@ -449,8 +449,6 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     window->workspace = workspace;
     window->parent = NULL;
 
-    view_set_tiled(window->view, false);
-
     window_set_dirty(window);
 }
 
@@ -468,8 +466,6 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     list_clear(window->output_history);
     list_add(window->output_history, column->output);
     window->output = column->output;
-
-    view_set_tiled(window->view, true);
 
     window_set_dirty(window);
 }

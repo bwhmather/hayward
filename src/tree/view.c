@@ -132,13 +132,6 @@ view_request_activate(struct hwd_view *view) {
 }
 
 void
-view_set_tiled(struct hwd_view *view, bool tiled) {
-    if (view->impl->set_tiled) {
-        view->impl->set_tiled(view, tiled);
-    }
-}
-
-void
 view_close(struct hwd_view *view) {
     if (view->impl->close) {
         view->impl->close(view);

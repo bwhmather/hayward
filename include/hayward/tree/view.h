@@ -31,7 +31,6 @@ struct hwd_view_impl {
     );
     void (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);
     void (*set_activated)(struct hwd_view *view, bool activated);
-    void (*set_tiled)(struct hwd_view *view, bool tiled);
     void (*set_fullscreen)(struct hwd_view *view, bool fullscreen);
     void (*set_resizing)(struct hwd_view *view, bool resizing);
     bool (*is_transient_for)(struct hwd_view *child, struct hwd_view *ancestor);
@@ -104,9 +103,6 @@ view_set_activated(struct hwd_view *view, bool activated);
  */
 void
 view_request_activate(struct hwd_view *view);
-
-void
-view_set_tiled(struct hwd_view *view, bool tiled);
 
 void
 view_close(struct hwd_view *view);
