@@ -883,7 +883,7 @@ check_constraint_region(struct hwd_cursor *cursor) {
         }
     }
 
-    // A locked pointer will result in an empty region, thus disallowindowg all
+    // A locked pointer will result in an empty region, thus disallowing all
     // movement
     if (constraint->type == WLR_POINTER_CONSTRAINT_V1_CONFINED) {
         pixman_region32_copy(&cursor->confine, region);

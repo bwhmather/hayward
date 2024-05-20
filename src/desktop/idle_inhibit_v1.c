@@ -11,10 +11,13 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 
+#include <hayward/desktop/xdg_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/server.h>
 #include <hayward/tree/root.h>
@@ -68,9 +71,27 @@ static bool
 hwd_idle_inhibit_v1_is_active(struct hwd_idle_inhibitor_v1 *inhibitor) {
     switch (inhibitor->mode) {
     case INHIBIT_IDLE_APPLICATION:;
-        // If there is no view associated with the inhibitor, assume visible
-        struct hwd_view *view = view_from_wlr_surface(inhibitor->wlr_inhibitor->surface);
-        return !view || !view->window || view_is_visible(view);
+        struct wlr_surface *wlr_surface = inhibitor->wlr_inhibitor->surface;
+
+        struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(wlr_surface);
+        if (xdg_surface == NULL) {
+            return false;
+        }
+
+        struct hwd_view *view = view_from_wlr_xdg_surface(xdg_surface);
+        if (view == NULL) {
+            return false;
+        }
+
+        if (view->window == NULL) {
+            return false;
+        }
+
+        if (!view_is_visible(view)) {
+            return false;
+        }
+
+        return true;
     case INHIBIT_IDLE_FOCUS:;
         struct hwd_window *window = root_get_focused_window(root);
         if (window && window->view == inhibitor->view) {
