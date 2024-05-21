@@ -647,6 +647,8 @@ column_remove_child(struct hwd_column *column, struct hwd_window *window) {
     }
 
     window_reconcile_detached(window);
+
+    column_set_dirty(column);
 }
 
 void
