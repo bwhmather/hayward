@@ -50,8 +50,6 @@ struct hwd_view {
     struct hwd_window *window;   // NULL if unmapped and transactions finished
     struct wlr_surface *surface; // NULL for unmapped views
 
-    bool using_csd;
-
     struct timespec urgent;
     bool allow_request_urgent;
     struct wl_event_source *urgent_timer;
