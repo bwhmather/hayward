@@ -24,6 +24,10 @@ struct hwd_xdg_shell_view {
 
     struct wlr_xdg_toplevel *wlr_xdg_toplevel;
 
+    // Set to true if toplevel has received a request that the protocol requires
+    // a response to.
+    bool force_reconfigure;
+
     bool configured_is_tiled;
     bool configured_is_fullscreen;
     int configured_width;

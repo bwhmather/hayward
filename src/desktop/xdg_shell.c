@@ -165,6 +165,11 @@ hwd_xdg_shell_view_handle_window_commit(struct wl_listener *listener, void *data
 
     bool dirty = false;
 
+    if (self->force_reconfigure) {
+        self->force_reconfigure = false;
+        dirty = true;
+    }
+
     bool tiled = window_is_tiling(window);
     if (tiled != self->configured_is_tiled) {
         self->configured_is_tiled = tiled;
@@ -407,6 +412,10 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_fullscreen(
     } else if (window_is_fullscreen(window)) {
         window_unfullscreen(window);
     }
+
+    // Protocol demands that we force a reconfigure, even if nothing has changed..
+    self->force_reconfigure = true;
+    window_set_dirty(window);
 }
 
 static void
