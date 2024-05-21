@@ -57,7 +57,6 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
     }
 
     inhibitor->manager = manager;
-    inhibitor->mode = INHIBIT_IDLE_APPLICATION;
     inhibitor->wlr_inhibitor = wlr_inhibitor;
     wl_list_insert(&manager->inhibitors, &inhibitor->link);
 
@@ -69,45 +68,27 @@ handle_idle_inhibitor_v1(struct wl_listener *listener, void *data) {
 
 static bool
 hwd_idle_inhibit_v1_is_active(struct hwd_idle_inhibitor_v1 *inhibitor) {
-    switch (inhibitor->mode) {
-    case INHIBIT_IDLE_APPLICATION:;
-        struct wlr_surface *wlr_surface = inhibitor->wlr_inhibitor->surface;
+    struct wlr_surface *wlr_surface = inhibitor->wlr_inhibitor->surface;
 
-        struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(wlr_surface);
-        if (xdg_surface == NULL) {
-            return false;
-        }
-
-        struct hwd_view *view = view_from_wlr_xdg_surface(xdg_surface);
-        if (view == NULL) {
-            return false;
-        }
-
-        if (view->window == NULL) {
-            return false;
-        }
-
-        if (!view_is_visible(view)) {
-            return false;
-        }
-
-        return true;
-    case INHIBIT_IDLE_FOCUS:;
-        struct hwd_window *window = root_get_focused_window(root);
-        if (window && window->view == inhibitor->view) {
-            return true;
-        }
+    struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(wlr_surface);
+    if (xdg_surface == NULL) {
         return false;
-    case INHIBIT_IDLE_FULLSCREEN:
-        return inhibitor->view->window && window_is_fullscreen(inhibitor->view->window) &&
-            view_is_visible(inhibitor->view);
-    case INHIBIT_IDLE_OPEN:
-        // Inhibitor is destroyed on unmap so it must be open/mapped
-        return true;
-    case INHIBIT_IDLE_VISIBLE:
-        return view_is_visible(inhibitor->view);
     }
-    return false;
+
+    struct hwd_view *view = view_from_wlr_xdg_surface(xdg_surface);
+    if (view == NULL) {
+        return false;
+    }
+
+    if (view->window == NULL) {
+        return false;
+    }
+
+    if (!view_is_visible(view)) {
+        return false;
+    }
+
+    return true;
 }
 
 void
