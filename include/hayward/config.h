@@ -195,12 +195,6 @@ enum seat_config_allow_constrain {
     CONSTRAIN_DISABLE,
 };
 
-enum seat_config_shortcuts_inhibit {
-    SHORTCUTS_INHIBIT_DEFAULT, // the default is currently enabled
-    SHORTCUTS_INHIBIT_ENABLE,
-    SHORTCUTS_INHIBIT_DISABLE,
-};
-
 enum seat_keyboard_grouping {
     KEYBOARD_GROUP_DEFAULT, // the default is currently smart
     KEYBOARD_GROUP_NONE,
@@ -226,7 +220,6 @@ struct seat_config {
     int hide_cursor_timeout;
     enum seat_config_hide_cursor_when_typing hide_cursor_when_typing;
     enum seat_config_allow_constrain allow_constrain;
-    enum seat_config_shortcuts_inhibit shortcuts_inhibit;
     enum seat_keyboard_grouping keyboard_grouping;
     uint32_t idle_inhibit_sources, idle_wake_sources;
     struct {

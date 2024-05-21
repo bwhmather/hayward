@@ -65,8 +65,6 @@ struct hwd_view {
     } events;
 
     int max_render_time; // In milliseconds
-
-    enum seat_config_shortcuts_inhibit shortcuts_inhibit;
 };
 
 void

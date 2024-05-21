@@ -44,7 +44,6 @@ view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_
     view->type = type;
     view->impl = impl;
     view->allow_request_urgent = true;
-    view->shortcuts_inhibit = SHORTCUTS_INHIBIT_DEFAULT;
     wl_signal_init(&view->events.unmap);
 }
 

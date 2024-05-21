@@ -333,39 +333,6 @@ handle_keyboard_shortcuts_inhibit_new_inhibitor(struct wl_listener *listener, vo
     struct hwd_seat *seat = inhibitor->seat->data;
     wl_list_insert(&seat->keyboard_shortcuts_inhibitors, &hwd_inhibitor->link);
 
-    // per-view, seat-agnostic config via criteria
-    struct hwd_view *view = view_from_wlr_surface(inhibitor->surface);
-    enum seat_config_shortcuts_inhibit inhibit = SHORTCUTS_INHIBIT_DEFAULT;
-    if (view) {
-        inhibit = view->shortcuts_inhibit;
-    }
-
-    if (inhibit == SHORTCUTS_INHIBIT_DEFAULT) {
-        struct seat_config *config = seat_get_config(seat);
-        if (!config) {
-            config = seat_get_config_by_name("*");
-        }
-
-        if (config) {
-            inhibit = config->shortcuts_inhibit;
-        }
-    }
-
-    if (inhibit == SHORTCUTS_INHIBIT_DISABLE) {
-        /**
-         * Here we deny to honour the inhibitor by never sending the
-         * activate signal. We can not, however, destroy the inhibitor
-         * because the protocol doesn't allow for it. So it will linger
-         * until the client removes it im- or explicitly. But at least
-         * it can only be one inhibitor per surface and seat at a time.
-         *
-         * We also want to allow the user to activate the inhibitor
-         * manually later which is why we do this check here where the
-         * inhibitor is already attached to its seat and ready for use.
-         */
-        return;
-    }
-
     wlr_keyboard_shortcuts_inhibitor_v1_activate(inhibitor);
 }
 
