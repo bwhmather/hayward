@@ -248,8 +248,9 @@ hwd_xwayland_view_from_view(struct hwd_view *view) {
 }
 
 static void
-configure(struct hwd_view *view, double lx, double ly, int width, int height) {
-    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data) {
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, window_commit);
+    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     struct hwd_window *window = view->window;
 
@@ -277,14 +278,18 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
         dirty = true;
     }
 
-    if (self->configured_x != (int)lx || self->configured_y != (int)ly ||
-        self->configured_width != width || self->configured_height != height) {
-        self->configured_x = lx;
-        self->configured_y = ly;
+    int x = (int)window->pending.x;
+    int y = (int)window->pending.y;
+    int width = (int)window->pending.width;
+    int height = (int)window->pending.height;
+    if (x != self->configured_x || y != self->configured_y || width != self->configured_width ||
+        height != self->configured_height) {
+        self->configured_x = x;
+        self->configured_y = y;
         self->configured_width = width;
         self->configured_height = height;
 
-        wlr_xwayland_surface_configure(xsurface, lx, ly, width, height);
+        wlr_xwayland_surface_configure(xsurface, x, y, width, height);
 
         dirty = true;
     }
@@ -386,7 +391,6 @@ get_constraints(
 
 static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
-    .configure = configure,
     .set_activated = set_activated,
     .is_transient_for = is_transient_for,
     .close = _close,
@@ -527,6 +531,7 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
     view->surface = NULL;
 
     wl_list_remove(&self->xsurface_commit.link);
+    wl_list_remove(&self->window_commit.link);
 }
 
 static bool
@@ -578,6 +583,9 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     assert(view->surface == NULL);
     view->surface = xsurface->surface;
     view->window = window_create(root, view);
+
+    self->window_commit.notify = hwd_xwayland_view_handle_window_commit;
+    wl_signal_add(&view->window->events.commit, &self->window_commit);
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
     assert(workspace != NULL);

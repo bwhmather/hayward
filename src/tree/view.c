@@ -81,11 +81,6 @@ view_begin_destroy(struct hwd_view *view) {
 }
 
 void
-view_configure(struct hwd_view *view, double lx, double ly, int width, int height) {
-    view->impl->configure(view, lx, ly, width, height);
-}
-
-void
 view_set_activated(struct hwd_view *view, bool activated) {
     if (view->impl->set_activated) {
         view->impl->set_activated(view, activated);

@@ -154,9 +154,9 @@ get_constraints(
 }
 
 static void
-configure(struct hwd_view *view, double lx, double ly, int width, int height) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
-
+hwd_xdg_shell_view_handle_window_commit(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, window_commit);
+    struct hwd_view *view = &self->view;
     struct hwd_window *window = view->window;
 
     if (!view_is_visible(view)) {
@@ -187,7 +187,9 @@ configure(struct hwd_view *view, double lx, double ly, int width, int height) {
         dirty = true;
     }
 
-    if (self->configured_width != width || self->configured_height != height) {
+    double width = window->pending.width;
+    double height = window->pending.height;
+    if (width != self->configured_width || height != self->configured_height) {
         self->configured_width = width;
         self->configured_height = height;
 
@@ -272,7 +274,6 @@ destroy(struct hwd_view *view) {
 
 static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
-    .configure = configure,
     .set_activated = set_activated,
     .set_resizing = set_resizing,
     .is_transient_for = is_transient_for,
@@ -477,6 +478,7 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
 
     view->surface = NULL;
 
+    wl_list_remove(&self->window_commit.link);
     wl_list_remove(&self->wlr_surface_commit.link);
     wl_list_remove(&self->xdg_surface_new_popup.link);
     wl_list_remove(&self->wlr_toplevel_request_fullscreen.link);
@@ -537,6 +539,9 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
         output = toplevel->requested.fullscreen_output->data;
     }
     assert(output != NULL);
+
+    self->window_commit.notify = hwd_xdg_shell_view_handle_window_commit;
+    wl_signal_add(&view->window->events.commit, &self->window_commit);
 
     double natural_width = toplevel->base->current.geometry.width;
     double natural_height = toplevel->base->current.geometry.height;

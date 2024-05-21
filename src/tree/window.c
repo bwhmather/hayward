@@ -260,11 +260,6 @@ window_handle_transaction_commit(struct wl_listener *listener, void *data) {
 
     wl_signal_emit_mutable(&window->events.commit, window);
 
-    view_configure(
-        window->view, window->pending.content_x, window->pending.content_y,
-        window->pending.content_width, window->pending.content_height
-    );
-
     memcpy(&window->committed, &window->pending, sizeof(struct hwd_window_state));
 }
 

@@ -76,6 +76,7 @@ struct hwd_xwayland_view {
     struct wl_listener xsurface_dissociate;
     struct wl_listener xsurface_destroy;
     struct wl_listener xsurface_override_redirect;
+    struct wl_listener window_commit;
 };
 
 struct hwd_xwayland_unmanaged {

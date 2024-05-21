@@ -29,7 +29,6 @@ struct hwd_view_impl {
         struct hwd_view *view, double *min_width, double *max_width, double *min_height,
         double *max_height
     );
-    void (*configure)(struct hwd_view *view, double lx, double ly, int width, int height);
     void (*set_activated)(struct hwd_view *view, bool activated);
     void (*set_resizing)(struct hwd_view *view, bool resizing);
     bool (*is_transient_for)(struct hwd_view *child, struct hwd_view *ancestor);
@@ -80,9 +79,6 @@ view_destroy(struct hwd_view *view);
 
 void
 view_begin_destroy(struct hwd_view *view);
-
-void
-view_configure(struct hwd_view *view, double lx, double ly, int width, int height);
 
 void
 view_set_activated(struct hwd_view *view, bool activated);
