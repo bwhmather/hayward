@@ -126,7 +126,6 @@ hwd_cmd cmd_reload;
 hwd_cmd cmd_resize;
 hwd_cmd cmd_seat;
 hwd_cmd cmd_set;
-hwd_cmd cmd_shortcuts_inhibitor;
 hwd_cmd cmd_tiling_drag_threshold;
 hwd_cmd cmd_unbindcode;
 hwd_cmd cmd_unbindswitch;
@@ -174,7 +173,6 @@ hwd_cmd seat_cmd_idle_inhibit;
 hwd_cmd seat_cmd_idle_wake;
 hwd_cmd seat_cmd_keyboard_grouping;
 hwd_cmd seat_cmd_pointer_constraint;
-hwd_cmd seat_cmd_shortcuts_inhibitor;
 hwd_cmd seat_cmd_xcursor_theme;
 
 #endif

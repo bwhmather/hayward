@@ -91,18 +91,17 @@ static const struct cmd_handler config_handlers[] = {
 
 /* Runtime-only commands. Keep alphabetized */
 static const struct cmd_handler command_handlers[] = {
-    {"exit", cmd_exit},
-    {"floating", cmd_floating},
-    {"fullscreen", cmd_fullscreen},
-    {"kill", cmd_kill},
-    {"layout", cmd_layout},
+    {"exit", cmd_exit},             //
+    {"floating", cmd_floating},     //
+    {"fullscreen", cmd_fullscreen}, //
+    {"kill", cmd_kill},             //
+    {"layout", cmd_layout},         //
     {"max_render_time", cmd_max_render_time},
-    {"move", cmd_move},
-    {"nop", cmd_nop},
+    {"move", cmd_move}, //
+    {"nop", cmd_nop},   //
     {"reload", cmd_reload},
-    {"resize", cmd_resize},
-    {"shortcuts_inhibitor", cmd_shortcuts_inhibitor},
-    {"urgent", cmd_urgent},
+    {"resize", cmd_resize}, //
+    {"urgent", cmd_urgent}, //
 };
 
 static int
