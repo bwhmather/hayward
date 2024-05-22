@@ -17,8 +17,6 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/types/wlr_subcompositor.h>
-#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include <wlr/xwayland/xwayland.h>
@@ -153,20 +151,18 @@ view_center_surface(struct hwd_view *view) {
 
 struct hwd_view *
 view_from_wlr_surface(struct wlr_surface *wlr_surface) {
-    struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(wlr_surface);
-    if (xdg_surface != NULL) {
-        return view_from_wlr_xdg_surface(xdg_surface);
+    struct hwd_xdg_shell_view *xdg_view = hwd_xdg_shell_view_from_wlr_surface(wlr_surface);
+    if (xdg_view != NULL) {
+        return &xdg_view->view;
     }
+
 #if HAVE_XWAYLAND
     struct wlr_xwayland_surface *xsurface = wlr_xwayland_surface_try_from_wlr_surface(wlr_surface);
     if (xsurface != NULL) {
         return view_from_wlr_xwayland_surface(xsurface);
     }
 #endif
-    struct wlr_subsurface *subsurface = wlr_subsurface_try_from_wlr_surface(wlr_surface);
-    if (subsurface != NULL) {
-        return view_from_wlr_surface(subsurface->parent);
-    }
+
     if (wlr_layer_surface_v1_try_from_wlr_surface(wlr_surface)) {
         return NULL;
     }

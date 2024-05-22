@@ -6,6 +6,7 @@
 
 #include <wayland-server-core.h>
 
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
@@ -63,8 +64,8 @@ struct hwd_xdg_popup {
     struct wl_listener xdg_surface_destroy;
 };
 
-struct hwd_view *
-view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface);
+struct hwd_xdg_shell_view *
+hwd_xdg_shell_view_from_wlr_surface(struct wlr_surface *surface);
 
 struct hwd_xdg_shell *
 hwd_xdg_shell_create(struct wl_display *wl_display);

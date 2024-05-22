@@ -14,15 +14,11 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_idle_notify_v1.h>
-#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 
 #include <hayward/desktop/xdg_shell.h>
-#include <hayward/globals/root.h>
 #include <hayward/server.h>
-#include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
-#include <hayward/tree/window.h>
 
 static void
 handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
@@ -70,21 +66,16 @@ static bool
 hwd_idle_inhibit_v1_is_active(struct hwd_idle_inhibitor_v1 *inhibitor) {
     struct wlr_surface *wlr_surface = inhibitor->wlr_inhibitor->surface;
 
-    struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(wlr_surface);
-    if (xdg_surface == NULL) {
+    struct hwd_xdg_shell_view *xdg_view = hwd_xdg_shell_view_from_wlr_surface(wlr_surface);
+    if (xdg_view == NULL) {
         return false;
     }
 
-    struct hwd_view *view = view_from_wlr_xdg_surface(xdg_surface);
-    if (view == NULL) {
+    if (xdg_view->view.window == NULL) {
         return false;
     }
 
-    if (view->window == NULL) {
-        return false;
-    }
-
-    if (!view_is_visible(view)) {
+    if (!view_is_visible(&xdg_view->view)) {
         return false;
     }
 

@@ -19,6 +19,7 @@
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/box.h>
 #include <wlr/util/edges.h>
@@ -633,9 +634,19 @@ hwd_xdg_shell_view_handle_xdg_surface_destroy(struct wl_listener *listener, void
     view_begin_destroy(view);
 }
 
-struct hwd_view *
-view_from_wlr_xdg_surface(struct wlr_xdg_surface *xdg_surface) {
-    return xdg_surface->data;
+struct hwd_xdg_shell_view *
+hwd_xdg_shell_view_from_wlr_surface(struct wlr_surface *wlr_surface) {
+    struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(wlr_surface);
+    if (xdg_surface != NULL) {
+        return xdg_surface->data;
+    }
+
+    struct wlr_subsurface *subsurface = wlr_subsurface_try_from_wlr_surface(wlr_surface);
+    if (subsurface != NULL) {
+        return hwd_xdg_shell_view_from_wlr_surface(subsurface->parent);
+    }
+
+    return NULL;
 }
 
 static void

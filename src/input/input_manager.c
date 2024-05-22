@@ -37,7 +37,6 @@
 #include <hayward/list.h>
 #include <hayward/server.h>
 #include <hayward/stringop.h>
-#include <hayward/tree/view.h>
 
 #if WLR_HAS_LIBINPUT_BACKEND
 #include <wlr/backend/libinput.h>
