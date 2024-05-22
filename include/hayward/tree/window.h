@@ -230,6 +230,12 @@ window_set_maximum_size(struct hwd_window *window, double max_width, double max_
 void
 window_set_urgent(struct hwd_window *window, bool urgent);
 
+/**
+ * Called when the view requests to be focused.
+ */
+void
+window_request_activate(struct hwd_window *window);
+
 bool
 window_is_floating(struct hwd_window *window);
 

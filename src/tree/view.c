@@ -84,29 +84,6 @@ view_set_activated(struct hwd_view *view, bool activated) {
 }
 
 void
-view_request_activate(struct hwd_view *view) {
-    struct hwd_workspace *workspace = view->window->workspace;
-
-    switch (config->focus_on_window_activation) {
-    case FOWA_SMART:
-        if (workspace_is_visible(workspace)) {
-            root_set_focused_window(root, view->window);
-        } else {
-            window_set_urgent(view->window, true);
-        }
-        break;
-    case FOWA_URGENT:
-        window_set_urgent(view->window, true);
-        break;
-    case FOWA_FOCUS:
-        root_set_focused_window(root, view->window);
-        break;
-    case FOWA_NONE:
-        break;
-    }
-}
-
-void
 view_close(struct hwd_view *view) {
     if (view->impl->close) {
         view->impl->close(view);

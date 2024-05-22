@@ -74,12 +74,6 @@ view_begin_destroy(struct hwd_view *view);
 void
 view_set_activated(struct hwd_view *view, bool activated);
 
-/**
- * Called when the view requests to be focused.
- */
-void
-view_request_activate(struct hwd_view *view);
-
 void
 view_close(struct hwd_view *view);
 

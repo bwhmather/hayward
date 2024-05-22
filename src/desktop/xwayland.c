@@ -786,7 +786,7 @@ hwd_xwayland_view_handle_xsurface_request_activate(struct wl_listener *listener,
         return;
     }
 
-    view_request_activate(view);
+    window_request_activate(view->window);
     root_commit_focus(root);
 }
 

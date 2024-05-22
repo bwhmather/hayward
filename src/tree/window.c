@@ -711,6 +711,30 @@ window_set_urgent(struct hwd_window *window, bool urgent) {
     window->is_urgent = urgent;
 }
 
+void
+window_request_activate(struct hwd_window *window) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+
+    switch (config->focus_on_window_activation) {
+    case FOWA_SMART:
+        if (workspace_is_visible(window->workspace)) {
+            root_set_focused_window(window->root, window);
+        } else {
+            window_set_urgent(window, true);
+        }
+        break;
+    case FOWA_URGENT:
+        window_set_urgent(window, true);
+        break;
+    case FOWA_FOCUS:
+        root_set_focused_window(window->root, window);
+        break;
+    case FOWA_NONE:
+        break;
+    }
+}
+
 bool
 window_is_floating(struct hwd_window *window) {
     assert(window != NULL);

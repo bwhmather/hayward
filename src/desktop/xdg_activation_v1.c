@@ -13,28 +13,25 @@
 #include <wlr/types/wlr_xdg_activation_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
+#include <hayward/desktop/xdg_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 static void
 handle_request_activate(struct wl_listener *listener, void *data) {
     const struct wlr_xdg_activation_v1_request_activate_event *event = data;
 
-    struct wlr_xdg_surface *xdg_surface = wlr_xdg_surface_try_from_wlr_surface(event->surface);
-    if (xdg_surface == NULL) {
+    if (!event->surface->mapped) {
         return;
     }
 
-    struct hwd_view *view = xdg_surface->data;
-    if (!xdg_surface->surface->mapped) {
-        return;
-    }
-    if (view == NULL) {
+    struct hwd_xdg_shell_view *xdg_view = hwd_xdg_shell_view_from_wlr_surface(event->surface);
+    if (xdg_view == NULL) {
         return;
     }
 
-    view_request_activate(view);
+    window_request_activate(xdg_view->view.window);
     root_commit_focus(root);
 }
 
