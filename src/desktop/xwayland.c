@@ -506,11 +506,11 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
 
     wl_signal_emit(&view->events.unmap, view);
 
-    struct hwd_column *parent = view->window->parent;
+    struct hwd_column *column = view->window->column;
     struct hwd_workspace *workspace = view->window->workspace;
     window_begin_destroy(view->window);
-    if (parent) {
-        column_consider_destroy(parent);
+    if (column) {
+        column_consider_destroy(column);
     }
     if (workspace) {
         workspace_consider_destroy(workspace);
@@ -606,7 +606,7 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
         }
 
         if (target_sibling) {
-            column_set_dirty(view->window->parent);
+            column_set_dirty(view->window->column);
         } else {
             workspace_set_dirty(workspace);
         }

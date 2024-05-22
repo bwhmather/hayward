@@ -578,7 +578,7 @@ column_insert_child(struct hwd_column *column, struct hwd_window *window, int i)
     assert(window != NULL);
     assert(i >= 0 && i <= column->children->length);
 
-    assert(!window->workspace && !window->parent);
+    assert(!window->workspace && !window->column);
     if (column->children->length == 0) {
         column->active_child = window;
     }
@@ -593,9 +593,9 @@ void
 column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool after) {
     assert(fixed != NULL);
     assert(active != NULL);
-    assert(!active->workspace && !active->parent);
+    assert(!active->workspace && !active->column);
 
-    struct hwd_column *column = fixed->parent;
+    struct hwd_column *column = fixed->column;
     assert(column != NULL);
 
     list_t *siblings = column->children;
@@ -615,7 +615,7 @@ void
 column_add_child(struct hwd_column *column, struct hwd_window *window) {
     assert(column != NULL);
     assert(window != NULL);
-    assert(!window->workspace && !window->parent);
+    assert(!window->workspace && !window->column);
     if (column->children->length == 0) {
         column->active_child = window;
     }
@@ -630,7 +630,7 @@ void
 column_remove_child(struct hwd_column *column, struct hwd_window *window) {
     assert(column != NULL);
     assert(window != NULL);
-    assert(window->parent == column);
+    assert(window->column == column);
 
     int index = list_find(column->children, window);
     assert(index != -1);
@@ -655,7 +655,7 @@ void
 column_set_active_child(struct hwd_column *column, struct hwd_window *window) {
     assert(column != NULL);
     assert(window != NULL);
-    assert(window->parent == column);
+    assert(window->column == column);
 
     struct hwd_window *prev_active = column->active_child;
 

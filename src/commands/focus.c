@@ -105,7 +105,7 @@ window_get_in_direction_tiling(
 
     switch (dir) {
     case WLR_DIRECTION_UP: {
-        struct hwd_column *column = window->parent;
+        struct hwd_column *column = window->column;
 
         struct hwd_window *prev_sibling = window_get_previous_sibling(window);
         if (prev_sibling != NULL) {
@@ -125,7 +125,7 @@ window_get_in_direction_tiling(
         break;
     }
     case WLR_DIRECTION_DOWN: {
-        struct hwd_column *column = window->parent;
+        struct hwd_column *column = window->column;
 
         struct hwd_window *next_sibling = window_get_next_sibling(window);
         if (next_sibling != NULL) {
@@ -145,7 +145,7 @@ window_get_in_direction_tiling(
         break;
     }
     case WLR_DIRECTION_LEFT: {
-        struct hwd_column *column = window->parent;
+        struct hwd_column *column = window->column;
 
         struct hwd_column *next_column = workspace_get_column_before(workspace, column);
         if (next_column != NULL) {
@@ -164,7 +164,7 @@ window_get_in_direction_tiling(
         break;
     }
     case WLR_DIRECTION_RIGHT: {
-        struct hwd_column *column = window->parent;
+        struct hwd_column *column = window->column;
 
         struct hwd_column *next_column = workspace_get_column_after(workspace, column);
         if (next_column != NULL) {

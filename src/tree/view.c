@@ -165,7 +165,7 @@ view_is_visible(struct hwd_view *view) {
 
     // Check view isn't in a shaded window.
     struct hwd_window *window = view->window;
-    struct hwd_column *column = window->parent;
+    struct hwd_column *column = window->column;
     if (column != NULL && window->pending.shaded) {
         return false;
     }

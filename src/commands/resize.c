@@ -63,7 +63,7 @@ window_resize_tiled_horizontal(struct hwd_window *window, uint32_t axis, int amo
     }
 
     struct hwd_workspace *workspace = window->workspace;
-    struct hwd_column *column = window->parent;
+    struct hwd_column *column = window->column;
 
     struct hwd_column *prev_sibling = NULL;
     struct hwd_column *next_sibling = NULL;
@@ -120,7 +120,7 @@ window_resize_tiled_vertical(struct hwd_window *window, uint32_t axis, int amoun
         return;
     }
 
-    struct hwd_column *column = window->parent;
+    struct hwd_column *column = window->column;
     if (column->layout != L_SPLIT) {
         return;
     }
@@ -288,8 +288,8 @@ resize_set_tiled(
     if (width->amount) {
         if (width->unit == MOVEMENT_UNIT_PPT || width->unit == MOVEMENT_UNIT_DEFAULT) {
             // Convert to px
-            struct hwd_column *parent = window->parent;
-            width->amount = parent->pending.width * width->amount / 100;
+            struct hwd_column *column = window->column;
+            width->amount = column->pending.width * width->amount / 100;
             width->unit = MOVEMENT_UNIT_PX;
         }
         if (width->unit == MOVEMENT_UNIT_PX) {

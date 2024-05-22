@@ -112,11 +112,11 @@ do_detach(struct hwd_seat *seat) {
         double fdx = dx / window->pending.width;
         double fdy = dy / window->pending.height;
 
-        struct hwd_column *old_parent = window->parent;
+        struct hwd_column *old_column = window->column;
         window_detach(window);
         workspace_add_floating(workspace, window);
-        if (old_parent) {
-            column_consider_destroy(old_parent);
+        if (old_column) {
+            column_consider_destroy(old_column);
         }
 
         // TODO should use saved size if possible.

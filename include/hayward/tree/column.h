@@ -119,19 +119,19 @@ struct hwd_window *
 column_get_last_child(struct hwd_column *column);
 
 void
-column_insert_child(struct hwd_column *parent, struct hwd_window *child, int i);
+column_insert_child(struct hwd_column *column, struct hwd_window *child, int i);
 
 /**
  * Side should be 0 to add before, or 1 to add after.
  */
 void
-column_add_sibling(struct hwd_window *parent, struct hwd_window *child, bool after);
+column_add_sibling(struct hwd_window *fixed, struct hwd_window *active, bool after);
 
 void
-column_add_child(struct hwd_column *parent, struct hwd_window *child);
+column_add_child(struct hwd_column *column, struct hwd_window *child);
 
 void
-column_remove_child(struct hwd_column *parent, struct hwd_window *child);
+column_remove_child(struct hwd_column *column, struct hwd_window *child);
 
 void
 column_set_active_child(struct hwd_column *column, struct hwd_window *window);

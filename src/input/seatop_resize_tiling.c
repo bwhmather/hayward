@@ -75,7 +75,7 @@ handle_button(
         if (e->v_container) {
             window_set_resizing(e->v_container, false);
             window_set_resizing(e->v_sib, false);
-            column_set_dirty(e->v_container->parent);
+            column_set_dirty(e->v_container->column);
         }
         seatop_begin_default(seat);
     }
@@ -118,7 +118,7 @@ handle_unref(struct hwd_seat *seat, struct hwd_window *window) {
     if (e->window == window) {
         seatop_begin_default(seat);
     }
-    if (e->h_sib == window->parent || e->v_sib == window) {
+    if (e->h_sib == window->column || e->v_sib == window) {
         seatop_begin_default(seat);
     }
 }
@@ -147,7 +147,7 @@ seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enu
 
     if (edge & WLR_EDGE_LEFT) {
         e->edge_x = WLR_EDGE_LEFT;
-        e->h_container = e->window->parent;
+        e->h_container = e->window->column;
         e->h_sib = workspace_get_column_before(workspace, e->h_container);
 
         if (e->h_sib) {
@@ -157,7 +157,7 @@ seatop_begin_resize_tiling(struct hwd_seat *seat, struct hwd_window *window, enu
         }
     } else if (edge & WLR_EDGE_RIGHT) {
         e->edge_x = WLR_EDGE_RIGHT;
-        e->h_container = e->window->parent;
+        e->h_container = e->window->column;
         e->h_sib = workspace_get_column_after(workspace, e->h_container);
 
         if (e->h_sib) {

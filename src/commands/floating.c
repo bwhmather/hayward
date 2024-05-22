@@ -41,13 +41,13 @@ cmd_floating(int argc, char **argv) {
     window_end_mouse_operation(window);
 
     if (parse_boolean(argv[0], window_is_floating(window))) {
-        struct hwd_column *old_parent = window->parent;
+        struct hwd_column *old_column = window->column;
         window_detach(window);
         workspace_add_floating(workspace, window);
         window_floating_set_default_size(window);
         window_floating_resize_and_center(window);
-        if (old_parent) {
-            column_consider_destroy(old_parent);
+        if (old_column) {
+            column_consider_destroy(old_column);
         }
     } else {
         window_detach(window);

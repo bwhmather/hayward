@@ -610,7 +610,7 @@ void
 workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *window) {
     assert(workspace != NULL);
     assert(window != NULL);
-    assert(window->parent == NULL);
+    assert(window->column == NULL);
     assert(window->workspace == NULL);
 
     struct hwd_window *prev_active_floating = workspace_get_active_floating_window(workspace);
@@ -638,7 +638,7 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
     assert(workspace != NULL);
     assert(window != NULL);
     assert(window->workspace == workspace);
-    assert(window->parent == NULL);
+    assert(window->column == NULL);
 
     int index = list_find(workspace->floating, window);
     assert(index != -1);
@@ -651,7 +651,7 @@ workspace_remove_floating(struct hwd_workspace *workspace, struct hwd_window *wi
 
         struct hwd_window *next_active = workspace_get_active_tiling_window(workspace);
         if (next_active != NULL) {
-            window_reconcile_tiling(next_active, next_active->parent);
+            window_reconcile_tiling(next_active, next_active->column);
         }
     } else {
         // Focus next floating window.
@@ -920,7 +920,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
     } else {
         assert(window->workspace == workspace);
 
-        struct hwd_column *new_column = window->parent;
+        struct hwd_column *new_column = window->column;
         assert(new_column->workspace == workspace);
 
         column_set_active_child(new_column, window);
@@ -938,7 +938,7 @@ workspace_set_active_window(struct hwd_workspace *workspace, struct hwd_window *
         if (window_is_floating(prev_active)) {
             window_reconcile_floating(prev_active, workspace);
         } else {
-            window_reconcile_tiling(prev_active, prev_active->parent);
+            window_reconcile_tiling(prev_active, prev_active->column);
         }
     }
 

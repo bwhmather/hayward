@@ -42,7 +42,7 @@ cmd_layout(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "Unable to change the layout of floating windows");
     }
 
-    struct hwd_column *column = window->parent;
+    struct hwd_column *column = window->column;
     if (!column) {
         return cmd_results_new(CMD_FAILURE, "Window is not a member of a column");
     }

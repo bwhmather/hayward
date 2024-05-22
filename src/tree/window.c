@@ -387,7 +387,7 @@ window_set_dirty(struct hwd_window *window) {
 
 void
 window_detach(struct hwd_window *window) {
-    struct hwd_column *column = window->parent;
+    struct hwd_column *column = window->column;
     struct hwd_workspace *workspace = window->workspace;
 
     if (workspace == NULL) {
@@ -427,7 +427,7 @@ window_get_theme(struct hwd_window *window) {
         return &window_type->focused;
     }
 
-    if (window->parent && window->parent->active_child == window) {
+    if (window->column && window->column->active_child == window) {
         return &window_type->active;
     }
 
@@ -441,7 +441,7 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     assert(workspace != NULL);
 
     window->workspace = workspace;
-    window->parent = NULL;
+    window->column = NULL;
 
     window_set_dirty(window);
 }
@@ -455,7 +455,7 @@ window_reconcile_tiling(struct hwd_window *window, struct hwd_column *column) {
     struct hwd_workspace *workspace = column->workspace;
 
     window->workspace = workspace;
-    window->parent = column;
+    window->column = column;
 
     list_clear(window->output_history);
     list_add(window->output_history, column->output);
@@ -469,7 +469,7 @@ window_reconcile_detached(struct hwd_window *window) {
     assert(window != NULL);
 
     window->workspace = NULL;
-    window->parent = NULL;
+    window->column = NULL;
 
     window_set_dirty(window);
 }
@@ -584,7 +584,7 @@ window_evacuate(struct hwd_window *window, struct hwd_output *old_output) {
     assert(new_output != NULL);
 
     // Select a column in the new output if tiling.
-    if (window->parent && !window->fullscreen) {
+    if (window->column && !window->fullscreen) {
         struct hwd_workspace *workspace = window->workspace;
 
         struct hwd_column *new_column = NULL;
@@ -743,7 +743,7 @@ window_is_floating(struct hwd_window *window) {
         return false;
     }
 
-    if (window->parent != NULL) {
+    if (window->column != NULL) {
         return false;
     }
 
@@ -757,7 +757,7 @@ window_is_fullscreen(struct hwd_window *window) {
 
 bool
 window_is_tiling(struct hwd_window *window) {
-    return window->parent != NULL;
+    return window->column != NULL;
 }
 
 void
@@ -787,8 +787,8 @@ window_fullscreen_on_output(struct hwd_window *window, struct hwd_output *output
     }
 
     workspace_set_dirty(window->workspace);
-    if (window->parent != NULL) {
-        column_set_dirty(window->parent);
+    if (window->column != NULL) {
+        column_set_dirty(window->column);
     }
 
     if (output != current_output) {
@@ -820,21 +820,21 @@ window_unfullscreen(struct hwd_window *window) {
         list_remove(output->fullscreen_windows, window);
     }
 
-    if (window->parent != NULL) {
-        if (window->parent->output != window_get_output(window)) {
-            list_remove(window->output_history, window->parent->output);
+    if (window->column != NULL) {
+        if (window->column->output != window_get_output(window)) {
+            list_remove(window->output_history, window->column->output);
             int current_output_index = list_find(window->output_history, window->output);
-            list_insert(window->output_history, current_output_index, window->parent->output);
-            window->output = window->parent->output;
+            list_insert(window->output_history, current_output_index, window->column->output);
+            window->output = window->column->output;
         }
 
-        if (!window->parent->output->enabled) {
+        if (!window->column->output->enabled) {
             // TODO pick better column.
         }
 
         // TODO set window as active in column if has focus.
 
-        column_set_dirty(window->parent);
+        column_set_dirty(window->column);
     } else {
         // TODO raise window if has focus.
 
@@ -1067,11 +1067,11 @@ window_raise_floating(struct hwd_window *window) {
 
 struct hwd_window *
 window_get_previous_sibling(struct hwd_window *window) {
-    if (!window->parent) {
+    if (!window->column) {
         return NULL;
     }
 
-    list_t *siblings = window->parent->children;
+    list_t *siblings = window->column->children;
     int index = list_find(siblings, window);
     assert(index != -1);
 
@@ -1086,11 +1086,11 @@ struct hwd_window *
 window_get_next_sibling(struct hwd_window *window) {
     assert(window != NULL);
 
-    if (!window->parent) {
+    if (!window->column) {
         return NULL;
     }
 
-    list_t *siblings = window->parent->children;
+    list_t *siblings = window->column->children;
     int index = list_find(siblings, window);
     assert(index != -1);
 

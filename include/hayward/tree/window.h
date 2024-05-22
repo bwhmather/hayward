@@ -81,7 +81,7 @@ struct hwd_window {
     // this output with a forward link to this window.  If the window is not
     // fullscreen then the column output will match the latest active output in
     // the window's history.
-    struct hwd_column *parent;
+    struct hwd_column *column;
 
     // A list of disabled outputs that this window has been evacuated from, in
     // priority order from highest (earliest) to lowest (most recent).  If the

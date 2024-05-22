@@ -470,7 +470,7 @@ root_commit_focus(struct hwd_root *root) {
 
         window_set_dirty(old_window);
         if (window_is_tiling(old_window)) {
-            column_set_dirty(old_window->parent);
+            column_set_dirty(old_window->column);
         }
     }
 
@@ -540,7 +540,7 @@ window_validate(struct hwd_window *window) {
     if (window->dead) {
         assert(window->workspace == NULL);
 
-        assert(window->parent == NULL);
+        assert(window->column == NULL);
 
         assert(window->output == NULL);
         assert(window->output_history->length == 0);
@@ -567,10 +567,10 @@ window_validate(struct hwd_window *window) {
     assert(window->workspace != NULL);
     assert(!window->workspace->dead);
 
-    if (window->parent) {
+    if (window->column) {
         // Validate that tiling or fullscreen tiling windows are referenced by
         // their preferred column.
-        assert(list_find(window->parent->children, window) != -1);
+        assert(list_find(window->column->children, window) != -1);
 
         // Note that we don't validate that the window doesn't appear in the
         // workspace's floating window list.
@@ -578,10 +578,10 @@ window_validate(struct hwd_window *window) {
         if (!window->fullscreen) {
             // We still want windows that have asked to be made fullscreen on a
             // particular window to go back to their original column once done.
-            assert(window->parent->output == window->output);
+            assert(window->column->output == window->output);
         }
 
-        assert(window->parent->workspace == window->workspace);
+        assert(window->column->workspace == window->workspace);
     }
 
     if (window->fullscreen) {
@@ -608,7 +608,7 @@ column_validate(struct hwd_column *column) {
         assert(!window->dead);
 
         // TODO validate that no columns on this output reference the window.
-        assert(window->fullscreen || window->parent != column || window->output == column->output);
+        assert(window->fullscreen || window->column != column || window->output == column->output);
 
         // TODO should only be called once per window.
         window_validate(window);

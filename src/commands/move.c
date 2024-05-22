@@ -41,7 +41,7 @@ move_window_to_column_from_maybe_direction(
     struct hwd_window *window, struct hwd_column *column, bool has_move_dir,
     enum wlr_direction move_dir
 ) {
-    if (window->parent == column) {
+    if (window->column == column) {
         return;
     }
 
@@ -183,7 +183,7 @@ window_tiling_move_in_direction(struct hwd_window *window, enum wlr_direction mo
     assert(window_is_tiling(window));
     assert(!window_is_fullscreen(window));
 
-    struct hwd_column *old_column = window->parent;
+    struct hwd_column *old_column = window->column;
     struct hwd_output *output = window_get_output(window);
     struct hwd_workspace *workspace = old_column->workspace;
 
@@ -273,7 +273,7 @@ cmd_move_window(int argc, char **argv) {
         return cmd_results_new(CMD_FAILURE, "Can only move windows");
     }
 
-    struct hwd_column *old_parent = window->parent;
+    struct hwd_column *old_column = window->column;
     struct hwd_workspace *old_workspace = window->workspace;
 
     // determine destination
@@ -311,8 +311,8 @@ cmd_move_window(int argc, char **argv) {
         workspace_set_active_window(workspace, window);
 
         // If necessary, clean up old column and workspace.
-        if (old_parent) {
-            column_consider_destroy(old_parent);
+        if (old_column) {
+            column_consider_destroy(old_column);
         }
         if (old_workspace) {
             workspace_consider_destroy(old_workspace);
@@ -397,7 +397,7 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
         return cmd_results_new(CMD_SUCCESS, NULL);
     }
     struct hwd_workspace *old_workspace = window->workspace;
-    struct hwd_column *old_parent = window->parent;
+    struct hwd_column *old_column = window->column;
 
     if (!window_tiling_move_in_direction(window, direction)) {
         // Window didn't move
@@ -405,8 +405,8 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
     }
 
     // clean-up, destroying parents if the window was the last child
-    if (old_parent) {
-        column_consider_destroy(old_parent);
+    if (old_column) {
+        column_consider_destroy(old_column);
     } else if (old_workspace) {
         // TODO (hayward) shouldn't be possible to hit this.
         workspace_consider_destroy(old_workspace);
