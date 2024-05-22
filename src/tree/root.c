@@ -432,8 +432,9 @@ root_set_focused_surface(struct hwd_root *root, struct wlr_surface *surface) {
 
 static int
 root_handle_urgent_timeout(void *data) {
-    struct hwd_view *view = data;
-    view_set_urgent(view, false);
+    struct hwd_window *window = data;
+    window->urgent_timer = NULL;
+    window_set_urgent(window, false);
     return 0;
 }
 
@@ -490,19 +491,19 @@ root_commit_focus(struct hwd_root *root) {
         // by switching workspace, then we want to delay clearing the
         // mark a little bit to let them know that the window was
         // urgent.
-        if (view_is_urgent(new_view) && !new_view->urgent_timer) {
+        if (new_window->is_urgent && !new_window->urgent_timer) {
             if (old_workspace && old_workspace != new_workspace && config->urgent_timeout > 0) {
-                new_view->urgent_timer = wl_event_loop_add_timer(
-                    server.wl_event_loop, root_handle_urgent_timeout, new_view
+                new_window->urgent_timer = wl_event_loop_add_timer(
+                    server.wl_event_loop, root_handle_urgent_timeout, new_window
                 );
-                if (new_view->urgent_timer) {
-                    wl_event_source_timer_update(new_view->urgent_timer, config->urgent_timeout);
+                if (new_window->urgent_timer) {
+                    wl_event_source_timer_update(new_window->urgent_timer, config->urgent_timeout);
                 } else {
                     wlr_log_errno(WLR_ERROR, "Unable to create urgency timer");
-                    root_handle_urgent_timeout(new_view);
+                    root_handle_urgent_timeout(new_window);
                 }
             } else {
-                view_set_urgent(new_view, false);
+                window_set_urgent(new_window, false);
             }
         }
 

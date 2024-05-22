@@ -4,7 +4,6 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <time.h>
 
 #include <wayland-server-core.h>
 
@@ -49,10 +48,6 @@ struct hwd_view {
 
     struct hwd_window *window;   // NULL if unmapped and transactions finished
     struct wlr_surface *surface; // NULL for unmapped views
-
-    struct timespec urgent;
-    bool allow_request_urgent;
-    struct wl_event_source *urgent_timer;
 
     // The geometry for whatever the client is committing, regardless of
     // transaction state. Updated on every commit.
@@ -105,12 +100,6 @@ view_from_wlr_surface(struct wlr_surface *surface);
  */
 bool
 view_is_visible(struct hwd_view *view);
-
-void
-view_set_urgent(struct hwd_view *view, bool enable);
-
-bool
-view_is_urgent(struct hwd_view *view);
 
 bool
 view_is_transient_for(struct hwd_view *child, struct hwd_view *ancestor);

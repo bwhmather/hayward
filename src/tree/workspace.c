@@ -31,7 +31,6 @@
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/transaction.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 static void
@@ -434,7 +433,7 @@ workspace_is_visible(struct hwd_workspace *workspace) {
 
 static bool
 find_urgent_iterator(struct hwd_window *window, void *data) {
-    return window->view && view_is_urgent(window->view);
+    return window->is_urgent;
 }
 
 void

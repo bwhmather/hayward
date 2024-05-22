@@ -359,6 +359,11 @@ window_begin_destroy(struct hwd_window *window) {
     }
     list_free(window->output_history);
 
+    if (window->urgent_timer) {
+        wl_event_source_remove(window->urgent_timer);
+        window->urgent_timer = NULL;
+    }
+
     wl_signal_emit_mutable(&window->events.begin_destroy, window);
 
     window_set_dirty(window);
@@ -414,7 +419,7 @@ window_get_theme(struct hwd_window *window) {
         }
     }
 
-    if (view_is_urgent(window->view)) {
+    if (window->is_urgent) {
         return &window_type->urgent;
     }
 
@@ -683,6 +688,27 @@ window_set_maximum_size(struct hwd_window *window, double max_width, double max_
         window->maximum_height = max_height;
         window_set_dirty(window);
     }
+}
+
+void
+window_set_urgent(struct hwd_window *window, bool urgent) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+
+    if (window->is_urgent == urgent) {
+        return;
+    }
+
+    if (urgent && root_get_focused_window(window->root) == window) {
+        return;
+    }
+
+    if (urgent && window->urgent_timer) {
+        wl_event_source_remove(window->urgent_timer);
+        window->urgent_timer = NULL;
+    }
+
+    window->is_urgent = urgent;
 }
 
 bool

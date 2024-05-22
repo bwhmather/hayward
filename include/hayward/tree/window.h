@@ -129,6 +129,9 @@ struct hwd_window {
     // column.
     double height_fraction;
 
+    bool is_urgent;
+    struct wl_event_source *urgent_timer;
+
     struct wlr_texture *title_focused;
     struct wlr_texture *title_focused_inactive;
     struct wlr_texture *title_focused_tab_title;
@@ -223,6 +226,9 @@ window_set_minimum_size(struct hwd_window *window, double min_width, double min_
 
 void
 window_set_maximum_size(struct hwd_window *window, double max_width, double max_height);
+
+void
+window_set_urgent(struct hwd_window *window, bool urgent);
 
 bool
 window_is_floating(struct hwd_window *window);

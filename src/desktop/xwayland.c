@@ -506,11 +506,6 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
 
     wl_signal_emit(&view->events.unmap, view);
 
-    if (view->urgent_timer) {
-        wl_event_source_remove(view->urgent_timer);
-        view->urgent_timer = NULL;
-    }
-
     struct hwd_column *parent = view->window->parent;
     struct hwd_workspace *workspace = view->window->workspace;
     window_begin_destroy(view->window);
@@ -837,16 +832,8 @@ hwd_xwayland_view_handle_xsurface_set_hints(struct wl_listener *listener, void *
         return;
     }
     const bool hints_urgency = xcb_icccm_wm_hints_get_urgency(xsurface->hints);
-    if (!hints_urgency && view->urgent_timer) {
-        // The view is in the timeout period. We'll ignore the request to
-        // unset urgency so that the view remains urgent until the timer clears
-        // it.
-        return;
-    }
 
-    if (view->allow_request_urgent) {
-        view_set_urgent(view, hints_urgency);
-    }
+    window_set_urgent(view->window, hints_urgency);
 }
 
 struct hwd_view *

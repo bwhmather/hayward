@@ -41,7 +41,6 @@ view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_
 
     view->type = type;
     view->impl = impl;
-    view->allow_request_urgent = true;
     wl_signal_init(&view->events.unmap);
 }
 
@@ -93,11 +92,11 @@ view_request_activate(struct hwd_view *view) {
         if (workspace_is_visible(workspace)) {
             root_set_focused_window(root, view->window);
         } else {
-            view_set_urgent(view, true);
+            window_set_urgent(view->window, true);
         }
         break;
     case FOWA_URGENT:
-        view_set_urgent(view, true);
+        window_set_urgent(view->window, true);
         break;
     case FOWA_FOCUS:
         root_set_focused_window(root, view->window);
@@ -200,32 +199,6 @@ view_is_visible(struct hwd_view *view) {
         return false;
     }
     return true;
-}
-
-void
-view_set_urgent(struct hwd_view *view, bool enable) {
-    if (view_is_urgent(view) == enable) {
-        return;
-    }
-    if (enable) {
-        if (root_get_focused_window(root) == view->window) {
-            return;
-        }
-        clock_gettime(CLOCK_MONOTONIC, &view->urgent);
-    } else {
-        view->urgent = (struct timespec){0};
-        if (view->urgent_timer) {
-            wl_event_source_remove(view->urgent_timer);
-            view->urgent_timer = NULL;
-        }
-    }
-
-    workspace_detect_urgent(view->window->workspace);
-}
-
-bool
-view_is_urgent(struct hwd_view *view) {
-    return view->urgent.tv_sec || view->urgent.tv_nsec;
 }
 
 bool

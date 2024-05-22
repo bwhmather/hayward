@@ -464,11 +464,6 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
 
     wl_signal_emit(&view->events.unmap, view);
 
-    if (view->urgent_timer) {
-        wl_event_source_remove(view->urgent_timer);
-        view->urgent_timer = NULL;
-    }
-
     struct hwd_column *parent = view->window->parent;
     struct hwd_workspace *workspace = view->window->workspace;
     window_begin_destroy(view->window);
