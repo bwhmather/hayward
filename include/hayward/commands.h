@@ -130,7 +130,6 @@ hwd_cmd cmd_tiling_drag_threshold;
 hwd_cmd cmd_unbindcode;
 hwd_cmd cmd_unbindswitch;
 hwd_cmd cmd_unbindsym;
-hwd_cmd cmd_urgent;
 hwd_cmd cmd_workspace;
 hwd_cmd cmd_xwayland;
 

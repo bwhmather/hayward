@@ -101,7 +101,6 @@ static const struct cmd_handler command_handlers[] = {
     {"nop", cmd_nop},   //
     {"reload", cmd_reload},
     {"resize", cmd_resize}, //
-    {"urgent", cmd_urgent}, //
 };
 
 static int
