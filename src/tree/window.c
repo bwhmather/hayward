@@ -791,6 +791,17 @@ window_is_tiling(struct hwd_window *window) {
     return window->column != NULL;
 }
 
+bool
+window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor) {
+    for (struct hwd_window *candidate = child->parent; candidate != NULL;
+         candidate = candidate->parent) {
+        if (candidate == ancestor) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void
 window_fullscreen(struct hwd_window *window) {
     assert(window != NULL);
@@ -1073,17 +1084,6 @@ window_set_geometry_from_content(struct hwd_window *window) {
         state->content_height + state->titlebar_height + state->border_top + state->border_bottom;
 
     window_set_dirty(window);
-}
-
-bool
-window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor) {
-    for (struct hwd_window *candidate = child->parent; candidate != NULL;
-         candidate = candidate->parent) {
-        if (candidate == ancestor) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void

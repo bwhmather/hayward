@@ -252,6 +252,9 @@ window_is_fullscreen(struct hwd_window *window);
 bool
 window_is_tiling(struct hwd_window *window);
 
+bool
+window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor);
+
 void
 window_fullscreen(struct hwd_window *window);
 
@@ -289,9 +292,6 @@ window_set_resizing(struct hwd_window *window, bool resizing);
 
 void
 window_set_geometry_from_content(struct hwd_window *window);
-
-bool
-window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor);
 
 void
 window_raise_floating(struct hwd_window *window);
