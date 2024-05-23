@@ -241,20 +241,6 @@ wants_floating(struct hwd_xdg_shell_view *self) {
     return false;
 }
 
-static bool
-is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(child);
-
-    struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
-    while (toplevel) {
-        if (toplevel->parent == xdg_shell_view_from_view(ancestor)->wlr_xdg_toplevel) {
-            return true;
-        }
-        toplevel = toplevel->parent;
-    }
-    return false;
-}
-
 static void
 _close(struct hwd_view *view) {
     struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
@@ -282,7 +268,6 @@ static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
     .set_activated = set_activated,
     .set_resizing = set_resizing,
-    .is_transient_for = is_transient_for,
     .close = _close,
     .close_popups = close_popups,
     .destroy = destroy,
@@ -372,6 +357,22 @@ hwd_xdg_shell_view_handle_wlr_toplevel_set_title(struct wl_listener *listener, v
 
 static void
 hwd_xdg_shell_view_handle_wlr_toplevel_set_app_id(struct wl_listener *listener, void *data) {}
+
+static void
+hwd_xdg_shell_view_handle_wlr_toplevel_set_parent(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_set_parent);
+
+    struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
+
+    struct hwd_xdg_shell_view *new_parent = NULL;
+    if (toplevel->parent) {
+        new_parent = toplevel->parent->base->data;
+    }
+
+    window_set_transient_for(
+        self->view.window, new_parent != NULL ? new_parent->view.window : NULL
+    );
+}
 
 static void
 hwd_xdg_shell_view_handle_xdg_surface_new_popup(struct wl_listener *listener, void *data) {
@@ -491,6 +492,7 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
     wl_list_remove(&self->wlr_toplevel_request_resize.link);
     wl_list_remove(&self->wlr_toplevel_set_title.link);
     wl_list_remove(&self->wlr_toplevel_set_app_id.link);
+    wl_list_remove(&self->wlr_toplevel_set_parent.link);
 }
 
 static bool
@@ -613,6 +615,9 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
 
     self->wlr_toplevel_set_app_id.notify = hwd_xdg_shell_view_handle_wlr_toplevel_set_app_id;
     wl_signal_add(&toplevel->events.set_app_id, &self->wlr_toplevel_set_app_id);
+
+    self->wlr_toplevel_set_parent.notify = hwd_xdg_shell_view_handle_wlr_toplevel_set_parent;
+    wl_signal_add(&toplevel->events.set_parent, &self->wlr_toplevel_set_parent);
 }
 
 static void

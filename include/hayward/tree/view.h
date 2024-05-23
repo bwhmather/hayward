@@ -30,7 +30,6 @@ struct hwd_view_impl {
     );
     void (*set_activated)(struct hwd_view *view, bool activated);
     void (*set_resizing)(struct hwd_view *view, bool resizing);
-    bool (*is_transient_for)(struct hwd_view *child, struct hwd_view *ancestor);
     void (*close)(struct hwd_view *view);
     void (*close_popups)(struct hwd_view *view);
     void (*destroy)(struct hwd_view *view);
@@ -94,9 +93,6 @@ view_from_wlr_surface(struct wlr_surface *surface);
  */
 bool
 view_is_visible(struct hwd_view *view);
-
-bool
-view_is_transient_for(struct hwd_view *child, struct hwd_view *ancestor);
 
 void
 view_send_frame_done(struct hwd_view *view);

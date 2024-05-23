@@ -342,18 +342,6 @@ wants_floating(struct hwd_xwayland_view *self) {
     return false;
 }
 
-static bool
-is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
-    struct wlr_xwayland_surface *surface = hwd_xwayland_view_from_view(child)->wlr_xwayland_surface;
-    while (surface) {
-        if (surface->parent == hwd_xwayland_view_from_view(ancestor)->wlr_xwayland_surface) {
-            return true;
-        }
-        surface = surface->parent;
-    }
-    return false;
-}
-
 static void
 _close(struct hwd_view *view) {
     struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
@@ -392,7 +380,6 @@ get_constraints(
 static const struct hwd_view_impl view_impl = {
     .get_constraints = get_constraints,
     .set_activated = set_activated,
-    .is_transient_for = is_transient_for,
     .close = _close,
     .destroy = destroy,
 };
@@ -490,6 +477,7 @@ hwd_xwayland_view_handle_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&self->xsurface_set_role.link);
     wl_list_remove(&self->xsurface_set_window_type.link);
     wl_list_remove(&self->xsurface_set_hints.link);
+    wl_list_remove(&self->xsurface_set_parent.link);
     wl_list_remove(&self->xsurface_associate.link);
     wl_list_remove(&self->xsurface_dissociate.link);
     wl_list_remove(&self->xsurface_override_redirect.link);
@@ -836,6 +824,21 @@ hwd_xwayland_view_handle_xsurface_set_hints(struct wl_listener *listener, void *
     window_set_urgent(view->window, hints_urgency);
 }
 
+static void
+hwd_xwayland_view_handle_xsurface_set_parent(struct wl_listener *listener, void *data) {
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_parent);
+
+    struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
+    struct hwd_xwayland_view *new_parent = NULL;
+    if (xsurface->parent != NULL) {
+        new_parent = xsurface->parent->data;
+    }
+
+    window_set_transient_for(
+        self->view.window, new_parent != NULL ? new_parent->view.window : NULL
+    );
+}
+
 struct hwd_view *
 view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface) {
     return xsurface->data;
@@ -889,6 +892,9 @@ create_xwayland_view(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface 
 
     wl_signal_add(&xsurface->events.set_hints, &self->xsurface_set_hints);
     self->xsurface_set_hints.notify = hwd_xwayland_view_handle_xsurface_set_hints;
+
+    wl_signal_add(&xsurface->events.set_parent, &self->xsurface_set_parent);
+    self->xsurface_set_parent.notify = hwd_xwayland_view_handle_xsurface_set_parent;
 
     wl_signal_add(&xsurface->events.dissociate, &self->xsurface_dissociate);
     self->xsurface_dissociate.notify = hwd_xwayland_view_handle_xsurface_dissociate;

@@ -11,11 +11,11 @@
 
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_xdg_activation_v1.h>
-#include <wlr/types/wlr_xdg_shell.h>
 
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/tree/root.h>
+#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 static void

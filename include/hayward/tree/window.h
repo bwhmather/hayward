@@ -96,6 +96,9 @@ struct hwd_window {
     list_t *output_history; // struct dtl_output *
     struct hwd_output *output;
 
+    // Optional parent window that this window is transient for.
+    struct hwd_window *parent;
+
     // This is the last manually assigned floating position of the window.  If a
     // floating window is made tiling or fullscreen, this will be preserved so
     // that the window can be restored to the same position later.  If it is
@@ -153,6 +156,7 @@ struct hwd_window {
         struct wlr_scene_tree *saved_content_tree;
     } layers;
 
+    struct wl_listener parent_begin_destroy;
     struct wl_listener transaction_commit;
     struct wl_listener transaction_apply;
     struct wl_listener transaction_after_apply;
@@ -229,6 +233,9 @@ window_set_maximum_size(struct hwd_window *window, double max_width, double max_
 
 void
 window_set_urgent(struct hwd_window *window, bool urgent);
+
+void
+window_set_transient_for(struct hwd_window *window, struct hwd_window *parent);
 
 /**
  * Called when the view requests to be focused.

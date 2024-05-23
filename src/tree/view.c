@@ -21,13 +21,10 @@
 #include <wlr/util/log.h>
 #include <wlr/xwayland/xwayland.h>
 
-#include <hayward/config.h>
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
-#include <hayward/globals/root.h>
 #include <hayward/tree/column.h>
 #include <hayward/tree/output.h>
-#include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
 
@@ -176,11 +173,6 @@ view_is_visible(struct hwd_view *view) {
         return false;
     }
     return true;
-}
-
-bool
-view_is_transient_for(struct hwd_view *child, struct hwd_view *ancestor) {
-    return child->impl->is_transient_for && child->impl->is_transient_for(child, ancestor);
 }
 
 static void

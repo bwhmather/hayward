@@ -45,6 +45,7 @@ struct hwd_xdg_shell_view {
     struct wl_listener wlr_toplevel_request_fullscreen;
     struct wl_listener wlr_toplevel_set_title;
     struct wl_listener wlr_toplevel_set_app_id;
+    struct wl_listener wlr_toplevel_set_parent;
     struct wl_listener xdg_surface_new_popup;
     struct wl_listener xdg_surface_map;
     struct wl_listener xdg_surface_unmap;

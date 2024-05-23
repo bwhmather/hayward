@@ -70,6 +70,7 @@ struct hwd_xwayland_view {
     struct wl_listener xsurface_set_role;
     struct wl_listener xsurface_set_window_type;
     struct wl_listener xsurface_set_hints;
+    struct wl_listener xsurface_set_parent;
     struct wl_listener xsurface_map;
     struct wl_listener xsurface_unmap;
     struct wl_listener xsurface_associate;

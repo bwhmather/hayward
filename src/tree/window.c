@@ -248,6 +248,14 @@ window_end_configure(struct hwd_window *window) {
 }
 
 static void
+window_handle_parent_begin_destroy(struct wl_listener *listener, void *data) {
+    struct hwd_window *window = wl_container_of(listener, window, parent_begin_destroy);
+
+    window->parent = NULL;
+    wl_list_remove(&window->parent_begin_destroy.link);
+}
+
+static void
 window_handle_transaction_commit(struct wl_listener *listener, void *data) {
     struct hwd_window *window = wl_container_of(listener, window, transaction_commit);
     struct hwd_transaction_manager *transaction_manager =
@@ -362,6 +370,11 @@ window_begin_destroy(struct hwd_window *window) {
     if (window->urgent_timer) {
         wl_event_source_remove(window->urgent_timer);
         window->urgent_timer = NULL;
+    }
+
+    if (window->parent != NULL) {
+        window->parent = NULL;
+        wl_list_remove(&window->parent_begin_destroy.link);
     }
 
     wl_signal_emit_mutable(&window->events.begin_destroy, window);
@@ -712,6 +725,24 @@ window_set_urgent(struct hwd_window *window, bool urgent) {
 }
 
 void
+window_set_transient_for(struct hwd_window *window, struct hwd_window *parent) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(parent == NULL || window_is_alive(parent));
+
+    if (window->parent != NULL) {
+        wl_list_remove(&window->parent_begin_destroy.link);
+        window->parent = NULL;
+    }
+
+    if (parent != NULL) {
+        window->parent = parent;
+        window->parent_begin_destroy.notify = window_handle_parent_begin_destroy;
+        wl_signal_add(&window->parent->events.begin_destroy, &window->parent_begin_destroy);
+    }
+}
+
+void
 window_request_activate(struct hwd_window *window) {
     assert(window != NULL);
     assert(window_is_alive(window));
@@ -1046,7 +1077,13 @@ window_set_geometry_from_content(struct hwd_window *window) {
 
 bool
 window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor) {
-    return view_is_transient_for(child->view, ancestor->view);
+    for (struct hwd_window *candidate = child->parent; candidate != NULL;
+         candidate = candidate->parent) {
+        if (candidate == ancestor) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void
