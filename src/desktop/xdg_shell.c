@@ -193,8 +193,8 @@ hwd_xdg_shell_view_handle_window_commit(struct wl_listener *listener, void *data
         dirty = true;
     }
 
-    double width = window->pending.width;
-    double height = window->pending.height;
+    double width = window->pending.content_width;
+    double height = window->pending.content_height;
     if (width != self->configured_width || height != self->configured_height) {
         self->configured_width = width;
         self->configured_height = height;

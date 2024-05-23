@@ -278,10 +278,10 @@ hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data)
         dirty = true;
     }
 
-    int x = (int)window->pending.x;
-    int y = (int)window->pending.y;
-    int width = (int)window->pending.width;
-    int height = (int)window->pending.height;
+    int x = (int)window->pending.content_x;
+    int y = (int)window->pending.content_y;
+    int width = (int)window->pending.content_width;
+    int height = (int)window->pending.content_height;
     if (x != self->configured_x || y != self->configured_y || width != self->configured_width ||
         height != self->configured_height) {
         self->configured_x = x;
