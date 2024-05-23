@@ -255,6 +255,9 @@ window_is_tiling(struct hwd_window *window);
 bool
 window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor);
 
+bool
+window_is_visible(struct hwd_window *window);
+
 void
 window_fullscreen(struct hwd_window *window);
 

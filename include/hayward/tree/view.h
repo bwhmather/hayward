@@ -87,13 +87,6 @@ view_center_surface(struct hwd_view *view);
 struct hwd_view *
 view_from_wlr_surface(struct wlr_surface *surface);
 
-/**
- * Returns true if there's a possibility the view may be rendered on screen.
- * Intended for damage tracking.
- */
-bool
-view_is_visible(struct hwd_view *view);
-
 void
 view_send_frame_done(struct hwd_view *view);
 

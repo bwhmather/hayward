@@ -802,6 +802,36 @@ window_is_transient_for(struct hwd_window *child, struct hwd_window *ancestor) {
     return false;
 }
 
+bool
+window_is_visible(struct hwd_window *window) {
+
+    if (window->dead) {
+        return false;
+    }
+    struct hwd_workspace *workspace = window->workspace;
+    if (!workspace) {
+        return false;
+    }
+
+    struct hwd_output *output = window_get_output(window);
+    if (!output) {
+        return false;
+    }
+
+    // Check view isn't in a shaded window.
+    struct hwd_column *column = window->column;
+    if (column != NULL && window->pending.shaded) {
+        return false;
+    }
+
+    // Check view isn't hidden by another fullscreen view
+    struct hwd_window *fs = workspace_get_fullscreen_window_for_output(workspace, output);
+    if (fs && !window_is_fullscreen(window) && !window_is_transient_for(window, fs)) {
+        return false;
+    }
+    return true;
+}
+
 void
 window_fullscreen(struct hwd_window *window) {
     assert(window != NULL);

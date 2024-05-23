@@ -658,7 +658,7 @@ check_focus_follows_mouse(
 
     // This is where we handle the common case. We don't want to focus inactive
     // tabs, hence the view_is_visible check.
-    if (window != NULL && view_is_visible(window->view)) {
+    if (window != NULL && window_is_visible(window)) {
         // e->previous_node is the node which the cursor was over previously.
         // If focus_follows_mouse is yes and the cursor got over the view due
         // to, say, a workspace switch, we don't want to set the focus.

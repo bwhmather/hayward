@@ -19,6 +19,7 @@
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/server.h>
 #include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 static void
 handle_idle_inhibitor_v1(struct wl_listener *listener, void *data);
@@ -75,7 +76,7 @@ hwd_idle_inhibit_v1_is_active(struct hwd_idle_inhibitor_v1 *inhibitor) {
         return false;
     }
 
-    if (!view_is_visible(&xdg_view->view)) {
+    if (!window_is_visible(xdg_view->view.window)) {
         return false;
     }
 

@@ -160,7 +160,7 @@ hwd_xdg_shell_view_handle_window_commit(struct wl_listener *listener, void *data
     struct hwd_view *view = &self->view;
     struct hwd_window *window = view->window;
 
-    if (!view_is_visible(view)) {
+    if (!window_is_visible(window)) {
         return;
     }
 

@@ -254,7 +254,7 @@ hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data)
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     struct hwd_window *window = view->window;
 
-    if (!view_is_visible(view)) {
+    if (!window_is_visible(window)) {
         return;
     }
 

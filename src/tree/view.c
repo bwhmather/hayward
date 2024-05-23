@@ -23,10 +23,7 @@
 
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/desktop/xwayland.h>
-#include <hayward/tree/column.h>
-#include <hayward/tree/output.h>
 #include <hayward/tree/window.h>
-#include <hayward/tree/workspace.h>
 
 void
 view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl) {
@@ -143,36 +140,6 @@ view_from_wlr_surface(struct wlr_surface *wlr_surface) {
     const char *role = wlr_surface->role ? wlr_surface->role->name : NULL;
     wlr_log(WLR_DEBUG, "Surface of unknown type (role %s): %p", role, (void *)wlr_surface);
     return NULL;
-}
-
-bool
-view_is_visible(struct hwd_view *view) {
-    if (view->window->dead) {
-        return false;
-    }
-    struct hwd_workspace *workspace = view->window->workspace;
-    if (!workspace) {
-        return false;
-    }
-
-    struct hwd_output *output = window_get_output(view->window);
-    if (!output) {
-        return false;
-    }
-
-    // Check view isn't in a shaded window.
-    struct hwd_window *window = view->window;
-    struct hwd_column *column = window->column;
-    if (column != NULL && window->pending.shaded) {
-        return false;
-    }
-
-    // Check view isn't hidden by another fullscreen view
-    struct hwd_window *fs = workspace_get_fullscreen_window_for_output(workspace, output);
-    if (fs && !window_is_fullscreen(view->window) && !window_is_transient_for(view->window, fs)) {
-        return false;
-    }
-    return true;
 }
 
 static void
