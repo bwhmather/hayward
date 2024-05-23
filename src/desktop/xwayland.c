@@ -6,7 +6,6 @@
 #include "hayward/desktop/xwayland.h"
 
 #include <assert.h>
-#include <float.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -354,31 +353,7 @@ destroy(struct hwd_view *view) {
     free(self);
 }
 
-static void
-get_constraints(
-    struct hwd_view *view, double *min_width, double *max_width, double *min_height,
-    double *max_height
-) {
-    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
-    struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
-    xcb_size_hints_t *size_hints = surface->size_hints;
-
-    if (size_hints == NULL) {
-        *min_width = DBL_MIN;
-        *max_width = DBL_MAX;
-        *min_height = DBL_MIN;
-        *max_height = DBL_MAX;
-        return;
-    }
-
-    *min_width = size_hints->min_width > 0 ? size_hints->min_width : DBL_MIN;
-    *max_width = size_hints->max_width > 0 ? size_hints->max_width : DBL_MAX;
-    *min_height = size_hints->min_height > 0 ? size_hints->min_height : DBL_MIN;
-    *max_height = size_hints->max_height > 0 ? size_hints->max_height : DBL_MAX;
-}
-
 static const struct hwd_view_impl view_impl = {
-    .get_constraints = get_constraints,
     .set_activated = set_activated,
     .close = _close,
     .destroy = destroy,

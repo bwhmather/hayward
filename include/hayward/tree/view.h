@@ -24,10 +24,6 @@ enum hwd_view_type {
 };
 
 struct hwd_view_impl {
-    void (*get_constraints)(
-        struct hwd_view *view, double *min_width, double *max_width, double *min_height,
-        double *max_height
-    );
     void (*set_activated)(struct hwd_view *view, bool activated);
     void (*set_resizing)(struct hwd_view *view, bool resizing);
     void (*close)(struct hwd_view *view);

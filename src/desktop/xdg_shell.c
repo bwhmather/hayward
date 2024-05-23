@@ -6,7 +6,6 @@
 #include "hayward/desktop/xdg_shell.h"
 
 #include <assert.h>
-#include <float.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -140,21 +139,6 @@ xdg_shell_view_from_view(struct hwd_view *view) {
 }
 
 static void
-get_constraints(
-    struct hwd_view *view, double *min_width, double *max_width, double *min_height,
-    double *max_height
-) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
-
-    struct wlr_xdg_toplevel_state *state = &self->wlr_xdg_toplevel->current;
-
-    *min_width = state->min_width > 0 ? state->min_width : DBL_MIN;
-    *max_width = state->max_width > 0 ? state->max_width : DBL_MAX;
-    *min_height = state->min_height > 0 ? state->min_height : DBL_MIN;
-    *max_height = state->max_height > 0 ? state->max_height : DBL_MAX;
-}
-
-static void
 hwd_xdg_shell_view_handle_window_commit(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, window_commit);
     struct hwd_view *view = &self->view;
@@ -265,7 +249,6 @@ destroy(struct hwd_view *view) {
 }
 
 static const struct hwd_view_impl view_impl = {
-    .get_constraints = get_constraints,
     .set_activated = set_activated,
     .set_resizing = set_resizing,
     .close = _close,
