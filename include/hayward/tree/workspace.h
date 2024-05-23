@@ -88,14 +88,14 @@ workspace_set_dirty(struct hwd_workspace *workspace);
 struct hwd_workspace *
 workspace_by_name(const char *);
 
-bool
-workspace_is_visible(struct hwd_workspace *workspace);
+void
+workspace_arrange(struct hwd_workspace *workspace);
 
 void
 workspace_detect_urgent(struct hwd_workspace *workspace);
 
-void
-workspace_arrange(struct hwd_workspace *workspace);
+bool
+workspace_is_visible(struct hwd_workspace *workspace);
 
 void
 workspace_add_floating(struct hwd_workspace *workspace, struct hwd_window *window);

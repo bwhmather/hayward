@@ -420,33 +420,6 @@ workspace_by_name(const char *name) {
     return root_find_workspace(root, _workspace_by_name, (void *)name);
 }
 
-bool
-workspace_is_visible(struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    if (workspace->dead) {
-        return false;
-    }
-
-    return workspace->root->active_workspace == workspace;
-}
-
-static bool
-find_urgent_iterator(struct hwd_window *window, void *data) {
-    return window->is_urgent;
-}
-
-void
-workspace_detect_urgent(struct hwd_workspace *workspace) {
-    assert(workspace != NULL);
-
-    bool new_urgent = (bool)workspace_find_window(workspace, find_urgent_iterator, NULL);
-
-    if (workspace->urgent != new_urgent) {
-        workspace->urgent = new_urgent;
-    }
-}
-
 static void
 arrange_floating(struct hwd_workspace *workspace) {
     list_clear(workspace->pending.floating);
@@ -604,6 +577,33 @@ workspace_arrange(struct hwd_workspace *workspace) {
         struct hwd_window *window = workspace->pending.floating->items[i];
         window_arrange(window);
     }
+}
+
+static bool
+find_urgent_iterator(struct hwd_window *window, void *data) {
+    return window->is_urgent;
+}
+
+void
+workspace_detect_urgent(struct hwd_workspace *workspace) {
+    assert(workspace != NULL);
+
+    bool new_urgent = (bool)workspace_find_window(workspace, find_urgent_iterator, NULL);
+
+    if (workspace->urgent != new_urgent) {
+        workspace->urgent = new_urgent;
+    }
+}
+
+bool
+workspace_is_visible(struct hwd_workspace *workspace) {
+    assert(workspace != NULL);
+
+    if (workspace->dead) {
+        return false;
+    }
+
+    return workspace->root->active_workspace == workspace;
 }
 
 void
