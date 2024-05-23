@@ -78,13 +78,6 @@ view_set_activated(struct hwd_view *view, bool activated) {
 }
 
 void
-view_close(struct hwd_view *view) {
-    if (view->impl->close) {
-        view->impl->close(view);
-    }
-}
-
-void
 view_close_popups(struct hwd_view *view) {
     if (view->impl->close_popups) {
         view->impl->close_popups(view);

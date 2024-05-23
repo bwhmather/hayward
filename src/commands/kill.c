@@ -6,8 +6,9 @@
 #include "hayward/commands.h"
 
 #include <hayward/config.h>
+#include <hayward/globals/root.h>
 #include <hayward/profiler.h>
-#include <hayward/tree/view.h>
+#include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 
 struct cmd_results *
@@ -19,6 +20,8 @@ cmd_kill(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, "Can only kill windows");
     }
 
-    view_close(window->view);
+    window_begin_destroy(window);
+
+    root_commit_focus(root);
     return cmd_results_new(CMD_SUCCESS, NULL);
 }

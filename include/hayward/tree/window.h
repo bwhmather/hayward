@@ -162,6 +162,7 @@ struct hwd_window {
     struct wl_listener transaction_after_apply;
 
     struct {
+        struct wl_signal close;
         struct wl_signal commit;
 
         struct wl_signal begin_destroy;
@@ -176,6 +177,15 @@ window_end_configure(struct hwd_window *window);
 
 struct hwd_window *
 window_create(struct hwd_root *root, struct hwd_view *view);
+
+/**
+ * Sends a request to the attached view to ask it to kindly disconnect.  The
+ * client may choose to ignore this request, in which case the window will remain
+ * open.  If the client does close the view then the view object will detach the
+ * window and call `window_begin_destroy`
+ */
+void
+window_close(struct hwd_window *window);
 
 bool
 window_is_alive(struct hwd_window *window);

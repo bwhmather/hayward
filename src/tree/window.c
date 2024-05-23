@@ -322,6 +322,7 @@ window_create(struct hwd_root *root, struct hwd_view *view) {
     window->id = next_id++;
 
     wl_signal_init(&window->events.commit);
+    wl_signal_init(&window->events.close);
     wl_signal_init(&window->events.begin_destroy);
     wl_signal_init(&window->events.destroy);
 
@@ -341,6 +342,14 @@ window_create(struct hwd_root *root, struct hwd_view *view) {
     window_set_dirty(window);
 
     return window;
+}
+
+void
+window_close(struct hwd_window *window) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+
+    wl_signal_emit_mutable(&window->events.close, window);
 }
 
 bool

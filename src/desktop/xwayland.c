@@ -300,6 +300,13 @@ hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data)
 }
 
 static void
+hwd_xwayland_view_handle_window_close(struct wl_listener *listener, void *data) {
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, window_close);
+
+    wlr_xwayland_surface_close(self->wlr_xwayland_surface);
+}
+
+static void
 set_activated(struct hwd_view *view, bool activated) {
     struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
     struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
@@ -342,12 +349,6 @@ wants_floating(struct hwd_xwayland_view *self) {
 }
 
 static void
-_close(struct hwd_view *view) {
-    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
-    wlr_xwayland_surface_close(self->wlr_xwayland_surface);
-}
-
-static void
 destroy(struct hwd_view *view) {
     struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
     free(self);
@@ -355,7 +356,6 @@ destroy(struct hwd_view *view) {
 
 static const struct hwd_view_impl view_impl = {
     .set_activated = set_activated,
-    .close = _close,
     .destroy = destroy,
 };
 
@@ -490,6 +490,7 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
 
     wl_list_remove(&self->xsurface_commit.link);
     wl_list_remove(&self->window_commit.link);
+    wl_list_remove(&self->window_close.link);
 }
 
 static bool
@@ -544,6 +545,9 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
 
     self->window_commit.notify = hwd_xwayland_view_handle_window_commit;
     wl_signal_add(&view->window->events.commit, &self->window_commit);
+
+    self->window_close.notify = hwd_xwayland_view_handle_window_close;
+    wl_signal_add(&view->window->events.commit, &self->window_close);
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
     assert(workspace != NULL);

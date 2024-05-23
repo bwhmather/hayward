@@ -51,6 +51,7 @@ struct hwd_xdg_shell_view {
     struct wl_listener xdg_surface_unmap;
     struct wl_listener xdg_surface_destroy;
     struct wl_listener window_commit;
+    struct wl_listener window_close;
 };
 
 struct hwd_xdg_popup {

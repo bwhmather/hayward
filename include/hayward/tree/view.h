@@ -26,7 +26,6 @@ enum hwd_view_type {
 struct hwd_view_impl {
     void (*set_activated)(struct hwd_view *view, bool activated);
     void (*set_resizing)(struct hwd_view *view, bool resizing);
-    void (*close)(struct hwd_view *view);
     void (*close_popups)(struct hwd_view *view);
     void (*destroy)(struct hwd_view *view);
 };
@@ -68,9 +67,6 @@ view_begin_destroy(struct hwd_view *view);
 
 void
 view_set_activated(struct hwd_view *view, bool activated);
-
-void
-view_close(struct hwd_view *view);
 
 void
 view_close_popups(struct hwd_view *view);
