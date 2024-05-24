@@ -14,15 +14,9 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 
-#include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
-#include <wlr/util/log.h>
-#include <wlr/xwayland/xwayland.h>
 
-#include <hayward/desktop/xdg_shell.h>
-#include <hayward/desktop/xwayland.h>
 #include <hayward/tree/window.h>
 
 void
@@ -110,29 +104,6 @@ view_center_surface(struct hwd_view *view) {
             &(struct wlr_box){.x = x, .y = y, .width = width, .height = height}
         );
     }
-}
-
-struct hwd_view *
-view_from_wlr_surface(struct wlr_surface *wlr_surface) {
-    struct hwd_xdg_shell_view *xdg_view = hwd_xdg_shell_view_from_wlr_surface(wlr_surface);
-    if (xdg_view != NULL) {
-        return &xdg_view->view;
-    }
-
-#if HAVE_XWAYLAND
-    struct wlr_xwayland_surface *xsurface = wlr_xwayland_surface_try_from_wlr_surface(wlr_surface);
-    if (xsurface != NULL) {
-        return view_from_wlr_xwayland_surface(xsurface);
-    }
-#endif
-
-    if (wlr_layer_surface_v1_try_from_wlr_surface(wlr_surface)) {
-        return NULL;
-    }
-
-    const char *role = wlr_surface->role ? wlr_surface->role->name : NULL;
-    wlr_log(WLR_DEBUG, "Surface of unknown type (role %s): %p", role, (void *)wlr_surface);
-    return NULL;
 }
 
 static void

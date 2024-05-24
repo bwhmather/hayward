@@ -100,9 +100,6 @@ struct hwd_xwayland_unmanaged {
     struct wl_listener xsurface_override_redirect;
 };
 
-struct hwd_view *
-view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface);
-
 struct hwd_xwayland *
 hwd_xwayland_create(struct wl_display *wl_display, struct wlr_compositor *compositor, bool lazy);
 void

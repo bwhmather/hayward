@@ -47,6 +47,7 @@
 
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
+#include <hayward/desktop/xdg_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/input/input_manager.h>
 #include <hayward/input/seat.h>
@@ -857,7 +858,8 @@ static void
 check_constraint_region(struct hwd_cursor *cursor) {
     struct wlr_pointer_constraint_v1 *constraint = cursor->active_constraint;
     pixman_region32_t *region = &constraint->region;
-    struct hwd_view *view = view_from_wlr_surface(constraint->surface);
+    struct hwd_xdg_shell_view *xdg_view = hwd_xdg_shell_view_from_wlr_surface(constraint->surface);
+    struct hwd_view *view = &xdg_view->view;
     if (cursor->active_confine_requires_warp && view) {
         cursor->active_confine_requires_warp = false;
 
@@ -1297,7 +1299,9 @@ warp_to_constraint_cursor_hint(struct hwd_cursor *cursor) {
         double sx = constraint->current.cursor_hint.x;
         double sy = constraint->current.cursor_hint.y;
 
-        struct hwd_view *view = view_from_wlr_surface(constraint->surface);
+        struct hwd_xdg_shell_view *xdg_view =
+            hwd_xdg_shell_view_from_wlr_surface(constraint->surface);
+        struct hwd_view *view = &xdg_view->view;
         struct hwd_window *window = view->window;
 
         double lx = sx + window->pending.content_x - view->geometry.x;

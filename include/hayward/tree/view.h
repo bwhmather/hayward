@@ -75,9 +75,6 @@ view_update_size(struct hwd_view *view);
 void
 view_center_surface(struct hwd_view *view);
 
-struct hwd_view *
-view_from_wlr_surface(struct wlr_surface *surface);
-
 void
 view_send_frame_done(struct hwd_view *view);
 

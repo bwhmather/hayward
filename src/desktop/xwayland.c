@@ -818,11 +818,6 @@ hwd_xwayland_view_handle_xsurface_set_parent(struct wl_listener *listener, void 
     );
 }
 
-struct hwd_view *
-view_from_wlr_xwayland_surface(struct wlr_xwayland_surface *xsurface) {
-    return xsurface->data;
-}
-
 static struct hwd_xwayland_view *
 create_xwayland_view(struct hwd_xwayland *xwayland, struct wlr_xwayland_surface *xsurface) {
     wlr_log(
