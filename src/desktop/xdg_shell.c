@@ -309,8 +309,10 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
         // we only recenter the surface.
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(view->window)) {
-            // TODO shouldn't need to be sent a configure in the transaction.
-            view_update_size(view);
+            struct hwd_window *window = view->window;
+            window->floating_width = view->geometry.width;
+            window->floating_height = view->geometry.height;
+            window_set_dirty(window);
         } else {
             view_center_surface(view);
         }

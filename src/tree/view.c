@@ -79,14 +79,6 @@ view_close_popups(struct hwd_view *view) {
 }
 
 void
-view_update_size(struct hwd_view *view) {
-    struct hwd_window *window = view->window;
-    window->floating_width = view->geometry.width;
-    window->floating_height = view->geometry.height;
-    window_set_dirty(window);
-}
-
-void
 view_center_surface(struct hwd_view *view) {
     struct hwd_window *window = view->window;
 

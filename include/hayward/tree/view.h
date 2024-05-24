@@ -71,8 +71,6 @@ void
 view_close_popups(struct hwd_view *view);
 
 void
-view_update_size(struct hwd_view *view);
-void
 view_center_surface(struct hwd_view *view);
 
 void
