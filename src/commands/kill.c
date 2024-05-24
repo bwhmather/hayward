@@ -20,7 +20,7 @@ cmd_kill(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, "Can only kill windows");
     }
 
-    window_begin_destroy(window);
+    window_close(window);
 
     root_commit_focus(root);
     return cmd_results_new(CMD_SUCCESS, NULL);
