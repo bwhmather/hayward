@@ -155,6 +155,15 @@ hwd_xdg_shell_view_handle_window_commit(struct wl_listener *listener, void *data
         dirty = true;
     }
 
+    bool resizing = window->resizing;
+    if (resizing != self->configured_is_resizing) {
+        self->configured_is_resizing = resizing;
+
+        wlr_xdg_toplevel_set_resizing(self->wlr_xdg_toplevel, resizing);
+
+        dirty = true;
+    }
+
     bool tiled = window_is_tiling(window);
     if (tiled != self->configured_is_tiled) {
         self->configured_is_tiled = tiled;
@@ -208,13 +217,6 @@ set_activated(struct hwd_view *view, bool activated) {
     wlr_xdg_toplevel_set_activated(self->wlr_xdg_toplevel, activated);
 }
 
-static void
-set_resizing(struct hwd_view *view, bool resizing) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
-
-    wlr_xdg_toplevel_set_resizing(self->wlr_xdg_toplevel, resizing);
-}
-
 static bool
 wants_floating(struct hwd_xdg_shell_view *self) {
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
@@ -250,7 +252,6 @@ destroy(struct hwd_view *view) {
 
 static const struct hwd_view_impl view_impl = {
     .set_activated = set_activated,
-    .set_resizing = set_resizing,
     .close_popups = close_popups,
     .destroy = destroy,
 };

@@ -120,6 +120,7 @@ struct hwd_window {
     // If true, the window has been plucked from the normal plane of existence
     // and is being moved in sync with the mouse.
     bool moving;
+    bool resizing;
 
     bool is_configuring;
 

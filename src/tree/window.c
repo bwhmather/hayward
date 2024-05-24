@@ -1099,13 +1099,12 @@ window_get_box(struct hwd_window *window, struct wlr_box *box) {
  */
 void
 window_set_resizing(struct hwd_window *window, bool resizing) {
-    if (!window) {
-        return;
-    }
+    assert(window != NULL);
+    assert(window_is_alive(window));
 
-    if (window->view->impl->set_resizing) {
-        window->view->impl->set_resizing(window->view, resizing);
-    }
+    window->resizing = true;
+
+    window_set_dirty(window);
 }
 
 void

@@ -29,6 +29,7 @@ struct hwd_xdg_shell_view {
     // a response to.
     bool force_reconfigure;
 
+    bool configured_is_resizing;
     bool configured_is_tiled;
     bool configured_is_fullscreen;
     int configured_width;
