@@ -599,6 +599,14 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     }
     window_set_title(view->window, title);
 
+    struct hwd_xwayland_view *new_parent = NULL;
+    if (xsurface->parent != NULL) {
+        new_parent = xsurface->parent->data;
+    }
+    window_set_transient_for(
+        self->view.window, xsurface->parent != NULL ? new_parent->view.window : NULL
+    );
+
     self->surface_scene =
         wlr_scene_subsurface_tree_create(view->layers.content_tree, xsurface->surface);
     root_commit_focus(root);
@@ -792,15 +800,13 @@ hwd_xwayland_view_handle_xsurface_set_window_type(struct wl_listener *listener, 
 static void
 hwd_xwayland_view_handle_xsurface_set_hints(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_hints);
-
     struct hwd_view *view = &self->view;
+    struct hwd_window *window = view->window;
+    if (window == NULL) {
+        return;
+    }
+
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
-    if (xsurface->surface == NULL) {
-        return;
-    }
-    if (!xsurface->surface->mapped) {
-        return;
-    }
     const bool hints_urgency = xcb_icccm_wm_hints_get_urgency(xsurface->hints);
 
     window_set_urgent(view->window, hints_urgency);
@@ -809,6 +815,11 @@ hwd_xwayland_view_handle_xsurface_set_hints(struct wl_listener *listener, void *
 static void
 hwd_xwayland_view_handle_xsurface_set_parent(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_parent);
+    struct hwd_view *view = &self->view;
+    struct hwd_window *window = view->window;
+    if (window == NULL) {
+        return;
+    }
 
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     struct hwd_xwayland_view *new_parent = NULL;
