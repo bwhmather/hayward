@@ -550,7 +550,7 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     wl_signal_add(&view->window->events.commit, &self->window_commit);
 
     self->window_close.notify = hwd_xwayland_view_handle_window_close;
-    wl_signal_add(&view->window->events.commit, &self->window_close);
+    wl_signal_add(&view->window->events.close, &self->window_close);
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
     assert(workspace != NULL);
