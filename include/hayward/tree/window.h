@@ -248,6 +248,9 @@ window_set_urgent(struct hwd_window *window, bool urgent);
 void
 window_set_transient_for(struct hwd_window *window, struct hwd_window *parent);
 
+void
+window_set_content(struct hwd_window *window, struct wlr_scene_node *node);
+
 /**
  * Called when the view requests to be focused.
  */

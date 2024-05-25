@@ -40,6 +40,8 @@ struct hwd_xdg_shell_view {
     // configures.
     uint32_t configure_serial;
 
+    struct wlr_scene_tree *scene_tree;
+
     struct wl_listener wlr_surface_commit;
     struct wl_listener wlr_toplevel_request_move;
     struct wl_listener wlr_toplevel_request_resize;

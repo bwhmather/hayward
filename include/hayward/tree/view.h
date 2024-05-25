@@ -8,7 +8,6 @@
 #include <wayland-server-core.h>
 
 #include <wlr/types/wlr_compositor.h>
-#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 
 #include <hayward/config.h>
@@ -32,12 +31,6 @@ struct hwd_view_impl {
 struct hwd_view {
     enum hwd_view_type type;
     const struct hwd_view_impl *impl;
-
-    struct wlr_scene_tree *scene_tree;
-
-    struct {
-        struct wlr_scene_tree *content_tree;
-    } layers;
 
     struct hwd_window *window;   // NULL if unmapped and transactions finished
     struct wlr_surface *surface; // NULL for unmapped views
@@ -69,11 +62,5 @@ view_set_activated(struct hwd_view *view, bool activated);
 
 void
 view_close_popups(struct hwd_view *view);
-
-void
-view_center_surface(struct hwd_view *view);
-
-void
-view_send_frame_done(struct hwd_view *view);
 
 #endif

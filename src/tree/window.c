@@ -185,27 +185,20 @@ window_update_scene(struct hwd_window *window) {
         &window->layers.content_tree->node, fullscreen ? 0 : border_left,
         fullscreen ? 0 : titlebar_height + border_top
     );
-
-    struct hwd_view *view = window->view;
-    if (view->window != window || window->committed.dead) {
-        if (view->scene_tree->node.parent == window->layers.content_tree) {
-            wlr_scene_node_reparent(&view->scene_tree->node, NULL);
-        }
-    } else {
-        // If the view hasn't responded to the configure, center it within
-        // the window. This is important for fullscreen views which
-        // refuse to resize to the size of the output.
-        if (view->surface) {
-            view_center_surface(view);
-        }
-
-        wlr_scene_node_reparent(&view->scene_tree->node, window->layers.content_tree);
-    }
 }
 
 static void
 window_destroy_scene(struct hwd_window *window) {
     assert(&window->scene_tree->node.parent->node == NULL);
+
+    // Unparent content tree rather than destroying to allow view to do something
+    // else with it.
+    struct wl_list *link = &window->layers.content_tree->children;
+    while (link->next != &window->layers.content_tree->children) {
+        struct wlr_scene_node *old_node = wl_container_of(link, old_node, link);
+        link = link->next;
+        wlr_scene_node_reparent(old_node, NULL);
+    }
 
     wlr_scene_node_destroy(&window->layers.inner_tree->node);
 
@@ -749,6 +742,21 @@ window_set_transient_for(struct hwd_window *window, struct hwd_window *parent) {
         window->parent_begin_destroy.notify = window_handle_parent_begin_destroy;
         wl_signal_add(&window->parent->events.begin_destroy, &window->parent_begin_destroy);
     }
+}
+
+void
+window_set_content(struct hwd_window *window, struct wlr_scene_node *new_node) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+
+    struct wl_list *link = &window->layers.content_tree->children;
+    while (link->next != &window->layers.content_tree->children) {
+        struct wlr_scene_node *old_node = wl_container_of(link, old_node, link);
+        link = link->next;
+        wlr_scene_node_reparent(old_node, NULL);
+    }
+
+    wlr_scene_node_reparent(new_node, window->layers.content_tree);
 }
 
 void

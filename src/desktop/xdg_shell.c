@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <wayland-server-core.h>
 #include <wayland-util.h>
@@ -247,6 +248,7 @@ close_popups(struct hwd_view *view) {
 static void
 destroy(struct hwd_view *view) {
     struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+    wlr_scene_node_destroy(&self->scene_tree->node);
     free(self);
 }
 
@@ -274,6 +276,12 @@ view_notify_ready_by_serial(struct hwd_view *view, uint32_t serial) {
     window_end_configure(window);
 
     return true;
+}
+
+static void
+send_frame_done_iterator(struct wlr_scene_buffer *scene_buffer, int x, int y, void *data) {
+    struct timespec *when = data;
+    wl_signal_emit_mutable(&scene_buffer->events.frame_done, when);
 }
 
 static void
@@ -314,7 +322,7 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
             window->floating_height = view->geometry.height;
             window_set_dirty(window);
         } else {
-            view_center_surface(view);
+            // TODO center surface.
         }
     }
 
@@ -322,7 +330,13 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
 
     // TODO don't send if transaction is in progress.
     if (!success) {
-        view_send_frame_done(view);
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+        struct wlr_scene_node *node;
+        wl_list_for_each(node, &self->scene_tree->children, link) {
+            wlr_scene_node_for_each_buffer(node, send_frame_done_iterator, &now);
+        }
     }
 }
 
@@ -366,7 +380,7 @@ hwd_xdg_shell_view_handle_xdg_surface_new_popup(struct wl_listener *listener, vo
 
     struct hwd_xdg_popup *popup = hwd_xdg_popup_create(wlr_popup, &self->view, root->layers.popups);
     int lx, ly;
-    wlr_scene_node_coords(&popup->view->layers.content_tree->node, &lx, &ly);
+    wlr_scene_node_coords(&self->scene_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);
 }
 
@@ -521,6 +535,8 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
     view->surface = wlr_surface;
     view->window = window_create(root, view);
 
+    window_set_content(view->window, &self->scene_tree->node);
+
     // If there is a request to be opened fullscreen on a specific output, try
     // to honor that request. Otherwise, fallback to assigns, pid mappings,
     // focused workspace, etc
@@ -656,6 +672,8 @@ hwd_xdg_shell_handle_new_toplevel(struct wl_listener *listener, void *data) {
 
     xdg_shell_view->xdg_shell = self;
 
+    xdg_shell_view->scene_tree = wlr_scene_xdg_surface_create(NULL, xdg_surface);
+
     view_init(&xdg_shell_view->view, HWD_VIEW_XDG_SHELL, &view_impl);
     xdg_shell_view->wlr_xdg_toplevel = xdg_toplevel;
 
@@ -669,8 +687,6 @@ hwd_xdg_shell_handle_new_toplevel(struct wl_listener *listener, void *data) {
     wl_signal_add(&xdg_surface->events.destroy, &xdg_shell_view->xdg_surface_destroy);
 
     wlr_xdg_toplevel_set_wm_capabilities(xdg_toplevel, XDG_TOPLEVEL_WM_CAPABILITIES_FULLSCREEN);
-
-    wlr_scene_xdg_surface_create(xdg_shell_view->view.layers.content_tree, xdg_surface);
 
     xdg_surface->data = xdg_shell_view;
 }

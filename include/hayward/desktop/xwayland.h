@@ -56,7 +56,7 @@ struct hwd_xwayland_view {
     int configured_width;
     int configured_height;
 
-    struct wlr_scene_tree *surface_scene;
+    struct wlr_scene_tree *scene_tree;
 
     struct wl_listener xsurface_commit;
     struct wl_listener xsurface_request_move;

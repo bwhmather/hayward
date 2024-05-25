@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <xcb/xcb.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xproto.h>
@@ -295,7 +296,6 @@ hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data)
 
     if (dirty) {
         window_begin_configure(view->window);
-        view_send_frame_done(view);
     }
 }
 
@@ -391,6 +391,12 @@ view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int wid
 }
 
 static void
+send_frame_done_iterator(struct wlr_scene_buffer *scene_buffer, int x, int y, void *data) {
+    struct timespec *when = data;
+    wl_signal_emit_mutable(&scene_buffer->events.frame_done, when);
+}
+
+static void
 hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_commit);
 
@@ -416,7 +422,7 @@ hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *dat
             window->floating_height = view->geometry.height;
             window_set_dirty(window);
         } else {
-            view_center_surface(view);
+            // TODO center surface.
         }
     }
 
@@ -425,7 +431,13 @@ hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *dat
 
     // TODO don't send if transaction is in progress.
     if (!success) {
-        view_send_frame_done(view);
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+        struct wlr_scene_node *node;
+        wl_list_for_each(node, &self->scene_tree->children, link) {
+            wlr_scene_node_for_each_buffer(node, send_frame_done_iterator, &now);
+        }
     }
 }
 
@@ -546,6 +558,9 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     view->surface = xsurface->surface;
     view->window = window_create(root, view);
 
+    self->scene_tree = wlr_scene_subsurface_tree_create(NULL, xsurface->surface);
+    window_set_content(view->window, &self->scene_tree->node);
+
     self->window_commit.notify = hwd_xwayland_view_handle_window_commit;
     wl_signal_add(&view->window->events.commit, &self->window_commit);
 
@@ -607,8 +622,6 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
         self->view.window, xsurface->parent != NULL ? new_parent->view.window : NULL
     );
 
-    self->surface_scene =
-        wlr_scene_subsurface_tree_create(view->layers.content_tree, xsurface->surface);
     root_commit_focus(root);
 }
 
