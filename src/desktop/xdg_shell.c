@@ -89,9 +89,9 @@ popup_unconstrain(struct hwd_xdg_popup *popup) {
     // of the popup
     struct wlr_box output_toplevel_sx_box = {
         .x = output->pending.x - xdg_shell_view->window->pending.content_x +
-            xdg_shell_view->view.geometry.x,
+            xdg_shell_view->geometry.x,
         .y = output->pending.y - xdg_shell_view->window->pending.content_y +
-            xdg_shell_view->view.geometry.y,
+            xdg_shell_view->geometry.y,
         .width = output->pending.width,
         .height = output->pending.height,
     };
@@ -291,7 +291,6 @@ static void
 xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_surface_commit);
 
-    struct hwd_view *view = &self->view;
     struct hwd_window *window = self->window;
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
     struct wlr_xdg_surface *xdg_surface = toplevel->base;
@@ -310,19 +309,19 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
 
     struct wlr_box new_geo;
     wlr_xdg_surface_get_geometry(xdg_surface, &new_geo);
-    bool new_size = new_geo.width != view->geometry.width ||
-        new_geo.height != view->geometry.height || new_geo.x != view->geometry.x ||
-        new_geo.y != view->geometry.y;
+    bool new_size = new_geo.width != self->geometry.width ||
+        new_geo.height != self->geometry.height || new_geo.x != self->geometry.x ||
+        new_geo.y != self->geometry.y;
 
     if (new_size) {
         // The client changed its surface size in this commit. For floating
         // windows, we resize the window to match. For tiling windows,
         // we only recenter the surface.
-        memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
+        memcpy(&self->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(self->window)) {
             struct hwd_window *window = self->window;
-            window->floating_width = view->geometry.width;
-            window->floating_height = view->geometry.height;
+            window->floating_width = self->geometry.width;
+            window->floating_height = self->geometry.height;
             window_set_dirty(window);
         } else {
             // TODO center surface.

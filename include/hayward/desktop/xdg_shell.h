@@ -45,6 +45,10 @@ struct hwd_xdg_shell_view {
     // configures.
     uint32_t configure_serial;
 
+    // The geometry for whatever the client is committing, regardless of
+    // transaction state. Updated on every commit.
+    struct wlr_box geometry;
+
     struct wlr_scene_tree *scene_tree;
 
     struct wl_listener wlr_surface_commit;

@@ -414,20 +414,19 @@ hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *dat
 
     struct wlr_box new_geo;
     get_geometry(view, &new_geo);
-    bool new_size = new_geo.width != view->geometry.width ||
-        new_geo.height != view->geometry.height || new_geo.x != view->geometry.x ||
-        new_geo.y != view->geometry.y;
+    bool new_size = new_geo.width != self->geometry.width ||
+        new_geo.height != self->geometry.height || new_geo.x != self->geometry.x ||
+        new_geo.y != self->geometry.y;
 
     if (new_size) {
         // The client changed its surface size in this commit. For floating
         // windows, we resize the window to match. For tiling windows,
         // we only recenter the surface.
-        memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
         if (window_is_floating(self->window)) {
             // TODO shouldn't need to be sent a configure in the transaction.
             struct hwd_window *window = self->window;
-            window->floating_width = view->geometry.width;
-            window->floating_height = view->geometry.height;
+            window->floating_width = self->geometry.width;
+            window->floating_height = self->geometry.height;
             window_set_dirty(window);
         } else {
             // TODO center surface.

@@ -32,10 +32,6 @@ struct hwd_view {
 
     struct wlr_surface *surface; // NULL for unmapped views
 
-    // The geometry for whatever the client is committing, regardless of
-    // transaction state. Updated on every commit.
-    struct wlr_box geometry;
-
     bool destroying;
 
     struct {

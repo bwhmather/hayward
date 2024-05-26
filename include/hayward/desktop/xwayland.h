@@ -61,6 +61,10 @@ struct hwd_xwayland_view {
     int configured_width;
     int configured_height;
 
+    // The geometry for whatever the client is committing, regardless of
+    // transaction state. Updated on every commit.
+    struct wlr_box geometry;
+
     struct wlr_scene_tree *scene_tree;
 
     struct wl_listener xsurface_commit;
