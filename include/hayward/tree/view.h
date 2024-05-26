@@ -44,8 +44,6 @@ struct hwd_view {
     struct {
         struct wl_signal unmap;
     } events;
-
-    int max_render_time; // In milliseconds
 };
 
 void

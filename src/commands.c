@@ -96,9 +96,8 @@ static const struct cmd_handler command_handlers[] = {
     {"fullscreen", cmd_fullscreen}, //
     {"kill", cmd_kill},             //
     {"layout", cmd_layout},         //
-    {"max_render_time", cmd_max_render_time},
-    {"move", cmd_move}, //
-    {"nop", cmd_nop},   //
+    {"move", cmd_move},             //
+    {"nop", cmd_nop},               //
     {"reload", cmd_reload},
     {"resize", cmd_resize}, //
 };

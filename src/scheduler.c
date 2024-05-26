@@ -19,8 +19,6 @@
 
 #include <hayward/profiler.h>
 #include <hayward/server.h>
-#include <hayward/tree/view.h>
-#include <hayward/tree/window.h>
 
 struct buffer_timer {
     struct wlr_addon addon;
@@ -87,34 +85,19 @@ static void
 send_frame_done_iterator(struct wlr_scene_buffer *buffer, int x, int y, void *user_data) {
     struct send_frame_done_data *data = user_data;
     struct hwd_scene_output_scheduler *scheduler_output = data->scheduler_output;
-    int view_max_render_time = 0;
 
     if (buffer->primary_output == NULL &&
         buffer->primary_output != scheduler_output->scene_output) {
         return;
     }
 
-    struct wlr_scene_node *current = &buffer->node;
+    int delay = data->msec_until_refresh - scheduler_output->max_render_time;
+    // TODO factor in buffer max render time.
 
-    while (true) {
-        struct hwd_window *window = window_for_scene_node(current);
-        if (window != NULL) {
-            view_max_render_time = window->view->max_render_time;
-            break;
-        }
-
-        if (!current->parent) {
-            break;
-        }
-
-        current = &current->parent->node;
-    }
-
-    int delay = data->msec_until_refresh - scheduler_output->max_render_time - view_max_render_time;
 
     struct buffer_timer *timer = NULL;
 
-    if (scheduler_output->max_render_time != 0 && view_max_render_time != 0 && delay > 0) {
+    if (delay > 0) {
         timer = buffer_timer_try_get(buffer);
 
         if (!timer) {
