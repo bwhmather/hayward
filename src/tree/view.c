@@ -16,15 +16,12 @@ void
 view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl) {
     view->type = type;
     view->impl = impl;
-    wl_signal_init(&view->events.unmap);
 }
 
 void
 view_destroy(struct hwd_view *view) {
     assert(view->surface == NULL);
     assert(view->destroying);
-
-    wl_list_remove(&view->events.unmap.listener_list);
 
     if (view->impl->destroy) {
         view->impl->destroy(view);

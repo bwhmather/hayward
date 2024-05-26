@@ -33,10 +33,6 @@ struct hwd_view {
     struct wlr_surface *surface; // NULL for unmapped views
 
     bool destroying;
-
-    struct {
-        struct wl_signal unmap;
-    } events;
 };
 
 void

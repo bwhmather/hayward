@@ -455,8 +455,6 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
 
     assert(view->surface);
 
-    wl_signal_emit(&view->events.unmap, view);
-
     struct hwd_column *column = self->window->column;
     struct hwd_workspace *workspace = self->window->workspace;
     window_begin_destroy(self->window);
