@@ -14,6 +14,7 @@
 #include <wlr/xwayland/xwayland.h>
 
 #include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 #ifdef HAVE_XWAYLAND
 
@@ -48,6 +49,8 @@ struct hwd_xwayland_view {
     struct hwd_xwayland *xwayland;
 
     struct wlr_xwayland_surface *wlr_xwayland_surface;
+
+    struct hwd_window *window; // NULL if unmapped and transactions finished
 
     bool configured_has_focus;
 

@@ -250,9 +250,8 @@ hwd_xwayland_view_from_view(struct hwd_view *view) {
 static void
 hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, window_commit);
-    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
 
     if (!window_is_visible(window)) {
         return;
@@ -295,7 +294,7 @@ hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data)
     }
 
     if (dirty) {
-        window_begin_configure(view->window);
+        window_begin_configure(self->window);
     }
 }
 
@@ -310,7 +309,7 @@ static void
 hwd_xwayland_view_handle_root_focus_changed(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, root_focus_changed);
 
-    bool has_focus = root->focused_window == self->view.window;
+    bool has_focus = root->focused_window == self->window;
 
     if (self->configured_has_focus == has_focus) {
         return;
@@ -379,8 +378,10 @@ get_geometry(struct hwd_view *view, struct wlr_box *box) {
 }
 
 static bool
-view_notify_ready_by_geometry(struct hwd_view *view, double x, double y, int width, int height) {
-    struct hwd_window *window = view->window;
+view_notify_ready_by_geometry(
+    struct hwd_xwayland_view *self, double x, double y, int width, int height
+) {
+    struct hwd_window *window = self->window;
     struct hwd_window_state *state = &window->committed;
 
     if (!window->is_configuring) {
@@ -422,9 +423,9 @@ hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *dat
         // windows, we resize the window to match. For tiling windows,
         // we only recenter the surface.
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
-        if (window_is_floating(view->window)) {
+        if (window_is_floating(self->window)) {
             // TODO shouldn't need to be sent a configure in the transaction.
-            struct hwd_window *window = view->window;
+            struct hwd_window *window = self->window;
             window->floating_width = view->geometry.width;
             window->floating_height = view->geometry.height;
             window_set_dirty(window);
@@ -434,7 +435,7 @@ hwd_xwayland_view_handle_xsurface_commit(struct wl_listener *listener, void *dat
     }
 
     bool success =
-        view_notify_ready_by_geometry(view, xsurface->x, xsurface->y, state->width, state->height);
+        view_notify_ready_by_geometry(self, xsurface->x, xsurface->y, state->width, state->height);
 
     // TODO don't send if transaction is in progress.
     if (!success) {
@@ -491,9 +492,9 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
 
     wl_signal_emit(&view->events.unmap, view);
 
-    struct hwd_column *column = view->window->column;
-    struct hwd_workspace *workspace = view->window->workspace;
-    window_begin_destroy(view->window);
+    struct hwd_column *column = self->window->column;
+    struct hwd_workspace *workspace = self->window->workspace;
+    window_begin_destroy(self->window);
     if (column) {
         column_consider_destroy(column);
     }
@@ -518,10 +519,9 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
 
 static bool
 should_focus(struct hwd_xwayland_view *self) {
-    struct hwd_view *view = &self->view;
     struct hwd_workspace *active_workspace = root_get_active_workspace(root);
-    struct hwd_workspace *map_workspace = view->window->workspace;
-    struct hwd_output *map_output = window_get_output(view->window);
+    struct hwd_workspace *map_workspace = self->window->workspace;
+    struct hwd_output *map_output = window_get_output(self->window);
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
 
     // Views cannot be focused if not mapped.
@@ -538,7 +538,7 @@ should_focus(struct hwd_xwayland_view *self) {
     if (map_output != NULL) {
         struct hwd_window *fullscreen_window =
             workspace_get_fullscreen_window_for_output(map_workspace, map_output);
-        if (fullscreen_window != NULL && fullscreen_window != view->window) {
+        if (fullscreen_window != NULL && fullscreen_window != self->window) {
             return false;
         }
     }
@@ -564,19 +564,19 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
 
     assert(view->surface == NULL);
     view->surface = xsurface->surface;
-    view->window = window_create(root, view);
+    self->window = window_create(root, view);
 
     self->scene_tree = wlr_scene_subsurface_tree_create(NULL, xsurface->surface);
-    window_set_content(view->window, &self->scene_tree->node);
+    window_set_content(self->window, &self->scene_tree->node);
 
     self->window_commit.notify = hwd_xwayland_view_handle_window_commit;
-    wl_signal_add(&view->window->events.commit, &self->window_commit);
+    wl_signal_add(&self->window->events.commit, &self->window_commit);
 
     self->window_close.notify = hwd_xwayland_view_handle_window_close;
-    wl_signal_add(&view->window->events.close, &self->window_close);
+    wl_signal_add(&self->window->events.close, &self->window_close);
 
     self->root_focus_changed.notify = hwd_xwayland_view_handle_root_focus_changed;
-    wl_signal_add(&view->window->root->events.focus_changed, &self->root_focus_changed);
+    wl_signal_add(&self->window->root->events.focus_changed, &self->root_focus_changed);
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
     assert(workspace != NULL);
@@ -584,25 +584,25 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
     struct hwd_output *output = root_get_active_output(root);
     assert(output != NULL);
 
-    window_set_natural_size(view->window, xsurface->width, xsurface->height);
+    window_set_natural_size(self->window, xsurface->width, xsurface->height);
 
     if (wants_floating(self)) {
-        workspace_add_floating(workspace, view->window);
-        window_floating_set_default_size(view->window);
-        window_floating_resize_and_center(view->window);
+        workspace_add_floating(workspace, self->window);
+        window_floating_set_default_size(self->window);
+        window_floating_resize_and_center(self->window);
 
     } else {
         struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
         if (target_sibling) {
-            column_add_sibling(target_sibling, view->window, 1);
+            column_add_sibling(target_sibling, self->window, 1);
         } else {
             struct hwd_column *column = column_create();
             workspace_insert_column_first(workspace, output, column);
-            column_add_child(column, view->window);
+            column_add_child(column, self->window);
         }
 
         if (target_sibling) {
-            column_set_dirty(view->window->column);
+            column_set_dirty(self->window->column);
         } else {
             workspace_set_dirty(workspace);
         }
@@ -612,26 +612,24 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
         // Fullscreen windows still have to have a place as regular
         // tiling or floating windows, so this does not make the
         // previous logic unnecessary.
-        window_fullscreen_on_output(view->window, output);
+        window_fullscreen_on_output(self->window, output);
     }
 
     if (should_focus(self)) {
-        root_set_focused_window(root, view->window);
+        root_set_focused_window(root, self->window);
     }
 
     char const *title = self->wlr_xwayland_surface->title;
     if (title == NULL) {
         title = "";
     }
-    window_set_title(view->window, title);
+    window_set_title(self->window, title);
 
     struct hwd_xwayland_view *new_parent = NULL;
     if (xsurface->parent != NULL) {
         new_parent = xsurface->parent->data;
     }
-    window_set_transient_for(
-        self->view.window, xsurface->parent != NULL ? new_parent->view.window : NULL
-    );
+    window_set_transient_for(self->window, xsurface->parent != NULL ? new_parent->window : NULL);
 
     root_commit_focus(root);
 }
@@ -683,25 +681,23 @@ hwd_xwayland_view_handle_xsurface_request_configure(struct wl_listener *listener
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_configure);
     struct wlr_xwayland_surface_configure_event *ev = data;
 
-    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL || !xsurface->surface->mapped) {
         wlr_xwayland_surface_configure(xsurface, ev->x, ev->y, ev->width, ev->height);
         return;
     }
-    if (window_is_floating(view->window)) {
+    if (window_is_floating(self->window)) {
         // Respect minimum and maximum sizes
-        window_set_natural_size(view->window, ev->width, ev->height);
-        window_floating_resize_and_center(view->window);
+        window_set_natural_size(self->window, ev->width, ev->height);
+        window_floating_resize_and_center(self->window);
     }
-    window_set_dirty(view->window);
+    window_set_dirty(self->window);
 }
 
 static void
 hwd_xwayland_view_handle_xsurface_request_fullscreen(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_fullscreen);
 
-    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
@@ -710,7 +706,7 @@ hwd_xwayland_view_handle_xsurface_request_fullscreen(struct wl_listener *listene
         return;
     }
 
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
     struct hwd_output *output = window_get_output(window);
 
     if (xsurface->fullscreen != window_is_fullscreen(window)) {
@@ -723,7 +719,6 @@ hwd_xwayland_view_handle_xsurface_request_minimize(struct wl_listener *listener,
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_minimize);
     struct wlr_xwayland_minimize_event *e = data;
 
-    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
@@ -732,7 +727,7 @@ hwd_xwayland_view_handle_xsurface_request_minimize(struct wl_listener *listener,
         return;
     }
 
-    bool focused = root_get_focused_window(root) == view->window;
+    bool focused = root_get_focused_window(root) == self->window;
     wlr_xwayland_surface_set_minimized(xsurface, !focused && e->minimize);
 }
 
@@ -740,7 +735,6 @@ static void
 hwd_xwayland_view_handle_xsurface_request_move(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_move);
 
-    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
@@ -748,11 +742,11 @@ hwd_xwayland_view_handle_xsurface_request_move(struct wl_listener *listener, voi
     if (!xsurface->surface->mapped) {
         return;
     }
-    if (window_is_fullscreen(view->window)) {
+    if (window_is_fullscreen(self->window)) {
         return;
     }
     struct hwd_seat *seat = input_manager_current_seat();
-    seatop_begin_move(seat, view->window);
+    seatop_begin_move(seat, self->window);
 }
 
 static void
@@ -760,7 +754,6 @@ hwd_xwayland_view_handle_xsurface_request_resize(struct wl_listener *listener, v
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_resize);
     struct wlr_xwayland_resize_event *e = data;
 
-    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
@@ -768,18 +761,17 @@ hwd_xwayland_view_handle_xsurface_request_resize(struct wl_listener *listener, v
     if (!xsurface->surface->mapped) {
         return;
     }
-    if (!window_is_floating(view->window)) {
+    if (!window_is_floating(self->window)) {
         return;
     }
     struct hwd_seat *seat = input_manager_current_seat();
-    seatop_begin_resize_floating(seat, view->window, e->edges);
+    seatop_begin_resize_floating(seat, self->window, e->edges);
 }
 
 static void
 hwd_xwayland_view_handle_xsurface_request_activate(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_request_activate);
 
-    struct hwd_view *view = &self->view;
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     if (xsurface->surface == NULL) {
         return;
@@ -788,7 +780,7 @@ hwd_xwayland_view_handle_xsurface_request_activate(struct wl_listener *listener,
         return;
     }
 
-    window_request_activate(view->window);
+    window_request_activate(self->window);
     root_commit_focus(root);
 }
 
@@ -796,9 +788,7 @@ static void
 hwd_xwayland_view_handle_xsurface_set_title(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_title);
 
-    struct hwd_view *view = &self->view;
-
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
     if (window == NULL) {
         return;
     }
@@ -824,8 +814,7 @@ hwd_xwayland_view_handle_xsurface_set_window_type(struct wl_listener *listener, 
 static void
 hwd_xwayland_view_handle_xsurface_set_hints(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_hints);
-    struct hwd_view *view = &self->view;
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
     if (window == NULL) {
         return;
     }
@@ -833,14 +822,13 @@ hwd_xwayland_view_handle_xsurface_set_hints(struct wl_listener *listener, void *
     struct wlr_xwayland_surface *xsurface = self->wlr_xwayland_surface;
     const bool hints_urgency = xcb_icccm_wm_hints_get_urgency(xsurface->hints);
 
-    window_set_urgent(view->window, hints_urgency);
+    window_set_urgent(self->window, hints_urgency);
 }
 
 static void
 hwd_xwayland_view_handle_xsurface_set_parent(struct wl_listener *listener, void *data) {
     struct hwd_xwayland_view *self = wl_container_of(listener, self, xsurface_set_parent);
-    struct hwd_view *view = &self->view;
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
     if (window == NULL) {
         return;
     }
@@ -851,9 +839,7 @@ hwd_xwayland_view_handle_xsurface_set_parent(struct wl_listener *listener, void 
         new_parent = xsurface->parent->data;
     }
 
-    window_set_transient_for(
-        self->view.window, new_parent != NULL ? new_parent->view.window : NULL
-    );
+    window_set_transient_for(self->window, new_parent != NULL ? new_parent->window : NULL);
 }
 
 static struct hwd_xwayland_view *

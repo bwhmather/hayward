@@ -10,8 +10,6 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/util/box.h>
 
-#include <hayward/config.h>
-
 struct hwd_window;
 struct hwd_view;
 
@@ -32,7 +30,6 @@ struct hwd_view {
     enum hwd_view_type type;
     const struct hwd_view_impl *impl;
 
-    struct hwd_window *window;   // NULL if unmapped and transactions finished
     struct wlr_surface *surface; // NULL for unmapped views
 
     // The geometry for whatever the client is committing, regardless of

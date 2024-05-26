@@ -15,7 +15,6 @@
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/globals/root.h>
 #include <hayward/tree/root.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 static void
@@ -31,7 +30,7 @@ handle_request_activate(struct wl_listener *listener, void *data) {
         return;
     }
 
-    window_request_activate(xdg_view->view.window);
+    window_request_activate(xdg_view->window);
     root_commit_focus(root);
 }
 

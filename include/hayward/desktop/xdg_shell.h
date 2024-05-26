@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_xdg_shell.h>
 
 #include <hayward/tree/view.h>
+#include <hayward/tree/window.h>
 
 struct hwd_xdg_shell {
     struct wlr_xdg_shell *xdg_shell;
@@ -24,6 +25,8 @@ struct hwd_xdg_shell_view {
     struct hwd_xdg_shell *xdg_shell;
 
     struct wlr_xdg_toplevel *wlr_xdg_toplevel;
+
+    struct hwd_window *window; // NULL if unmapped and transactions finished
 
     bool configured_has_focus;
 
@@ -61,7 +64,7 @@ struct hwd_xdg_shell_view {
 };
 
 struct hwd_xdg_popup {
-    struct hwd_view *view;
+    struct hwd_xdg_shell_view *xdg_shell_view;
 
     struct wlr_scene_tree *scene_tree;
     struct wlr_scene_tree *xdg_surface_tree;

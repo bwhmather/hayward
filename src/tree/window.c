@@ -278,13 +278,6 @@ window_handle_transaction_apply(struct wl_listener *listener, void *data) {
     window_update_scene(window);
 
     if (window->committed.dead) {
-        if (window->view->window == window) {
-            window->view->window = NULL;
-            if (window->view->destroying) {
-                view_destroy(window->view);
-            }
-        }
-
         wl_signal_add(&transaction_manager->events.after_apply, &window->transaction_after_apply);
     }
 

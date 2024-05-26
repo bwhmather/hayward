@@ -23,7 +23,6 @@ void
 view_destroy(struct hwd_view *view) {
     assert(view->surface == NULL);
     assert(view->destroying);
-    assert(view->window == NULL);
 
     wl_list_remove(&view->events.unmap.listener_list);
 
@@ -43,7 +42,4 @@ view_begin_destroy(struct hwd_view *view) {
     // completed.  Setting `view->destroying` will tell the window to clean up
     // the view once it has finished cleaning up itself.
     view->destroying = true;
-    if (!view->window) {
-        view_destroy(view);
-    }
 }

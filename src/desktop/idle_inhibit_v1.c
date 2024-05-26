@@ -18,7 +18,6 @@
 
 #include <hayward/desktop/xdg_shell.h>
 #include <hayward/server.h>
-#include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
 
 static void
@@ -72,11 +71,11 @@ hwd_idle_inhibit_v1_is_active(struct hwd_idle_inhibitor_v1 *inhibitor) {
         return false;
     }
 
-    if (xdg_view->view.window == NULL) {
+    if (xdg_view->window == NULL) {
         return false;
     }
 
-    if (!window_is_visible(xdg_view->view.window)) {
+    if (!window_is_visible(xdg_view->window)) {
         return false;
     }
 

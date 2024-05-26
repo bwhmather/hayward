@@ -859,14 +859,13 @@ check_constraint_region(struct hwd_cursor *cursor) {
     struct wlr_pointer_constraint_v1 *constraint = cursor->active_constraint;
     pixman_region32_t *region = &constraint->region;
     struct hwd_xdg_shell_view *xdg_view = hwd_xdg_shell_view_from_wlr_surface(constraint->surface);
-    struct hwd_view *view = &xdg_view->view;
-    if (cursor->active_confine_requires_warp && view) {
+    if (cursor->active_confine_requires_warp && xdg_view) {
         cursor->active_confine_requires_warp = false;
 
-        struct hwd_window *window = view->window;
+        struct hwd_window *window = xdg_view->window;
 
-        double sx = cursor->cursor->x - window->pending.content_x + view->geometry.x;
-        double sy = cursor->cursor->y - window->pending.content_y + view->geometry.y;
+        double sx = cursor->cursor->x - window->pending.content_x + xdg_view->view.geometry.x;
+        double sy = cursor->cursor->y - window->pending.content_y + xdg_view->view.geometry.y;
 
         if (!pixman_region32_contains_point(region, floor(sx), floor(sy), NULL)) {
             int nboxes;
@@ -876,8 +875,9 @@ check_constraint_region(struct hwd_cursor *cursor) {
                 double sy = (boxes[0].y1 + boxes[0].y2) / 2.;
 
                 wlr_cursor_warp_closest(
-                    cursor->cursor, NULL, sx + window->pending.content_x - view->geometry.x,
-                    sy + window->pending.content_y - view->geometry.y
+                    cursor->cursor, NULL,
+                    sx + window->pending.content_x - xdg_view->view.geometry.x,
+                    sy + window->pending.content_y - xdg_view->view.geometry.y
                 );
 
                 cursor_rebase(cursor);
@@ -1301,11 +1301,10 @@ warp_to_constraint_cursor_hint(struct hwd_cursor *cursor) {
 
         struct hwd_xdg_shell_view *xdg_view =
             hwd_xdg_shell_view_from_wlr_surface(constraint->surface);
-        struct hwd_view *view = &xdg_view->view;
-        struct hwd_window *window = view->window;
+        struct hwd_window *window = xdg_view->window;
 
-        double lx = sx + window->pending.content_x - view->geometry.x;
-        double ly = sy + window->pending.content_y - view->geometry.y;
+        double lx = sx + window->pending.content_x - xdg_view->view.geometry.x;
+        double ly = sy + window->pending.content_y - xdg_view->view.geometry.y;
 
         wlr_cursor_warp(cursor->cursor, NULL, lx, ly);
 

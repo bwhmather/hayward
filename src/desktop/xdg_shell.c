@@ -42,7 +42,8 @@
 
 static struct hwd_xdg_popup *
 hwd_xdg_popup_create(
-    struct wlr_xdg_popup *wlr_popup, struct hwd_view *view, struct wlr_scene_tree *parent
+    struct wlr_xdg_popup *wlr_popup, struct hwd_xdg_shell_view *xdg_shell_view,
+    struct wlr_scene_tree *parent
 );
 
 static void
@@ -50,7 +51,7 @@ hwd_xdg_popup_handle_xdg_surface_new_popup(struct wl_listener *listener, void *d
     struct hwd_xdg_popup *self = wl_container_of(listener, self, xdg_surface_new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
-    hwd_xdg_popup_create(wlr_popup, self->view, self->xdg_surface_tree);
+    hwd_xdg_popup_create(wlr_popup, self->xdg_shell_view, self->xdg_surface_tree);
 }
 
 static void
@@ -75,10 +76,10 @@ hwd_xdg_popup_handle_xdg_surface_destroy(struct wl_listener *listener, void *dat
 
 static void
 popup_unconstrain(struct hwd_xdg_popup *popup) {
-    struct hwd_view *view = popup->view;
+    struct hwd_xdg_shell_view *xdg_shell_view = popup->xdg_shell_view;
     struct wlr_xdg_popup *wlr_popup = popup->wlr_xdg_popup;
 
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = xdg_shell_view->window;
     assert(window != NULL);
 
     struct hwd_output *output = window_get_output(window);
@@ -87,8 +88,10 @@ popup_unconstrain(struct hwd_xdg_popup *popup) {
     // the output box expressed in the coordinate system of the toplevel parent
     // of the popup
     struct wlr_box output_toplevel_sx_box = {
-        .x = output->pending.x - view->window->pending.content_x + view->geometry.x,
-        .y = output->pending.y - view->window->pending.content_y + view->geometry.y,
+        .x = output->pending.x - xdg_shell_view->window->pending.content_x +
+            xdg_shell_view->view.geometry.x,
+        .y = output->pending.y - xdg_shell_view->window->pending.content_y +
+            xdg_shell_view->view.geometry.y,
         .width = output->pending.width,
         .height = output->pending.height,
     };
@@ -98,7 +101,8 @@ popup_unconstrain(struct hwd_xdg_popup *popup) {
 
 static struct hwd_xdg_popup *
 hwd_xdg_popup_create(
-    struct wlr_xdg_popup *wlr_popup, struct hwd_view *view, struct wlr_scene_tree *parent
+    struct wlr_xdg_popup *wlr_popup, struct hwd_xdg_shell_view *xdg_shell_view,
+    struct wlr_scene_tree *parent
 ) {
     struct wlr_xdg_surface *xdg_surface = wlr_popup->base;
 
@@ -115,11 +119,10 @@ hwd_xdg_popup_create(
 
     // TODO scene descriptor.
 
-    self->view = view;
+    self->xdg_shell_view = xdg_shell_view;
 
     self->wlr_xdg_popup = xdg_surface->popup;
-    struct hwd_xdg_shell_view *shell_view = wl_container_of(view, shell_view, view);
-    xdg_surface->data = shell_view;
+    xdg_surface->data = xdg_shell_view;
 
     wl_signal_add(&xdg_surface->events.new_popup, &self->xdg_surface_new_popup);
     self->xdg_surface_new_popup.notify = hwd_xdg_popup_handle_xdg_surface_new_popup;
@@ -142,8 +145,7 @@ xdg_shell_view_from_view(struct hwd_view *view) {
 static void
 hwd_xdg_shell_view_handle_window_commit(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, window_commit);
-    struct hwd_view *view = &self->view;
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
 
     if (!window_is_visible(window)) {
         return;
@@ -215,7 +217,7 @@ static void
 hwd_xdg_shell_view_handle_root_focus_changed(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, root_focus_changed);
 
-    bool has_focus = root->focused_window == self->view.window;
+    bool has_focus = root->focused_window == self->window;
 
     if (self->configured_has_focus == has_focus) {
         return;
@@ -261,17 +263,16 @@ static const struct hwd_view_impl view_impl = {
 };
 
 static bool
-view_notify_ready_by_serial(struct hwd_view *view, uint32_t serial) {
-    struct hwd_window *window = view->window;
-    struct hwd_xdg_shell_view *shell_view = (struct hwd_xdg_shell_view *)view;
+view_notify_ready_by_serial(struct hwd_xdg_shell_view *self, uint32_t serial) {
+    struct hwd_window *window = self->window;
 
     if (!window->is_configuring) {
         return false;
     }
-    if (shell_view->configure_serial == 0) {
+    if (self->configure_serial == 0) {
         return false;
     }
-    if (serial != shell_view->configure_serial) {
+    if (serial != self->configure_serial) {
         return false;
     }
 
@@ -291,7 +292,7 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_surface_commit);
 
     struct hwd_view *view = &self->view;
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
     struct wlr_xdg_surface *xdg_surface = toplevel->base;
 
@@ -318,8 +319,8 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
         // windows, we resize the window to match. For tiling windows,
         // we only recenter the surface.
         memcpy(&view->geometry, &new_geo, sizeof(struct wlr_box));
-        if (window_is_floating(view->window)) {
-            struct hwd_window *window = view->window;
+        if (window_is_floating(self->window)) {
+            struct hwd_window *window = self->window;
             window->floating_width = view->geometry.width;
             window->floating_height = view->geometry.height;
             window_set_dirty(window);
@@ -328,7 +329,7 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
         }
     }
 
-    bool success = view_notify_ready_by_serial(view, xdg_surface->current.configure_serial);
+    bool success = view_notify_ready_by_serial(self, xdg_surface->current.configure_serial);
 
     // TODO don't send if transaction is in progress.
     if (!success) {
@@ -346,9 +347,7 @@ static void
 hwd_xdg_shell_view_handle_wlr_toplevel_set_title(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_set_title);
 
-    struct hwd_view *view = &self->view;
-
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
     if (window == NULL) {
         return;
     }
@@ -370,9 +369,7 @@ hwd_xdg_shell_view_handle_wlr_toplevel_set_parent(struct wl_listener *listener, 
         new_parent = toplevel->parent->base->data;
     }
 
-    window_set_transient_for(
-        self->view.window, new_parent != NULL ? new_parent->view.window : NULL
-    );
+    window_set_transient_for(self->window, new_parent != NULL ? new_parent->window : NULL);
 }
 
 static void
@@ -380,7 +377,7 @@ hwd_xdg_shell_view_handle_xdg_surface_new_popup(struct wl_listener *listener, vo
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, xdg_surface_new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
-    struct hwd_xdg_popup *popup = hwd_xdg_popup_create(wlr_popup, &self->view, root->layers.popups);
+    struct hwd_xdg_popup *popup = hwd_xdg_popup_create(wlr_popup, self, root->layers.popups);
     int lx, ly;
     wlr_scene_node_coords(&self->scene_tree->node, &lx, &ly);
     wlr_scene_node_set_position(&popup->scene_tree->node, lx, ly);
@@ -394,13 +391,12 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_fullscreen(
         wl_container_of(listener, self, wlr_toplevel_request_fullscreen);
 
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
-    struct hwd_view *view = &self->view;
 
     if (!toplevel->base->surface->mapped) {
         return;
     }
 
-    struct hwd_window *window = view->window;
+    struct hwd_window *window = self->window;
 
     struct wlr_xdg_toplevel_requested *req = &toplevel->requested;
 
@@ -425,9 +421,7 @@ static void
 hwd_xdg_shell_view_handle_wlr_toplevel_request_move(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_request_move);
 
-    struct hwd_view *view = &self->view;
-
-    if (window_is_fullscreen(view->window)) {
+    if (window_is_fullscreen(self->window)) {
         return;
     }
 
@@ -435,7 +429,7 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_move(struct wl_listener *listener
     struct hwd_seat *seat = e->seat->seat->data;
 
     if (e->serial == seat->last_button_serial) {
-        seatop_begin_move(seat, view->window);
+        seatop_begin_move(seat, self->window);
     }
 }
 
@@ -443,16 +437,14 @@ static void
 hwd_xdg_shell_view_handle_wlr_toplevel_request_resize(struct wl_listener *listener, void *data) {
     struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_request_resize);
 
-    struct hwd_view *view = &self->view;
-
-    if (!window_is_floating(view->window)) {
+    if (!window_is_floating(self->window)) {
         return;
     }
     struct wlr_xdg_toplevel_resize_event *e = data;
     struct hwd_seat *seat = e->seat->seat->data;
 
     if (e->serial == seat->last_button_serial) {
-        seatop_begin_resize_floating(seat, view->window, e->edges);
+        seatop_begin_resize_floating(seat, self->window, e->edges);
     }
 }
 
@@ -466,9 +458,9 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
 
     wl_signal_emit(&view->events.unmap, view);
 
-    struct hwd_column *column = view->window->column;
-    struct hwd_workspace *workspace = view->window->workspace;
-    window_begin_destroy(view->window);
+    struct hwd_column *column = self->window->column;
+    struct hwd_workspace *workspace = self->window->workspace;
+    window_begin_destroy(self->window);
     if (column) {
         column_consider_destroy(column);
     }
@@ -499,10 +491,10 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
 }
 
 static bool
-should_focus(struct hwd_view *view) {
+should_focus(struct hwd_xdg_shell_view *self) {
     struct hwd_workspace *active_workspace = root_get_active_workspace(root);
-    struct hwd_workspace *map_workspace = view->window->workspace;
-    struct hwd_output *map_output = window_get_output(view->window);
+    struct hwd_workspace *map_workspace = self->window->workspace;
+    struct hwd_output *map_output = window_get_output(self->window);
 
     // Views cannot be focused if not mapped.
     if (map_workspace == NULL) {
@@ -518,7 +510,7 @@ should_focus(struct hwd_view *view) {
     if (map_output != NULL) {
         struct hwd_window *fullscreen_window =
             workspace_get_fullscreen_window_for_output(map_workspace, map_output);
-        if (fullscreen_window != NULL && fullscreen_window != view->window) {
+        if (fullscreen_window != NULL && fullscreen_window != self->window) {
             return false;
         }
     }
@@ -536,9 +528,9 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
 
     assert(view->surface == NULL);
     view->surface = wlr_surface;
-    view->window = window_create(root, view);
+    self->window = window_create(root, view);
 
-    window_set_content(view->window, &self->scene_tree->node);
+    window_set_content(self->window, &self->scene_tree->node);
 
     // If there is a request to be opened fullscreen on a specific output, try
     // to honor that request. Otherwise, fallback to assigns, pid mappings,
@@ -553,13 +545,13 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
     assert(output != NULL);
 
     self->window_commit.notify = hwd_xdg_shell_view_handle_window_commit;
-    wl_signal_add(&view->window->events.commit, &self->window_commit);
+    wl_signal_add(&self->window->events.commit, &self->window_commit);
 
     self->window_close.notify = hwd_xdg_shell_view_handle_window_close;
-    wl_signal_add(&view->window->events.close, &self->window_close);
+    wl_signal_add(&self->window->events.close, &self->window_close);
 
     self->root_focus_changed.notify = hwd_xdg_shell_view_handle_root_focus_changed;
-    wl_signal_add(&view->window->root->events.focus_changed, &self->root_focus_changed);
+    wl_signal_add(&self->window->root->events.focus_changed, &self->root_focus_changed);
 
     double natural_width = toplevel->base->current.geometry.width;
     double natural_height = toplevel->base->current.geometry.height;
@@ -567,25 +559,25 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
         natural_width = toplevel->base->surface->current.width;
         natural_height = toplevel->base->surface->current.height;
     }
-    window_set_natural_size(view->window, natural_width, natural_height);
+    window_set_natural_size(self->window, natural_width, natural_height);
 
     if (wants_floating(self)) {
-        workspace_add_floating(workspace, view->window);
-        window_floating_set_default_size(view->window);
-        window_floating_resize_and_center(view->window);
+        workspace_add_floating(workspace, self->window);
+        window_floating_set_default_size(self->window);
+        window_floating_resize_and_center(self->window);
 
     } else {
         struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
         if (target_sibling) {
-            column_add_sibling(target_sibling, view->window, 1);
+            column_add_sibling(target_sibling, self->window, 1);
         } else {
             struct hwd_column *column = column_create();
             workspace_insert_column_first(workspace, output, column);
-            column_add_child(column, view->window);
+            column_add_child(column, self->window);
         }
 
         if (target_sibling) {
-            column_set_dirty(view->window->column);
+            column_set_dirty(self->window->column);
         } else {
             workspace_set_dirty(workspace);
         }
@@ -595,11 +587,11 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
         // Fullscreen windows still have to have a place as regular
         // tiling or floating windows, so this does not make the
         // previous logic unnecessary.
-        window_fullscreen_on_output(view->window, output);
+        window_fullscreen_on_output(self->window, output);
     }
 
-    if (should_focus(view)) {
-        root_set_focused_window(root, view->window);
+    if (should_focus(self)) {
+        root_set_focused_window(root, self->window);
     }
 
     root_commit_focus(root);
