@@ -94,7 +94,6 @@ send_frame_done_iterator(struct wlr_scene_buffer *buffer, int x, int y, void *us
     int delay = data->msec_until_refresh - scheduler_output->max_render_time;
     // TODO factor in buffer max render time.
 
-
     struct buffer_timer *timer = NULL;
 
     if (delay > 0) {

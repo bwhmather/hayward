@@ -25,6 +25,8 @@ struct hwd_xdg_shell_view {
 
     struct wlr_xdg_toplevel *wlr_xdg_toplevel;
 
+    bool configured_has_focus;
+
     // Set to true if toplevel has received a request that the protocol requires
     // a response to.
     bool force_reconfigure;
@@ -55,6 +57,7 @@ struct hwd_xdg_shell_view {
     struct wl_listener xdg_surface_destroy;
     struct wl_listener window_commit;
     struct wl_listener window_close;
+    struct wl_listener root_focus_changed;
 };
 
 struct hwd_xdg_popup {

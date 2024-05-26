@@ -12,8 +12,6 @@
 #include <wayland-server-core.h>
 #include <wayland-util.h>
 
-#include <hayward/tree/window.h>
-
 void
 view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl) {
     view->type = type;
@@ -47,19 +45,5 @@ view_begin_destroy(struct hwd_view *view) {
     view->destroying = true;
     if (!view->window) {
         view_destroy(view);
-    }
-}
-
-void
-view_set_activated(struct hwd_view *view, bool activated) {
-    if (view->impl->set_activated) {
-        view->impl->set_activated(view, activated);
-    }
-}
-
-void
-view_close_popups(struct hwd_view *view) {
-    if (view->impl->close_popups) {
-        view->impl->close_popups(view);
     }
 }

@@ -307,15 +307,23 @@ hwd_xwayland_view_handle_window_close(struct wl_listener *listener, void *data) 
 }
 
 static void
-set_activated(struct hwd_view *view, bool activated) {
-    struct hwd_xwayland_view *self = hwd_xwayland_view_from_view(view);
+hwd_xwayland_view_handle_root_focus_changed(struct wl_listener *listener, void *data) {
+    struct hwd_xwayland_view *self = wl_container_of(listener, self, root_focus_changed);
+
+    bool has_focus = root->focused_window == self->view.window;
+
+    if (self->configured_has_focus == has_focus) {
+        return;
+    }
+    self->configured_has_focus = has_focus;
+
     struct wlr_xwayland_surface *surface = self->wlr_xwayland_surface;
 
-    if (activated && surface->minimized) {
+    if (has_focus && surface->minimized) {
         wlr_xwayland_surface_set_minimized(surface, false);
     }
 
-    wlr_xwayland_surface_activate(surface, activated);
+    wlr_xwayland_surface_activate(surface, has_focus);
     wlr_xwayland_surface_restack(surface, NULL, XCB_STACK_MODE_ABOVE);
 }
 
@@ -355,7 +363,6 @@ destroy(struct hwd_view *view) {
 }
 
 static const struct hwd_view_impl view_impl = {
-    .set_activated = set_activated,
     .destroy = destroy,
 };
 
@@ -506,6 +513,7 @@ hwd_xwayland_view_handle_unmap(struct wl_listener *listener, void *data) {
     wl_list_remove(&self->xsurface_commit.link);
     wl_list_remove(&self->window_commit.link);
     wl_list_remove(&self->window_close.link);
+    wl_list_remove(&self->root_focus_changed.link);
 }
 
 static bool
@@ -566,6 +574,9 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
 
     self->window_close.notify = hwd_xwayland_view_handle_window_close;
     wl_signal_add(&view->window->events.close, &self->window_close);
+
+    self->root_focus_changed.notify = hwd_xwayland_view_handle_root_focus_changed;
+    wl_signal_add(&view->window->root->events.focus_changed, &self->root_focus_changed);
 
     struct hwd_workspace *workspace = root_get_active_workspace(root);
     assert(workspace != NULL);

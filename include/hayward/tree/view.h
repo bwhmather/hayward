@@ -55,10 +55,4 @@ view_destroy(struct hwd_view *view);
 void
 view_begin_destroy(struct hwd_view *view);
 
-void
-view_set_activated(struct hwd_view *view, bool activated);
-
-void
-view_close_popups(struct hwd_view *view);
-
 #endif

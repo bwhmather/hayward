@@ -212,10 +212,24 @@ hwd_xdg_shell_view_handle_window_close(struct wl_listener *listener, void *data)
 }
 
 static void
-set_activated(struct hwd_view *view, bool activated) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
+hwd_xdg_shell_view_handle_root_focus_changed(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, root_focus_changed);
 
-    wlr_xdg_toplevel_set_activated(self->wlr_xdg_toplevel, activated);
+    bool has_focus = root->focused_window == self->view.window;
+
+    if (self->configured_has_focus == has_focus) {
+        return;
+    }
+    self->configured_has_focus = has_focus;
+
+    if (!has_focus) {
+        struct wlr_xdg_popup *popup, *tmp;
+        wl_list_for_each_safe(popup, tmp, &self->wlr_xdg_toplevel->base->popups, link) {
+            wlr_xdg_popup_destroy(popup);
+        }
+    }
+
+    wlr_xdg_toplevel_set_activated(self->wlr_xdg_toplevel, has_focus);
 }
 
 static bool
@@ -236,16 +250,6 @@ wants_floating(struct hwd_xdg_shell_view *self) {
 }
 
 static void
-close_popups(struct hwd_view *view) {
-    struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
-
-    struct wlr_xdg_popup *popup, *tmp;
-    wl_list_for_each_safe(popup, tmp, &self->wlr_xdg_toplevel->base->popups, link) {
-        wlr_xdg_popup_destroy(popup);
-    }
-}
-
-static void
 destroy(struct hwd_view *view) {
     struct hwd_xdg_shell_view *self = xdg_shell_view_from_view(view);
     wlr_scene_node_destroy(&self->scene_tree->node);
@@ -253,8 +257,6 @@ destroy(struct hwd_view *view) {
 }
 
 static const struct hwd_view_impl view_impl = {
-    .set_activated = set_activated,
-    .close_popups = close_popups,
     .destroy = destroy,
 };
 
@@ -483,8 +485,9 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
 
     view->surface = NULL;
 
-    wl_list_remove(&self->window_commit.link);
+    wl_list_remove(&self->root_focus_changed.link);
     wl_list_remove(&self->window_close.link);
+    wl_list_remove(&self->window_commit.link);
     wl_list_remove(&self->wlr_surface_commit.link);
     wl_list_remove(&self->xdg_surface_new_popup.link);
     wl_list_remove(&self->wlr_toplevel_request_fullscreen.link);
@@ -554,6 +557,9 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
 
     self->window_close.notify = hwd_xdg_shell_view_handle_window_close;
     wl_signal_add(&view->window->events.close, &self->window_close);
+
+    self->root_focus_changed.notify = hwd_xdg_shell_view_handle_root_focus_changed;
+    wl_signal_add(&view->window->root->events.focus_changed, &self->root_focus_changed);
 
     double natural_width = toplevel->base->current.geometry.width;
     double natural_height = toplevel->base->current.geometry.height;

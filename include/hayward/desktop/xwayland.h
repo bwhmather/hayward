@@ -49,6 +49,8 @@ struct hwd_xwayland_view {
 
     struct wlr_xwayland_surface *wlr_xwayland_surface;
 
+    bool configured_has_focus;
+
     bool configured_is_tiled;
     bool configured_is_fullscreen;
     int configured_x;
@@ -79,6 +81,7 @@ struct hwd_xwayland_view {
     struct wl_listener xsurface_override_redirect;
     struct wl_listener window_commit;
     struct wl_listener window_close;
+    struct wl_listener root_focus_changed;
 };
 
 struct hwd_xwayland_unmanaged {

@@ -465,9 +465,6 @@ root_commit_focus(struct hwd_root *root) {
     struct hwd_window *old_window = root->focused_window;
 
     if (old_window != NULL && window_is_alive(old_window) && old_window != new_window) {
-        view_close_popups(old_window->view);
-        view_set_activated(old_window->view, false);
-
         window_set_dirty(old_window);
         if (window_is_tiling(old_window)) {
             column_set_dirty(old_window->column);
@@ -476,14 +473,11 @@ root_commit_focus(struct hwd_root *root) {
 
     if (new_window != NULL && new_window != old_window) {
         struct hwd_workspace *new_workspace = new_window->workspace;
-        struct hwd_view *new_view = new_window->view;
 
         struct hwd_workspace *old_workspace = NULL;
         if (old_window != NULL) {
             old_workspace = old_window->workspace;
         }
-
-        view_set_activated(new_view, true);
 
         // If window was marked as urgent, i.e. requiring attention,
         // then we usually want to clear the mark when it is focused.
