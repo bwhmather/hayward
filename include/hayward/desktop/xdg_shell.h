@@ -51,17 +51,17 @@ struct hwd_xdg_shell_view {
 
     struct wlr_scene_tree *scene_tree;
 
+    struct wl_listener wlr_xdg_toplevel_request_move;
+    struct wl_listener wlr_xdg_toplevel_request_resize;
+    struct wl_listener wlr_xdg_toplevel_request_fullscreen;
+    struct wl_listener wlr_xdg_toplevel_set_title;
+    struct wl_listener wlr_xdg_toplevel_set_app_id;
+    struct wl_listener wlr_xdg_toplevel_set_parent;
+    struct wl_listener wlr_xdg_surface_new_popup;
+    struct wl_listener wlr_xdg_surface_destroy;
     struct wl_listener wlr_surface_commit;
-    struct wl_listener wlr_toplevel_request_move;
-    struct wl_listener wlr_toplevel_request_resize;
-    struct wl_listener wlr_toplevel_request_fullscreen;
-    struct wl_listener wlr_toplevel_set_title;
-    struct wl_listener wlr_toplevel_set_app_id;
-    struct wl_listener wlr_toplevel_set_parent;
-    struct wl_listener xdg_surface_new_popup;
-    struct wl_listener xdg_surface_map;
-    struct wl_listener xdg_surface_unmap;
-    struct wl_listener xdg_surface_destroy;
+    struct wl_listener wlr_surface_map;
+    struct wl_listener wlr_surface_unmap;
     struct wl_listener window_commit;
     struct wl_listener window_close;
     struct wl_listener root_focus_changed;
@@ -74,9 +74,9 @@ struct hwd_xdg_popup {
     struct wlr_scene_tree *xdg_surface_tree;
     struct wlr_xdg_popup *wlr_xdg_popup;
 
-    struct wl_listener wlr_surface_commit;
-    struct wl_listener xdg_surface_new_popup;
-    struct wl_listener xdg_surface_destroy;
+    struct wl_listener wlr_xdg_surface_commit;
+    struct wl_listener wlr_xdg_surface_new_popup;
+    struct wl_listener wlr_xdg_surface_destroy;
 };
 
 struct hwd_xdg_shell_view *

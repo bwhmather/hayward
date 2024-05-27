@@ -47,8 +47,8 @@ hwd_xdg_popup_create(
 );
 
 static void
-hwd_xdg_popup_handle_xdg_surface_new_popup(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_popup *self = wl_container_of(listener, self, xdg_surface_new_popup);
+hwd_xdg_popup_handle_wlr_xdg_surface_new_popup(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_popup *self = wl_container_of(listener, self, wlr_xdg_surface_new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
     hwd_xdg_popup_create(wlr_popup, self->xdg_shell_view, self->xdg_surface_tree);
@@ -56,7 +56,7 @@ hwd_xdg_popup_handle_xdg_surface_new_popup(struct wl_listener *listener, void *d
 
 static void
 hwd_xdg_popup_handle_wlr_surface_commit(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_popup *self = wl_container_of(listener, self, wlr_surface_commit);
+    struct hwd_xdg_popup *self = wl_container_of(listener, self, wlr_xdg_surface_commit);
 
     if (self->wlr_xdg_popup->base->initial_commit) {
         wlr_xdg_surface_schedule_configure(self->wlr_xdg_popup->base);
@@ -64,12 +64,12 @@ hwd_xdg_popup_handle_wlr_surface_commit(struct wl_listener *listener, void *data
 }
 
 static void
-hwd_xdg_popup_handle_xdg_surface_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_popup *self = wl_container_of(listener, self, xdg_surface_destroy);
+hwd_xdg_popup_handle_wlr_xdg_surface_destroy(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_popup *self = wl_container_of(listener, self, wlr_xdg_surface_destroy);
 
-    wl_list_remove(&self->xdg_surface_new_popup.link);
-    wl_list_remove(&self->xdg_surface_destroy.link);
-    wl_list_remove(&self->wlr_surface_commit.link);
+    wl_list_remove(&self->wlr_xdg_surface_new_popup.link);
+    wl_list_remove(&self->wlr_xdg_surface_destroy.link);
+    wl_list_remove(&self->wlr_xdg_surface_commit.link);
     wlr_scene_node_destroy(&self->scene_tree->node);
     free(self);
 }
@@ -124,12 +124,12 @@ hwd_xdg_popup_create(
     self->wlr_xdg_popup = xdg_surface->popup;
     xdg_surface->data = xdg_shell_view;
 
-    wl_signal_add(&xdg_surface->events.new_popup, &self->xdg_surface_new_popup);
-    self->xdg_surface_new_popup.notify = hwd_xdg_popup_handle_xdg_surface_new_popup;
-    wl_signal_add(&xdg_surface->surface->events.commit, &self->wlr_surface_commit);
-    self->wlr_surface_commit.notify = hwd_xdg_popup_handle_wlr_surface_commit;
-    wl_signal_add(&xdg_surface->events.destroy, &self->xdg_surface_destroy);
-    self->xdg_surface_destroy.notify = hwd_xdg_popup_handle_xdg_surface_destroy;
+    wl_signal_add(&xdg_surface->events.new_popup, &self->wlr_xdg_surface_new_popup);
+    self->wlr_xdg_surface_new_popup.notify = hwd_xdg_popup_handle_wlr_xdg_surface_new_popup;
+    wl_signal_add(&xdg_surface->surface->events.commit, &self->wlr_xdg_surface_commit);
+    self->wlr_xdg_surface_commit.notify = hwd_xdg_popup_handle_wlr_surface_commit;
+    wl_signal_add(&xdg_surface->events.destroy, &self->wlr_xdg_surface_destroy);
+    self->wlr_xdg_surface_destroy.notify = hwd_xdg_popup_handle_wlr_xdg_surface_destroy;
 
     popup_unconstrain(self);
 
@@ -343,8 +343,8 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
 }
 
 static void
-hwd_xdg_shell_view_handle_wlr_toplevel_set_title(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_set_title);
+hwd_xdg_shell_view_handle_wlr_xdg_toplevel_set_title(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_xdg_toplevel_set_title);
 
     struct hwd_window *window = self->window;
     if (window == NULL) {
@@ -355,11 +355,11 @@ hwd_xdg_shell_view_handle_wlr_toplevel_set_title(struct wl_listener *listener, v
 }
 
 static void
-hwd_xdg_shell_view_handle_wlr_toplevel_set_app_id(struct wl_listener *listener, void *data) {}
+hwd_xdg_shell_view_handle_wlr_xdg_toplevel_set_app_id(struct wl_listener *listener, void *data) {}
 
 static void
-hwd_xdg_shell_view_handle_wlr_toplevel_set_parent(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_set_parent);
+hwd_xdg_shell_view_handle_wlr_xdg_toplevel_set_parent(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_xdg_toplevel_set_parent);
 
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
 
@@ -372,8 +372,8 @@ hwd_xdg_shell_view_handle_wlr_toplevel_set_parent(struct wl_listener *listener, 
 }
 
 static void
-hwd_xdg_shell_view_handle_xdg_surface_new_popup(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, xdg_surface_new_popup);
+hwd_xdg_shell_view_handle_wlr_xdg_surface_new_popup(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_xdg_surface_new_popup);
     struct wlr_xdg_popup *wlr_popup = data;
 
     struct hwd_xdg_popup *popup = hwd_xdg_popup_create(wlr_popup, self, root->layers.popups);
@@ -387,7 +387,7 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_fullscreen(
     struct wl_listener *listener, void *data
 ) {
     struct hwd_xdg_shell_view *self =
-        wl_container_of(listener, self, wlr_toplevel_request_fullscreen);
+        wl_container_of(listener, self, wlr_xdg_toplevel_request_fullscreen);
 
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
 
@@ -417,8 +417,8 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_fullscreen(
 }
 
 static void
-hwd_xdg_shell_view_handle_wlr_toplevel_request_move(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_request_move);
+hwd_xdg_shell_view_handle_wlr_xdg_toplevel_request_move(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_xdg_toplevel_request_move);
 
     if (window_is_fullscreen(self->window)) {
         return;
@@ -433,8 +433,8 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_move(struct wl_listener *listener
 }
 
 static void
-hwd_xdg_shell_view_handle_wlr_toplevel_request_resize(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_toplevel_request_resize);
+hwd_xdg_shell_view_handle_wlr_xdg_toplevel_request_resize(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_xdg_toplevel_request_resize);
 
     if (!window_is_floating(self->window)) {
         return;
@@ -448,8 +448,8 @@ hwd_xdg_shell_view_handle_wlr_toplevel_request_resize(struct wl_listener *listen
 }
 
 static void
-hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, xdg_surface_unmap);
+hwd_xdg_shell_view_handle_wlr_surface_unmap(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_surface_unmap);
 
     struct hwd_view *view = &self->view;
 
@@ -478,13 +478,13 @@ hwd_xdg_shell_view_handle_xdg_surface_unmap(struct wl_listener *listener, void *
     wl_list_remove(&self->window_close.link);
     wl_list_remove(&self->window_commit.link);
     wl_list_remove(&self->wlr_surface_commit.link);
-    wl_list_remove(&self->xdg_surface_new_popup.link);
-    wl_list_remove(&self->wlr_toplevel_request_fullscreen.link);
-    wl_list_remove(&self->wlr_toplevel_request_move.link);
-    wl_list_remove(&self->wlr_toplevel_request_resize.link);
-    wl_list_remove(&self->wlr_toplevel_set_title.link);
-    wl_list_remove(&self->wlr_toplevel_set_app_id.link);
-    wl_list_remove(&self->wlr_toplevel_set_parent.link);
+    wl_list_remove(&self->wlr_xdg_surface_new_popup.link);
+    wl_list_remove(&self->wlr_xdg_toplevel_request_fullscreen.link);
+    wl_list_remove(&self->wlr_xdg_toplevel_request_move.link);
+    wl_list_remove(&self->wlr_xdg_toplevel_request_resize.link);
+    wl_list_remove(&self->wlr_xdg_toplevel_set_title.link);
+    wl_list_remove(&self->wlr_xdg_toplevel_set_app_id.link);
+    wl_list_remove(&self->wlr_xdg_toplevel_set_parent.link);
 }
 
 static bool
@@ -516,8 +516,8 @@ should_focus(struct hwd_xdg_shell_view *self) {
 }
 
 static void
-hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, xdg_surface_map);
+hwd_xdg_shell_view_handle_wlr_surface_map(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_surface_map);
 
     struct hwd_view *view = &self->view;
     struct wlr_xdg_toplevel *toplevel = self->wlr_xdg_toplevel;
@@ -593,43 +593,45 @@ hwd_xdg_shell_view_handle_xdg_surface_map(struct wl_listener *listener, void *da
 
     root_commit_focus(root);
 
+    self->wlr_xdg_surface_new_popup.notify = hwd_xdg_shell_view_handle_wlr_xdg_surface_new_popup;
+    wl_signal_add(&toplevel->base->events.new_popup, &self->wlr_xdg_surface_new_popup);
+
+    self->wlr_xdg_toplevel_request_fullscreen.notify =
+        hwd_xdg_shell_view_handle_wlr_toplevel_request_fullscreen;
+    wl_signal_add(&toplevel->events.request_fullscreen, &self->wlr_xdg_toplevel_request_fullscreen);
+
+    self->wlr_xdg_toplevel_request_move.notify = hwd_xdg_shell_view_handle_wlr_xdg_toplevel_request_move;
+    wl_signal_add(&toplevel->events.request_move, &self->wlr_xdg_toplevel_request_move);
+
+    self->wlr_xdg_toplevel_request_resize.notify =
+        hwd_xdg_shell_view_handle_wlr_xdg_toplevel_request_resize;
+    wl_signal_add(&toplevel->events.request_resize, &self->wlr_xdg_toplevel_request_resize);
+
+    self->wlr_xdg_toplevel_set_title.notify = hwd_xdg_shell_view_handle_wlr_xdg_toplevel_set_title;
+    wl_signal_add(&toplevel->events.set_title, &self->wlr_xdg_toplevel_set_title);
+
+    self->wlr_xdg_toplevel_set_app_id.notify = hwd_xdg_shell_view_handle_wlr_xdg_toplevel_set_app_id;
+    wl_signal_add(&toplevel->events.set_app_id, &self->wlr_xdg_toplevel_set_app_id);
+
+    self->wlr_xdg_toplevel_set_parent.notify = hwd_xdg_shell_view_handle_wlr_xdg_toplevel_set_parent;
+    wl_signal_add(&toplevel->events.set_parent, &self->wlr_xdg_toplevel_set_parent);
+
     self->wlr_surface_commit.notify = xdg_shell_view_handle_wlr_surface_commit;
     wl_signal_add(&toplevel->base->surface->events.commit, &self->wlr_surface_commit);
 
-    self->xdg_surface_new_popup.notify = hwd_xdg_shell_view_handle_xdg_surface_new_popup;
-    wl_signal_add(&toplevel->base->events.new_popup, &self->xdg_surface_new_popup);
 
-    self->wlr_toplevel_request_fullscreen.notify =
-        hwd_xdg_shell_view_handle_wlr_toplevel_request_fullscreen;
-    wl_signal_add(&toplevel->events.request_fullscreen, &self->wlr_toplevel_request_fullscreen);
-
-    self->wlr_toplevel_request_move.notify = hwd_xdg_shell_view_handle_wlr_toplevel_request_move;
-    wl_signal_add(&toplevel->events.request_move, &self->wlr_toplevel_request_move);
-
-    self->wlr_toplevel_request_resize.notify =
-        hwd_xdg_shell_view_handle_wlr_toplevel_request_resize;
-    wl_signal_add(&toplevel->events.request_resize, &self->wlr_toplevel_request_resize);
-
-    self->wlr_toplevel_set_title.notify = hwd_xdg_shell_view_handle_wlr_toplevel_set_title;
-    wl_signal_add(&toplevel->events.set_title, &self->wlr_toplevel_set_title);
-
-    self->wlr_toplevel_set_app_id.notify = hwd_xdg_shell_view_handle_wlr_toplevel_set_app_id;
-    wl_signal_add(&toplevel->events.set_app_id, &self->wlr_toplevel_set_app_id);
-
-    self->wlr_toplevel_set_parent.notify = hwd_xdg_shell_view_handle_wlr_toplevel_set_parent;
-    wl_signal_add(&toplevel->events.set_parent, &self->wlr_toplevel_set_parent);
 }
 
 static void
-hwd_xdg_shell_view_handle_xdg_surface_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, xdg_surface_destroy);
+hwd_xdg_shell_view_handle_wlr_xdg_surface_destroy(struct wl_listener *listener, void *data) {
+    struct hwd_xdg_shell_view *self = wl_container_of(listener, self, wlr_xdg_surface_destroy);
 
     struct hwd_view *view = &self->view;
     assert(view->surface == NULL);
 
-    wl_list_remove(&self->xdg_surface_destroy.link);
-    wl_list_remove(&self->xdg_surface_map.link);
-    wl_list_remove(&self->xdg_surface_unmap.link);
+    wl_list_remove(&self->wlr_xdg_surface_destroy.link);
+    wl_list_remove(&self->wlr_surface_map.link);
+    wl_list_remove(&self->wlr_surface_unmap.link);
     self->wlr_xdg_toplevel = NULL;
     view_begin_destroy(view);
 }
@@ -672,14 +674,14 @@ hwd_xdg_shell_handle_new_toplevel(struct wl_listener *listener, void *data) {
     view_init(&xdg_shell_view->view, HWD_VIEW_XDG_SHELL, &view_impl);
     xdg_shell_view->wlr_xdg_toplevel = xdg_toplevel;
 
-    xdg_shell_view->xdg_surface_map.notify = hwd_xdg_shell_view_handle_xdg_surface_map;
-    wl_signal_add(&xdg_surface->surface->events.map, &xdg_shell_view->xdg_surface_map);
+    xdg_shell_view->wlr_surface_map.notify = hwd_xdg_shell_view_handle_wlr_surface_map;
+    wl_signal_add(&xdg_surface->surface->events.map, &xdg_shell_view->wlr_surface_map);
 
-    xdg_shell_view->xdg_surface_unmap.notify = hwd_xdg_shell_view_handle_xdg_surface_unmap;
-    wl_signal_add(&xdg_surface->surface->events.unmap, &xdg_shell_view->xdg_surface_unmap);
+    xdg_shell_view->wlr_surface_unmap.notify = hwd_xdg_shell_view_handle_wlr_surface_unmap;
+    wl_signal_add(&xdg_surface->surface->events.unmap, &xdg_shell_view->wlr_surface_unmap);
 
-    xdg_shell_view->xdg_surface_destroy.notify = hwd_xdg_shell_view_handle_xdg_surface_destroy;
-    wl_signal_add(&xdg_surface->events.destroy, &xdg_shell_view->xdg_surface_destroy);
+    xdg_shell_view->wlr_xdg_surface_destroy.notify = hwd_xdg_shell_view_handle_wlr_xdg_surface_destroy;
+    wl_signal_add(&xdg_surface->events.destroy, &xdg_shell_view->wlr_xdg_surface_destroy);
 
     wlr_xdg_toplevel_set_wm_capabilities(xdg_toplevel, XDG_TOPLEVEL_WM_CAPABILITIES_FULLSCREEN);
 
