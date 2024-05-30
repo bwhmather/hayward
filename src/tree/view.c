@@ -9,9 +9,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <wayland-server-core.h>
-#include <wayland-util.h>
-
 void
 view_init(struct hwd_view *view, enum hwd_view_type type, const struct hwd_view_impl *impl) {
     view->type = type;

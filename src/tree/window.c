@@ -17,6 +17,7 @@
 #include <wayland-util.h>
 
 #include <wlr/render/wlr_texture.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
@@ -123,6 +124,8 @@ window_init_scene(struct hwd_window *window) {
 
     window->layers.content_tree = wlr_scene_tree_create(scene_tree);
     assert(window->layers.content_tree != NULL);
+
+    window->layers.popup_tree = wlr_scene_tree_create(scene_tree);
 }
 
 static void
@@ -183,6 +186,11 @@ window_update_scene(struct hwd_window *window) {
     wlr_scene_node_set_enabled(&window->layers.content_tree->node, !shaded);
     wlr_scene_node_set_position(
         &window->layers.content_tree->node, fullscreen ? 0 : border_left,
+        fullscreen ? 0 : titlebar_height + border_top
+    );
+
+    wlr_scene_node_set_position(
+        &window->layers.popup_tree->node, fullscreen ? 0 : border_left,
         fullscreen ? 0 : titlebar_height + border_top
     );
 }
@@ -750,6 +758,46 @@ window_set_content(struct hwd_window *window, struct wlr_scene_node *new_node) {
     }
 
     wlr_scene_node_reparent(new_node, window->layers.content_tree);
+}
+
+void
+window_add_popup(struct hwd_window *window, struct wlr_surface *surface) {
+    assert(window != NULL);
+    assert(window_is_alive(window));
+    assert(surface != NULL);
+
+    wlr_scene_surface_create(window->layers.popup_tree, surface);
+}
+
+void
+window_set_popup_position(struct hwd_window *window, struct wlr_surface *popup, int x, int y) {
+    wlr_log(WLR_ERROR, "Position %p: %ix%i", (void *)popup, x, y);
+    struct wlr_scene_node *popup_node = NULL;
+    wl_list_for_each(popup_node, &window->layers.popup_tree->children, link) {
+        struct wlr_scene_buffer *popup_buffer = wlr_scene_buffer_from_node(popup_node);
+        struct wlr_scene_surface *popup_scene_surface =
+            wlr_scene_surface_try_from_buffer(popup_buffer);
+
+        if (popup_scene_surface->surface == popup) {
+            wlr_scene_node_set_position(popup_node, x, y);
+            return;
+        }
+    }
+}
+
+void
+window_remove_popup(struct hwd_window *window, struct wlr_surface *popup) {
+    struct wlr_scene_node *popup_node = NULL;
+    wl_list_for_each(popup_node, &window->layers.popup_tree->children, link) {
+        struct wlr_scene_buffer *popup_buffer = wlr_scene_buffer_from_node(popup_node);
+        struct wlr_scene_surface *popup_scene_surface =
+            wlr_scene_surface_try_from_buffer(popup_buffer);
+
+        if (popup_scene_surface->surface == popup) {
+            wlr_scene_node_destroy(popup_node);
+            return;
+        }
+    }
 }
 
 void

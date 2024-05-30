@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <wlr/util/box.h>
 
 #include <hayward/tree/view.h>
 #include <hayward/tree/window.h>
@@ -70,12 +71,12 @@ struct hwd_xdg_shell_view {
 struct hwd_xdg_popup {
     struct hwd_xdg_shell_view *xdg_shell_view;
 
-    struct wlr_scene_tree *scene_tree;
-    struct wlr_scene_tree *xdg_surface_tree;
     struct wlr_xdg_popup *wlr_xdg_popup;
 
-    struct wl_listener wlr_xdg_surface_commit;
+    struct wl_listener wlr_surface_commit;
     struct wl_listener wlr_xdg_surface_new_popup;
+    struct wl_listener wlr_xdg_surface_map;
+    struct wl_listener wlr_xdg_surface_unmap;
     struct wl_listener wlr_xdg_surface_destroy;
 };
 

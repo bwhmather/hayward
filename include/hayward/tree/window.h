@@ -7,6 +7,7 @@
 #include <wayland-server-core.h>
 
 #include <wlr/render/wlr_texture.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
 #include <wlr/util/box.h>
@@ -155,6 +156,8 @@ struct hwd_window {
 
         struct wlr_scene_tree *content_tree;
         struct wlr_scene_tree *saved_content_tree;
+
+        struct wlr_scene_tree *popup_tree;
     } layers;
 
     struct wl_listener parent_begin_destroy;
@@ -250,6 +253,15 @@ window_set_transient_for(struct hwd_window *window, struct hwd_window *parent);
 
 void
 window_set_content(struct hwd_window *window, struct wlr_scene_node *node);
+
+void
+window_add_popup(struct hwd_window *window, struct wlr_surface *surface);
+
+void
+window_set_popup_position(struct hwd_window *window, struct wlr_surface *popup, int x, int y);
+
+void
+window_remove_popup(struct hwd_window *window, struct wlr_surface *surface);
 
 /**
  * Called when the view requests to be focused.

@@ -5,10 +5,7 @@
 
 #include <stdbool.h>
 
-#include <wayland-server-core.h>
-
 #include <wlr/types/wlr_compositor.h>
-#include <wlr/util/box.h>
 
 struct hwd_window;
 struct hwd_view;

@@ -11,6 +11,7 @@
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/addon.h>
+#include <wlr/util/box.h>
 #include <wlr/xwayland/xwayland.h>
 
 #include <hayward/tree/view.h>
