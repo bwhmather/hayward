@@ -301,9 +301,6 @@ floating_calculate_constraints(
 void
 window_floating_move_to(struct hwd_window *window, struct hwd_output *output, double lx, double ly);
 
-void
-window_floating_move_to_center(struct hwd_window *window);
-
 struct hwd_output *
 window_get_output(struct hwd_window *window);
 

@@ -7,22 +7,15 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
 #include <strings.h>
 
-#include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/util/box.h>
 #include <wlr/util/log.h>
 
 #include <hayward/config.h>
 #include <hayward/globals/root.h>
-#include <hayward/input/cursor.h>
-#include <hayward/input/seat.h>
 #include <hayward/list.h>
 #include <hayward/profiler.h>
 #include <hayward/stringop.h>
@@ -31,7 +24,6 @@
 #include <hayward/tree/root.h>
 #include <hayward/tree/window.h>
 #include <hayward/tree/workspace.h>
-#include <hayward/util.h>
 
 static const char expected_syntax[] = "Expected 'move <left|right|up|down> <[px] px>' or "
                                       "'move <window> [to] workspace <name>'";
@@ -431,141 +423,11 @@ cmd_move_in_direction(enum wlr_direction direction, int argc, char **argv) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static struct cmd_results *
-cmd_move_to_position_pointer(struct hwd_window *window) {
-    struct hwd_seat *seat = config->handler_context.seat;
-    if (!seat->cursor) {
-        return cmd_results_new(CMD_FAILURE, "No cursor device");
-    }
-    struct wlr_cursor *cursor = seat->cursor->cursor;
-    /* Determine where to put the window. */
-    double lx = cursor->x - window->pending.width / 2;
-    double ly = cursor->y - window->pending.height / 2;
-
-    /* Correct target coordinates to be in bounds (on screen). */
-    struct wlr_output *output =
-        wlr_output_layout_output_at(root->output_layout, cursor->x, cursor->y);
-    if (output) {
-        struct wlr_box box;
-        wlr_output_layout_get_box(root->output_layout, output, &box);
-        lx = fmax(lx, box.x);
-        ly = fmax(ly, box.y);
-        if (lx + window->pending.width > box.x + box.width) {
-            lx = box.x + box.width - window->pending.width;
-        }
-        if (ly + window->pending.height > box.y + box.height) {
-            ly = box.y + box.height - window->pending.height;
-        }
-    }
-
-    /* Actually move the window. */
-    window_floating_move_to(window, output_from_wlr_output(output), lx, ly);
-    return cmd_results_new(CMD_SUCCESS, NULL);
-}
-
-static const char expected_position_syntax[] = "Expected 'move position <x> [px] <y> [px]' or "
-                                               "'move position center' or "
-                                               "'move position cursor|mouse|pointer'";
-
-static struct cmd_results *
-cmd_move_to_position(int argc, char **argv) {
-    struct hwd_window *window = config->handler_context.window;
-    if (!window || !window_is_floating(window)) {
-        return cmd_results_new(
-            CMD_FAILURE,
-            "Only floating windows "
-            "can be moved to an absolute position"
-        );
-    }
-
-    if (!argc) {
-        return cmd_results_new(CMD_INVALID, expected_position_syntax);
-    }
-
-    if (strcmp(argv[0], "position") == 0) {
-        --argc;
-        ++argv;
-    }
-    if (!argc) {
-        return cmd_results_new(CMD_INVALID, expected_position_syntax);
-    }
-    if (strcmp(argv[0], "cursor") == 0 || strcmp(argv[0], "mouse") == 0 ||
-        strcmp(argv[0], "pointer") == 0) {
-        return cmd_move_to_position_pointer(window);
-    }
-
-    if (argc < 2) {
-        return cmd_results_new(CMD_FAILURE, expected_position_syntax);
-    }
-
-    struct movement_amount lx = {.amount = 0, .unit = MOVEMENT_UNIT_INVALID};
-    // X direction
-    int num_consumed_args = parse_movement_amount(argc, argv, &lx);
-    argc -= num_consumed_args;
-    argv += num_consumed_args;
-    if (lx.unit == MOVEMENT_UNIT_INVALID) {
-        return cmd_results_new(CMD_INVALID, "Invalid x position specified");
-    }
-
-    if (argc < 1) {
-        return cmd_results_new(CMD_FAILURE, expected_position_syntax);
-    }
-
-    struct movement_amount ly = {.amount = 0, .unit = MOVEMENT_UNIT_INVALID};
-    // Y direction
-    num_consumed_args = parse_movement_amount(argc, argv, &ly);
-    argc -= num_consumed_args;
-    argv += num_consumed_args;
-    if (argc > 0) {
-        return cmd_results_new(CMD_INVALID, expected_position_syntax);
-    }
-    if (ly.unit == MOVEMENT_UNIT_INVALID) {
-        return cmd_results_new(CMD_INVALID, "Invalid y position specified");
-    }
-
-    struct hwd_output *output = window_get_output(window);
-
-    switch (lx.unit) {
-    case MOVEMENT_UNIT_PPT:
-        // Convert to px
-        lx.amount = output->pending.width * lx.amount / 100;
-        lx.unit = MOVEMENT_UNIT_PX;
-        // Falls through
-    case MOVEMENT_UNIT_PX:
-    case MOVEMENT_UNIT_DEFAULT:
-        break;
-    case MOVEMENT_UNIT_INVALID:
-        return cmd_results_new(CMD_INVALID, "Invalid x unit");
-    }
-
-    switch (ly.unit) {
-    case MOVEMENT_UNIT_PPT:
-        // Convert to px
-        ly.amount = output->pending.height * ly.amount / 100;
-        ly.unit = MOVEMENT_UNIT_PX;
-        // Falls through
-    case MOVEMENT_UNIT_PX:
-    case MOVEMENT_UNIT_DEFAULT:
-        break;
-    case MOVEMENT_UNIT_INVALID:
-        return cmd_results_new(CMD_INVALID, "invalid y unit");
-    }
-
-    lx.amount += output->pending.x;
-    ly.amount += output->pending.y;
-
-    window_floating_move_to(window, output, lx.amount, ly.amount);
-    return cmd_results_new(CMD_SUCCESS, NULL);
-}
-
 static const char expected_full_syntax[] =
     "Expected "
     "'move left|right|up|down [<amount> [px]]'"
     " or 'move [window] [to] workspace"
-    "  <name>|next|prev|next_on_output|prev_on_output|(number <num>)'"
-    " or 'move [window] [to] position <x> [px] <y> [px]'"
-    " or 'move [window] [to] position center'"
-    " or 'move [window] [to] position mouse|cursor|pointer'";
+    "  <name>|next|prev|next_on_output|prev_on_output|(number <num>)'";
 
 struct cmd_results *
 cmd_move(int argc, char **argv) {
@@ -607,8 +469,6 @@ cmd_move(int argc, char **argv) {
 
     if (strcasecmp(argv[0], "workspace") == 0) {
         return cmd_move_window(argc, argv);
-    } else if (strcasecmp(argv[0], "position") == 0) {
-        return cmd_move_to_position(argc, argv);
     }
     return cmd_results_new(CMD_INVALID, expected_full_syntax);
 }

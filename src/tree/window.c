@@ -1065,20 +1065,6 @@ window_floating_move_to(
     window_set_dirty(window);
 }
 
-void
-window_floating_move_to_center(struct hwd_window *window) {
-    assert(window != NULL);
-    assert(window_is_alive(window));
-    assert(window_is_floating(window));
-
-    struct hwd_output *output = window_get_output(window);
-
-    double new_lx = output->pending.x + (output->pending.width - output->pending.width) / 2;
-    double new_ly = output->pending.y + (output->pending.height - output->pending.height) / 2;
-
-    window_floating_move_to(window, output, new_lx, new_ly);
-}
-
 struct hwd_output *
 window_get_output(struct hwd_window *window) {
     assert(window != NULL);
