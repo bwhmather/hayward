@@ -463,10 +463,9 @@ cmd_move_to_position_pointer(struct hwd_window *window) {
     return cmd_results_new(CMD_SUCCESS, NULL);
 }
 
-static const char expected_position_syntax[] =
-    "Expected 'move [absolute] position <x> [px] <y> [px]' or "
-    "'move [absolute] position center' or "
-    "'move position cursor|mouse|pointer'";
+static const char expected_position_syntax[] = "Expected 'move position <x> [px] <y> [px]' or "
+                                               "'move position center' or "
+                                               "'move position cursor|mouse|pointer'";
 
 static struct cmd_results *
 cmd_move_to_position(int argc, char **argv) {
@@ -483,15 +482,6 @@ cmd_move_to_position(int argc, char **argv) {
         return cmd_results_new(CMD_INVALID, expected_position_syntax);
     }
 
-    bool absolute = false;
-    if (strcmp(argv[0], "absolute") == 0) {
-        absolute = true;
-        --argc;
-        ++argv;
-    }
-    if (!argc) {
-        return cmd_results_new(CMD_INVALID, expected_position_syntax);
-    }
     if (strcmp(argv[0], "position") == 0) {
         --argc;
         ++argv;
@@ -501,9 +491,6 @@ cmd_move_to_position(int argc, char **argv) {
     }
     if (strcmp(argv[0], "cursor") == 0 || strcmp(argv[0], "mouse") == 0 ||
         strcmp(argv[0], "pointer") == 0) {
-        if (absolute) {
-            return cmd_results_new(CMD_INVALID, expected_position_syntax);
-        }
         return cmd_move_to_position_pointer(window);
     }
 
@@ -540,9 +527,6 @@ cmd_move_to_position(int argc, char **argv) {
 
     switch (lx.unit) {
     case MOVEMENT_UNIT_PPT:
-        if (absolute) {
-            return cmd_results_new(CMD_FAILURE, "Cannot move to absolute positions by ppt");
-        }
         // Convert to px
         lx.amount = output->pending.width * lx.amount / 100;
         lx.unit = MOVEMENT_UNIT_PX;
@@ -556,9 +540,6 @@ cmd_move_to_position(int argc, char **argv) {
 
     switch (ly.unit) {
     case MOVEMENT_UNIT_PPT:
-        if (absolute) {
-            return cmd_results_new(CMD_FAILURE, "Cannot move to absolute positions by ppt");
-        }
         // Convert to px
         ly.amount = output->pending.height * ly.amount / 100;
         ly.unit = MOVEMENT_UNIT_PX;
@@ -569,10 +550,9 @@ cmd_move_to_position(int argc, char **argv) {
     case MOVEMENT_UNIT_INVALID:
         return cmd_results_new(CMD_INVALID, "invalid y unit");
     }
-    if (!absolute) {
-        lx.amount += output->pending.x;
-        ly.amount += output->pending.y;
-    }
+
+    lx.amount += output->pending.x;
+    ly.amount += output->pending.y;
 
     window_floating_move_to(window, output, lx.amount, ly.amount);
     return cmd_results_new(CMD_SUCCESS, NULL);
@@ -583,8 +563,8 @@ static const char expected_full_syntax[] =
     "'move left|right|up|down [<amount> [px]]'"
     " or 'move [window] [to] workspace"
     "  <name>|next|prev|next_on_output|prev_on_output|(number <num>)'"
-    " or 'move [window] [to] [absolute] position <x> [px] <y> [px]'"
-    " or 'move [window] [to] [absolute] position center'"
+    " or 'move [window] [to] position <x> [px] <y> [px]'"
+    " or 'move [window] [to] position center'"
     " or 'move [window] [to] position mouse|cursor|pointer'";
 
 struct cmd_results *
@@ -627,7 +607,7 @@ cmd_move(int argc, char **argv) {
 
     if (strcasecmp(argv[0], "workspace") == 0) {
         return cmd_move_window(argc, argv);
-    } else if (strcasecmp(argv[0], "position") == 0 || (argc > 1 && strcasecmp(argv[0], "absolute") == 0 && strcasecmp(argv[1], "position") == 0)) {
+    } else if (strcasecmp(argv[0], "position") == 0) {
         return cmd_move_to_position(argc, argv);
     }
     return cmd_results_new(CMD_INVALID, expected_full_syntax);
