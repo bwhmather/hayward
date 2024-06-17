@@ -585,9 +585,6 @@ hwd_xwayland_view_handle_xsurface_map(struct wl_listener *listener, void *data) 
 
     if (wants_floating(self)) {
         workspace_add_floating(workspace, self->window);
-        window_floating_set_default_size(self->window);
-        window_floating_resize_and_center(self->window);
-
     } else {
         struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
         if (target_sibling) {
@@ -686,7 +683,6 @@ hwd_xwayland_view_handle_xsurface_request_configure(struct wl_listener *listener
     if (window_is_floating(self->window)) {
         // Respect minimum and maximum sizes
         window_set_natural_size(self->window, ev->width, ev->height);
-        window_floating_resize_and_center(self->window);
     }
     window_set_dirty(self->window);
 }

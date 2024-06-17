@@ -299,12 +299,6 @@ floating_calculate_constraints(
 );
 
 void
-window_floating_resize_and_center(struct hwd_window *window);
-
-void
-window_floating_set_default_size(struct hwd_window *window);
-
-void
 window_floating_move_to(struct hwd_window *window, struct hwd_output *output, double lx, double ly);
 
 void

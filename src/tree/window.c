@@ -327,6 +327,9 @@ window_create(struct hwd_root *root, struct hwd_view *view) {
 
     window->height_fraction = 1.0;
 
+    window->maximum_width = INFINITY;
+    window->maximum_height = INFINITY;
+
     window->transaction_commit.notify = window_handle_transaction_commit;
     window->transaction_apply.notify = window_handle_transaction_apply;
     window->transaction_after_apply.notify = window_handle_transaction_after_apply;
@@ -458,6 +461,26 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
 
     window->workspace = workspace;
     window->column = NULL;
+
+    if (!(window->floating_width > 0 && window->floating_height > 0)) {
+        window->floating_width = window->natural_width;
+        window->floating_width =
+            fmax(window->floating_width, window->minimum_width > 0 ? window->minimum_width : 25);
+        window->floating_width = fmin(
+            window->floating_width, window->maximum_width > 0 ? window->maximum_width : INFINITY
+        );
+
+        window->floating_height = window->natural_height;
+        window->floating_height =
+            fmax(window->floating_height, window->minimum_height > 0 ? window->minimum_height : 25);
+        window->floating_height = fmin(
+            window->floating_height, window->maximum_height > 0 ? window->maximum_height : INFINITY
+        );
+
+        // TODO position to avoid other windows.
+        window->floating_x = 0.5;
+        window->floating_y = 0.5;
+    }
 
     window_set_dirty(window);
 }
@@ -1024,76 +1047,6 @@ floating_calculate_constraints(
     if (window->maximum_height != 0) {
         *max_height = fmin(*max_height, window->maximum_height);
     }
-}
-
-static void
-floating_natural_resize(struct hwd_window *window) {
-    int min_width, max_width, min_height, max_height;
-    floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
-
-    window->floating_width = fmax(min_width, fmin(window->natural_width, max_width));
-    window->floating_height = fmax(min_height, fmin(window->natural_height, max_height));
-    window_set_geometry_from_content(window);
-}
-
-void
-window_floating_resize_and_center(struct hwd_window *window) {
-    assert(window != NULL);
-    assert(window_is_alive(window));
-
-    struct hwd_output *output = window_get_output(window);
-    assert(output != NULL);
-
-    struct wlr_box ob;
-    wlr_output_layout_get_box(window->root->output_layout, output->wlr_output, &ob);
-    if (wlr_box_empty(&ob)) {
-        // On NOOP output. Will be called again when moved to an output
-        window->pending.x = 0;
-        window->pending.y = 0;
-        window->pending.width = 0;
-        window->pending.height = 0;
-        return;
-    }
-
-    floating_natural_resize(window);
-
-    if (window->pending.content_width > output->pending.width ||
-        window->pending.content_height > output->pending.height) {
-        window->pending.content_x = ob.x + (ob.width - window->pending.content_width) / 2;
-        window->pending.content_y = ob.y + (ob.height - window->pending.content_height) / 2;
-    } else {
-        window->pending.content_x =
-            output->pending.x + (output->pending.width - window->pending.content_width) / 2;
-        window->pending.content_y =
-            output->pending.y + (output->pending.height - window->pending.content_height) / 2;
-    }
-
-    window_set_geometry_from_content(window);
-
-    window_set_dirty(window);
-}
-
-void
-window_floating_set_default_size(struct hwd_window *window) {
-    assert(window != NULL);
-    assert(window_is_alive(window));
-    assert(window->workspace);
-
-    struct hwd_output *output = window_get_output(window);
-
-    int min_width, max_width, min_height, max_height;
-    floating_calculate_constraints(window, &min_width, &max_width, &min_height, &max_height);
-    struct wlr_box box = {0};
-    output_get_box(output, &box);
-
-    double width = fmax(min_width, fmin(box.width * 0.5, max_width));
-    double height = fmax(min_height, fmin(box.height * 0.75, max_height));
-
-    window->pending.content_width = width;
-    window->pending.content_height = height;
-    window_set_geometry_from_content(window);
-
-    window_set_dirty(window);
 }
 
 void

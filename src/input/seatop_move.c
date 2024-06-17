@@ -119,8 +119,6 @@ do_detach(struct hwd_seat *seat) {
             column_consider_destroy(old_column);
         }
 
-        // TODO should use saved size if possible.
-        window_floating_set_default_size(window);
         window_floating_move_to(
             window, output, e->ref_lx - fdx * window->pending.width,
             e->ref_ly - (on_titlebar ? dy : (fdy * window->pending.height))

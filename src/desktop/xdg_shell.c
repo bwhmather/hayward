@@ -6,6 +6,7 @@
 #include "hayward/desktop/xdg_shell.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -100,7 +101,6 @@ hwd_xdg_popup_handle_wlr_xdg_surface_map(struct wl_listener *listener, void *dat
     );
     window_set_popup_position(window, surface, x, y);
 }
-
 
 static void
 hwd_xdg_popup_handle_wlr_xdg_surface_unmap(struct wl_listener *listener, void *data) {
@@ -331,7 +331,10 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
     struct wlr_xdg_surface *xdg_surface = toplevel->base;
 
     window_set_minimum_size(window, toplevel->current.min_width, toplevel->current.min_height);
-    window_set_maximum_size(window, toplevel->current.max_width, toplevel->current.max_height);
+    window_set_maximum_size(
+        window, toplevel->current.max_width > 0 ? INFINITY : toplevel->current.max_width,
+        toplevel->current.max_height > 0 ? INFINITY : toplevel->current.max_height
+    );
 
     if (xdg_surface->initial_commit) {
         wlr_xdg_surface_schedule_configure(xdg_surface);
@@ -596,9 +599,6 @@ hwd_xdg_shell_view_handle_wlr_surface_map(struct wl_listener *listener, void *da
 
     if (wants_floating(self)) {
         workspace_add_floating(workspace, self->window);
-        window_floating_set_default_size(self->window);
-        window_floating_resize_and_center(self->window);
-
     } else {
         struct hwd_window *target_sibling = workspace_get_active_tiling_window(workspace);
         if (target_sibling) {

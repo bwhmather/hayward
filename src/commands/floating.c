@@ -44,8 +44,6 @@ cmd_floating(int argc, char **argv) {
         struct hwd_column *old_column = window->column;
         window_detach(window);
         workspace_add_floating(workspace, window);
-        window_floating_set_default_size(window);
-        window_floating_resize_and_center(window);
         if (old_column) {
             column_consider_destroy(old_column);
         }
