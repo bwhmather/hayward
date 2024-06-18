@@ -463,21 +463,53 @@ window_reconcile_floating(struct hwd_window *window, struct hwd_workspace *works
     window->column = NULL;
 
     if (!(window->floating_width > 0 && window->floating_height > 0)) {
-        window->floating_width = window->natural_width;
-        window->floating_width =
-            fmax(window->floating_width, window->minimum_width > 0 ? window->minimum_width : 25);
-        window->floating_width = fmin(
-            window->floating_width, window->maximum_width > 0 ? window->maximum_width : INFINITY
-        );
+        double width = window->natural_width;
+        double height = window->natural_height;
 
-        window->floating_height = window->natural_height;
-        window->floating_height =
-            fmax(window->floating_height, window->minimum_height > 0 ? window->minimum_height : 25);
-        window->floating_height = fmin(
-            window->floating_height, window->maximum_height > 0 ? window->maximum_height : INFINITY
-        );
+        struct wlr_box output_box = {0};
+        output_get_box(window->output, &output_box);
+        if (width > 0.75 * output_box.width) {
+            width = 0.75 * output_box.width;
+        }
+        if (height > 0.8 * output_box.height) {
+            height = 0.8 * output_box.height;
+        }
 
-        // TODO position to avoid other windows.
+        if (window->maximum_width > 0 && width > window->maximum_width) {
+            width = window->maximum_width;
+        }
+        if (window->maximum_height > 0 && height > window->maximum_height) {
+            height = window->maximum_height;
+        }
+
+        if (width < window->minimum_width) {
+            width = window->minimum_width;
+        }
+        if (height < window->minimum_height) {
+            height = window->minimum_height;
+        }
+
+        if (!(window->minimum_width > 0) && width < 25) {
+            width = 25;
+        }
+        if (!(window->minimum_height > 0) && height < 25) {
+            height = 25;
+        }
+
+        window->floating_width = width;
+        window->floating_height = height;
+
+        /*
+        for (other in floating_windows) {
+            weight = other->floating_width * other->floating_height;
+            sum_moments_x += weight * other->floating_x;
+            sum_moments_y += weight * other->floating_y;
+            sum_weights += weight;
+        }
+
+        offset_x = -sum_moments_x / sum_weights;
+        offset_y = -sum_moments_y / sum_weights;
+        */
         window->floating_x = 0.5;
         window->floating_y = 0.5;
     }
