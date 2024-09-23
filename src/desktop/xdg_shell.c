@@ -345,8 +345,7 @@ xdg_shell_view_handle_wlr_surface_commit(struct wl_listener *listener, void *dat
         return;
     }
 
-    struct wlr_box new_geo;
-    wlr_xdg_surface_get_geometry(xdg_surface, &new_geo);
+    struct wlr_box new_geo = xdg_surface->geometry;
     bool new_size = new_geo.width != self->geometry.width ||
         new_geo.height != self->geometry.height || new_geo.x != self->geometry.x ||
         new_geo.y != self->geometry.y;

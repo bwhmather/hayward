@@ -34,7 +34,7 @@ if is_freebsd
 endif
 
 # Execute the wlroots subproject, if any
-wlroots_version = ['>=0.18.0', '<0.19.0']
+wlroots_version = ['>=0.19.0', '<0.20.0']
 subproject(
   'wlroots',
   default_options: ['examples=false'],
@@ -46,7 +46,7 @@ sysprof_dep = dependency('sysprof-capture-4', required: false, include_type: 'sy
 wayland_server_dep = dependency('wayland-server', version: '>=1.21.0')
 wayland_cursor_dep = dependency('wayland-cursor')
 wayland_protos_dep = dependency('wayland-protocols', version: '>=1.24')
-wlroots_dep = dependency('wlroots-0.18', version: wlroots_version, include_type: 'system')
+wlroots_dep = dependency('wlroots-0.19', version: wlroots_version, include_type: 'system')
 xkbcommon_dep = dependency('xkbcommon')
 cairo_dep = dependency('cairo')
 pango_dep = dependency('pango')

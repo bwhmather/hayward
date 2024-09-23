@@ -22,7 +22,7 @@
 #include <wlr/types/wlr_tablet_v2.h>
 #include <wlr/util/log.h>
 
-#include <tablet-unstable-v2-protocol.h>
+#include <tablet-v2-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/input/cursor.h>
@@ -376,7 +376,7 @@ hwd_tablet_pad_notify_enter(struct hwd_tablet_pad *tablet_pad, struct wlr_surfac
         tablet_pad->current_surface = NULL;
     }
 
-    if (!wlr_surface_accepts_tablet_v2(tablet_pad->tablet->tablet_v2, surface)) {
+    if (!wlr_surface_accepts_tablet_v2(surface, tablet_pad->tablet->tablet_v2)) {
         return;
     }
 

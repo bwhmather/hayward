@@ -215,7 +215,7 @@ handle_output_present(struct wl_listener *listener, void *data) {
         return;
     }
 
-    scheduler_output->last_presentation = *output_event->when;
+    scheduler_output->last_presentation = output_event->when;
     scheduler_output->refresh_nsec = output_event->refresh;
 }
 

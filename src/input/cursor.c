@@ -43,7 +43,7 @@
 #include <wlr/util/log.h>
 #include <wlr/util/region.h>
 
-#include <tablet-unstable-v2-protocol.h>
+#include <tablet-v2-protocol.h>
 
 #include <hayward/config.h>
 #include <hayward/desktop/layer_shell.h>
@@ -452,7 +452,7 @@ handle_touch_down(struct wl_listener *listener, void *data) {
     seat->touch_x = lx;
     seat->touch_y = ly;
 
-    if (surface && wlr_surface_accepts_touch(wlr_seat, surface)) {
+    if (surface && wlr_surface_accepts_touch(surface, wlr_seat)) {
         if (seat_is_input_allowed(seat, surface)) {
             wlr_seat_touch_notify_down(
                 wlr_seat, surface, event->time_msec, event->touch_id, sx, sy
@@ -646,7 +646,7 @@ handle_tablet_tool_position(
     //   tablet events until the drag is released, even if we are now over a
     //   non-tablet surface.
     if (!cursor->simulating_pointer_from_tool_tip &&
-        ((surface && wlr_surface_accepts_tablet_v2(tablet->tablet_v2, surface)) ||
+        ((surface && wlr_surface_accepts_tablet_v2(surface, tablet->tablet_v2)) ||
          wlr_tablet_tool_v2_has_implicit_grab(tool->tablet_v2_tool))) {
         seatop_tablet_tool_motion(cursor->seat, tool, time_msec);
     } else {
@@ -736,7 +736,7 @@ handle_tool_tip(struct wl_listener *listener, void *data) {
             WL_POINTER_BUTTON_STATE_RELEASED
         );
         wlr_seat_pointer_notify_frame(cursor->seat->wlr_seat);
-    } else if (!surface || !wlr_surface_accepts_tablet_v2(tablet_v2, surface)) {
+    } else if (!surface || !wlr_surface_accepts_tablet_v2(surface, tablet_v2)) {
         // If we started holding the tool tip down on a surface that accepts
         // tablet v2, we should notify that surface if it gets released over a
         // surface that doesn't support v2.
@@ -822,7 +822,7 @@ handle_tool_button(struct wl_listener *listener, void *data) {
         cursor->seat, cursor->cursor->x, cursor->cursor->y, &output, &window, &surface, &sx, &sy
     );
 
-    if (!surface || !wlr_surface_accepts_tablet_v2(tablet_v2, surface)) {
+    if (!surface || !wlr_surface_accepts_tablet_v2(surface, tablet_v2)) {
         // TODO: the user may want to configure which tool buttons are mapped to
         // which simulated pointer buttons
         switch (event->state) {

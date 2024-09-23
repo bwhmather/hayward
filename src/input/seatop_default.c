@@ -341,7 +341,7 @@ handle_tablet_tool_tip(
 #if HAVE_XWAYLAND
     // Handle tapping on an xwayland unmanaged view
     else if (xsurface != NULL) {
-        if (xsurface->override_redirect && wlr_xwayland_or_surface_wants_focus(xsurface)) {
+        if (xsurface->override_redirect && wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
             struct wlr_xwayland *xwayland = server.xwayland->xwayland;
 
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
@@ -592,7 +592,7 @@ handle_button(
     if (surface != NULL) {
         struct wlr_xwayland_surface *xsurface = wlr_xwayland_surface_try_from_wlr_surface(surface);
         if (xsurface != NULL && xsurface->override_redirect &&
-            wlr_xwayland_or_surface_wants_focus(xsurface)) {
+            wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
             struct wlr_xwayland *xwayland = server.xwayland->xwayland;
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
 

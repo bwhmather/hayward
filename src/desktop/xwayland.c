@@ -100,7 +100,7 @@ hwd_xwayland_unmanaged_handle_xsurface_map(struct wl_listener *listener, void *d
         self->xsurface_set_geometry.notify = hwd_xwayland_unmanaged_handle_xsurface_set_geometry;
     }
 
-    if (wlr_xwayland_or_surface_wants_focus(xsurface)) {
+    if (wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
         struct hwd_seat *seat = input_manager_current_seat();
         struct wlr_xwayland *xwayland = self->xwayland->xwayland;
 
@@ -129,7 +129,7 @@ hwd_xwayland_unmanaged_handle_xsurface_unmap(struct wl_listener *listener, void 
         // This simply returns focus to the parent surface if there's one
         // available. This seems to handle JetBrains issues.
         if (xsurface->parent && xsurface->parent->surface &&
-            wlr_xwayland_or_surface_wants_focus(xsurface->parent)) {
+            wlr_xwayland_surface_override_redirect_wants_focus(xsurface->parent)) {
 
             root_set_focused_surface(root, xsurface->parent->surface);
         }
@@ -263,7 +263,7 @@ hwd_xwayland_view_handle_window_commit(struct wl_listener *listener, void *data)
     if (tiled != self->configured_is_tiled) {
         self->configured_is_tiled = tiled;
 
-        wlr_xwayland_surface_set_maximized(xsurface, tiled);
+        wlr_xwayland_surface_set_maximized(xsurface, tiled, tiled);
 
         dirty = true;
     }
@@ -540,7 +540,7 @@ should_focus(struct hwd_xwayland_view *self) {
         }
     }
 
-    if (wlr_xwayland_icccm_input_model(xsurface) == WLR_ICCCM_INPUT_MODEL_NONE) {
+    if (wlr_xwayland_surface_icccm_input_model(xsurface) == WLR_ICCCM_INPUT_MODEL_NONE) {
         return false;
     }
 
