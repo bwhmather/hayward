@@ -75,6 +75,11 @@ INCLUDE_ALIASES = {
 }
 
 BUILTIN_SYMBOLS = {
+    "va_start": "stdarg.h",
+    "va_end": "stdarg.h",
+    "va_list": "stdarg.h",
+    "va_copy": "stdarg.h",
+    "size_t": "stddef.h",
     "ssize_t": "sys/types.h",
     "pid_t": "sys/types.h",
 }
