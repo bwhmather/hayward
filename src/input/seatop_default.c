@@ -16,7 +16,6 @@
 #include <string.h>
 
 #include <wayland-server-protocol.h>
-#include <wayland-util.h>
 
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_cursor.h>
@@ -341,7 +340,8 @@ handle_tablet_tool_tip(
 #if HAVE_XWAYLAND
     // Handle tapping on an xwayland unmanaged view
     else if (xsurface != NULL) {
-        if (xsurface->override_redirect && wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
+        if (xsurface->override_redirect &&
+            wlr_xwayland_surface_override_redirect_wants_focus(xsurface)) {
             struct wlr_xwayland *xwayland = server.xwayland->xwayland;
 
             wlr_xwayland_set_seat(xwayland, seat->wlr_seat);
@@ -697,12 +697,7 @@ handle_pointer_motion(struct hwd_seat *seat, uint32_t time_msec) {
         wlr_seat_pointer_notify_clear_focus(seat->wlr_seat);
     }
 
-    struct hwd_drag_icon *drag_icon;
-    wl_list_for_each(drag_icon, &root->drag_icons, link) {
-        if (drag_icon->seat == seat) {
-            drag_icon_update_position(drag_icon);
-        }
-    }
+    drag_icons_update_position(seat);
 
     e->previous_window = window;
 }
@@ -735,12 +730,7 @@ handle_tablet_tool_motion(struct hwd_seat *seat, struct hwd_tablet_tool *tool, u
         wlr_tablet_v2_tablet_tool_notify_proximity_out(tool->tablet_v2_tool);
     }
 
-    struct hwd_drag_icon *drag_icon;
-    wl_list_for_each(drag_icon, &root->drag_icons, link) {
-        if (drag_icon->seat == seat) {
-            drag_icon_update_position(drag_icon);
-        }
-    }
+    drag_icons_update_position(seat);
 
     e->previous_window = window;
 }

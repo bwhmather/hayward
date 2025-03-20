@@ -52,6 +52,7 @@
 #include <hayward/input/text_input.h>
 #include <hayward/list.h>
 #include <hayward/server.h>
+#include <hayward/tree/drag_icon.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/root.h>
 #include <hayward/tree/view.h>
@@ -233,59 +234,18 @@ seat_is_input_allowed(struct hwd_seat *seat, struct wlr_surface *surface) {
         (seat->exclusive_client == NULL && !server.session_lock.locked);
 }
 
-void
-drag_icon_update_position(struct hwd_drag_icon *icon) {
-    struct wlr_drag_icon *wlr_icon = icon->wlr_drag_icon;
-    struct hwd_seat *seat = icon->seat;
+static void
+drag_icon_update_position(struct hwd_seat *seat, struct hwd_drag_icon *drag_icon) {
     struct wlr_cursor *cursor = seat->cursor->cursor;
-    switch (wlr_icon->drag->grab_type) {
-    case WLR_DRAG_GRAB_KEYBOARD:
-        return;
-    case WLR_DRAG_GRAB_KEYBOARD_POINTER:
-        icon->x = cursor->x + icon->dx;
-        icon->y = cursor->y + icon->dy;
-        break;
-    case WLR_DRAG_GRAB_KEYBOARD_TOUCH:;
-        struct wlr_touch_point *point =
-            wlr_seat_touch_get_point(seat->wlr_seat, wlr_icon->drag->touch_id);
-        if (point == NULL) {
-            return;
-        }
-        icon->x = seat->touch_x + icon->dx;
-        icon->y = seat->touch_y + icon->dy;
+    drag_icon_set_position(drag_icon, cursor->x, cursor->y);
+}
+
+void
+drag_icons_update_position(struct hwd_seat *seat) {
+    struct hwd_drag_icon *drag_icon;
+    wl_list_for_each(drag_icon, &root->drag_icons, link) {
+        drag_icon_update_position(seat, drag_icon);
     }
-}
-
-static void
-drag_icon_handle_surface_commit(struct wl_listener *listener, void *data) {
-    struct hwd_drag_icon *icon = wl_container_of(listener, icon, surface_commit);
-
-    struct wlr_drag_icon *wlr_icon = icon->wlr_drag_icon;
-    icon->dx += wlr_icon->surface->current.dx;
-    icon->dy += wlr_icon->surface->current.dy;
-    drag_icon_update_position(icon);
-}
-
-static void
-drag_icon_handle_map(struct wl_listener *listener, void *data) {
-    struct hwd_drag_icon *icon = wl_container_of(listener, icon, map);
-}
-
-static void
-drag_icon_handle_unmap(struct wl_listener *listener, void *data) {
-    struct hwd_drag_icon *icon = wl_container_of(listener, icon, unmap);
-}
-
-static void
-drag_icon_handle_destroy(struct wl_listener *listener, void *data) {
-    struct hwd_drag_icon *icon = wl_container_of(listener, icon, destroy);
-    icon->wlr_drag_icon->data = NULL;
-    wl_list_remove(&icon->link);
-    wl_list_remove(&icon->surface_commit.link);
-    wl_list_remove(&icon->unmap.link);
-    wl_list_remove(&icon->map.link);
-    wl_list_remove(&icon->destroy.link);
-    free(icon);
 }
 
 static void
@@ -349,29 +309,9 @@ handle_start_drag(struct wl_listener *listener, void *data) {
     wl_signal_add(&wlr_drag->events.destroy, &drag->destroy);
 
     struct wlr_drag_icon *wlr_drag_icon = wlr_drag->icon;
-    if (wlr_drag_icon != NULL) {
-        struct hwd_drag_icon *icon = calloc(1, sizeof(struct hwd_drag_icon));
-        if (icon == NULL) {
-            wlr_log(WLR_ERROR, "Allocation failed");
-            return;
-        }
-        icon->seat = seat;
-        icon->wlr_drag_icon = wlr_drag_icon;
-        wlr_drag_icon->data = icon;
+    struct hwd_drag_icon *drag_icon = drag_icon_create(root, wlr_drag_icon);
+    drag_icon_update_position(seat, drag_icon);
 
-        icon->surface_commit.notify = drag_icon_handle_surface_commit;
-        wl_signal_add(&wlr_drag_icon->surface->events.commit, &icon->surface_commit);
-        icon->unmap.notify = drag_icon_handle_unmap;
-        wl_signal_add(&wlr_drag_icon->surface->events.unmap, &icon->unmap);
-        icon->map.notify = drag_icon_handle_map;
-        wl_signal_add(&wlr_drag_icon->surface->events.map, &icon->map);
-        icon->destroy.notify = drag_icon_handle_destroy;
-        wl_signal_add(&wlr_drag_icon->events.destroy, &icon->destroy);
-
-        wl_list_insert(&root->drag_icons, &icon->link);
-
-        drag_icon_update_position(icon);
-    }
     seatop_begin_default(seat);
 }
 

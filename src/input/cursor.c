@@ -464,7 +464,8 @@ handle_touch_down(struct wl_listener *listener, void *data) {
                 root_set_active_output(root, output);
             }
         }
-    } else if (!cursor->simulating_pointer_from_touch && (!surface || seat_is_input_allowed(seat, surface))) {
+    } else if (!cursor->simulating_pointer_from_touch &&
+               (!surface || seat_is_input_allowed(seat, surface))) {
         // Fallback to cursor simulation.
         // The pointer_touch_id state is needed, so drags are not aborted when
         // over a surface supporting touch and multi touch events don't
@@ -528,12 +529,7 @@ handle_touch_motion(struct wl_listener *listener, void *data) {
         seat->touch_x = lx;
         seat->touch_y = ly;
 
-        struct hwd_drag_icon *drag_icon;
-        wl_list_for_each(drag_icon, &root->drag_icons, link) {
-            if (drag_icon->seat == seat) {
-                drag_icon_update_position(drag_icon);
-            }
-        }
+        drag_icons_update_position(seat);
     }
 
     if (cursor->simulating_pointer_from_touch) {

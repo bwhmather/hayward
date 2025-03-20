@@ -82,6 +82,7 @@ struct hwd_root {
         struct wlr_scene_tree *workspaces;
         struct wlr_scene_tree *unmanaged;
         struct wlr_scene_tree *moving;
+        struct wlr_scene_tree *drag_icons;
         struct wlr_scene_tree *overlay;
         struct wlr_scene_tree *popups;
     } layers;

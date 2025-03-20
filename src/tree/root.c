@@ -33,6 +33,7 @@
 #include <hayward/server.h>
 #include <hayward/theme.h>
 #include <hayward/tree/column.h>
+#include <hayward/tree/drag_icon.h>
 #include <hayward/tree/output.h>
 #include <hayward/tree/transaction.h>
 #include <hayward/tree/view.h>
@@ -63,6 +64,7 @@ root_init_scene(struct hwd_root *root) {
     root->layers.workspaces = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.unmanaged = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.moving = wlr_scene_tree_create(&root->root_scene->tree);
+    root->layers.drag_icons = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.overlay = wlr_scene_tree_create(&root->root_scene->tree);
     root->layers.popups = wlr_scene_tree_create(&root->root_scene->tree);
 }
@@ -88,8 +90,24 @@ root_update_layer_workspaces(struct hwd_root *root) {
 }
 
 static void
+root_update_layer_drag_icons(struct hwd_root *root) {
+    struct hwd_drag_icon *drag_icon;
+    struct wlr_scene_node *prev = NULL;
+    wl_list_for_each(drag_icon, &root->drag_icons, link) {
+        wlr_scene_node_reparent(&drag_icon->scene_tree->node, root->layers.drag_icons);
+        if (prev == NULL) {
+            wlr_scene_node_raise_to_top(&drag_icon->scene_tree->node);
+        } else {
+            wlr_scene_node_place_below(&drag_icon->scene_tree->node, prev);
+        }
+        prev = &drag_icon->scene_tree->node;
+    }
+}
+
+static void
 root_update_scene(struct hwd_root *root) {
     root_update_layer_workspaces(root);
+    root_update_layer_drag_icons(root);
 }
 
 static void

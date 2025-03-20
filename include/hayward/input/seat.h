@@ -56,20 +56,6 @@ struct hwd_seat_device {
     struct wl_list link; // hwd_seat::devices
 };
 
-struct hwd_drag_icon {
-    struct hwd_seat *seat;
-    struct wlr_drag_icon *wlr_drag_icon;
-    struct wl_list link; // hwd_root::drag_icons
-
-    double x, y; // In layout-local coordinates.
-    int dx, dy;  // Offset in surface-local coordinates.
-
-    struct wl_listener surface_commit;
-    struct wl_listener map;
-    struct wl_listener unmap;
-    struct wl_listener destroy;
-};
-
 struct hwd_drag {
     struct hwd_seat *seat;
     struct wlr_drag *wlr_drag;
@@ -145,7 +131,7 @@ bool
 seat_is_input_allowed(struct hwd_seat *seat, struct wlr_surface *surface);
 
 void
-drag_icon_update_position(struct hwd_drag_icon *icon);
+drag_icons_update_position(struct hwd_seat *seat);
 
 void
 seat_configure_device(struct hwd_seat *seat, struct hwd_input_device *device);
